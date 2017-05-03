@@ -10,8 +10,9 @@
     <version>1.0-SNAPSHOT</version>
 
     <modules>
-        <module>domain</module>
-        <module>client</module>
+        <module>platform-domain</module>
+        <module>platform-client</module>
+        <module>platform-zk-util</module>
     </modules>
 
     <properties>
