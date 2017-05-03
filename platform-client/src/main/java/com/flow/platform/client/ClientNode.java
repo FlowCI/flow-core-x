@@ -5,13 +5,14 @@ import org.apache.zookeeper.*;
 
 import java.io.IOException;
 
+
 /**
  * Created by gy@fir.im on 03/05/2017.
  *
  * @copyright fir.im
  */
 
-public class ClientNode implements Runnable {
+public class ClientNode implements Runnable, Watcher {
 
     /**
      * Zk root path /flow-nodes/{zone}/{machine}
@@ -21,33 +22,20 @@ public class ClientNode implements Runnable {
     private final static Object STATUS_LOCKER = new Object();
 
     private ZooKeeper zk;
+    private ZkEventListener zkEventListener;
+
     private String zone;
     private String machine;
 
     public ClientNode(String zkHost, int zkTimeout, String zone, String machine) throws IOException {
-        this.zk = new ZooKeeper(zkHost, zkTimeout, new ZkConnectionWatcher());
+        this.zk = new ZooKeeper(zkHost, zkTimeout, this);
         this.zone = zone;
         this.machine = machine;
     }
 
-    /**
-     * Register client node to server
-     * Monitor data changed event
-     *
-     * @param watcher handle event of data change
-     * @return path of zookeeper or null if failure
-     */
-    public String register(Watcher watcher) {
-        String path = String.format("%s/%s/%s", ZK_ROOT, zone, machine);
-
-        try {
-            path = ZkNodeHelper.createEphemeralNode(zk, path, NodeStatus.IDLE.getName());
-            zk.exists(path, watcher);
-            return path;
-        } catch (KeeperException | InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public ClientNode(String zkHost, int zkTimeout, String zone, String machine, ZkEventListener listener) throws IOException {
+        this(zkHost, zkTimeout, zone, machine);
+        this.zkEventListener = listener;
     }
 
     public void stop() {
@@ -65,5 +53,37 @@ public class ClientNode implements Runnable {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void process(WatchedEvent event) {
+        if (ZkEventHelper.isConnectToServer(event)) {
+            String path = register();
+            if (zkEventListener != null) {
+                zkEventListener.onConnected(event, path);
+            }
+        }
+
+        if (ZkEventHelper.isDataChanged(event)) {
+            ZkNodeHelper.monitoringNode(zk, event.getPath(), this, 5);
+        }
+
+        if (ZkEventHelper.isDeleted(event)) {
+            stop();
+        }
+    }
+
+
+    /**
+     * Register client node to server
+     * Monitor data changed event
+     *
+     * @return path of zookeeper or null if failure
+     */
+    private String register() {
+        String path = String.format("%s/%s/%s", ZK_ROOT, zone, machine);
+        path = ZkNodeHelper.createEphemeralNode(zk, path, NodeStatus.IDLE.getName());
+        ZkNodeHelper.monitoringNode(zk, path, this, 5);
+        return path;
     }
 }

@@ -1,11 +1,10 @@
 package com.flow.platform.client.test;
 
 import com.flow.platform.client.ClientNode;
+import com.flow.platform.client.ZkEventListener;
+import com.flow.platform.client.ZkNodeHelper;
 import com.flow.platform.domain.NodeStatus;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.junit.jupiter.api.AfterAll;
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ClientNodeTest {
 
     private static final String ZK_HOST = "127.0.0.1:2181";
+    private static final String ZONE = "ali";
+    private static final String MACHINE = "f-cont-f11f827bd8af1";
 
     private static ServerCnxnFactory zkFactory;
     private static ZooKeeper zkClient;
@@ -57,15 +59,39 @@ public class ClientNodeTest {
     @Test
     void should_client_node_registered() throws IOException, KeeperException, InterruptedException {
         // init
-        ClientNode node = new ClientNode(ZK_HOST, 2000, "ali", "f-cont-f11f827bd8af1");
-        String path = node.register(null);
+        final CountDownLatch wait = new CountDownLatch(1);
 
-        // when
-        byte[] data = zkClient.getData(path, false, null);
-        NodeStatus status = NodeStatus.valueOf(new String(data));
+        new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventListener() {
+            @Override
+            public void onConnected(WatchedEvent event, String path) {
+                assertEquals("/flow-nodes/ali/" + MACHINE, path);
 
-        // then
-        assertEquals(NodeStatus.IDLE, status);
+                // when
+                byte[] data = ZkNodeHelper.getNodeData(zkClient, path);
+                NodeStatus status = NodeStatus.valueOf(new String(data));
+
+                // then
+                assertEquals(NodeStatus.IDLE, status);
+                wait.countDown();
+            }
+
+            @Override
+            public void onDataChanged(WatchedEvent event) {
+
+            }
+
+            @Override
+            public void onDeleted(WatchedEvent event) {
+
+            }
+        });
+
+        wait.await();
+    }
+
+    @Test
+    void should_receive_data_changed() {
+
     }
 
     @AfterAll
