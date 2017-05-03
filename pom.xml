@@ -12,7 +12,6 @@
     <modules>
         <module>platform-domain</module>
         <module>platform-client</module>
-        <module>platform-zk-util</module>
     </modules>
 
     <properties>
