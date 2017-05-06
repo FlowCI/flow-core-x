@@ -1,4 +1,4 @@
-package com.flow.platform.client;
+package com.flow.platform.util.zk;
 
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;

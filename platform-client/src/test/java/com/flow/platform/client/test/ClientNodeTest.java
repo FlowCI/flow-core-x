@@ -1,10 +1,10 @@
 package com.flow.platform.client.test;
 
 import com.flow.platform.client.ClientNode;
-import com.flow.platform.client.ZkEventAdaptor;
-import com.flow.platform.client.ZkNodeHelper;
 import com.flow.platform.domain.ClientCommand;
 import com.flow.platform.domain.NodeStatus;
+import com.flow.platform.util.zk.ZkEventAdaptor;
+import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;

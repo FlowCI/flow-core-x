@@ -1,4 +1,4 @@
-package com.flow.platform.client;
+package com.flow.platform.util.zk;
 
 /**
  * Created by gy@fir.im on 03/05/2017.

@@ -1,14 +1,14 @@
 package com.flow.platform.client;
 
-import com.flow.platform.domain.ClientCommand;
 import com.flow.platform.domain.NodeStatus;
+import com.flow.platform.util.zk.ZkEventHelper;
+import com.flow.platform.util.zk.ZkEventListener;
+import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 
 /**
@@ -25,8 +25,6 @@ public class ClientNode implements Runnable, Watcher {
     private final static String ZK_ROOT = "/flow-nodes";
 
     private final static Object STATUS_LOCKER = new Object();
-
-    private final static Queue<ClientCommand> commandQueue = new LinkedBlockingQueue<>(1);
 
     private ZooKeeper zk;
     private ZkEventListener zkEventListener;

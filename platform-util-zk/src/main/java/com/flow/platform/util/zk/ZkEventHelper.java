@@ -1,4 +1,4 @@
-package com.flow.platform.client;
+package com.flow.platform.util.zk;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -16,7 +16,7 @@ public class ZkEventHelper {
      * @param event
      * @return
      */
-    static boolean isConnectToServer(WatchedEvent event) {
+    public static boolean isConnectToServer(WatchedEvent event) {
         return syncConnectedEvent(event, Watcher.Event.EventType.None);
     }
 
@@ -26,11 +26,11 @@ public class ZkEventHelper {
      * @param event
      * @return
      */
-    static boolean isDeleted(WatchedEvent event) {
+    public static boolean isDeleted(WatchedEvent event) {
         return syncConnectedEvent(event, Watcher.Event.EventType.NodeDeleted);
     }
 
-    static boolean isDataChanged(WatchedEvent event) {
+    public static boolean isDataChanged(WatchedEvent event) {
         return syncConnectedEvent(event, Watcher.Event.EventType.NodeDataChanged);
     }
 

@@ -1,4 +1,4 @@
-package com.flow.platform.client;
+package com.flow.platform.util.zk;
 
 import org.apache.zookeeper.WatchedEvent;
 
@@ -9,17 +9,14 @@ import org.apache.zookeeper.WatchedEvent;
  */
 public class ZkEventAdaptor implements ZkEventListener {
 
-    @Override
     public void onConnected(WatchedEvent event, String path) {
 
     }
 
-    @Override
     public void onDataChanged(WatchedEvent event, byte[] data) {
 
     }
 
-    @Override
     public void onDeleted(WatchedEvent event) {
 
     }
