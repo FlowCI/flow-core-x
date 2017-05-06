@@ -8,16 +8,16 @@ import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
@@ -33,8 +33,8 @@ public class ClientNodeTest {
     private static ServerCnxnFactory zkFactory;
     private static ZooKeeper zkClient;
 
-    @BeforeAll
-    static void init() throws IOException, InterruptedException, KeeperException {
+    @BeforeClass
+    public static void init() throws IOException, InterruptedException, KeeperException {
         int tickTime = 2000;
         int numConnections = 5000;
         String dataDirectory = System.getProperty("java.io.tmpdir");
@@ -60,13 +60,13 @@ public class ClientNodeTest {
 
     private CountDownLatch waitState;
 
-    @BeforeEach
-    void beforeEach() {
+    @Before
+    public void beforeEach() {
         waitState = new CountDownLatch(1);
     }
 
     @Test
-    void should_client_node_registered() throws IOException, KeeperException, InterruptedException {
+    public void should_client_node_registered() throws IOException, KeeperException, InterruptedException {
         new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
@@ -86,7 +86,7 @@ public class ClientNodeTest {
     }
 
     @Test
-    void should_receive_data_changed() throws IOException, InterruptedException, KeeperException {
+    public void should_receive_data_changed() throws IOException, InterruptedException, KeeperException {
         final CountDownLatch waitForConnect = new CountDownLatch(1);
 
         new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
@@ -111,8 +111,8 @@ public class ClientNodeTest {
         waitState.await();
     }
 
-    @AfterAll
-    static void done() {
+    @AfterClass
+    public static void done() {
         zkFactory.closeAll();
         zkFactory.shutdown();
     }
