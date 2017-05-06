@@ -1,9 +1,14 @@
 package com.flow.platform.client;
 
+import com.flow.platform.domain.ClientCommand;
 import com.flow.platform.domain.NodeStatus;
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 /**
@@ -20,6 +25,8 @@ public class ClientNode implements Runnable, Watcher {
     private final static String ZK_ROOT = "/flow-nodes";
 
     private final static Object STATUS_LOCKER = new Object();
+
+    private final static Queue<ClientCommand> commandQueue = new LinkedBlockingQueue<>(1);
 
     private ZooKeeper zk;
     private ZkEventListener zkEventListener;
@@ -65,7 +72,16 @@ public class ClientNode implements Runnable, Watcher {
         }
 
         if (ZkEventHelper.isDataChanged(event)) {
-            ZkNodeHelper.monitoringNode(zk, event.getPath(), this, 5);
+            try {
+                byte[] rawData = ZkNodeHelper.getNodeData(zk, event.getPath());
+                if (zkEventListener != null) {
+                    zkEventListener.onDataChanged(event, rawData);
+                }
+            } catch (Exception e) {
+                System.out.println("Invalid cmd from server");
+            } finally {
+                ZkNodeHelper.monitoringNode(zk, event.getPath(), this, 5);
+            }
         }
 
         if (ZkEventHelper.isDeleted(event)) {

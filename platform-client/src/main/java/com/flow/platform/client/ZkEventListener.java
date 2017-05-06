@@ -11,7 +11,7 @@ public interface ZkEventListener {
 
     void onConnected(WatchedEvent event, String path);
 
-    void onDataChanged(WatchedEvent event);
+    void onDataChanged(WatchedEvent event, byte[] data);
 
     void onDeleted(WatchedEvent event);
 }
