@@ -1,14 +1,16 @@
 package com.flow.platform.client.test;
 
 import com.flow.platform.client.ClientNode;
-import com.flow.platform.client.ZkEventListener;
+import com.flow.platform.client.ZkEventAdaptor;
 import com.flow.platform.client.ZkNodeHelper;
+import com.flow.platform.domain.ClientCommand;
 import com.flow.platform.domain.NodeStatus;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -56,12 +58,16 @@ public class ClientNodeTest {
         }
     }
 
+    private CountDownLatch waitState;
+
+    @BeforeEach
+    void beforeEach() {
+        waitState = new CountDownLatch(1);
+    }
+
     @Test
     void should_client_node_registered() throws IOException, KeeperException, InterruptedException {
-        // init
-        final CountDownLatch wait = new CountDownLatch(1);
-
-        new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventListener() {
+        new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 assertEquals("/flow-nodes/ali/" + MACHINE, path);
@@ -72,26 +78,37 @@ public class ClientNodeTest {
 
                 // then
                 assertEquals(NodeStatus.IDLE, status);
-                wait.countDown();
-            }
-
-            @Override
-            public void onDataChanged(WatchedEvent event) {
-
-            }
-
-            @Override
-            public void onDeleted(WatchedEvent event) {
-
+                waitState.countDown();
             }
         });
 
-        wait.await();
+        waitState.await();
     }
 
     @Test
-    void should_receive_data_changed() {
+    void should_receive_data_changed() throws IOException, InterruptedException, KeeperException {
+        final CountDownLatch waitForConnect = new CountDownLatch(1);
 
+        new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
+            @Override
+            public void onConnected(WatchedEvent event, String path) {
+                waitForConnect.countDown();
+            }
+
+            @Override
+            public void onDataChanged(WatchedEvent event, byte[] data) {
+                // when
+                ClientCommand command = ClientCommand.valueOf(new String(data));
+
+                // then
+                assertEquals(ClientCommand.RUN, command);
+                waitState.countDown();
+            }
+        });
+
+        waitForConnect.await();
+        zkClient.setData(String.format("/flow-nodes/ali/%s", MACHINE), "RUN".getBytes(), 0);
+        waitState.await();
     }
 
     @AfterAll
