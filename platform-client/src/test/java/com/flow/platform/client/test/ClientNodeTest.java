@@ -6,6 +6,7 @@ import com.flow.platform.domain.ClientStatus;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.junit.AfterClass;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
@@ -74,7 +77,7 @@ public class ClientNodeTest {
                 assertEquals("/flow-nodes/ali/" + MACHINE, path);
 
                 // when
-                byte[] data = ZkNodeHelper.getNodeData(zkClient, path);
+                byte[] data = ZkNodeHelper.getNodeData(zkClient, path, null);
                 ClientStatus status = ClientStatus.valueOf(new String(data));
 
                 // then
@@ -94,7 +97,7 @@ public class ClientNodeTest {
     public void should_receive_command() throws IOException, InterruptedException, KeeperException {
         final CountDownLatch waitForConnect = new CountDownLatch(1);
 
-        new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
+        ClientNode client = new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 waitForConnect.countDown();
@@ -107,13 +110,26 @@ public class ClientNodeTest {
 
                 // then
                 assertEquals(ClientCommand.RUN, command);
+
+                // then: remove busy status
+                ZkNodeHelper.deleteNode(zkClient, "/flow-nodes/ali/" + MACHINE + "-busy");
                 waitState.countDown();
             }
         });
 
         waitForConnect.await();
-        zkClient.setData(String.format("/flow-nodes/ali/%s", MACHINE), "RUN".getBytes(), 0);
+
+        // set busy node and data
+        ZkNodeHelper.createEphemeralNode(zkClient, client.getNodePathBusy(), "");
+        assertNotNull(ZkNodeHelper.exist(zkClient, client.getNodePathBusy()));
+
+        ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), "RUN");
+
         waitState.await();
+
+        // then: check busy node is deleted after command ran
+        Stat ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
+        assertNull(ss);
     }
 
     @AfterClass

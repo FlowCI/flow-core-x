@@ -22,6 +22,15 @@ public class ZkNodeHelper {
         }
     }
 
+    public static void deleteNode(ZooKeeper zk, String path) {
+        try {
+            Stat stat = zk.exists(path, false);
+            zk.delete(path, stat.getVersion());
+        } catch (InterruptedException | KeeperException e) {
+            throw checkException(e);
+        }
+    }
+
     public static Stat monitoringNode(ZooKeeper zk, String path, Watcher watcher, int retry) {
         try {
             return zk.exists(path, watcher);
@@ -40,17 +49,26 @@ public class ZkNodeHelper {
         }
     }
 
-    public static byte[] getNodeData(ZooKeeper zk, String path) {
+    public static Stat exist(ZooKeeper zk, String path) {
         try {
-            return zk.getData(path, false, null);
+            return zk.exists(path, false);
         } catch (KeeperException | InterruptedException e) {
             throw checkException(e);
         }
     }
 
-    public static void setNodeData(ZooKeeper zk, String path, byte[] data) {
+    public static byte[] getNodeData(ZooKeeper zk, String path, Stat stat) {
         try {
-            zk.setData(path, data, 0);
+            return zk.getData(path, false, stat);
+        } catch (KeeperException | InterruptedException e) {
+            throw checkException(e);
+        }
+    }
+
+    public static void setNodeData(ZooKeeper zk, String path, String data) {
+        try {
+            Stat stat = zk.exists(path, false);
+            zk.setData(path, data.getBytes(), stat.getVersion());
         } catch (KeeperException | InterruptedException e) {
             throw checkException(e);
         }
