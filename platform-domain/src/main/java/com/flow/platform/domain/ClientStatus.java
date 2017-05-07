@@ -7,7 +7,7 @@ import java.io.Serializable;
  *
  * @copyright fir.im
  */
-public enum NodeStatus implements Serializable {
+public enum ClientStatus implements Serializable {
 
     IDLE("IDLE"),
 
@@ -15,7 +15,7 @@ public enum NodeStatus implements Serializable {
 
     private String name;
 
-    NodeStatus(String name) {
+    ClientStatus(String name) {
         this.name = name;
     }
 

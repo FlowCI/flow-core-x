@@ -2,7 +2,7 @@ package com.flow.platform.client.test;
 
 import com.flow.platform.client.ClientNode;
 import com.flow.platform.domain.ClientCommand;
-import com.flow.platform.domain.NodeStatus;
+import com.flow.platform.domain.ClientStatus;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.*;
@@ -75,10 +75,10 @@ public class ClientNodeTest {
 
                 // when
                 byte[] data = ZkNodeHelper.getNodeData(zkClient, path);
-                NodeStatus status = NodeStatus.valueOf(new String(data));
+                ClientStatus status = ClientStatus.valueOf(new String(data));
 
                 // then
-                assertEquals(NodeStatus.IDLE, status);
+                assertEquals(ClientStatus.IDLE, status);
                 waitState.countDown();
             }
         });
@@ -91,7 +91,7 @@ public class ClientNodeTest {
     }
 
     @Test
-    public void should_receive_data_changed() throws IOException, InterruptedException, KeeperException {
+    public void should_receive_command() throws IOException, InterruptedException, KeeperException {
         final CountDownLatch waitForConnect = new CountDownLatch(1);
 
         new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {

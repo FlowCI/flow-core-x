@@ -1,6 +1,6 @@
 package com.flow.platform.client;
 
-import com.flow.platform.domain.NodeStatus;
+import com.flow.platform.domain.ClientStatus;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkEventListener;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -96,7 +96,7 @@ public class ClientNode implements Runnable, Watcher {
      */
     private String register() {
         String path = String.format("%s/%s/%s", ZK_ROOT, zone, machine);
-        path = ZkNodeHelper.createEphemeralNode(zk, path, NodeStatus.IDLE.getName());
+        path = ZkNodeHelper.createEphemeralNode(zk, path, ClientStatus.IDLE.getName());
         ZkNodeHelper.monitoringNode(zk, path, this, 5);
         return path;
     }

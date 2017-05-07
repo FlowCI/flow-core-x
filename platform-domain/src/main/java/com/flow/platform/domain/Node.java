@@ -33,7 +33,7 @@ public class Node implements Serializable {
     /**
      * Status
      */
-    private NodeStatus status;
+    private ClientStatus status;
 
     /**
      * Node execution sequence
