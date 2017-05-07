@@ -7,17 +7,34 @@ package com.flow.platform.util.zk;
  */
 public class ZkException {
 
-    public static class ZkServerConnectionException extends RuntimeException {
-
+    public static abstract class AbstractZkException extends RuntimeException {
         private Exception raw;
 
-        public ZkServerConnectionException(Exception raw) {
-            super("Zookeeper server connection error");
+        public AbstractZkException(Exception raw, String message) {
+            super(message);
             this.raw = raw;
         }
 
         public Exception getRaw() {
             return raw;
+        }
+    }
+
+    public static class ZkServerConnectionException extends AbstractZkException {
+        public ZkServerConnectionException(Exception raw) {
+            super(raw, "Zookeeper server connection error");
+        }
+    }
+
+    public static class ZkNoNodeException extends AbstractZkException {
+        public ZkNoNodeException(Exception raw, String path) {
+            super(raw, String.format("Node not exist: %s", path));
+        }
+    }
+
+    public static class ZkBadVersion extends AbstractZkException {
+        public ZkBadVersion(Exception raw) {
+            super(raw, "Bad data version");
         }
     }
 

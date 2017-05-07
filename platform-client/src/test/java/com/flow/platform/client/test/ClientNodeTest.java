@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
@@ -83,6 +84,10 @@ public class ClientNodeTest {
         });
 
         waitState.await();
+
+        List<String> nodeList = ZkNodeHelper.getChildrenNodes(zkClient, "/flow-nodes/ali");
+        assertEquals(1, nodeList.size());
+        assertEquals(MACHINE, nodeList.get(0));
     }
 
     @Test
