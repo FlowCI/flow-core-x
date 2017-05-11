@@ -76,13 +76,16 @@ public class ClientNodeTest {
             public void onConnected(WatchedEvent event, String path) {
                 assertEquals("/flow-nodes/ali/" + MACHINE, path);
 
-                // when
-                byte[] data = ZkNodeHelper.getNodeData(zkClient, path, null);
-                ClientStatus status = ClientStatus.valueOf(new String(data));
+                try {
+                    // when
+                    byte[] data = ZkNodeHelper.getNodeData(zkClient, path, null);
+                    ClientStatus status = ClientStatus.valueOf(new String(data));
 
-                // then
-                assertEquals(ClientStatus.IDLE, status);
-                waitState.countDown();
+                    // then
+                    assertEquals(ClientStatus.IDLE, status);
+                } finally {
+                    waitState.countDown();
+                }
             }
         });
 
@@ -105,15 +108,18 @@ public class ClientNodeTest {
 
             @Override
             public void onDataChanged(WatchedEvent event, byte[] data) {
-                // when
-                ClientCommand command = ClientCommand.valueOf(new String(data));
+                try {
+                    // when
+                    ClientCommand command = ClientCommand.valueOf(new String(data));
 
-                // then
-                assertEquals(ClientCommand.RUN, command);
+                    // then
+                    assertEquals(ClientCommand.RUN, command);
 
-                // then: remove busy status
-                ZkNodeHelper.deleteNode(zkClient, "/flow-nodes/ali/" + MACHINE + "-busy");
-                waitState.countDown();
+                    // then: remove busy status
+                    ZkNodeHelper.deleteNode(zkClient, "/flow-nodes/ali/" + MACHINE + "-busy");
+                } finally {
+                    waitState.countDown();
+                }
             }
         });
 
