@@ -13,6 +13,7 @@
         <module>platform-domain</module>
         <module>platform-client</module>
         <module>platform-util-zk</module>
+        <module>platform-cmd-runner</module>
     </modules>
 
     <properties>
