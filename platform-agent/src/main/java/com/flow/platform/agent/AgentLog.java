@@ -12,7 +12,7 @@ public class AgentLog {
     }
 
     static void err(Throwable e, String description) {
-        System.out.println(description);
+        e.printStackTrace();
         System.out.println(e.getMessage());
     }
 }

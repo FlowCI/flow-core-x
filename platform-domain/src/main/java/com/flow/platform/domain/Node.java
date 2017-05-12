@@ -31,11 +31,6 @@ public class Node implements Serializable {
     private String machine;
 
     /**
-     * Status
-     */
-    private ClientStatus status;
-
-    /**
      * Node execution sequence
      */
     private Integer sequence = 0;

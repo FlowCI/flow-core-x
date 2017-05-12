@@ -43,7 +43,9 @@ public class ZkNodeHelper {
     public static void deleteNode(ZooKeeper zk, String path) {
         try {
             Stat stat = zk.exists(path, false);
-            zk.delete(path, stat.getVersion());
+            if (stat != null) {
+                zk.delete(path, stat.getVersion());
+            }
         } catch (InterruptedException | KeeperException e) {
             throw checkException(e);
         }

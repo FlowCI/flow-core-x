@@ -1,7 +1,6 @@
 package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.AgentService;
-import com.flow.platform.domain.ClientStatus;
 import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -9,10 +8,8 @@ import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +24,8 @@ import static org.junit.Assert.assertNull;
  *
  * @copyright fir.im
  */
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AgentTest {
 
     private static final String ZK_HOST = "127.0.0.1:2181";
@@ -40,15 +39,18 @@ public class AgentTest {
     public static void init() throws IOException, InterruptedException, KeeperException {
         int tickTime = 2000;
         int numConnections = 5000;
+
         String dataDirectory = System.getProperty("java.io.tmpdir");
         File dir = new File(dataDirectory, "zookeeper").getAbsoluteFile();
+        dir.delete();
+
         ZooKeeperServer zkServer = new ZooKeeperServer(dir, dir, tickTime);
 
         zkFactory = ServerCnxnFactory.createFactory(2181, numConnections);
         zkFactory.getLocalPort();
         zkFactory.startup(zkServer);
 
-        zkClient = new ZooKeeper(ZK_HOST, 2000, null);
+        zkClient = new ZooKeeper(ZK_HOST, 20000, null);
 
         try {
             zkClient.create("/flow-nodes", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -70,7 +72,7 @@ public class AgentTest {
 
     @Test
     public void should_agent_registered() throws IOException, KeeperException, InterruptedException {
-        new AgentService(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
+        new AgentService(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 assertEquals("/flow-nodes/ali/" + MACHINE, path);
@@ -78,10 +80,9 @@ public class AgentTest {
                 try {
                     // when
                     byte[] data = ZkNodeHelper.getNodeData(zkClient, path, null);
-                    ClientStatus status = ClientStatus.valueOf(new String(data));
 
                     // then
-                    assertEquals(ClientStatus.IDLE, status);
+                    assertEquals("", new String(data));
                 } finally {
                     waitState.countDown();
                 }
@@ -97,7 +98,7 @@ public class AgentTest {
         final CountDownLatch waitForCommandStart = new CountDownLatch(1);
         final CountDownLatch waitForBusyStatusRemoved = new CountDownLatch(1);
 
-        AgentService client = new AgentService(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
+        AgentService client = new AgentService(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 waitForConnect.countDown();

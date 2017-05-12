@@ -4,7 +4,6 @@ import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.CmdResult;
 import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkEventAdaptor;
-import com.flow.platform.util.zk.ZkEventListener;
 import org.apache.zookeeper.WatchedEvent;
 
 import java.io.IOException;
