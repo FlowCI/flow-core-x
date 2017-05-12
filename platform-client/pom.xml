@@ -29,6 +29,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.flow.platform</groupId>
+            <artifactId>platform-cmd-runner</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
         </dependency>

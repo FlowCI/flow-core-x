@@ -91,7 +91,7 @@ public class ClientNode implements Runnable, Watcher {
                     zkEventListener.onDataChanged(event, rawData);
                 }
             } catch (Exception e) {
-                System.out.println("Invalid cmd from server");
+                ClientLogging.err(e, "Invalid cmd from server");
             } finally {
                 ZkNodeHelper.monitoringNode(zk, event.getPath(), this, 5);
             }

@@ -28,13 +28,17 @@ public class CmdExecutor {
         pBuilder.redirectErrorStream(true);
     }
 
-    public CmdResult run() {
+    public void run(CmdResult outputResult) {
+        if (outputResult == null) {
+            throw new IllegalArgumentException("Argument 'CmdResult' is Null");
+        }
+
         long startTime = System.currentTimeMillis();
-        CmdResult resultObj = new CmdResult();
+        outputResult = new CmdResult();
 
         try {
             Process p = pBuilder.start();
-            resultObj.setPid(getPid(p));
+            outputResult.setPid(getPid(p));
 
             // start thread to read logging stream
             Thread threadForStream = new Thread(createCmdStreamReader(p));
@@ -45,21 +49,19 @@ public class CmdExecutor {
             threadForStream.start();
             threadForLogging.start();
 
-            resultObj.setExitValue(p.waitFor());
+            outputResult.setExitValue(p.waitFor());
             System.out.println(" ===== Process executed =====");
 
             waitLock.await();
             System.out.println(" ===== Logging executed =====");
 
         } catch (InterruptedException | IOException e) {
-            resultObj.getExceptions().add(e);
+            outputResult.getExceptions().add(e);
         } finally {
             // calculate duration
             long endTime = System.currentTimeMillis();
             long durationInSecond = (endTime - startTime) / 1000;
-            resultObj.setDuration(durationInSecond);
-
-            return resultObj;
+            outputResult.setDuration(durationInSecond);
         }
     }
 
