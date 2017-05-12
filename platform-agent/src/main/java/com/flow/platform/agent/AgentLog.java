@@ -1,11 +1,11 @@
-package com.flow.platform.client;
+package com.flow.platform.agent;
 
 /**
  * Created by gy@fir.im on 12/05/2017.
  *
  * @copyright fir.im
  */
-public class ClientLogging {
+public class AgentLog {
 
     static void info(String message) {
         System.out.println(message);

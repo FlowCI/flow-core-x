@@ -1,6 +1,6 @@
-package com.flow.platform.client.test;
+package com.flow.platform.agent.test;
 
-import com.flow.platform.client.ClientNode;
+import com.flow.platform.agent.AgentService;
 import com.flow.platform.domain.ClientCommand;
 import com.flow.platform.domain.ClientStatus;
 import com.flow.platform.util.zk.ZkEventAdaptor;
@@ -28,7 +28,7 @@ import static org.junit.Assert.assertNull;
  *
  * @copyright fir.im
  */
-public class ClientNodeTest {
+public class AgentTest {
 
     private static final String ZK_HOST = "127.0.0.1:2181";
     private static final String ZONE = "ali";
@@ -70,8 +70,8 @@ public class ClientNodeTest {
     }
 
     @Test
-    public void should_client_node_registered() throws IOException, KeeperException, InterruptedException {
-        new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
+    public void should_agent_registered() throws IOException, KeeperException, InterruptedException {
+        new AgentService(ZK_HOST, 2000g, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 assertEquals("/flow-nodes/ali/" + MACHINE, path);
@@ -90,17 +90,14 @@ public class ClientNodeTest {
         });
 
         waitState.await();
-
-        List<String> nodeList = ZkNodeHelper.getChildrenNodes(zkClient, "/flow-nodes/ali");
-        assertEquals(1, nodeList.size());
-        assertEquals(MACHINE, nodeList.get(0));
     }
 
     @Test
-    public void should_receive_command() throws IOException, InterruptedException, KeeperException {
+    public void should_receive_command() throws InterruptedException, IOException {
         final CountDownLatch waitForConnect = new CountDownLatch(1);
+        final CountDownLatch waitForCommandStart = new CountDownLatch(1);
 
-        ClientNode client = new ClientNode(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
+        AgentService client = new AgentService(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 waitForConnect.countDown();
@@ -110,13 +107,17 @@ public class ClientNodeTest {
             public void onDataChanged(WatchedEvent event, byte[] data) {
                 try {
                     // when
+                    waitForCommandStart.countDown();
                     ClientCommand command = ClientCommand.valueOf(new String(data));
 
                     // then
                     assertEquals(ClientCommand.RUN, command);
 
-                    // then: remove busy status
-                    ZkNodeHelper.deleteNode(zkClient, "/flow-nodes/ali/" + MACHINE + "-busy");
+                    // simulate cmd running need 5 seconds
+                    Thread.sleep(5000);
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 } finally {
                     waitState.countDown();
                 }
@@ -125,21 +126,28 @@ public class ClientNodeTest {
 
         waitForConnect.await();
 
-        // set busy node and data
-        ZkNodeHelper.createEphemeralNode(zkClient, client.getNodePathBusy(), "");
-        assertNotNull(ZkNodeHelper.exist(zkClient, client.getNodePathBusy()));
+        // then: check node status after connected, should not busy
+        Stat ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
+        assertNull(ss);
 
+        // when: send command to agent
         ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), "RUN");
 
+        // then: check agent status when command received
+        waitForCommandStart.await();
+        ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
+        assertNotNull(ss);
+
+        // when: wait for command executed
         waitState.await();
 
-        // then: check busy node is deleted after command ran
-        Stat ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
+        // then: check busy node should be deleted after command ran
+        ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
         assertNull(ss);
     }
 
     @AfterClass
-    public static void done() {
+    public static void done() throws KeeperException, InterruptedException {
         zkFactory.closeAll();
         zkFactory.shutdown();
     }

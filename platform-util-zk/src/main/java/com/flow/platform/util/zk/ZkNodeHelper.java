@@ -13,8 +13,12 @@ import java.util.List;
 public class ZkNodeHelper {
 
     public static String createEphemeralNode(ZooKeeper zk, String path, String data) {
+        return createEphemeralNode(zk, path, data.getBytes());
+    }
+
+    public static String createEphemeralNode(ZooKeeper zk, String path, byte[] data) {
         try {
-            return zk.create(path, data.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+            return zk.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
         } catch (KeeperException.NodeExistsException e) {
             return path;
         } catch (KeeperException | InterruptedException e) {

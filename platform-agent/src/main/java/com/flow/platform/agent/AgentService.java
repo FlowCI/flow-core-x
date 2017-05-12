@@ -1,4 +1,4 @@
-package com.flow.platform.client;
+package com.flow.platform.agent;
 
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkEventListener;
@@ -16,7 +16,7 @@ import java.io.IOException;
  * @copyright fir.im
  */
 
-public class ClientNode implements Runnable, Watcher {
+public class AgentService implements Runnable, Watcher {
 
     /**
      * Zk root path /flow-nodes/{zone}/{machine}
@@ -31,10 +31,17 @@ public class ClientNode implements Runnable, Watcher {
     private String zone;
     private String machine;
 
+    /**
+     * ZK node path
+     */
     private String nodePath;
+
+    /**
+     * ZK busy node path for agent status
+     */
     private String nodePathBusy;
 
-    public ClientNode(String zkHost, int zkTimeout, String zone, String machine) throws IOException {
+    public AgentService(String zkHost, int zkTimeout, String zone, String machine) throws IOException {
         this.zk = new ZooKeeper(zkHost, zkTimeout, this);
         this.zone = zone;
         this.machine = machine;
@@ -43,7 +50,7 @@ public class ClientNode implements Runnable, Watcher {
         this.nodePathBusy = String.format("%s/%s/%s-busy", ZK_ROOT, zone, machine);
     }
 
-    public ClientNode(String zkHost, int zkTimeout, String zone, String machine, ZkEventListener listener) throws IOException {
+    public AgentService(String zkHost, int zkTimeout, String zone, String machine, ZkEventListener listener) throws IOException {
         this(zkHost, zkTimeout, zone, machine);
         this.zkEventListener = listener;
     }
@@ -56,6 +63,9 @@ public class ClientNode implements Runnable, Watcher {
         return nodePathBusy;
     }
 
+    /**
+     * Stop agent
+     */
     public void stop() {
         synchronized (STATUS_LOCKER) {
             STATUS_LOCKER.notifyAll();
@@ -85,12 +95,15 @@ public class ClientNode implements Runnable, Watcher {
         if (ZkEventHelper.isDataChanged(event)) {
             try {
                 byte[] rawData = ZkNodeHelper.getNodeData(zk, event.getPath(), null);
+                ZkNodeHelper.createEphemeralNode(zk, getNodePathBusy(), rawData);
+
                 if (zkEventListener != null) {
                     zkEventListener.onDataChanged(event, rawData);
                 }
             } catch (Exception e) {
-                ClientLogging.err(e, "Invalid cmd from server");
+                AgentLog.err(e, "Invalid cmd from server");
             } finally {
+                ZkNodeHelper.deleteNode(zk, getNodePathBusy());
                 ZkNodeHelper.monitoringNode(zk, event.getPath(), this, 5);
             }
         }
@@ -102,7 +115,7 @@ public class ClientNode implements Runnable, Watcher {
 
 
     /**
-     * Register client node to server
+     * Register agent node to server
      * Monitor data changed event
      *
      * @return path of zookeeper or null if failure
