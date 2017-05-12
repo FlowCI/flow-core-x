@@ -71,7 +71,7 @@ public class AgentTest {
 
     @Test
     public void should_agent_registered() throws IOException, KeeperException, InterruptedException {
-        new AgentService(ZK_HOST, 2000g, ZONE, MACHINE, new ZkEventAdaptor() {
+        new AgentService(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 assertEquals("/flow-nodes/ali/" + MACHINE, path);
