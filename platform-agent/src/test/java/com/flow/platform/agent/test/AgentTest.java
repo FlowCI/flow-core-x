@@ -1,8 +1,8 @@
 package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.AgentService;
-import com.flow.platform.domain.ClientCommand;
 import com.flow.platform.domain.ClientStatus;
+import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.*;
@@ -16,7 +16,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
@@ -96,6 +95,7 @@ public class AgentTest {
     public void should_receive_command() throws InterruptedException, IOException {
         final CountDownLatch waitForConnect = new CountDownLatch(1);
         final CountDownLatch waitForCommandStart = new CountDownLatch(1);
+        final CountDownLatch waitForBusyStatusRemoved = new CountDownLatch(1);
 
         AgentService client = new AgentService(ZK_HOST, 2000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
@@ -104,14 +104,13 @@ public class AgentTest {
             }
 
             @Override
-            public void onDataChanged(WatchedEvent event, byte[] data) {
+            public void onDataChanged(WatchedEvent event, ZkCmd cmd) {
                 try {
                     // when
                     waitForCommandStart.countDown();
-                    ClientCommand command = ClientCommand.valueOf(new String(data));
 
                     // then
-                    assertEquals(ClientCommand.RUN, command);
+                    assertEquals(new ZkCmd(ZkCmd.Type.RUN_SHELL, "~/test.sh"), cmd);
 
                     // simulate cmd running need 5 seconds
                     Thread.sleep(5000);
@@ -122,6 +121,11 @@ public class AgentTest {
                     waitState.countDown();
                 }
             }
+
+            @Override
+            public void afterOnDataChanged(WatchedEvent event, ZkCmd cmd) {
+                waitForBusyStatusRemoved.countDown();
+            }
         });
 
         waitForConnect.await();
@@ -131,7 +135,11 @@ public class AgentTest {
         assertNull(ss);
 
         // when: send command to agent
-        ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), "RUN");
+        ZkCmd cmd = new ZkCmd();
+        cmd.setType(ZkCmd.Type.RUN_SHELL);
+        cmd.setCmd("~/test.sh");
+
+        ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), cmd.toJson());
 
         // then: check agent status when command received
         waitForCommandStart.await();
@@ -142,6 +150,7 @@ public class AgentTest {
         waitState.await();
 
         // then: check busy node should be deleted after command ran
+        waitForBusyStatusRemoved.await();
         ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
         assertNull(ss);
     }

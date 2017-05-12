@@ -9,15 +9,23 @@ import org.apache.zookeeper.WatchedEvent;
  */
 public class ZkEventAdaptor implements ZkEventListener {
 
+    @Override
     public void onConnected(WatchedEvent event, String path) {
 
     }
 
-    public void onDataChanged(WatchedEvent event, byte[] data) {
+    @Override
+    public void onDataChanged(WatchedEvent event, ZkCmd cmd) {
 
     }
 
+    @Override
     public void onDeleted(WatchedEvent event) {
+
+    }
+
+    @Override
+    public void afterOnDataChanged(WatchedEvent event, ZkCmd cmd) {
 
     }
 }

@@ -1,8 +1,10 @@
 package com.flow.platform.agent;
 
+import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkEventListener;
 import com.flow.platform.util.zk.ZkNodeHelper;
+import com.google.gson.Gson;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -31,6 +33,8 @@ public class AgentService implements Runnable, Watcher {
     private String zone;
     private String machine;
 
+    private String zonePath;
+
     /**
      * ZK node path
      */
@@ -46,6 +50,7 @@ public class AgentService implements Runnable, Watcher {
         this.zone = zone;
         this.machine = machine;
 
+        this.zonePath = String.format("%s/%s", ZK_ROOT, zone);
         this.nodePath = String.format("%s/%s/%s", ZK_ROOT, zone, machine);
         this.nodePathBusy = String.format("%s/%s/%s-busy", ZK_ROOT, zone, machine);
     }
@@ -85,34 +90,45 @@ public class AgentService implements Runnable, Watcher {
 
     @Override
     public void process(WatchedEvent event) {
-        if (ZkEventHelper.isConnectToServer(event)) {
-            String path = register();
-            if (zkEventListener != null) {
-                zkEventListener.onConnected(event, path);
-            }
-        }
-
-        if (ZkEventHelper.isDataChanged(event)) {
-            try {
-                byte[] rawData = ZkNodeHelper.getNodeData(zk, event.getPath(), null);
-                ZkNodeHelper.createEphemeralNode(zk, getNodePathBusy(), rawData);
-
+        try {
+            if (ZkEventHelper.isConnectToServer(event)) {
+                String path = register();
                 if (zkEventListener != null) {
-                    zkEventListener.onDataChanged(event, rawData);
+                    zkEventListener.onConnected(event, path);
                 }
-            } catch (Exception e) {
-                AgentLog.err(e, "Invalid cmd from server");
-            } finally {
-                ZkNodeHelper.deleteNode(zk, getNodePathBusy());
-                ZkNodeHelper.monitoringNode(zk, event.getPath(), this, 5);
             }
-        }
 
-        if (ZkEventHelper.isDeleted(event)) {
+            if (ZkEventHelper.isDataChanged(event)) {
+                ZkCmd cmd = null;
+
+                try {
+                    byte[] rawData = ZkNodeHelper.getNodeData(zk, event.getPath(), null);
+                    ZkNodeHelper.createEphemeralNode(zk, getNodePathBusy(), rawData);
+                    cmd = parseCmd(rawData);
+
+                    if (zkEventListener != null) {
+                        zkEventListener.onDataChanged(event, cmd);
+                    }
+                } catch (Throwable e) {
+                    AgentLog.err(e, "Invalid cmd from server");
+                } finally {
+                    ZkNodeHelper.deleteNode(zk, getNodePathBusy());
+                    ZkNodeHelper.monitoringNode(zk, event.getPath(), this, 5);
+
+                    if (zkEventListener != null) {
+                        zkEventListener.afterOnDataChanged(event, cmd);
+                    }
+                }
+            }
+
+            if (ZkEventHelper.isDeleted(event)) {
+                stop();
+            }
+        } catch (Throwable e) {
+            AgentLog.err(e, "Unexpected error");
             stop();
         }
     }
-
 
     /**
      * Register agent node to server
@@ -121,8 +137,17 @@ public class AgentService implements Runnable, Watcher {
      * @return path of zookeeper or null if failure
      */
     private String register() {
+        if (ZkNodeHelper.exist(zk, zonePath) == null) {
+            ZkNodeHelper.createNode(zk, zonePath, "");
+        }
+
         String path = ZkNodeHelper.createEphemeralNode(zk, nodePath, "");
         ZkNodeHelper.monitoringNode(zk, path, this, 5);
         return path;
+    }
+
+    private ZkCmd parseCmd(byte[] jsonRaw) {
+        Gson gson = new Gson();
+        return gson.fromJson(new String(jsonRaw), ZkCmd.class);
     }
 }

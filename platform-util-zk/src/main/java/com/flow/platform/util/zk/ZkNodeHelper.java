@@ -26,6 +26,20 @@ public class ZkNodeHelper {
         }
     }
 
+    public static String createNode(ZooKeeper zk, String path, String data) {
+        return createNode(zk, path, data.getBytes());
+    }
+
+    public static String createNode(ZooKeeper zk, String path, byte[] data) {
+        try {
+            return zk.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        } catch (KeeperException.NodeExistsException e) {
+            return path;
+        } catch (KeeperException | InterruptedException e) {
+            throw checkException(e);
+        }
+    }
+
     public static void deleteNode(ZooKeeper zk, String path) {
         try {
             Stat stat = zk.exists(path, false);

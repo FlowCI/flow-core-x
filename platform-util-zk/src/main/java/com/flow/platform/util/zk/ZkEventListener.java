@@ -5,13 +5,33 @@ import org.apache.zookeeper.WatchedEvent;
 /**
  * Created by gy@fir.im on 03/05/2017.
  *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public interface ZkEventListener {
 
+    /**
+     * On zk client connected to server
+     *
+     * @param event zk raw event
+     * @param path zk node path
+     */
     void onConnected(WatchedEvent event, String path);
 
-    void onDataChanged(WatchedEvent event, byte[] data);
+    /**
+     * On receive zk data changed
+     *
+     * @param event zk raw event
+     * @param cmd ZkCmd obj
+     */
+    void onDataChanged(WatchedEvent event, ZkCmd cmd);
+
+    /**
+     * On data changed been executed
+     *
+     * @param event
+     * @param cmd
+     */
+    void afterOnDataChanged(WatchedEvent event, ZkCmd cmd);
 
     void onDeleted(WatchedEvent event);
 }
