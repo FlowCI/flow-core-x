@@ -11,8 +11,9 @@ public class Cmd {
 
     public static void main(String[] args) {
         CmdExecutor executor = new CmdExecutor("/bin/bash", "-c", "~/test.sh");
-        CmdResult result = executor.run();
-        assert result != null;
+        CmdResult result = new CmdResult();
+        executor.run(result);
+        assert result.getPid() != null;
         System.out.println(result);
     }
 }
