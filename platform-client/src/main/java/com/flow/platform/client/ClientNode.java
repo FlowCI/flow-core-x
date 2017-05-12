@@ -1,13 +1,11 @@
 package com.flow.platform.client;
 
-import com.flow.platform.domain.ClientStatus;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkEventListener;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
 

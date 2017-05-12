@@ -11,8 +11,8 @@ public class ClientLogging {
         System.out.println(message);
     }
 
-    static void err(Exception e, String descritpion) {
-        System.out.println(descritpion);
+    static void err(Exception e, String description) {
+        System.out.println(description);
         System.out.println(e.getMessage());
     }
 }
