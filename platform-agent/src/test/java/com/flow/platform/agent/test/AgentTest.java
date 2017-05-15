@@ -13,6 +13,11 @@ import org.junit.runners.MethodSorters;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
@@ -40,11 +45,13 @@ public class AgentTest {
         int tickTime = 2000;
         int numConnections = 5000;
 
-        String dataDirectory = System.getProperty("java.io.tmpdir");
-        File dir = new File(dataDirectory, "zookeeper").getAbsoluteFile();
-        dir.delete();
+        Path temp = Paths.get(System.getProperty("java.io.tmpdir"), "zookeeper");
+        Files.walk(temp, FileVisitOption.FOLLOW_LINKS)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
 
-        ZooKeeperServer zkServer = new ZooKeeperServer(dir, dir, tickTime);
+        ZooKeeperServer zkServer = new ZooKeeperServer(temp.toFile(), temp.toFile(), tickTime);
 
         zkFactory = ServerCnxnFactory.createFactory(2181, numConnections);
         zkFactory.getLocalPort();
@@ -72,7 +79,7 @@ public class AgentTest {
 
     @Test
     public void should_agent_registered() throws IOException, KeeperException, InterruptedException {
-        new AgentService(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
+        AgentService agent = new AgentService(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 assertEquals("/flow-agents/ali/" + MACHINE, path);
@@ -89,6 +96,7 @@ public class AgentTest {
             }
         });
 
+        new Thread(agent).start();
         waitState.await();
     }
 
@@ -114,7 +122,7 @@ public class AgentTest {
                     assertEquals(new ZkCmd(ZkCmd.Type.RUN_SHELL, "~/test.sh"), cmd);
 
                     // simulate cmd running need 5 seconds
-                    Thread.sleep(5000);
+                    Thread.sleep(2000);
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -129,6 +137,7 @@ public class AgentTest {
             }
         });
 
+        new Thread(client).start();
         waitForConnect.await();
 
         // then: check node status after connected, should not busy

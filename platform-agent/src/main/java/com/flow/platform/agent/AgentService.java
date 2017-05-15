@@ -10,6 +10,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 
 
 /**
@@ -29,12 +30,12 @@ public class AgentService implements Runnable, Watcher {
     private ZooKeeper zk;
     private ZkEventListener zkEventListener;
 
-    private String zone;
-    private String name;
+    private String zone; // agent running zone
+    private String name; // agent name, can be machine name
 
-    private String zonePath;
-    private String nodePath;
-    private String nodePathBusy;
+    private String zonePath;    // zone path, /flow-agents/{zone}
+    private String nodePath;    // zk node path, /flow-agents/{zone}/{name}
+    private String nodePathBusy;// zk node path, /flow-agents/{zone}/{name}-busy
 
     public AgentService(String zkHost, int zkTimeout, String zone, String name) throws IOException {
         this.zk = new ZooKeeper(zkHost, zkTimeout, this);
@@ -86,10 +87,12 @@ public class AgentService implements Runnable, Watcher {
         try {
             if (ZkEventHelper.isConnectToServer(event)) {
                 onConnected(event);
+                return;
             }
 
             if (ZkEventHelper.isDataChangedOnPath(event, nodePath)) {
                 onDataChanged(event);
+                return;
             }
 
             if (ZkEventHelper.isDeletedOnPath(event, nodePath)) {
@@ -117,8 +120,6 @@ public class AgentService implements Runnable, Watcher {
 
             if (cmd != null) {
                 ZkNodeHelper.createEphemeralNode(zk, getNodePathBusy(), rawData);
-
-
                 if (zkEventListener != null) {
                     zkEventListener.onDataChanged(event, cmd);
                 }
