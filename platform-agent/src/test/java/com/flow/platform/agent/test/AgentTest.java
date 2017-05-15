@@ -46,10 +46,12 @@ public class AgentTest {
         int numConnections = 5000;
 
         Path temp = Paths.get(System.getProperty("java.io.tmpdir"), "zookeeper");
-        Files.walk(temp, FileVisitOption.FOLLOW_LINKS)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        if (Files.exists(temp)) {
+            Files.walk(temp, FileVisitOption.FOLLOW_LINKS)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        }
 
         ZooKeeperServer zkServer = new ZooKeeperServer(temp.toFile(), temp.toFile(), tickTime);
 

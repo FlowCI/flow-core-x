@@ -13,7 +13,7 @@ public class CmdResult {
     /**
      * Process id
      */
-    private Integer pid;
+    private Process process;
 
     /**
      * Linux exit status code
@@ -30,12 +30,12 @@ public class CmdResult {
      */
     private final List<Exception> exceptions = new ArrayList<>(5);
 
-    public Integer getPid() {
-        return pid;
+    public Process getProcess() {
+        return process;
     }
 
-    public void setPid(Integer pid) {
-        this.pid = pid;
+    public void setProcess(Process process) {
+        this.process = process;
     }
 
     public Integer getExitValue() {
@@ -60,6 +60,6 @@ public class CmdResult {
 
     @Override
     public String toString() {
-        return String.format("Cmd: pid=%s, exitValue=%s, duration=%s", pid, exitValue, duration);
+        return String.format("Cmd: process=%s, exitValue=%s, duration=%s", process, exitValue, duration);
     }
 }

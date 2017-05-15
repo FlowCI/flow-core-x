@@ -115,7 +115,7 @@ public class AgentService implements Runnable, Watcher {
         ZkCmd cmd = null;
 
         try {
-            byte[] rawData = ZkNodeHelper.getNodeData(zk, event.getPath(), null);
+            byte[] rawData = ZkNodeHelper.getNodeData(zk, nodePath, null);
             cmd = parseCmd(rawData);
 
             if (cmd != null) {
@@ -128,7 +128,7 @@ public class AgentService implements Runnable, Watcher {
             AgentLog.err(e, "Invalid cmd from server");
         } finally {
             ZkNodeHelper.deleteNode(zk, nodePathBusy);
-            ZkNodeHelper.monitoringNode(zk, event.getPath(), this, 5);
+            ZkNodeHelper.monitoringNode(zk, nodePath, this, 5);
 
             if (zkEventListener != null) {
                 zkEventListener.afterOnDataChanged(event, cmd);

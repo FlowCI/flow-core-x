@@ -7,6 +7,11 @@ import com.flow.platform.util.zk.ZkEventAdaptor;
 import org.apache.zookeeper.WatchedEvent;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
@@ -39,7 +44,7 @@ public class Agent {
         AgentLog.info("========= Run agent =========");
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
-        AgentService client = new AgentService(ZK_HOME, ZK_TIMEOUT, zone, machine, new ZkListener());
+        AgentService client = new AgentService(ZK_HOME, ZK_TIMEOUT, zone, machine, new AgentZkListener());
         new Thread(client).start();
     }
 
@@ -48,33 +53,6 @@ public class Agent {
         public void run() {
             AgentLog.info("========= Agent end =========");
             AgentLog.info("JVM Exit");
-        }
-    }
-
-    private static class ZkListener extends ZkEventAdaptor {
-        @Override
-        public void onConnected(WatchedEvent event, String path) {
-            AgentLog.info("========= Agent connected to server =========");
-        }
-
-        @Override
-        public void onDataChanged(WatchedEvent event, ZkCmd cmd) {
-            AgentLog.info("Received command: " + cmd.toString());
-
-            // receive shell file path and execute
-            CmdResult cmdResult = new CmdResult();
-
-            if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
-                CmdExecutor executor = new CmdExecutor("/bin/bash", "-c", cmd.getCmd());
-                executor.run(cmdResult);
-                Integer pid = cmdResult.getPid();
-                AgentLog.info(String.format("Running pid is %s", pid));
-            }
-        }
-
-        @Override
-        public void onDeleted(WatchedEvent event) {
-            AgentLog.info("========= Agent been deleted =========");
         }
     }
 }

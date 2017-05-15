@@ -38,7 +38,7 @@ public class CmdExecutor {
 
         try {
             Process p = pBuilder.start();
-            outputResult.setPid(getPid(p));
+            outputResult.setProcess(p);
 
             // start thread to read logging stream
             Thread threadForStream = new Thread(createCmdStreamReader(p));
@@ -65,18 +65,18 @@ public class CmdExecutor {
         }
     }
 
-    private int getPid(Process process) {
-        try {
-            Class<?> cProcessImpl = process.getClass();
-            Field fPid = cProcessImpl.getDeclaredField("pid");
-            if (!fPid.isAccessible()) {
-                fPid.setAccessible(true);
-            }
-            return fPid.getInt(process);
-        } catch (Exception e) {
-            return -1;
-        }
-    }
+//    private Process getPid(Process process) {
+//        try {
+//            Class<?> cProcessImpl = process.getClass();
+//            Field fPid = cProcessImpl.getDeclaredField("pid");
+//            if (!fPid.isAccessible()) {
+//                fPid.setAccessible(true);
+//            }
+//            return fPid.getInt(process);
+//        } catch (Exception e) {
+//            return -1;
+//        }
+//    }
 
     private Runnable createCmdLoggingReader() {
         return new Runnable() {

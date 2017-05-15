@@ -13,7 +13,7 @@ public class Cmd {
         CmdExecutor executor = new CmdExecutor("/bin/bash", "-c", "~/test.sh");
         CmdResult result = new CmdResult();
         executor.run(result);
-        assert result.getPid() != null;
+        assert result.getProcess() != null;
         System.out.println(result);
     }
 }
