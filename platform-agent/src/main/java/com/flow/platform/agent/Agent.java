@@ -41,13 +41,12 @@ public class Agent {
 
         AgentService client = new AgentService(ZK_HOME, ZK_TIMEOUT, zone, machine, new ZkListener());
         new Thread(client).start();
-
-        AgentLog.info("========= Agent end =========");
     }
 
     private static class ShutdownHook extends Thread {
         @Override
         public void run() {
+            AgentLog.info("========= Agent end =========");
             AgentLog.info("JVM Exit");
         }
     }

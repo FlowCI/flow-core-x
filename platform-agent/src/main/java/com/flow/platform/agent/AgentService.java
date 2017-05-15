@@ -119,7 +119,7 @@ public class AgentService implements Runnable, Watcher {
             cmd = parseCmd(rawData);
 
             if (cmd != null) {
-                ZkNodeHelper.createEphemeralNode(zk, getNodePathBusy(), rawData);
+                ZkNodeHelper.createEphemeralNode(zk, nodePathBusy, rawData);
                 if (zkEventListener != null) {
                     zkEventListener.onDataChanged(event, cmd);
                 }
@@ -127,7 +127,7 @@ public class AgentService implements Runnable, Watcher {
         } catch (Throwable e) {
             AgentLog.err(e, "Invalid cmd from server");
         } finally {
-            ZkNodeHelper.deleteNode(zk, getNodePathBusy());
+            ZkNodeHelper.deleteNode(zk, nodePathBusy);
             ZkNodeHelper.monitoringNode(zk, event.getPath(), this, 5);
 
             if (zkEventListener != null) {
@@ -146,10 +146,8 @@ public class AgentService implements Runnable, Watcher {
         if (ZkNodeHelper.exist(zk, zonePath) == null) {
             ZkNodeHelper.createNode(zk, zonePath, "");
         }
-        ZkNodeHelper.monitoringNode(zk, nodePath, this, 5);
-        ZkNodeHelper.monitoringNode(zk, nodePathBusy, this, 5);
-
         String path = ZkNodeHelper.createEphemeralNode(zk, nodePath, "");
+        ZkNodeHelper.monitoringNode(zk, nodePath, this, 5);
         return path;
     }
 
