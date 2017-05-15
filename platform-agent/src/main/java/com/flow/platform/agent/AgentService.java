@@ -21,9 +21,9 @@ import java.io.IOException;
 public class AgentService implements Runnable, Watcher {
 
     /**
-     * Zk root path /flow-nodes/{zone}/{name}
+     * Zk root path /flow-agents/{zone}/{name}
      */
-    private final static String ZK_ROOT = "/flow-nodes";
+    private final static String ZK_ROOT = "/flow-agents";
     private final static Object STATUS_LOCKER = new Object();
 
     private ZooKeeper zk;

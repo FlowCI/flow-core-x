@@ -53,12 +53,12 @@ public class AgentTest {
         zkClient = new ZooKeeper(ZK_HOST, 20000, null);
 
         try {
-            zkClient.create("/flow-nodes", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            zkClient.create("/flow-agents", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
         } catch (KeeperException.NodeExistsException e) {
         }
 
         try {
-            zkClient.create("/flow-nodes/ali", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            zkClient.create("/flow-agents/ali", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
         } catch (KeeperException.NodeExistsException e) {
         }
     }
@@ -75,7 +75,7 @@ public class AgentTest {
         new AgentService(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
-                assertEquals("/flow-nodes/ali/" + MACHINE, path);
+                assertEquals("/flow-agents/ali/" + MACHINE, path);
 
                 try {
                     // when
