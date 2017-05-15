@@ -40,7 +40,7 @@ public class Agent {
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
         AgentService client = new AgentService(ZK_HOME, ZK_TIMEOUT, zone, machine, new ZkListener());
-        new Thread(client).run();
+        new Thread(client).start();
 
         AgentLog.info("========= Agent end =========");
     }

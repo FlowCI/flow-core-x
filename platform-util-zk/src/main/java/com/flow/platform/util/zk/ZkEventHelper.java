@@ -2,11 +2,12 @@ package com.flow.platform.util.zk;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.EventType;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
  *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public class ZkEventHelper {
 
@@ -17,7 +18,31 @@ public class ZkEventHelper {
      * @return
      */
     public static boolean isConnectToServer(WatchedEvent event) {
-        return syncConnectedEvent(event, Watcher.Event.EventType.None);
+        return syncConnectedEvent(event, EventType.None);
+    }
+
+    /**
+     * Indicate is zk node created
+     *
+     * @param event
+     * @return
+     */
+    public static boolean isCreated(WatchedEvent event) {
+        return syncConnectedEvent(event, EventType.NodeCreated);
+    }
+
+    /**
+     * Indicate is zk node created for path
+     *
+     * @param event
+     * @param path
+     * @return
+     */
+    public static boolean isCreatedOnPath(WatchedEvent event, String path) {
+        if (isCreated(event)) {
+            return isMatchPath(event, path);
+        }
+        return false;
     }
 
     /**
@@ -27,14 +52,32 @@ public class ZkEventHelper {
      * @return
      */
     public static boolean isDeleted(WatchedEvent event) {
-        return syncConnectedEvent(event, Watcher.Event.EventType.NodeDeleted);
+        return syncConnectedEvent(event, EventType.NodeDeleted);
+    }
+
+    public static boolean isDeletedOnPath(WatchedEvent event, String path) {
+        if (isDeleted(event)) {
+            return isMatchPath(event, path);
+        }
+        return false;
     }
 
     public static boolean isDataChanged(WatchedEvent event) {
-        return syncConnectedEvent(event, Watcher.Event.EventType.NodeDataChanged);
+        return syncConnectedEvent(event, EventType.NodeDataChanged);
     }
 
-    private static boolean syncConnectedEvent(WatchedEvent event, Watcher.Event.EventType eventType) {
+    public static boolean isDataChangedOnPath(WatchedEvent event, String path) {
+        if (isDataChanged(event)) {
+            return isMatchPath(event, path);
+        }
+        return false;
+    }
+
+    private static boolean syncConnectedEvent(WatchedEvent event, EventType eventType) {
         return event.getState() == Watcher.Event.KeeperState.SyncConnected && event.getType() == eventType;
+    }
+
+    private static boolean isMatchPath(WatchedEvent event, String targetPath) {
+        return event.getPath() != null && event.getPath().equals(targetPath);
     }
 }
