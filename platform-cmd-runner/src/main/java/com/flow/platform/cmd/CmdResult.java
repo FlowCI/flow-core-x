@@ -1,6 +1,7 @@
 package com.flow.platform.cmd;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,6 +25,16 @@ public class CmdResult {
      * Cmd running duration in second
      */
     private Long duration;
+
+    /**
+     * Cmd start time
+     */
+    private Date startTime;
+
+    /**
+     * Cmd finish time
+     */
+    private Date finishTime;
 
     /**
      * Exception while cmd running
@@ -56,6 +67,22 @@ public class CmdResult {
 
     public List<Exception> getExceptions() {
         return exceptions;
+    }
+
+    public Date getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
+    }
+
+    public Date getFinishTime() {
+        return finishTime;
+    }
+
+    public void setFinishTime(Date finishTime) {
+        this.finishTime = finishTime;
     }
 
     @Override

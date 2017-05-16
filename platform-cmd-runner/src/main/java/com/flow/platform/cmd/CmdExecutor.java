@@ -2,6 +2,7 @@ package com.flow.platform.cmd;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
@@ -35,6 +36,7 @@ public class CmdExecutor {
         }
 
         long startTime = System.currentTimeMillis();
+        outputResult.setStartTime(new Date());
 
         try {
             Process p = pBuilder.start();
@@ -61,7 +63,9 @@ public class CmdExecutor {
             // calculate duration
             long endTime = System.currentTimeMillis();
             long durationInSecond = (endTime - startTime) / 1000;
+
             outputResult.setDuration(durationInSecond);
+            outputResult.setFinishTime(new Date());
         }
     }
 
