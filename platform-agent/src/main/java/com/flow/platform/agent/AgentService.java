@@ -10,7 +10,6 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 
 /**
@@ -156,7 +155,11 @@ public class AgentService implements Runnable, Watcher {
             Gson gson = new Gson();
             return gson.fromJson(new String(jsonRaw), ZkCmd.class);
         } catch (Throwable e) {
-            AgentLog.err(e, "Invalid command from sender");
+            if (Config.isDebug()) {
+                return new ZkCmd(ZkCmd.Type.RUN_SHELL, "~/test.sh");
+            }
+
+            AgentLog.err(e, "Invalide command");
             return null;
         }
     }

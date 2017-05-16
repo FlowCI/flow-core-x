@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,7 +53,7 @@ public class CmdExecutor {
             outputResult.setExitValue(p.waitFor());
             System.out.println(" ===== Process executed =====");
 
-            waitLock.await();
+            waitLock.await(30, TimeUnit.SECONDS); // wait max 30 seconds
             System.out.println(" ===== Logging executed =====");
 
         } catch (InterruptedException | IOException e) {

@@ -46,7 +46,7 @@ public class AgentZkListener extends ZkEventAdaptor {
         private CmdResult outResult;
         private ZkCmd zkCmd;
 
-        public RunCmd(ZkCmd zkCmd) {
+        RunCmd(ZkCmd zkCmd) {
             this.zkCmd = zkCmd;
             this.outResult = new CmdResult();
         }
@@ -60,13 +60,14 @@ public class AgentZkListener extends ZkEventAdaptor {
 
                 Process pid = outResult.getProcess();
                 running.remove(outResult);
-                AgentLog.info(String.format("Running pid is %s", pid));
+                AgentLog.info(String.format("Running is %s", pid));
             }
 
             // kill current running job
             if (zkCmd.getType() == ZkCmd.Type.STOP) {
                 for (CmdResult r : running) {
                     r.getProcess().destroy();
+                    AgentLog.info(String.format("Kill process : %s", r.getProcess()));
                 }
                 running.clear();
             }

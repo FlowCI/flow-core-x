@@ -18,12 +18,12 @@ public class ZkCmd implements Serializable {
         RUN_SHELL("RUN_SHELL"),
 
         /**
-         * Stop current process
+         * Stop current running processes
          */
         STOP("STOP"),
 
         /**
-         * Close agent..
+         * Close agent
          */
         CLOSE("CLOSE"),
 
