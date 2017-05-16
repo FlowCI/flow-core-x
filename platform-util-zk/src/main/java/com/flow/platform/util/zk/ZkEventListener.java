@@ -33,5 +33,10 @@ public interface ZkEventListener {
      */
     void afterOnDataChanged(WatchedEvent event, ZkCmd cmd);
 
+    /**
+     * On node deleted
+     *
+     * @param event
+     */
     void onDeleted(WatchedEvent event);
 }

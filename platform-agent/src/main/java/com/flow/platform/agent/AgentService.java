@@ -95,12 +95,19 @@ public class AgentService implements Runnable, Watcher {
             }
 
             if (ZkEventHelper.isDeletedOnPath(event, nodePath)) {
-                stop();
+                onDeleted(event);
             }
         } catch (Throwable e) {
             AgentLog.err(e, "Unexpected error");
-            stop();
+            onDeleted(event);
         }
+    }
+
+    public void onDeleted(WatchedEvent event) {
+        if (zkEventListener != null) {
+            zkEventListener.onDeleted(event);
+        }
+        stop();
     }
 
     private void onConnected(WatchedEvent event) {
