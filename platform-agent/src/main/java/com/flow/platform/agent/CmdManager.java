@@ -41,10 +41,13 @@ public class CmdManager {
         executor.execute(new RunCmd(cmd));
     }
 
+    /**
+     * Kill current running process
+     */
     private void kill() {
         for (CmdResult r : running) {
             r.getProcess().destroy();
-            AgentLog.info(String.format("Kill process : %s", r.getProcess()));
+            AgentLog.info(String.format("Kill process : %s", r.toString()));
         }
         running.clear();
     }
@@ -66,9 +69,7 @@ public class CmdManager {
                 CmdExecutor executor = new CmdExecutor("/bin/bash", "-c", zkCmd.getCmd());
                 executor.run(outResult);
 
-                Process pid = outResult.getProcess();
                 running.remove(outResult);
-                AgentLog.info(String.format("Running is %s", pid));
             }
 
             // kill current running job

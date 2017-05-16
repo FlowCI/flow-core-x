@@ -35,7 +35,6 @@ public class CmdExecutor {
         }
 
         long startTime = System.currentTimeMillis();
-        outputResult = new CmdResult();
 
         try {
             Process p = pBuilder.start();
@@ -65,19 +64,6 @@ public class CmdExecutor {
             outputResult.setDuration(durationInSecond);
         }
     }
-
-//    private Process getPid(Process process) {
-//        try {
-//            Class<?> cProcessImpl = process.getClass();
-//            Field fPid = cProcessImpl.getDeclaredField("pid");
-//            if (!fPid.isAccessible()) {
-//                fPid.setAccessible(true);
-//            }
-//            return fPid.getInt(process);
-//        } catch (Exception e) {
-//            return -1;
-//        }
-//    }
 
     private Runnable createCmdLoggingReader() {
         return new Runnable() {

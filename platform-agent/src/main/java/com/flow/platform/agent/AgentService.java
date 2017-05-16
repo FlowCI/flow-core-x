@@ -103,11 +103,20 @@ public class AgentService implements Runnable, Watcher {
         }
     }
 
+    /**
+     * Force to exit current agent
+     *
+     * @param event
+     */
     public void onDeleted(WatchedEvent event) {
-        if (zkEventListener != null) {
-            zkEventListener.onDeleted(event);
+        try {
+            if (zkEventListener != null) {
+                zkEventListener.onDeleted(event);
+            }
+            stop();
+        } finally {
+            Runtime.getRuntime().exit(1);
         }
-        stop();
     }
 
     private void onConnected(WatchedEvent event) {
