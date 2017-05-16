@@ -10,10 +10,31 @@ package com.flow.platform.cmd;
 public class Cmd {
 
     public static void main(String[] args) {
-        CmdExecutor executor = new CmdExecutor("/bin/bash", "-c", "~/test.sh");
-        CmdResult result = new CmdResult();
-        executor.run(result);
-        assert result.getProcess() != null;
-        System.out.println(result);
+
+        CmdExecutor.ProcListener procListener = new CmdExecutor.ProcListener() {
+            @Override
+            public void onStarted(CmdResult result) {
+
+            }
+
+            @Override
+            public void onExecuted(CmdResult result) {
+
+            }
+
+            @Override
+            public void onFinished(CmdResult result) {
+                assert result.getProcess() != null;
+                System.out.println(result);
+            }
+
+            @Override
+            public void onException(CmdResult result) {
+
+            }
+        };
+
+        CmdExecutor executor = new CmdExecutor(procListener, "/bin/bash", "-c", "~/test.sh");
+        executor.run();
     }
 }

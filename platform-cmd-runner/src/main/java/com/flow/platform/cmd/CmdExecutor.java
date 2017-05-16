@@ -1,7 +1,6 @@
 package com.flow.platform.cmd;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -17,6 +16,37 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CmdExecutor {
 
+    public interface ProcListener {
+
+        /**
+         * Proc start to exec
+         *
+         * @param result
+         */
+        void onStarted(CmdResult result);
+
+        /**
+         * Proc executed without exception (option)
+         *
+         * @param result
+         */
+        void onExecuted(CmdResult result);
+
+        /**
+         * Proc finsihed (must)
+         *
+         * @param result
+         */
+        void onFinished(CmdResult result);
+
+        /**
+         * Proc got exception while executing (option)
+         *
+         * @param result
+         */
+        void onException(CmdResult result);
+    }
+
     private final CountDownLatch waitLock = new CountDownLatch(1);
     private final Queue<String> loggingQueue = new LinkedList<>();
     private final AtomicInteger loggingQueueSize = new AtomicInteger(0);
@@ -24,16 +54,16 @@ public class CmdExecutor {
     private final int bufferSize = 1024 * 1024 * 10;
 
     private ProcessBuilder pBuilder;
+    private ProcListener procListener;
 
-    public CmdExecutor(String ...cmd) {
+    public CmdExecutor(ProcListener procListener, String ...cmd) {
+        this.procListener = procListener;
         pBuilder = new ProcessBuilder(cmd);
         pBuilder.redirectErrorStream(true);
     }
 
-    public void run(CmdResult outputResult) {
-        if (outputResult == null) {
-            throw new IllegalArgumentException("Argument 'CmdResult' is Null");
-        }
+    public void run() {
+        CmdResult outputResult = new CmdResult();
 
         long startTime = System.currentTimeMillis();
         outputResult.setStartTime(new Date());
@@ -41,6 +71,10 @@ public class CmdExecutor {
         try {
             Process p = pBuilder.start();
             outputResult.setProcess(p);
+
+            if (procListener != null) {
+                procListener.onStarted(outputResult);
+            }
 
             // start thread to read logging stream
             Thread threadForStream = new Thread(createCmdStreamReader(p));
@@ -57,8 +91,16 @@ public class CmdExecutor {
             waitLock.await(30, TimeUnit.SECONDS); // wait max 30 seconds
             System.out.println(" ===== Logging executed =====");
 
+            if (procListener != null) {
+                procListener.onExecuted(outputResult);
+            }
+
         } catch (InterruptedException | IOException e) {
             outputResult.getExceptions().add(e);
+
+            if (procListener != null) {
+                procListener.onException(outputResult);
+            }
         } finally {
             // calculate duration
             long endTime = System.currentTimeMillis();
@@ -66,6 +108,10 @@ public class CmdExecutor {
 
             outputResult.setDuration(durationInSecond);
             outputResult.setFinishTime(new Date());
+
+            if (procListener != null) {
+                procListener.onFinished(outputResult);
+            }
         }
     }
 
