@@ -86,13 +86,12 @@ public class ZkServiceImpl implements ZkService {
      * @param event
      */
     public void process(WatchedEvent event) {
-        System.out.println(event);
-
         if (ZkEventHelper.isConnectToServer(event)) {
             initLatch.countDown();
         }
 
         if (ZkEventHelper.isChildrenChangedOnPath(event, zkRootPath)) {
+            ZkNodeHelper.watchChildren(zk, zkRootPath, this, 5);
             zoneLatch.countDown();
         }
     }

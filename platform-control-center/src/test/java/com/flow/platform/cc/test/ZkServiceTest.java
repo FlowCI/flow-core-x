@@ -17,9 +17,6 @@ import java.io.IOException;
  */
 public class ZkServiceTest extends TestBase {
 
-    private final static String TEST_ZONE_NAME = "test-zone";
-    private final static String TEST_AGENT_NAME = "test-agent-001";
-
     @Autowired
     private ZkService zkService;
 
@@ -28,6 +25,9 @@ public class ZkServiceTest extends TestBase {
 
     @Value("${zk.timeout}")
     private Integer zkTimeout;
+
+    @Value("${zk.node.zone}")
+    private String zkZone;
 
     private ZooKeeper zkClient;
 
@@ -38,7 +38,10 @@ public class ZkServiceTest extends TestBase {
 
     @Test
     public void should_zk_service_initialized() {
-        String zonePath = "/flow-agents/" + TEST_ZONE_NAME;
-        Assert.assertTrue(ZkNodeHelper.exist(zkClient, zonePath) != null);
+        String[] zones = zkZone.split(";");
+        for (String zone : zones) {
+            String zonePath = "/flow-agents/" + zone;
+            Assert.assertTrue(ZkNodeHelper.exist(zkClient, zonePath) != null);
+        }
     }
 }
