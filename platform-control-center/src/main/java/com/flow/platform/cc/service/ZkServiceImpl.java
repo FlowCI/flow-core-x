@@ -5,6 +5,7 @@ import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +13,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by gy@fir.im on 17/05/2017.
@@ -35,11 +35,17 @@ public class ZkServiceImpl implements ZkService {
     @Value("${zk.node.zone}")
     private String zkZone;
 
+    private final ExecutorService executorService;
+    private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
+
     private ZooKeeper zk;
     private CountDownLatch initLatch = new CountDownLatch(1);
     private CountDownLatch zoneLatch;
 
-    private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
+    @Autowired
+    public ZkServiceImpl(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
 
     @PostConstruct
     public void init() throws IOException, InterruptedException {
