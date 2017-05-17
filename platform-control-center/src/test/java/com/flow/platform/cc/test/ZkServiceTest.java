@@ -56,11 +56,12 @@ public class ZkServiceTest extends TestBase {
 
         // when: simulate to create agent
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
-        Thread.sleep(1000);
         ZkNodeHelper.createEphemeralNode(zkClient, agentPathBusy, "");
 
         // then:
         Thread.sleep(2000);
         Assert.assertEquals(2, zkService.onlineAgent(zoneName).size());
+        Assert.assertTrue(zkService.onlineAgent(zoneName).contains("test-agent-001"));
+        Assert.assertTrue(zkService.onlineAgent(zoneName).contains("test-agent-001-busy"));
     }
 }
