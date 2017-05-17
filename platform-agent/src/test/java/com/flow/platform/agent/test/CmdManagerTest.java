@@ -1,6 +1,7 @@
 package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.CmdManager;
+import com.flow.platform.agent.Config;
 import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.CmdResult;
 import com.flow.platform.util.zk.ZkCmd;
@@ -26,6 +27,9 @@ public class CmdManagerTest {
 
     @BeforeClass
     public static void before() throws IOException {
+        System.setProperty(Config.PROP_CONCURRENT_PROC, "2");
+        System.setProperty(Config.PROP_IS_DEBUG, "true");
+
         ClassLoader classLoader = CmdManagerTest.class.getClassLoader();
         resourcePath = classLoader.getResource("test.sh").getFile();
         Runtime.getRuntime().exec("chmod +x " + resourcePath);
@@ -39,8 +43,10 @@ public class CmdManagerTest {
     @Test
     public void running_process_should_be_recorded() throws InterruptedException {
         // given:
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch finishLatch = new CountDownLatch(1);
+        CountDownLatch startLatch = new CountDownLatch(2);
+        CountDownLatch finishLatch = new CountDownLatch(2);
+
+        assertEquals(2, Config.concurrentProcNum());
 
         ZkCmd cmd = new ZkCmd(ZkCmd.Type.RUN_SHELL, resourcePath);
         cmdManager.getExtraProcEventListeners().add(new CmdExecutor.ProcListener() {
@@ -65,20 +71,21 @@ public class CmdManagerTest {
             }
         });
 
-        // when:
+        // when: execute two command
+        cmdManager.execute(cmd);
         cmdManager.execute(cmd);
         startLatch.await();
 
-        // then:
+        // then: check num of running proc
         Collection<CmdResult> runningProc = cmdManager.getRunning();
-        assertEquals(1, runningProc.size());
+        assertEquals(2, runningProc.size());
 
-        // when:
+        // when: wait two command been finished
         finishLatch.await();
 
-        // then:
+        // then: check
         Collection<CmdResult> execProc = cmdManager.getFinished();
-        assertEquals(1, execProc.size());
+        assertEquals(2, execProc.size());
 
         for (CmdResult r : execProc) {
             assertEquals(new Integer(0), r.getExitValue());

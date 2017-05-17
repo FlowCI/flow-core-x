@@ -8,15 +8,15 @@ package com.flow.platform.agent;
 public class Config {
 
     /* Config properties by using -Dxxx.xxx = xxx as JVM parameter */
-    private final static String PROP_IS_DEBUG = "agent.debug";
-    private final static String PROP_CONCURRENT_PROC = "agent.concurrent";
+    public final static String PROP_IS_DEBUG = "agent.debug";
+    public final static String PROP_CONCURRENT_PROC = "agent.concurrent";
 
-    static boolean isDebug() {
+    public static boolean isDebug() {
         String boolStr = System.getProperty(PROP_IS_DEBUG);
         return tryParse(boolStr, false);
     }
 
-    static int concurrentProcNum() {
+    public static int concurrentProcNum() {
         String intStr = System.getProperty(PROP_CONCURRENT_PROC);
         return tryParse(intStr, 1);
     }
