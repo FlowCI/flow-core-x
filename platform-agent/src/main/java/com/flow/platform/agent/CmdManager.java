@@ -23,14 +23,15 @@ public class CmdManager {
     private static final Set<CmdResult> running = Sets.newConcurrentHashSet();
     private static final Queue<CmdResult> finished = new ConcurrentLinkedQueue<>();
 
-    private static final ExecutorService executor = Executors.newFixedThreadPool(1, new ThreadFactory() {
-        public Thread newThread(Runnable r) {
-            // Make thread to Daemon thread, those threads exit while JVM exist
-            Thread t = Executors.defaultThreadFactory().newThread(r);
-            t.setDaemon(true);
-            return t;
-        }
-    });
+    private static final ExecutorService executor =
+            Executors.newFixedThreadPool(Config.concurrentProcNum(), new ThreadFactory() {
+                public Thread newThread(Runnable r) {
+                    // Make thread to Daemon thread, those threads exit while JVM exist
+                    Thread t = Executors.defaultThreadFactory().newThread(r);
+                    t.setDaemon(true);
+                    return t;
+                }
+            });
 
     public static CmdManager getInstance() {
         return instance;
@@ -45,7 +46,7 @@ public class CmdManager {
     private CmdManager() {
     }
 
-    public List<CmdExecutor.ProcListener> getExtraProcEventListeners () {
+    public List<CmdExecutor.ProcListener> getExtraProcEventListeners() {
         return extraProcEventListeners;
     }
 
