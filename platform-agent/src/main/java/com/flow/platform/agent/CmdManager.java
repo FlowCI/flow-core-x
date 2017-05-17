@@ -83,7 +83,7 @@ public class CmdManager {
                 executor.run();
             }
 
-            // kill current running job
+            // kill current running proc-es
             if (cmd.getType() == ZkCmd.Type.STOP) {
                 kill();
             }

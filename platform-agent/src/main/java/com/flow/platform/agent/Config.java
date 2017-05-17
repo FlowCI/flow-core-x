@@ -8,32 +8,16 @@ package com.flow.platform.agent;
 public class Config {
 
     /* Config properties by using -Dxxx.xxx = xxx as JVM parameter */
-    public final static String PROP_IS_DEBUG = "agent.debug";
-    public final static String PROP_CONCURRENT_PROC = "agent.concurrent";
+    public final static String PROP_IS_DEBUG = "flow.agent.debug";
+    public final static String PROP_CONCURRENT_PROC = "flow.agent.concurrent";
 
     public static boolean isDebug() {
-        String boolStr = System.getProperty(PROP_IS_DEBUG);
-        return tryParse(boolStr, false);
+        String boolStr = System.getProperty(PROP_IS_DEBUG, "false");
+        return Boolean.parseBoolean(boolStr);
     }
 
     public static int concurrentProcNum() {
-        String intStr = System.getProperty(PROP_CONCURRENT_PROC);
-        return tryParse(intStr, 1);
-    }
-
-    private static boolean tryParse(String value, boolean defaultValue) {
-        try {
-            return Boolean.parseBoolean(value);
-        } catch (Throwable e) {
-            return defaultValue;
-        }
-    }
-
-    private static int tryParse(String value, int defaultValue) {
-        try {
-            return Integer.parseInt(value);
-        } catch (Throwable e) {
-            return defaultValue;
-        }
+        String intStr = System.getProperty(PROP_CONCURRENT_PROC, "1");
+        return Integer.parseInt(intStr);
     }
 }
