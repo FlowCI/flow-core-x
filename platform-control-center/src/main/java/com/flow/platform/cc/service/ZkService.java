@@ -1,6 +1,9 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.util.zk.ZkCmd;
 import org.apache.zookeeper.Watcher;
+
+import java.util.Set;
 
 /**
  * Receive and process zookeeper event
@@ -19,4 +22,20 @@ public interface ZkService extends Watcher {
      */
     String createZone(String zoneName);
 
+    /**
+     * Get online agent set by zone
+     *
+     * @param zone
+     * @return
+     */
+    Set<String> onlineAgent(String zone);
+
+    /**
+     * Send ZkCmd to agent
+     *
+     * @param zone
+     * @param agent
+     * @param cmd
+     */
+    void sendCommand(String zone, String agent, ZkCmd cmd);
 }

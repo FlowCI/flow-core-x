@@ -44,4 +44,23 @@ public class ZkServiceTest extends TestBase {
             Assert.assertTrue(ZkNodeHelper.exist(zkClient, zonePath) != null);
         }
     }
+
+    @Test
+    public void should_agent_initialized() throws InterruptedException {
+        // given:
+        String zoneName = zkZone.split(";")[0];
+        Assert.assertEquals(0, zkService.onlineAgent(zoneName).size());
+
+        String agentPath = String.format("/flow-agents/%s/%s", zoneName, "test-agent-001");
+        String agentPathBusy = String.format("/flow-agents/%s/%s", zoneName, "test-agent-001-busy");
+
+        // when: simulate to create agent
+        ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
+        Thread.sleep(1000);
+        ZkNodeHelper.createEphemeralNode(zkClient, agentPathBusy, "");
+
+        // then:
+        Thread.sleep(2000);
+        Assert.assertEquals(2, zkService.onlineAgent(zoneName).size());
+    }
 }

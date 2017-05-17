@@ -1,7 +1,10 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkEventHelper;
+import com.flow.platform.util.zk.ZkNodeBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
+import com.google.common.collect.Sets;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -12,7 +15,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 
 /**
@@ -30,13 +35,16 @@ public class ZkServiceImpl implements ZkService {
     private Integer zkTimeout;
 
     @Value("${zk.node.root}")
-    private String zkRootPath;
+    private String zkRootName;
 
     @Value("${zk.node.zone}")
     private String zkZone;
 
     private final ExecutorService executorService;
     private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
+
+    // zone path -> agent sets
+    private final Map<String, Set<String>> onlineAgents = new ConcurrentHashMap<>(10);
 
     private ZooKeeper zk;
     private CountDownLatch initLatch = new CountDownLatch(1);
@@ -47,6 +55,12 @@ public class ZkServiceImpl implements ZkService {
         this.executorService = executorService;
     }
 
+    /**
+     * Connect to zookeeper server and init root and zone nodes
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @PostConstruct
     public void init() throws IOException, InterruptedException {
         zk = new ZooKeeper(zkHost, zkTimeout, this);
@@ -56,14 +70,16 @@ public class ZkServiceImpl implements ZkService {
         }
 
         // init root node and watch children event
-        ZkNodeHelper.createNode(zk, zkRootPath, "");
-        ZkNodeHelper.watchChildren(zk, zkRootPath, this, 5);
+        String rootPath = ZkNodeBuilder.create(zkRootName).path();
+        ZkNodeHelper.createNode(zk, rootPath, "");
+        ZkNodeHelper.watchChildren(zk, rootPath, this, 5);
 
         // init zone nodes
         String[] zones = zkZone.split(";");
         zoneLatch = new CountDownLatch(zones.length);
         for (String zone : zones) {
-            createZone(zone);
+            String zonePath = createZone(zone);
+            onlineAgents.put(zonePath, Sets.<String>newConcurrentHashSet());
         }
 
         if (!zoneLatch.await(10, TimeUnit.SECONDS)) {
@@ -71,8 +87,15 @@ public class ZkServiceImpl implements ZkService {
         }
     }
 
+    @Override
+    public Set<String> onlineAgent(String zoneName) {
+        String zonePath = ZkNodeBuilder.create(zkRootName).zone(zoneName).path();
+        return onlineAgents.get(zonePath);
+    }
+
+    @Override
     public String createZone(String zoneName) {
-        String zonePath = String.format("%s/%s", zkRootPath, zoneName);
+        String zonePath = ZkNodeBuilder.create(zkRootName).zone(zoneName).path();
         ZkNodeHelper.createNode(zk, zonePath, "");
 
         // get zk zone event watcher
@@ -82,8 +105,26 @@ public class ZkServiceImpl implements ZkService {
             zoneEventWatchers.put(zoneName, watcher);
         }
 
-        ZkNodeHelper.watchNode(zk, zonePath, watcher, 5);
+        // watch children node for agents
+        ZkNodeHelper.watchChildren(zk, zonePath, watcher, 5);
         return zonePath;
+    }
+
+    @Override
+    public void sendCommand(String zoneName, String agentName, ZkCmd cmd) {
+        Set<String> agents = onlineAgent(zoneName);
+        ZkNodeBuilder pathBuilder = ZkNodeBuilder.create(zkRootName).zone(zoneName).agent(agentName);
+        String agentNodePath = pathBuilder.path();
+
+        if (!agents.contains(agentName) || ZkNodeHelper.exist(zk, agentNodePath) == null) {
+            throw new RuntimeException("Agent not online");
+        }
+
+        if (agents.contains(String.format("%s-busy", agentName)) || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
+            throw new RuntimeException("Agent is busy, cannot send command");
+        }
+
+        ZkNodeHelper.setNodeData(zk, agentNodePath, cmd.toJson());
     }
 
     /**
@@ -96,8 +137,9 @@ public class ZkServiceImpl implements ZkService {
             initLatch.countDown();
         }
 
-        if (ZkEventHelper.isChildrenChangedOnPath(event, zkRootPath)) {
-            ZkNodeHelper.watchChildren(zk, zkRootPath, this, 5);
+        String rootPath = ZkNodeBuilder.create(zkRootName).path();
+        if (ZkEventHelper.isChildrenChangedOnPath(event, rootPath)) {
+            ZkNodeHelper.watchChildren(zk, rootPath, this, 5);
             zoneLatch.countDown();
         }
     }
@@ -116,8 +158,23 @@ public class ZkServiceImpl implements ZkService {
         public void process(WatchedEvent event) {
             try {
                 System.out.println(event);
+
+                if (ZkEventHelper.isChildrenChanged(event)) {
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            // TODO: to update online agent db
+                            List<String> childrenNodes = ZkNodeHelper.getChildrenNodes(zk, zonePath);
+
+                            Set<String> agentsInZone = onlineAgents.get(zonePath);
+                            agentsInZone.clear();
+                            agentsInZone.addAll(childrenNodes);
+                        }
+                    });
+                }
+
             } finally {
-                ZkNodeHelper.watchNode(zk, zonePath, this, 5);
+                ZkNodeHelper.watchChildren(zk, zonePath, this, 5);
             }
         }
     }
