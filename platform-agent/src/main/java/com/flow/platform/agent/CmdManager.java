@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by gy@fir.im on 16/05/2017.
@@ -22,7 +23,14 @@ public class CmdManager {
     private static final Set<CmdResult> running = Sets.newConcurrentHashSet();
     private static final Queue<CmdResult> finished = new ConcurrentLinkedQueue<>();
 
-    private static final ExecutorService executor = Executors.newFixedThreadPool(1);
+    private static final ExecutorService executor = Executors.newFixedThreadPool(1, new ThreadFactory() {
+        public Thread newThread(Runnable r) {
+            // Make thread to Daemon thread, those threads exit while JVM exist
+            Thread t = Executors.defaultThreadFactory().newThread(r);
+            t.setDaemon(true);
+            return t;
+        }
+    });
 
     public static CmdManager getInstance() {
         return instance;
