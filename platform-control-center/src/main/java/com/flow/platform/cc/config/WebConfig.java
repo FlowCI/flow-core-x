@@ -10,24 +10,24 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 /**
  * Created by gy@fir.im on 17/05/2017.
- *
  * Copyright fir.im
  */
 @Configuration
 @EnableWebMvc
-@ComponentScan({"com.flow.platform.cc"})
+@ComponentScan({
+        "com.flow.platform.cc",
+        "com.flow.platform.cc.service"})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private static final String SPRING_ENV = "spring.profiles.active";
-    private static final String POOLING_ENV = "flow.cc.env";
-    private static final String DEFAULT_ENV = "local";
-
+    private static final String CC_ENV = "flow.cc.env";
+    private static final String DEFAULT_CC_ENV = "local";
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
         String env = System.getProperty(SPRING_ENV);
         if (env == null) {
-            env = System.getProperty(POOLING_ENV, DEFAULT_ENV);
+            env = System.getProperty(CC_ENV, DEFAULT_CC_ENV);
         }
 
         String envPropertiesFile = String.format("app-%s.properties", env);
