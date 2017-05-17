@@ -73,6 +73,17 @@ public class ZkEventHelper {
         return false;
     }
 
+    public static boolean isChildrenChanged(WatchedEvent event) {
+        return syncConnectedEvent(event, EventType.NodeChildrenChanged);
+    }
+
+    public static boolean isChildrenChangedOnPath(WatchedEvent event, String path) {
+        if (isChildrenChanged(event)) {
+            return isMatchPath(event, path);
+        }
+        return false;
+    }
+
     private static boolean syncConnectedEvent(WatchedEvent event, EventType eventType) {
         return event.getState() == Watcher.Event.KeeperState.SyncConnected && event.getType() == eventType;
     }

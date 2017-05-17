@@ -23,16 +23,12 @@ import java.io.IOException;
 @ContextConfiguration(classes = {WebConfig.class})
 public abstract class TestBase {
 
-    private static ServerCnxnFactory zkFactory;
-
-    @BeforeClass
-    public static void setup() throws IOException, InterruptedException {
-        zkFactory = ZkLocalBuilder.start();
-    }
-
-    @AfterClass
-    public static void done() throws KeeperException, InterruptedException {
-        zkFactory.closeAll();
-        zkFactory.shutdown();
+    static {
+        try {
+            System.setProperty("flow.cc.env", "local");
+            ZkLocalBuilder.start();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -9,7 +9,7 @@ import org.apache.zookeeper.Watcher;
  * Copyright fir.im
  */
 
-interface ZkService extends Watcher {
+public interface ZkService extends Watcher {
 
     /**
      * Create zk node for agent zone

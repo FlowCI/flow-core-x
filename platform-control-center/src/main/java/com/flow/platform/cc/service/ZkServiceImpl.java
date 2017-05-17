@@ -1,5 +1,6 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -11,13 +12,15 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gy@fir.im on 17/05/2017.
  * Copyright fir.im
  */
 
-@Service
+@Service(value = "zkService")
 public class ZkServiceImpl implements ZkService {
 
     @Value("${zk.host}")
@@ -33,19 +36,32 @@ public class ZkServiceImpl implements ZkService {
     private String zkZone;
 
     private ZooKeeper zk;
+    private CountDownLatch initLatch = new CountDownLatch(1);
+    private CountDownLatch zoneLatch;
+
     private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
     @PostConstruct
-    public void init() throws IOException {
+    public void init() throws IOException, InterruptedException {
         zk = new ZooKeeper(zkHost, zkTimeout, this);
 
-        // init root node
+        if (!initLatch.await(10, TimeUnit.SECONDS)) {
+            throw new RuntimeException("Cannot connect to zookeeper server within 10 seconds");
+        }
+
+        // init root node and watch children event
         ZkNodeHelper.createNode(zk, zkRootPath, "");
+        ZkNodeHelper.watchChildren(zk, zkRootPath, this, 5);
 
         // init zone nodes
         String[] zones = zkZone.split(";");
+        zoneLatch = new CountDownLatch(zones.length);
         for (String zone : zones) {
             createZone(zone);
+        }
+
+        if (!zoneLatch.await(10, TimeUnit.SECONDS)) {
+            throw new RuntimeException("Cannot init zone nodes within 10 seconds");
         }
     }
 
@@ -60,19 +76,30 @@ public class ZkServiceImpl implements ZkService {
             zoneEventWatchers.put(zoneName, watcher);
         }
 
-        ZkNodeHelper.monitoringNode(zk, zonePath, watcher, 5);
+        ZkNodeHelper.watchNode(zk, zonePath, watcher, 5);
         return zonePath;
     }
 
     /**
-     * To handle zk events
+     * To handle zk events on root level
      *
      * @param event
      */
     public void process(WatchedEvent event) {
+        System.out.println(event);
 
+        if (ZkEventHelper.isConnectToServer(event)) {
+            initLatch.countDown();
+        }
+
+        if (ZkEventHelper.isChildrenChangedOnPath(event, zkRootPath)) {
+            zoneLatch.countDown();
+        }
     }
 
+    /**
+     * To handle zk event on zone level
+     */
     private class ZoneEventWatcher implements Watcher {
 
         private String zonePath;
@@ -85,7 +112,7 @@ public class ZkServiceImpl implements ZkService {
             try {
                 System.out.println(event);
             } finally {
-                ZkNodeHelper.monitoringNode(zk, zonePath, this, 5);
+                ZkNodeHelper.watchNode(zk, zonePath, this, 5);
             }
         }
     }

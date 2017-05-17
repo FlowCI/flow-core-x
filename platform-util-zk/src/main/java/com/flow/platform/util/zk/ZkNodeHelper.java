@@ -51,18 +51,34 @@ public class ZkNodeHelper {
         }
     }
 
-    public static Stat monitoringNode(ZooKeeper zk, String path, Watcher watcher, int retry) {
+    public static Stat watchNode(ZooKeeper zk, String path, Watcher watcher, int retry) {
         try {
             return zk.exists(path, watcher);
         } catch (KeeperException | InterruptedException e) {
-
             if (retry <= 0) {
                 throw new ZkException.ZkServerConnectionException(e);
             }
 
             try {
                 Thread.sleep(1000);
-                return monitoringNode(zk, path, watcher, retry - 1);
+                return watchNode(zk, path, watcher, retry - 1);
+            } catch (InterruptedException ie) {
+                throw checkException(ie);
+            }
+        }
+    }
+
+    public static void watchChildren(ZooKeeper zk, String parentPath, Watcher watcher, int retry) {
+        try {
+            zk.getChildren(parentPath, watcher);
+        } catch (KeeperException | InterruptedException e) {
+            if (retry <= 0) {
+                throw new ZkException.ZkServerConnectionException(e);
+            }
+
+            try {
+                Thread.sleep(1000);
+                watchChildren(zk, parentPath, watcher, retry - 1);
             } catch (InterruptedException ie) {
                 throw checkException(ie);
             }
