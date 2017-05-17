@@ -71,8 +71,7 @@ public class ZkServiceTest extends TestBase {
     public void should_send_cmd_to_agent() throws InterruptedException {
         // given:
         String zoneName = zkZone.split(";")[0];
-        String agentName = "test-agent-001";
-        Assert.assertEquals(0, zkService.onlineAgent(zoneName).size());
+        String agentName = "test-agent-002";
 
         String agentPath = String.format("/flow-agents/%s/%s", zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
