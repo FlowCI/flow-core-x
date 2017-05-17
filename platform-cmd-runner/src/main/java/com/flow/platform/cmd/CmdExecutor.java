@@ -78,9 +78,11 @@ public class CmdExecutor {
 
             // start thread to read logging stream
             Thread threadForStream = new Thread(createCmdStreamReader(p));
+            threadForStream.setDaemon(true);
 
             // start thread to make dequeue operation
             Thread threadForLogging = new Thread(createCmdLoggingReader());
+            threadForLogging.setDaemon(true);
 
             threadForStream.start();
             threadForLogging.start();
