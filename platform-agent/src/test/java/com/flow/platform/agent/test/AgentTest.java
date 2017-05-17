@@ -3,21 +3,15 @@ package com.flow.platform.agent.test;
 import com.flow.platform.agent.AgentService;
 import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkEventAdaptor;
+import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.server.ServerCnxnFactory;
-import org.apache.zookeeper.server.ZooKeeperServer;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
@@ -37,39 +31,16 @@ public class AgentTest {
     private static final String ZONE = "ali";
     private static final String MACHINE = "f-cont-f11f827bd8af1";
 
-    private static ServerCnxnFactory zkFactory;
     private static ZooKeeper zkClient;
+    private static ServerCnxnFactory zkFactory;
 
     @BeforeClass
     public static void init() throws IOException, InterruptedException, KeeperException {
-        int tickTime = 2000;
-        int numConnections = 5000;
-
-        Path temp = Paths.get(System.getProperty("java.io.tmpdir"), "zookeeper");
-        if (Files.exists(temp)) {
-            Files.walk(temp, FileVisitOption.FOLLOW_LINKS)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-        }
-
-        ZooKeeperServer zkServer = new ZooKeeperServer(temp.toFile(), temp.toFile(), tickTime);
-
-        zkFactory = ServerCnxnFactory.createFactory(2181, numConnections);
-        zkFactory.getLocalPort();
-        zkFactory.startup(zkServer);
-
+        zkFactory = ZkLocalBuilder.start();
         zkClient = new ZooKeeper(ZK_HOST, 20000, null);
 
-        try {
-            zkClient.create("/flow-agents", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-        } catch (KeeperException.NodeExistsException e) {
-        }
-
-        try {
-            zkClient.create("/flow-agents/ali", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-        } catch (KeeperException.NodeExistsException e) {
-        }
+        ZkNodeHelper.createNode(zkClient, "/flow-agents", "");
+        ZkNodeHelper.createNode(zkClient, "/flow-agents/ali", "");
     }
 
     private CountDownLatch waitState;

@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {WebConfig.class})
-public class WelcomeControllerTest {
+public class WelcomeControllerTest extends TestBase {
 
     @Autowired
     private WebApplicationContext webAppContext;
@@ -33,7 +33,7 @@ public class WelcomeControllerTest {
     private MockMvc mockMvc;
 
     @Before
-    public void setup() {
+    public void before() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
     }
 
