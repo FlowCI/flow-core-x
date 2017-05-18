@@ -1,13 +1,17 @@
 package com.flow.platform.cc.test;
 
+import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.gson.Gson;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -17,6 +21,7 @@ import java.io.IOException;
  * Created by gy@fir.im on 17/05/2017.
  * Copyright fir.im
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ZkServiceTest extends TestBase {
 
     @Autowired
@@ -48,7 +53,7 @@ public class ZkServiceTest extends TestBase {
     }
 
     @Test
-    public void should_agent_initialized() throws InterruptedException {
+    public void should_agent_initialized() throws InterruptedException, KeeperException {
         // given:
         String zoneName = zkZone.split(";")[0];
         Assert.assertEquals(0, zkService.onlineAgent(zoneName).size());
@@ -89,12 +94,21 @@ public class ZkServiceTest extends TestBase {
         Assert.assertEquals(cmd, loaded);
     }
 
-    @Test
+    @Test(expected = AgentErr.NotFoundException.class)
     public void should_raise_exception_agent_not_exit() {
+        // given:
+        String zoneName = zkZone.split(";")[0];
+        String agentName = "test-agent-003";
 
+        // when: create node
+        String agentPath = String.format("/flow-agents/%s/%s", zoneName, agentName);
+        ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
+
+        // then: send command immediately should raise AgentErr.NotFoundException
+        ZkCmd cmd = new ZkCmd(ZkCmd.Type.RUN_SHELL, "/test.sh");
+        zkService.sendCommand(zoneName, agentName, cmd);
     }
 
-    @Test
     public void should_raise_exception_agent_busy() {
 
     }

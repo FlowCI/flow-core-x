@@ -1,5 +1,6 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkNodeBuilder;
@@ -117,11 +118,11 @@ public class ZkServiceImpl implements ZkService {
         String agentNodePath = pathBuilder.path();
 
         if (!agents.contains(agentName) || ZkNodeHelper.exist(zk, agentNodePath) == null) {
-            throw new RuntimeException("Agent not online");
+            throw new AgentErr.NotFoundException(agentName);
         }
 
         if (agents.contains(String.format("%s-busy", agentName)) || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
-            throw new RuntimeException("Agent is busy, cannot send command");
+            throw new AgentErr.BusyException(agentName);
         }
 
         ZkNodeHelper.setNodeData(zk, agentNodePath, cmd.toJson());
