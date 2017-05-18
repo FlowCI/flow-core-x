@@ -157,25 +157,22 @@ public class ZkServiceImpl implements ZkService {
         }
 
         public void process(WatchedEvent event) {
-            try {
-                System.out.println(event);
+            System.out.println(event);
+            // continue to watch zone path
+            ZkNodeHelper.watchChildren(zk, zonePath, this, 5);
 
-                if (ZkEventHelper.isChildrenChanged(event)) {
-                    executorService.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            // TODO: to update online agent db
-                            List<String> childrenNodes = ZkNodeHelper.getChildrenNodes(zk, zonePath);
+            if (ZkEventHelper.isChildrenChanged(event)) {
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        // TODO: to update online agent db
+                        List<String> childrenNodes = ZkNodeHelper.getChildrenNodes(zk, zonePath);
 
-                            Set<String> agentsInZone = onlineAgents.get(zonePath);
-                            agentsInZone.clear();
-                            agentsInZone.addAll(childrenNodes);
-                        }
-                    });
-                }
-
-            } finally {
-                ZkNodeHelper.watchChildren(zk, zonePath, this, 5);
+                        Set<String> agentsInZone = onlineAgents.get(zonePath);
+                        agentsInZone.clear();
+                        agentsInZone.addAll(childrenNodes);
+                    }
+                });
             }
         }
     }

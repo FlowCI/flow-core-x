@@ -3,6 +3,7 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.util.zk.ZkCmd;
+import com.flow.platform.util.zk.ZkNodeBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.gson.Gson;
 import org.apache.zookeeper.KeeperException;
@@ -46,8 +47,8 @@ public class ZkServiceTest extends TestBase {
     @Test
     public void should_zk_service_initialized() {
         String[] zones = zkZone.split(";");
-        for (String zone : zones) {
-            String zonePath = "/flow-agents/" + zone;
+        for (String zoneName : zones) {
+            String zonePath = ZkNodeBuilder.create("flow-agents").zone(zoneName).path();
             Assert.assertTrue(ZkNodeHelper.exist(zkClient, zonePath) != null);
         }
     }
@@ -56,20 +57,20 @@ public class ZkServiceTest extends TestBase {
     public void should_agent_initialized() throws InterruptedException, KeeperException {
         // given:
         String zoneName = zkZone.split(";")[0];
+        String agentName = "test-agent-001";
         Assert.assertEquals(0, zkService.onlineAgent(zoneName).size());
 
-        String agentPath = String.format("/flow-agents/%s/%s", zoneName, "test-agent-001");
-        String agentPathBusy = String.format("/flow-agents/%s/%s", zoneName, "test-agent-001-busy");
+        ZkNodeBuilder builder = ZkNodeBuilder.create("flow-agents").zone(zoneName).agent(agentName);
 
         // when: simulate to create agent
-        ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
-        ZkNodeHelper.createEphemeralNode(zkClient, agentPathBusy, "");
+        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+        ZkNodeHelper.createEphemeralNode(zkClient, builder.busy(), "");
 
         // then:
         Thread.sleep(2000);
         Assert.assertEquals(2, zkService.onlineAgent(zoneName).size());
-        Assert.assertTrue(zkService.onlineAgent(zoneName).contains("test-agent-001"));
-        Assert.assertTrue(zkService.onlineAgent(zoneName).contains("test-agent-001-busy"));
+        Assert.assertTrue(zkService.onlineAgent(zoneName).contains(agentName));
+        Assert.assertTrue(zkService.onlineAgent(zoneName).contains(agentName + "-busy"));
     }
 
     @Test
@@ -78,7 +79,7 @@ public class ZkServiceTest extends TestBase {
         String zoneName = zkZone.split(";")[0];
         String agentName = "test-agent-002";
 
-        String agentPath = String.format("/flow-agents/%s/%s", zoneName, agentName);
+        String agentPath = ZkNodeBuilder.create("flow-agents").zone(zoneName).agent(agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
 
@@ -101,7 +102,7 @@ public class ZkServiceTest extends TestBase {
         String agentName = "test-agent-003";
 
         // when: create node
-        String agentPath = String.format("/flow-agents/%s/%s", zoneName, agentName);
+        String agentPath = ZkNodeBuilder.create("flow-agents").zone(zoneName).agent(agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
 
         // then: send command immediately should raise AgentErr.NotFoundException
@@ -109,7 +110,21 @@ public class ZkServiceTest extends TestBase {
         zkService.sendCommand(zoneName, agentName, cmd);
     }
 
-    public void should_raise_exception_agent_busy() {
+    @Test(expected = AgentErr.BusyException.class)
+    public void should_raise_exception_agent_busy() throws InterruptedException {
+        // given:
+        String zoneName = zkZone.split(";")[0];
+        String agentName = "test-agent-004";
 
+        ZkNodeBuilder builder = ZkNodeBuilder.create("flow-agents").zone(zoneName).agent(agentName);
+
+        // when: create node and set busy state
+        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+        ZkNodeHelper.createEphemeralNode(zkClient, builder.busy(), "");
+        Thread.sleep(1000);
+
+        // then: send command to agent should raise AgentErr.BusyException.class
+        ZkCmd cmd = new ZkCmd(ZkCmd.Type.RUN_SHELL, "/test.sh");
+        zkService.sendCommand(zoneName, agentName, cmd);
     }
 }
