@@ -3,20 +3,15 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.util.zk.ZkCmd;
-import com.flow.platform.util.zk.ZkPathBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
+import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.gson.Gson;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.io.IOException;
 
 /**
  * Created by gy@fir.im on 17/05/2017.
@@ -27,22 +22,6 @@ public class ZkServiceTest extends TestBase {
 
     @Autowired
     private ZkService zkService;
-
-    @Value("${zk.host}")
-    private String zkHost;
-
-    @Value("${zk.timeout}")
-    private Integer zkTimeout;
-
-    @Value("${zk.node.zone}")
-    private String zkZone;
-
-    private ZooKeeper zkClient;
-
-    @Before
-    public void before() throws IOException {
-        zkClient = new ZooKeeper(zkHost, zkTimeout, null);
-    }
 
     @Test
     public void should_zk_service_initialized() {

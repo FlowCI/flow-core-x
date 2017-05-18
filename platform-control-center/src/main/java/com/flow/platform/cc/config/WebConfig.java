@@ -19,7 +19,7 @@ import java.util.concurrent.ThreadFactory;
 @Configuration
 @EnableWebMvc
 @ComponentScan({
-        "com.flow.platform.cc",
+        "com.flow.platform.cc.controller",
         "com.flow.platform.cc.service"})
 public class WebConfig extends WebMvcConfigurerAdapter {
 

@@ -2,11 +2,10 @@ package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.util.zk.ZkLocalBuilder;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.server.ServerCnxnFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.apache.zookeeper.ZooKeeper;
+import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -30,5 +29,21 @@ public abstract class TestBase {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Value("${zk.host}")
+    protected String zkHost;
+
+    @Value("${zk.timeout}")
+    protected Integer zkTimeout;
+
+    @Value("${zk.node.zone}")
+    protected String zkZone;
+
+    protected ZooKeeper zkClient;
+
+    @Before
+    public void beforeEach() throws IOException {
+        zkClient = new ZooKeeper(zkHost, zkTimeout, null);
     }
 }
