@@ -1,10 +1,7 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.util.zk.ZkCmd;
-import com.flow.platform.util.zk.ZkEventHelper;
-import com.flow.platform.util.zk.ZkPathBuilder;
-import com.flow.platform.util.zk.ZkNodeHelper;
+import com.flow.platform.util.zk.*;
 import com.google.common.collect.Sets;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -117,15 +114,20 @@ public class ZkServiceImpl implements ZkService {
         ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName).append(zoneName).append(agentName);
         String agentNodePath = pathBuilder.path();
 
-        if (!agents.contains(agentName) || ZkNodeHelper.exist(zk, agentNodePath) == null) {
+        try {
+            if (!agents.contains(agentName) || ZkNodeHelper.exist(zk, agentNodePath) == null) {
+                throw new AgentErr.NotFoundException(agentName);
+            }
+
+            if (agents.contains(ZkPathBuilder.busyNodeName(agentName)) || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
+                throw new AgentErr.BusyException(agentName);
+            }
+
+            ZkNodeHelper.setNodeData(zk, agentNodePath, cmd.toJson());
+
+        } catch (ZkException.ZkNoNodeException e) {
             throw new AgentErr.NotFoundException(agentName);
         }
-
-        if (agents.contains(ZkPathBuilder.busyNodeName(agentName)) || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
-            throw new AgentErr.BusyException(agentName);
-        }
-
-        ZkNodeHelper.setNodeData(zk, agentNodePath, cmd.toJson());
     }
 
     /**

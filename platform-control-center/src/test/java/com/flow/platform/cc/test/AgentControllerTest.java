@@ -40,8 +40,8 @@ public class AgentControllerTest extends TestBase {
     @Test
     public void should_list_all_online_agent() throws Exception {
         // given:
-        String zoneName = zkZone.split(";")[0];
-        String agentName = "test-agent-001";
+        String zoneName = zkZone.split(";")[1];
+        String agentName = "act-001";
         ZkPathBuilder builder = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
