@@ -6,10 +6,7 @@ import com.flow.platform.util.zk.ZkCmd;
 import com.google.common.collect.Sets;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 
 /**
  * Created by gy@fir.im on 16/05/2017.
@@ -18,23 +15,26 @@ import java.util.concurrent.ThreadFactory;
  */
 public class CmdManager {
 
-    private static final CmdManager instance = new CmdManager();
+    private static final CmdManager INSTANCE = new CmdManager();
 
-    private static final Set<CmdResult> running = Sets.newConcurrentHashSet();
-    private static final Queue<CmdResult> finished = new ConcurrentLinkedQueue<>();
+    private final Set<CmdResult> running = Sets.newConcurrentHashSet();
+    private final Queue<CmdResult> finished = new ConcurrentLinkedQueue<>();
 
-    private static final ExecutorService executor =
-            Executors.newFixedThreadPool(Config.concurrentProcNum(), new ThreadFactory() {
-                public Thread newThread(Runnable r) {
-                    // Make thread to Daemon thread, those threads exit while JVM exist
-                    Thread t = Executors.defaultThreadFactory().newThread(r);
-                    t.setDaemon(true);
-                    return t;
-                }
-            });
+    private final ThreadFactory defaultFactory = r -> {
+        // Make thread to Daemon thread, those threads exit while JVM exist
+        Thread t = Executors.defaultThreadFactory().newThread(r);
+        t.setDaemon(true);
+        return t;
+    };
+
+    private final ExecutorService cmdExecutor =
+            Executors.newFixedThreadPool(Config.concurrentProcNum(), defaultFactory);
+
+    private final ExecutorService defaultExecutor =
+            Executors.newFixedThreadPool(100, defaultFactory);
 
     public static CmdManager getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     // default listener
@@ -73,21 +73,21 @@ public class CmdManager {
      */
     public void shutdown() {
         kill();
-        executor.shutdownNow();
+        cmdExecutor.shutdownNow();
     }
 
     public void execute(final ZkCmd cmd) {
-        executor.execute(() -> {
-            if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
+        if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
+            cmdExecutor.execute(() -> {
                 CmdExecutor executor = new CmdExecutor(procEventHandler, "/bin/bash", "-c", cmd.getCmd());
                 executor.run();
-            }
+            });
+        }
 
-            // kill current running proc-es
-            if (cmd.getType() == ZkCmd.Type.STOP) {
-                kill();
-            }
-        });
+        // kill current running proc-es
+        if (cmd.getType() == ZkCmd.Type.STOP) {
+            defaultExecutor.execute(this::kill);
+        }
     }
 
     /**

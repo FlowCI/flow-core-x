@@ -24,13 +24,16 @@ public class Agent {
         String zone; // agent zone
         String name; // agent name
 
-        if (args.length != 2) {
+        if (args.length != 3) {
+            zkHome = ZK_HOME;
             zone = AGENT_ZONE;
             name = AGENT_NAME;
         } else {
-            zone = args[0];
-            name = args[1];
+            zkHome = args[0];
+            zone = args[1];
+            name = args[2];
 
+            System.out.println(zkHome);
             System.out.println(zone);
             System.out.println(name);
         }

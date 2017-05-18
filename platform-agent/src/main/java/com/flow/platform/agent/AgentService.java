@@ -130,14 +130,14 @@ public class AgentService implements Runnable, Watcher {
 
         try {
             byte[] rawData = ZkNodeHelper.getNodeData(zk, nodePath, null);
-            cmd = parseCmd(rawData);
+            cmd = ZkCmd.parse(rawData);
 
-            if (cmd != null) {
-                ZkNodeHelper.createEphemeralNode(zk, nodePathBusy, rawData);
-                if (zkEventListener != null) {
-                    zkEventListener.onDataChanged(event, cmd);
-                }
+            ZkNodeHelper.createEphemeralNode(zk, nodePathBusy, rawData);
+
+            if (zkEventListener != null) {
+                zkEventListener.onDataChanged(event, cmd);
             }
+
         } catch (Throwable e) {
             AgentLog.err(e, "Invalid cmd from server");
         } finally {
@@ -163,19 +163,5 @@ public class AgentService implements Runnable, Watcher {
         String path = ZkNodeHelper.createEphemeralNode(zk, nodePath, "");
         ZkNodeHelper.watchNode(zk, nodePath, this, 5);
         return path;
-    }
-
-    private ZkCmd parseCmd(byte[] jsonRaw) {
-        try {
-            Gson gson = new Gson();
-            return gson.fromJson(new String(jsonRaw), ZkCmd.class);
-        } catch (Throwable e) {
-            if (Config.isDebug()) {
-                return new ZkCmd(ZkCmd.Type.RUN_SHELL, "~/test.sh");
-            }
-
-            AgentLog.err(e, "Invalide command");
-            return null;
-        }
     }
 }

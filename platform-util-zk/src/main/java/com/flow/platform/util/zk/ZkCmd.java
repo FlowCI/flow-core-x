@@ -18,13 +18,9 @@ public class ZkCmd implements Serializable {
      * @return ZkCmd or null if any exception
      */
     public static ZkCmd parse(byte[] raw) {
-        try {
-            String json = new String(raw);
-            Gson gson = new Gson();
-            return gson.fromJson(json, ZkCmd.class);
-        } catch (Throwable e) {
-            return null;
-        }
+        String json = new String(raw);
+        Gson gson = new Gson();
+        return gson.fromJson(json, ZkCmd.class);
     }
 
     public enum Type {
