@@ -1,5 +1,6 @@
 package com.flow.platform.cc.test;
 
+import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.gson.Gson;
@@ -28,6 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AgentControllerTest extends TestBase {
 
     @Autowired
+    private ZkService zkService;
+
+    @Autowired
     private WebApplicationContext webAppContext;
 
     private MockMvc mockMvc;
@@ -40,7 +44,10 @@ public class AgentControllerTest extends TestBase {
     @Test
     public void should_list_all_online_agent() throws Exception {
         // given:
-        String zoneName = zkZone.split(";")[1];
+        String zoneName = "test-zone-01";
+        zkService.createZone(zoneName);
+        Thread.sleep(1000);
+
         String agentName = "act-001";
         ZkPathBuilder builder = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");

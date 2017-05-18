@@ -76,8 +76,7 @@ public class ZkServiceImpl implements ZkService {
         String[] zones = zkZone.split(";");
         zoneLatch = new CountDownLatch(zones.length);
         for (String zone : zones) {
-            String zonePath = createZone(zone);
-            onlineAgents.put(zonePath, Sets.<String>newConcurrentHashSet());
+            createZone(zone);
         }
 
         if (!zoneLatch.await(10, TimeUnit.SECONDS)) {
@@ -105,6 +104,10 @@ public class ZkServiceImpl implements ZkService {
 
         // watch children node for agents
         ZkNodeHelper.watchChildren(zk, zonePath, watcher, 5);
+
+        if (onlineAgents.get(zonePath) == null) {
+            onlineAgents.put(zonePath, Sets.<String>newConcurrentHashSet());
+        }
         return zonePath;
     }
 
