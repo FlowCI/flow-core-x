@@ -27,8 +27,15 @@ public class CmdManager {
         return t;
     };
 
-    private final ExecutorService cmdExecutor =
-            Executors.newFixedThreadPool(Config.concurrentProcNum(), defaultFactory);
+    private final ThreadPoolExecutor cmdExecutor =
+            new ThreadPoolExecutor(
+                    Config.concurrentProcNum(),
+                    Config.concurrentProcNum(),
+                    0L,
+                    TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<>(),
+                    defaultFactory,
+                    (r, executor) -> AgentLog.info("Reach the max concurrent proc"));
 
     private final ExecutorService defaultExecutor =
             Executors.newFixedThreadPool(100, defaultFactory);
