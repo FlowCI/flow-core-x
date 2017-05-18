@@ -11,6 +11,22 @@ import java.io.Serializable;
  */
 public class ZkCmd implements Serializable {
 
+    /**
+     * Get zk cmd from json of byte[] format
+     *
+     * @param raw
+     * @return ZkCmd or null if any exception
+     */
+    public static ZkCmd parse(byte[] raw) {
+        try {
+            String json = new String(raw);
+            Gson gson = new Gson();
+            return gson.fromJson(json, ZkCmd.class);
+        } catch (Throwable e) {
+            return null;
+        }
+    }
+
     public enum Type {
         /**
          * Run a shell script in agent

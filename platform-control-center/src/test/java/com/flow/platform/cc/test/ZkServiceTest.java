@@ -68,9 +68,7 @@ public class ZkServiceTest extends TestBase {
 
         // then:
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, agentPath, null);
-        Gson gson = new Gson();
-        ZkCmd loaded = gson.fromJson(new String(raw), ZkCmd.class);
-
+        ZkCmd loaded = ZkCmd.parse(raw);
         Assert.assertEquals(cmd, loaded);
     }
 

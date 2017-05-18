@@ -1,6 +1,7 @@
 package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.service.ZkService;
+import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.gson.Gson;
@@ -10,14 +11,17 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -66,5 +70,37 @@ public class AgentControllerTest extends TestBase {
         List<String> agentList = (List<String>) gson.fromJson(json, List.class);
         Assert.assertEquals(1, agentList.size());
         Assert.assertEquals(agentName, agentList.get(0));
+    }
+
+    @Test
+    public void should_send_cmd_to_agent() throws Exception {
+        // given:
+        String zoneName = "test-zone-02";
+        zkService.createZone(zoneName);
+        Thread.sleep(1000);
+
+        String agentName = "act-002";
+        ZkPathBuilder builder = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName);
+        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+
+        // when: send post request
+        ZkCmd zkCmd = new ZkCmd(ZkCmd.Type.RUN_SHELL, "~/hello.sh");
+        MockHttpServletRequestBuilder content = post("/agent/cmd")
+                .param("zone", zoneName)
+                .param("agent", agentName)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(zkCmd.toJson());
+
+        this.mockMvc.perform(content)
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        // then: check node data
+        byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);
+        Assert.assertNotNull(raw);
+
+        ZkCmd received = ZkCmd.parse(raw);
+        Assert.assertNotNull(received);
+        Assert.assertEquals(zkCmd, received);
     }
 }
