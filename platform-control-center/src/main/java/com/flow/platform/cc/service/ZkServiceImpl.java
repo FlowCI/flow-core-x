@@ -3,7 +3,7 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.util.zk.ZkCmd;
 import com.flow.platform.util.zk.ZkEventHelper;
-import com.flow.platform.util.zk.ZkNodeBuilder;
+import com.flow.platform.util.zk.ZkPathBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.collect.Sets;
 import org.apache.zookeeper.WatchedEvent;
@@ -71,7 +71,7 @@ public class ZkServiceImpl implements ZkService {
         }
 
         // init root node and watch children event
-        String rootPath = ZkNodeBuilder.create(zkRootName).path();
+        String rootPath = ZkPathBuilder.create(zkRootName).path();
         ZkNodeHelper.createNode(zk, rootPath, "");
         ZkNodeHelper.watchChildren(zk, rootPath, this, 5);
 
@@ -90,13 +90,13 @@ public class ZkServiceImpl implements ZkService {
 
     @Override
     public Set<String> onlineAgent(String zoneName) {
-        String zonePath = ZkNodeBuilder.create(zkRootName).zone(zoneName).path();
+        String zonePath = ZkPathBuilder.create(zkRootName).append(zoneName).path();
         return onlineAgents.get(zonePath);
     }
 
     @Override
     public String createZone(String zoneName) {
-        String zonePath = ZkNodeBuilder.create(zkRootName).zone(zoneName).path();
+        String zonePath = ZkPathBuilder.create(zkRootName).append(zoneName).path();
         ZkNodeHelper.createNode(zk, zonePath, "");
 
         // get zk zone event watcher
@@ -114,14 +114,14 @@ public class ZkServiceImpl implements ZkService {
     @Override
     public void sendCommand(String zoneName, String agentName, ZkCmd cmd) {
         Set<String> agents = onlineAgent(zoneName);
-        ZkNodeBuilder pathBuilder = ZkNodeBuilder.create(zkRootName).zone(zoneName).agent(agentName);
+        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName).append(zoneName).append(agentName);
         String agentNodePath = pathBuilder.path();
 
         if (!agents.contains(agentName) || ZkNodeHelper.exist(zk, agentNodePath) == null) {
             throw new AgentErr.NotFoundException(agentName);
         }
 
-        if (agents.contains(String.format("%s-busy", agentName)) || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
+        if (agents.contains(ZkPathBuilder.busyNodeName(agentName)) || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
             throw new AgentErr.BusyException(agentName);
         }
 
@@ -138,7 +138,7 @@ public class ZkServiceImpl implements ZkService {
             initLatch.countDown();
         }
 
-        String rootPath = ZkNodeBuilder.create(zkRootName).path();
+        String rootPath = ZkPathBuilder.create(zkRootName).path();
         if (ZkEventHelper.isChildrenChangedOnPath(event, rootPath)) {
             ZkNodeHelper.watchChildren(zk, rootPath, this, 5);
             zoneLatch.countDown();

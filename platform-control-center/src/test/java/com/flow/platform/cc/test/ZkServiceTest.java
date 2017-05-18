@@ -3,7 +3,7 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.util.zk.ZkCmd;
-import com.flow.platform.util.zk.ZkNodeBuilder;
+import com.flow.platform.util.zk.ZkPathBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.gson.Gson;
 import org.apache.zookeeper.KeeperException;
@@ -48,7 +48,7 @@ public class ZkServiceTest extends TestBase {
     public void should_zk_service_initialized() {
         String[] zones = zkZone.split(";");
         for (String zoneName : zones) {
-            String zonePath = ZkNodeBuilder.create("flow-agents").zone(zoneName).path();
+            String zonePath = ZkPathBuilder.create("flow-agents").append(zoneName).path();
             Assert.assertTrue(ZkNodeHelper.exist(zkClient, zonePath) != null);
         }
     }
@@ -60,7 +60,7 @@ public class ZkServiceTest extends TestBase {
         String agentName = "test-agent-001";
         Assert.assertEquals(0, zkService.onlineAgent(zoneName).size());
 
-        ZkNodeBuilder builder = ZkNodeBuilder.create("flow-agents").zone(zoneName).agent(agentName);
+        ZkPathBuilder builder = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName);
 
         // when: simulate to create agent
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
@@ -79,7 +79,7 @@ public class ZkServiceTest extends TestBase {
         String zoneName = zkZone.split(";")[0];
         String agentName = "test-agent-002";
 
-        String agentPath = ZkNodeBuilder.create("flow-agents").zone(zoneName).agent(agentName).path();
+        String agentPath = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
 
@@ -102,7 +102,7 @@ public class ZkServiceTest extends TestBase {
         String agentName = "test-agent-003";
 
         // when: create node
-        String agentPath = ZkNodeBuilder.create("flow-agents").zone(zoneName).agent(agentName).path();
+        String agentPath = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
 
         // then: send command immediately should raise AgentErr.NotFoundException
@@ -116,7 +116,7 @@ public class ZkServiceTest extends TestBase {
         String zoneName = zkZone.split(";")[0];
         String agentName = "test-agent-004";
 
-        ZkNodeBuilder builder = ZkNodeBuilder.create("flow-agents").zone(zoneName).agent(agentName);
+        ZkPathBuilder builder = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName);
 
         // when: create node and set busy state
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
