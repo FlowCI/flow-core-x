@@ -10,6 +10,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
+import java.util.concurrent.*;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
@@ -35,6 +36,26 @@ public class AgentService implements Runnable, Watcher {
     private String nodePath;    // zk node path, /flow-agents/{zone}/{name}
     private String nodePathBusy;// zk node path, /flow-agents/{zone}/{name}-busy
 
+    private final ThreadFactory defaultFactory = r -> {
+        // Make thread to Daemon thread, those threads exit while JVM exist
+        Thread t = Executors.defaultThreadFactory().newThread(r);
+        t.setDaemon(true);
+        return t;
+    };
+
+    private final ThreadPoolExecutor cmdExecutor =
+            new ThreadPoolExecutor(
+                    Config.concurrentProcNum(),
+                    Config.concurrentProcNum(),
+                    0L,
+                    TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<>(),
+                    defaultFactory,
+                    (r, executor) -> AgentLog.info("Reach the max concurrent proc"));
+
+    private final ExecutorService defaultExecutor =
+            Executors.newFixedThreadPool(100, defaultFactory);
+
     public AgentService(String zkHost, int zkTimeout, String zone, String name) throws IOException {
         this.zk = new ZooKeeper(zkHost, zkTimeout, this);
         this.zone = zone;
@@ -45,6 +66,16 @@ public class AgentService implements Runnable, Watcher {
         this.nodePathBusy = String.format("%s/%s/%s-busy", ZK_ROOT, this.zone, this.name);
     }
 
+    /**
+     * Init AgentService with ZkEventListener
+     *
+     * @param zkHost
+     * @param zkTimeout
+     * @param zone
+     * @param name
+     * @param listener the onDataChanged of ZkEventListener is async, run on thread
+     * @throws IOException
+     */
     public AgentService(String zkHost, int zkTimeout, String zone, String name, ZkEventListener listener) throws IOException {
         this(zkHost, zkTimeout, zone, name);
         this.zkEventListener = listener;
@@ -126,26 +157,41 @@ public class AgentService implements Runnable, Watcher {
     }
 
     private void onDataChanged(WatchedEvent event) {
-        ZkCmd cmd = null;
+        final ZkCmd cmd;
 
         try {
-            byte[] rawData = ZkNodeHelper.getNodeData(zk, nodePath, null);
+            final byte[] rawData = ZkNodeHelper.getNodeData(zk, nodePath, null);
+            ZkNodeHelper.createEphemeralNode(zk, nodePathBusy, rawData);
             cmd = ZkCmd.parse(rawData);
 
-            ZkNodeHelper.createEphemeralNode(zk, nodePathBusy, rawData);
-
+            // fire onDataChanged in thread
             if (zkEventListener != null) {
-                zkEventListener.onDataChanged(event, cmd);
+                if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
+                    ZkNodeHelper.createEphemeralNode(zk, nodePathBusy, rawData);
+
+                    cmdExecutor.execute(() -> {
+                        try {
+                            zkEventListener.onDataChanged(event, cmd);
+                        } finally {
+                            ZkNodeHelper.deleteNode(zk, nodePathBusy);
+                        }
+                    });
+                }
+
+                else {
+                    defaultExecutor.execute(() -> {
+                        zkEventListener.onDataChanged(event, cmd);
+                    });
+                }
             }
 
         } catch (Throwable e) {
             AgentLog.err(e, "Invalid cmd from server");
         } finally {
-            ZkNodeHelper.deleteNode(zk, nodePathBusy);
             ZkNodeHelper.watchNode(zk, nodePath, this, 5);
 
             if (zkEventListener != null) {
-                zkEventListener.afterOnDataChanged(event, cmd);
+                zkEventListener.afterOnDataChanged(event);
             }
         }
     }

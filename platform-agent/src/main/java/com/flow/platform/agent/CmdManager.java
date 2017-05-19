@@ -20,26 +20,6 @@ public class CmdManager {
     private final Set<CmdResult> running = Sets.newConcurrentHashSet();
     private final Queue<CmdResult> finished = new ConcurrentLinkedQueue<>();
 
-    private final ThreadFactory defaultFactory = r -> {
-        // Make thread to Daemon thread, those threads exit while JVM exist
-        Thread t = Executors.defaultThreadFactory().newThread(r);
-        t.setDaemon(true);
-        return t;
-    };
-
-    private final ThreadPoolExecutor cmdExecutor =
-            new ThreadPoolExecutor(
-                    Config.concurrentProcNum(),
-                    Config.concurrentProcNum(),
-                    0L,
-                    TimeUnit.SECONDS,
-                    new LinkedBlockingQueue<>(),
-                    defaultFactory,
-                    (r, executor) -> AgentLog.info("Reach the max concurrent proc"));
-
-    private final ExecutorService defaultExecutor =
-            Executors.newFixedThreadPool(100, defaultFactory);
-
     public static CmdManager getInstance() {
         return INSTANCE;
     }
@@ -80,20 +60,17 @@ public class CmdManager {
      */
     public void shutdown() {
         kill();
-        cmdExecutor.shutdownNow();
     }
 
     public void execute(final ZkCmd cmd) {
         if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
-            cmdExecutor.execute(() -> {
-                CmdExecutor executor = new CmdExecutor(procEventHandler, "/bin/bash", "-c", cmd.getCmd());
-                executor.run();
-            });
+            CmdExecutor executor = new CmdExecutor(procEventHandler, "/bin/bash", "-c", cmd.getCmd());
+            executor.run();
         }
 
         // kill current running proc-es
         if (cmd.getType() == ZkCmd.Type.STOP) {
-            defaultExecutor.execute(this::kill);
+            kill();
         }
     }
 

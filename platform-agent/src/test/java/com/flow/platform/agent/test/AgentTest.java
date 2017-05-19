@@ -105,7 +105,7 @@ public class AgentTest {
             }
 
             @Override
-            public void afterOnDataChanged(WatchedEvent event, ZkCmd cmd) {
+            public void afterOnDataChanged(WatchedEvent event) {
                 waitForBusyStatusRemoved.countDown();
             }
         });

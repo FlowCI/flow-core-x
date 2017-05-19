@@ -29,9 +29,8 @@ public interface ZkEventListener {
      * On data changed been executed
      *
      * @param event
-     * @param cmd
      */
-    void afterOnDataChanged(WatchedEvent event, ZkCmd cmd);
+    void afterOnDataChanged(WatchedEvent event);
 
     /**
      * On node deleted
