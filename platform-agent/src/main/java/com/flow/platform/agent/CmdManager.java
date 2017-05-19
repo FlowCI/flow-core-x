@@ -75,10 +75,13 @@ public class CmdManager {
                 return;
             }
 
-            // exec shutdown command
-            String shutdownCmd = String.format("echo \"%s\" | sudo -S shutdown -h now", password);
+            String shutdownCmd = String.format("echo %s | sudo -S shutdown -h now", password);
             AgentLog.info("shutdown command: " + shutdownCmd);
-            Runtime.getRuntime().exec(shutdownCmd);
+
+            // exec shutdown command
+            CmdExecutor executor = new CmdExecutor(procEventHandler, "/bin/bash", "-c", shutdownCmd);
+            executor.run();
+
         } catch (Throwable e) {
             e.printStackTrace();
         }
