@@ -27,11 +27,13 @@ public class CmdExecutorTest {
             @Override
             public void onExecuted(CmdResult result) {
                 Assert.assertNotNull(result.getExitValue());
+                Assert.assertNotNull(result.getDuration());
+                Assert.assertNotNull(result.getExecutedTime());
             }
 
             @Override
             public void onFinished(CmdResult result) {
-                Assert.assertNotNull(result.getDuration());
+                Assert.assertNotNull(result.getTotalDuration());
                 Assert.assertNotNull(result.getFinishTime());
             }
 

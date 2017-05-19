@@ -11,13 +11,15 @@ import java.util.List;
  */
 public class CmdResult {
 
+    public static final int EXIT_VALUE_FOR_STOP = -100;
+
     /**
      * Process id
      */
     private Process process;
 
     /**
-     * Linux exit status code
+     * Linux exit status code, -100 means killed
      */
     private Integer exitValue;
 
@@ -27,12 +29,22 @@ public class CmdResult {
     private Long duration;
 
     /**
+     * Cmd duration with logging in second
+     */
+    private Long totalDuration;
+
+    /**
      * Cmd start time
      */
     private Date startTime;
 
     /**
-     * Cmd finish time
+     * Cmd executed time
+     */
+    private Date executedTime;
+
+    /**
+     * Cmd finish time with logging
      */
     private Date finishTime;
 
@@ -61,8 +73,8 @@ public class CmdResult {
         return duration;
     }
 
-    public void setDuration(Long duration) {
-        this.duration = duration;
+    public Long getTotalDuration() {
+        return totalDuration;
     }
 
     public List<Exception> getExceptions() {
@@ -77,12 +89,22 @@ public class CmdResult {
         this.startTime = startTime;
     }
 
+    public Date getExecutedTime() {
+        return executedTime;
+    }
+
+    public void setExecutedTime(Date executedTime) {
+        this.executedTime = executedTime;
+        this.duration = (this.executedTime.getTime() - this.startTime.getTime()) / 1000;
+    }
+
     public Date getFinishTime() {
         return finishTime;
     }
 
     public void setFinishTime(Date finishTime) {
         this.finishTime = finishTime;
+        this.totalDuration = (this.finishTime.getTime() - this.startTime.getTime()) / 1000;
     }
 
     @Override

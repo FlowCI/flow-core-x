@@ -88,14 +88,15 @@ public class CmdExecutor {
             threadForLogging.start();
 
             outputResult.setExitValue(p.waitFor());
+            outputResult.setExecutedTime(new Date());
+
             System.out.println(" ===== Process executed =====");
-
-            waitLock.await(30, TimeUnit.SECONDS); // wait max 30 seconds
-            System.out.println(" ===== Logging executed =====");
-
             if (procListener != null) {
                 procListener.onExecuted(outputResult);
             }
+
+            waitLock.await(30, TimeUnit.SECONDS); // wait max 30 seconds
+            System.out.println(" ===== Logging executed =====");
 
         } catch (InterruptedException | IOException e) {
             outputResult.getExceptions().add(e);
@@ -105,10 +106,6 @@ public class CmdExecutor {
             }
         } finally {
             // calculate duration
-            long endTime = System.currentTimeMillis();
-            long durationInSecond = (endTime - startTime) / 1000;
-
-            outputResult.setDuration(durationInSecond);
             outputResult.setFinishTime(new Date());
 
             if (procListener != null) {

@@ -36,6 +36,7 @@ public interface ZkService extends Watcher {
      * @param zone
      * @param agent
      * @param cmd
+     * @exception com.flow.platform.cc.exception.AgentErr.BusyException if agent busy
      */
     void sendCommand(String zone, String agent, ZkCmd cmd);
 }

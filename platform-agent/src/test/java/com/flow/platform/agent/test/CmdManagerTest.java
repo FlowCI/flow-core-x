@@ -90,6 +90,7 @@ public class CmdManagerTest {
         for (CmdResult r : execProc) {
             assertEquals(new Integer(0), r.getExitValue());
             assertEquals(true, r.getDuration() >= 2);
+            assertEquals(true, r.getTotalDuration() >= 2);
             assertEquals(0, r.getExceptions().size());
         }
     }

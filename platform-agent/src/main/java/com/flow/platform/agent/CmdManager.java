@@ -77,9 +77,18 @@ public class CmdManager {
     /**
      * Kill current running process
      */
-    private void kill() {
+    public void kill() {
         for (CmdResult r : running) {
             r.getProcess().destroy();
+
+            // update finish time
+            r.setExecutedTime(new Date());
+            r.setFinishTime(new Date());
+            r.setExitValue(CmdResult.EXIT_VALUE_FOR_STOP);
+
+            // set CmdResult to finish
+            finished.add(r);
+
             AgentLog.info(String.format("Kill process : %s", r.toString()));
         }
         running.clear();
