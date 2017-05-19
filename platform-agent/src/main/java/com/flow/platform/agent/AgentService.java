@@ -36,13 +36,14 @@ public class AgentService implements Runnable, Watcher {
     private String nodePath;    // zk node path, /flow-agents/{zone}/{name}
     private String nodePathBusy;// zk node path, /flow-agents/{zone}/{name}-busy
 
+    // Make thread to Daemon thread, those threads exit while JVM exist
     private final ThreadFactory defaultFactory = r -> {
-        // Make thread to Daemon thread, those threads exit while JVM exist
         Thread t = Executors.defaultThreadFactory().newThread(r);
         t.setDaemon(true);
         return t;
     };
 
+    // Executor to execute command and shell
     private final ThreadPoolExecutor cmdExecutor =
             new ThreadPoolExecutor(
                     Config.concurrentProcNum(),
@@ -53,6 +54,7 @@ public class AgentService implements Runnable, Watcher {
                     defaultFactory,
                     (r, executor) -> AgentLog.info("Reach the max concurrent proc"));
 
+    // Executor to execute operationes
     private final ExecutorService defaultExecutor =
             Executors.newFixedThreadPool(100, defaultFactory);
 

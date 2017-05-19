@@ -30,17 +30,17 @@ public class ZkCmd implements Serializable {
         RUN_SHELL("RUN_SHELL"),
 
         /**
-         * Stop current running processes
+         * KILL current running processes
+         */
+        KILL("KILL"),
+
+        /**
+         * Stop agent
          */
         STOP("STOP"),
 
         /**
-         * Close agent
-         */
-        CLOSE("CLOSE"),
-
-        /**
-         * Stop agent and close
+         * Stop agent and shutdown machine
          */
         SHUTDOWN("SHUTDOWN");
 

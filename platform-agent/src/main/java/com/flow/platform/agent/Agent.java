@@ -56,7 +56,7 @@ public class Agent {
 
             @Override
             public void onDeleted(WatchedEvent event) {
-                CmdManager.getInstance().shutdown();
+                CmdManager.getInstance().shutdown(null);
                 AgentLog.info("========= Agent been deleted =========");
             }
         });

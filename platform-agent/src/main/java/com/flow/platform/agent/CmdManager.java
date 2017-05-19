@@ -56,21 +56,56 @@ public class CmdManager {
     }
 
     /**
-     * Close all executing processes
+     * Stop all executing processes and exit agent
      */
-    public void shutdown() {
+    public void stop() {
         kill();
+        Runtime.getRuntime().exit(0);
+    }
+
+    public void shutdown(String password) {
+        kill();
+        try {
+            if (password == null) {
+                password = Config.sudoPassword(); // try to load sudo password from system property
+            }
+
+            if (password == null) {
+                AgentLog.info("Shutdown cannot be executed since sudo password is null");
+                return;
+            }
+
+            // exec shutdown command
+            String shutdownCmd = String.format("echo \"%s\" | sudo -S shutdown -h now", password);
+            AgentLog.info("shutdown command: " + shutdownCmd);
+            Runtime.getRuntime().exec(shutdownCmd);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     public void execute(final ZkCmd cmd) {
         if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
             CmdExecutor executor = new CmdExecutor(procEventHandler, "/bin/bash", "-c", cmd.getCmd());
             executor.run();
+            return;
         }
 
-        // kill current running proc-es
-        if (cmd.getType() == ZkCmd.Type.STOP) {
+        // kill current running proc
+        if (cmd.getType() == ZkCmd.Type.KILL) {
             kill();
+            return;
+        }
+
+        // stop current agent
+        if (cmd.getType() == ZkCmd.Type.STOP) {
+            stop();
+            return;
+        }
+
+        if (cmd.getType() == ZkCmd.Type.SHUTDOWN) {
+            String passwordOfSudo = cmd.getCmd();
+            shutdown(passwordOfSudo);
         }
     }
 
@@ -88,6 +123,8 @@ public class CmdManager {
 
             // set CmdResult to finish
             finished.add(r);
+
+            //TODO: send cmd result to server here
 
             AgentLog.info(String.format("Kill process : %s", r.toString()));
         }
