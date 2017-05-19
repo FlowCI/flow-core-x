@@ -114,8 +114,12 @@ public class ZkServiceImpl implements ZkService {
                 throw new AgentErr.NotFoundException(agentName);
             }
 
+            // check is busy
             if (agents.contains(ZkPathBuilder.busyNodeName(agentName)) || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
-                throw new AgentErr.BusyException(agentName);
+                // check command type
+                if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
+                    throw new AgentErr.BusyException(agentName);
+                }
             }
 
             ZkNodeHelper.setNodeData(zk, agentNodePath, cmd.toJson());
@@ -155,12 +159,9 @@ public class ZkServiceImpl implements ZkService {
             ZkNodeHelper.watchChildren(zk, zonePath, this, 5);
 
             if (ZkEventHelper.isChildrenChanged(event)) {
-                executorService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        List<String> childrenNodes = ZkNodeHelper.getChildrenNodes(zk, zonePath);
-                        agentDao.reload(zoneName, childrenNodes);
-                    }
+                executorService.execute(() -> {
+                    List<String> childrenNodes = ZkNodeHelper.getChildrenNodes(zk, zonePath);
+                    agentDao.reload(zoneName, childrenNodes);
                 });
             }
         }
