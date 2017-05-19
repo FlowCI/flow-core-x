@@ -20,6 +20,12 @@ public class ZkException {
         }
     }
 
+    public static class ZkWatchingException extends AbstractZkException {
+        public ZkWatchingException(Exception raw, String path) {
+            super(raw, "Cannot watch path: " + path);
+        }
+    }
+
     public static class ZkServerConnectionException extends AbstractZkException {
         public ZkServerConnectionException(Exception raw) {
             super(raw, "Zookeeper server connection error");

@@ -1,8 +1,8 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.util.zk.*;
-import com.google.common.collect.Sets;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -16,7 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gy@fir.im on 17/05/2017.
@@ -38,19 +40,17 @@ public class ZkServiceImpl implements ZkService {
     @Value("${zk.node.zone}")
     private String zkZone;
 
+    private final AgentDao agentDao;
     private final ExecutorService executorService;
     private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
-    // zone path -> agent sets
-    private final Map<String, Set<String>> onlineAgents = new ConcurrentHashMap<>(10);
-
     private ZooKeeper zk;
     private CountDownLatch initLatch = new CountDownLatch(1);
-    private CountDownLatch zoneLatch;
 
     @Autowired
-    public ZkServiceImpl(ExecutorService executorService) {
+    public ZkServiceImpl(ExecutorService executorService, AgentDao agentDao) {
         this.executorService = executorService;
+        this.agentDao = agentDao;
     }
 
     /**
@@ -74,40 +74,32 @@ public class ZkServiceImpl implements ZkService {
 
         // init zone nodes
         String[] zones = zkZone.split(";");
-        zoneLatch = new CountDownLatch(zones.length);
         for (String zone : zones) {
             createZone(zone);
-        }
-
-        if (!zoneLatch.await(10, TimeUnit.SECONDS)) {
-            throw new RuntimeException("Cannot init zone nodes within 10 seconds");
         }
     }
 
     @Override
     public Set<String> onlineAgent(String zoneName) {
-        String zonePath = ZkPathBuilder.create(zkRootName).append(zoneName).path();
-        return onlineAgents.get(zonePath);
+        return agentDao.online(zoneName);
     }
 
     @Override
     public String createZone(String zoneName) {
         String zonePath = ZkPathBuilder.create(zkRootName).append(zoneName).path();
-        ZkNodeHelper.createNode(zk, zonePath, "");
 
-        // get zk zone event watcher
-        ZoneEventWatcher watcher = zoneEventWatchers.get(zoneName);
-        if (watcher == null) {
-            watcher = new ZoneEventWatcher(zonePath);
-            zoneEventWatchers.put(zoneName, watcher);
+        // zone node not exited
+        if (ZkNodeHelper.exist(zk, zonePath) == null){
+            ZkNodeHelper.createNode(zk, zonePath, "");
+        } else{
+            List<String> agents = ZkNodeHelper.getChildrenNodes(zk, zonePath);
+            agentDao.reload(zoneName, agents);
         }
 
-        // watch children node for agents
-        ZkNodeHelper.watchChildren(zk, zonePath, watcher, 5);
+        ZoneEventWatcher zoneEventWatcher =
+                zoneEventWatchers.computeIfAbsent(zonePath, p -> new ZoneEventWatcher(zoneName, p));
 
-        if (onlineAgents.get(zonePath) == null) {
-            onlineAgents.put(zonePath, Sets.<String>newConcurrentHashSet());
-        }
+        ZkNodeHelper.watchChildren(zk, zonePath, zoneEventWatcher, 5);
         return zonePath;
     }
 
@@ -142,12 +134,6 @@ public class ZkServiceImpl implements ZkService {
         if (ZkEventHelper.isConnectToServer(event)) {
             initLatch.countDown();
         }
-
-        String rootPath = ZkPathBuilder.create(zkRootName).path();
-        if (ZkEventHelper.isChildrenChangedOnPath(event, rootPath)) {
-            ZkNodeHelper.watchChildren(zk, rootPath, this, 5);
-            zoneLatch.countDown();
-        }
     }
 
     /**
@@ -155,9 +141,11 @@ public class ZkServiceImpl implements ZkService {
      */
     private class ZoneEventWatcher implements Watcher {
 
+        private String zoneName;
         private String zonePath;
 
-        ZoneEventWatcher(String zonePath) {
+        ZoneEventWatcher(String zoneName, String zonePath) {
+            this.zoneName = zoneName;
             this.zonePath = zonePath;
         }
 
@@ -170,12 +158,8 @@ public class ZkServiceImpl implements ZkService {
                 executorService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        // TODO: to update online agent db
                         List<String> childrenNodes = ZkNodeHelper.getChildrenNodes(zk, zonePath);
-
-                        Set<String> agentsInZone = onlineAgents.get(zonePath);
-                        agentsInZone.clear();
-                        agentsInZone.addAll(childrenNodes);
+                        agentDao.reload(zoneName, childrenNodes);
                     }
                 });
             }

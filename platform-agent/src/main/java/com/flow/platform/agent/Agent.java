@@ -41,7 +41,7 @@ public class Agent {
         AgentLog.info("========= Run agent =========");
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
-        AgentService client = new AgentService(ZK_HOME, ZK_TIMEOUT, zone, name, new ZkEventAdaptor() {
+        AgentService client = new AgentService(zkHome, ZK_TIMEOUT, zone, name, new ZkEventAdaptor() {
 
             @Override
             public void onConnected(WatchedEvent event, String path) {

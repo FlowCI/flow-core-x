@@ -56,7 +56,7 @@ public class ZkNodeHelper {
             return zk.exists(path, watcher);
         } catch (KeeperException | InterruptedException e) {
             if (retry <= 0) {
-                throw new ZkException.ZkServerConnectionException(e);
+                throw new ZkException.ZkWatchingException(e, path);
             }
 
             try {
@@ -73,7 +73,7 @@ public class ZkNodeHelper {
             zk.getChildren(parentPath, watcher);
         } catch (KeeperException | InterruptedException e) {
             if (retry <= 0) {
-                throw new ZkException.ZkServerConnectionException(e);
+                throw new ZkException.ZkWatchingException(e, parentPath);
             }
 
             try {

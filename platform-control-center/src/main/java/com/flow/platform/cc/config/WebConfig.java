@@ -20,7 +20,8 @@ import java.util.concurrent.ThreadFactory;
 @EnableWebMvc
 @ComponentScan({
         "com.flow.platform.cc.controller",
-        "com.flow.platform.cc.service"})
+        "com.flow.platform.cc.service",
+        "com.flow.platform.cc.dao"})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private static final String SPRING_ENV = "spring.profiles.active";

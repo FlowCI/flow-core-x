@@ -21,6 +21,10 @@ public class ZkEventHelper {
         return syncConnectedEvent(event, EventType.None);
     }
 
+    public static boolean isDisconnected(WatchedEvent event) {
+        return event.getState() == Watcher.Event.KeeperState.Disconnected;
+    }
+
     /**
      * Indicate is zk node created
      *
