@@ -138,7 +138,7 @@ public class AgentService implements Runnable, Watcher {
      *
      * @param event
      */
-    public void onDeleted(WatchedEvent event) {
+    private void onDeleted(WatchedEvent event) {
         try {
             if (zkEventListener != null) {
                 zkEventListener.onDeleted(event);

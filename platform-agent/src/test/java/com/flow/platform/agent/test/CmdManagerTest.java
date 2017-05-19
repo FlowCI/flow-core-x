@@ -71,9 +71,9 @@ public class CmdManagerTest {
             }
         });
 
-        // when: execute two command
-        cmdManager.execute(cmd);
-        cmdManager.execute(cmd);
+        // when: execute two command by thread
+        new Thread(() -> cmdManager.execute(cmd)).start();
+        new Thread(() -> cmdManager.execute(cmd)).start();
         startLatch.await();
 
         // then: check num of running proc
