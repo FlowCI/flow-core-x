@@ -161,7 +161,6 @@ public class AgentService implements Runnable, Watcher {
 
         try {
             final byte[] rawData = ZkNodeHelper.getNodeData(zk, nodePath, null);
-            ZkNodeHelper.createEphemeralNode(zk, nodePathBusy, rawData);
             cmd = ZkCmd.parse(rawData);
 
             // fire onDataChanged in thread
