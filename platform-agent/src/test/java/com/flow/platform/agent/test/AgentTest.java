@@ -1,7 +1,7 @@
 package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.AgentService;
-import com.flow.platform.util.zk.ZkCmd;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -86,13 +86,14 @@ public class AgentTest {
             }
 
             @Override
-            public void onDataChanged(WatchedEvent event, ZkCmd cmd) {
+            public void onDataChanged(WatchedEvent event, byte[] raw) {
                 try {
                     // when
                     waitForCommandStart.countDown();
+                    Cmd cmd = Cmd.parse(raw);
 
                     // then
-                    assertEquals(new ZkCmd(ZkCmd.Type.RUN_SHELL, "~/test.sh"), cmd);
+                    assertEquals(new Cmd(Cmd.Type.RUN_SHELL, "~/test.sh"), cmd);
 
                     // simulate cmd running need 5 seconds
                     Thread.sleep(2000);
@@ -118,8 +119,8 @@ public class AgentTest {
         assertNull(ss);
 
         // when: send command to agent
-        ZkCmd cmd = new ZkCmd();
-        cmd.setType(ZkCmd.Type.RUN_SHELL);
+        Cmd cmd = new Cmd();
+        cmd.setType(Cmd.Type.RUN_SHELL);
         cmd.setCmd("~/test.sh");
 
         ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), cmd.toJson());

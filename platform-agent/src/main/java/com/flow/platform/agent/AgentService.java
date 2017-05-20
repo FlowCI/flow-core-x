@@ -1,10 +1,9 @@
 package com.flow.platform.agent;
 
-import com.flow.platform.util.zk.ZkCmd;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkEventListener;
 import com.flow.platform.util.zk.ZkNodeHelper;
-import com.google.gson.Gson;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -159,20 +158,20 @@ public class AgentService implements Runnable, Watcher {
     }
 
     private void onDataChanged(WatchedEvent event) {
-        final ZkCmd cmd;
+        final Cmd cmd;
 
         try {
             final byte[] rawData = ZkNodeHelper.getNodeData(zk, nodePath, null);
-            cmd = ZkCmd.parse(rawData);
+            cmd = Cmd.parse(rawData);
 
             // fire onDataChanged in thread
             if (zkEventListener != null) {
-                if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
+                if (cmd.getType() == Cmd.Type.RUN_SHELL) {
                     ZkNodeHelper.createEphemeralNode(zk, nodePathBusy, rawData);
 
                     cmdExecutor.execute(() -> {
                         try {
-                            zkEventListener.onDataChanged(event, cmd);
+                            zkEventListener.onDataChanged(event, rawData);
                         } finally {
                             ZkNodeHelper.deleteNode(zk, nodePathBusy);
                         }
@@ -181,7 +180,7 @@ public class AgentService implements Runnable, Watcher {
 
                 else {
                     defaultExecutor.execute(() -> {
-                        zkEventListener.onDataChanged(event, cmd);
+                        zkEventListener.onDataChanged(event, rawData);
                     });
                 }
             }

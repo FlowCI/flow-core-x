@@ -1,7 +1,7 @@
 package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.service.ZkService;
-import com.flow.platform.util.zk.ZkCmd;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.gson.Gson;
@@ -84,7 +84,7 @@ public class AgentControllerTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send post request
-        ZkCmd zkCmd = new ZkCmd(ZkCmd.Type.RUN_SHELL, "~/hello.sh");
+        Cmd zkCmd = new Cmd(Cmd.Type.RUN_SHELL, "~/hello.sh");
         MockHttpServletRequestBuilder content = post("/agent/cmd")
                 .param("zone", zoneName)
                 .param("agent", agentName)
@@ -99,7 +99,7 @@ public class AgentControllerTest extends TestBase {
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);
         Assert.assertNotNull(raw);
 
-        ZkCmd received = ZkCmd.parse(raw);
+        Cmd received = Cmd.parse(raw);
         Assert.assertNotNull(received);
         Assert.assertEquals(zkCmd, received);
     }

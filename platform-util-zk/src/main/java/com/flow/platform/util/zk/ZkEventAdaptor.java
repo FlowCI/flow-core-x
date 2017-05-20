@@ -15,7 +15,7 @@ public class ZkEventAdaptor implements ZkEventListener {
     }
 
     @Override
-    public void onDataChanged(WatchedEvent event, ZkCmd cmd) {
+    public void onDataChanged(WatchedEvent event, byte[] raw) {
 
     }
 

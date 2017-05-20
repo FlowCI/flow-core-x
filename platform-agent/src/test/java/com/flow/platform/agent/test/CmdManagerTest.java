@@ -4,7 +4,7 @@ import com.flow.platform.agent.CmdManager;
 import com.flow.platform.agent.Config;
 import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.CmdResult;
-import com.flow.platform.util.zk.ZkCmd;
+import com.flow.platform.domain.Cmd;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -48,7 +48,7 @@ public class CmdManagerTest {
 
         assertEquals(2, Config.concurrentProcNum());
 
-        ZkCmd cmd = new ZkCmd(ZkCmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd = new Cmd(Cmd.Type.RUN_SHELL, resourcePath);
         cmdManager.getExtraProcEventListeners().add(new CmdExecutor.ProcListener() {
             @Override
             public void onStarted(CmdResult result) {

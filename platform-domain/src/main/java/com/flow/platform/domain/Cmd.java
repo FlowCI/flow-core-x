@@ -1,26 +1,27 @@
-package com.flow.platform.util.zk;
+package com.flow.platform.domain;
 
 import com.google.gson.Gson;
 
 import java.io.Serializable;
 
 /**
- * Created by gy@fir.im on 12/05/2017.
+ * Command object to communicate between c/s
  *
- * @copyright fir.im
+ * Created by gy@fir.im on 12/05/2017.
+ * Copyright fir.im
  */
-public class ZkCmd implements Serializable {
+public class Cmd implements Serializable {
 
     /**
      * Get zk cmd from json of byte[] format
      *
      * @param raw
-     * @return ZkCmd or null if any exception
+     * @return Cmd or null if any exception
      */
-    public static ZkCmd parse(byte[] raw) {
+    public static Cmd parse(byte[] raw) {
         String json = new String(raw);
         Gson gson = new Gson();
-        return gson.fromJson(json, ZkCmd.class);
+        return gson.fromJson(json, Cmd.class);
     }
 
     public enum Type {
@@ -55,14 +56,14 @@ public class ZkCmd implements Serializable {
         }
     }
 
-    private ZkCmd.Type type;
+    private Cmd.Type type;
 
     private String cmd;
 
-    public ZkCmd() {
+    public Cmd() {
     }
 
-    public ZkCmd(Type type, String cmd) {
+    public Cmd(Type type, String cmd) {
         this.type = type;
         this.cmd = cmd;
     }
@@ -88,10 +89,10 @@ public class ZkCmd implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ZkCmd zkCmd = (ZkCmd) o;
+        Cmd cmd = (Cmd) o;
 
-        if (type != zkCmd.type) return false;
-        return cmd != null ? cmd.equals(zkCmd.cmd) : zkCmd.cmd == null;
+        if (type != cmd.type) return false;
+        return this.cmd != null ? this.cmd.equals(cmd.cmd) : cmd.cmd == null;
     }
 
     @Override
@@ -103,7 +104,7 @@ public class ZkCmd implements Serializable {
 
     @Override
     public String toString() {
-        return "ZkCmd{" +
+        return "Cmd{" +
                 "type=" + type +
                 ", cmd='" + cmd + '\'' +
                 '}';

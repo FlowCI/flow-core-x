@@ -1,6 +1,6 @@
 package com.flow.platform.agent;
 
-import com.flow.platform.util.zk.ZkCmd;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import org.apache.zookeeper.WatchedEvent;
 
@@ -49,7 +49,8 @@ public class Agent {
             }
 
             @Override
-            public void onDataChanged(WatchedEvent event, ZkCmd cmd) {
+            public void onDataChanged(WatchedEvent event, byte[] raw) {
+                Cmd cmd = Cmd.parse(raw);
                 AgentLog.info("Received command: " + cmd.toString());
                 CmdManager.getInstance().execute(cmd);
             }

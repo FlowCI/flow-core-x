@@ -2,7 +2,7 @@ package com.flow.platform.agent;
 
 import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.CmdResult;
-import com.flow.platform.util.zk.ZkCmd;
+import com.flow.platform.domain.Cmd;
 import com.google.common.collect.Sets;
 
 import java.util.*;
@@ -87,26 +87,26 @@ public class CmdManager {
         }
     }
 
-    public void execute(final ZkCmd cmd) {
-        if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
+    public void execute(final Cmd cmd) {
+        if (cmd.getType() == Cmd.Type.RUN_SHELL) {
             CmdExecutor executor = new CmdExecutor(procEventHandler, "/bin/bash", "-c", cmd.getCmd());
             executor.run();
             return;
         }
 
         // kill current running proc
-        if (cmd.getType() == ZkCmd.Type.KILL) {
+        if (cmd.getType() == Cmd.Type.KILL) {
             kill();
             return;
         }
 
         // stop current agent
-        if (cmd.getType() == ZkCmd.Type.STOP) {
+        if (cmd.getType() == Cmd.Type.STOP) {
             stop();
             return;
         }
 
-        if (cmd.getType() == ZkCmd.Type.SHUTDOWN) {
+        if (cmd.getType() == Cmd.Type.SHUTDOWN) {
             String passwordOfSudo = cmd.getCmd();
             shutdown(passwordOfSudo);
         }

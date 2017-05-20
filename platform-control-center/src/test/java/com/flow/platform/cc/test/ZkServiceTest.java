@@ -2,10 +2,9 @@ package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.ZkService;
-import com.flow.platform.util.zk.ZkCmd;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
-import com.google.gson.Gson;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
@@ -63,12 +62,12 @@ public class ZkServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // when: send command
-        ZkCmd cmd = new ZkCmd(ZkCmd.Type.RUN_SHELL, "/test.sh");
+        Cmd cmd = new Cmd(Cmd.Type.RUN_SHELL, "/test.sh");
         zkService.sendCommand(zoneName, agentName, cmd);
 
         // then:
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, agentPath, null);
-        ZkCmd loaded = ZkCmd.parse(raw);
+        Cmd loaded = Cmd.parse(raw);
         Assert.assertEquals(cmd, loaded);
     }
 
@@ -83,7 +82,7 @@ public class ZkServiceTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
 
         // then: send command immediately should raise AgentErr.NotFoundException
-        ZkCmd cmd = new ZkCmd(ZkCmd.Type.RUN_SHELL, "/test.sh");
+        Cmd cmd = new Cmd(Cmd.Type.RUN_SHELL, "/test.sh");
         zkService.sendCommand(zoneName, agentName, cmd);
     }
 
@@ -101,7 +100,7 @@ public class ZkServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // then: send command to agent should raise AgentErr.BusyException.class
-        ZkCmd cmd = new ZkCmd(ZkCmd.Type.RUN_SHELL, "/test.sh");
+        Cmd cmd = new Cmd(Cmd.Type.RUN_SHELL, "/test.sh");
         zkService.sendCommand(zoneName, agentName, cmd);
     }
 }

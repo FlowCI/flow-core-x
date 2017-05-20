@@ -2,6 +2,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -104,7 +105,7 @@ public class ZkServiceImpl implements ZkService {
     }
 
     @Override
-    public void sendCommand(String zoneName, String agentName, ZkCmd cmd) {
+    public void sendCommand(String zoneName, String agentName, Cmd cmd) {
         Set<String> agents = onlineAgent(zoneName);
         ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName).append(zoneName).append(agentName);
         String agentNodePath = pathBuilder.path();
@@ -117,7 +118,7 @@ public class ZkServiceImpl implements ZkService {
             // check is busy
             if (agents.contains(ZkPathBuilder.busyNodeName(agentName)) || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
                 // check command type
-                if (cmd.getType() == ZkCmd.Type.RUN_SHELL) {
+                if (cmd.getType() == Cmd.Type.RUN_SHELL) {
                     throw new AgentErr.BusyException(agentName);
                 }
             }

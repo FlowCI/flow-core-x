@@ -21,9 +21,9 @@ public interface ZkEventListener {
      * On receive zk data changed
      *
      * @param event zk raw event
-     * @param cmd ZkCmd obj
+     * @param raw raw byte array
      */
-    void onDataChanged(WatchedEvent event, ZkCmd cmd);
+    void onDataChanged(WatchedEvent event, byte[] raw);
 
     /**
      * On data changed been executed
