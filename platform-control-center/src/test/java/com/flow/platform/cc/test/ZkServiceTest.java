@@ -83,10 +83,6 @@ public class ZkServiceTest extends TestBase {
         String zoneName = zkZone.split(";")[0];
         String agentName = "test-agent-003";
 
-        // when: create node
-        String agentPath = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName).path();
-        ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
-
         // then: send command immediately should raise AgentErr.NotFoundException
         CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
         zkService.sendCommand(cmd);
