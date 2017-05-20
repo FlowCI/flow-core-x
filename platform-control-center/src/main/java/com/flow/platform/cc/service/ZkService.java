@@ -1,6 +1,7 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
 import org.apache.zookeeper.Watcher;
 
 import java.util.Set;
@@ -33,10 +34,9 @@ public interface ZkService extends Watcher {
     /**
      * Send ZkCmd to agent
      *
-     * @param zone
-     * @param agent
      * @param cmd
+     * @return command objc with id
      * @exception com.flow.platform.cc.exception.AgentErr.BusyException if agent busy
      */
-    void sendCommand(String zone, String agent, Cmd cmd);
+    Cmd sendCommand(CmdBase cmd);
 }

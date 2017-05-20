@@ -93,7 +93,7 @@ public class AgentTest {
                     Cmd cmd = Cmd.parse(raw);
 
                     // then
-                    assertEquals(new Cmd(Cmd.Type.RUN_SHELL, "~/test.sh"), cmd);
+                    assertEquals(new Cmd(ZONE, MACHINE, Cmd.Type.RUN_SHELL, "~/test.sh"), cmd);
 
                     // simulate cmd running need 5 seconds
                     Thread.sleep(2000);
@@ -119,10 +119,7 @@ public class AgentTest {
         assertNull(ss);
 
         // when: send command to agent
-        Cmd cmd = new Cmd();
-        cmd.setType(Cmd.Type.RUN_SHELL);
-        cmd.setCmd("~/test.sh");
-
+        Cmd cmd = new Cmd(ZONE, MACHINE, Cmd.Type.RUN_SHELL, "~/test.sh");
         ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), cmd.toJson());
 
         // then: check agent status when command received

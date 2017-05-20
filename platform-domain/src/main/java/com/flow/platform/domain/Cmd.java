@@ -2,15 +2,13 @@ package com.flow.platform.domain;
 
 import com.google.gson.Gson;
 
-import java.io.Serializable;
-
 /**
  * Command object to communicate between c/s
  *
  * Created by gy@fir.im on 12/05/2017.
  * Copyright fir.im
  */
-public class Cmd implements Serializable {
+public class Cmd extends CmdBase {
 
     /**
      * Get zk cmd from json of byte[] format
@@ -24,42 +22,10 @@ public class Cmd implements Serializable {
         return gson.fromJson(json, Cmd.class);
     }
 
-    public enum Type {
-        /**
-         * Run a shell script in agent
-         */
-        RUN_SHELL("RUN_SHELL"),
-
-        /**
-         * KILL current running processes
-         */
-        KILL("KILL"),
-
-        /**
-         * Stop agent
-         */
-        STOP("STOP"),
-
-        /**
-         * Stop agent and shutdown machine
-         */
-        SHUTDOWN("SHUTDOWN");
-
-        private String name;
-
-        Type(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-
     public enum Status {
 
         /**
-         *
+         * Init status when cmd send to agent
          */
         PENDING("PENDING"),
 
@@ -107,66 +73,52 @@ public class Cmd implements Serializable {
     /**
      * Cmd status
      */
-    private Cmd.Status status;
+    private Cmd.Status status = Status.PENDING;
 
-    /**
-     * Command type
-     */
-    private Cmd.Type type;
-
-    /**
-     * Command content
-     */
-    private String cmd;
 
     public Cmd() {
     }
 
-    public Cmd(Type type, String cmd) {
-        this.type = type;
-        this.cmd = cmd;
+    public Cmd(CmdBase cmdBase) {
+        super(cmdBase.getZone(), cmdBase.getAgent(), cmdBase.getType(), cmdBase.getCmd());
     }
 
-    public Type getType() {
-        return type;
+    public Cmd(String zone, String agent, Type type, String cmd) {
+        super(zone, agent, type, cmd);
     }
 
-    public void setType(Type type) {
-        this.type = type;
+    public String getId() {
+        return id;
     }
 
-    public String getCmd() {
-        return cmd;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public void setCmd(String cmd) {
-        this.cmd = cmd;
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
         Cmd cmd = (Cmd) o;
 
-        if (type != cmd.type) return false;
-        return this.cmd != null ? this.cmd.equals(cmd.cmd) : cmd.cmd == null;
+        return id != null ? id.equals(cmd.id) : cmd.id == null;
     }
 
     @Override
     public int hashCode() {
-        int result = type.hashCode();
-        result = 31 * result + (cmd != null ? cmd.hashCode() : 0);
+        int result = super.hashCode();
+        result = 31 * result + (id != null ? id.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return "Cmd{" +
-                "type=" + type +
-                ", cmd='" + cmd + '\'' +
-                '}';
     }
 
     public String toJson() {

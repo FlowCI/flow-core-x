@@ -49,7 +49,8 @@ public class CmdManagerTest {
 
         assertEquals(2, Config.concurrentProcNum());
 
-        Cmd cmd = new Cmd(Cmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd = new Cmd("zone", "agent", Cmd.Type.RUN_SHELL, resourcePath);
+
         cmdManager.getExtraProcEventListeners().add(new ProcListener() {
             @Override
             public void onStarted(CmdResult result) {

@@ -3,6 +3,7 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.KeeperException;
@@ -62,13 +63,18 @@ public class ZkServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // when: send command
-        Cmd cmd = new Cmd(Cmd.Type.RUN_SHELL, "/test.sh");
-        zkService.sendCommand(zoneName, agentName, cmd);
+        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
+        Cmd cmdInfo = zkService.sendCommand(cmd);
+
+        Assert.assertNotNull(cmdInfo.getId());
+        Assert.assertEquals(Cmd.Status.PENDING, cmdInfo.getStatus());
+        Assert.assertEquals(zoneName, cmdInfo.getZone());
+        Assert.assertEquals(agentName, cmdInfo.getAgent());
 
         // then:
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, agentPath, null);
         Cmd loaded = Cmd.parse(raw);
-        Assert.assertEquals(cmd, loaded);
+        Assert.assertEquals(cmdInfo, loaded);
     }
 
     @Test(expected = AgentErr.NotFoundException.class)
@@ -82,8 +88,8 @@ public class ZkServiceTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
 
         // then: send command immediately should raise AgentErr.NotFoundException
-        Cmd cmd = new Cmd(Cmd.Type.RUN_SHELL, "/test.sh");
-        zkService.sendCommand(zoneName, agentName, cmd);
+        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
+        zkService.sendCommand(cmd);
     }
 
     @Test(expected = AgentErr.BusyException.class)
@@ -100,7 +106,7 @@ public class ZkServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // then: send command to agent should raise AgentErr.BusyException.class
-        Cmd cmd = new Cmd(Cmd.Type.RUN_SHELL, "/test.sh");
-        zkService.sendCommand(zoneName, agentName, cmd);
+        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
+        zkService.sendCommand(cmd);
     }
 }

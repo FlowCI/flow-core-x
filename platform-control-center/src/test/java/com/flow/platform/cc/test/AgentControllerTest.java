@@ -2,6 +2,7 @@ package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.gson.Gson;
@@ -84,16 +85,26 @@ public class AgentControllerTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send post request
-        Cmd zkCmd = new Cmd(Cmd.Type.RUN_SHELL, "~/hello.sh");
-        MockHttpServletRequestBuilder content = post("/agent/cmd")
-                .param("zone", zoneName)
-                .param("agent", agentName)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(zkCmd.toJson());
+        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "~/hello.sh");
+        Gson gson = new Gson();
+        gson.toJson(cmd);
 
-        this.mockMvc.perform(content)
+        MockHttpServletRequestBuilder content = post("/agent/cmd")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(gson.toJson(cmd));
+
+        // then: check response data
+        MvcResult result = this.mockMvc.perform(content)
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Cmd cmdInfo = gson.fromJson(result.getResponse().getContentAsString(), Cmd.class);
+        Assert.assertNotNull(cmdInfo);
+        Assert.assertEquals(Cmd.Status.PENDING, cmdInfo.getStatus());
+        Assert.assertEquals(zoneName, cmdInfo.getZone());
+        Assert.assertEquals(agentName, cmdInfo.getAgent());
+
 
         // then: check node data
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);
@@ -101,6 +112,6 @@ public class AgentControllerTest extends TestBase {
 
         Cmd received = Cmd.parse(raw);
         Assert.assertNotNull(received);
-        Assert.assertEquals(zkCmd, received);
+        Assert.assertEquals(cmdInfo, received);
     }
 }

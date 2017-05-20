@@ -2,6 +2,7 @@ package com.flow.platform.cc.controller;
 
 import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,9 +32,7 @@ public class AgentController {
     }
 
     @RequestMapping(path = "/cmd", method = RequestMethod.POST, consumes = "application/json")
-    public void sendCommand(@RequestParam(name = "zone") String zoneName,
-                            @RequestParam(name = "agent") String agentName,
-                            @RequestBody Cmd cmd) {
-        zkService.sendCommand(zoneName, agentName, cmd);
+    public Cmd sendCommand(@RequestBody CmdBase cmd) {
+        return zkService.sendCommand(cmd);
     }
 }

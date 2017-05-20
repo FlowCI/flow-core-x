@@ -3,6 +3,7 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -13,10 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -105,28 +103,37 @@ public class ZkServiceImpl implements ZkService {
     }
 
     @Override
-    public void sendCommand(String zoneName, String agentName, Cmd cmd) {
-        Set<String> agents = onlineAgent(zoneName);
-        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName).append(zoneName).append(agentName);
+    public Cmd sendCommand(CmdBase cmd) {
+        Set<String> agents = onlineAgent(cmd.getZone());
+        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName).append(cmd.getZone()).append(cmd.getAgent());
         String agentNodePath = pathBuilder.path();
 
         try {
-            if (!agents.contains(agentName) || ZkNodeHelper.exist(zk, agentNodePath) == null) {
-                throw new AgentErr.NotFoundException(agentName);
+            if (!agents.contains(cmd.getAgent()) || ZkNodeHelper.exist(zk, agentNodePath) == null) {
+                throw new AgentErr.NotFoundException(cmd.getAgent());
             }
 
             // check is busy
-            if (agents.contains(ZkPathBuilder.busyNodeName(agentName)) || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
+            if (agents.contains(ZkPathBuilder.busyNodeName(cmd.getAgent()))
+                    || ZkNodeHelper.exist(zk, pathBuilder.busy()) != null) {
                 // check command type
                 if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-                    throw new AgentErr.BusyException(agentName);
+                    throw new AgentErr.BusyException(cmd.getAgent());
                 }
             }
 
-            ZkNodeHelper.setNodeData(zk, agentNodePath, cmd.toJson());
+            // set cmd info
+            String cmdId = UUID.randomUUID().toString();
+            Cmd cmdInfo = new Cmd(cmd);
+            cmdInfo.setId(cmdId);
+
+
+            // send data
+            ZkNodeHelper.setNodeData(zk, agentNodePath, cmdInfo.toJson());
+            return cmdInfo;
 
         } catch (ZkException.ZkNoNodeException e) {
-            throw new AgentErr.NotFoundException(agentName);
+            throw new AgentErr.NotFoundException(cmd.getAgent());
         }
     }
 
