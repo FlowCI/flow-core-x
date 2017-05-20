@@ -2,6 +2,7 @@ package com.flow.platform.cmd.test;
 
 import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.CmdResult;
+import com.flow.platform.cmd.ProcListener;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -17,7 +18,7 @@ public class CmdExecutorTest {
         ClassLoader loader = this.getClass().getClassLoader();
         String path = loader.getResource("test.sh").getFile();
 
-        CmdExecutor executor = new CmdExecutor(new CmdExecutor.ProcListener() {
+        CmdExecutor executor = new CmdExecutor(new ProcListener() {
             @Override
             public void onStarted(CmdResult result) {
                 Assert.assertNotNull(result.getStartTime());

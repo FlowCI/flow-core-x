@@ -56,8 +56,67 @@ public class Cmd implements Serializable {
         }
     }
 
+    public enum Status {
+
+        /**
+         *
+         */
+        PENDING("PENDING"),
+
+        /**
+         * Cmd running
+         */
+        RUNNING("RUNNING"),
+
+        /**
+         * Cmd executed
+         */
+        EXECUTED("EXECUTED"),
+
+        /**
+         * Log uploaded
+         */
+        LOGGED("LOGGED"),
+
+        /**
+         * Got exception when running
+         */
+        EXCEPTION("EXCEPTION"),
+
+        /**
+         * Cmd done
+         */
+        DONE("DONE");
+
+        private String name;
+
+        Status(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    /**
+     * Server generated command id
+     */
+    private String id;
+
+    /**
+     * Cmd status
+     */
+    private Cmd.Status status;
+
+    /**
+     * Command type
+     */
     private Cmd.Type type;
 
+    /**
+     * Command content
+     */
     private String cmd;
 
     public Cmd() {

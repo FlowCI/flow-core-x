@@ -2,6 +2,7 @@ package com.flow.platform.agent;
 
 import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.CmdResult;
+import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.google.common.collect.Sets;
 
@@ -25,15 +26,15 @@ public class CmdManager {
     }
 
     // default listener
-    private CmdExecutor.ProcListener procEventHandler = new ProcEventHandler();
+    private ProcListener procEventHandler = new ProcEventHandler();
 
     // handle extra listeners
-    private List<CmdExecutor.ProcListener> extraProcEventListeners = new ArrayList<>(5);
+    private List<ProcListener> extraProcEventListeners = new ArrayList<>(5);
 
     private CmdManager() {
     }
 
-    public List<CmdExecutor.ProcListener> getExtraProcEventListeners() {
+    public List<ProcListener> getExtraProcEventListeners() {
         return extraProcEventListeners;
     }
 
@@ -134,19 +135,19 @@ public class CmdManager {
         running.clear();
     }
 
-    private class ProcEventHandler implements CmdExecutor.ProcListener {
+    private class ProcEventHandler implements ProcListener {
 
         @Override
         public void onStarted(CmdResult result) {
             running.add(result);
-            for (CmdExecutor.ProcListener listener : extraProcEventListeners) {
+            for (ProcListener listener : extraProcEventListeners) {
                 listener.onStarted(result);
             }
         }
 
         @Override
         public void onExecuted(CmdResult result) {
-            for (CmdExecutor.ProcListener listener : extraProcEventListeners) {
+            for (ProcListener listener : extraProcEventListeners) {
                 listener.onExecuted(result);
             }
         }
@@ -155,14 +156,14 @@ public class CmdManager {
         public void onFinished(CmdResult result) {
             running.remove(result);
             finished.add(result);
-            for (CmdExecutor.ProcListener listener : extraProcEventListeners) {
+            for (ProcListener listener : extraProcEventListeners) {
                 listener.onFinished(result);
             }
         }
 
         @Override
         public void onException(CmdResult result) {
-            for (CmdExecutor.ProcListener listener : extraProcEventListeners) {
+            for (ProcListener listener : extraProcEventListeners) {
                 listener.onException(result);
             }
         }

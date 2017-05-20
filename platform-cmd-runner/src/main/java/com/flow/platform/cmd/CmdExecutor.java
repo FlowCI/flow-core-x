@@ -16,37 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CmdExecutor {
 
-    public interface ProcListener {
-
-        /**
-         * Proc start to exec
-         *
-         * @param result
-         */
-        void onStarted(CmdResult result);
-
-        /**
-         * Proc executed without exception (option)
-         *
-         * @param result
-         */
-        void onExecuted(CmdResult result);
-
-        /**
-         * Proc finsihed (must)
-         *
-         * @param result
-         */
-        void onFinished(CmdResult result);
-
-        /**
-         * Proc got exception while executing (option)
-         *
-         * @param result
-         */
-        void onException(CmdResult result);
-    }
-
     private final CountDownLatch waitLock = new CountDownLatch(1);
     private final Queue<String> loggingQueue = new LinkedList<>();
     private final AtomicInteger loggingQueueSize = new AtomicInteger(0);

@@ -11,7 +11,7 @@ public class App {
 
     public static void main(String[] args) {
 
-        CmdExecutor.ProcListener procListener = new CmdExecutor.ProcListener() {
+        ProcListener procListener = new ProcListener() {
             @Override
             public void onStarted(CmdResult result) {
 
