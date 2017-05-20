@@ -7,7 +7,7 @@ package com.flow.platform.cmd;
  *
  * @copyright fir.im
  */
-public class Cmd {
+public class App {
 
     public static void main(String[] args) {
 

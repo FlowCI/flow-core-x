@@ -11,7 +11,7 @@ import java.io.IOException;
  *
  * @copyright fir.im
  */
-public class Agent {
+public class App {
 
     private static final String ZK_HOME = "54.222.129.38:2181";
     private static final int ZK_TIMEOUT = 2000;
