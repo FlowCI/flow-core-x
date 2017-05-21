@@ -2,6 +2,7 @@ package com.flow.platform.cmd.test;
 
 import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.CmdResult;
+import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,7 +19,7 @@ public class CmdExecutorTest {
         ClassLoader loader = this.getClass().getClassLoader();
         String path = loader.getResource("test.sh").getFile();
 
-        CmdExecutor executor = new CmdExecutor(new ProcListener() {
+        ProcListener procListener = new ProcListener() {
             @Override
             public void onStarted(CmdResult result) {
                 Assert.assertNotNull(result.getStartTime());
@@ -42,8 +43,21 @@ public class CmdExecutorTest {
             public void onException(CmdResult result) {
                 System.out.println("onException");
             }
-        }, "/bin/bash", "-c", path);
+        };
 
+        LogListener logListener = new LogListener() {
+            @Override
+            public void onLog(String log) {
+                System.out.println("Log: " + log);
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        };
+
+        CmdExecutor executor = new CmdExecutor(procListener, logListener, "/bin/bash", "-c", path);
         executor.run();
     }
 }

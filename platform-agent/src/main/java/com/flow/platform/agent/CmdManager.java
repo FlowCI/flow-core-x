@@ -2,10 +2,15 @@ package com.flow.platform.agent;
 
 import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.CmdResult;
+import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.google.common.collect.Sets;
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -80,7 +85,7 @@ public class CmdManager {
             AgentLog.info("shutdown command: " + shutdownCmd);
 
             // exec shutdown command
-            CmdExecutor executor = new CmdExecutor(procEventHandler, "/bin/bash", "-c", shutdownCmd);
+            CmdExecutor executor = new CmdExecutor(procEventHandler, null, "/bin/bash", "-c", shutdownCmd);
             executor.run();
 
         } catch (Throwable e) {
@@ -88,9 +93,14 @@ public class CmdManager {
         }
     }
 
+    /**
+     * Execute command from Cmd object
+     *
+     * @param cmd Cmd object
+     */
     public void execute(final Cmd cmd) {
         if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-            CmdExecutor executor = new CmdExecutor(procEventHandler, "/bin/bash", "-c", cmd.getCmd());
+            CmdExecutor executor = new CmdExecutor(procEventHandler, new LogEventHandler(cmd), "/bin/bash", "-c", cmd.getCmd());
             executor.run();
             return;
         }
@@ -166,6 +176,57 @@ public class CmdManager {
             for (ProcListener listener : extraProcEventListeners) {
                 listener.onException(result);
             }
+        }
+    }
+
+    /**
+     * To handle log event, upload log via socket io
+     */
+    private class LogEventHandler implements LogListener {
+
+        private final static String SOCKET_EVENT_TYPE = "agent-logging";
+        private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
+
+        private Cmd cmd;
+        private Socket socket;
+        private boolean socketEnabled = false;
+        private CountDownLatch initLatch = new CountDownLatch(1);
+
+        private LogEventHandler(Cmd cmd) {
+            this.cmd = cmd;
+            try {
+                socket = IO.socket("http://localhost:3000");
+                socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... objects) {
+                        initLatch.countDown();
+                    }
+                });
+
+                socket.connect();
+
+                // wait socket connection and set socket enable to true
+                initLatch.await(SOCKET_CONN_TIMEOUT, TimeUnit.SECONDS);
+                if (initLatch.getCount() <= 0) {
+                    socketEnabled = true;
+                }
+
+            } catch (URISyntaxException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onLog(String log) {
+            System.out.println(log);
+            if (socketEnabled && socket.connected()) {
+                socket.emit(SOCKET_EVENT_TYPE, log);
+            }
+        }
+
+        @Override
+        public void onFinish() {
+            socket.close();
         }
     }
 }

@@ -34,7 +34,19 @@ public class App {
             }
         };
 
-        CmdExecutor executor = new CmdExecutor(procListener, "/bin/bash", "-c", "~/test.sh");
+        LogListener logListener = new LogListener() {
+            @Override
+            public void onLog(String log) {
+                System.out.println("Log: " + log);
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        };
+
+        CmdExecutor executor = new CmdExecutor(procListener, logListener, "/bin/bash", "-c", "~/test.sh");
         executor.run();
     }
 }

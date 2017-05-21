@@ -1,6 +1,7 @@
 package com.flow.platform.cmd;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -24,9 +25,12 @@ public class CmdExecutor {
 
     private ProcessBuilder pBuilder;
     private ProcListener procListener;
+    private LogListener logListener;
 
-    public CmdExecutor(ProcListener procListener, String ...cmd) {
+    public CmdExecutor(ProcListener procListener, LogListener logListener, String ...cmd) {
         this.procListener = procListener;
+        this.logListener = logListener;
+
         pBuilder = new ProcessBuilder(cmd);
         pBuilder.redirectErrorStream(true);
     }
@@ -100,12 +104,17 @@ public class CmdExecutor {
                             } catch (InterruptedException ignored) {
                             }
                         } else {
-                            System.out.println(line);
+                            if (logListener != null) {
+                                logListener.onLog(line);
+                            }
                             loggingQueueSize.getAndDecrement();
                         }
                     }
                 } finally {
                     waitLock.countDown();
+                    if (logListener != null) {
+                        logListener.onFinish();
+                    }
                 }
             }
         };
