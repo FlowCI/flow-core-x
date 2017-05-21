@@ -187,27 +187,27 @@ public class CmdManager {
         private final static String SOCKET_EVENT_TYPE = "agent-logging";
         private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
 
-        private Cmd cmd;
+        private final Cmd cmd;
+        private final CountDownLatch initLatch = new CountDownLatch(1);
+
         private Socket socket;
         private boolean socketEnabled = false;
-        private CountDownLatch initLatch = new CountDownLatch(1);
 
         private LogEventHandler(Cmd cmd) {
             this.cmd = cmd;
-            try {
-                socket = IO.socket("http://localhost:3000");
-                socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-                    @Override
-                    public void call(Object... objects) {
-                        initLatch.countDown();
-                    }
-                });
 
+            if (this.cmd.getSocketIoSever() == null) {
+                return;
+            }
+
+            try {
+                socket = IO.socket(cmd.getSocketIoSever());
+                socket.on(Socket.EVENT_CONNECT, objects -> initLatch.countDown());
                 socket.connect();
 
                 // wait socket connection and set socket enable to true
                 initLatch.await(SOCKET_CONN_TIMEOUT, TimeUnit.SECONDS);
-                if (initLatch.getCount() <= 0) {
+                if (initLatch.getCount() <= 0 && socket.connected()) {
                     socketEnabled = true;
                 }
 
@@ -219,14 +219,22 @@ public class CmdManager {
         @Override
         public void onLog(String log) {
             System.out.println(log);
-            if (socketEnabled && socket.connected()) {
-                socket.emit(SOCKET_EVENT_TYPE, log);
+            if (socketEnabled) {
+                socket.emit(SOCKET_EVENT_TYPE, logJson(log));
             }
         }
 
         @Override
         public void onFinish() {
             socket.close();
+        }
+
+        private String logJson(String log) {
+            return String.format("{\"zone\":\"%s\", \"agent\":\"%s\", \"cmdId\":\"%s\", \"raw\":\"%s\"}",
+                    cmd.getZone(),
+                    cmd.getAgent(),
+                    cmd.getId(),
+                    log);
         }
     }
 }

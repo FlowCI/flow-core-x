@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
@@ -49,7 +50,13 @@ public class CmdManagerTest {
 
         assertEquals(2, Config.concurrentProcNum());
 
-        Cmd cmd = new Cmd("zone", "agent", Cmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd1 = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
+        cmd1.setId(UUID.randomUUID().toString());
+        cmd1.setSocketIoSever("http://localhost:3000");
+
+        Cmd cmd2 = new Cmd("zone1", "agent2", Cmd.Type.RUN_SHELL, resourcePath);
+        cmd2.setId(UUID.randomUUID().toString());
+        cmd2.setSocketIoSever("http://localhost:3000");
 
         cmdManager.getExtraProcEventListeners().add(new ProcListener() {
             @Override
@@ -74,8 +81,8 @@ public class CmdManagerTest {
         });
 
         // when: execute two command by thread
-        new Thread(() -> cmdManager.execute(cmd)).start();
-        new Thread(() -> cmdManager.execute(cmd)).start();
+        new Thread(() -> cmdManager.execute(cmd1)).start();
+        new Thread(() -> cmdManager.execute(cmd2)).start();
         startLatch.await();
 
         // then: check num of running proc
