@@ -70,9 +70,10 @@ public class CmdBase implements Serializable {
     public CmdBase() {
     }
 
-    public CmdBase(String zone, String agent, Type type, String cmd) {
+    public CmdBase(String zone, String agent, String socketIoSever, Type type, String cmd) {
         this.zone = zone;
         this.agent = agent;
+        this.socketIoSever = socketIoSever;
         this.type = type;
         this.cmd = cmd;
     }

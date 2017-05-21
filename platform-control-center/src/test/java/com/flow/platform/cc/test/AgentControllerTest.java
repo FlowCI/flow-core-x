@@ -85,7 +85,7 @@ public class AgentControllerTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send post request
-        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "~/hello.sh");
+        CmdBase cmd = new CmdBase(zoneName, agentName, null, Cmd.Type.RUN_SHELL, "~/hello.sh");
         Gson gson = new Gson();
         gson.toJson(cmd);
 

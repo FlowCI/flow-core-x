@@ -80,11 +80,15 @@ public class Cmd extends CmdBase {
     }
 
     public Cmd(CmdBase cmdBase) {
-        super(cmdBase.getZone(), cmdBase.getAgent(), cmdBase.getType(), cmdBase.getCmd());
+        super(cmdBase.getZone(),
+                cmdBase.getAgent(),
+                cmdBase.getSocketIoSever(),
+                cmdBase.getType(),
+                cmdBase.getCmd());
     }
 
-    public Cmd(String zone, String agent, Type type, String cmd) {
-        super(zone, agent, type, cmd);
+    public Cmd(String zone, String agent, String socketIoSever, Type type, String cmd) {
+        super(zone, agent, socketIoSever, type, cmd);
     }
 
     public String getId() {

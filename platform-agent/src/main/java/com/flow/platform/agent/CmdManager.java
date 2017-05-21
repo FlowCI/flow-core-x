@@ -226,7 +226,9 @@ public class CmdManager {
 
         @Override
         public void onFinish() {
-            socket.close();
+            try {
+                socket.close();
+            } catch (Throwable e) {}
         }
 
         private String logJson(String log) {
