@@ -109,10 +109,10 @@ public class CmdExecutor {
                         }
                     }
                 } finally {
-                    waitLock.countDown();
                     if (logListener != null) {
                         logListener.onFinish();
                     }
+                    waitLock.countDown();
                 }
             }
         };
