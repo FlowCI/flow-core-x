@@ -124,6 +124,8 @@ public class AgentTest {
 
         // then: check agent status when command received
         waitForCommandStart.await();
+        Thread.sleep(1000); // wait busy node
+
         ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
         assertNotNull(ss);
 
