@@ -24,32 +24,14 @@ import java.util.concurrent.ThreadFactory;
         "com.flow.platform.cc.dao"})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-    private static final String SYSTEM_FLOW_CC_ENV = "FLOW_CC_ENV";
-
-    private static final String SPRING_ENV = "spring.profiles.active";
-    private static final String CC_ENV = "flow.cc.env";
-    private static final String DEFAULT_CC_ENV = "local";
-
     private static final int ASYNC_POOL_SIZE = 100;
 
     @Bean
     public PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
-        String envPropertiesFile = String.format("app-%s.properties", currentEnv());
+        String envPropertiesFile = "app.properties";
         PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setLocation(new ClassPathResource(envPropertiesFile));
         return configurer;
-    }
-
-    @Bean
-    public String currentEnv() {
-        String env = System.getProperty(SPRING_ENV);
-        if (env == null) {
-            env = System.getenv(SYSTEM_FLOW_CC_ENV);
-            if (env == null) {
-                env = System.getProperty(CC_ENV, DEFAULT_CC_ENV);
-            }
-        }
-        return env;
     }
 
     @Bean

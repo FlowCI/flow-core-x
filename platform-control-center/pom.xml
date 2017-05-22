@@ -11,6 +11,38 @@
     <artifactId>platform-control-center</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <env>local</env>
+    </properties>
+
+    <!--set profile for different env-->
+    <profiles>
+        <profile>
+            <id>local</id>
+        </profile>
+
+        <profile>
+            <id>dev</id>
+            <properties>
+                <env>dev</env>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>stage</id>
+            <properties>
+                <env>stage</env>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>prod</id>
+            <properties>
+                <env>prod</env>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <finalName>platform-control-center</finalName>
         <plugins>
@@ -32,6 +64,12 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>${basedir}/../config/${artifactId}/${env}</directory>
+            </resource>
+        </resources>
     </build>
 
     <modelVersion>4.0.0</modelVersion>
