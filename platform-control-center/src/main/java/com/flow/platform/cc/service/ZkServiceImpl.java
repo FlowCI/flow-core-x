@@ -63,7 +63,7 @@ public class ZkServiceImpl implements ZkService {
         zk = new ZooKeeper(zkHost, zkTimeout, this);
 
         if (!initLatch.await(10, TimeUnit.SECONDS)) {
-            throw new RuntimeException("Cannot connect to zookeeper server within 10 seconds");
+            throw new RuntimeException(String.format("Cannot connect to zookeeper server '%s' within 10 seconds", zkHost));
         }
 
         // init root node and watch children event

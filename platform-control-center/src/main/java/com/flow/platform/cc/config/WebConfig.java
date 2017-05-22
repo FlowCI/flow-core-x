@@ -34,6 +34,14 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     public PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
+        String envPropertiesFile = String.format("app-%s.properties", currentEnv());
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+        configurer.setLocation(new ClassPathResource(envPropertiesFile));
+        return configurer;
+    }
+
+    @Bean
+    public String currentEnv() {
         String env = System.getProperty(SPRING_ENV);
         if (env == null) {
             env = System.getenv(SYSTEM_FLOW_CC_ENV);
@@ -41,11 +49,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 env = System.getProperty(CC_ENV, DEFAULT_CC_ENV);
             }
         }
-
-        String envPropertiesFile = String.format("app-%s.properties", env);
-        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-        configurer.setLocation(new ClassPathResource(envPropertiesFile));
-        return configurer;
+        return env;
     }
 
     @Bean
