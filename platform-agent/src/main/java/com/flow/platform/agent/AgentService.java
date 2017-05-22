@@ -74,7 +74,7 @@ public class AgentService implements Runnable, Watcher {
      * @param zkTimeout
      * @param zone
      * @param name
-     * @param listener the onDataChanged of ZkEventListener is async, run on thread
+     * @param listener  the onDataChanged of ZkEventListener is async, run on thread
      * @throws IOException
      */
     public AgentService(String zkHost, int zkTimeout, String zone, String name, ZkEventListener listener) throws IOException {
@@ -167,18 +167,10 @@ public class AgentService implements Runnable, Watcher {
             // fire onDataChanged in thread
             if (zkEventListener != null) {
                 if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-                    ZkNodeHelper.createEphemeralNode(zk, nodePathBusy, rawData);
-
                     cmdExecutor.execute(() -> {
-                        try {
-                            zkEventListener.onDataChanged(event, rawData);
-                        } finally {
-                            ZkNodeHelper.deleteNode(zk, nodePathBusy);
-                        }
+                        zkEventListener.onDataChanged(event, rawData);
                     });
-                }
-
-                else {
+                } else {
                     defaultExecutor.execute(() -> {
                         zkEventListener.onDataChanged(event, rawData);
                     });

@@ -114,28 +114,15 @@ public class AgentTest {
         new Thread(client).start();
         waitForConnect.await();
 
-        // then: check node status after connected, should not busy
-        Stat ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
-        assertNull(ss);
-
         // when: send command to agent
         Cmd cmd = new Cmd(ZONE, MACHINE, null, Cmd.Type.RUN_SHELL, "~/test.sh");
         ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), cmd.toJson());
 
         // then: check agent status when command received
         waitForCommandStart.await();
-        Thread.sleep(1000); // wait busy node
-
-        ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
-        assertNotNull(ss);
 
         // when: wait for command executed
         waitState.await();
-
-        // then: check busy node should be deleted after command ran
-        waitForBusyStatusRemoved.await();
-        ss = ZkNodeHelper.exist(zkClient, client.getNodePathBusy());
-        assertNull(ss);
     }
 
     @AfterClass
