@@ -24,8 +24,10 @@ import java.util.concurrent.ThreadFactory;
         "com.flow.platform.cc.dao"})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
+    private static final String SYSTEM_FLOW_CC_ENV = "FLOW_CC_ENV";
+
     private static final String SPRING_ENV = "spring.profiles.active";
-    private static final String CC_ENV = "flow.cc.env"; // system property and system env
+    private static final String CC_ENV = "flow.cc.env";
     private static final String DEFAULT_CC_ENV = "local";
 
     private static final int ASYNC_POOL_SIZE = 100;
@@ -34,7 +36,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     public PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
         String env = System.getProperty(SPRING_ENV);
         if (env == null) {
-            env = System.getenv(CC_ENV);
+            env = System.getenv(SYSTEM_FLOW_CC_ENV);
             if (env == null) {
                 env = System.getProperty(CC_ENV, DEFAULT_CC_ENV);
             }
