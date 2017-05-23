@@ -55,7 +55,7 @@ public class CmdBase implements Serializable {
     /**
      * Socket io server where send log to (Nullable)
      */
-    private String socketIoSever;
+    private String socketIoServer;
 
     /**
      * Command type (Required)
@@ -70,10 +70,10 @@ public class CmdBase implements Serializable {
     public CmdBase() {
     }
 
-    public CmdBase(String zone, String agent, String socketIoSever, Type type, String cmd) {
+    public CmdBase(String zone, String agent, String socketIoServer, Type type, String cmd) {
         this.zone = zone;
         this.agent = agent;
-        this.socketIoSever = socketIoSever;
+        this.socketIoServer = socketIoServer;
         this.type = type;
         this.cmd = cmd;
     }
@@ -94,12 +94,12 @@ public class CmdBase implements Serializable {
         this.agent = agent;
     }
 
-    public String getSocketIoSever() {
-        return socketIoSever;
+    public String getSocketIoServer() {
+        return socketIoServer;
     }
 
-    public void setSocketIoSever(String socketIoSever) {
-        this.socketIoSever = socketIoSever;
+    public void setSocketIoServer(String socketIoServer) {
+        this.socketIoServer = socketIoServer;
     }
 
     public Cmd.Type getType() {

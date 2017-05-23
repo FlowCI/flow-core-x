@@ -67,7 +67,7 @@ public class CmdExecutor {
             }
 
             waitLock.await(30, TimeUnit.SECONDS); // wait max 30 seconds
-            System.out.println(" ===== Logging executed =====");
+            System.out.println(String.format(" ===== Logging executed : %s =====", waitLock.getCount()));
 
         } catch (InterruptedException | IOException e) {
             outputResult.getExceptions().add(e);

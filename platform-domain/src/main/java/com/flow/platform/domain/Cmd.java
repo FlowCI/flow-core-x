@@ -82,7 +82,7 @@ public class Cmd extends CmdBase {
     public Cmd(CmdBase cmdBase) {
         super(cmdBase.getZone(),
                 cmdBase.getAgent(),
-                cmdBase.getSocketIoSever(),
+                cmdBase.getSocketIoServer(),
                 cmdBase.getType(),
                 cmdBase.getCmd());
     }

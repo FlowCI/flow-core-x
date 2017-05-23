@@ -8,7 +8,6 @@ import com.flow.platform.domain.Cmd;
 import com.google.common.collect.Sets;
 import io.socket.client.IO;
 import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
 
 import java.net.URISyntaxException;
 import java.util.*;
@@ -196,12 +195,12 @@ public class CmdManager {
         private LogEventHandler(Cmd cmd) {
             this.cmd = cmd;
 
-            if (this.cmd.getSocketIoSever() == null) {
+            if (this.cmd.getSocketIoServer() == null) {
                 return;
             }
 
             try {
-                socket = IO.socket(cmd.getSocketIoSever());
+                socket = IO.socket(cmd.getSocketIoServer());
                 socket.on(Socket.EVENT_CONNECT, objects -> initLatch.countDown());
                 socket.connect();
 
@@ -218,10 +217,10 @@ public class CmdManager {
 
         @Override
         public void onLog(String log) {
-            System.out.println(log);
             if (socketEnabled) {
                 socket.emit(SOCKET_EVENT_TYPE, logJson(log));
             }
+            System.out.println(log);
         }
 
         @Override
@@ -232,11 +231,12 @@ public class CmdManager {
         }
 
         private String logJson(String log) {
+            String base64Log = Base64.getEncoder().encodeToString(log.getBytes());
             return String.format("{\"zone\":\"%s\", \"agent\":\"%s\", \"cmdId\":\"%s\", \"raw\":\"%s\"}",
                     cmd.getZone(),
                     cmd.getAgent(),
                     cmd.getId(),
-                    log);
+                    base64Log);
         }
     }
 }
