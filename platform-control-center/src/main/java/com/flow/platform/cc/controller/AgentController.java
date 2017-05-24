@@ -29,7 +29,7 @@ public class AgentController {
      */
     @RequestMapping(path = "/list", method = RequestMethod.GET)
     public Collection<Agent> list(@RequestParam(name = "zone") String zoneName) {
-        return agentService.onlineAgent(zoneName);
+        return agentService.onlineList(zoneName);
     }
 
     @RequestMapping(path = "/cmd", method = RequestMethod.POST, consumes = "application/json")

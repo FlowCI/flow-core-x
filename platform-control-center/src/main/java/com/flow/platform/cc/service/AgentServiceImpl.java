@@ -27,19 +27,25 @@ public class AgentServiceImpl implements AgentService {
     private ZkService zkService;
 
     @Override
-    public void register(AgentKey key) {
-        Agent exist = find(key);
-        if (exist == null) {
-            Agent agent = new Agent(key);
-            agent.setStatus(Agent.Status.IDLE);
-            mockAgentStore.put(key, agent);
-        }
-    }
+    public void reportOnline(Collection<AgentKey> keys) {
+        // find offline agent
+        HashSet<AgentKey> offlines = new HashSet<>(mockAgentStore.keySet());
+        offlines.removeAll(keys);
 
-    @Override
-    public void register(Collection<AgentKey> keys) {
-        for (AgentKey key : keys) {
-            register(key);
+        // remote from online list and update status
+        for (AgentKey key : offlines) {
+            Agent offlineAgent = mockAgentStore.get(key);
+            offlineAgent.setStatus(Agent.Status.OFFLINE);
+            mockAgentStore.remove(key);
+        }
+
+        // fine newly online agent
+        HashSet<AgentKey> onlines = new HashSet<>(keys);
+        onlines.removeAll(mockAgentStore.keySet());
+
+        // report online
+        for (AgentKey key : onlines) {
+            reportOnline(key);
         }
     }
 
@@ -49,12 +55,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public void statusChange(Agent agent, Agent.Status target) {
-        agent.setStatus(target);
-    }
-
-    @Override
-    public Collection<Agent> onlineAgent(String zone) {
+    public Collection<Agent> onlineList(String zone) {
         Collection<Agent> zoneAgents = new ArrayList<>(mockAgentStore.size());
         for (Agent agent : mockAgentStore.values()) {
             if (agent.getZone().equals(zone)) {
@@ -91,11 +92,20 @@ public class AgentServiceImpl implements AgentService {
             ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
 
             // update agent status
-            statusChange(target, Agent.Status.BUSY);
+            target.setStatus(Agent.Status.BUSY);
             return cmdInfo;
 
         } catch (ZkException.ZkNoNodeException e) {
             throw new AgentErr.NotFoundException(cmd.getAgent());
+        }
+    }
+
+    private void reportOnline(AgentKey key) {
+        Agent exist = find(key);
+        if (exist == null) {
+            Agent agent = new Agent(key);
+            agent.setStatus(Agent.Status.IDLE);
+            mockAgentStore.put(key, agent);
         }
     }
 }

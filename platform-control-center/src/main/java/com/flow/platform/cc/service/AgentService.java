@@ -15,18 +15,19 @@ import java.util.Collection;
 public interface AgentService {
 
     /**
-     * Register agent when agent startup, which means report to online
-     *
-     * @param key AgentKey for zone and name info
-     */
-    void register(AgentKey key);
-
-    /**
-     * Batch register agent
+     * Batch reportOnline agent
      *
      * @param keys
      */
-    void register(Collection<AgentKey> keys);
+    void reportOnline(Collection<AgentKey> keys);
+
+    /**
+     * Get online agent set by zone
+     *
+     * @param zone
+     * @return
+     */
+    Collection<Agent> onlineList(String zone);
 
     /**
      * Find agent by zone and agent name
@@ -35,22 +36,6 @@ public interface AgentService {
      * @return Agent object, or null if not found
      */
     Agent find(AgentKey key);
-
-    /**
-     * Get online agent set by zone
-     *
-     * @param zone
-     * @return
-     */
-    Collection<Agent> onlineAgent(String zone);
-
-    /**
-     * Update agent status
-     *
-     * @param agent source agent object
-     * @param target target status
-     */
-    void statusChange(Agent agent, Agent.Status target);
 
     /**
      * Send ZkCmd to agent

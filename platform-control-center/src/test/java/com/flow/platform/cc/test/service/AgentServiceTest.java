@@ -4,7 +4,6 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentKey;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -28,7 +27,7 @@ public class AgentServiceTest extends TestBase {
         // given:
         String zoneName = "ut-test-zone-1";
         zkService.createZone(zoneName);
-        Assert.assertEquals(0, agentService.onlineAgent(zoneName).size());
+        Assert.assertEquals(0, agentService.onlineList(zoneName).size());
 
         String agentName = "test-agent-001";
         ZkPathBuilder builder = zkService.getPathBuilder(zoneName, agentName);
@@ -38,8 +37,8 @@ public class AgentServiceTest extends TestBase {
 
         // then:
         Thread.sleep(2000);
-        Assert.assertEquals(1, agentService.onlineAgent(zoneName).size());
-        Assert.assertTrue(agentService.onlineAgent(zoneName).contains(new Agent(zoneName, agentName)));
+        Assert.assertEquals(1, agentService.onlineList(zoneName).size());
+        Assert.assertTrue(agentService.onlineList(zoneName).contains(new Agent(zoneName, agentName)));
     }
 
     @Test
