@@ -88,6 +88,10 @@ public class ZkEventHelper {
         return false;
     }
 
+    public static boolean isSessionExpired(WatchedEvent event) {
+        return event.getState() == Watcher.Event.KeeperState.Expired;
+    }
+
     private static boolean syncConnectedEvent(WatchedEvent event, EventType eventType) {
         return event.getState() == Watcher.Event.KeeperState.SyncConnected && event.getType() == eventType;
     }

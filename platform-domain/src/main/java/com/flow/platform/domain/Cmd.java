@@ -2,6 +2,8 @@ package com.flow.platform.domain;
 
 import com.google.gson.Gson;
 
+import java.util.Date;
+
 /**
  * Command object to communicate between c/s
  *
@@ -75,6 +77,16 @@ public class Cmd extends CmdBase {
      */
     private Cmd.Status status = Status.PENDING;
 
+    /**
+     * Created date
+     */
+    private Date createdDate;
+
+    /**
+     * Updated date
+     */
+    private Date updatedDate;
+
 
     public Cmd() {
     }
@@ -105,6 +117,22 @@ public class Cmd extends CmdBase {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public Date getUpdatedDate() {
+        return updatedDate;
+    }
+
+    public void setUpdatedDate(Date updatedDate) {
+        this.updatedDate = updatedDate;
     }
 
     @Override

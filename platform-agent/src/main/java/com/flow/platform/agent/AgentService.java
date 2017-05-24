@@ -10,6 +10,7 @@ import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
@@ -24,9 +25,13 @@ public class AgentService implements Runnable, Watcher {
      */
     private final static String ZK_ROOT = "/flow-agents";
     private final static Object STATUS_LOCKER = new Object();
+    private final static int ZK_RECONNECT_TIME = 5;
 
+    private String zkHost;
+    private int zkTimeout;
     private ZooKeeper zk;
     private ZkEventListener zkEventListener;
+    private AtomicBoolean shouldReconnect = new AtomicBoolean(true);
 
     private String zone; // agent running zone
     private String name; // agent name, can be machine name
@@ -58,6 +63,9 @@ public class AgentService implements Runnable, Watcher {
             Executors.newFixedThreadPool(100, defaultFactory);
 
     public AgentService(String zkHost, int zkTimeout, String zone, String name) throws IOException {
+        this.zkHost = zkHost;
+        this.zkTimeout = zkTimeout;
+
         this.zk = new ZooKeeper(zkHost, zkTimeout, this);
         this.zone = zone;
         this.name = name;
@@ -121,12 +129,17 @@ public class AgentService implements Runnable, Watcher {
             }
 
             if (ZkEventHelper.isDataChangedOnPath(event, nodePath)) {
+                shouldReconnect.set(false); // donot reconnect to zk when disconnect call from command
                 onDataChanged(event);
                 return;
             }
 
             if (ZkEventHelper.isDeletedOnPath(event, nodePath)) {
                 onDeleted(event);
+            }
+
+            if (ZkEventHelper.isSessionExpired(event)) {
+                onReconnect(event);
             }
         } catch (Throwable e) {
             AgentLog.err(e, "Unexpected error");
@@ -185,6 +198,18 @@ public class AgentService implements Runnable, Watcher {
             if (zkEventListener != null) {
                 zkEventListener.afterOnDataChanged(event);
             }
+        }
+    }
+
+    private void onReconnect(WatchedEvent event) {
+        if (!shouldReconnect.get()) {
+            return;
+        }
+
+        try {
+            this.zk = new ZooKeeper(zkHost, zkTimeout, this);
+        } catch (IOException e) {
+            AgentLog.err(e, "Network failure while reconnect to zookeeper server");
         }
     }
 
