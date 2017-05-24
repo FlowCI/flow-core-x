@@ -37,12 +37,9 @@ public class ZkConfig {
     @Bean
     private ZooKeeper zkClient() throws IOException, InterruptedException {
         ZooKeeper zk = new ZooKeeper(zkHost, zkTimeout, new ZkHandler());
-        zkConnectLatch.await(10, TimeUnit.SECONDS);
-
         if (!zkConnectLatch.await(10, TimeUnit.SECONDS)) {
             throw new RuntimeException(String.format("Cannot connect to zookeeper server '%s' within 10 seconds", zkHost));
         }
-
         return zk;
     }
 
@@ -56,6 +53,9 @@ public class ZkConfig {
         return zkZone.split(";");
     }
 
+    /**
+     * To handle
+     */
     private class ZkHandler implements Watcher {
 
         @Override
