@@ -5,6 +5,7 @@ import com.flow.platform.util.zk.ZkLocalBuilder;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -31,19 +32,10 @@ public abstract class TestBase {
         }
     }
 
-    @Value("${zk.host}")
-    protected String zkHost;
-
-    @Value("${zk.timeout}")
-    protected Integer zkTimeout;
-
-    @Value("${zk.node.zone}")
-    protected String zkZone;
-
+    @Autowired
     protected ZooKeeper zkClient;
 
     @Before
     public void beforeEach() throws IOException {
-        zkClient = new ZooKeeper(zkHost, zkTimeout, null);
     }
 }

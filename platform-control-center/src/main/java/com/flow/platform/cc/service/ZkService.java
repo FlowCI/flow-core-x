@@ -13,7 +13,7 @@ import java.util.Set;
  * Copyright fir.im
  */
 
-public interface ZkService extends Watcher {
+public interface ZkService {
 
     /**
      * Create zk node for agent zone

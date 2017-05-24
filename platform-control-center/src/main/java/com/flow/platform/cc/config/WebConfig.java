@@ -3,6 +3,7 @@ package com.flow.platform.cc.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -22,6 +23,7 @@ import java.util.concurrent.ThreadFactory;
         "com.flow.platform.cc.controller",
         "com.flow.platform.cc.service",
         "com.flow.platform.cc.dao"})
+@Import({ZkConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private static final int ASYNC_POOL_SIZE = 100;

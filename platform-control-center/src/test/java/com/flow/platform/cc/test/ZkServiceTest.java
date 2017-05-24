@@ -23,10 +23,12 @@ public class ZkServiceTest extends TestBase {
     @Autowired
     private ZkService zkService;
 
+    @Autowired
+    private String[] zkDefinedZones;
+
     @Test
     public void should_zk_service_initialized() {
-        String[] zones = zkZone.split(";");
-        for (String zoneName : zones) {
+        for (String zoneName : zkDefinedZones) {
             String zonePath = ZkPathBuilder.create("flow-agents").append(zoneName).path();
             Assert.assertTrue(ZkNodeHelper.exist(zkClient, zonePath) != null);
         }
@@ -35,7 +37,7 @@ public class ZkServiceTest extends TestBase {
     @Test
     public void should_agent_initialized() throws InterruptedException, KeeperException {
         // given:
-        String zoneName = zkZone.split(";")[0];
+        String zoneName = zkDefinedZones[0];
         String agentName = "test-agent-001";
         Assert.assertEquals(0, zkService.onlineAgent(zoneName).size());
 
@@ -43,19 +45,17 @@ public class ZkServiceTest extends TestBase {
 
         // when: simulate to create agent
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
-        ZkNodeHelper.createEphemeralNode(zkClient, builder.busy(), "");
 
         // then:
         Thread.sleep(2000);
-        Assert.assertEquals(2, zkService.onlineAgent(zoneName).size());
+        Assert.assertEquals(1, zkService.onlineAgent(zoneName).size());
         Assert.assertTrue(zkService.onlineAgent(zoneName).contains(agentName));
-        Assert.assertTrue(zkService.onlineAgent(zoneName).contains(agentName + "-busy"));
     }
 
     @Test
     public void should_send_cmd_to_agent() throws InterruptedException {
         // given:
-        String zoneName = zkZone.split(";")[0];
+        String zoneName = zkDefinedZones[0];
         String agentName = "test-agent-002";
 
         String agentPath = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName).path();
@@ -80,7 +80,7 @@ public class ZkServiceTest extends TestBase {
     @Test(expected = AgentErr.NotFoundException.class)
     public void should_raise_exception_agent_not_exit() {
         // given:
-        String zoneName = zkZone.split(";")[0];
+        String zoneName = zkDefinedZones[0];
         String agentName = "test-agent-003";
 
         // then: send command immediately should raise AgentErr.NotFoundException
@@ -91,7 +91,7 @@ public class ZkServiceTest extends TestBase {
     @Test(expected = AgentErr.BusyException.class)
     public void should_raise_exception_agent_busy() throws InterruptedException {
         // given:
-        String zoneName = zkZone.split(";")[0];
+        String zoneName = zkDefinedZones[0];
         String agentName = "test-agent-004";
 
         ZkPathBuilder builder = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName);
