@@ -32,15 +32,18 @@ public class ZkConfig {
     @Value("${zk.node.zone}")
     private String zkZone;
 
-    private CountDownLatch zkConnectLatch = new CountDownLatch(1);
+    private ZooKeeper zkClient = null;
+    private CountDownLatch zkConnectLatch = null;
 
     @Bean
-    private ZooKeeper zkClient() throws IOException, InterruptedException {
-        ZooKeeper zk = new ZooKeeper(zkHost, zkTimeout, new ZkHandler());
-        if (!zkConnectLatch.await(10, TimeUnit.SECONDS)) {
-            throw new RuntimeException(String.format("Cannot connect to zookeeper server '%s' within 10 seconds", zkHost));
+    private ZooKeeper zkClient() {
+        try {
+            zkClient = reconnect();
+            return zkClient;
+        } catch (Throwable e) {
+            // TODO: should handle zk connection exception
+            throw new RuntimeException(e.getMessage());
         }
-        return zk;
     }
 
     @Bean
@@ -54,7 +57,19 @@ public class ZkConfig {
     }
 
     /**
-     * To handle
+     * Reconnect to zk
+     */
+    private ZooKeeper reconnect() throws IOException, InterruptedException {
+        zkConnectLatch = new CountDownLatch(1);
+        ZooKeeper zk = new ZooKeeper(zkHost, zkTimeout, new ZkHandler());
+        if (!zkConnectLatch.await(10, TimeUnit.SECONDS)) {
+            throw new RuntimeException(String.format("Cannot connect to zookeeper server '%s' within 10 seconds", zkHost));
+        }
+        return zk;
+    }
+
+    /**
+     * To handle Zk Events
      */
     private class ZkHandler implements Watcher {
 
@@ -62,6 +77,15 @@ public class ZkConfig {
         public void process(WatchedEvent event) {
             if (ZkEventHelper.isConnectToServer(event)) {
                 zkConnectLatch.countDown();
+            }
+
+            if (ZkEventHelper.isSessionExpired(event)) {
+                try {
+                    zkClient = reconnect();
+                } catch (Throwable e) {
+                    // TODO: should handle zk connection exception
+                    throw new RuntimeException(e.getMessage());
+                }
             }
         }
     }
