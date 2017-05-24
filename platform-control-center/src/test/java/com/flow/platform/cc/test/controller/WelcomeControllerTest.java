@@ -1,5 +1,6 @@
-package com.flow.platform.cc.test;
+package com.flow.platform.cc.test.controller;
 
+import com.flow.platform.cc.test.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

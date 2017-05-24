@@ -12,9 +12,7 @@ import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by gy@fir.im on 24/05/2017.
@@ -57,7 +55,13 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Collection<Agent> onlineAgent(String zone) {
-        return mockAgentStore.values();
+        Collection<Agent> zoneAgents = new ArrayList<>(mockAgentStore.size());
+        for (Agent agent : mockAgentStore.values()) {
+            if (agent.getZone().equals(zone)) {
+                zoneAgents.add(agent);
+            }
+        }
+        return zoneAgents;
     }
 
     @Override

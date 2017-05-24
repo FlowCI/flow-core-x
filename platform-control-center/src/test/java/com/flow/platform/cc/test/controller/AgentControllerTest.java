@@ -1,6 +1,7 @@
-package com.flow.platform.cc.test;
+package com.flow.platform.cc.test.controller;
 
 import com.flow.platform.cc.service.ZkService;
+import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
