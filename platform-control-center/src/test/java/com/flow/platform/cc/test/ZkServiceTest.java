@@ -1,13 +1,11 @@
 package com.flow.platform.cc.test;
 
-import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by gy@fir.im on 17/05/2017.
@@ -16,15 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ZkServiceTest extends TestBase {
 
-    @Autowired
-    private ZkService zkService;
-
-    @Autowired
-    private String[] zkDefinedZones;
-
     @Test
     public void should_zk_service_initialized() {
-        for (String zoneName : zkDefinedZones) {
+        for (String zoneName : zkService.definedZones()) {
             String zonePath = ZkPathBuilder.create("flow-agents").append(zoneName).path();
             Assert.assertTrue(ZkNodeHelper.exist(zkClient, zonePath) != null);
         }

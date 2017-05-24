@@ -22,7 +22,6 @@ import java.util.concurrent.ThreadFactory;
 @ComponentScan({
         "com.flow.platform.cc.controller",
         "com.flow.platform.cc.service"})
-@Import({ZkConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private static final int ASYNC_POOL_SIZE = 100;

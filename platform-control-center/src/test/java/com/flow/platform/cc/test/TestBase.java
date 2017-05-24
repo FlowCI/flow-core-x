@@ -1,6 +1,7 @@
 package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.config.WebConfig;
+import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.Before;
@@ -33,9 +34,12 @@ public abstract class TestBase {
     }
 
     @Autowired
+    protected ZkService zkService;
+
     protected ZooKeeper zkClient;
 
     @Before
-    public void beforeEach() throws IOException {
+    public void beforeEach() throws IOException, InterruptedException {
+        zkClient = zkService.zkClient();
     }
 }

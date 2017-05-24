@@ -9,7 +9,6 @@ import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Maps;
-import org.apache.zookeeper.ZooKeeper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,16 +23,10 @@ import java.util.UUID;
 @Service(value = "agentService")
 public class AgentServiceImpl implements AgentService {
 
-    private final String zkRootName;
-    private final ZooKeeper zkClient;
-
     private final Map<AgentKey, Agent> mockAgentStore = Maps.newConcurrentMap();
 
     @Autowired
-    public AgentServiceImpl(String zkRootName, ZooKeeper zkClient) {
-        this.zkRootName = zkRootName;
-        this.zkClient = zkClient;
-    }
+    private ZkService zkService;
 
     @Override
     public void register(AgentKey key) {
@@ -71,12 +64,12 @@ public class AgentServiceImpl implements AgentService {
     public Cmd sendCommand(CmdBase cmd) {
         Agent target = find(new AgentKey(cmd.getZone(), cmd.getAgent()));
 
-        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName).append(cmd.getZone()).append(cmd.getAgent());
+        ZkPathBuilder pathBuilder = zkService.getPathBuilder(cmd.getZone(), cmd.getAgent());
         String agentNodePath = pathBuilder.path();
 
         try {
             // check agent is exist
-            if (target == null || ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
+            if (target == null || ZkNodeHelper.exist(zkService.zkClient(), agentNodePath) == null) {
                 throw new AgentErr.NotFoundException(cmd.getAgent());
             }
 
@@ -91,7 +84,7 @@ public class AgentServiceImpl implements AgentService {
             cmdInfo.setId(cmdId);
 
             // send data
-            ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmdInfo.toJson());
+            ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
 
             // update agent status
             statusChange(target, Agent.Status.BUSY);

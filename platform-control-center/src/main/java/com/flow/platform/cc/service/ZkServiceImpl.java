@@ -6,12 +6,15 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gy@fir.im on 17/05/2017.
@@ -21,25 +24,32 @@ import java.util.concurrent.ExecutorService;
 @Service(value = "zkService")
 public class ZkServiceImpl implements ZkService {
 
-    private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
-    private final ExecutorService executorService;
+    @Value("${zk.host}")
+    private String zkHost;
 
-    private final String zkRootName;
-    private final String[] zkDefinedZones;
-    private final ZooKeeper zkClient;
+    @Value("${zk.timeout}")
+    private Integer zkTimeout;
 
-    private final AgentService agentService;
+    @Value("${zk.node.root}")
+    private String zkRootName;
+
+    @Value("${zk.node.zone}")
+    private String zkZone;
 
     @Autowired
-    public ZkServiceImpl(ExecutorService executorService,
-                         String zkRootName,
-                         String[] zkDefinedZones,
-                         ZooKeeper zkClient, AgentService agentService) {
+    private AgentService agentService;
+
+    private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
+
+    private final ExecutorService executorService;
+
+    private ZooKeeper zkClient = null;
+
+    private CountDownLatch zkConnectLatch = null;
+
+    @Autowired
+    public ZkServiceImpl(ExecutorService executorService) {
         this.executorService = executorService;
-        this.zkRootName = zkRootName;
-        this.zkClient = zkClient;
-        this.zkDefinedZones = zkDefinedZones;
-        this.agentService = agentService;
     }
 
     /**
@@ -50,14 +60,38 @@ public class ZkServiceImpl implements ZkService {
      */
     @PostConstruct
     public void init() throws IOException, InterruptedException {
+        zkClient = reconnect();
+
         // init root node and watch children event
         String rootPath = ZkPathBuilder.create(zkRootName).path();
         ZkNodeHelper.createNode(zkClient, rootPath, "");
 
         // init zone nodes
-        for (String zone : zkDefinedZones) {
+        for (String zone : definedZones()) {
             createZone(zone);
         }
+    }
+
+    @Override
+    public ZooKeeper zkClient() {
+        if (zkClient == null) {
+            try {
+                zkClient = reconnect();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return zkClient;
+    }
+
+    @Override
+    public ZkPathBuilder getPathBuilder(String zone, String name) {
+        return ZkPathBuilder.create(zkRootName).append(zone).append(name);
+    }
+
+    @Override
+    public String[] definedZones() {
+        return zkZone.split(";");
     }
 
     @Override
@@ -79,6 +113,18 @@ public class ZkServiceImpl implements ZkService {
         return zonePath;
     }
 
+    /**
+     * Reconnect to zk
+     */
+    private ZooKeeper reconnect() throws IOException, InterruptedException {
+        zkConnectLatch = new CountDownLatch(1);
+        ZooKeeper zk = new ZooKeeper(zkHost, zkTimeout, new ZkRootHandler());
+        if (!zkConnectLatch.await(10, TimeUnit.SECONDS)) {
+            throw new RuntimeException(String.format("Cannot connect to zookeeper server '%s' within 10 seconds", zkHost));
+        }
+        return zk;
+    }
+
     private Collection<AgentKey> buildKeys(String zone, Collection<String> agents) {
         ArrayList<AgentKey> keys = new ArrayList<>(agents.size());
         for (String agentName : agents) {
@@ -87,8 +133,31 @@ public class ZkServiceImpl implements ZkService {
         return keys;
     }
 
+
     /**
-     * To handle zk event on zone level
+     * To handle zk root events
+     */
+    private class ZkRootHandler implements Watcher {
+
+        @Override
+        public void process(WatchedEvent event) {
+            if (ZkEventHelper.isConnectToServer(event)) {
+                zkConnectLatch.countDown();
+            }
+
+            if (ZkEventHelper.isSessionExpired(event)) {
+                try {
+                    zkClient = reconnect();
+                } catch (Throwable e) {
+                    // TODO: should handle zk connection exception
+                    throw new RuntimeException(e.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * To handle zk events on zone level
      */
     private class ZoneEventWatcher implements Watcher {
 
