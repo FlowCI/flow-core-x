@@ -1,23 +1,17 @@
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.dao.AgentDao;
-import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.AgentKey;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gy@fir.im on 17/05/2017.
@@ -28,24 +22,24 @@ import java.util.concurrent.TimeUnit;
 public class ZkServiceImpl implements ZkService {
 
     private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
-    private final AgentDao agentDao;
     private final ExecutorService executorService;
 
     private final String zkRootName;
     private final String[] zkDefinedZones;
     private final ZooKeeper zkClient;
 
+    private final AgentService agentService;
+
     @Autowired
     public ZkServiceImpl(ExecutorService executorService,
-                         AgentDao agentDao,
                          String zkRootName,
                          String[] zkDefinedZones,
-                         ZooKeeper zkClient) {
+                         ZooKeeper zkClient, AgentService agentService) {
         this.executorService = executorService;
-        this.agentDao = agentDao;
         this.zkRootName = zkRootName;
         this.zkClient = zkClient;
         this.zkDefinedZones = zkDefinedZones;
+        this.agentService = agentService;
     }
 
     /**
@@ -67,11 +61,6 @@ public class ZkServiceImpl implements ZkService {
     }
 
     @Override
-    public Set<String> onlineAgent(String zoneName) {
-        return agentDao.online(zoneName);
-    }
-
-    @Override
     public String createZone(String zoneName) {
         String zonePath = ZkPathBuilder.create(zkRootName).append(zoneName).path();
 
@@ -80,7 +69,7 @@ public class ZkServiceImpl implements ZkService {
             ZkNodeHelper.createNode(zkClient, zonePath, "");
         } else{
             List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
-            agentDao.reload(zoneName, agents);
+            agentService.register(buildKeys(zoneName, agents));
         }
 
         ZoneEventWatcher zoneEventWatcher =
@@ -90,39 +79,12 @@ public class ZkServiceImpl implements ZkService {
         return zonePath;
     }
 
-    @Override
-    public Cmd sendCommand(CmdBase cmd) {
-        Set<String> agents = onlineAgent(cmd.getZone());
-        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName).append(cmd.getZone()).append(cmd.getAgent());
-        String agentNodePath = pathBuilder.path();
-
-        try {
-            if (!agents.contains(cmd.getAgent()) || ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
-                throw new AgentErr.NotFoundException(cmd.getAgent());
-            }
-
-            // check is busy
-            if (agents.contains(ZkPathBuilder.busyNodeName(cmd.getAgent()))
-                    || ZkNodeHelper.exist(zkClient, pathBuilder.busy()) != null) {
-                // check command type
-                if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-                    throw new AgentErr.BusyException(cmd.getAgent());
-                }
-            }
-
-            // set cmd info
-            String cmdId = UUID.randomUUID().toString();
-            Cmd cmdInfo = new Cmd(cmd);
-            cmdInfo.setId(cmdId);
-
-
-            // send data
-            ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmdInfo.toJson());
-            return cmdInfo;
-
-        } catch (ZkException.ZkNoNodeException e) {
-            throw new AgentErr.NotFoundException(cmd.getAgent());
+    private Collection<AgentKey> buildKeys(String zone, Collection<String> agents) {
+        ArrayList<AgentKey> keys = new ArrayList<>(agents.size());
+        for (String agentName : agents) {
+            keys.add(new AgentKey(zone, agentName));
         }
+        return keys;
     }
 
     /**
@@ -145,8 +107,8 @@ public class ZkServiceImpl implements ZkService {
 
             if (ZkEventHelper.isChildrenChanged(event)) {
                 executorService.execute(() -> {
-                    List<String> childrenNodes = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
-                    agentDao.reload(zoneName, childrenNodes);
+                    List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
+                    agentService.register(buildKeys(zoneName, agents));
                 });
             }
         }

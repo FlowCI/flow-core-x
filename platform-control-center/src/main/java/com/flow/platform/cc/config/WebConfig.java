@@ -21,8 +21,7 @@ import java.util.concurrent.ThreadFactory;
 @EnableWebMvc
 @ComponentScan({
         "com.flow.platform.cc.controller",
-        "com.flow.platform.cc.service",
-        "com.flow.platform.cc.dao"})
+        "com.flow.platform.cc.service"})
 @Import({ZkConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 

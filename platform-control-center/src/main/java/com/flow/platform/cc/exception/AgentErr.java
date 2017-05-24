@@ -12,9 +12,9 @@ public class AgentErr {
         }
     }
 
-    public static class BusyException extends RuntimeException {
-        public BusyException(String agentName) {
-            super(String.format("Cannot receive command since agent '%s' is busy", agentName));
+    public static class NotAvailableException extends RuntimeException {
+        public NotAvailableException(String agentName) {
+            super(String.format("Cannot receive command since agent '%s' is offline or busy", agentName));
         }
     }
 }

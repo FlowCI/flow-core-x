@@ -11,6 +11,8 @@ import java.util.List;
 public class Agent implements Serializable {
 
     public enum Status {
+        OFFLINE("OFFLINE"),
+
         IDLE("IDLE"),
 
         BUSY("BUSY");
@@ -26,15 +28,7 @@ public class Agent implements Serializable {
         }
     }
 
-    /**
-     * Agent target working zone
-     */
-    private String zone;
-
-    /**
-     * Agent name, unique inside zone
-     */
-    private String name;
+    private AgentKey key;
 
     /**
      * Max concurrent proc number
@@ -44,7 +38,7 @@ public class Agent implements Serializable {
     /**
      * Agent busy or idle
      */
-    private Status status = Status.IDLE;
+    private Status status = Status.OFFLINE;
 
     /**
      * Created date
@@ -57,26 +51,29 @@ public class Agent implements Serializable {
     private Date updatedDate;
 
     public Agent(String zone, String name) {
-        this.zone = zone;
-        this.name = name;
+        this(new AgentKey(zone, name));
+    }
+
+    public Agent(AgentKey key) {
+        this.key = key;
         this.createdDate = new Date();
         this.updatedDate = new Date();
     }
 
-    public String getZone() {
-        return zone;
+    public AgentKey getKey() {
+        return key;
     }
 
-    public void setZone(String zone) {
-        this.zone = zone;
+    public void setKey(AgentKey key) {
+        this.key = key;
+    }
+
+    public String getZone() {
+        return this.key.getZone();
     }
 
     public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        return this.key.getName();
     }
 
     public Integer getConcurrentProc() {
@@ -117,23 +114,19 @@ public class Agent implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
 
         Agent agent = (Agent) o;
-
-        if (!zone.equals(agent.zone)) return false;
-        return name.equals(agent.name);
+        return key.equals(agent.getKey());
     }
 
     @Override
     public int hashCode() {
-        int result = zone.hashCode();
-        result = 31 * result + name.hashCode();
-        return result;
+        return this.getKey().hashCode();
     }
 
     @Override
     public String toString() {
         return "Agent{" +
-                "zone='" + zone + '\'' +
-                ", name='" + name + '\'' +
+                "zone='" + key.getZone() + '\'' +
+                ", name='" + key.getName() + '\'' +
                 ", status=" + status +
                 '}';
     }

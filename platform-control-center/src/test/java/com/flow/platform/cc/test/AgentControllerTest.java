@@ -1,6 +1,7 @@
 package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.service.ZkService;
+import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -68,9 +69,9 @@ public class AgentControllerTest extends TestBase {
         Assert.assertNotNull(json);
 
         Gson gson = new Gson();
-        List<String> agentList = (List<String>) gson.fromJson(json, List.class);
-        Assert.assertEquals(1, agentList.size());
-        Assert.assertEquals(agentName, agentList.get(0));
+        Agent[] agentList = gson.fromJson(json, Agent[].class);
+        Assert.assertEquals(1, agentList.length);
+        Assert.assertEquals(agentName, agentList[0].getName());
     }
 
     @Test
