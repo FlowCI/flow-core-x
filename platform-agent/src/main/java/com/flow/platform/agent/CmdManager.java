@@ -218,7 +218,7 @@ public class CmdManager {
         @Override
         public void onLog(String log) {
             if (socketEnabled) {
-                socket.emit(SOCKET_EVENT_TYPE, logJson(log));
+                socket.emit(SOCKET_EVENT_TYPE, getLogFormat(log));
             }
             System.out.println(log);
         }
@@ -230,13 +230,14 @@ public class CmdManager {
             } catch (Throwable e) {}
         }
 
-        private String logJson(String log) {
-            String base64Log = Base64.getEncoder().encodeToString(log.getBytes());
-            return String.format("{\"zone\":\"%s\", \"agent\":\"%s\", \"cmdId\":\"%s\", \"raw\":\"%s\"}",
-                    cmd.getZone(),
-                    cmd.getAgent(),
-                    cmd.getId(),
-                    base64Log);
+        /**
+         * Send log by format zone#agent#cmdId#log_raw_data
+         *
+         * @param log
+         * @return
+         */
+        private String getLogFormat(String log) {
+            return String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgent(), cmd.getId(), log);
         }
     }
 }
