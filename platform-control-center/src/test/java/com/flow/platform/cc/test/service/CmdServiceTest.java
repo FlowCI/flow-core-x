@@ -5,11 +5,16 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Date;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -19,6 +24,38 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private CmdService cmdService;
+
+    private Process mockProcess = new Process() {
+        @Override
+        public OutputStream getOutputStream() {
+            return null;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return null;
+        }
+
+        @Override
+        public InputStream getErrorStream() {
+            return null;
+        }
+
+        @Override
+        public int waitFor() throws InterruptedException {
+            return 0;
+        }
+
+        @Override
+        public int exitValue() {
+            return 0;
+        }
+
+        @Override
+        public void destroy() {
+
+        }
+    };
 
     @Test
     public void should_create_cmd() {
@@ -37,7 +74,7 @@ public class CmdServiceTest extends TestBase {
     }
 
     @Test
-    public void should_update_cmd_status() {
+    public void should_report_cmd_status() {
         // given:
         CmdBase base = new CmdBase("test-zone", "test-agent", Cmd.Type.KILL, null);
         Cmd cmd = cmdService.create(base);
@@ -45,11 +82,16 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(cmd.getId());
 
         // when:
-        cmdService.updateStatus(cmd.getId(), Cmd.Status.RUNNING);
+        CmdResult result = new CmdResult();
+        result.setStartTime(new Date());
+        result.setProcess(mockProcess);
+        cmdService.report(cmd.getId(), Cmd.Status.RUNNING, result);
 
         // then:
         Cmd loaded = cmdService.find(cmd.getId());
         Assert.assertEquals(Cmd.Status.RUNNING, loaded.getStatus());
+        Assert.assertNotNull(loaded.getResult());
+        Assert.assertEquals(mockProcess, loaded.getResult().getProcess());
     }
 
     @Test

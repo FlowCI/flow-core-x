@@ -4,6 +4,7 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.junit.Assert;
@@ -39,8 +40,9 @@ public class CmdControllerTest extends TestBase {
         Cmd postData = new Cmd();
         postData.setId(cmd.getId());
         postData.setStatus(Cmd.Status.EXECUTED);
+        postData.setResult(new CmdResult());
 
-        MockHttpServletRequestBuilder content = post("/cmd/status")
+        MockHttpServletRequestBuilder content = post("/cmd/report")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(postData.toJson());
 

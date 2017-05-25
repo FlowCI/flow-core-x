@@ -49,7 +49,12 @@ public class Cmd extends CmdBase {
         /**
          * Got exception when running
          */
-        EXCEPTION("EXCEPTION");
+        EXCEPTION("EXCEPTION"),
+
+        /**
+         * Killed
+         */
+        KILLED("KILLED");
 
         private String name;
 

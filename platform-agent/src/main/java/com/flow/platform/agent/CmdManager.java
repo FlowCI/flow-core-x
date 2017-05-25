@@ -1,12 +1,12 @@
 package com.flow.platform.agent;
 
 import com.flow.platform.cmd.CmdExecutor;
-import com.flow.platform.domain.CmdResult;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Cmd;
-import com.google.common.collect.Sets;
+import com.flow.platform.domain.CmdResult;
+import com.google.common.collect.Maps;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
@@ -26,7 +26,7 @@ public class CmdManager {
 
     private static final CmdManager INSTANCE = new CmdManager();
 
-    private final Set<CmdResult> running = Sets.newConcurrentHashSet();
+    private final Map<Cmd, CmdResult> running = Maps.newConcurrentMap();
     private final Queue<CmdResult> finished = new ConcurrentLinkedQueue<>();
 
     public static CmdManager getInstance() {
@@ -49,7 +49,7 @@ public class CmdManager {
      * @return
      */
     public Collection<CmdResult> getRunning() {
-        return running;
+        return running.values();
     }
 
     /**
@@ -130,7 +130,10 @@ public class CmdManager {
      * Kill current running process
      */
     public void kill() {
-        for (CmdResult r : running) {
+        for (Map.Entry<Cmd, CmdResult> entry : running.entrySet()) {
+            CmdResult r = entry.getValue();
+            Cmd cmd = entry.getKey();
+
             r.getProcess().destroy();
 
             // update finish time
@@ -141,7 +144,7 @@ public class CmdManager {
             // set CmdResult to finish
             finished.add(r);
 
-            //TODO: send cmd result to server here
+            ReportManager.getInstance().cmdReportSync(cmd.getId(), Cmd.Status.KILLED, r);
 
             Logger.info(String.format("Kill process : %s", r.toString()));
         }
@@ -159,7 +162,7 @@ public class CmdManager {
 
         @Override
         public void onStarted(CmdResult result) {
-            running.add(result);
+            running.put(cmd, result);
 
             // report cmd async
             reportManager.cmdReport(cmd.getId(), Cmd.Status.RUNNING, result);
@@ -181,7 +184,7 @@ public class CmdManager {
 
         @Override
         public void onLogged(CmdResult result) {
-            running.remove(result);
+            running.remove(cmd);
             finished.add(result);
 
             // report cmd sync since block current thread
@@ -194,7 +197,7 @@ public class CmdManager {
 
         @Override
         public void onException(CmdResult result) {
-            running.remove(result);
+            running.remove(cmd);
             finished.add(result);
 
             // report cmd sync since block current thread

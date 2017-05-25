@@ -1,10 +1,7 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
@@ -79,13 +76,14 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public void updateStatus(String cmdId, Cmd.Status status) {
+    public void report(String cmdId, Cmd.Status status, CmdResult result) {
         Cmd cmd = find(cmdId);
         if (cmd == null) {
             throw new IllegalArgumentException("Cmd not exist");
         }
 
         cmd.setStatus(status);
+        cmd.setResult(result);
         cmd.setUpdatedDate(new Date());
     }
 }

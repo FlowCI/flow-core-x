@@ -3,6 +3,7 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.CmdResult;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -35,12 +36,12 @@ public interface CmdService {
      */
     Cmd send(CmdBase cmd);
 
-
     /**
-     * Only update cmd status
+     * Update cmd status and result
      *
      * @param cmdId
      * @param status
+     * @param result
      */
-    void updateStatus(String cmdId, Cmd.Status status);
+    void report(String cmdId, Cmd.Status status, CmdResult result);
 }

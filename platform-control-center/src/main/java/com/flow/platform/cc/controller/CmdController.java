@@ -32,15 +32,15 @@ public class CmdController {
     }
 
     /**
-     * Update cmd status
+     * For agent report cmd status
      *
      * @param cmd only need id and status
      */
-    @RequestMapping(path = "/status", method = RequestMethod.POST, consumes = "application/json")
-    public void updateStatus(@RequestBody Cmd cmd) {
-        if (cmd.getId() == null || cmd.getStatus() == null) {
-            throw new IllegalArgumentException("Cmd id and target status are required");
+    @RequestMapping(path = "/report", method = RequestMethod.POST, consumes = "application/json")
+    public void report(@RequestBody Cmd cmd) {
+        if (cmd.getId() == null || cmd.getStatus() == null || cmd.getResult() == null) {
+            throw new IllegalArgumentException("Cmd id, status and cmd result are required");
         }
-        cmdService.updateStatus(cmd.getId(), cmd.getStatus());
+        cmdService.report(cmd.getId(), cmd.getStatus(), cmd.getResult());
     }
 }
