@@ -50,10 +50,10 @@ public class CmdManagerTest {
 
         assertEquals(2, Config.concurrentProcNum());
 
-        Cmd cmd1 = new Cmd("zone1", "agent1", "http://localhost:3000/agent", Cmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd1 = new Cmd("zone1", "agent1", null, Cmd.Type.RUN_SHELL, resourcePath);
         cmd1.setId(UUID.randomUUID().toString());
 
-        Cmd cmd2 = new Cmd("zone1", "agent2", "http://localhost:3000/agent", Cmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd2 = new Cmd("zone1", "agent2", null, Cmd.Type.RUN_SHELL, resourcePath);
         cmd2.setId(UUID.randomUUID().toString());
 
         cmdManager.getExtraProcEventListeners().add(new ProcListener() {

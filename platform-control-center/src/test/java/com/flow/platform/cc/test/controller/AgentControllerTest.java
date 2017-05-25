@@ -91,7 +91,8 @@ public class AgentControllerTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send post request
-        CmdBase cmd = new CmdBase(zoneName, agentName, null, Cmd.Type.RUN_SHELL, "~/hello.sh");
+        CmdBase.Config config = new CmdBase.Config("http://localhost:3000/agent", "http://localhost:8080/agent/report");
+        CmdBase cmd = new CmdBase(zoneName, agentName, config, Cmd.Type.RUN_SHELL, "~/hello.sh");
         gson.toJson(cmd);
 
         MockHttpServletRequestBuilder content = post("/agent/cmd")

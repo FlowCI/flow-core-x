@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * Only include basic properties of command
- *
+ * <p>
  * Created by gy@fir.im on 20/05/2017.
  * Copyright fir.im
  */
@@ -42,17 +42,54 @@ public class CmdBase implements Serializable {
         }
     }
 
-    private AgentPath agentPath;
+    /**
+     * Config for server url
+     */
+    public static class Config implements Serializable {
+
+        private String loggingUrl;
+
+        private String reportStatusUrl;
+
+        public Config() {
+        }
+
+        public Config(String loggingUrl, String reportStatusUrl) {
+            this.loggingUrl = loggingUrl;
+            this.reportStatusUrl = reportStatusUrl;
+        }
+
+        public String getLoggingUrl() {
+            return loggingUrl;
+        }
+
+        public void setLoggingUrl(String loggingUrl) {
+            this.loggingUrl = loggingUrl;
+        }
+
+        public String getReportStatusUrl() {
+            return reportStatusUrl;
+        }
+
+        public void setReportStatusUrl(String reportStatusUrl) {
+            this.reportStatusUrl = reportStatusUrl;
+        }
+    }
 
     /**
-     * Socket io server where send log to (Nullable)
+     * Destination of command
      */
-    private String socketIoServer;
+    private AgentPath agentPath;
 
     /**
      * Command type (Required)
      */
     private CmdBase.Type type;
+
+    /**
+     * Server communication configuration (Nullable)
+     */
+    private CmdBase.Config config;
 
     /**
      * Command content (Required when type = RUN_SHELL)
@@ -62,13 +99,13 @@ public class CmdBase implements Serializable {
     public CmdBase() {
     }
 
-    public CmdBase(String zone, String agent, String socketIoServer, Type type, String cmd) {
-        this(new AgentPath(zone, agent), socketIoServer, type, cmd);
+    public CmdBase(String zone, String agent, CmdBase.Config config, Type type, String cmd) {
+        this(new AgentPath(zone, agent), config, type, cmd);
     }
 
-    public CmdBase(AgentPath agentPath, String socketIoServer, Type type, String cmd) {
+    public CmdBase(AgentPath agentPath, CmdBase.Config config, Type type, String cmd) {
         this.agentPath = agentPath;
-        this.socketIoServer = socketIoServer;
+        this.config = config;
         this.type = type;
         this.cmd = cmd;
     }
@@ -89,20 +126,20 @@ public class CmdBase implements Serializable {
         return agentPath.getName();
     }
 
-    public String getSocketIoServer() {
-        return socketIoServer;
-    }
-
-    public void setSocketIoServer(String socketIoServer) {
-        this.socketIoServer = socketIoServer;
-    }
-
     public Cmd.Type getType() {
         return type;
     }
 
     public void setType(Cmd.Type type) {
         this.type = type;
+    }
+
+    public Config getConfig() {
+        return config;
+    }
+
+    public void setConfig(Config config) {
+        this.config = config;
     }
 
     public String getCmd() {

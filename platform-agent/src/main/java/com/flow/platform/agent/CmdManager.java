@@ -5,6 +5,7 @@ import com.flow.platform.cmd.CmdResult;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
 import com.google.common.collect.Sets;
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -195,12 +196,13 @@ public class CmdManager {
         private LogEventHandler(Cmd cmd) {
             this.cmd = cmd;
 
-            if (this.cmd.getSocketIoServer() == null) {
+            CmdBase.Config config = this.cmd.getConfig();
+            if (config == null || config.getLoggingUrl() == null) {
                 return;
             }
 
             try {
-                socket = IO.socket(cmd.getSocketIoServer());
+                socket = IO.socket(config.getLoggingUrl());
                 socket.on(Socket.EVENT_CONNECT, objects -> initLatch.countDown());
                 socket.connect();
 
