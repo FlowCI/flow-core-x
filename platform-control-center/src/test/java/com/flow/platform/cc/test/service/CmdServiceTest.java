@@ -21,6 +21,38 @@ public class CmdServiceTest extends TestBase {
     private CmdService cmdService;
 
     @Test
+    public void should_create_cmd() {
+        // given:
+        CmdBase base = new CmdBase("test-zone", "test-agent", Cmd.Type.KILL, null);
+
+        // when:
+        Cmd cmd = cmdService.create(base);
+        Assert.assertNotNull(cmd);
+        Assert.assertNotNull(cmd.getId());
+
+        // then:
+        Cmd loaded = cmdService.find(cmd.getId());
+        Assert.assertNotNull(loaded);
+        Assert.assertEquals(cmd, loaded);
+    }
+
+    @Test
+    public void should_update_cmd_status() {
+        // given:
+        CmdBase base = new CmdBase("test-zone", "test-agent", Cmd.Type.KILL, null);
+        Cmd cmd = cmdService.create(base);
+        Assert.assertNotNull(cmd);
+        Assert.assertNotNull(cmd.getId());
+
+        // when:
+        cmdService.updateStatus(cmd.getId(), Cmd.Status.RUNNING);
+
+        // then:
+        Cmd loaded = cmdService.find(cmd.getId());
+        Assert.assertEquals(Cmd.Status.RUNNING, loaded.getStatus());
+    }
+
+    @Test
     public void should_send_cmd_to_agent() throws InterruptedException {
         // given:
         String zoneName = zkService.definedZones()[0];

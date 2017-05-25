@@ -11,7 +11,10 @@ import com.flow.platform.util.zk.ZkPathBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -25,6 +28,22 @@ public class CmdServiceImpl implements CmdService {
 
     @Autowired
     private ZkService zkService;
+
+    private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
+
+    @Override
+    public Cmd create(CmdBase cmd) {
+        String cmdId = UUID.randomUUID().toString();
+        Cmd cmdInfo = new Cmd(cmd);
+        cmdInfo.setId(cmdId);
+        mockCmdList.put(cmdId, cmdInfo);
+        return cmdInfo;
+    }
+
+    @Override
+    public Cmd find(String cmdId) {
+        return mockCmdList.get(cmdId);
+    }
 
     @Override
     public Cmd send(CmdBase cmd) {
@@ -45,9 +64,7 @@ public class CmdServiceImpl implements CmdService {
             }
 
             // set cmd info
-            String cmdId = UUID.randomUUID().toString();
-            Cmd cmdInfo = new Cmd(cmd);
-            cmdInfo.setId(cmdId);
+            Cmd cmdInfo = create(cmd);
 
             // send data
             ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
@@ -59,5 +76,16 @@ public class CmdServiceImpl implements CmdService {
         } catch (ZkException.ZkNoNodeException e) {
             throw new AgentErr.NotFoundException(cmd.getAgent());
         }
+    }
+
+    @Override
+    public void updateStatus(String cmdId, Cmd.Status status) {
+        Cmd cmd = find(cmdId);
+        if (cmd == null) {
+            throw new IllegalArgumentException("Cmd not exist");
+        }
+
+        cmd.setStatus(status);
+        cmd.setUpdatedDate(new Date());
     }
 }
