@@ -1,5 +1,6 @@
 package com.flow.platform.cc.test.controller;
 
+import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
@@ -9,6 +10,7 @@ import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -23,6 +25,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CmdControllerTest extends TestBase {
+
+    @Autowired
+    private CmdService cmdService;
+
+    @Test
+    public void should_update_cmd_status() throws Throwable {
+        // given:
+        CmdBase base = new CmdBase("test-zone-00", "test-001", CmdBase.Type.STOP, null);
+        Cmd cmd = cmdService.create(base);
+
+        // when:
+        Cmd postData = new Cmd();
+        postData.setId(cmd.getId());
+        postData.setStatus(Cmd.Status.EXECUTED);
+
+        MockHttpServletRequestBuilder content = post("/cmd/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(postData.toJson());
+
+        this.mockMvc.perform(content)
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        // then:
+        Cmd loaded = cmdService.find(cmd.getId());
+        Assert.assertNotNull(loaded);
+        Assert.assertEquals(Cmd.Status.EXECUTED, loaded.getStatus());
+    }
 
     @Test
     public void should_send_cmd_to_agent() throws Throwable {

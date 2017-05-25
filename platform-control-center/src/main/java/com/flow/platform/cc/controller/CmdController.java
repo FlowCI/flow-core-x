@@ -20,8 +20,27 @@ public class CmdController {
     @Autowired
     private CmdService cmdService;
 
+    /**
+     * Send command to agent
+     *
+     * @param cmd
+     * @return
+     */
     @RequestMapping(path = "/send", method = RequestMethod.POST, consumes = "application/json")
     public Cmd sendCommand(@RequestBody CmdBase cmd) {
         return cmdService.send(cmd);
+    }
+
+    /**
+     * Update cmd status
+     *
+     * @param cmd only need id and status
+     */
+    @RequestMapping(path = "/status", method = RequestMethod.POST, consumes = "application/json")
+    public void updateStatus(@RequestBody Cmd cmd) {
+        if (cmd.getId() == null || cmd.getStatus() == null) {
+            throw new IllegalArgumentException("Cmd id and target status are required");
+        }
+        cmdService.updateStatus(cmd.getId(), cmd.getStatus());
     }
 }
