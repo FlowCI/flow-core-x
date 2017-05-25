@@ -17,9 +17,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by gy@fir.im on 16/05/2017.
+ * Singleton class to handle command
  *
- * @copyright fir.im
+ * Created by gy@fir.im on 16/05/2017.
+ * Copyright fir.im
  */
 public class CmdManager {
 

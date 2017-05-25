@@ -1,5 +1,6 @@
 package com.flow.platform.agent;
 
+import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import org.apache.zookeeper.WatchedEvent;
@@ -33,16 +34,21 @@ public class App {
             zone = args[1];
             name = args[2];
 
-            System.out.println(zkHome);
-            System.out.println(zone);
-            System.out.println(name);
+            Logger.info(zkHome);
+            Logger.info(zone);
+            Logger.info(name);
         }
 
         Logger.info("========= Run agent =========");
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
         try {
-            Config.loadAgentConfig(zkHome, ZK_TIMEOUT, zone, 5);
+            Logger.info("========= Init config =========");
+            Config.AGENT_CONFIG = Config.loadAgentConfig(zkHome, ZK_TIMEOUT, zone, 5);
+            Config.ZK_URL = zkHome;
+            Config.ZONE = zone;
+            Config.NAME = name;
+            Logger.info("========= Config initialized =========");
         } catch (Throwable e) {
             Logger.err(e, "Cannot load agent config from zone");
             Runtime.getRuntime().exit(1);
@@ -61,7 +67,7 @@ public class App {
         @Override
         public void run() {
             Logger.info("========= Agent end =========");
-            Logger.info("JVM Exit");
+            Logger.info("========= JVM EXIT =========");
         }
     }
 }

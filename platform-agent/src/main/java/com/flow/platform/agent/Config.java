@@ -25,7 +25,12 @@ public class Config {
     public final static String PROP_CONCURRENT_PROC = "flow.agent.concurrent";
     public final static String PROP_SUDO_PASSWORD = "flow.agent.sudo.pwd";
 
-    private static AgentConfig AGENT_CONFIG;
+
+    public static AgentConfig AGENT_CONFIG;
+    public static String ZK_URL;
+    public static String ZONE;
+    public static String NAME;
+
 
     public static boolean isDebug() {
         String boolStr = System.getProperty(PROP_IS_DEBUG, "false");
@@ -45,7 +50,25 @@ public class Config {
         return AGENT_CONFIG;
     }
 
-    public static void loadAgentConfig(String zkHost, int zkTimeout, String zoneName, int retry) throws IOException, InterruptedException {
+    /**
+     * @return zone name
+     */
+    public static String zone() {
+        return ZONE;
+    }
+
+    /**
+     * @return agent name
+     */
+    public static String name() {
+        return NAME;
+    }
+
+    public static String zkUrl() {
+        return ZK_URL;
+    }
+
+    public static AgentConfig loadAgentConfig(String zkHost, int zkTimeout, String zoneName, int retry) throws IOException, InterruptedException {
         final CountDownLatch connectLatch = new CountDownLatch(1);
 
         try {
@@ -63,12 +86,11 @@ public class Config {
 
             String zonePath = ZkPathBuilder.create(ZK_ROOT).append(zoneName).path();
             byte[] raw = ZkNodeHelper.getNodeData(zkClient, zonePath, null);
-            AGENT_CONFIG = AgentConfig.parse(raw);
+            return AgentConfig.parse(raw);
 
         } catch (Throwable e) {
             if (retry > 0) {
-                loadAgentConfig(zkHost, zkTimeout, zoneName, retry - 1);
-                return;
+                return loadAgentConfig(zkHost, zkTimeout, zoneName, retry - 1);
             }
             throw new RuntimeException(e);
         }

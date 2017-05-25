@@ -1,5 +1,6 @@
 package com.flow.platform.agent;
 
+import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
@@ -57,6 +58,8 @@ public class AgentManager implements Runnable, Watcher {
     // Executor to execute operationes
     private final ExecutorService defaultExecutor =
             Executors.newFixedThreadPool(100, defaultFactory);
+
+    private final ReportManager reportManager = ReportManager.getInstance();
 
     public AgentManager(String zkHost, int zkTimeout, String zone, String name) throws IOException {
         this.zkHost = zkHost;

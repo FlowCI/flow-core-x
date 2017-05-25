@@ -40,9 +40,10 @@ public class ConfigTest {
         // when: create zone with agent config
         String zonePath = "/flow-agents/ali";
         ZkNodeHelper.createNode(zkClient, zonePath, config.toJson().getBytes()); // create zone node
+        Thread.sleep(500);
 
         // then:
-        Config.loadAgentConfig("localhost:2181", 20000, "ali", 5);
+        Config.AGENT_CONFIG = Config.loadAgentConfig("localhost:2181", 20000, "ali", 5);
         Assert.assertNotNull(Config.agentConfig());
         Assert.assertEquals(loggingUrl, Config.agentConfig().getLoggingUrl());
         Assert.assertEquals(statusUrl, Config.agentConfig().getStatusUrl());

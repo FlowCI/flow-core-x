@@ -1,5 +1,7 @@
 package com.flow.platform.domain;
 
+import com.google.gson.Gson;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -129,5 +131,10 @@ public class Agent implements Serializable {
                 ", name='" + path.getName() + '\'' +
                 ", status=" + status +
                 '}';
+    }
+
+    public String toJson() {
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 }
