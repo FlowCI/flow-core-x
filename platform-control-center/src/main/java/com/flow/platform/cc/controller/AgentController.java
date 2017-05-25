@@ -37,7 +37,6 @@ public class AgentController {
         return agentService.sendCommand(cmd);
     }
 
-
     /**
      * Update agent status, required attributes are
      *  - path

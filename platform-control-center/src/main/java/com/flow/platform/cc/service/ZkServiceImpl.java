@@ -1,5 +1,6 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
@@ -38,6 +39,9 @@ public class ZkServiceImpl implements ZkService {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private AgentConfig agentConfig;
 
     private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
@@ -86,7 +90,14 @@ public class ZkServiceImpl implements ZkService {
 
     @Override
     public ZkPathBuilder buildZkPath(String zone, String name) {
-        return ZkPathBuilder.create(zkRootName).append(zone).append(name);
+        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName);
+        if (zone != null) {
+            pathBuilder.append(zone);
+            if (name != null) {
+                pathBuilder.append(name);
+            }
+        }
+        return pathBuilder;
     }
 
     @Override
@@ -100,7 +111,7 @@ public class ZkServiceImpl implements ZkService {
 
         // zone node not exited
         if (ZkNodeHelper.exist(zkClient, zonePath) == null){
-            ZkNodeHelper.createNode(zkClient, zonePath, "");
+            ZkNodeHelper.createNode(zkClient, zonePath, agentConfig.toJson());
         } else{
             List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
             agentService.reportOnline(buildKeys(zoneName, agents));

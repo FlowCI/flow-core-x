@@ -9,10 +9,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-
 /**
  * Created by gy@fir.im on 17/05/2017.
  * Copyright fir.im
@@ -22,9 +18,8 @@ import java.util.concurrent.ThreadFactory;
 @ComponentScan({
         "com.flow.platform.cc.controller",
         "com.flow.platform.cc.service"})
+@Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
-
-    private static final int ASYNC_POOL_SIZE = 100;
 
     @Bean
     public PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
@@ -34,15 +29,4 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         return configurer;
     }
 
-    @Bean
-    public ExecutorService executorService() {
-        return Executors.newFixedThreadPool(ASYNC_POOL_SIZE, new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread t = Executors.defaultThreadFactory().newThread(r);
-                t.setDaemon(true);
-                return t;
-            }
-        });
-    }
 }

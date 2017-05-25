@@ -3,6 +3,7 @@ package com.flow.platform.cc.test.controller;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -14,6 +15,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -39,6 +41,12 @@ public class AgentControllerTest extends TestBase {
     @Autowired
     private WebApplicationContext webAppContext;
 
+    @Value("${agent.config.socket_io_url}")
+    private String socketIoUrl;
+
+    @Value("${agent.config.cmd_report_url}")
+    private String cmdReportUrl;
+
     private MockMvc mockMvc;
 
     private Gson gson = new Gson();
@@ -46,6 +54,24 @@ public class AgentControllerTest extends TestBase {
     @Before
     public void before() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
+    }
+
+    @Test
+    public void should_has_agent_config_in_zone_data() throws Throwable {
+        // given:
+        String zoneName = "test-zone-00";
+        zkService.createZone(zoneName);
+        Thread.sleep(1000);
+
+        // when:
+        String zonePath = zkService.buildZkPath(zoneName, null).path();
+        byte[] raw = ZkNodeHelper.getNodeData(zkClient, zonePath, null);
+
+        // then:
+        AgentConfig config = AgentConfig.parse(raw);
+        Assert.assertNotNull(config);
+        Assert.assertEquals(socketIoUrl, config.getLoggingUrl());
+        Assert.assertEquals(cmdReportUrl, config.getStatusUrl());
     }
 
     @Test
