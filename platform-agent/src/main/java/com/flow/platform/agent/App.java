@@ -38,27 +38,27 @@ public class App {
             System.out.println(name);
         }
 
-        AgentLog.info("========= Run agent =========");
+        Logger.info("========= Run agent =========");
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
         AgentManager client = new AgentManager(zkHome, ZK_TIMEOUT, zone, name, new ZkEventAdaptor() {
 
             @Override
             public void onConnected(WatchedEvent event, String path) {
-                AgentLog.info("========= Agent connected to server =========");
+                Logger.info("========= Agent connected to server =========");
             }
 
             @Override
             public void onDataChanged(WatchedEvent event, byte[] raw) {
                 Cmd cmd = Cmd.parse(raw);
-                AgentLog.info("Received command: " + cmd.toString());
+                Logger.info("Received command: " + cmd.toString());
                 CmdManager.getInstance().execute(cmd, null);
             }
 
             @Override
             public void onDeleted(WatchedEvent event) {
                 CmdManager.getInstance().shutdown(null);
-                AgentLog.info("========= Agent been deleted =========");
+                Logger.info("========= Agent been deleted =========");
             }
         });
         new Thread(client).start();
@@ -67,8 +67,8 @@ public class App {
     private static class ShutdownHook extends Thread {
         @Override
         public void run() {
-            AgentLog.info("========= Agent end =========");
-            AgentLog.info("JVM Exit");
+            Logger.info("========= Agent end =========");
+            Logger.info("JVM Exit");
         }
     }
 }

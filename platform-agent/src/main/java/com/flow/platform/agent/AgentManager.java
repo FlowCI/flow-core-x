@@ -56,7 +56,7 @@ public class AgentManager implements Runnable, Watcher {
                     TimeUnit.SECONDS,
                     new LinkedBlockingQueue<>(),
                     defaultFactory,
-                    (r, executor) -> AgentLog.info("Reach the max concurrent proc"));
+                    (r, executor) -> Logger.info("Reach the max concurrent proc"));
 
     // Executor to execute operationes
     private final ExecutorService defaultExecutor =
@@ -120,7 +120,7 @@ public class AgentManager implements Runnable, Watcher {
 
     @Override
     public void process(WatchedEvent event) {
-        AgentLog.info(event.toString());
+        Logger.info(event.toString());
 
         try {
             if (ZkEventHelper.isConnectToServer(event)) {
@@ -142,7 +142,7 @@ public class AgentManager implements Runnable, Watcher {
                 onReconnect(event);
             }
         } catch (Throwable e) {
-            AgentLog.err(e, "Unexpected error");
+            Logger.err(e, "Unexpected error");
 
             // TODO: to handle zookeeper exception for reconnection, delete only temp solution
             onDeleted(event);
@@ -193,7 +193,7 @@ public class AgentManager implements Runnable, Watcher {
             }
 
         } catch (Throwable e) {
-            AgentLog.err(e, "Invalid cmd from server");
+            Logger.err(e, "Invalid cmd from server");
         } finally {
             ZkNodeHelper.watchNode(zk, nodePath, this, 5);
 
@@ -211,7 +211,7 @@ public class AgentManager implements Runnable, Watcher {
         try {
             this.zk = new ZooKeeper(zkHost, zkTimeout, this);
         } catch (IOException e) {
-            AgentLog.err(e, "Network failure while reconnect to zookeeper server");
+            Logger.err(e, "Network failure while reconnect to zookeeper server");
         }
     }
 

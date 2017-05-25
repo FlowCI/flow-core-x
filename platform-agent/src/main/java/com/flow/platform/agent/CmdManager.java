@@ -79,12 +79,12 @@ public class CmdManager {
             }
 
             if (password == null) {
-                AgentLog.info("Shutdown cannot be executed since sudo password is null");
+                Logger.info("Shutdown cannot be executed since sudo password is null");
                 return;
             }
 
             String shutdownCmd = String.format("echo %s | sudo -S shutdown -h now", password);
-            AgentLog.info("shutdown command: " + shutdownCmd);
+            Logger.info("shutdown command: " + shutdownCmd);
 
             // exec shutdown command
             CmdExecutor executor = new CmdExecutor(procEventHandler, null, "/bin/bash", "-c", shutdownCmd);
@@ -143,7 +143,7 @@ public class CmdManager {
 
             //TODO: send cmd result to server here
 
-            AgentLog.info(String.format("Kill process : %s", r.toString()));
+            Logger.info(String.format("Kill process : %s", r.toString()));
         }
         running.clear();
     }
