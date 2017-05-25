@@ -34,7 +34,7 @@ public interface ZkService {
      * @param name agent name
      * @return
      */
-    ZkPathBuilder getPathBuilder(String zone, String name);
+    ZkPathBuilder buildZkPath(String zone, String name);
 
     /**
      * Get defined zones

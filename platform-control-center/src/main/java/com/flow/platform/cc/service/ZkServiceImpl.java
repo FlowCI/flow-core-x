@@ -85,7 +85,7 @@ public class ZkServiceImpl implements ZkService {
     }
 
     @Override
-    public ZkPathBuilder getPathBuilder(String zone, String name) {
+    public ZkPathBuilder buildZkPath(String zone, String name) {
         return ZkPathBuilder.create(zkRootName).append(zone).append(name);
     }
 

@@ -77,7 +77,7 @@ public class AgentServiceImpl implements AgentService {
     public Cmd sendCommand(CmdBase cmd) {
         Agent target = find(new AgentPath(cmd.getZone(), cmd.getAgent()));
 
-        ZkPathBuilder pathBuilder = zkService.getPathBuilder(cmd.getZone(), cmd.getAgent());
+        ZkPathBuilder pathBuilder = zkService.buildZkPath(cmd.getZone(), cmd.getAgent());
         String agentNodePath = pathBuilder.path();
 
         try {

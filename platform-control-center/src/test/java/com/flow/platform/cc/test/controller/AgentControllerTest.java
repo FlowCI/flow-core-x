@@ -1,10 +1,8 @@
 package com.flow.platform.cc.test.controller;
 
 import com.flow.platform.cc.service.AgentService;
-import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -22,8 +20,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -60,7 +56,7 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-001";
-        ZkPathBuilder builder = zkService.getPathBuilder(zoneName, agentName);
+        ZkPathBuilder builder = zkService.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send get request
@@ -87,8 +83,9 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-002";
-        ZkPathBuilder builder = zkService.getPathBuilder(zoneName, agentName);
+        ZkPathBuilder builder = zkService.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+        Thread.sleep(1000);
 
         // when: send post request
         CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "~/hello.sh");
@@ -127,7 +124,7 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-003";
-        ZkPathBuilder builder = zkService.getPathBuilder(zoneName, agentName);
+        ZkPathBuilder builder = zkService.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send agent info
