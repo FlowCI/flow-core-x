@@ -201,7 +201,7 @@ public class CmdManager {
             this.cmd = cmd;
             this.config = config;
 
-            if (config == null || config.getLoggingUrl() == null) {
+            if (this.config == null || this.config.getLoggingUrl() == null) {
                 return;
             }
 
@@ -217,7 +217,7 @@ public class CmdManager {
                 }
 
             } catch (URISyntaxException | InterruptedException e) {
-                e.printStackTrace();
+                Logger.err(e, "Fail to connect socket io server: " + config.getLoggingUrl());
             }
         }
 
@@ -226,7 +226,7 @@ public class CmdManager {
             if (socketEnabled) {
                 socket.emit(SOCKET_EVENT_TYPE, getLogFormat(log));
             }
-            System.out.println(log);
+            Logger.info(log);
         }
 
         @Override

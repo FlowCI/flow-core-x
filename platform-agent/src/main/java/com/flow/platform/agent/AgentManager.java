@@ -236,7 +236,7 @@ public class AgentManager implements Runnable, Watcher {
         public void onDataChanged(WatchedEvent event, byte[] raw) {
             Cmd cmd = Cmd.parse(raw);
             Logger.info("Received command: " + cmd.toString());
-            CmdManager.getInstance().execute(cmd, null);
+            CmdManager.getInstance().execute(cmd, Config.agentConfig());
         }
 
         @Override
