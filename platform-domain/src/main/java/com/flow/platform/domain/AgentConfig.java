@@ -26,11 +26,6 @@ public class AgentConfig implements Serializable {
     }
 
     /**
-     * Zookeeper url
-     */
-    private String zooKeeperUrl;
-
-    /**
      * Url for socket io realtime logging
      */
     private String loggingUrl;
@@ -43,17 +38,9 @@ public class AgentConfig implements Serializable {
     public AgentConfig() {
     }
 
-    public AgentConfig(String zooKeeperUrl, String loggingUrl, String statusUrl) {
+    public AgentConfig(String loggingUrl, String statusUrl) {
         this.loggingUrl = loggingUrl;
         this.statusUrl = statusUrl;
-    }
-
-    public String getZooKeeperUrl() {
-        return zooKeeperUrl;
-    }
-
-    public void setZooKeeperUrl(String zooKeeperUrl) {
-        this.zooKeeperUrl = zooKeeperUrl;
     }
 
     public String getLoggingUrl() {
@@ -75,9 +62,13 @@ public class AgentConfig implements Serializable {
     @Override
     public String toString() {
         return "AgentConfig{" +
-                "zooKeeperUrl='" + zooKeeperUrl + '\'' +
                 ", loggingUrl='" + loggingUrl + '\'' +
                 ", statusUrl='" + statusUrl + '\'' +
                 '}';
+    }
+
+    public String toJson() {
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 }
