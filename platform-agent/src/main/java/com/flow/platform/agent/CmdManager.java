@@ -1,7 +1,7 @@
 package com.flow.platform.agent;
 
 import com.flow.platform.cmd.CmdExecutor;
-import com.flow.platform.cmd.CmdResult;
+import com.flow.platform.domain.CmdResult;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.AgentConfig;
@@ -32,9 +32,6 @@ public class CmdManager {
     public static CmdManager getInstance() {
         return INSTANCE;
     }
-
-    // default listener
-    private ProcListener procEventHandler = new ProcEventHandler();
 
     // handle extra listeners
     private List<ProcListener> extraProcEventListeners = new ArrayList<>(5);
@@ -88,7 +85,7 @@ public class CmdManager {
             Logger.info("shutdown command: " + shutdownCmd);
 
             // exec shutdown command
-            CmdExecutor executor = new CmdExecutor(procEventHandler, null, "/bin/bash", "-c", shutdownCmd);
+            CmdExecutor executor = new CmdExecutor(null, null, "/bin/bash", "-c", shutdownCmd);
             executor.run();
 
         } catch (Throwable e) {
@@ -101,9 +98,11 @@ public class CmdManager {
      *
      * @param cmd Cmd object
      */
-    public void execute(final Cmd cmd, final AgentConfig config) {
+    public void execute(final Cmd cmd) {
         if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-            LogEventHandler logListener = new LogEventHandler(cmd, config);
+            LogEventHandler logListener = new LogEventHandler(cmd);
+            ProcEventHandler procEventHandler = new ProcEventHandler(cmd);
+
             CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", cmd.getCmd());
             executor.run();
             return;
@@ -151,9 +150,20 @@ public class CmdManager {
 
     private class ProcEventHandler implements ProcListener {
 
+        private final Cmd cmd;
+        private final ReportManager reportManager = ReportManager.getInstance();
+
+        ProcEventHandler(Cmd cmd) {
+            this.cmd = cmd;
+        }
+
         @Override
         public void onStarted(CmdResult result) {
             running.add(result);
+
+            // report cmd async
+            reportManager.cmdReport(cmd.getId(), Cmd.Status.RUNNING, result);
+
             for (ProcListener listener : extraProcEventListeners) {
                 listener.onStarted(result);
             }
@@ -161,22 +171,35 @@ public class CmdManager {
 
         @Override
         public void onExecuted(CmdResult result) {
+            // report cmd sync since block current thread
+            reportManager.cmdReportSync(cmd.getId(), Cmd.Status.EXECUTED, result);
+
             for (ProcListener listener : extraProcEventListeners) {
                 listener.onExecuted(result);
             }
         }
 
         @Override
-        public void onFinished(CmdResult result) {
+        public void onLogged(CmdResult result) {
             running.remove(result);
             finished.add(result);
+
+            // report cmd sync since block current thread
+            reportManager.cmdReportSync(cmd.getId(), Cmd.Status.LOGGED, result);
+
             for (ProcListener listener : extraProcEventListeners) {
-                listener.onFinished(result);
+                listener.onLogged(result);
             }
         }
 
         @Override
         public void onException(CmdResult result) {
+            running.remove(result);
+            finished.add(result);
+
+            // report cmd sync since block current thread
+            reportManager.cmdReportSync(cmd.getId(), Cmd.Status.EXCEPTION, result);
+
             for (ProcListener listener : extraProcEventListeners) {
                 listener.onException(result);
             }
@@ -192,17 +215,16 @@ public class CmdManager {
         private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
 
         private final Cmd cmd;
-        private final AgentConfig config;
         private final CountDownLatch initLatch = new CountDownLatch(1);
 
         private Socket socket;
         private boolean socketEnabled = false;
 
-        private LogEventHandler(Cmd cmd, AgentConfig config) {
+        private LogEventHandler(Cmd cmd) {
             this.cmd = cmd;
-            this.config = config;
+            AgentConfig config = Config.agentConfig();
 
-            if (this.config == null || this.config.getLoggingUrl() == null) {
+            if (config == null || config.getLoggingUrl() == null) {
                 return;
             }
 

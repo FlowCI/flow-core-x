@@ -1,5 +1,7 @@
 package com.flow.platform.cmd;
 
+import com.flow.platform.domain.CmdResult;
+
 /**
  * Main entrance of cmd runner
  *
@@ -23,7 +25,7 @@ public class App {
             }
 
             @Override
-            public void onFinished(CmdResult result) {
+            public void onLogged(CmdResult result) {
                 assert result.getProcess() != null;
                 System.out.println(result);
             }

@@ -49,12 +49,7 @@ public class Cmd extends CmdBase {
         /**
          * Got exception when running
          */
-        EXCEPTION("EXCEPTION"),
-
-        /**
-         * Cmd done
-         */
-        DONE("DONE");
+        EXCEPTION("EXCEPTION");
 
         private String name;
 
@@ -76,6 +71,11 @@ public class Cmd extends CmdBase {
      * Cmd status
      */
     private Cmd.Status status = Status.PENDING;
+
+    /**
+     * Cmd execution result
+     */
+    private CmdResult result;
 
     /**
      * Created date
@@ -117,6 +117,14 @@ public class Cmd extends CmdBase {
         this.status = status;
     }
 
+    public CmdResult getResult() {
+        return result;
+    }
+
+    public void setResult(CmdResult result) {
+        this.result = result;
+    }
+
     public Date getCreatedDate() {
         return createdDate;
     }
@@ -149,6 +157,16 @@ public class Cmd extends CmdBase {
         int result = super.hashCode();
         result = 31 * result + (id != null ? id.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Cmd{" +
+                "id='" + id + '\'' +
+                ", status=" + status +
+                ", createdDate=" + createdDate +
+                ", updatedDate=" + updatedDate +
+                '}';
     }
 
     public String toJson() {

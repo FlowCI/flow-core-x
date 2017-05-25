@@ -1,9 +1,9 @@
 package com.flow.platform.cmd.test;
 
 import com.flow.platform.cmd.CmdExecutor;
-import com.flow.platform.cmd.CmdResult;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
+import com.flow.platform.domain.CmdResult;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -34,14 +34,15 @@ public class CmdExecutorTest {
             }
 
             @Override
-            public void onFinished(CmdResult result) {
+            public void onLogged(CmdResult result) {
                 Assert.assertNotNull(result.getTotalDuration());
                 Assert.assertNotNull(result.getFinishTime());
             }
 
             @Override
             public void onException(CmdResult result) {
-                System.out.println("onException");
+                Assert.assertNotNull(result.getTotalDuration());
+                Assert.assertNotNull(result.getFinishTime());
             }
         };
 

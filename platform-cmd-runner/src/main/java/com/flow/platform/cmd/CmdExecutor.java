@@ -1,7 +1,8 @@
 package com.flow.platform.cmd;
 
+import com.flow.platform.domain.CmdResult;
+
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -12,8 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by gy@fir.im on 12/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public class CmdExecutor {
 
@@ -27,6 +27,12 @@ public class CmdExecutor {
     private ProcListener procListener;
     private LogListener logListener;
 
+    /**
+     *
+     * @param procListener nullable
+     * @param logListener nullable
+     * @param cmd
+     */
     public CmdExecutor(ProcListener procListener, LogListener logListener, String ...cmd) {
         this.procListener = procListener;
         this.logListener = logListener;
@@ -67,21 +73,23 @@ public class CmdExecutor {
             }
 
             waitLock.await(30, TimeUnit.SECONDS); // wait max 30 seconds
+            outputResult.setFinishTime(new Date());
+
+            if (procListener != null) {
+                procListener.onLogged(outputResult);
+            }
+
             System.out.println(String.format(" ===== Logging executed : %s =====", waitLock.getCount()));
 
         } catch (InterruptedException | IOException e) {
             outputResult.getExceptions().add(e);
+            outputResult.setFinishTime(new Date());
 
             if (procListener != null) {
                 procListener.onException(outputResult);
             }
         } finally {
-            // calculate duration
-            outputResult.setFinishTime(new Date());
 
-            if (procListener != null) {
-                procListener.onFinished(outputResult);
-            }
         }
     }
 

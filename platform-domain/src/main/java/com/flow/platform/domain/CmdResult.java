@@ -1,4 +1,4 @@
-package com.flow.platform.cmd;
+package com.flow.platform.domain;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -6,8 +6,7 @@ import java.util.List;
 
 /**
  * Created by gy@fir.im on 12/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public class CmdResult {
 

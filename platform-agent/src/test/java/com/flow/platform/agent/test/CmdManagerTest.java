@@ -2,8 +2,7 @@ package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.CmdManager;
 import com.flow.platform.agent.Config;
-import com.flow.platform.cmd.CmdExecutor;
-import com.flow.platform.cmd.CmdResult;
+import com.flow.platform.domain.CmdResult;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import org.junit.BeforeClass;
@@ -68,7 +67,7 @@ public class CmdManagerTest {
             }
 
             @Override
-            public void onFinished(CmdResult result) {
+            public void onLogged(CmdResult result) {
                 finishLatch.countDown();
             }
 
@@ -79,8 +78,8 @@ public class CmdManagerTest {
         });
 
         // when: execute two command by thread
-        new Thread(() -> cmdManager.execute(cmd1, null)).start();
-        new Thread(() -> cmdManager.execute(cmd2, null)).start();
+        new Thread(() -> cmdManager.execute(cmd1)).start();
+        new Thread(() -> cmdManager.execute(cmd2)).start();
         startLatch.await();
 
         // then: check num of running proc
