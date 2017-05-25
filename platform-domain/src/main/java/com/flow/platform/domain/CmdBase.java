@@ -47,16 +47,22 @@ public class CmdBase implements Serializable {
      */
     public static class Config implements Serializable {
 
+        /**
+         * Url for socket io realtime logging
+         */
         private String loggingUrl;
 
-        private String reportStatusUrl;
+        /**
+         * Url for report agent status
+         */
+        private String statusUrl;
 
         public Config() {
         }
 
-        public Config(String loggingUrl, String reportStatusUrl) {
+        public Config(String loggingUrl, String statusUrl) {
             this.loggingUrl = loggingUrl;
-            this.reportStatusUrl = reportStatusUrl;
+            this.statusUrl = statusUrl;
         }
 
         public String getLoggingUrl() {
@@ -67,12 +73,12 @@ public class CmdBase implements Serializable {
             this.loggingUrl = loggingUrl;
         }
 
-        public String getReportStatusUrl() {
-            return reportStatusUrl;
+        public String getStatusUrl() {
+            return statusUrl;
         }
 
-        public void setReportStatusUrl(String reportStatusUrl) {
-            this.reportStatusUrl = reportStatusUrl;
+        public void setStatusUrl(String statusUrl) {
+            this.statusUrl = statusUrl;
         }
     }
 

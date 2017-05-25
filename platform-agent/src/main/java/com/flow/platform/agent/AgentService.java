@@ -143,6 +143,8 @@ public class AgentService implements Runnable, Watcher {
             }
         } catch (Throwable e) {
             AgentLog.err(e, "Unexpected error");
+
+            // TODO: to handle zookeeper exception for reconnection, delete only temp solution
             onDeleted(event);
         }
     }
