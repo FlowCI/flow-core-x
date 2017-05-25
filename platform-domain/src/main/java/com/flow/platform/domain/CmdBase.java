@@ -42,15 +42,7 @@ public class CmdBase implements Serializable {
         }
     }
 
-    /**
-     * Target zone (Required)
-     */
-    private String zone;
-
-    /**
-     * Target agent (Required)
-     */
-    private String agent;
+    private AgentPath agentPath;
 
     /**
      * Socket io server where send log to (Nullable)
@@ -71,27 +63,30 @@ public class CmdBase implements Serializable {
     }
 
     public CmdBase(String zone, String agent, String socketIoServer, Type type, String cmd) {
-        this.zone = zone;
-        this.agent = agent;
+        this(new AgentPath(zone, agent), socketIoServer, type, cmd);
+    }
+
+    public CmdBase(AgentPath agentPath, String socketIoServer, Type type, String cmd) {
+        this.agentPath = agentPath;
         this.socketIoServer = socketIoServer;
         this.type = type;
         this.cmd = cmd;
     }
 
-    public String getZone() {
-        return zone;
+    public AgentPath getAgentPath() {
+        return agentPath;
     }
 
-    public void setZone(String zone) {
-        this.zone = zone;
+    public void setAgentPath(AgentPath agentPath) {
+        this.agentPath = agentPath;
+    }
+
+    public String getZone() {
+        return agentPath.getZone();
     }
 
     public String getAgent() {
-        return agent;
-    }
-
-    public void setAgent(String agent) {
-        this.agent = agent;
+        return agentPath.getName();
     }
 
     public String getSocketIoServer() {
@@ -125,16 +120,14 @@ public class CmdBase implements Serializable {
 
         CmdBase cmdBase = (CmdBase) o;
 
-        if (!zone.equals(cmdBase.zone)) return false;
-        if (!agent.equals(cmdBase.agent)) return false;
+        if (!agentPath.equals(cmdBase.agentPath)) return false;
         if (type != cmdBase.type) return false;
         return cmd.equals(cmdBase.cmd);
     }
 
     @Override
     public int hashCode() {
-        int result = zone.hashCode();
-        result = 31 * result + agent.hashCode();
+        int result = agentPath.hashCode();
         result = 31 * result + type.hashCode();
         result = 31 * result + cmd.hashCode();
         return result;
@@ -143,8 +136,8 @@ public class CmdBase implements Serializable {
     @Override
     public String toString() {
         return "CmdBase{" +
-                "zone='" + zone + '\'' +
-                ", agent='" + agent + '\'' +
+                "zone='" + agentPath.getZone() + '\'' +
+                ", agent='" + agentPath.getName() + '\'' +
                 ", type=" + type +
                 ", cmd='" + cmd + '\'' +
                 '}';
