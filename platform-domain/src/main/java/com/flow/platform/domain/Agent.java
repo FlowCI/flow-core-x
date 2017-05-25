@@ -10,6 +10,7 @@ import java.util.Date;
 public class Agent implements Serializable {
 
     public enum Status {
+
         OFFLINE("OFFLINE"),
 
         IDLE("IDLE"),

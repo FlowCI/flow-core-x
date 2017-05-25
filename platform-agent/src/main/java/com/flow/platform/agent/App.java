@@ -41,26 +41,7 @@ public class App {
         Logger.info("========= Run agent =========");
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
-        AgentManager client = new AgentManager(zkHome, ZK_TIMEOUT, zone, name, new ZkEventAdaptor() {
-
-            @Override
-            public void onConnected(WatchedEvent event, String path) {
-                Logger.info("========= Agent connected to server =========");
-            }
-
-            @Override
-            public void onDataChanged(WatchedEvent event, byte[] raw) {
-                Cmd cmd = Cmd.parse(raw);
-                Logger.info("Received command: " + cmd.toString());
-                CmdManager.getInstance().execute(cmd, null);
-            }
-
-            @Override
-            public void onDeleted(WatchedEvent event) {
-                CmdManager.getInstance().shutdown(null);
-                Logger.info("========= Agent been deleted =========");
-            }
-        });
+        AgentManager client = new AgentManager(zkHome, ZK_TIMEOUT, zone, name);
         new Thread(client).start();
     }
 

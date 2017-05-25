@@ -1,6 +1,7 @@
 package com.flow.platform.agent;
 
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.util.zk.ZkEventAdaptor;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkEventListener;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -73,6 +74,8 @@ public class AgentManager implements Runnable, Watcher {
         this.zonePath = String.format("%s/%s", ZK_ROOT, this.zone);
         this.nodePath = String.format("%s/%s/%s", ZK_ROOT, this.zone, this.name);
         this.nodePathBusy = String.format("%s/%s/%s-busy", ZK_ROOT, this.zone, this.name);
+
+        this.zkEventListener = new EventListener(); // using default event listener
     }
 
     /**
@@ -87,7 +90,7 @@ public class AgentManager implements Runnable, Watcher {
      */
     public AgentManager(String zkHost, int zkTimeout, String zone, String name, ZkEventListener listener) throws IOException {
         this(zkHost, zkTimeout, zone, name);
-        this.zkEventListener = listener;
+        this.zkEventListener = listener; // using input listener
     }
 
     public String getNodePath() {
@@ -222,11 +225,32 @@ public class AgentManager implements Runnable, Watcher {
      * @return path of zookeeper or null if failure
      */
     private String register() {
-        if (ZkNodeHelper.exist(zk, zonePath) == null) {
-            ZkNodeHelper.createNode(zk, zonePath, "");
-        }
         String path = ZkNodeHelper.createEphemeralNode(zk, nodePath, "");
         ZkNodeHelper.watchNode(zk, nodePath, this, 5);
         return path;
+    }
+
+    /**
+     * Class to handle customized zk event
+     */
+    private class EventListener extends ZkEventAdaptor {
+
+        @Override
+        public void onConnected(WatchedEvent event, String path) {
+            Logger.info("========= Agent connected to server =========");
+        }
+
+        @Override
+        public void onDataChanged(WatchedEvent event, byte[] raw) {
+            Cmd cmd = Cmd.parse(raw);
+            Logger.info("Received command: " + cmd.toString());
+            CmdManager.getInstance().execute(cmd, null);
+        }
+
+        @Override
+        public void onDeleted(WatchedEvent event) {
+            CmdManager.getInstance().shutdown(null);
+            Logger.info("========= Agent been deleted =========");
+        }
     }
 }
