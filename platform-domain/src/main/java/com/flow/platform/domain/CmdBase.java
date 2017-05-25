@@ -43,46 +43,6 @@ public class CmdBase implements Serializable {
     }
 
     /**
-     * Config for server url
-     */
-    public static class Config implements Serializable {
-
-        /**
-         * Url for socket io realtime logging
-         */
-        private String loggingUrl;
-
-        /**
-         * Url for report agent status
-         */
-        private String statusUrl;
-
-        public Config() {
-        }
-
-        public Config(String loggingUrl, String statusUrl) {
-            this.loggingUrl = loggingUrl;
-            this.statusUrl = statusUrl;
-        }
-
-        public String getLoggingUrl() {
-            return loggingUrl;
-        }
-
-        public void setLoggingUrl(String loggingUrl) {
-            this.loggingUrl = loggingUrl;
-        }
-
-        public String getStatusUrl() {
-            return statusUrl;
-        }
-
-        public void setStatusUrl(String statusUrl) {
-            this.statusUrl = statusUrl;
-        }
-    }
-
-    /**
      * Destination of command
      */
     private AgentPath agentPath;
@@ -93,11 +53,6 @@ public class CmdBase implements Serializable {
     private CmdBase.Type type;
 
     /**
-     * Server communication configuration (Nullable)
-     */
-    private CmdBase.Config config;
-
-    /**
      * Command content (Required when type = RUN_SHELL)
      */
     private String cmd;
@@ -105,13 +60,12 @@ public class CmdBase implements Serializable {
     public CmdBase() {
     }
 
-    public CmdBase(String zone, String agent, CmdBase.Config config, Type type, String cmd) {
-        this(new AgentPath(zone, agent), config, type, cmd);
+    public CmdBase(String zone, String agent, Type type, String cmd) {
+        this(new AgentPath(zone, agent), type, cmd);
     }
 
-    public CmdBase(AgentPath agentPath, CmdBase.Config config, Type type, String cmd) {
+    public CmdBase(AgentPath agentPath, Type type, String cmd) {
         this.agentPath = agentPath;
-        this.config = config;
         this.type = type;
         this.cmd = cmd;
     }
@@ -138,14 +92,6 @@ public class CmdBase implements Serializable {
 
     public void setType(Cmd.Type type) {
         this.type = type;
-    }
-
-    public Config getConfig() {
-        return config;
-    }
-
-    public void setConfig(Config config) {
-        this.config = config;
     }
 
     public String getCmd() {

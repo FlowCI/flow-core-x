@@ -41,7 +41,7 @@ public class App {
         AgentLog.info("========= Run agent =========");
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
-        AgentService client = new AgentService(zkHome, ZK_TIMEOUT, zone, name, new ZkEventAdaptor() {
+        AgentManager client = new AgentManager(zkHome, ZK_TIMEOUT, zone, name, new ZkEventAdaptor() {
 
             @Override
             public void onConnected(WatchedEvent event, String path) {
@@ -52,7 +52,7 @@ public class App {
             public void onDataChanged(WatchedEvent event, byte[] raw) {
                 Cmd cmd = Cmd.parse(raw);
                 AgentLog.info("Received command: " + cmd.toString());
-                CmdManager.getInstance().execute(cmd);
+                CmdManager.getInstance().execute(cmd, null);
             }
 
             @Override

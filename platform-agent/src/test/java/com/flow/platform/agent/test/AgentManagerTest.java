@@ -1,12 +1,11 @@
 package com.flow.platform.agent.test;
 
-import com.flow.platform.agent.AgentService;
+import com.flow.platform.agent.AgentManager;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.*;
-import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
@@ -20,12 +19,11 @@ import static org.junit.Assert.assertNull;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class AgentTest {
+public class AgentManagerTest {
 
     private static final String ZK_HOST = "127.0.0.1:2181";
     private static final String ZONE = "ali";
@@ -52,7 +50,7 @@ public class AgentTest {
 
     @Test
     public void should_agent_registered() throws IOException, KeeperException, InterruptedException {
-        AgentService agent = new AgentService(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
+        AgentManager agent = new AgentManager(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 assertEquals("/flow-agents/ali/" + MACHINE, path);
@@ -79,7 +77,7 @@ public class AgentTest {
         final CountDownLatch waitForCommandStart = new CountDownLatch(1);
         final CountDownLatch waitForBusyStatusRemoved = new CountDownLatch(1);
 
-        AgentService client = new AgentService(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
+        AgentManager client = new AgentManager(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
             @Override
             public void onConnected(WatchedEvent event, String path) {
                 waitForConnect.countDown();
@@ -93,7 +91,7 @@ public class AgentTest {
                     Cmd cmd = Cmd.parse(raw);
 
                     // then
-                    assertEquals(new Cmd(ZONE, MACHINE, null, Cmd.Type.RUN_SHELL, "~/test.sh"), cmd);
+                    assertEquals(new Cmd(ZONE, MACHINE, Cmd.Type.RUN_SHELL, "~/test.sh"), cmd);
 
                     // simulate cmd running need 5 seconds
                     Thread.sleep(2000);
@@ -115,7 +113,7 @@ public class AgentTest {
         waitForConnect.await();
 
         // when: send command to agent
-        Cmd cmd = new Cmd(ZONE, MACHINE, null, Cmd.Type.RUN_SHELL, "~/test.sh");
+        Cmd cmd = new Cmd(ZONE, MACHINE, Cmd.Type.RUN_SHELL, "~/test.sh");
         ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), cmd.toJson());
 
         // then: check agent status when command received

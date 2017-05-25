@@ -93,13 +93,12 @@ public class Cmd extends CmdBase {
 
     public Cmd(CmdBase cmdBase) {
         super(cmdBase.getAgentPath(),
-                cmdBase.getConfig(),
                 cmdBase.getType(),
                 cmdBase.getCmd());
     }
 
-    public Cmd(String zone, String agent, CmdBase.Config config, Type type, String cmd) {
-        super(zone, agent, config, type, cmd);
+    public Cmd(String zone, String agent, Type type, String cmd) {
+        super(zone, agent, type, cmd);
     }
 
     public String getId() {

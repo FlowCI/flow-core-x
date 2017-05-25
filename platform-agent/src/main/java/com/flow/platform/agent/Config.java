@@ -1,5 +1,7 @@
 package com.flow.platform.agent;
 
+import com.flow.platform.domain.AgentConfig;
+
 /**
  * Created by gy@fir.im on 16/05/2017.
  *
@@ -27,5 +29,9 @@ public class Config {
 
     public static String sudoPassword() {
         return System.getProperty(PROP_SUDO_PASSWORD, "");
+    }
+
+    public static AgentConfig load(String url) {
+        return null;
     }
 }

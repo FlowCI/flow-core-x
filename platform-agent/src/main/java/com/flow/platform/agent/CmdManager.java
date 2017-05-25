@@ -4,15 +4,17 @@ import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.CmdResult;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
+import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
 import com.google.common.collect.Sets;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gy@fir.im on 16/05/2017.
@@ -98,9 +100,10 @@ public class CmdManager {
      *
      * @param cmd Cmd object
      */
-    public void execute(final Cmd cmd) {
+    public void execute(final Cmd cmd, final AgentConfig config) {
         if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-            CmdExecutor executor = new CmdExecutor(procEventHandler, new LogEventHandler(cmd), "/bin/bash", "-c", cmd.getCmd());
+            LogEventHandler logListener = new LogEventHandler(cmd, config);
+            CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", cmd.getCmd());
             executor.run();
             return;
         }
@@ -188,15 +191,16 @@ public class CmdManager {
         private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
 
         private final Cmd cmd;
+        private final AgentConfig config;
         private final CountDownLatch initLatch = new CountDownLatch(1);
 
         private Socket socket;
         private boolean socketEnabled = false;
 
-        private LogEventHandler(Cmd cmd) {
+        private LogEventHandler(Cmd cmd, AgentConfig config) {
             this.cmd = cmd;
+            this.config = config;
 
-            CmdBase.Config config = this.cmd.getConfig();
             if (config == null || config.getLoggingUrl() == null) {
                 return;
             }

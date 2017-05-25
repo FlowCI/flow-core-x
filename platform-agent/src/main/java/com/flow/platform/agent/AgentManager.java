@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @copyright fir.im
  */
 
-public class AgentService implements Runnable, Watcher {
+public class AgentManager implements Runnable, Watcher {
 
     /**
      * Zk root path /flow-agents/{zone}/{name}
@@ -62,7 +62,7 @@ public class AgentService implements Runnable, Watcher {
     private final ExecutorService defaultExecutor =
             Executors.newFixedThreadPool(100, defaultFactory);
 
-    public AgentService(String zkHost, int zkTimeout, String zone, String name) throws IOException {
+    public AgentManager(String zkHost, int zkTimeout, String zone, String name) throws IOException {
         this.zkHost = zkHost;
         this.zkTimeout = zkTimeout;
 
@@ -85,7 +85,7 @@ public class AgentService implements Runnable, Watcher {
      * @param listener  the onDataChanged of ZkEventListener is async, run on thread
      * @throws IOException
      */
-    public AgentService(String zkHost, int zkTimeout, String zone, String name, ZkEventListener listener) throws IOException {
+    public AgentManager(String zkHost, int zkTimeout, String zone, String name, ZkEventListener listener) throws IOException {
         this(zkHost, zkTimeout, zone, name);
         this.zkEventListener = listener;
     }

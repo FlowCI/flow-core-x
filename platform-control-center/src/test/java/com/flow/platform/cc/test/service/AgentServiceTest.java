@@ -80,7 +80,7 @@ public class AgentServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // when: send command
-        CmdBase cmd = new CmdBase(zoneName, agentName, null, Cmd.Type.RUN_SHELL, "/test.sh");
+        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
         Cmd cmdInfo = agentService.sendCommand(cmd);
 
         Assert.assertNotNull(cmdInfo.getId());
@@ -101,7 +101,7 @@ public class AgentServiceTest extends TestBase {
         String agentName = "test-agent-003";
 
         // then: send command immediately should raise AgentErr.NotFoundException
-        CmdBase cmd = new CmdBase(zoneName, agentName, null, Cmd.Type.RUN_SHELL, "/test.sh");
+        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
         agentService.sendCommand(cmd);
     }
 
@@ -116,7 +116,7 @@ public class AgentServiceTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
         Thread.sleep(1000);
 
-        CmdBase cmd = new CmdBase(zoneName, agentName, null, Cmd.Type.RUN_SHELL, "/test.sh");
+        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
         agentService.sendCommand(cmd);
 
         // then: send command to agent again should raise AgentErr.BusyException.class
