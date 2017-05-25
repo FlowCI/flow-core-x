@@ -1,8 +1,10 @@
 package com.flow.platform.cc.test.controller;
 
+import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -36,12 +38,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AgentControllerTest extends TestBase {
 
     @Autowired
-    private ZkService zkService;
+    private AgentService agentService;
 
     @Autowired
     private WebApplicationContext webAppContext;
 
     private MockMvc mockMvc;
+
+    private Gson gson = new Gson();
 
     @Before
     public void before() {
@@ -49,14 +53,14 @@ public class AgentControllerTest extends TestBase {
     }
 
     @Test
-    public void should_list_all_online_agent() throws Exception {
+    public void should_list_all_online_agent() throws Throwable {
         // given:
         String zoneName = "test-zone-01";
         zkService.createZone(zoneName);
         Thread.sleep(1000);
 
         String agentName = "act-001";
-        ZkPathBuilder builder = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName);
+        ZkPathBuilder builder = zkService.getPathBuilder(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send get request
@@ -76,19 +80,18 @@ public class AgentControllerTest extends TestBase {
     }
 
     @Test
-    public void should_send_cmd_to_agent() throws Exception {
+    public void should_send_cmd_to_agent() throws Throwable {
         // given:
         String zoneName = "test-zone-02";
         zkService.createZone(zoneName);
         Thread.sleep(1000);
 
         String agentName = "act-002";
-        ZkPathBuilder builder = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName);
+        ZkPathBuilder builder = zkService.getPathBuilder(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send post request
         CmdBase cmd = new CmdBase(zoneName, agentName, null, Cmd.Type.RUN_SHELL, "~/hello.sh");
-        Gson gson = new Gson();
         gson.toJson(cmd);
 
         MockHttpServletRequestBuilder content = post("/agent/cmd")
@@ -107,7 +110,6 @@ public class AgentControllerTest extends TestBase {
         Assert.assertEquals(zoneName, cmdInfo.getZone());
         Assert.assertEquals(agentName, cmdInfo.getAgent());
 
-
         // then: check node data
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);
         Assert.assertNotNull(raw);
@@ -115,5 +117,33 @@ public class AgentControllerTest extends TestBase {
         Cmd received = Cmd.parse(raw);
         Assert.assertNotNull(received);
         Assert.assertEquals(cmdInfo, received);
+    }
+
+    @Test
+    public void should_report_agent_status() throws Throwable {
+        // given:
+        String zoneName = "test-zone-03";
+        zkService.createZone(zoneName);
+        Thread.sleep(1000);
+
+        String agentName = "act-003";
+        ZkPathBuilder builder = zkService.getPathBuilder(zoneName, agentName);
+        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+
+        // when: send agent info
+        Agent agentObj = new Agent(zoneName, agentName);
+        agentObj.setStatus(Agent.Status.BUSY);
+
+        MockHttpServletRequestBuilder content = post("/agent/report")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(gson.toJson(agentObj));
+
+        this.mockMvc.perform(content)
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        // then: check status from agent service
+        Agent loaded = agentService.find(agentObj.getPath());
+        Assert.assertEquals(Agent.Status.BUSY, loaded.getStatus());
     }
 }

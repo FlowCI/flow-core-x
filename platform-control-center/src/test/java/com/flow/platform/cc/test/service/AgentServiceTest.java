@@ -4,6 +4,7 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -42,12 +43,39 @@ public class AgentServiceTest extends TestBase {
     }
 
     @Test
+    public void should_report_agent_status() throws InterruptedException {
+        // given: init zk agent
+        String zoneName = zkService.definedZones()[0];
+        String agentName = "test-agent-for-status";
+        String agentPath = zkService.getPathBuilder(zoneName, agentName).path();
+        ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
+        Thread.sleep(500);
+
+        // when: report status
+        AgentPath pathObj = new AgentPath(zoneName, agentName);
+        agentService.reportStatus(pathObj, Agent.Status.BUSY);
+
+        // then:
+        Agent exit = agentService.find(pathObj);
+        Assert.assertEquals(Agent.Status.BUSY, exit.getStatus());
+    }
+
+    @Test(expected = AgentErr.NotFoundException.class)
+    public void should_raise_not_found_exception_when_report_status() {
+        String zoneName = zkService.definedZones()[0];
+        String agentName = "test-agent-for-status-exception";
+
+        AgentPath pathObj = new AgentPath(zoneName, agentName);
+        agentService.reportStatus(pathObj, Agent.Status.BUSY);
+    }
+
+    @Test
     public void should_send_cmd_to_agent() throws InterruptedException {
         // given:
         String zoneName = zkService.definedZones()[0];
         String agentName = "test-agent-002";
 
-        String agentPath = ZkPathBuilder.create("flow-agents").append(zoneName).append(agentName).path();
+        String agentPath = zkService.getPathBuilder(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
 

@@ -108,6 +108,15 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
+    @Override
+    public void reportStatus(AgentPath path, Agent.Status status) {
+        Agent exist = find(path);
+        if (exist == null) {
+            throw new AgentErr.NotFoundException(path.getName());
+        }
+        exist.setStatus(status);
+    }
+
     /**
      * Find from online list and create
      *

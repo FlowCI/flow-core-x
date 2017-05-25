@@ -45,4 +45,12 @@ public interface AgentService {
      * @exception AgentErr.NotAvailableException if agent busy
      */
     Cmd sendCommand(CmdBase cmd);
+
+    /**
+     * Update agent status
+     *
+     * @param path
+     * @param status
+     */
+    void reportStatus(AgentPath path, Agent.Status status);
 }

@@ -36,4 +36,20 @@ public class AgentController {
     public Cmd sendCommand(@RequestBody CmdBase cmd) {
         return agentService.sendCommand(cmd);
     }
+
+
+    /**
+     * Update agent status, required attributes are
+     *  - path
+     *  - status
+     *
+     * @param agent agent objc
+     */
+    @RequestMapping(path= "/report", method = RequestMethod.POST, consumes = "application/json")
+    public void reportStatus(@RequestBody Agent agent) {
+        if (agent.getPath() == null || agent.getStatus() == null) {
+            throw new IllegalArgumentException("Agent path and status are required");
+        }
+        agentService.reportStatus(agent.getPath(), agent.getStatus());
+    }
 }
