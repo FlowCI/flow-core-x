@@ -38,15 +38,6 @@ public interface AgentService {
     Agent find(AgentPath key);
 
     /**
-     * Send ZkCmd to agent
-     *
-     * @param cmd
-     * @return command objc with id
-     * @exception AgentErr.NotAvailableException if agent busy
-     */
-    Cmd sendCommand(CmdBase cmd);
-
-    /**
      * Update agent status
      *
      * @param path

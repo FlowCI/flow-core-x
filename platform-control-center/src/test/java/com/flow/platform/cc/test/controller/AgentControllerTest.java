@@ -38,23 +38,11 @@ public class AgentControllerTest extends TestBase {
     @Autowired
     private AgentService agentService;
 
-    @Autowired
-    private WebApplicationContext webAppContext;
-
     @Value("${agent.config.socket_io_url}")
     private String socketIoUrl;
 
     @Value("${agent.config.cmd_report_url}")
     private String cmdReportUrl;
-
-    private MockMvc mockMvc;
-
-    private Gson gson = new Gson();
-
-    @Before
-    public void before() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
-    }
 
     @Test
     public void should_has_agent_config_in_zone_data() throws Throwable {
@@ -99,47 +87,6 @@ public class AgentControllerTest extends TestBase {
         Agent[] agentList = gson.fromJson(json, Agent[].class);
         Assert.assertEquals(1, agentList.length);
         Assert.assertEquals(agentName, agentList[0].getName());
-    }
-
-    @Test
-    public void should_send_cmd_to_agent() throws Throwable {
-        // given:
-        String zoneName = "test-zone-02";
-        zkService.createZone(zoneName);
-        Thread.sleep(1000);
-
-        String agentName = "act-002";
-        ZkPathBuilder builder = zkService.buildZkPath(zoneName, agentName);
-        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
-        Thread.sleep(1000);
-
-        // when: send post request
-        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "~/hello.sh");
-        gson.toJson(cmd);
-
-        MockHttpServletRequestBuilder content = post("/agent/cmd")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(gson.toJson(cmd));
-
-        // then: check response data
-        MvcResult result = this.mockMvc.perform(content)
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
-
-        Cmd cmdInfo = gson.fromJson(result.getResponse().getContentAsString(), Cmd.class);
-        Assert.assertNotNull(cmdInfo);
-        Assert.assertEquals(Cmd.Status.PENDING, cmdInfo.getStatus());
-        Assert.assertEquals(zoneName, cmdInfo.getZone());
-        Assert.assertEquals(agentName, cmdInfo.getAgent());
-
-        // then: check node data
-        byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);
-        Assert.assertNotNull(raw);
-
-        Cmd received = Cmd.parse(raw);
-        Assert.assertNotNull(received);
-        Assert.assertEquals(cmdInfo, received);
     }
 
     @Test

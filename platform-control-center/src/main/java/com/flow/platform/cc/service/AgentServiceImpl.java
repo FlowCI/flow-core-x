@@ -74,41 +74,6 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Cmd sendCommand(CmdBase cmd) {
-        Agent target = find(new AgentPath(cmd.getZone(), cmd.getAgent()));
-
-        ZkPathBuilder pathBuilder = zkService.buildZkPath(cmd.getZone(), cmd.getAgent());
-        String agentNodePath = pathBuilder.path();
-
-        try {
-            // check agent is online
-            if (target == null || ZkNodeHelper.exist(zkService.zkClient(), agentNodePath) == null) {
-                throw new AgentErr.NotFoundException(cmd.getAgent());
-            }
-
-            // check agent status is idle
-            if (target.getStatus() != Agent.Status.IDLE) {
-                throw new AgentErr.NotAvailableException(cmd.getAgent());
-            }
-
-            // set cmd info
-            String cmdId = UUID.randomUUID().toString();
-            Cmd cmdInfo = new Cmd(cmd);
-            cmdInfo.setId(cmdId);
-
-            // send data
-            ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
-
-            // update agent status
-            target.setStatus(Agent.Status.BUSY);
-            return cmdInfo;
-
-        } catch (ZkException.ZkNoNodeException e) {
-            throw new AgentErr.NotFoundException(cmd.getAgent());
-        }
-    }
-
-    @Override
     public void reportStatus(AgentPath path, Agent.Status status) {
         Agent exist = find(path);
         if (exist == null) {

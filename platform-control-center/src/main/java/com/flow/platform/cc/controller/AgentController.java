@@ -32,11 +32,6 @@ public class AgentController {
         return agentService.onlineList(zoneName);
     }
 
-    @RequestMapping(path = "/cmd", method = RequestMethod.POST, consumes = "application/json")
-    public Cmd sendCommand(@RequestBody CmdBase cmd) {
-        return agentService.sendCommand(cmd);
-    }
-
     /**
      * Update agent status, required attributes are
      *  - path

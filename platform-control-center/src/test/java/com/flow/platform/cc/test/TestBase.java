@@ -3,6 +3,7 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.service.ZkService;
 import com.flow.platform.util.zk.ZkLocalBuilder;
+import com.google.gson.Gson;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -11,6 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
 
@@ -36,10 +40,18 @@ public abstract class TestBase {
     @Autowired
     protected ZkService zkService;
 
+    @Autowired
+    private WebApplicationContext webAppContext;
+
     protected ZooKeeper zkClient;
+
+    protected Gson gson = new Gson();
+
+    protected MockMvc mockMvc;
 
     @Before
     public void beforeEach() throws IOException, InterruptedException {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         zkClient = zkService.zkClient();
     }
 }
