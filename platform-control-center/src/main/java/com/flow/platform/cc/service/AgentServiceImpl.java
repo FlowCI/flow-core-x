@@ -21,7 +21,7 @@ import java.util.*;
 @Service(value = "agentService")
 public class AgentServiceImpl implements AgentService {
 
-    private final Map<AgentKey, Agent> mockAgentStore = Maps.newConcurrentMap();
+    private final Map<AgentKey, Agent> agentOnlineList = Maps.newConcurrentMap();
 
     @Autowired
     private ZkService zkService;
@@ -29,19 +29,19 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public void reportOnline(Collection<AgentKey> keys) {
         // find offline agent
-        HashSet<AgentKey> offlines = new HashSet<>(mockAgentStore.keySet());
+        HashSet<AgentKey> offlines = new HashSet<>(agentOnlineList.keySet());
         offlines.removeAll(keys);
 
         // remote from online list and update status
         for (AgentKey key : offlines) {
-            Agent offlineAgent = mockAgentStore.get(key);
+            Agent offlineAgent = agentOnlineList.get(key);
             offlineAgent.setStatus(Agent.Status.OFFLINE);
-            mockAgentStore.remove(key);
+            agentOnlineList.remove(key);
         }
 
         // fine newly online agent
         HashSet<AgentKey> onlines = new HashSet<>(keys);
-        onlines.removeAll(mockAgentStore.keySet());
+        onlines.removeAll(agentOnlineList.keySet());
 
         // report online
         for (AgentKey key : onlines) {
@@ -51,13 +51,13 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Agent find(AgentKey key) {
-        return mockAgentStore.get(key);
+        return agentOnlineList.get(key);
     }
 
     @Override
     public Collection<Agent> onlineList(String zone) {
-        Collection<Agent> zoneAgents = new ArrayList<>(mockAgentStore.size());
-        for (Agent agent : mockAgentStore.values()) {
+        Collection<Agent> zoneAgents = new ArrayList<>(agentOnlineList.size());
+        for (Agent agent : agentOnlineList.values()) {
             if (agent.getZone().equals(zone)) {
                 zoneAgents.add(agent);
             }
@@ -73,7 +73,7 @@ public class AgentServiceImpl implements AgentService {
         String agentNodePath = pathBuilder.path();
 
         try {
-            // check agent is exist
+            // check agent is online
             if (target == null || ZkNodeHelper.exist(zkService.zkClient(), agentNodePath) == null) {
                 throw new AgentErr.NotFoundException(cmd.getAgent());
             }
@@ -100,12 +100,17 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
+    /**
+     * Find from online list and create
+     *
+     * @param key
+     */
     private void reportOnline(AgentKey key) {
         Agent exist = find(key);
         if (exist == null) {
             Agent agent = new Agent(key);
             agent.setStatus(Agent.Status.IDLE);
-            mockAgentStore.put(key, agent);
+            agentOnlineList.put(key, agent);
         }
     }
 }

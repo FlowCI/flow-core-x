@@ -30,7 +30,7 @@ public interface AgentService {
     Collection<Agent> onlineList(String zone);
 
     /**
-     * Find agent by zone and agent name
+     * Find agent by zone and agent name from online list
      *
      * @param key AgentKey object
      * @return Agent object, or null if not found
