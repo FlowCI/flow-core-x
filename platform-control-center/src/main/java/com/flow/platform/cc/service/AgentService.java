@@ -2,7 +2,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentKey;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 
@@ -19,7 +19,7 @@ public interface AgentService {
      *
      * @param keys
      */
-    void reportOnline(Collection<AgentKey> keys);
+    void reportOnline(Collection<AgentPath> keys);
 
     /**
      * Get online agent set by zone
@@ -35,7 +35,7 @@ public interface AgentService {
      * @param key AgentKey object
      * @return Agent object, or null if not found
      */
-    Agent find(AgentKey key);
+    Agent find(AgentPath key);
 
     /**
      * Send ZkCmd to agent

@@ -1,6 +1,6 @@
 package com.flow.platform.cc.service;
 
-import com.flow.platform.domain.AgentKey;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -125,10 +125,10 @@ public class ZkServiceImpl implements ZkService {
         return zk;
     }
 
-    private Collection<AgentKey> buildKeys(String zone, Collection<String> agents) {
-        ArrayList<AgentKey> keys = new ArrayList<>(agents.size());
+    private Collection<AgentPath> buildKeys(String zone, Collection<String> agents) {
+        ArrayList<AgentPath> keys = new ArrayList<>(agents.size());
         for (String agentName : agents) {
-            keys.add(new AgentKey(zone, agentName));
+            keys.add(new AgentPath(zone, agentName));
         }
         return keys;
     }

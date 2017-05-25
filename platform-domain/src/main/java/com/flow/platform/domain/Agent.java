@@ -2,7 +2,6 @@ package com.flow.platform.domain;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
@@ -28,7 +27,7 @@ public class Agent implements Serializable {
         }
     }
 
-    private AgentKey key;
+    private AgentPath path;
 
     /**
      * Max concurrent proc number
@@ -51,29 +50,29 @@ public class Agent implements Serializable {
     private Date updatedDate;
 
     public Agent(String zone, String name) {
-        this(new AgentKey(zone, name));
+        this(new AgentPath(zone, name));
     }
 
-    public Agent(AgentKey key) {
-        this.key = key;
+    public Agent(AgentPath path) {
+        this.path = path;
         this.createdDate = new Date();
         this.updatedDate = new Date();
     }
 
-    public AgentKey getKey() {
-        return key;
+    public AgentPath getPath() {
+        return path;
     }
 
-    public void setKey(AgentKey key) {
-        this.key = key;
+    public void setPath(AgentPath path) {
+        this.path = path;
     }
 
     public String getZone() {
-        return this.key.getZone();
+        return this.path.getZone();
     }
 
     public String getName() {
-        return this.key.getName();
+        return this.path.getName();
     }
 
     public Integer getConcurrentProc() {
@@ -114,19 +113,19 @@ public class Agent implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
 
         Agent agent = (Agent) o;
-        return key.equals(agent.getKey());
+        return path.equals(agent.getPath());
     }
 
     @Override
     public int hashCode() {
-        return this.getKey().hashCode();
+        return this.getPath().hashCode();
     }
 
     @Override
     public String toString() {
         return "Agent{" +
-                "zone='" + key.getZone() + '\'' +
-                ", name='" + key.getName() + '\'' +
+                "zone='" + path.getZone() + '\'' +
+                ", name='" + path.getName() + '\'' +
                 ", status=" + status +
                 '}';
     }

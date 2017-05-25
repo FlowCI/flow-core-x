@@ -2,7 +2,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentKey;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkException;
@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service(value = "agentService")
 public class AgentServiceImpl implements AgentService {
 
-    private final Map<AgentKey, Agent> agentOnlineList = Maps.newConcurrentMap();
+    private final Map<AgentPath, Agent> agentOnlineList = Maps.newConcurrentMap();
 
     private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
 
@@ -30,26 +30,26 @@ public class AgentServiceImpl implements AgentService {
     private ZkService zkService;
 
     @Override
-    public void reportOnline(Collection<AgentKey> keys) {
+    public void reportOnline(Collection<AgentPath> keys) {
         onlineListUpdateLock.lock();
         try {
             // find offline agent
-            HashSet<AgentKey> offlines = new HashSet<>(agentOnlineList.keySet());
+            HashSet<AgentPath> offlines = new HashSet<>(agentOnlineList.keySet());
             offlines.removeAll(keys);
 
             // remote from online list and update status
-            for (AgentKey key : offlines) {
+            for (AgentPath key : offlines) {
                 Agent offlineAgent = agentOnlineList.get(key);
                 offlineAgent.setStatus(Agent.Status.OFFLINE);
                 agentOnlineList.remove(key);
             }
 
             // fine newly online agent
-            HashSet<AgentKey> onlines = new HashSet<>(keys);
+            HashSet<AgentPath> onlines = new HashSet<>(keys);
             onlines.removeAll(agentOnlineList.keySet());
 
             // report online
-            for (AgentKey key : onlines) {
+            for (AgentPath key : onlines) {
                 reportOnline(key);
             }
         } finally {
@@ -58,7 +58,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent find(AgentKey key) {
+    public Agent find(AgentPath key) {
         return agentOnlineList.get(key);
     }
 
@@ -75,7 +75,7 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Cmd sendCommand(CmdBase cmd) {
-        Agent target = find(new AgentKey(cmd.getZone(), cmd.getAgent()));
+        Agent target = find(new AgentPath(cmd.getZone(), cmd.getAgent()));
 
         ZkPathBuilder pathBuilder = zkService.getPathBuilder(cmd.getZone(), cmd.getAgent());
         String agentNodePath = pathBuilder.path();
@@ -113,7 +113,7 @@ public class AgentServiceImpl implements AgentService {
      *
      * @param key
      */
-    private void reportOnline(AgentKey key) {
+    private void reportOnline(AgentPath key) {
         Agent exist = find(key);
         if (exist == null) {
             Agent agent = new Agent(key);

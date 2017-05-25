@@ -3,10 +3,12 @@ package com.flow.platform.domain;
 import java.io.Serializable;
 
 /**
+ * Agent path in zookeeper
+ *
  * Created by gy@fir.im on 24/05/2017.
  * Copyright fir.im
  */
-public class AgentKey implements Serializable {
+public class AgentPath implements Serializable {
 
     public final static String RESERVED_CHAR = "#";
 
@@ -14,7 +16,7 @@ public class AgentKey implements Serializable {
 
     private String name;
 
-    public AgentKey(String zone, String name) {
+    public AgentPath(String zone, String name) {
         if (zone.contains(RESERVED_CHAR) || name.contains(RESERVED_CHAR)) {
             throw new IllegalArgumentException("Agent key not valid");
         }
@@ -35,10 +37,10 @@ public class AgentKey implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AgentKey agentKey = (AgentKey) o;
+        AgentPath agentPath = (AgentPath) o;
 
-        if (!zone.equals(agentKey.zone)) return false;
-        return name.equals(agentKey.name);
+        if (!zone.equals(agentPath.zone)) return false;
+        return name.equals(agentPath.name);
     }
 
     @Override
