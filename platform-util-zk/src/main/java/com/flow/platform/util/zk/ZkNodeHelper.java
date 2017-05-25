@@ -131,6 +131,6 @@ public class ZkNodeHelper {
             }
         }
 
-        return new ZkException.ZkServerConnectionException(e);
+        return new ZkException.ConnectionException(e);
     }
 }

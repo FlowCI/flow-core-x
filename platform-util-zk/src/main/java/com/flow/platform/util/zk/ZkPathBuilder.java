@@ -23,15 +23,7 @@ public class ZkPathBuilder {
         return path.toString();
     }
 
-    public String busy() {
-        return String.format("%s-busy", path.toString());
-    }
-
     public static ZkPathBuilder create(String root) {
         return new ZkPathBuilder(root);
-    }
-
-    public static String busyNodeName(String nodeName) {
-        return String.format("%s-busy", nodeName);
     }
 }

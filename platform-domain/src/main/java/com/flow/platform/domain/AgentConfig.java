@@ -5,12 +5,25 @@ package com.flow.platform.domain;
  * Copyright fir.im
  */
 
+import com.google.gson.Gson;
 import java.io.Serializable;
 
 /**
  * Config for server url
  */
 public class AgentConfig implements Serializable {
+
+    /**
+     * Get AgentConfig from json of byte[] format
+     *
+     * @param raw byte array from zk data
+     * @return AgentConfig object
+     */
+    public static AgentConfig parse(byte[] raw) {
+        String json = new String(raw);
+        Gson gson = new Gson();
+        return gson.fromJson(json, AgentConfig.class);
+    }
 
     /**
      * Zookeeper url
@@ -57,5 +70,14 @@ public class AgentConfig implements Serializable {
 
     public void setStatusUrl(String statusUrl) {
         this.statusUrl = statusUrl;
+    }
+
+    @Override
+    public String toString() {
+        return "AgentConfig{" +
+                "zooKeeperUrl='" + zooKeeperUrl + '\'' +
+                ", loggingUrl='" + loggingUrl + '\'' +
+                ", statusUrl='" + statusUrl + '\'' +
+                '}';
     }
 }

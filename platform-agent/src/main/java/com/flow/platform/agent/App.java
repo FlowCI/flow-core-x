@@ -19,8 +19,8 @@ public class App {
     private static final String AGENT_ZONE = "firmac";
     private static final String AGENT_NAME = "test-001";
 
-    public static void main(String args[]) throws IOException {
-        String zkHome; // zookeeper address
+    public static void main(String args[]) {
+        String zkHome; // zookeeper addres
         String zone; // agent zone
         String name; // agent name
 
@@ -41,8 +41,20 @@ public class App {
         Logger.info("========= Run agent =========");
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
-        AgentManager client = new AgentManager(zkHome, ZK_TIMEOUT, zone, name);
-        new Thread(client).start();
+        try {
+            Config.loadAgentConfig(zkHome, ZK_TIMEOUT, zone, 5);
+        } catch (Throwable e) {
+            Logger.err(e, "Cannot load agent config from zone");
+            Runtime.getRuntime().exit(1);
+        }
+
+        try {
+            AgentManager client = new AgentManager(zkHome, ZK_TIMEOUT, zone, name);
+            new Thread(client).start();
+        } catch (Throwable e) {
+            Logger.err(e, "Got exception when agent running");
+            Runtime.getRuntime().exit(1);
+        }
     }
 
     private static class ShutdownHook extends Thread {

@@ -26,8 +26,8 @@ public class ZkException {
         }
     }
 
-    public static class ZkServerConnectionException extends AbstractZkException {
-        public ZkServerConnectionException(Exception raw) {
+    public static class ConnectionException extends AbstractZkException {
+        public ConnectionException(Exception raw) {
             super(raw, "Zookeeper server connection error");
         }
     }

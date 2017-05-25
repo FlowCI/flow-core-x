@@ -1,10 +1,7 @@
 package com.flow.platform.agent;
 
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.util.zk.ZkEventAdaptor;
-import com.flow.platform.util.zk.ZkEventHelper;
-import com.flow.platform.util.zk.ZkEventListener;
-import com.flow.platform.util.zk.ZkNodeHelper;
+import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -24,7 +21,6 @@ public class AgentManager implements Runnable, Watcher {
     /**
      * Zk root path /flow-agents/{zone}/{name}
      */
-    private final static String ZK_ROOT = "/flow-agents";
     private final static Object STATUS_LOCKER = new Object();
     private final static int ZK_RECONNECT_TIME = 5;
 
@@ -39,7 +35,6 @@ public class AgentManager implements Runnable, Watcher {
 
     private String zonePath;    // zone path, /flow-agents/{zone}
     private String nodePath;    // zk node path, /flow-agents/{zone}/{name}
-    private String nodePathBusy;// zk node path, /flow-agents/{zone}/{name}-busy
 
     // Make thread to Daemon thread, those threads exit while JVM exist
     private final ThreadFactory defaultFactory = r -> {
@@ -71,9 +66,10 @@ public class AgentManager implements Runnable, Watcher {
         this.zone = zone;
         this.name = name;
 
-        this.zonePath = String.format("%s/%s", ZK_ROOT, this.zone);
-        this.nodePath = String.format("%s/%s/%s", ZK_ROOT, this.zone, this.name);
-        this.nodePathBusy = String.format("%s/%s/%s-busy", ZK_ROOT, this.zone, this.name);
+        ZkPathBuilder pathBuilder = ZkPathBuilder.create(Config.ZK_ROOT).append(this.zone);
+        this.zonePath = pathBuilder.path();
+        pathBuilder.append(this.name);
+        this.nodePath = pathBuilder.path();
 
         this.zkEventListener = new EventListener(); // using default event listener
     }
@@ -95,10 +91,6 @@ public class AgentManager implements Runnable, Watcher {
 
     public String getNodePath() {
         return nodePath;
-    }
-
-    public String getNodePathBusy() {
-        return nodePathBusy;
     }
 
     /**
