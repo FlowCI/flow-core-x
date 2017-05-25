@@ -46,7 +46,7 @@ public class ConfigTest {
         Config.AGENT_CONFIG = Config.loadAgentConfig("localhost:2181", 20000, "ali", 5);
         Assert.assertNotNull(Config.agentConfig());
         Assert.assertEquals(loggingUrl, Config.agentConfig().getLoggingUrl());
-        Assert.assertEquals(statusUrl, Config.agentConfig().getStatusUrl());
+        Assert.assertEquals(statusUrl, Config.agentConfig().getCmdStatusUrl());
     }
 
     @AfterClass

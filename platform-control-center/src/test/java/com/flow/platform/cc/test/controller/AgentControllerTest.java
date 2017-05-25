@@ -4,24 +4,18 @@ import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentConfig;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.gson.Gson;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -59,7 +53,7 @@ public class AgentControllerTest extends TestBase {
         AgentConfig config = AgentConfig.parse(raw);
         Assert.assertNotNull(config);
         Assert.assertEquals(socketIoUrl, config.getLoggingUrl());
-        Assert.assertEquals(cmdReportUrl, config.getStatusUrl());
+        Assert.assertEquals(cmdReportUrl, config.getCmdStatusUrl());
     }
 
     @Test

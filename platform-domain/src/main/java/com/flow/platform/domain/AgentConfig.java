@@ -33,14 +33,14 @@ public class AgentConfig implements Serializable {
     /**
      * Url for report agent status
      */
-    private String statusUrl;
+    private String cmdStatusUrl;
 
     public AgentConfig() {
     }
 
-    public AgentConfig(String loggingUrl, String statusUrl) {
+    public AgentConfig(String loggingUrl, String cmdStatusUrl) {
         this.loggingUrl = loggingUrl;
-        this.statusUrl = statusUrl;
+        this.cmdStatusUrl = cmdStatusUrl;
     }
 
     public String getLoggingUrl() {
@@ -51,19 +51,19 @@ public class AgentConfig implements Serializable {
         this.loggingUrl = loggingUrl;
     }
 
-    public String getStatusUrl() {
-        return statusUrl;
+    public String getCmdStatusUrl() {
+        return cmdStatusUrl;
     }
 
-    public void setStatusUrl(String statusUrl) {
-        this.statusUrl = statusUrl;
+    public void setCmdStatusUrl(String cmdStatusUrl) {
+        this.cmdStatusUrl = cmdStatusUrl;
     }
 
     @Override
     public String toString() {
         return "AgentConfig{" +
                 ", loggingUrl='" + loggingUrl + '\'' +
-                ", statusUrl='" + statusUrl + '\'' +
+                ", cmdStatusUrl='" + cmdStatusUrl + '\'' +
                 '}';
     }
 

@@ -58,7 +58,7 @@ public class ReportManager {
         Agent agent = new Agent(Config.ZONE, Config.NAME);
         agent.setStatus(status);
 
-        String url = Config.agentConfig().getStatusUrl();
+        String url = Config.agentConfig().getCmdStatusUrl();
         HttpPost post = new HttpPost(url);
         post.setEntity(new StringEntity(agent.toJson(), ContentType.APPLICATION_JSON));
 
