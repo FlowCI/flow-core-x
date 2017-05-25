@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by gy@fir.im on 24/05/2017.
@@ -23,29 +24,36 @@ public class AgentServiceImpl implements AgentService {
 
     private final Map<AgentKey, Agent> agentOnlineList = Maps.newConcurrentMap();
 
+    private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
+
     @Autowired
     private ZkService zkService;
 
     @Override
     public void reportOnline(Collection<AgentKey> keys) {
-        // find offline agent
-        HashSet<AgentKey> offlines = new HashSet<>(agentOnlineList.keySet());
-        offlines.removeAll(keys);
+        onlineListUpdateLock.lock();
+        try {
+            // find offline agent
+            HashSet<AgentKey> offlines = new HashSet<>(agentOnlineList.keySet());
+            offlines.removeAll(keys);
 
-        // remote from online list and update status
-        for (AgentKey key : offlines) {
-            Agent offlineAgent = agentOnlineList.get(key);
-            offlineAgent.setStatus(Agent.Status.OFFLINE);
-            agentOnlineList.remove(key);
-        }
+            // remote from online list and update status
+            for (AgentKey key : offlines) {
+                Agent offlineAgent = agentOnlineList.get(key);
+                offlineAgent.setStatus(Agent.Status.OFFLINE);
+                agentOnlineList.remove(key);
+            }
 
-        // fine newly online agent
-        HashSet<AgentKey> onlines = new HashSet<>(keys);
-        onlines.removeAll(agentOnlineList.keySet());
+            // fine newly online agent
+            HashSet<AgentKey> onlines = new HashSet<>(keys);
+            onlines.removeAll(agentOnlineList.keySet());
 
-        // report online
-        for (AgentKey key : onlines) {
-            reportOnline(key);
+            // report online
+            for (AgentKey key : onlines) {
+                reportOnline(key);
+            }
+        } finally {
+            onlineListUpdateLock.unlock();
         }
     }
 
