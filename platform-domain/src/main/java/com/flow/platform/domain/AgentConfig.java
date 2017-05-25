@@ -31,7 +31,7 @@ public class AgentConfig implements Serializable {
     private String loggingUrl;
 
     /**
-     * Url for report agent status
+     * Url for report cmd status
      */
     private String cmdStatusUrl;
 
