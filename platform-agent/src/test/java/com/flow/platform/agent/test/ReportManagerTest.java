@@ -6,10 +6,8 @@ import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
@@ -17,6 +15,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
  * Created by gy@fir.im on 26/05/2017.
  * Copyright fir.im
  */
+@FixMethodOrder(value = MethodSorters.NAME_ASCENDING)
 public class ReportManagerTest {
 
     @Rule

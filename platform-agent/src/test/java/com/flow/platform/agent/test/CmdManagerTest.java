@@ -5,10 +5,8 @@ import com.flow.platform.agent.Config;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
 
 import java.io.IOException;
 import java.util.Map;
@@ -19,6 +17,7 @@ import java.util.concurrent.CountDownLatch;
  * Created by gy@fir.im on 16/05/2017.
  * Copyright fir.im
  */
+@FixMethodOrder(value = MethodSorters.NAME_ASCENDING)
 public class CmdManagerTest {
 
     private CmdManager cmdManager = CmdManager.getInstance();
@@ -144,6 +143,6 @@ public class CmdManagerTest {
         Assert.assertNotNull(result.getDuration());
         Assert.assertNotNull(result.getExecutedTime());
         Assert.assertNotNull(result.getExitValue());
-        Assert.assertEquals(CmdResult.EXIT_VALUE_FOR_STOP, result.getExitValue());
+        Assert.assertEquals(CmdResult.EXIT_VALUE_FOR_KILL, result.getExitValue());
     }
 }
