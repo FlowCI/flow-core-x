@@ -130,9 +130,34 @@ public class CmdManagerTest {
         Cmd cmd = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
         cmd.setId(UUID.randomUUID().toString());
 
+        CountDownLatch startLatch = new CountDownLatch(1);
+
+        cmdManager.getExtraProcEventListeners().add(new ProcListener() {
+            @Override
+            public void onStarted(CmdResult result) {
+                startLatch.countDown();
+            }
+
+            @Override
+            public void onLogged(CmdResult result) {
+
+            }
+
+            @Override
+            public void onExecuted(CmdResult result) {
+
+            }
+
+            @Override
+            public void onException(CmdResult result) {
+
+            }
+        });
+
         // when: start and kill task immediately
         cmdManager.execute(cmd);
-        Thread.sleep(100);
+
+        startLatch.await();
         cmdManager.kill();
 
         // then: check CmdResult status

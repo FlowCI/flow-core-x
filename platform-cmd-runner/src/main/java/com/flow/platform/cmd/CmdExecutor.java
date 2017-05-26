@@ -68,7 +68,7 @@ public class CmdExecutor {
             outputResult.setExitValue(p.waitFor());
             outputResult.setExecutedTime(new Date());
 
-            System.out.println("====== 1. Process executed ======");
+            System.out.println(String.format("====== 1. Process executed : %s ======", outputResult.getExitValue()));
             if (procListener != null) {
                 procListener.onExecuted(outputResult);
             }
