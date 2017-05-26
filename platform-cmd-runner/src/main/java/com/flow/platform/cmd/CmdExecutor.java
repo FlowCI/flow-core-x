@@ -5,6 +5,7 @@ import com.flow.platform.domain.CmdResult;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -50,6 +51,7 @@ public class CmdExecutor {
 
         try {
             Process p = pBuilder.start();
+            outputResult.setProcessId(getPid(p));
             outputResult.setProcess(p);
 
             if (procListener != null) {
@@ -91,6 +93,25 @@ public class CmdExecutor {
             }
         } finally {
             System.out.println("====== 3. Process Done ======");
+        }
+    }
+
+    /**
+     * Get process id
+     *
+     * @param process
+     * @return
+     */
+    private int getPid(Process process) {
+        try {
+            Class<?> cProcessImpl = process.getClass();
+            Field fPid = cProcessImpl.getDeclaredField("pid");
+            if (!fPid.isAccessible()) {
+                fPid.setAccessible(true);
+            }
+            return fPid.getInt(process);
+        } catch (Exception e) {
+            return -1;
         }
     }
 
