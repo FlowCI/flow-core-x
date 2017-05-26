@@ -40,6 +40,7 @@ public class CmdManagerTest {
         cmdManager.getExtraProcEventListeners().clear();
         cmdManager.getRunning().clear();
         cmdManager.getFinished().clear();
+        cmdManager.getRejected().clear();
     }
 
     @Test
