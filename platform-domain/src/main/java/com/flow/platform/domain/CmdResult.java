@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class CmdResult {
 
-    public static final int EXIT_VALUE_FOR_STOP = -100;
+    public static final Integer EXIT_VALUE_FOR_STOP = 143;
 
     /**
      * Process id

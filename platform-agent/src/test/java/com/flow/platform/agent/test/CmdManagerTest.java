@@ -5,6 +5,8 @@ import com.flow.platform.agent.Config;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -17,8 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Created by gy@fir.im on 16/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public class CmdManagerTest {
 
@@ -27,13 +28,19 @@ public class CmdManagerTest {
     private static String resourcePath;
 
     @BeforeClass
-    public static void before() throws IOException {
-        System.setProperty(Config.PROP_CONCURRENT_PROC, "2");
+    public static void beforeClass() throws IOException {
         System.setProperty(Config.PROP_IS_DEBUG, "true");
 
         ClassLoader classLoader = CmdManagerTest.class.getClassLoader();
         resourcePath = classLoader.getResource("test.sh").getFile();
         Runtime.getRuntime().exec("chmod +x " + resourcePath);
+    }
+
+    @Before
+    public void beforeEach() {
+        cmdManager.getExtraProcEventListeners().clear();
+        cmdManager.getRunning().clear();
+        cmdManager.getFinished().clear();
     }
 
     @Test
@@ -44,6 +51,8 @@ public class CmdManagerTest {
     @Test
     public void running_process_should_be_recorded() throws InterruptedException {
         // given:
+        System.setProperty(Config.PROP_CONCURRENT_PROC, "2");
+
         CountDownLatch startLatch = new CountDownLatch(2);
         CountDownLatch finishLatch = new CountDownLatch(2);
 
@@ -99,5 +108,24 @@ public class CmdManagerTest {
             assertEquals(true, r.getTotalDuration() >= 2);
             assertEquals(0, r.getExceptions().size());
         }
+    }
+
+    @Test
+    public void should_be_correct_status_for_killed_process() throws Throwable {
+        // given
+        Cmd cmd1 = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
+        cmd1.setId(UUID.randomUUID().toString());
+
+        // when: start and kill task immediately
+        new Thread(() -> cmdManager.execute(cmd1)).start();
+        Thread.sleep(100);
+        cmdManager.kill();
+
+        // then: check CmdResult status
+        Collection<CmdResult> finished = cmdManager.getFinished();
+        Assert.assertEquals(1, finished.size());
+
+        CmdResult result = (CmdResult) finished.toArray()[0];
+        Assert.assertEquals(CmdResult.EXIT_VALUE_FOR_STOP, result.getExitValue());
     }
 }
