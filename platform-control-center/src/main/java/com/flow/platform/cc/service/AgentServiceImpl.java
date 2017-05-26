@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -22,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service(value = "agentService")
 public class AgentServiceImpl implements AgentService {
 
-    private final Map<AgentPath, Agent> agentOnlineList = Maps.newConcurrentMap();
+    private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
 
     private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
 
@@ -30,23 +31,25 @@ public class AgentServiceImpl implements AgentService {
     private ZkService zkService;
 
     @Override
-    public void reportOnline(Collection<AgentPath> keys) {
+    public void reportOnline(String zone, Collection<AgentPath> keys) {
         onlineListUpdateLock.lock();
         try {
+            Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
+
             // find offline agent
-            HashSet<AgentPath> offlines = new HashSet<>(agentOnlineList.keySet());
+            HashSet<AgentPath> offlines = new HashSet<>(agentList.keySet());
             offlines.removeAll(keys);
 
             // remote from online list and update status
             for (AgentPath key : offlines) {
-                Agent offlineAgent = agentOnlineList.get(key);
+                Agent offlineAgent = agentList.get(key);
                 offlineAgent.setStatus(Agent.Status.OFFLINE);
-                agentOnlineList.remove(key);
+                agentList.remove(key);
             }
 
             // fine newly online agent
             HashSet<AgentPath> onlines = new HashSet<>(keys);
-            onlines.removeAll(agentOnlineList.keySet());
+            onlines.removeAll(agentList.keySet());
 
             // report online
             for (AgentPath key : onlines) {
@@ -59,13 +62,16 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Agent find(AgentPath key) {
-        return agentOnlineList.get(key);
+        String zone = key.getZone();
+        Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
+        return agentList.get(key);
     }
 
     @Override
     public Collection<Agent> onlineList(String zone) {
         Collection<Agent> zoneAgents = new ArrayList<>(agentOnlineList.size());
-        for (Agent agent : agentOnlineList.values()) {
+        Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
+        for (Agent agent : agentList.values()) {
             if (agent.getZone().equals(zone)) {
                 zoneAgents.add(agent);
             }
@@ -90,9 +96,11 @@ public class AgentServiceImpl implements AgentService {
     private void reportOnline(AgentPath key) {
         Agent exist = find(key);
         if (exist == null) {
+            String zone = key.getZone();
+            Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
             Agent agent = new Agent(key);
             agent.setStatus(Agent.Status.IDLE);
-            agentOnlineList.put(key, agent);
+            agentList.put(key, agent);
         }
     }
 }

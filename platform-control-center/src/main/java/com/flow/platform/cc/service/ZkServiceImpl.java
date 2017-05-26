@@ -115,7 +115,7 @@ public class ZkServiceImpl implements ZkService {
         } else{
             ZkNodeHelper.setNodeData(zkClient, zonePath, agentConfig.toJson());
             List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
-            agentService.reportOnline(buildKeys(zoneName, agents));
+            agentService.reportOnline(zoneName, buildKeys(zoneName, agents));
         }
 
         ZoneEventWatcher zoneEventWatcher =
@@ -189,7 +189,7 @@ public class ZkServiceImpl implements ZkService {
             if (ZkEventHelper.isChildrenChanged(event)) {
                 executorService.execute(() -> {
                     List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
-                    agentService.reportOnline(buildKeys(zoneName, agents));
+                    agentService.reportOnline(zoneName, buildKeys(zoneName, agents));
                 });
             }
         }

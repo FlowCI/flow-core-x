@@ -9,10 +9,14 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
+import com.google.common.collect.Lists;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Created by gy@fir.im on 24/05/2017.
@@ -40,6 +44,26 @@ public class AgentServiceTest extends TestBase {
         Thread.sleep(2000);
         Assert.assertEquals(1, agentService.onlineList(zoneName).size());
         Assert.assertTrue(agentService.onlineList(zoneName).contains(new Agent(zoneName, agentName)));
+    }
+
+    @Test
+    public void should_batch_report_agent() {
+        // when: report agent online to zone-1
+        AgentPath agent1 = new AgentPath("zone-1", "agent-1");
+        agentService.reportOnline("zone-1", Lists.newArrayList(agent1));
+
+        // then: should has one online agent in zone-1
+        Assert.assertEquals(1, agentService.onlineList("zone-1").size());
+
+        // when: report agent online to zone-2
+        AgentPath agent2 = new AgentPath("zone-2", "agent-1");
+        agentService.reportOnline("zone-2", Lists.newArrayList(agent2));
+
+        // then: should has one online agent in zone-2
+        Assert.assertEquals(1, agentService.onlineList("zone-2").size());
+
+        // then: still has one online agent in zone-1
+        Assert.assertEquals(1, agentService.onlineList("zone-1").size());
     }
 
     @Test

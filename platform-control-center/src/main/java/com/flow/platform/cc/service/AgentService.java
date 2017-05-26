@@ -17,9 +17,10 @@ public interface AgentService {
     /**
      * Batch reportOnline agent
      *
+     * @param zone
      * @param keys
      */
-    void reportOnline(Collection<AgentPath> keys);
+    void reportOnline(String zone, Collection<AgentPath> keys);
 
     /**
      * Get online agent set by zone

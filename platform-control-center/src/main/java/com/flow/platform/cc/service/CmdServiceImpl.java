@@ -82,8 +82,12 @@ public class CmdServiceImpl implements CmdService {
             throw new IllegalArgumentException("Cmd not exist");
         }
 
+        // update cmd status
         cmd.setStatus(status);
         cmd.setResult(result);
         cmd.setUpdatedDate(new Date());
+
+        // check all cmd status to update agent status
+        System.out.println(result);
     }
 }
