@@ -9,8 +9,7 @@ import org.junit.Test;
 
 /**
  * Created by gy@fir.im on 16/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public class CmdExecutorTest {
 
@@ -24,6 +23,7 @@ public class CmdExecutorTest {
             public void onStarted(CmdResult result) {
                 Assert.assertNotNull(result.getStartTime());
                 Assert.assertNotNull(result.getProcess());
+                Assert.assertNotNull(result.getProcessId());
             }
 
             @Override
