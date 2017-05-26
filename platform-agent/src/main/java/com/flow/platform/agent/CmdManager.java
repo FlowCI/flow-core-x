@@ -12,13 +12,11 @@ import io.socket.client.Socket;
 
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Singleton class to handle command
- *
+ * <p>
  * Created by gy@fir.im on 16/05/2017.
  * Copyright fir.im
  */
@@ -26,15 +24,43 @@ public class CmdManager {
 
     private static final CmdManager INSTANCE = new CmdManager();
 
-    private final Map<Cmd, CmdResult> running = Maps.newConcurrentMap();
-    private final Queue<CmdResult> finished = new ConcurrentLinkedQueue<>();
-
     public static CmdManager getInstance() {
         return INSTANCE;
     }
 
+    // current running cmd data
+    private final Map<Cmd, CmdResult> running = Maps.newConcurrentMap();
+
+    // finished cmd data
+    private final Map<Cmd, CmdResult> finished = Maps.newConcurrentMap();
+
+    // rejected cmd data
+    private final Map<Cmd, CmdResult> rejected = Maps.newConcurrentMap();
+
     // handle extra listeners
     private List<ProcListener> extraProcEventListeners = new ArrayList<>(5);
+
+    // Make thread to Daemon thread, those threads exit while JVM exist
+    private final ThreadFactory defaultFactory = r -> {
+        Thread t = Executors.defaultThreadFactory().newThread(r);
+        t.setDaemon(true);
+        return t;
+    };
+
+    // Executor to execute command and shell
+    private final ThreadPoolExecutor cmdExecutor =
+            new ThreadPoolExecutor(
+                    Config.concurrentProcNum(),
+                    Config.concurrentProcNum(),
+                    0L,
+                    TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<>(),
+                    defaultFactory,
+                    (r, executor) -> Logger.info("Reach the max concurrent proc"));
+
+    // Executor to execute operations
+    private final ExecutorService defaultExecutor =
+            Executors.newFixedThreadPool(100, defaultFactory);
 
     private CmdManager() {
     }
@@ -44,21 +70,24 @@ public class CmdManager {
     }
 
     /**
-     * Get running proc
-     *
-     * @return
+     * @return running cmd and result
      */
-    public Collection<CmdResult> getRunning() {
-        return running.values();
+    public Map<Cmd, CmdResult> getRunning() {
+        return running;
     }
 
     /**
-     * Get finished proc
-     *
-     * @return
+     * @return finished cmd and result
      */
-    public Collection<CmdResult> getFinished() {
+    public Map<Cmd, CmdResult> getFinished() {
         return finished;
+    }
+
+    /**
+     * @return rejected cmd and result
+     */
+    public Map<Cmd, CmdResult> getRejected() {
+        return rejected;
     }
 
     /**
@@ -82,7 +111,7 @@ public class CmdManager {
             }
 
             String shutdownCmd = String.format("echo %s | sudo -S shutdown -h now", password);
-            Logger.info("shutdown command: " + shutdownCmd);
+            Logger.info("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
             CmdExecutor executor = new CmdExecutor(null, null, "/bin/bash", "-c", shutdownCmd);
@@ -94,40 +123,57 @@ public class CmdManager {
     }
 
     /**
-     * Execute command from Cmd object
+     * Execute command from Cmd object by thread executor
      *
      * @param cmd Cmd object
      */
     public void execute(final Cmd cmd) {
         if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-            LogEventHandler logListener = new LogEventHandler(cmd);
-            ProcEventHandler procEventHandler = new ProcEventHandler(cmd);
+            // check max concurrent proc
+            int max = cmdExecutor.getMaximumPoolSize();
+            int cur = cmdExecutor.getActiveCount();
+            Logger.info(String.format(" ===== CmdExecutor: max=%s, current=%s =====", max, cur));
 
-            CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", cmd.getCmd());
-            executor.run();
+            // reach max proc number, reject this execute
+            if (max == cur) {
+                onReject(cmd);
+                return;
+            }
+
+            // execute cmd by cmdExecutor
+            cmdExecutor.execute(() -> {
+                LogEventHandler logListener = new LogEventHandler(cmd);
+                ProcEventHandler procEventHandler = new ProcEventHandler(cmd);
+
+                CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", cmd.getCmd());
+                executor.run();
+            });
+
             return;
         }
 
         // kill current running proc
         if (cmd.getType() == Cmd.Type.KILL) {
-            kill();
+            defaultExecutor.execute(this::kill);
             return;
         }
 
         // stop current agent
         if (cmd.getType() == Cmd.Type.STOP) {
-            stop();
+            defaultExecutor.execute(this::stop);
             return;
         }
 
         if (cmd.getType() == Cmd.Type.SHUTDOWN) {
-            String passwordOfSudo = cmd.getCmd();
-            shutdown(passwordOfSudo);
+            defaultExecutor.execute(() -> {
+                String passwordOfSudo = cmd.getCmd();
+                shutdown(passwordOfSudo);
+            });
         }
     }
 
     /**
-     * Kill current running process
+     * Kill all current running process
      */
     public void kill() {
         for (Map.Entry<Cmd, CmdResult> entry : running.entrySet()) {
@@ -136,19 +182,33 @@ public class CmdManager {
 
             r.getProcess().destroy();
 
-            // update finish time
-            r.setExecutedTime(new Date());
-            r.setFinishTime(new Date());
-            r.setExitValue(CmdResult.EXIT_VALUE_FOR_STOP);
-
-            // set CmdResult to finish
-            finished.add(r);
-
+            // report cmd status
             ReportManager.getInstance().cmdReportSync(cmd.getId(), Cmd.Status.KILLED, r);
-
             Logger.info(String.format("Kill process : %s", r.toString()));
         }
-        running.clear();
+
+        try {
+            cmdExecutor.shutdown(); // close all cmd thread
+            cmdExecutor.awaitTermination(30, TimeUnit.SECONDS);
+        } catch (Throwable e) {
+            Logger.err(e, "Exception while waiting for all cmd thread finish");
+        } finally {
+            Logger.info("Cmd thread terminated");
+        }
+    }
+
+    private void onReject(final Cmd cmd) {
+        CmdResult rejectResult = new CmdResult();
+        rejectResult.setExitValue(CmdResult.EXIT_VALUE_FOR_REJECT);
+
+        Date now = new Date();
+        rejectResult.setStartTime(now);
+        rejectResult.setExecutedTime(now);
+        rejectResult.setFinishTime(now);
+
+        rejected.put(cmd, rejectResult);
+        ReportManager.getInstance().cmdReportSync(cmd.getId(), Cmd.Status.REJECTED, null);
+        Logger.warn(String.format("Reject cmd '%s' since over the limit proc of agent", cmd.getId()));
     }
 
     private class ProcEventHandler implements ProcListener {
@@ -185,7 +245,7 @@ public class CmdManager {
         @Override
         public void onLogged(CmdResult result) {
             running.remove(cmd);
-            finished.add(result);
+            finished.put(cmd, result);
 
             // report cmd sync since block current thread
             reportManager.cmdReportSync(cmd.getId(), Cmd.Status.LOGGED, result);
@@ -198,7 +258,7 @@ public class CmdManager {
         @Override
         public void onException(CmdResult result) {
             running.remove(cmd);
-            finished.add(result);
+            finished.put(cmd, result);
 
             // report cmd sync since block current thread
             reportManager.cmdReportSync(cmd.getId(), Cmd.Status.EXCEPTION, result);
@@ -259,7 +319,9 @@ public class CmdManager {
         public void onFinish() {
             try {
                 socket.close();
-            } catch (Throwable e) {}
+            } catch (Throwable e) {
+                Logger.err(e, "Exception while close socket io");
+            }
         }
 
         /**

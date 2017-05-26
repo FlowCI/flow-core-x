@@ -54,7 +54,12 @@ public class Cmd extends CmdBase {
         /**
          * Killed
          */
-        KILLED("KILLED");
+        KILLED("KILLED"),
+
+        /**
+         * Cannot execute since over this limit
+         */
+        REJECTED("REJECTED");
 
         private String name;
 

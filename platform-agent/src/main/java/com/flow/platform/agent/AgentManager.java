@@ -37,28 +37,6 @@ public class AgentManager implements Runnable, Watcher {
     private String zonePath;    // zone path, /flow-agents/{zone}
     private String nodePath;    // zk node path, /flow-agents/{zone}/{name}
 
-    // Make thread to Daemon thread, those threads exit while JVM exist
-    private final ThreadFactory defaultFactory = r -> {
-        Thread t = Executors.defaultThreadFactory().newThread(r);
-        t.setDaemon(true);
-        return t;
-    };
-
-    // Executor to execute command and shell
-    private final ThreadPoolExecutor cmdExecutor =
-            new ThreadPoolExecutor(
-                    Config.concurrentProcNum(),
-                    Config.concurrentProcNum(),
-                    0L,
-                    TimeUnit.SECONDS,
-                    new LinkedBlockingQueue<>(),
-                    defaultFactory,
-                    (r, executor) -> Logger.info("Reach the max concurrent proc"));
-
-    // Executor to execute operationes
-    private final ExecutorService defaultExecutor =
-            Executors.newFixedThreadPool(100, defaultFactory);
-
     private final ReportManager reportManager = ReportManager.getInstance();
 
     public AgentManager(String zkHost, int zkTimeout, String zone, String name) throws IOException {
@@ -179,15 +157,7 @@ public class AgentManager implements Runnable, Watcher {
 
             // fire onDataChanged in thread
             if (zkEventListener != null) {
-                if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-                    cmdExecutor.execute(() -> {
-                        zkEventListener.onDataChanged(event, rawData);
-                    });
-                } else {
-                    defaultExecutor.execute(() -> {
-                        zkEventListener.onDataChanged(event, rawData);
-                    });
-                }
+                zkEventListener.onDataChanged(event, rawData);
             }
 
         } catch (Throwable e) {

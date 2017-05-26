@@ -2,7 +2,9 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -28,12 +30,11 @@ public class CmdExecutor {
     private LogListener logListener;
 
     /**
-     *
      * @param procListener nullable
-     * @param logListener nullable
+     * @param logListener  nullable
      * @param cmd
      */
-    public CmdExecutor(ProcListener procListener, LogListener logListener, String ...cmd) {
+    public CmdExecutor(ProcListener procListener, LogListener logListener, String... cmd) {
         this.procListener = procListener;
         this.logListener = logListener;
 
@@ -67,7 +68,7 @@ public class CmdExecutor {
             outputResult.setExitValue(p.waitFor());
             outputResult.setExecutedTime(new Date());
 
-            System.out.println(" ===== Process executed =====");
+            System.out.println("====== 1. Process executed ======");
             if (procListener != null) {
                 procListener.onExecuted(outputResult);
             }
@@ -79,7 +80,7 @@ public class CmdExecutor {
                 procListener.onLogged(outputResult);
             }
 
-            System.out.println(String.format(" ===== Logging executed : %s =====", waitLock.getCount()));
+            System.out.println(String.format("====== 2. Logging executed : %s ======", waitLock.getCount()));
 
         } catch (InterruptedException | IOException e) {
             outputResult.getExceptions().add(e);
@@ -89,7 +90,7 @@ public class CmdExecutor {
                 procListener.onException(outputResult);
             }
         } finally {
-
+            System.out.println("====== 3. Process Done ======");
         }
     }
 
@@ -121,23 +122,30 @@ public class CmdExecutor {
                         logListener.onFinish();
                     }
                     waitLock.countDown();
+                    System.out.println(" ===== Logging Reader Thread Finish =====");
                 }
             }
         };
     }
 
-    private Runnable createCmdStreamReader(Process p) {
-        return new CmdStreamReader(p.getInputStream(), bufferSize, new CmdStreamReader.CmdStreamListener() {
+    private Runnable createCmdStreamReader(final Process p) {
+        return new Runnable() {
             @Override
-            public void onLogging(String line) {
-                loggingQueue.add(line);
-                loggingQueueSize.getAndIncrement();
+            public void run() {
+                isLoggingFinish.set(false);
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()), bufferSize)) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        loggingQueue.add(line);
+                        loggingQueueSize.getAndIncrement();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    isLoggingFinish.set(true);
+                    System.out.println(" ===== Stream Reader Thread Finish =====");
+                }
             }
-
-            @Override
-            public void onFinish() {
-                isLoggingFinish.set(true);
-            }
-        });
+        };
     }
 }

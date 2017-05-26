@@ -11,6 +11,7 @@ import java.util.List;
 public class CmdResult {
 
     public static final Integer EXIT_VALUE_FOR_STOP = 143;
+    public static final Integer EXIT_VALUE_FOR_REJECT = -100;
 
     /**
      * Process id
