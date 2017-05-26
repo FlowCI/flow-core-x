@@ -49,11 +49,14 @@ public class AgentServiceTest extends TestBase {
     @Test
     public void should_batch_report_agent() {
         // when: report agent online to zone-1
-        AgentPath agent1 = new AgentPath("zone-1", "agent-1");
-        agentService.reportOnline("zone-1", Lists.newArrayList(agent1));
+        AgentPath agent11 = new AgentPath("zone-1", "agent-1");
+        agentService.reportOnline("zone-1", Lists.newArrayList(agent11));
 
-        // then: should has one online agent in zone-1
-        Assert.assertEquals(1, agentService.onlineList("zone-1").size());
+        AgentPath agent12 = new AgentPath("zone-1", "agent-2");
+        agentService.reportOnline("zone-1", Lists.newArrayList(agent11, agent12));
+
+        // then: should has two online agent in zone-1
+        Assert.assertEquals(2, agentService.onlineList("zone-1").size());
 
         // when: report agent online to zone-2
         AgentPath agent2 = new AgentPath("zone-2", "agent-1");
@@ -62,8 +65,16 @@ public class AgentServiceTest extends TestBase {
         // then: should has one online agent in zone-2
         Assert.assertEquals(1, agentService.onlineList("zone-2").size());
 
-        // then: still has one online agent in zone-1
+        // then: still has two online agent in zone-1
+        Assert.assertEquals(2, agentService.onlineList("zone-1").size());
+
+        // when: there is one agent offline in zone-1
+        agentService.reportOnline("zone-1", Lists.newArrayList(agent11));
+
+        // then: should left one agent in zone-1
         Assert.assertEquals(1, agentService.onlineList("zone-1").size());
+        Agent agent11Loaded = (Agent) agentService.onlineList("zone-1").toArray()[0];
+        Assert.assertEquals(agent11, agent11Loaded.getPath());
     }
 
     @Test
