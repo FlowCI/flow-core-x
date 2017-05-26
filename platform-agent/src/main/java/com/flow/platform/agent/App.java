@@ -44,10 +44,19 @@ public class App {
 
         try {
             Logger.info("========= Init config =========");
+
             Config.AGENT_CONFIG = Config.loadAgentConfig(zkHome, ZK_TIMEOUT, zone, 5);
+            Logger.info(String.format(" -- Agent Config: %s", Config.agentConfig()));
+
             Config.ZK_URL = zkHome;
+            Logger.info(String.format(" -- Zookeeper Url: %s", Config.zkUrl()));
+
             Config.ZONE = zone;
+            Logger.info(String.format(" -- Zone Name: %s", Config.zone()));
+
             Config.NAME = name;
+            Logger.info(String.format(" -- Agent Name: %s", Config.name()));
+
             Logger.info("========= Config initialized =========");
         } catch (Throwable e) {
             Logger.err(e, "Cannot load agent config from zone");

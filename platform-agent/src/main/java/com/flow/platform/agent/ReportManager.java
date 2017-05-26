@@ -83,7 +83,9 @@ public class ReportManager {
 
         String url = Config.agentConfig().getCmdStatusUrl();
         HttpPost post = new HttpPost(url);
-        post.setEntity(new StringEntity(postCmd.toJson(), ContentType.APPLICATION_JSON));
+
+        StringEntity entity = new StringEntity(postCmd.toJson(), ContentType.APPLICATION_JSON);
+        post.setEntity(entity);
 
         CloseableHttpClient client = HttpClients.createDefault();
         try {

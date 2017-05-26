@@ -131,14 +131,14 @@ public class AgentManager implements Runnable, Watcher {
      * @param event
      */
     private void onDeleted(WatchedEvent event) {
-        try {
-            if (zkEventListener != null) {
-                zkEventListener.onDeleted(event);
-            }
-            stop();
-        } finally {
-            Runtime.getRuntime().exit(1);
-        }
+//        try {
+//            if (zkEventListener != null) {
+//                zkEventListener.onDeleted(event);
+//            }
+//            stop();
+//        } finally {
+//            Runtime.getRuntime().exit(1);
+//        }
     }
 
     private void onConnected(WatchedEvent event) {
@@ -214,7 +214,7 @@ public class AgentManager implements Runnable, Watcher {
 
         @Override
         public void onDeleted(WatchedEvent event) {
-            CmdManager.getInstance().shutdown(null);
+//            CmdManager.getInstance().shutdown(null);
             Logger.info("========= Agent been deleted =========");
         }
     }

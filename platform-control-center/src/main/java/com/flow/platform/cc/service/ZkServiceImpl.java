@@ -113,6 +113,7 @@ public class ZkServiceImpl implements ZkService {
         if (ZkNodeHelper.exist(zkClient, zonePath) == null){
             ZkNodeHelper.createNode(zkClient, zonePath, agentConfig.toJson());
         } else{
+            ZkNodeHelper.setNodeData(zkClient, zonePath, agentConfig.toJson());
             List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
             agentService.reportOnline(buildKeys(zoneName, agents));
         }

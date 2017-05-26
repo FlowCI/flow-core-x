@@ -56,7 +56,7 @@ public class CmdServiceImpl implements CmdService {
             }
 
             // check agent status is idle
-            if (target.getStatus() != Agent.Status.IDLE) {
+            if (cmd.getType() == CmdBase.Type.RUN_SHELL && target.getStatus() != Agent.Status.IDLE) {
                 throw new AgentErr.NotAvailableException(cmd.getAgent());
             }
 
