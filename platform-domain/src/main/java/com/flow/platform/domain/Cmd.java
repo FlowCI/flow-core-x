@@ -38,6 +38,9 @@ public class Cmd extends CmdBase {
         return gson.fromJson(json, Cmd.class);
     }
 
+    /**
+     * Status for TYPE.RUN_SHELL
+     */
     public enum Status {
 
         /**

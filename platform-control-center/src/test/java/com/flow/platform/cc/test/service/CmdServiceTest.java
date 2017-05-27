@@ -4,14 +4,14 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
-import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
@@ -22,6 +22,7 @@ import java.util.Date;
  * Created by gy@fir.im on 25/05/2017.
  * Copyright fir.im
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CmdServiceTest extends TestBase {
 
     @Autowired
@@ -81,7 +82,10 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_report_cmd_status() {
         // given:
-        CmdBase base = new CmdBase("test-zone", "test-agent", Cmd.Type.KILL, null);
+        AgentPath agentPath = new AgentPath("test-zone", "test-agent");
+        agentService.reportOnline("test-zone", Lists.newArrayList(agentPath));
+
+        CmdBase base = new CmdBase(agentPath, Cmd.Type.RUN_SHELL, null);
         Cmd cmd = cmdService.create(base);
         Assert.assertNotNull(cmd);
         Assert.assertNotNull(cmd.getId());
@@ -92,11 +96,14 @@ public class CmdServiceTest extends TestBase {
         result.setProcess(mockProcess);
         cmdService.report(cmd.getId(), Cmd.Status.RUNNING, result);
 
-        // then:
+        // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
+
         Assert.assertEquals(Cmd.Status.RUNNING, loaded.getStatus());
         Assert.assertNotNull(loaded.getResult());
         Assert.assertEquals(mockProcess, loaded.getResult().getProcess());
+
+        Assert.assertEquals(Agent.Status.BUSY, agentService.find(agentPath).getStatus());
     }
 
     @Test
@@ -109,17 +116,17 @@ public class CmdServiceTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
 
-        // Agent.status.IDLE from cmd finish status
-        for (Cmd.Status status : Cmd.FINISH_STATUS) {
+        // should Agent.status.IDLE from cmd finish status
+        for (Cmd.Status reportStatus : Cmd.FINISH_STATUS) {
 
             // when: send cmd status and mock to report cmd status
-            CmdBase base = new CmdBase(zoneName, agentName, Cmd.Type.STOP, null);
+            CmdBase base = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, null);
             Cmd current = cmdService.send(base);
 
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(Agent.Status.BUSY, relatedAgent.getStatus());
 
-            cmdService.report(current.getId(), status, new CmdResult());
+            cmdService.report(current.getId(), reportStatus, new CmdResult());
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
@@ -133,7 +140,7 @@ public class CmdServiceTest extends TestBase {
         for (Cmd.Status status : Cmd.WORKING_STATUS) {
 
             // when: send cmd status and mock to report cmd status
-            CmdBase base = new CmdBase(zoneName, agentName, Cmd.Type.STOP, null);
+            CmdBase base = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, null);
             Cmd current = cmdService.send(base);
 
             Agent relatedAgent = agentService.find(base.getAgentPath());
@@ -147,6 +154,9 @@ public class CmdServiceTest extends TestBase {
 
             relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(Agent.Status.BUSY, relatedAgent.getStatus());
+
+            // reset agent status
+            relatedAgent.setStatus(Agent.Status.IDLE);
         }
     }
 

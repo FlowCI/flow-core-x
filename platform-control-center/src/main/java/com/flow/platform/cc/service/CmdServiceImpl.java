@@ -53,19 +53,25 @@ public class CmdServiceImpl implements CmdService {
                 throw new AgentErr.NotFoundException(cmd.getAgent());
             }
 
-            // check agent status is idle
-            if (cmd.getType() == CmdBase.Type.RUN_SHELL && target.getStatus() != Agent.Status.IDLE) {
-                throw new AgentErr.NotAvailableException(cmd.getAgent());
-            }
-
-            // set cmd info
+            // create cmd info
             Cmd cmdInfo = create(cmd);
 
-            // send data
-            ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
+            // operation cmd
+            if (cmd.getType() != CmdBase.Type.RUN_SHELL) {
+                // TODO: should update agent status for stop, shutdown
+                ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
+            }
 
-            // update agent status
-            target.setStatus(Agent.Status.BUSY);
+            // shell cmd
+            else {
+                if (target.getStatus() != Agent.Status.IDLE) {
+                    throw new AgentErr.NotAvailableException(cmd.getAgent());
+                }
+
+                target.setStatus(Agent.Status.BUSY);
+                ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
+            }
+
             return cmdInfo;
 
         } catch (ZkException.ZkNoNodeException e) {
@@ -90,22 +96,32 @@ public class CmdServiceImpl implements CmdService {
     }
 
     /**
-     * Update agent status busy or idle
+     * Update agent status busy or idle by Cmd.Type.RUN_SHELL
+     *
      * @param cmd Cmd object
      */
     private void updateAgentStatus(Cmd cmd) {
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
         for (Cmd tmp : mockCmdList.values()) {
-            if (tmp.getAgentPath().equals(agentPath)) {
-                if (tmp.isCurrent()) {
-                    isAgentBusy = true;
-                    break;
-                }
+            if (tmp.getType() != Cmd.Type.RUN_SHELL) {
+                continue;
+            }
+
+            if (!tmp.getAgentPath().equals(agentPath)) {
+                continue;
+            }
+
+            if (tmp.isCurrent()) {
+                isAgentBusy = true;
+                break;
             }
         }
 
         Agent agent = agentService.find(agentPath);
+        if (agent == null) {
+            throw new IllegalStateException("Cannot find related agent for cmd");
+        }
         agent.setStatus(isAgentBusy ? Agent.Status.BUSY : Agent.Status.IDLE);
     }
 }

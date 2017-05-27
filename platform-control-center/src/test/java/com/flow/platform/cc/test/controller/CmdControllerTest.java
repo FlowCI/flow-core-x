@@ -1,12 +1,15 @@
 package com.flow.platform.cc.test.controller;
 
+import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -30,9 +33,15 @@ public class CmdControllerTest extends TestBase {
     @Autowired
     private CmdService cmdService;
 
+    @Autowired
+    private AgentService agentService;
+
     @Test
     public void should_update_cmd_status() throws Throwable {
         // given:
+        AgentPath path = new AgentPath("test-zone-00", "test-001");
+        agentService.reportOnline("test-zone-00", Lists.newArrayList(path));
+
         CmdBase base = new CmdBase("test-zone-00", "test-001", CmdBase.Type.STOP, null);
         Cmd cmd = cmdService.create(base);
 
