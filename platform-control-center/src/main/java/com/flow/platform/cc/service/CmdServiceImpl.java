@@ -87,7 +87,7 @@ public class CmdServiceImpl implements CmdService {
         cmd.setResult(result);
         cmd.setUpdatedDate(new Date());
 
-        // check all cmd status to update agent status
+        // TODO: check all cmd status to update agent status
         System.out.println(result);
     }
 }

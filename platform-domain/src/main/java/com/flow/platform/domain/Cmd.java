@@ -174,6 +174,7 @@ public class Cmd extends CmdBase {
         return "Cmd{" +
                 "id='" + id + '\'' +
                 ", status=" + status +
+                ", result=" + result +
                 ", createdDate=" + createdDate +
                 ", updatedDate=" + updatedDate +
                 '}';

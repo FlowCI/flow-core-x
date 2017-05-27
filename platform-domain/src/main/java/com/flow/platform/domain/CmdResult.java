@@ -123,6 +123,14 @@ public class CmdResult implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Cmd: process=%s, exitValue=%s, duration=%s", process, exitValue, duration);
+        return "CmdResult{" +
+                "processId=" + processId +
+                ", exitValue=" + exitValue +
+                ", duration=" + duration +
+                ", totalDuration=" + totalDuration +
+                ", startTime=" + startTime +
+                ", executedTime=" + executedTime +
+                ", finishTime=" + finishTime +
+                '}';
     }
 }

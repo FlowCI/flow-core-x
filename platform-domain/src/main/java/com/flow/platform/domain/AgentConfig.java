@@ -1,15 +1,13 @@
 package com.flow.platform.domain;
 
-/**
- * Created by gy@fir.im on 25/05/2017.
- * Copyright fir.im
- */
-
 import com.google.gson.Gson;
 import java.io.Serializable;
 
 /**
- * Config for server url
+ * Config for agent
+ *
+ * Created by gy@fir.im on 25/05/2017.
+ * Copyright fir.im
  */
 public class AgentConfig implements Serializable {
 
