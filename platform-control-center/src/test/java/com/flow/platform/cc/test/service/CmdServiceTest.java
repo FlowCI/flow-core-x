@@ -1,8 +1,10 @@
 package com.flow.platform.cc.test.service;
 
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
@@ -24,6 +26,9 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private CmdService cmdService;
+
+    @Autowired
+    private AgentService agentService;
 
     private Process mockProcess = new Process() {
         @Override
@@ -92,6 +97,57 @@ public class CmdServiceTest extends TestBase {
         Assert.assertEquals(Cmd.Status.RUNNING, loaded.getStatus());
         Assert.assertNotNull(loaded.getResult());
         Assert.assertEquals(mockProcess, loaded.getResult().getProcess());
+    }
+
+    @Test
+    public void should_update_agent_status_by_cmd_status() throws Throwable {
+        // given
+        String zoneName = zkService.definedZones()[0];
+        String agentName = "test-agent-001";
+
+        String agentPath = zkService.buildZkPath(zoneName, agentName).path();
+        ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
+        Thread.sleep(1000);
+
+        // Agent.status.IDLE from cmd finish status
+        for (Cmd.Status status : Cmd.FINISH_STATUS) {
+
+            // when: send cmd status and mock to report cmd status
+            CmdBase base = new CmdBase(zoneName, agentName, Cmd.Type.STOP, null);
+            Cmd current = cmdService.send(base);
+
+            Agent relatedAgent = agentService.find(base.getAgentPath());
+            Assert.assertEquals(Agent.Status.BUSY, relatedAgent.getStatus());
+
+            cmdService.report(current.getId(), status, new CmdResult());
+
+            // then:
+            Cmd loaded = cmdService.find(current.getId());
+            Assert.assertEquals(current, loaded);
+
+            relatedAgent = agentService.find(base.getAgentPath());
+            Assert.assertEquals(Agent.Status.IDLE, relatedAgent.getStatus());
+        }
+
+        // Agent.status.BUSY from cmd working status
+        for (Cmd.Status status : Cmd.WORKING_STATUS) {
+
+            // when: send cmd status and mock to report cmd status
+            CmdBase base = new CmdBase(zoneName, agentName, Cmd.Type.STOP, null);
+            Cmd current = cmdService.send(base);
+
+            Agent relatedAgent = agentService.find(base.getAgentPath());
+            Assert.assertEquals(Agent.Status.BUSY, relatedAgent.getStatus());
+
+            cmdService.report(current.getId(), status, new CmdResult());
+
+            // then:
+            Cmd loaded = cmdService.find(current.getId());
+            Assert.assertEquals(current, loaded);
+
+            relatedAgent = agentService.find(base.getAgentPath());
+            Assert.assertEquals(Agent.Status.BUSY, relatedAgent.getStatus());
+        }
     }
 
     @Test

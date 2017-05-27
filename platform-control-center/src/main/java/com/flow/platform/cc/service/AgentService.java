@@ -1,10 +1,7 @@
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
 
 import java.util.Collection;
 

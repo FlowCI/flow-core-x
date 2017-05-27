@@ -8,9 +8,7 @@ import com.flow.platform.util.zk.ZkPathBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -87,7 +85,27 @@ public class CmdServiceImpl implements CmdService {
         cmd.setResult(result);
         cmd.setUpdatedDate(new Date());
 
-        // TODO: check all cmd status to update agent status
         System.out.println(result);
+        updateAgentStatus(cmd);
+    }
+
+    /**
+     * Update agent status busy or idle
+     * @param cmd Cmd object
+     */
+    private void updateAgentStatus(Cmd cmd) {
+        AgentPath agentPath = cmd.getAgentPath();
+        boolean isAgentBusy = false;
+        for (Cmd tmp : mockCmdList.values()) {
+            if (tmp.getAgentPath().equals(agentPath)) {
+                if (tmp.isCurrent()) {
+                    isAgentBusy = true;
+                    break;
+                }
+            }
+        }
+
+        Agent agent = agentService.find(agentPath);
+        agent.setStatus(isAgentBusy ? Agent.Status.BUSY : Agent.Status.IDLE);
     }
 }

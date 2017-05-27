@@ -1,8 +1,10 @@
 package com.flow.platform.domain;
 
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 
 import java.util.Date;
+import java.util.Set;
 
 /**
  * Command object to communicate between c/s
@@ -11,6 +13,18 @@ import java.util.Date;
  * Copyright fir.im
  */
 public class Cmd extends CmdBase {
+
+    /**
+     * Working status set
+     */
+    public static final Set<Status> WORKING_STATUS =
+            Sets.newHashSet(Status.PENDING, Status.RUNNING, Status.EXECUTED);
+
+    /**
+     * Finish status set
+     */
+    public static final Set<Status> FINISH_STATUS =
+            Sets.newHashSet(Status.LOGGED, Status.EXCEPTION, Status.KILLED, Status.REJECTED);
 
     /**
      * Get zk cmd from json of byte[] format
@@ -27,37 +41,44 @@ public class Cmd extends CmdBase {
     public enum Status {
 
         /**
-         * Init status when cmd send to agent
+         * Init status when cmd prepare send to agent
+         * is_current_cmd = true
          */
         PENDING("PENDING"),
 
         /**
-         * Cmd running
+         * Cmd is running
+         * is_current_cmd = true
          */
-        RUNNING("RUNNING"),
+        RUNNING("RUNNING"), // current cmd
 
         /**
-         * Cmd executed
+         * Cmd executed but not finish logging
+         * is_current_cmd = true
          */
-        EXECUTED("EXECUTED"),
+        EXECUTED("EXECUTED"), // current cmd
 
         /**
-         * Log uploaded
+         * Log uploaded, cmd completely finished
+         * is_current_cmd = false
          */
         LOGGED("LOGGED"),
 
         /**
          * Got exception when running
+         * is_current_cmd = false
          */
         EXCEPTION("EXCEPTION"),
 
         /**
-         * Killed
+         * Killed by controller
+         * is_current_cmd = false
          */
         KILLED("KILLED"),
 
         /**
-         * Cannot execute since over this limit
+         * Cannot execute since over agent limit
+         * is_current_cmd = false
          */
         REJECTED("REJECTED");
 
@@ -149,6 +170,10 @@ public class Cmd extends CmdBase {
 
     public void setUpdatedDate(Date updatedDate) {
         this.updatedDate = updatedDate;
+    }
+
+    public Boolean isCurrent() {
+        return WORKING_STATUS.contains(status);
     }
 
     @Override
