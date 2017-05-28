@@ -35,7 +35,7 @@ public class AgentServiceTest extends TestBase {
         Assert.assertEquals(0, agentService.onlineList(zoneName).size());
 
         String agentName = "test-agent-001";
-        ZkPathBuilder builder = zkService.buildZkPath(zoneName, agentName);
+        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
 
         // when: simulate to create agent
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
@@ -82,7 +82,7 @@ public class AgentServiceTest extends TestBase {
         // given: init zk agent
         String zoneName = zkService.definedZones()[0];
         String agentName = "test-agent-for-status";
-        String agentPath = zkService.buildZkPath(zoneName, agentName).path();
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(500);
 

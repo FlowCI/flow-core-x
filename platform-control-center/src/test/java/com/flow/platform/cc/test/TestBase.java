@@ -2,6 +2,7 @@ package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.service.ZkService;
+import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.google.gson.Gson;
 import org.apache.zookeeper.ZooKeeper;
@@ -36,6 +37,9 @@ public abstract class TestBase {
             throw new RuntimeException(e);
         }
     }
+
+    @Autowired
+    protected ZkHelper zkHelper;
 
     @Autowired
     protected ZkService zkService;

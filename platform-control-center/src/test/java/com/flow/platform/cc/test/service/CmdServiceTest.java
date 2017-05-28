@@ -4,6 +4,7 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
@@ -112,7 +113,7 @@ public class CmdServiceTest extends TestBase {
         String zoneName = zkService.definedZones()[0];
         String agentName = "test-agent-001";
 
-        String agentPath = zkService.buildZkPath(zoneName, agentName).path();
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
 
@@ -166,7 +167,7 @@ public class CmdServiceTest extends TestBase {
         String zoneName = zkService.definedZones()[0];
         String agentName = "test-agent-002";
 
-        String agentPath = zkService.buildZkPath(zoneName, agentName).path();
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
 
@@ -203,7 +204,7 @@ public class CmdServiceTest extends TestBase {
         String agentName = "test-agent-004";
 
         // when: create node and send command to agent
-        ZkPathBuilder builder = zkService.buildZkPath(zoneName, agentName);
+        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
         Thread.sleep(1000);
 

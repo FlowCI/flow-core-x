@@ -73,7 +73,7 @@ public class CmdControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-002";
-        ZkPathBuilder builder = zkService.buildZkPath(zoneName, agentName);
+        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
         Thread.sleep(1000);
 

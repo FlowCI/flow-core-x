@@ -1,6 +1,5 @@
 package com.flow.platform.cc.service;
 
-import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.ZooKeeper;
 
 /**
@@ -26,15 +25,6 @@ public interface ZkService {
      * @return ZooKeeper instance
      */
     ZooKeeper zkClient();
-
-    /**
-     * Get zk path builder for agent
-     *
-     * @param zone zone name
-     * @param name agent name
-     * @return
-     */
-    ZkPathBuilder buildZkPath(String zone, String name);
 
     /**
      * Get defined zones

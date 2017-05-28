@@ -1,6 +1,7 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -24,6 +25,9 @@ public class CmdServiceImpl implements CmdService {
     @Autowired
     private ZkService zkService;
 
+    @Autowired
+    private ZkHelper zkHelper;
+
     private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
 
     @Override
@@ -42,10 +46,9 @@ public class CmdServiceImpl implements CmdService {
 
     @Override
     public Cmd send(CmdBase cmd) {
-        Agent target = agentService.find(new AgentPath(cmd.getZone(), cmd.getAgent()));
-
-        ZkPathBuilder pathBuilder = zkService.buildZkPath(cmd.getZone(), cmd.getAgent());
-        String agentNodePath = pathBuilder.path();
+        AgentPath agentPath = new AgentPath(cmd.getZone(), cmd.getAgent());
+        Agent target = agentService.find(agentPath);
+        String agentNodePath = zkHelper.getZkPath(agentPath);
 
         try {
             // check agent is online
@@ -56,22 +59,28 @@ public class CmdServiceImpl implements CmdService {
             // create cmd info
             Cmd cmdInfo = create(cmd);
 
-            // operation cmd
-            if (cmd.getType() != CmdBase.Type.RUN_SHELL) {
-                // TODO: should update agent status for stop, shutdown
-                ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
+            switch (cmd.getType()) {
+                case RUN_SHELL:
+                    if (target.getStatus() != Agent.Status.IDLE) {
+                        throw new AgentErr.NotAvailableException(cmd.getAgent());
+                    }
+
+                    target.setStatus(Agent.Status.BUSY);
+                    break;
+
+                case KILL:
+                    // DO NOT handle it, agent status from cmd update
+
+                case STOP:
+                    target.setStatus(Agent.Status.OFFLINE);
+                    break;
+
+                case SHUTDOWN:
+                    target.setStatus(Agent.Status.OFFLINE);
+                    break;
             }
 
-            // shell cmd
-            else {
-                if (target.getStatus() != Agent.Status.IDLE) {
-                    throw new AgentErr.NotAvailableException(cmd.getAgent());
-                }
-
-                target.setStatus(Agent.Status.BUSY);
-                ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
-            }
-
+            ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
             return cmdInfo;
 
         } catch (ZkException.ZkNoNodeException e) {
@@ -91,16 +100,17 @@ public class CmdServiceImpl implements CmdService {
         cmd.setResult(result);
         cmd.setUpdatedDate(new Date());
 
-        System.out.println(result);
-        updateAgentStatus(cmd);
+        // update agent status
+        updateAgentStatusWhenUpdateCmd(cmd);
     }
 
     /**
-     * Update agent status busy or idle by Cmd.Type.RUN_SHELL
+     * Update agent status when report cmd status and result
+     * - busy or idle by Cmd.Type.RUN_SHELL while report cmd status
      *
      * @param cmd Cmd object
      */
-    private void updateAgentStatus(Cmd cmd) {
+    private void updateAgentStatusWhenUpdateCmd(Cmd cmd) {
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
         for (Cmd tmp : mockCmdList.values()) {

@@ -89,18 +89,6 @@ public class ZkServiceImpl implements ZkService {
     }
 
     @Override
-    public ZkPathBuilder buildZkPath(String zone, String name) {
-        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName);
-        if (zone != null) {
-            pathBuilder.append(zone);
-            if (name != null) {
-                pathBuilder.append(name);
-            }
-        }
-        return pathBuilder;
-    }
-
-    @Override
     public String[] definedZones() {
         return zkZone.split(";");
     }

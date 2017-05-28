@@ -46,7 +46,7 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         // when:
-        String zonePath = zkService.buildZkPath(zoneName, null).path();
+        String zonePath = zkHelper.buildZkPath(zoneName, null).path();
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, zonePath, null);
 
         // then:
@@ -64,7 +64,7 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-001";
-        ZkPathBuilder builder = zkService.buildZkPath(zoneName, agentName);
+        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send get request
@@ -91,7 +91,7 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-003";
-        ZkPathBuilder builder = zkService.buildZkPath(zoneName, agentName);
+        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
         // when: send agent info
