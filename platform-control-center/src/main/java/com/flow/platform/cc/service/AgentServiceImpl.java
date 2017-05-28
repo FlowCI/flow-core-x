@@ -1,14 +1,11 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
-import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
-import com.flow.platform.util.zk.ZkPathBuilder;
-import com.google.common.collect.Maps;
+import org.apache.zookeeper.ZooKeeper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +18,14 @@ import java.util.concurrent.locks.ReentrantLock;
  * Copyright fir.im
  */
 @Service(value = "agentService")
-public class AgentServiceImpl implements AgentService {
+public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
     private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
 
     private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
 
     @Autowired
-    private ZkService zkService;
+    private ZoneService zkService;
 
     @Override
     public void reportOnline(String zone, Collection<AgentPath> keys) {

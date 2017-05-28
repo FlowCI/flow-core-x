@@ -1,6 +1,7 @@
 package com.flow.platform.cc.test.controller;
 
 import com.flow.platform.cc.service.AgentService;
+import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentConfig;
@@ -32,6 +33,9 @@ public class AgentControllerTest extends TestBase {
     @Autowired
     private AgentService agentService;
 
+    @Autowired
+    private ZoneService zoneService;
+
     @Value("${agent.config.socket_io_url}")
     private String socketIoUrl;
 
@@ -42,7 +46,7 @@ public class AgentControllerTest extends TestBase {
     public void should_has_agent_config_in_zone_data() throws Throwable {
         // given:
         String zoneName = "test-zone-00";
-        zkService.createZone(zoneName);
+        zoneService.createZone(zoneName);
         Thread.sleep(1000);
 
         // when:
@@ -60,7 +64,7 @@ public class AgentControllerTest extends TestBase {
     public void should_list_all_online_agent() throws Throwable {
         // given:
         String zoneName = "test-zone-01";
-        zkService.createZone(zoneName);
+        zoneService.createZone(zoneName);
         Thread.sleep(1000);
 
         String agentName = "act-001";
@@ -87,7 +91,7 @@ public class AgentControllerTest extends TestBase {
     public void should_report_agent_status() throws Throwable {
         // given:
         String zoneName = "test-zone-03";
-        zkService.createZone(zoneName);
+        zoneService.createZone(zoneName);
         Thread.sleep(1000);
 
         String agentName = "act-003";

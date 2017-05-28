@@ -2,6 +2,7 @@ package com.flow.platform.cc.test.service;
 
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
+import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -27,11 +28,14 @@ public class AgentServiceTest extends TestBase {
     @Autowired
     private AgentService agentService;
 
+    @Autowired
+    private ZoneService zoneService;
+
     @Test
     public void should_agent_initialized() throws InterruptedException, KeeperException {
         // given:
         String zoneName = "ut-test-zone-1";
-        zkService.createZone(zoneName);
+        zoneService.createZone(zoneName);
         Assert.assertEquals(0, agentService.onlineList(zoneName).size());
 
         String agentName = "test-agent-001";
@@ -80,7 +84,7 @@ public class AgentServiceTest extends TestBase {
     @Test
     public void should_report_agent_status() throws InterruptedException {
         // given: init zk agent
-        String zoneName = zkService.definedZones()[0];
+        String zoneName = zkHelper.getZones()[0];
         String agentName = "test-agent-for-status";
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
@@ -97,7 +101,7 @@ public class AgentServiceTest extends TestBase {
 
     @Test(expected = AgentErr.NotFoundException.class)
     public void should_raise_not_found_exception_when_report_status() {
-        String zoneName = zkService.definedZones()[0];
+        String zoneName = zkHelper.getZones()[0];
         String agentName = "test-agent-for-status-exception";
 
         AgentPath pathObj = new AgentPath(zoneName, agentName);

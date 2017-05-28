@@ -1,15 +1,15 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
-import com.flow.platform.util.zk.ZkPathBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -17,16 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Copyright fir.im
  */
 @Service(value = "cmdService")
-public class CmdServiceImpl implements CmdService {
+public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Autowired
     private AgentService agentService;
-
-    @Autowired
-    private ZkService zkService;
-
-    @Autowired
-    private ZkHelper zkHelper;
 
     private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
 
@@ -52,7 +46,7 @@ public class CmdServiceImpl implements CmdService {
 
         try {
             // check agent is online
-            if (target == null || ZkNodeHelper.exist(zkService.zkClient(), agentNodePath) == null) {
+            if (target == null || ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
                 throw new AgentErr.NotFoundException(cmd.getAgent());
             }
 
@@ -80,7 +74,7 @@ public class CmdServiceImpl implements CmdService {
                     break;
             }
 
-            ZkNodeHelper.setNodeData(zkService.zkClient(), agentNodePath, cmdInfo.toJson());
+            ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmdInfo.toJson());
             return cmdInfo;
 
         } catch (ZkException.ZkNoNodeException e) {

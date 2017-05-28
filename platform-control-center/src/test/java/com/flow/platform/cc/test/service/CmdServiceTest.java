@@ -3,6 +3,7 @@ package com.flow.platform.cc.test.service;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
+import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.*;
@@ -31,6 +32,9 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private ZoneService zoneService;
 
     private Process mockProcess = new Process() {
         @Override
@@ -110,7 +114,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_update_agent_status_by_cmd_status() throws Throwable {
         // given
-        String zoneName = zkService.definedZones()[0];
+        String zoneName = zkHelper.getZones()[0];
         String agentName = "test-agent-001";
 
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
@@ -164,7 +168,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_send_cmd_to_agent() throws InterruptedException {
         // given:
-        String zoneName = zkService.definedZones()[0];
+        String zoneName = zkHelper.getZones()[0];
         String agentName = "test-agent-002";
 
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
@@ -189,7 +193,7 @@ public class CmdServiceTest extends TestBase {
     @Test(expected = AgentErr.NotFoundException.class)
     public void should_raise_exception_agent_not_exit() {
         // given:
-        String zoneName = zkService.definedZones()[0];
+        String zoneName = zkHelper.getZones()[0];
         String agentName = "test-agent-003";
 
         // then: send command immediately should raise AgentErr.NotFoundException
@@ -200,7 +204,7 @@ public class CmdServiceTest extends TestBase {
     @Test(expected = AgentErr.NotAvailableException.class)
     public void should_raise_exception_agent_busy() throws InterruptedException {
         // given:
-        String zoneName = zkService.definedZones()[0];
+        String zoneName = zkHelper.getZones()[0];
         String agentName = "test-agent-004";
 
         // when: create node and send command to agent

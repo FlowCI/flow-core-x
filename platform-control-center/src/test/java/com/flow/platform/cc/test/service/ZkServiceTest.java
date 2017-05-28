@@ -17,7 +17,7 @@ public class ZkServiceTest extends TestBase {
 
     @Test
     public void should_zk_service_initialized() {
-        for (String zoneName : zkService.definedZones()) {
+        for (String zoneName : zkHelper.getZones()) {
             String zonePath = ZkPathBuilder.create("flow-agents").append(zoneName).path();
             Assert.assertTrue(ZkNodeHelper.exist(zkClient, zonePath) != null);
         }

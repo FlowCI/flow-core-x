@@ -2,6 +2,7 @@ package com.flow.platform.cc.test.controller;
 
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
+import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
@@ -36,6 +37,9 @@ public class CmdControllerTest extends TestBase {
     @Autowired
     private AgentService agentService;
 
+    @Autowired
+    private ZoneService zoneService;
+
     @Test
     public void should_update_cmd_status() throws Throwable {
         // given:
@@ -69,7 +73,7 @@ public class CmdControllerTest extends TestBase {
     public void should_send_cmd_to_agent() throws Throwable {
         // given:
         String zoneName = "test-zone-02";
-        zkService.createZone(zoneName);
+        zoneService.createZone(zoneName);
         Thread.sleep(1000);
 
         String agentName = "act-002";
