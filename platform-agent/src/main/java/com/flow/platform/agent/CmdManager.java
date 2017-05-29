@@ -1,17 +1,15 @@
 package com.flow.platform.agent;
 
 import com.flow.platform.cmd.CmdExecutor;
-import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
-import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.google.common.collect.Maps;
-import io.socket.client.IO;
-import io.socket.client.Socket;
 
-import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
