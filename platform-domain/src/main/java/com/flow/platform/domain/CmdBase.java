@@ -1,14 +1,12 @@
 package com.flow.platform.domain;
 
-import java.io.Serializable;
-
 /**
  * Only include basic properties of command
  * <p>
  * Created by gy@fir.im on 20/05/2017.
  * Copyright fir.im
  */
-public class CmdBase implements Serializable {
+public class CmdBase extends Jsonable {
 
     public enum Type {
         /**

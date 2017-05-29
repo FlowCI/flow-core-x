@@ -27,18 +27,6 @@ public class Cmd extends CmdBase {
             Sets.newHashSet(Status.LOGGED, Status.EXCEPTION, Status.KILLED, Status.REJECTED);
 
     /**
-     * Get zk cmd from json of byte[] format
-     *
-     * @param raw
-     * @return Cmd or null if any exception
-     */
-    public static Cmd parse(byte[] raw) {
-        String json = new String(raw);
-        Gson gson = new Gson();
-        return gson.fromJson(json, Cmd.class);
-    }
-
-    /**
      * Status for TYPE.RUN_SHELL
      */
     public enum Status {
@@ -206,10 +194,5 @@ public class Cmd extends CmdBase {
                 ", createdDate=" + createdDate +
                 ", updatedDate=" + updatedDate +
                 '}';
-    }
-
-    public String toJson() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
     }
 }

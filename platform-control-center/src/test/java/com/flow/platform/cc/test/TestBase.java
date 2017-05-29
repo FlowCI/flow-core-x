@@ -43,9 +43,10 @@ public abstract class TestBase {
     @Autowired
     private WebApplicationContext webAppContext;
 
-    protected ZooKeeper zkClient;
+    @Autowired
+    protected Gson gsonConfig;
 
-    protected Gson gson = new Gson();
+    protected ZooKeeper zkClient;
 
     protected MockMvc mockMvc;
 

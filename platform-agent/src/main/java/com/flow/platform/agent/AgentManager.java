@@ -2,6 +2,7 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -153,7 +154,7 @@ public class AgentManager implements Runnable, Watcher {
 
         try {
             final byte[] rawData = ZkNodeHelper.getNodeData(zk, nodePath, null);
-            cmd = Cmd.parse(rawData);
+            cmd = Jsonable.parse(rawData, Cmd.class);
 
             // fire onDataChanged in thread
             if (zkEventListener != null) {
@@ -207,7 +208,7 @@ public class AgentManager implements Runnable, Watcher {
 
         @Override
         public void onDataChanged(WatchedEvent event, byte[] raw) {
-            Cmd cmd = Cmd.parse(raw);
+            Cmd cmd = Jsonable.parse(raw, Cmd.class);
             Logger.info("Received command: " + cmd.toString());
             CmdManager.getInstance().execute(cmd);
         }

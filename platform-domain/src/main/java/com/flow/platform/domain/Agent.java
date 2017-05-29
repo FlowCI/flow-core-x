@@ -1,15 +1,12 @@
 package com.flow.platform.domain;
 
-import com.google.gson.Gson;
-
-import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
  * Copyright fir.im
  */
-public class Agent implements Serializable {
+public class Agent extends Jsonable {
 
     public enum Status {
 
@@ -51,6 +48,9 @@ public class Agent implements Serializable {
      * Updated date
      */
     private Date updatedDate;
+
+    public Agent() {
+    }
 
     public Agent(String zone, String name) {
         this(new AgentPath(zone, name));
@@ -131,10 +131,5 @@ public class Agent implements Serializable {
                 ", name='" + path.getName() + '\'' +
                 ", status=" + status +
                 '}';
-    }
-
-    public String toJson() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
     }
 }

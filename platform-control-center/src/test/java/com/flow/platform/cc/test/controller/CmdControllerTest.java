@@ -4,10 +4,7 @@ import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
-import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Lists;
@@ -83,11 +80,11 @@ public class CmdControllerTest extends TestBase {
 
         // when: send post request
         CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "~/hello.sh");
-        gson.toJson(cmd);
+        gsonConfig.toJson(cmd);
 
         MockHttpServletRequestBuilder content = post("/cmd/send")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(gson.toJson(cmd));
+                .content(gsonConfig.toJson(cmd));
 
         // then: check response data
         MvcResult result = this.mockMvc.perform(content)
@@ -95,7 +92,7 @@ public class CmdControllerTest extends TestBase {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Cmd cmdInfo = gson.fromJson(result.getResponse().getContentAsString(), Cmd.class);
+        Cmd cmdInfo = gsonConfig.fromJson(result.getResponse().getContentAsString(), Cmd.class);
         Assert.assertNotNull(cmdInfo);
         Assert.assertEquals(Cmd.Status.PENDING, cmdInfo.getStatus());
         Assert.assertEquals(zoneName, cmdInfo.getZone());
@@ -105,7 +102,7 @@ public class CmdControllerTest extends TestBase {
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);
         Assert.assertNotNull(raw);
 
-        Cmd received = Cmd.parse(raw);
+        Cmd received = Jsonable.parse(raw, Cmd.class);
         Assert.assertNotNull(received);
         Assert.assertEquals(cmdInfo, received);
     }

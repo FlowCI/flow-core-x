@@ -2,6 +2,7 @@ package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.AgentManager;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -88,7 +89,7 @@ public class AgentManagerTest {
                 try {
                     // when
                     waitForCommandStart.countDown();
-                    Cmd cmd = Cmd.parse(raw);
+                    Cmd cmd = Jsonable.parse(raw, Cmd.class);
 
                     // then
                     assertEquals(new Cmd(ZONE, MACHINE, Cmd.Type.RUN_SHELL, "~/test.sh"), cmd);

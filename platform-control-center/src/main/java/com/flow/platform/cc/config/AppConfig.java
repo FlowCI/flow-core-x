@@ -1,6 +1,7 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.domain.Jsonable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
@@ -14,7 +15,7 @@ import java.util.concurrent.Executors;
  */
 public class AppConfig {
 
-    public final static SimpleDateFormat APP_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss-SSS");
+    public final static SimpleDateFormat APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
 
     private final static int ASYNC_POOL_SIZE = 100;
 

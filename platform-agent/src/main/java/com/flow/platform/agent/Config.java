@@ -1,6 +1,7 @@
 package com.flow.platform.agent;
 
 import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -86,7 +87,7 @@ public class Config {
 
             String zonePath = ZkPathBuilder.create(ZK_ROOT).append(zoneName).path();
             byte[] raw = ZkNodeHelper.getNodeData(zkClient, zonePath, null);
-            return AgentConfig.parse(raw);
+            return Jsonable.parse(raw, AgentConfig.class);
 
         } catch (Throwable e) {
             if (retry > 0) {

@@ -28,7 +28,7 @@ public class WelcomeControllerTest extends TestBase {
 
         // then:
         String content = result.getResponse().getContentAsString();
-        WelcomeController.AppStatus appStatus = gson.fromJson(content, WelcomeController.AppStatus.class);
+        WelcomeController.AppStatus appStatus = gsonConfig.fromJson(content, WelcomeController.AppStatus.class);
 
         Assert.assertNotNull(appStatus);
         Assert.assertEquals("OK", appStatus.getStatus());

@@ -1,27 +1,12 @@
 package com.flow.platform.domain;
 
-import com.google.gson.Gson;
-import java.io.Serializable;
-
 /**
  * Config for agent
  *
  * Created by gy@fir.im on 25/05/2017.
  * Copyright fir.im
  */
-public class AgentConfig implements Serializable {
-
-    /**
-     * Get AgentConfig from json of byte[] format
-     *
-     * @param raw byte array from zk data
-     * @return AgentConfig object
-     */
-    public static AgentConfig parse(byte[] raw) {
-        String json = new String(raw);
-        Gson gson = new Gson();
-        return gson.fromJson(json, AgentConfig.class);
-    }
+public class AgentConfig extends Jsonable {
 
     /**
      * Url for socket io realtime logging
@@ -63,10 +48,5 @@ public class AgentConfig implements Serializable {
                 ", loggingUrl='" + loggingUrl + '\'' +
                 ", cmdStatusUrl='" + cmdStatusUrl + '\'' +
                 '}';
-    }
-
-    public String toJson() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
     }
 }

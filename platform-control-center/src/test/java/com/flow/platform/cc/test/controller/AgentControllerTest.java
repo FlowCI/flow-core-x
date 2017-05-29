@@ -5,6 +5,7 @@ import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.gson.Gson;
@@ -54,7 +55,7 @@ public class AgentControllerTest extends TestBase {
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, zonePath, null);
 
         // then:
-        AgentConfig config = AgentConfig.parse(raw);
+        AgentConfig config = Jsonable.parse(raw, AgentConfig.class);
         Assert.assertNotNull(config);
         Assert.assertEquals(socketIoUrl, config.getLoggingUrl());
         Assert.assertEquals(cmdReportUrl, config.getCmdStatusUrl());
@@ -81,8 +82,7 @@ public class AgentControllerTest extends TestBase {
         String json = result.getResponse().getContentAsString();
         Assert.assertNotNull(json);
 
-        Gson gson = new Gson();
-        Agent[] agentList = gson.fromJson(json, Agent[].class);
+        Agent[] agentList = gsonConfig.fromJson(json, Agent[].class);
         Assert.assertEquals(1, agentList.length);
         Assert.assertEquals(agentName, agentList[0].getName());
     }
@@ -104,7 +104,7 @@ public class AgentControllerTest extends TestBase {
 
         MockHttpServletRequestBuilder content = post("/agent/report")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(gson.toJson(agentObj));
+                .content(gsonConfig.toJson(agentObj));
 
         this.mockMvc.perform(content)
                 .andDo(print())

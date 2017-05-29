@@ -186,7 +186,7 @@ public class CmdServiceTest extends TestBase {
 
         // then:
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, agentPath, null);
-        Cmd loaded = Cmd.parse(raw);
+        Cmd loaded = Jsonable.parse(raw, Cmd.class);
         Assert.assertEquals(cmdInfo, loaded);
     }
 
