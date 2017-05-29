@@ -4,6 +4,7 @@ import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,10 +16,15 @@ public class ProcEventHandler implements ProcListener {
     private final Cmd cmd;
     private final Map<Cmd, CmdResult> running;
     private final Map<Cmd, CmdResult> finished;
+    private final List<ProcListener> extraProcEventListeners;
     private final ReportManager reportManager = ReportManager.getInstance();
 
-    public ProcEventHandler(Cmd cmd, Map<Cmd, CmdResult> running, Map<Cmd, CmdResult> finished) {
+    public ProcEventHandler(Cmd cmd,
+                            List<ProcListener> extraProcEventListeners,
+                            Map<Cmd, CmdResult> running,
+                            Map<Cmd, CmdResult> finished) {
         this.cmd = cmd;
+        this.extraProcEventListeners = extraProcEventListeners;
         this.running = running;
         this.finished = finished;
     }
@@ -29,12 +35,20 @@ public class ProcEventHandler implements ProcListener {
 
         // report cmd async
         reportManager.cmdReport(cmd.getId(), Cmd.Status.RUNNING, result);
+
+        for (ProcListener listener : extraProcEventListeners) {
+            listener.onStarted(result);
+        }
     }
 
     @Override
     public void onExecuted(CmdResult result) {
         // report cmd sync since block current thread
         reportManager.cmdReportSync(cmd.getId(), Cmd.Status.EXECUTED, result);
+
+        for (ProcListener listener : extraProcEventListeners) {
+            listener.onExecuted(result);
+        }
     }
 
     @Override
@@ -44,6 +58,10 @@ public class ProcEventHandler implements ProcListener {
 
         // report cmd sync since block current thread
         reportManager.cmdReportSync(cmd.getId(), Cmd.Status.LOGGED, result);
+
+        for (ProcListener listener : extraProcEventListeners) {
+            listener.onLogged(result);
+        }
     }
 
     @Override
@@ -53,5 +71,9 @@ public class ProcEventHandler implements ProcListener {
 
         // report cmd sync since block current thread
         reportManager.cmdReportSync(cmd.getId(), Cmd.Status.EXCEPTION, result);
+
+        for (ProcListener listener : extraProcEventListeners) {
+            listener.onException(result);
+        }
     }
 }

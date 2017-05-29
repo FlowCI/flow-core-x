@@ -50,6 +50,9 @@ public class CmdManager {
     // Executor to execute operations
     private ExecutorService defaultExecutor = Executors.newFixedThreadPool(100, defaultFactory);
 
+    // handle extra listeners
+    private List<ProcListener> extraProcEventListeners = new ArrayList<>(5);
+
     private CmdManager() {
     }
 
@@ -72,6 +75,10 @@ public class CmdManager {
      */
     public Map<Cmd, CmdResult> getRejected() {
         return rejected;
+    }
+
+    public List<ProcListener> getExtraProcEventListeners() {
+        return extraProcEventListeners;
     }
 
     /**
@@ -124,12 +131,11 @@ public class CmdManager {
                 return;
             }
 
-
             cmdExecutor.execute(new TaskRunner(cmd) {
                 @Override
                 public void run() {
                     LogEventHandler logListener = new LogEventHandler(getCmd());
-                    ProcEventHandler procEventHandler = new ProcEventHandler(getCmd(), running, finished);
+                    ProcEventHandler procEventHandler = new ProcEventHandler(getCmd(), extraProcEventListeners, running, finished);
 
                     CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", getCmd().getCmd());
                     executor.run();
