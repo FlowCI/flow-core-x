@@ -48,19 +48,10 @@ public class CmdManager {
     };
 
     // Executor to execute command and shell
-    private final ThreadPoolExecutor cmdExecutor =
-            new ThreadPoolExecutor(
-                    Config.concurrentProcNum(),
-                    Config.concurrentProcNum(),
-                    0L,
-                    TimeUnit.SECONDS,
-                    new LinkedBlockingQueue<>(),
-                    defaultFactory,
-                    (r, executor) -> Logger.info("Reach the max concurrent proc"));
+    private ThreadPoolExecutor cmdExecutor = createExecutor();
 
     // Executor to execute operations
-    private final ExecutorService defaultExecutor =
-            Executors.newFixedThreadPool(100, defaultFactory);
+    private ExecutorService defaultExecutor = Executors.newFixedThreadPool(100, defaultFactory);
 
     private CmdManager() {
     }
@@ -129,24 +120,16 @@ public class CmdManager {
      */
     public void execute(final Cmd cmd) {
         if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-            // check max concurrent proc
-            int max = cmdExecutor.getMaximumPoolSize();
-            int cur = cmdExecutor.getActiveCount();
-            Logger.info(String.format(" ===== CmdExecutor: max=%s, current=%s =====", max, cur));
-
-            // reach max proc number, reject this execute
-            if (max == cur) {
-                onReject(cmd);
-                return;
-            }
-
             // execute cmd by cmdExecutor
-            cmdExecutor.execute(() -> {
-                LogEventHandler logListener = new LogEventHandler(cmd);
-                ProcEventHandler procEventHandler = new ProcEventHandler(cmd);
+            cmdExecutor.execute(new TaskRunner(cmd) {
+                @Override
+                public void run() {
+                    LogEventHandler logListener = new LogEventHandler(getCmd());
+                    ProcEventHandler procEventHandler = new ProcEventHandler(getCmd());
 
-                CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", cmd.getCmd());
-                executor.run();
+                    CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", getCmd().getCmd());
+                    executor.run();
+                }
             });
 
             return;
@@ -189,6 +172,7 @@ public class CmdManager {
         } catch (Throwable e) {
             Logger.err(e, "Exception while waiting for all cmd thread finish");
         } finally {
+            cmdExecutor = createExecutor();
             Logger.info("Cmd thread terminated");
         }
     }
@@ -205,6 +189,36 @@ public class CmdManager {
         rejected.put(cmd, rejectResult);
         ReportManager.getInstance().cmdReportSync(cmd.getId(), Cmd.Status.REJECTED, null);
         Logger.warn(String.format("Reject cmd '%s' since over the limit proc of agent", cmd.getId()));
+    }
+
+    private ThreadPoolExecutor createExecutor() {
+        return new ThreadPoolExecutor(
+                Config.concurrentProcNum(),
+                Config.concurrentProcNum(),
+                0L,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(),
+                defaultFactory,
+                (r, executor) -> {
+                    if (r instanceof TaskRunner) {
+                        TaskRunner task = (TaskRunner) r;
+                        onReject(task.getCmd());
+                        Logger.warn("Reject cmd: " + task.getCmd());
+                    }
+                });
+    }
+
+    private abstract class TaskRunner implements Runnable {
+
+        private final Cmd cmd;
+
+        public TaskRunner(Cmd cmd) {
+            this.cmd = cmd;
+        }
+
+        public Cmd getCmd() {
+            return cmd;
+        }
     }
 
     private class ProcEventHandler implements ProcListener {
