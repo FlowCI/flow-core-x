@@ -11,7 +11,6 @@ import javax.servlet.ServletRegistration;
 
 /**
  * Created by gy@fir.im on 17/05/2017.
- *
  * Copyright fir.im
  */
 public class AppInit implements WebApplicationInitializer {

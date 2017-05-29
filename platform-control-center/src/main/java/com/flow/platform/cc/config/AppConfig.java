@@ -4,6 +4,7 @@ import com.flow.platform.domain.AgentConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
+import java.text.SimpleDateFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -13,7 +14,9 @@ import java.util.concurrent.Executors;
  */
 public class AppConfig {
 
-    private static final int ASYNC_POOL_SIZE = 100;
+    public final static SimpleDateFormat APP_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss-SSS");
+
+    private final static int ASYNC_POOL_SIZE = 100;
 
     @Value("${agent.config.socket_io_url}")
     private String socketIoUrl;

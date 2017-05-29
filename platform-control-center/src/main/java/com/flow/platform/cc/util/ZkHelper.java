@@ -1,5 +1,6 @@
 package com.flow.platform.cc.util;
 
+import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.zk.ZkEventHelper;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,8 +33,6 @@ public class ZkHelper {
     public enum ZkStatus {
         UNKNOWN, OK, WARNING
     }
-
-    private final static SimpleDateFormat EVENT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss-SSS");
 
     @Value("${zk.host}")
     private String zkHost;
@@ -147,7 +145,7 @@ public class ZkHelper {
      */
     public void recordEvent(String path, WatchedEvent event) {
         List<String> historyList = eventHistory.computeIfAbsent(path, k -> new LinkedList<>());
-        String history = String.format("[%s] %s", EVENT_DATE_FORMAT.format(new Date()), event.toString());
+        String history = String.format("[%s] %s", AppConfig.APP_DATE_FORMAT.format(new Date()), event.toString());
         historyList.add(history);
 
         if (ZkEventHelper.isConnectToServer(event)) {
