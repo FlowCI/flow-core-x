@@ -15,6 +15,7 @@ public class WelcomeController {
 
     @RequestMapping("/index")
     public String heartbeat() {
+        // TODO: show zookeeper info and connection status
         return "ok";
     }
 }

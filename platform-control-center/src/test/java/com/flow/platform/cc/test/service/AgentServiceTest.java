@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by gy@fir.im on 24/05/2017.
@@ -51,33 +52,42 @@ public class AgentServiceTest extends TestBase {
     }
 
     @Test
-    public void should_batch_report_agent() {
-        // when: report agent online to zone-1
-        AgentPath agent11 = new AgentPath("zone-1", "agent-1");
-        agentService.reportOnline("zone-1", Lists.newArrayList(agent11));
+    public void should_batch_report_agent() throws Throwable {
+        // given: define zones
+        String zone_1 = "zone-1";
+        zoneService.createZone(zone_1);
+        String zone_2 = "zone-2";
+        zoneService.createZone(zone_2);
 
-        AgentPath agent12 = new AgentPath("zone-1", "agent-2");
-        agentService.reportOnline("zone-1", Lists.newArrayList(agent11, agent12));
+        // when: agents online to zone-1
+        AgentPath agent11 = new AgentPath(zone_1, "agent-1");
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent11), "");
+
+        AgentPath agent12 = new AgentPath(zone_1, "agent-2");
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent12), "");
+        Thread.sleep(1000); // waiting for watcher call
 
         // then: should has two online agent in zone-1
-        Assert.assertEquals(2, agentService.onlineList("zone-1").size());
+        Assert.assertEquals(2, agentService.onlineList(zone_1).size());
 
-        // when: report agent online to zone-2
-        AgentPath agent2 = new AgentPath("zone-2", "agent-1");
-        agentService.reportOnline("zone-2", Lists.newArrayList(agent2));
+        // when: agent online to zone-2
+        AgentPath agent2 = new AgentPath(zone_2, "agent-1");
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent2), "");
+        Thread.sleep(1000); // waiting for watcher call
 
         // then: should has one online agent in zone-2
-        Assert.assertEquals(1, agentService.onlineList("zone-2").size());
+        Assert.assertEquals(1, agentService.onlineList(zone_2).size());
 
         // then: still has two online agent in zone-1
-        Assert.assertEquals(2, agentService.onlineList("zone-1").size());
+        Assert.assertEquals(2, agentService.onlineList(zone_1).size());
 
         // when: there is one agent offline in zone-1
-        agentService.reportOnline("zone-1", Lists.newArrayList(agent11));
+        ZkNodeHelper.deleteNode(zkClient, zkHelper.getZkPath(agent12));
+        Thread.sleep(1000); // waiting for watcher call
 
         // then: should left one agent in zone-1
-        Assert.assertEquals(1, agentService.onlineList("zone-1").size());
-        Agent agent11Loaded = (Agent) agentService.onlineList("zone-1").toArray()[0];
+        Assert.assertEquals(1, agentService.onlineList(zone_1).size());
+        Agent agent11Loaded = (Agent) agentService.onlineList(zone_1).toArray()[0];
         Assert.assertEquals(agent11, agent11Loaded.getPath());
     }
 
