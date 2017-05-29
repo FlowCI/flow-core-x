@@ -36,7 +36,6 @@ public class CmdManagerTest {
 
     @Before
     public void beforeEach() {
-        cmdManager.getExtraProcEventListeners().clear();
         cmdManager.getRunning().clear();
         cmdManager.getFinished().clear();
         cmdManager.getRejected().clear();
@@ -50,9 +49,6 @@ public class CmdManagerTest {
     @Test
     public void running_process_should_be_recorded() throws InterruptedException {
         // given:
-        CountDownLatch startLatch = new CountDownLatch(2);
-        CountDownLatch finishLatch = new CountDownLatch(2);
-
         Assert.assertEquals(2, Config.concurrentProcNum());
 
         // create mock cmd
@@ -68,34 +64,12 @@ public class CmdManagerTest {
         Cmd cmd4 = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
         cmd4.setId(UUID.randomUUID().toString());
 
-        cmdManager.getExtraProcEventListeners().add(new ProcListener() {
-            @Override
-            public void onStarted(CmdResult result) {
-                startLatch.countDown();
-            }
-
-            @Override
-            public void onExecuted(CmdResult result) {
-
-            }
-
-            @Override
-            public void onLogged(CmdResult result) {
-                finishLatch.countDown();
-            }
-
-            @Override
-            public void onException(CmdResult result) {
-
-            }
-        });
-
         // when: execute four command by thread
         cmdManager.execute(cmd1);
         cmdManager.execute(cmd2);
         cmdManager.execute(cmd3);
         cmdManager.execute(cmd4);
-        startLatch.await();
+        Thread.sleep(1000);
 
         // then: check num of running proc and reject cmd
         Map<Cmd, CmdResult> runningCmd = cmdManager.getRunning();
@@ -109,7 +83,7 @@ public class CmdManagerTest {
         Assert.assertTrue(rejectedCmd.containsKey(cmd4));
 
         // when: wait two command been finished
-        finishLatch.await();
+        Thread.sleep(5000);
 
         // then: check
         Map<Cmd, CmdResult> finishedCmd = cmdManager.getFinished();
@@ -130,34 +104,10 @@ public class CmdManagerTest {
         Cmd cmd = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
         cmd.setId(UUID.randomUUID().toString());
 
-        CountDownLatch startLatch = new CountDownLatch(1);
-
-        cmdManager.getExtraProcEventListeners().add(new ProcListener() {
-            @Override
-            public void onStarted(CmdResult result) {
-                startLatch.countDown();
-            }
-
-            @Override
-            public void onLogged(CmdResult result) {
-
-            }
-
-            @Override
-            public void onExecuted(CmdResult result) {
-
-            }
-
-            @Override
-            public void onException(CmdResult result) {
-
-            }
-        });
-
         // when: start and kill task immediately
         cmdManager.execute(cmd);
+        Thread.sleep(1000);
 
-        startLatch.await();
         cmdManager.kill();
 
         // then: check CmdResult status

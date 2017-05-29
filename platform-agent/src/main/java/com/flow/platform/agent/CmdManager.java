@@ -37,9 +37,6 @@ public class CmdManager {
     // rejected cmd data
     private final Map<Cmd, CmdResult> rejected = Maps.newConcurrentMap();
 
-    // handle extra listeners
-    private List<ProcListener> extraProcEventListeners = new ArrayList<>(5);
-
     // Make thread to Daemon thread, those threads exit while JVM exist
     private final ThreadFactory defaultFactory = r -> {
         Thread t = Executors.defaultThreadFactory().newThread(r);
@@ -54,10 +51,6 @@ public class CmdManager {
     private ExecutorService defaultExecutor = Executors.newFixedThreadPool(100, defaultFactory);
 
     private CmdManager() {
-    }
-
-    public List<ProcListener> getExtraProcEventListeners() {
-        return extraProcEventListeners;
     }
 
     /**
@@ -120,12 +113,23 @@ public class CmdManager {
      */
     public void execute(final Cmd cmd) {
         if (cmd.getType() == Cmd.Type.RUN_SHELL) {
-            // execute cmd by cmdExecutor
+            // check max concurrent proc
+            int max = cmdExecutor.getMaximumPoolSize();
+            int cur = cmdExecutor.getActiveCount();
+            Logger.info(String.format(" ===== CmdExecutor: max=%s, current=%s =====", max, cur));
+
+            // reach max proc number, reject this execute
+            if (max == cur) {
+                onReject(cmd);
+                return;
+            }
+
+
             cmdExecutor.execute(new TaskRunner(cmd) {
                 @Override
                 public void run() {
                     LogEventHandler logListener = new LogEventHandler(getCmd());
-                    ProcEventHandler procEventHandler = new ProcEventHandler(getCmd());
+                    ProcEventHandler procEventHandler = new ProcEventHandler(getCmd(), running, finished);
 
                     CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", getCmd().getCmd());
                     executor.run();
@@ -218,130 +222,6 @@ public class CmdManager {
 
         public Cmd getCmd() {
             return cmd;
-        }
-    }
-
-    private class ProcEventHandler implements ProcListener {
-
-        private final Cmd cmd;
-        private final ReportManager reportManager = ReportManager.getInstance();
-
-        ProcEventHandler(Cmd cmd) {
-            this.cmd = cmd;
-        }
-
-        @Override
-        public void onStarted(CmdResult result) {
-            running.put(cmd, result);
-
-            // report cmd async
-            reportManager.cmdReport(cmd.getId(), Cmd.Status.RUNNING, result);
-
-            for (ProcListener listener : extraProcEventListeners) {
-                listener.onStarted(result);
-            }
-        }
-
-        @Override
-        public void onExecuted(CmdResult result) {
-            // report cmd sync since block current thread
-            reportManager.cmdReportSync(cmd.getId(), Cmd.Status.EXECUTED, result);
-
-            for (ProcListener listener : extraProcEventListeners) {
-                listener.onExecuted(result);
-            }
-        }
-
-        @Override
-        public void onLogged(CmdResult result) {
-            running.remove(cmd);
-            finished.put(cmd, result);
-
-            // report cmd sync since block current thread
-            reportManager.cmdReportSync(cmd.getId(), Cmd.Status.LOGGED, result);
-
-            for (ProcListener listener : extraProcEventListeners) {
-                listener.onLogged(result);
-            }
-        }
-
-        @Override
-        public void onException(CmdResult result) {
-            running.remove(cmd);
-            finished.put(cmd, result);
-
-            // report cmd sync since block current thread
-            reportManager.cmdReportSync(cmd.getId(), Cmd.Status.EXCEPTION, result);
-
-            for (ProcListener listener : extraProcEventListeners) {
-                listener.onException(result);
-            }
-        }
-    }
-
-    /**
-     * To handle log event, upload log via socket io
-     */
-    private class LogEventHandler implements LogListener {
-
-        private final static String SOCKET_EVENT_TYPE = "agent-logging";
-        private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
-
-        private final Cmd cmd;
-        private final CountDownLatch initLatch = new CountDownLatch(1);
-
-        private Socket socket;
-        private boolean socketEnabled = false;
-
-        private LogEventHandler(Cmd cmd) {
-            this.cmd = cmd;
-            AgentConfig config = Config.agentConfig();
-
-            if (config == null || config.getLoggingUrl() == null) {
-                return;
-            }
-
-            try {
-                socket = IO.socket(config.getLoggingUrl());
-                socket.on(Socket.EVENT_CONNECT, objects -> initLatch.countDown());
-                socket.connect();
-
-                // wait socket connection and set socket enable to true
-                initLatch.await(SOCKET_CONN_TIMEOUT, TimeUnit.SECONDS);
-                if (initLatch.getCount() <= 0 && socket.connected()) {
-                    socketEnabled = true;
-                }
-
-            } catch (URISyntaxException | InterruptedException e) {
-                Logger.err(e, "Fail to connect socket io server: " + config.getLoggingUrl());
-            }
-        }
-
-        @Override
-        public void onLog(String log) {
-            if (socketEnabled) {
-                socket.emit(SOCKET_EVENT_TYPE, getLogFormat(log));
-            }
-            Logger.info(log);
-        }
-
-        @Override
-        public void onFinish() {
-            try {
-                socket.close();
-            } catch (Throwable e) {
-                Logger.err(e, "Exception while close socket io");
-            }
-        }
-
-        /**
-         * Send log by format zone#agent#cmdId#log_raw_data
-         *
-         * @param log
-         * @return
-         */
-        private String getLogFormat(String log) {
-            return String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgent(), cmd.getId(), log);
         }
     }
 }

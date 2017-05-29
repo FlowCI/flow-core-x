@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 echo "test shell"
-sleep 5
+sleep 2
 echo "done"
