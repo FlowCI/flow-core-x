@@ -94,6 +94,7 @@ public class ReportManager {
             if (code != HttpStatus.SC_OK) {
                 throw new RuntimeException("Fail to report cmd status to : " + url);
             }
+            Logger.info(String.format("Cmd %s report status %s", cmdId, status));
         } catch (Throwable e) {
             if (retry > 0) {
                 cmdReportSync(cmdId, status, result, retry - 1);
