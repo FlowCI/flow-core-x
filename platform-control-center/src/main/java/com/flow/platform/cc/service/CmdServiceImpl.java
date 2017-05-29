@@ -64,6 +64,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
                 case KILL:
                     // DO NOT handle it, agent status from cmd update
+                    break;
 
                 case STOP:
                     target.setStatus(Agent.Status.OFFLINE);
