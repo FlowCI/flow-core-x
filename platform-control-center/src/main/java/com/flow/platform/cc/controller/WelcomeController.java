@@ -25,16 +25,16 @@ public class WelcomeController {
     public static class AppStatus implements Serializable {
         private String status;
         private Date startTime;
-        private ZkHelper.ZkStatus zkStatus;
+        private ZkHelper.ZkInfo zkInfo;
         private Map<String, List<String>> zkHistory;
 
         AppStatus(String status,
                   Date startTime,
-                  ZkHelper.ZkStatus zkStatus,
+                  ZkHelper.ZkInfo zkInfo,
                   Map<String, List<String>> zkHistory) {
             this.status = status;
             this.startTime = startTime;
-            this.zkStatus = zkStatus;
+            this.zkInfo = zkInfo;
             this.zkHistory = zkHistory;
         }
 
@@ -46,8 +46,8 @@ public class WelcomeController {
             return startTime;
         }
 
-        public ZkHelper.ZkStatus getZkStatus() {
-            return zkStatus;
+        public ZkHelper.ZkInfo getZkInfo() {
+            return zkInfo;
         }
 
         public Map<String, List<String>> getZkHistory() {
@@ -69,7 +69,7 @@ public class WelcomeController {
     public AppStatus heartbeat() {
         return new AppStatus("OK",
                 startTime,
-                zkHelper.getStatus(),
+                zkHelper.getInfo(),
                 zkHelper.getZkHistory());
     }
 }

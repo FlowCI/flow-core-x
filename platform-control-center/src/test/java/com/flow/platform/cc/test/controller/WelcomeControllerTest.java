@@ -32,7 +32,7 @@ public class WelcomeControllerTest extends TestBase {
 
         Assert.assertNotNull(appStatus);
         Assert.assertEquals("OK", appStatus.getStatus());
-        Assert.assertEquals(ZkHelper.ZkStatus.OK, appStatus.getZkStatus());
+        Assert.assertEquals(ZkHelper.ZkStatus.OK, appStatus.getZkInfo().getStatus());
         Assert.assertEquals(1, appStatus.getZkHistory().get("flow-agents").size());
     }
 

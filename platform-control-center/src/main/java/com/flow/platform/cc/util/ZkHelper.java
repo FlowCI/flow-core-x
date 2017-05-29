@@ -23,12 +23,48 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Zookeeper raw data and root event handler
- *
+ * <p>
  * Created by gy@fir.im on 28/05/2017.
  * Copyright fir.im
  */
 @Component(value = "zkHelper")
 public class ZkHelper {
+
+    public static class ZkInfo {
+        private String host;
+        private Integer timeout;
+        private String root;
+        private String[] zones;
+        private ZkStatus status;
+
+        public ZkInfo(String host, Integer timeout, String root, String[] zones, ZkStatus status) {
+            this.host = host;
+            this.timeout = timeout;
+            this.root = root;
+            this.zones = zones;
+            this.status = status;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public Integer getTimeout() {
+            return timeout;
+        }
+
+        public String getRoot() {
+            return root;
+        }
+
+        public String[] getZones() {
+            return zones;
+        }
+
+        public ZkStatus getStatus() {
+            return status;
+        }
+    }
 
     public enum ZkStatus {
         UNKNOWN, OK, WARNING
@@ -91,8 +127,8 @@ public class ZkHelper {
         return zkClient;
     }
 
-    public ZkStatus getStatus() {
-        return zkStatus;
+    public ZkInfo getInfo() {
+        return new ZkInfo(zkHost, zkTimeout, zkRootName, getZones(), zkStatus);
     }
 
     /**
@@ -157,7 +193,7 @@ public class ZkHelper {
         }
     }
 
-    public Map<String,List<String>> getZkHistory() {
+    public Map<String, List<String>> getZkHistory() {
         return eventHistory;
     }
 
