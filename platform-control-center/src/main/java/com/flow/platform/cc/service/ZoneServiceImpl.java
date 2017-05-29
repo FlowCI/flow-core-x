@@ -1,12 +1,10 @@
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -87,7 +85,8 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         }
 
         public void process(WatchedEvent event) {
-            System.out.println(event);
+            zkHelper.recordEvent(zonePath, event);
+
             // continue to watch zone path
             ZkNodeHelper.watchChildren(zkClient, zonePath, this, 5);
 

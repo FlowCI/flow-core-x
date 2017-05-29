@@ -12,15 +12,29 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Zookeeper raw data and root event handler
+ *
  * Created by gy@fir.im on 28/05/2017.
  * Copyright fir.im
  */
 @Component(value = "zkHelper")
 public class ZkHelper {
+
+    public enum ZkStatus {
+        UNKNOWN, OK, WARNING
+    }
+
+    private final static SimpleDateFormat EVENT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss-SSS");
 
     @Value("${zk.host}")
     private String zkHost;
@@ -37,6 +51,11 @@ public class ZkHelper {
     private CountDownLatch zkConnectLatch = null;
 
     private ZooKeeper zkClient = null;
+
+    private ZkStatus zkStatus = ZkStatus.UNKNOWN;
+
+    // path, event list history
+    private final Map<String, List<String>> eventHistory = new ConcurrentHashMap<>();
 
     /**
      * Connect to zookeeper server and init root and zone nodes
@@ -72,6 +91,10 @@ public class ZkHelper {
             }
         }
         return zkClient;
+    }
+
+    public ZkStatus getStatus() {
+        return zkStatus;
     }
 
     /**
@@ -117,6 +140,30 @@ public class ZkHelper {
     }
 
     /**
+     * Record zk event to history
+     *
+     * @param path
+     * @param event
+     */
+    public void recordEvent(String path, WatchedEvent event) {
+        List<String> historyList = eventHistory.computeIfAbsent(path, k -> new LinkedList<>());
+        String history = String.format("[%s] %s", EVENT_DATE_FORMAT.format(new Date()), event.toString());
+        historyList.add(history);
+
+        if (ZkEventHelper.isConnectToServer(event)) {
+            zkStatus = ZkStatus.OK;
+        }
+
+        if (ZkEventHelper.isDisconnected(event) || ZkEventHelper.isSessionExpired(event)) {
+            zkStatus = ZkStatus.WARNING;
+        }
+    }
+
+    public Map<String,List<String>> getZkHistory() {
+        return eventHistory;
+    }
+
+    /**
      * Reconnect to zk
      */
     private ZooKeeper reconnect() throws IOException, InterruptedException {
@@ -135,6 +182,8 @@ public class ZkHelper {
 
         @Override
         public void process(WatchedEvent event) {
+            recordEvent(zkRootName, event);
+
             if (ZkEventHelper.isConnectToServer(event)) {
                 zkConnectLatch.countDown();
             }
