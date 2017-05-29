@@ -69,7 +69,7 @@ public class CmdManagerTest {
         cmdManager.execute(cmd2);
         cmdManager.execute(cmd3);
         cmdManager.execute(cmd4);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // then: check num of running proc and reject cmd
         Map<Cmd, CmdResult> runningCmd = cmdManager.getRunning();
@@ -109,6 +109,7 @@ public class CmdManagerTest {
         Thread.sleep(1000);
 
         cmdManager.kill();
+        Thread.sleep(1000);
 
         // then: check CmdResult status
         Map<Cmd, CmdResult> finished = cmdManager.getFinished();
