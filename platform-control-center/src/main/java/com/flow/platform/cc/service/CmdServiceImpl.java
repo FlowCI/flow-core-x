@@ -4,6 +4,7 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -74,7 +75,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             switch (cmd.getType()) {
                 case RUN_SHELL:
                     if (target.getStatus() != Agent.Status.IDLE) {
-                        cmdInfo.setStatus(Cmd.Status.REJECTED); // reject since busy
+                        cmdInfo.addStatus(Cmd.Status.REJECTED); // reject since busy
                         throw new AgentErr.NotAvailableException(cmd.getAgent());
                     }
 
@@ -115,7 +116,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         try {
             // update cmd status
-            cmd.setStatus(status);
+            cmd.addStatus(status);
             cmd.setResult(result);
             cmd.setUpdatedDate(new Date());
 

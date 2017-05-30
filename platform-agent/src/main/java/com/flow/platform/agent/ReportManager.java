@@ -1,6 +1,7 @@
 package com.flow.platform.agent;
 
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -40,6 +41,7 @@ public class ReportManager {
      *
      * @param cmdId
      * @param status
+     * @param result
      */
     public void cmdReport(final String cmdId,
                           final Cmd.Status status,
@@ -54,6 +56,7 @@ public class ReportManager {
      *
      * @param cmdId
      * @param status
+     * @param result
      * @return
      */
     public boolean cmdReportSync(final String cmdId,
@@ -76,10 +79,7 @@ public class ReportManager {
                                final CmdResult result,
                                final int retry) throws IOException {
         // build post body
-        Cmd postCmd = new Cmd();
-        postCmd.setId(cmdId);
-        postCmd.setStatus(status);
-        postCmd.setResult(result);
+        CmdReport postCmd = new CmdReport(cmdId, status, result);
 
         String url = Config.agentConfig().getCmdStatusUrl();
         HttpPost post = new HttpPost(url);

@@ -4,6 +4,7 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.CmdReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,14 +38,14 @@ public class CmdController {
     /**
      * For agent report cmd status
      *
-     * @param cmd only need id and status
+     * @param reportData only need id, status and result
      */
     @RequestMapping(path = "/report", method = RequestMethod.POST, consumes = "application/json")
-    public void report(@RequestBody Cmd cmd) {
-        if (cmd.getId() == null || cmd.getStatus() == null || cmd.getResult() == null) {
+    public void report(@RequestBody CmdReport reportData) {
+        if (reportData.getId() == null || reportData.getStatus() == null || reportData.getResult() == null) {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
         }
-        cmdService.report(cmd.getId(), cmd.getStatus(), cmd.getResult());
+        cmdService.report(reportData.getId(), reportData.getStatus(), reportData.getResult());
     }
 
     /**

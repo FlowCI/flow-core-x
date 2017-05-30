@@ -108,7 +108,7 @@ public class CmdServiceTest extends TestBase {
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
 
-        Assert.assertEquals(Cmd.Status.RUNNING, loaded.getStatus());
+        Assert.assertTrue(loaded.getStatus().contains(Cmd.Status.RUNNING));
         Assert.assertNotNull(loaded.getResult());
         Assert.assertEquals(mockProcess, loaded.getResult().getProcess());
 
@@ -187,7 +187,7 @@ public class CmdServiceTest extends TestBase {
 
         // check cmd status
         Assert.assertNotNull(cmdInfo.getId());
-        Assert.assertEquals(Cmd.Status.PENDING, cmdInfo.getStatus());
+        Assert.assertTrue(cmdInfo.getStatus().contains(Cmd.Status.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
         Assert.assertEquals(agentName, cmdInfo.getAgent());
 
@@ -213,7 +213,7 @@ public class CmdServiceTest extends TestBase {
         // then:
         List<Cmd> cmdList = cmdService.listByAgentPath(cmd.getAgentPath());
         Assert.assertEquals(2, cmdList.size());
-        Assert.assertEquals(Cmd.Status.REJECTED, cmdList.get(1).getStatus());
+        Assert.assertTrue(cmdList.get(1).getStatus().contains(Cmd.Status.REJECTED));
     }
 
     @Test(expected = AgentErr.NotFoundException.class)

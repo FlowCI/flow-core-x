@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -90,9 +91,9 @@ public class Cmd extends CmdBase {
     private String id;
 
     /**
-     * Cmd status
+     * Cmd status set
      */
-    private Cmd.Status status = Status.PENDING;
+    private Set<Status> statusSet = Sets.newHashSet(Status.PENDING);
 
     /**
      * Cmd execution result
@@ -131,12 +132,12 @@ public class Cmd extends CmdBase {
         this.id = id;
     }
 
-    public Status getStatus() {
-        return status;
+    public Set<Status> getStatus() {
+        return statusSet;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
+    public void addStatus(Status status) {
+        statusSet.add(status);
     }
 
     public CmdResult getResult() {
@@ -164,7 +165,9 @@ public class Cmd extends CmdBase {
     }
 
     public Boolean isCurrent() {
-        return WORKING_STATUS.contains(status);
+        // check status set has finished status
+        Sets.SetView<Status> intersection = Sets.intersection(statusSet, FINISH_STATUS);
+        return intersection.size() <= 0;
     }
 
     @Override
@@ -189,8 +192,7 @@ public class Cmd extends CmdBase {
     public String toString() {
         return "Cmd{" +
                 "id='" + id + '\'' +
-                ", status=" + status +
-                ", result=" + result +
+                ", info =" + super.toString() +
                 ", createdDate=" + createdDate +
                 ", updatedDate=" + updatedDate +
                 '}';

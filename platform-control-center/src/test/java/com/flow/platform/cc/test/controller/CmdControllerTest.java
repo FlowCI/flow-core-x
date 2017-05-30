@@ -47,10 +47,7 @@ public class CmdControllerTest extends TestBase {
         Cmd cmd = cmdService.create(base);
 
         // when:
-        Cmd postData = new Cmd();
-        postData.setId(cmd.getId());
-        postData.setStatus(Cmd.Status.EXECUTED);
-        postData.setResult(new CmdResult());
+        CmdReport postData = new CmdReport(cmd.getId(), Cmd.Status.EXECUTED, new CmdResult());
 
         MockHttpServletRequestBuilder content = post("/cmd/report")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -63,7 +60,7 @@ public class CmdControllerTest extends TestBase {
         // then:
         Cmd loaded = cmdService.find(cmd.getId());
         Assert.assertNotNull(loaded);
-        Assert.assertEquals(Cmd.Status.EXECUTED, loaded.getStatus());
+        Assert.assertTrue(loaded.getStatus().contains(Cmd.Status.EXECUTED));
     }
 
     @Test
@@ -94,7 +91,7 @@ public class CmdControllerTest extends TestBase {
 
         Cmd cmdInfo = gsonConfig.fromJson(result.getResponse().getContentAsString(), Cmd.class);
         Assert.assertNotNull(cmdInfo);
-        Assert.assertEquals(Cmd.Status.PENDING, cmdInfo.getStatus());
+        Assert.assertTrue(cmdInfo.getStatus().contains(Cmd.Status.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
         Assert.assertEquals(agentName, cmdInfo.getAgent());
 
