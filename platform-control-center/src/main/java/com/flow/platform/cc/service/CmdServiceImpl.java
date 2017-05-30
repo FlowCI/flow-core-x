@@ -30,6 +30,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         String cmdId = UUID.randomUUID().toString();
         Cmd cmdInfo = new Cmd(cmd);
         cmdInfo.setId(cmdId);
+        cmdInfo.setCreatedDate(new Date());
+        cmdInfo.setUpdatedDate(new Date());
         mockCmdList.put(cmdId, cmdInfo);
         return cmdInfo;
     }

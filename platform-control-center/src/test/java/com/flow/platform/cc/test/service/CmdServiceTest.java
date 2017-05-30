@@ -77,6 +77,8 @@ public class CmdServiceTest extends TestBase {
         Cmd cmd = cmdService.create(base);
         Assert.assertNotNull(cmd);
         Assert.assertNotNull(cmd.getId());
+        Assert.assertNotNull(cmd.getCreatedDate());
+        Assert.assertNotNull(cmd.getUpdatedDate());
 
         // then:
         Cmd loaded = cmdService.find(cmd.getId());

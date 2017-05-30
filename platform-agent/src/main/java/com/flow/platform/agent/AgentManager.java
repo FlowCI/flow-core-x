@@ -104,6 +104,7 @@ public class AgentManager implements Runnable, Watcher {
             }
 
             if (ZkEventHelper.isDataChangedOnPath(event, nodePath)) {
+                ZkNodeHelper.watchNode(zk, nodePath, this, 5);
                 onDataChanged(event);
                 return;
             }
@@ -161,8 +162,6 @@ public class AgentManager implements Runnable, Watcher {
         } catch (Throwable e) {
             Logger.err(e, "Invalid cmd from server");
         } finally {
-            ZkNodeHelper.watchNode(zk, nodePath, this, 5);
-
             if (zkEventListener != null) {
                 zkEventListener.afterOnDataChanged(event);
             }
