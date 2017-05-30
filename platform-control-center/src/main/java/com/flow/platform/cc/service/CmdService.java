@@ -1,9 +1,12 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
+
+import java.util.List;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -26,6 +29,14 @@ public interface CmdService {
      * @return Cmd object
      */
     Cmd find(String cmdId);
+
+    /**
+     * List cmd by agent path
+     *
+     * @param agentPath
+     * @return
+     */
+    List<Cmd> listByAgentPath(AgentPath agentPath);
 
     /**
      * Send ZkCmd to agent

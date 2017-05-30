@@ -7,9 +7,7 @@ import com.flow.platform.util.zk.ZkNodeHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -36,6 +34,18 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     @Override
     public Cmd find(String cmdId) {
         return mockCmdList.get(cmdId);
+    }
+
+    @Override
+    public List<Cmd> listByAgentPath(AgentPath agentPath) {
+        List<Cmd> cmdList = new LinkedList<>();
+        for (Cmd tmp : mockCmdList.values()) {
+            if (!tmp.getAgentPath().equals(agentPath)) {
+                continue;
+            }
+            cmdList.add(tmp);
+        }
+        return cmdList;
     }
 
     @Override

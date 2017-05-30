@@ -1,6 +1,7 @@
 package com.flow.platform.cc.controller;
 
 import com.flow.platform.cc.service.CmdService;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collection;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -42,5 +45,15 @@ public class CmdController {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
         }
         cmdService.report(cmd.getId(), cmd.getStatus(), cmd.getResult());
+    }
+
+    /**
+     * List commands by agent path
+     *
+     * @param agentPath
+     */
+    @RequestMapping(path = "/list", method = RequestMethod.POST, consumes = "application/json")
+    public Collection<Cmd> list(@RequestBody AgentPath agentPath) {
+        return cmdService.listByAgentPath(agentPath);
     }
 }
