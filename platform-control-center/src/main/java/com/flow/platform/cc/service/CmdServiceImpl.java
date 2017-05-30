@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -21,6 +22,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     private AgentService agentService;
 
     private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
+
+    private final ReentrantLock mockTrans = new ReentrantLock();
 
     @Override
     public Cmd create(CmdBase cmd) {
@@ -53,6 +56,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         AgentPath agentPath = new AgentPath(cmd.getZone(), cmd.getAgent());
         Agent target = agentService.find(agentPath);
         String agentNodePath = zkHelper.getZkPath(agentPath);
+        mockTrans.lock();
 
         try {
             // check agent is online
@@ -90,6 +94,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         } catch (ZkException.ZkNoNodeException e) {
             throw new AgentErr.NotFoundException(cmd.getAgent());
+        } finally {
+            mockTrans.unlock();
         }
     }
 
@@ -100,13 +106,19 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw new IllegalArgumentException("Cmd not exist");
         }
 
-        // update cmd status
-        cmd.setStatus(status);
-        cmd.setResult(result);
-        cmd.setUpdatedDate(new Date());
+        mockTrans.lock();
 
-        // update agent status
-        updateAgentStatusWhenUpdateCmd(cmd);
+        try {
+            // update cmd status
+            cmd.setStatus(status);
+            cmd.setResult(result);
+            cmd.setUpdatedDate(new Date());
+
+            // update agent status
+            updateAgentStatusWhenUpdateCmd(cmd);
+        } finally {
+            mockTrans.unlock();
+        }
     }
 
     /**
