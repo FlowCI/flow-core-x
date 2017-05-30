@@ -39,7 +39,7 @@ public class Config {
     }
 
     public static int concurrentThreadNum() {
-        String intStr = System.getProperty(PROP_CONCURRENT_THREAD, "20");
+        String intStr = System.getProperty(PROP_CONCURRENT_THREAD, "1");
         return Integer.parseInt(intStr);
     }
 
