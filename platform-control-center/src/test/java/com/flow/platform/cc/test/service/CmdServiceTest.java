@@ -20,6 +20,8 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 
+import static junit.framework.TestCase.fail;
+
 /**
  * Created by gy@fir.im on 25/05/2017.
  * Copyright fir.im
@@ -203,13 +205,14 @@ public class CmdServiceTest extends TestBase {
         // when: send command again to the same agent
         try {
             cmdService.send(cmd);
+            fail();
         } catch (Throwable e) {
             Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
         }
 
         // then:
         List<Cmd> cmdList = cmdService.listByAgentPath(cmd.getAgentPath());
-        Assert.assertTrue(cmdList.size() == 2);
+        Assert.assertEquals(2, cmdList.size());
         Assert.assertEquals(Cmd.Status.REJECTED, cmdList.get(1).getStatus());
     }
 

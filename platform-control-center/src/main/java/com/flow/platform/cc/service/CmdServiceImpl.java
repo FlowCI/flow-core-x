@@ -50,6 +50,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             }
             cmdList.add(tmp);
         }
+
+        cmdList.sort(Comparator.comparing(Cmd::getCreatedDate));
         return cmdList;
     }
 
