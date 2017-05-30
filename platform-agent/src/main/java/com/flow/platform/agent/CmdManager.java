@@ -46,7 +46,7 @@ public class CmdManager {
     private ThreadPoolExecutor cmdExecutor = createExecutor();
 
     // Executor to execute operations
-    private ExecutorService defaultExecutor = Executors.newFixedThreadPool(100, defaultFactory);
+    private ExecutorService defaultExecutor = Executors.newCachedThreadPool(defaultFactory);
 
     // handle extra listeners
     private List<ProcListener> extraProcEventListeners = new ArrayList<>(5);
@@ -166,7 +166,7 @@ public class CmdManager {
     /**
      * Kill all current running process
      */
-    public void kill() {
+    public synchronized void kill() {
         for (Map.Entry<Cmd, CmdResult> entry : running.entrySet()) {
             CmdResult r = entry.getValue();
             Cmd cmd = entry.getKey();
@@ -204,8 +204,8 @@ public class CmdManager {
 
     private ThreadPoolExecutor createExecutor() {
         return new ThreadPoolExecutor(
-                Config.concurrentProcNum(),
-                Config.concurrentProcNum(),
+                Config.concurrentThreadNum(),
+                Config.concurrentThreadNum(),
                 0L,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),

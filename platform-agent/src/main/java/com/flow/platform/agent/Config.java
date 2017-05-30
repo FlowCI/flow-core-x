@@ -23,7 +23,7 @@ public class Config {
 
     /* Config properties by using -Dxxx.xxx = xxx as JVM parameter */
     public final static String PROP_IS_DEBUG = "flow.agent.debug";
-    public final static String PROP_CONCURRENT_PROC = "flow.agent.concurrent";
+    public final static String PROP_CONCURRENT_THREAD = "flow.agent.cmd.thread";
     public final static String PROP_SUDO_PASSWORD = "flow.agent.sudo.pwd";
 
 
@@ -38,8 +38,8 @@ public class Config {
         return Boolean.parseBoolean(boolStr);
     }
 
-    public static int concurrentProcNum() {
-        String intStr = System.getProperty(PROP_CONCURRENT_PROC, "1");
+    public static int concurrentThreadNum() {
+        String intStr = System.getProperty(PROP_CONCURRENT_THREAD, "20");
         return Integer.parseInt(intStr);
     }
 

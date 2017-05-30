@@ -26,7 +26,7 @@ public class CmdManagerTest {
 
     @BeforeClass
     public static void beforeClass() throws IOException {
-        System.setProperty(Config.PROP_CONCURRENT_PROC, "2");
+        System.setProperty(Config.PROP_CONCURRENT_THREAD, "2");
         System.setProperty(Config.PROP_IS_DEBUG, "true");
 
         ClassLoader classLoader = CmdManagerTest.class.getClassLoader();
@@ -52,7 +52,7 @@ public class CmdManagerTest {
         // given:
         CountDownLatch startLatch = new CountDownLatch(2);
         CountDownLatch finishLatch = new CountDownLatch(2);
-        Assert.assertEquals(2, Config.concurrentProcNum());
+        Assert.assertEquals(2, Config.concurrentThreadNum());
 
         cmdManager.getExtraProcEventListeners().add(new ProcListener() {
             @Override
