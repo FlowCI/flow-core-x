@@ -169,8 +169,11 @@ public class CmdManager {
     public void kill() {
         for (Map.Entry<Cmd, CmdResult> entry : running.entrySet()) {
             CmdResult r = entry.getValue();
+            Cmd cmd = entry.getKey();
 
             r.getProcess().destroy();
+
+            ReportManager.getInstance().cmdReportSync(cmd.getId(), Cmd.Status.KILLED, r);
             Logger.info(String.format("Kill process : %s", r.toString()));
         }
 
