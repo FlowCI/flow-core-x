@@ -14,8 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 
 public class AgentManager implements Runnable, Watcher {
@@ -30,7 +29,6 @@ public class AgentManager implements Runnable, Watcher {
     private int zkTimeout;
     private ZooKeeper zk;
     private ZkEventListener zkEventListener;
-    private AtomicBoolean shouldReconnect = new AtomicBoolean(true);
 
     private String zone; // agent running zone
     private String name; // agent name, can be machine name
@@ -106,7 +104,6 @@ public class AgentManager implements Runnable, Watcher {
             }
 
             if (ZkEventHelper.isDataChangedOnPath(event, nodePath)) {
-                shouldReconnect.set(false); // donot reconnect to zk when disconnect call from command
                 onDataChanged(event);
                 return;
             }
@@ -173,10 +170,6 @@ public class AgentManager implements Runnable, Watcher {
     }
 
     private void onReconnect(WatchedEvent event) {
-        if (!shouldReconnect.get()) {
-            return;
-        }
-
         try {
             this.zk = new ZooKeeper(zkHost, zkTimeout, this);
         } catch (IOException e) {
