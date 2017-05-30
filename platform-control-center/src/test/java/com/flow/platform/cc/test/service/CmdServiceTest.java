@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -181,15 +182,36 @@ public class CmdServiceTest extends TestBase {
         CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
         Cmd cmdInfo = cmdService.send(cmd);
 
+        // then:
+
+        // check cmd status
         Assert.assertNotNull(cmdInfo.getId());
         Assert.assertEquals(Cmd.Status.PENDING, cmdInfo.getStatus());
         Assert.assertEquals(zoneName, cmdInfo.getZone());
         Assert.assertEquals(agentName, cmdInfo.getAgent());
 
-        // then:
+        // check cmd been recorded
+        Assert.assertTrue(cmdService.listByAgentPath(cmd.getAgentPath()).contains(cmdInfo));
+
+        // check agent status
+        Assert.assertEquals(Agent.Status.BUSY, agentService.find(cmd.getAgentPath()).getStatus());
+
+        // check zk node received the same cmd
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, agentPath, null);
         Cmd loaded = Jsonable.parse(raw, Cmd.class);
         Assert.assertEquals(cmdInfo, loaded);
+
+        // when: send command again to the same agent
+        try {
+            cmdService.send(cmd);
+        } catch (Throwable e) {
+            Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
+        }
+
+        // then:
+        List<Cmd> cmdList = cmdService.listByAgentPath(cmd.getAgentPath());
+        Assert.assertTrue(cmdList.size() == 2);
+        Assert.assertEquals(Cmd.Status.REJECTED, cmdList.get(1).getStatus());
     }
 
     @Test(expected = AgentErr.NotFoundException.class)

@@ -72,6 +72,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             switch (cmd.getType()) {
                 case RUN_SHELL:
                     if (target.getStatus() != Agent.Status.IDLE) {
+                        cmdInfo.setStatus(Cmd.Status.REJECTED); // reject since busy
                         throw new AgentErr.NotAvailableException(cmd.getAgent());
                     }
 
