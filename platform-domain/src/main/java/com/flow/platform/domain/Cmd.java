@@ -1,10 +1,8 @@
 package com.flow.platform.domain;
 
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 /**
