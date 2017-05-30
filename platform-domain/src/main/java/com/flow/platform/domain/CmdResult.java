@@ -57,7 +57,7 @@ public class CmdResult implements Serializable {
     /**
      * Exception while cmd running
      */
-    private final List<Exception> exceptions = new ArrayList<>(5);
+    private final List<Throwable> exceptions = new ArrayList<>(5);
 
     public Process getProcess() {
         return process;
@@ -91,7 +91,7 @@ public class CmdResult implements Serializable {
         return totalDuration;
     }
 
-    public List<Exception> getExceptions() {
+    public List<Throwable> getExceptions() {
         return exceptions;
     }
 

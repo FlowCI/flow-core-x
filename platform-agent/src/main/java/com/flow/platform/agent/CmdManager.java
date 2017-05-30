@@ -116,7 +116,7 @@ public class CmdManager {
      *
      * @param cmd Cmd object
      */
-    public void execute(final Cmd cmd) {
+    public synchronized void execute(final Cmd cmd) {
         if (cmd.getType() == Cmd.Type.RUN_SHELL) {
             // check max concurrent proc
             int max = cmdExecutor.getMaximumPoolSize();
@@ -167,6 +167,8 @@ public class CmdManager {
      * Kill all current running process
      */
     public synchronized void kill() {
+        cmdExecutor.shutdown();
+
         for (Map.Entry<Cmd, CmdResult> entry : running.entrySet()) {
             CmdResult r = entry.getValue();
             Cmd cmd = entry.getKey();
@@ -178,12 +180,14 @@ public class CmdManager {
         }
 
         try {
-            cmdExecutor.shutdown(); // close all cmd thread
-            cmdExecutor.awaitTermination(30, TimeUnit.SECONDS);
+            if (!cmdExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                cmdExecutor.shutdownNow();
+                Logger.warn("Force to terminate CmdExecutor since been waiting 10 seconds");
+            }
         } catch (Throwable e) {
             Logger.err(e, "Exception while waiting for all cmd thread finish");
         } finally {
-            cmdExecutor = createExecutor();
+            cmdExecutor = createExecutor(); // reset cmd executor
             Logger.info("Cmd thread terminated");
         }
     }

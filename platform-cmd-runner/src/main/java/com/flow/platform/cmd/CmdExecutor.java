@@ -84,7 +84,7 @@ public class CmdExecutor {
 
             System.out.println(String.format("====== 2. Logging executed : %s ======", waitLock.getCount()));
 
-        } catch (InterruptedException | IOException e) {
+        } catch (Throwable e) {
             outputResult.getExceptions().add(e);
             outputResult.setFinishTime(new Date());
 
