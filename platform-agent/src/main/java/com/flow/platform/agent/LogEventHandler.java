@@ -125,10 +125,11 @@ public class LogEventHandler implements LogListener {
                 }
             }
 
-            // rename xxx.out.tmp to xxx.out.zip
+            // rename xxx.out.tmp to xxx.out.zip and upload to server
             if (Files.exists(logTempPath)) {
                 try {
                     Files.move(logTempPath, logFinalPath);
+                    ReportManager.getInstance().cmdLogUploadSync(cmd.getId(), logFinalPath);
                 } catch (IOException e) {
                     Logger.err(e, "Exception while move update log name from temp");
                 }

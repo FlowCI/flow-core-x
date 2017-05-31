@@ -80,6 +80,19 @@ public class ReportManager {
         }
     }
 
+    public boolean cmdLogUploadSync(final String cmdId, final Path path) {
+        try {
+            cmdLogUploadSync(cmdId, path, 5);
+            return true;
+        } catch (IOException e) {
+            Logger.err(e, "IOException when close http client");
+            return false;
+        } catch (Throwable e) {
+            Logger.err(e, "Fail to upload cmd log after 5 times");
+            return false;
+        }
+    }
+
     private void cmdReportSync(final String cmdId,
                                final Cmd.Status status,
                                final CmdResult result,
@@ -103,6 +116,7 @@ public class ReportManager {
         HttpEntity entity = MultipartEntityBuilder.create()
                 .addPart("file", zippedFile)
                 .addPart("cmdId", new StringBody(cmdId, ContentType.TEXT_PLAIN))
+                .setContentType(ContentType.MULTIPART_FORM_DATA)
                 .build();
 
         String url = Config.agentConfig().getCmdLogUrl();

@@ -9,6 +9,10 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 /**
@@ -44,6 +48,23 @@ public class ReportManagerTest {
         // then:
         CmdResult mockResult = new CmdResult();
         boolean result = reportManager.cmdReportSync("cmdId-001", Cmd.Status.RUNNING, mockResult);
+        Assert.assertTrue(result);
+    }
+
+    @Test
+    public void should_upload_zipped_cmd_log() {
+        // given:
+        stubFor(post(urlEqualTo("/cmd/log/upload"))
+                .willReturn(aResponse().withStatus(200)));
+
+        ClassLoader classLoader = ReportManagerTest.class.getClassLoader();
+        URL resource = classLoader.getResource("test-cmd-id.out.zip");
+        Path path = Paths.get(resource.getFile());
+
+        // when:
+        boolean result = reportManager.cmdLogUploadSync("cmdId-001", path);
+
+        // then:
         Assert.assertTrue(result);
     }
 }
