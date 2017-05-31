@@ -7,6 +7,7 @@ import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -63,5 +64,14 @@ public interface CmdService {
      * @param cmdId
      * @param file
      */
-    void writeFullLog(String cmdId, MultipartFile file);
+    void saveFullLog(String cmdId, MultipartFile file);
+
+    /**
+     * Get full log path
+     * TODO: should replace local file system
+     *
+     * @param cmdId
+     * @return
+     */
+    Path getFullLog(String cmdId);
 }

@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -27,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Queue;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -123,7 +125,7 @@ public class CmdControllerTest extends TestBase {
     }
 
     @Test
-    public void should_upload_zipped_log() throws Throwable {
+    public void should_upload_and_download_zipped_log() throws Throwable {
         // given:
         ClassLoader classLoader = CmdControllerTest.class.getClassLoader();
         URL resource = classLoader.getResource("test-cmd-id.out.zip");
@@ -136,7 +138,7 @@ public class CmdControllerTest extends TestBase {
         String originalFilename = cmd.getId() + ".out.zip";
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", originalFilename, "application/zip", data);
 
-        // when:
+        // when: upload zipped cmd log
         this.mockMvc.perform(fileUpload("/cmd/log/upload")
                 .file(mockMultipartFile)
                 .contentType("application/zip")
@@ -151,5 +153,17 @@ public class CmdControllerTest extends TestBase {
         Assert.assertEquals(1, cmdLoggingQueue.size());
         Assert.assertEquals(zippedLogPath, cmdLoggingQueue.peek());
         Assert.assertEquals(data.length, Files.size(zippedLogPath));
+
+        // when: download uploaded zipped cmd log
+        MvcResult result = this.mockMvc.perform(get("/cmd/log/download").param("cmdId", cmd.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // then:
+        MockHttpServletResponse response = result.getResponse();
+        Assert.assertEquals("application/zip", response.getContentType());
+        Assert.assertEquals(data.length, response.getContentLength());
+        Assert.assertTrue(response.getHeader("Content-Disposition").contains(originalFilename));
     }
 }

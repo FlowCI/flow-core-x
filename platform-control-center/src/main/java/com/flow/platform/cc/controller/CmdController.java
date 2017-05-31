@@ -6,9 +6,13 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdReport;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -57,14 +61,36 @@ public class CmdController {
         return cmdService.listByAgentPath(agentPath);
     }
 
+    /**
+     * Upload zipped cmd log
+     *
+     * @param cmdId
+     * @param file
+     */
     @RequestMapping(path = "/log/upload", method = RequestMethod.POST)
-    public void uploadFullLog(@RequestParam("cmdId") String cmdId,
-                              @RequestParam("file") MultipartFile file) {
+    public void uploadFullLog(@RequestParam String cmdId,
+                              @RequestParam MultipartFile file) {
 
         if (!Objects.equals(file.getContentType(), "application/zip")) {
             throw new IllegalArgumentException("Illegal zipped log file format");
         }
 
-        cmdService.writeFullLog(cmdId, file);
+        cmdService.saveFullLog(cmdId, file);
+    }
+
+    /**
+     * Get zipped log file by cmd id
+     *
+     * @param cmdId
+     * @return
+     */
+    @RequestMapping(path = "/log/download", method = RequestMethod.GET, produces = "application/zip")
+    public Resource downloadFullLog(@RequestParam String cmdId, HttpServletResponse httpResponse) {
+        Path filePath = cmdService.getFullLog(cmdId);
+        FileSystemResource resource = new FileSystemResource(filePath.toFile());
+
+        httpResponse.setHeader("Content-Disposition",
+                String.format("attachment; filename=%s", filePath.getFileName().toString()));
+        return resource;
     }
 }

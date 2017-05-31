@@ -2,6 +2,7 @@ package com.flow.platform.domain;
 
 import com.google.common.collect.Sets;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.Set;
 
@@ -94,6 +95,11 @@ public class Cmd extends CmdBase {
     private Set<Status> statusSet = Sets.newHashSet(Status.PENDING);
 
     /**
+     * Path for full log
+     */
+    private String fullLogPath;
+
+    /**
      * Cmd execution result
      */
     private CmdResult result;
@@ -136,6 +142,14 @@ public class Cmd extends CmdBase {
 
     public void addStatus(Status status) {
         statusSet.add(status);
+    }
+
+    public String getFullLogPath() {
+        return fullLogPath;
+    }
+
+    public void setFullLogPath(String fullLogPath) {
+        this.fullLogPath = fullLogPath;
     }
 
     public CmdResult getResult() {

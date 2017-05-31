@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -136,7 +137,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    public void writeFullLog(String cmdId, MultipartFile file) {
+    public void saveFullLog(String cmdId, MultipartFile file) {
         Cmd cmd = find(cmdId);
         if (cmd == null) {
             throw new IllegalArgumentException("Cmd not exist");
@@ -145,9 +146,29 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         try {
             Path target = Paths.get(AppConfig.CMD_LOG_DIR.toString(), file.getOriginalFilename());
             Files.write(target, file.getBytes());
+
+            cmd.setFullLogPath(target.toString());
             cmdLoggingQueue.add(target);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Path getFullLog(String cmdId) {
+        Cmd cmd = find(cmdId);
+        if (cmd == null) {
+            throw new IllegalArgumentException("Cmd not exist");
+        }
+
+        try {
+            Path zippedLogPath = Paths.get(cmd.getFullLogPath());
+            if (!Files.exists(zippedLogPath)) {
+                throw new IllegalArgumentException("Zipped log file not exist");
+            }
+            return zippedLogPath;
+        } catch (InvalidPathException e) {
+            throw new IllegalArgumentException("Zipped log file not exist");
         }
     }
 

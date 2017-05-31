@@ -6,7 +6,6 @@ import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.cc.test.controller.CmdControllerTest;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
@@ -21,7 +20,6 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -276,7 +274,7 @@ public class CmdServiceTest extends TestBase {
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", originalFilename, "application/zip", mockData);
 
         // when:
-        cmdService.writeFullLog(created.getId(), mockMultipartFile);
+        cmdService.saveFullLog(created.getId(), mockMultipartFile);
 
         // then:
         Assert.assertTrue(Files.exists(Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename)));
