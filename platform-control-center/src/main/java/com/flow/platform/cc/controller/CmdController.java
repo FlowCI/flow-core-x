@@ -6,12 +6,11 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdReport;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -56,5 +55,16 @@ public class CmdController {
     @RequestMapping(path = "/list", method = RequestMethod.POST, consumes = "application/json")
     public Collection<Cmd> list(@RequestBody AgentPath agentPath) {
         return cmdService.listByAgentPath(agentPath);
+    }
+
+    @RequestMapping(path = "/log/upload", method = RequestMethod.POST)
+    public void uploadFullLog(@RequestParam("cmdId") String cmdId,
+                              @RequestParam("file") MultipartFile file) {
+
+        if (!Objects.equals(file.getContentType(), "application/zip")) {
+            throw new IllegalArgumentException("Illegal zipped log file format");
+        }
+
+        cmdService.writeFullLog(cmdId, file);
     }
 }

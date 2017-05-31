@@ -5,6 +5,7 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -55,4 +56,12 @@ public interface CmdService {
      * @param result
      */
     void report(String cmdId, Cmd.Status status, CmdResult result);
+
+    /**
+     * Record full zipped log to store
+     *
+     * @param cmdId
+     * @param file
+     */
+    void writeFullLog(String cmdId, MultipartFile file);
 }

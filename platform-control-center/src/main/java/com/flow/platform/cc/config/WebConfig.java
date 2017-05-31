@@ -8,11 +8,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.PathResource;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -28,12 +34,23 @@ import java.util.List;
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
+    private final static int MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
+
+    private final static Path UPLOAD_TEMP_FOLDER = Paths.get(System.getenv("HOME"), "upload");
+
     @Bean
     public PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
         String envPropertiesFile = "app.properties";
         PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setLocation(new ClassPathResource(envPropertiesFile));
         return configurer;
+    }
+
+    @Bean(name = "multipartResolver")
+    public MultipartResolver multipartResolver() throws IOException {
+        CommonsMultipartResolver resolver = new CommonsMultipartResolver();
+        resolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
+        return resolver;
     }
 
     @Bean

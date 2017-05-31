@@ -1,13 +1,18 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
-import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -21,6 +26,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private Queue<Path> cmdLoggingQueue;
 
     private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
 
@@ -124,6 +132,22 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             updateAgentStatusWhenUpdateCmd(cmd);
         } finally {
             mockTrans.unlock();
+        }
+    }
+
+    @Override
+    public void writeFullLog(String cmdId, MultipartFile file) {
+        Cmd cmd = find(cmdId);
+        if (cmd == null) {
+            throw new IllegalArgumentException("Cmd not exist");
+        }
+
+        try {
+            Path target = Paths.get(AppConfig.CMD_LOG_DIR.toString(), file.getOriginalFilename());
+            Files.write(target, file.getBytes());
+            cmdLoggingQueue.add(target);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
