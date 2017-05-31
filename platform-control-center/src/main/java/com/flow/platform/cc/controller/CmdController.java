@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
@@ -33,7 +34,7 @@ public class CmdController {
      * @param cmd
      * @return
      */
-    @RequestMapping(path = "/send", method = RequestMethod.POST, consumes = "application/json")
+    @PostMapping(path = "/send", consumes = "application/json")
     public Cmd sendCommand(@RequestBody CmdBase cmd) {
         return cmdService.send(cmd);
     }
@@ -43,7 +44,7 @@ public class CmdController {
      *
      * @param reportData only need id, status and result
      */
-    @RequestMapping(path = "/report", method = RequestMethod.POST, consumes = "application/json")
+    @PostMapping(path = "/report", consumes = "application/json")
     public void report(@RequestBody CmdReport reportData) {
         if (reportData.getId() == null || reportData.getStatus() == null || reportData.getResult() == null) {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
@@ -56,25 +57,22 @@ public class CmdController {
      *
      * @param agentPath
      */
-    @RequestMapping(path = "/list", method = RequestMethod.POST, consumes = "application/json")
+    @PostMapping(path = "/list", consumes = "application/json")
     public Collection<Cmd> list(@RequestBody AgentPath agentPath) {
         return cmdService.listByAgentPath(agentPath);
     }
 
     /**
-     * Upload zipped cmd log
+     * Upload zipped cmd log with multipart
      *
-     * @param cmdId
-     * @param file
+     * @param cmdId cmd id with text/plain
+     * @param file  zipped cmd log with application/zip
      */
-    @RequestMapping(path = "/log/upload", method = RequestMethod.POST)
-    public void uploadFullLog(@RequestParam String cmdId,
-                              @RequestParam MultipartFile file) {
-
+    @PostMapping(path = "/log/upload")
+    public void uploadFullLog(@RequestPart String cmdId, @RequestPart MultipartFile file) {
         if (!Objects.equals(file.getContentType(), "application/zip")) {
             throw new IllegalArgumentException("Illegal zipped log file format");
         }
-
         cmdService.saveFullLog(cmdId, file);
     }
 
@@ -84,7 +82,7 @@ public class CmdController {
      * @param cmdId
      * @return
      */
-    @RequestMapping(path = "/log/download", method = RequestMethod.GET, produces = "application/zip")
+    @GetMapping(path = "/log/download", produces = "application/zip")
     public Resource downloadFullLog(@RequestParam String cmdId, HttpServletResponse httpResponse) {
         Path filePath = cmdService.getFullLog(cmdId);
         FileSystemResource resource = new FileSystemResource(filePath.toFile());

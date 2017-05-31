@@ -20,6 +20,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 
 import java.net.URL;
 import java.nio.file.Files;
@@ -136,13 +137,16 @@ public class CmdControllerTest extends TestBase {
         Cmd cmd = cmdService.create(cmdBase);
 
         String originalFilename = cmd.getId() + ".out.zip";
-        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", originalFilename, "application/zip", data);
+
+        MockMultipartFile zippedCmdLogPart = new MockMultipartFile("file", originalFilename, "application/zip", data);
+        MockMultipartFile cmdIdPart = new MockMultipartFile("cmdId", "", "text/plain", cmd.getId().getBytes());
 
         // when: upload zipped cmd log
-        this.mockMvc.perform(fileUpload("/cmd/log/upload")
-                .file(mockMultipartFile)
-                .contentType("application/zip")
-                .param("cmdId", cmd.getId()))
+        MockMultipartHttpServletRequestBuilder content = fileUpload("/cmd/log/upload")
+                .file(zippedCmdLogPart)
+                .file(cmdIdPart);
+
+        this.mockMvc.perform(content)
                 .andDo(print())
                 .andExpect(status().isOk());
 
