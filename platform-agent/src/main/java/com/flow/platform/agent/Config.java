@@ -9,6 +9,8 @@ import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -25,17 +27,38 @@ public class Config {
     public final static String PROP_IS_DEBUG = "flow.agent.debug";
     public final static String PROP_CONCURRENT_THREAD = "flow.agent.cmd.thread";
     public final static String PROP_SUDO_PASSWORD = "flow.agent.sudo.pwd";
-
+    public final static String PROP_DEL_AGENT_LOG = "flow.agent.log.delete";
+    public final static String PROP_LOG_DIR = "flow.agent.log.dir";
 
     public static AgentConfig AGENT_CONFIG;
     public static String ZK_URL;
     public static String ZONE;
     public static String NAME;
 
-
     public static boolean isDebug() {
         String boolStr = System.getProperty(PROP_IS_DEBUG, "false");
         return Boolean.parseBoolean(boolStr);
+    }
+
+    /**
+     * Is delete cmd log after uploaded
+     *
+     * @return
+     */
+    public static boolean isDeleteLog() {
+        String boolStr = System.getProperty(PROP_DEL_AGENT_LOG, "false");
+        return Boolean.parseBoolean(boolStr);
+    }
+
+    public static Path logDir() {
+        Path defaultPath = Paths.get(System.getenv("HOME"), "agent-log");
+        String pathStr = System.getProperty(PROP_LOG_DIR, defaultPath.toString());
+
+        try {
+            return Paths.get(pathStr);
+        } catch (Throwable e) {
+            return defaultPath;
+        }
     }
 
     public static int concurrentThreadNum() {

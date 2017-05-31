@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNull;
  */
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class AgentManagerTest {
+public class AgentManagerTest extends TestBase {
 
     private static final String ZK_HOST = "127.0.0.1:2181";
     private static final String ZONE = "ali";

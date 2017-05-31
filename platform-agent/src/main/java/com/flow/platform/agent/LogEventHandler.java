@@ -27,7 +27,7 @@ public class LogEventHandler implements LogListener {
     private final static String SOCKET_EVENT_TYPE = "agent-logging";
     private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
 
-    private final static Path DEFAULT_LOG_PATH = Paths.get(System.getenv("HOME"), "agent-log");
+    private final static Path DEFAULT_LOG_PATH = Config.logDir();
 
     private final Cmd cmd;
     private final CountDownLatch initLatch = new CountDownLatch(1);
@@ -129,7 +129,12 @@ public class LogEventHandler implements LogListener {
             if (Files.exists(logTempPath)) {
                 try {
                     Files.move(logTempPath, logFinalPath);
-                    ReportManager.getInstance().cmdLogUploadSync(cmd.getId(), logFinalPath);
+
+                    // delete if uploaded
+                    ReportManager reportManager = ReportManager.getInstance();
+                    if (reportManager.cmdLogUploadSync(cmd.getId(), logFinalPath) && Config.isDeleteLog()) {
+                        Files.deleteIfExists(logFinalPath);
+                    }
                 } catch (IOException e) {
                     Logger.err(e, "Exception while move update log name from temp");
                 }

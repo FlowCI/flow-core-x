@@ -18,7 +18,7 @@ import java.io.IOException;
  * Created by gy@fir.im on 25/05/2017.
  * Copyright fir.im
  */
-public class ConfigTest {
+public class ConfigTest extends TestBase {
 
     private static ZooKeeper zkClient;
     private static ServerCnxnFactory zkFactory;

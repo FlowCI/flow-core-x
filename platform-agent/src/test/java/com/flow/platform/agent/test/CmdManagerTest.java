@@ -18,7 +18,7 @@ import java.util.concurrent.CountDownLatch;
  * Copyright fir.im
  */
 @FixMethodOrder(value = MethodSorters.NAME_ASCENDING)
-public class CmdManagerTest {
+public class CmdManagerTest extends TestBase {
 
     private CmdManager cmdManager = CmdManager.getInstance();
 

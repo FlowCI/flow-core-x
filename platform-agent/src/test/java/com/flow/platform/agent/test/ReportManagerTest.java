@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
  * Copyright fir.im
  */
 @FixMethodOrder(value = MethodSorters.NAME_ASCENDING)
-public class ReportManagerTest {
+public class ReportManagerTest extends TestBase {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
