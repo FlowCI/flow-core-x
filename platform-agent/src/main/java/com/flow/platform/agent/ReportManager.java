@@ -12,6 +12,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -104,5 +105,9 @@ public class ReportManager {
         } finally {
             client.close();
         }
+    }
+
+    private void cmdLogUploadSync(final String cmdId, final Path logPath) {
+
     }
 }

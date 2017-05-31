@@ -18,12 +18,18 @@ public class AgentConfig extends Jsonable {
      */
     private String cmdStatusUrl;
 
+    /**
+     * Url for upload full zipped cmd log
+     */
+    private String cmdLogUrl;
+
     public AgentConfig() {
     }
 
-    public AgentConfig(String loggingUrl, String cmdStatusUrl) {
+    public AgentConfig(String loggingUrl, String cmdStatusUrl, String cmdLogUrl) {
         this.loggingUrl = loggingUrl;
         this.cmdStatusUrl = cmdStatusUrl;
+        this.cmdLogUrl = cmdLogUrl;
     }
 
     public String getLoggingUrl() {
@@ -42,11 +48,20 @@ public class AgentConfig extends Jsonable {
         this.cmdStatusUrl = cmdStatusUrl;
     }
 
+    public String getCmdLogUrl() {
+        return cmdLogUrl;
+    }
+
+    public void setCmdLogUrl(String cmdLogUrl) {
+        this.cmdLogUrl = cmdLogUrl;
+    }
+
     @Override
     public String toString() {
         return "AgentConfig{" +
-                ", loggingUrl='" + loggingUrl + '\'' +
+                "loggingUrl='" + loggingUrl + '\'' +
                 ", cmdStatusUrl='" + cmdStatusUrl + '\'' +
-                '}';
+                ", cmdLogUrl='" + cmdLogUrl + '\'' +
+                "} " + super.toString();
     }
 }

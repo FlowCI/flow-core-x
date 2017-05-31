@@ -34,8 +34,9 @@ public class ConfigTest {
     public void should_load_agent_config() throws IOException, InterruptedException {
         // given:
         String loggingUrl = "http://localhost:3000/agent";
-        String statusUrl = "http://localhost:8080/agent/status";
-        AgentConfig config = new AgentConfig(loggingUrl, statusUrl);
+        String cmdStatusUrl = "http://localhost:8080/cmd/report";
+        String cmdLogUrl = "http://localhost:8080/cmd/log/upload";
+        AgentConfig config = new AgentConfig(loggingUrl, cmdStatusUrl, cmdLogUrl);
 
         // when: create zone with agent config
         String zonePath = "/flow-agents/ali";
@@ -46,7 +47,8 @@ public class ConfigTest {
         Config.AGENT_CONFIG = Config.loadAgentConfig("localhost:2181", 20000, "ali", 5);
         Assert.assertNotNull(Config.agentConfig());
         Assert.assertEquals(loggingUrl, Config.agentConfig().getLoggingUrl());
-        Assert.assertEquals(statusUrl, Config.agentConfig().getCmdStatusUrl());
+        Assert.assertEquals(cmdStatusUrl, Config.agentConfig().getCmdStatusUrl());
+        Assert.assertEquals(cmdLogUrl, Config.agentConfig().getCmdLogUrl());
     }
 
     @AfterClass

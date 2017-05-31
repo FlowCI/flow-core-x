@@ -43,6 +43,9 @@ public class AgentControllerTest extends TestBase {
     @Value("${agent.config.cmd_report_url}")
     private String cmdReportUrl;
 
+    @Value("${agent.config.cmd_log_url}")
+    private String cmdLogUrl;
+
     @Test
     public void should_has_agent_config_in_zone_data() throws Throwable {
         // given:
@@ -59,6 +62,7 @@ public class AgentControllerTest extends TestBase {
         Assert.assertNotNull(config);
         Assert.assertEquals(socketIoUrl, config.getLoggingUrl());
         Assert.assertEquals(cmdReportUrl, config.getCmdStatusUrl());
+        Assert.assertEquals(cmdLogUrl, config.getCmdLogUrl());
     }
 
     @Test

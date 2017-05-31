@@ -27,7 +27,8 @@ public class ReportManagerTest {
     public static void init() {
         Config.AGENT_CONFIG = new AgentConfig(
                 "http://localhost:3000/agent",
-                "http://localhost:8080/cmd/status");
+                "http://localhost:8080/cmd/status",
+                "http://localhost:8080/cmd/log/upload");
     }
 
     @Test

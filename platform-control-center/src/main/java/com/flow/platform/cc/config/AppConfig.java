@@ -34,6 +34,9 @@ public class AppConfig {
     @Value("${agent.config.cmd_report_url}")
     private String cmdReportUrl;
 
+    @Value("${agent.config.cmd_log_url}")
+    private String cmdLogUrl;
+
     @PostConstruct
     public void init() {
         try {
@@ -45,7 +48,7 @@ public class AppConfig {
 
     @Bean
     public AgentConfig agentConfig() {
-        return new AgentConfig(socketIoUrl, cmdReportUrl);
+        return new AgentConfig(socketIoUrl, cmdReportUrl, cmdLogUrl);
     }
 
     @Bean
