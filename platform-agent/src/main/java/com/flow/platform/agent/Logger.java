@@ -20,4 +20,8 @@ public class Logger {
     static void warn(String message) {
         System.out.println(String.format("[Warn:] %s", message));
     }
+
+    static void debug(String message) {
+        System.out.println(String.format("[Debug:] %s", message));
+    }
 }

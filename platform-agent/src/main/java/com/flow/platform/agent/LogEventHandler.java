@@ -6,11 +6,19 @@ import com.flow.platform.domain.Cmd;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
+ * Record log to $HOME/agent-log/{cmd id}.out.zip
+ * Send log via socket io if socket.io url provided
+ *
  * Created by gy@fir.im on 29/05/2017.
  * Copyright fir.im
  */
@@ -19,20 +27,43 @@ public class LogEventHandler implements LogListener {
     private final static String SOCKET_EVENT_TYPE = "agent-logging";
     private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
 
+    private final static Path DEFAULT_LOG_PATH = Paths.get(System.getenv("HOME"), "agent-log");
+
     private final Cmd cmd;
     private final CountDownLatch initLatch = new CountDownLatch(1);
 
     private Socket socket;
     private boolean socketEnabled = false;
 
+    private Path logTempPath;
+    private Path logFinalPath;
+    private FileOutputStream fileOs;
+    private ZipOutputStream zipOs;
+
     public LogEventHandler(Cmd cmd) {
         this.cmd = cmd;
+
+        // init zip log path
+        try {
+            logTempPath = initZipLogFile(this.cmd);
+            logFinalPath = getLogFinalPath(this.cmd);
+
+            fileOs = new FileOutputStream(logTempPath.toFile());
+            zipOs = new ZipOutputStream(fileOs);
+
+            ZipEntry ze= new ZipEntry(cmd.getId() + ".out");
+            zipOs.putNextEntry(ze);
+        } catch (IOException e) {
+            Logger.err(e, "Fail to init cmd log file");
+        }
+
         AgentConfig config = Config.agentConfig();
 
         if (config == null || config.getLoggingUrl() == null) {
             return;
         }
 
+        // init socket io logging server
         try {
             socket = IO.socket(config.getLoggingUrl());
             socket.on(Socket.EVENT_CONNECT, objects -> initLatch.countDown());
@@ -54,15 +85,54 @@ public class LogEventHandler implements LogListener {
         if (socketEnabled) {
             socket.emit(SOCKET_EVENT_TYPE, getLogFormat(log));
         }
-        Logger.info(log);
+
+        if (zipOs != null) {
+            try {
+                zipOs.write(log.getBytes());
+                zipOs.write("\n".getBytes());
+            } catch (IOException e) {
+                Logger.warn("Log cannot write : " + log);
+            }
+        }
+
+        Logger.debug(log);
     }
 
     @Override
     public void onFinish() {
-        try {
-            socket.close();
-        } catch (Throwable e) {
-            Logger.err(e, "Exception while close socket io");
+        // close socket io
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (Throwable e) {
+                Logger.err(e, "Exception while close socket io");
+            }
+        }
+
+        // close zip logging file
+        if (zipOs != null) {
+            try {
+                zipOs.flush();
+                zipOs.closeEntry();
+                zipOs.close();
+            } catch (IOException e) {
+                Logger.err(e, "Exception while close zip stream");
+            } finally {
+                try {
+                    fileOs.close();
+                } catch (IOException e) {
+                    Logger.err(e, "Exception while close log file");
+                }
+            }
+
+            // rename xxx.out.tmp to xxx.out.zip
+            if (Files.exists(logTempPath)) {
+                try {
+                    Files.move(logTempPath, logFinalPath);
+                } catch (IOException e) {
+                    Logger.err(e, "Exception while move update log name from temp");
+                }
+            }
         }
     }
 
@@ -74,5 +144,24 @@ public class LogEventHandler implements LogListener {
      */
     private String getLogFormat(String log) {
         return String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgent(), cmd.getId(), log);
+    }
+
+    private Path initZipLogFile(final Cmd cmd) throws IOException {
+        // init log directory
+        try {
+            Files.createDirectory(DEFAULT_LOG_PATH);
+        } catch (FileAlreadyExistsException ignore) {
+            Logger.warn(String.format("Log path %s already exist", DEFAULT_LOG_PATH));
+        }
+
+        // init zipped log file for tmp
+        Path cmdLogPath = Paths.get(DEFAULT_LOG_PATH.toString(), cmd.getId() + ".out.tmp");
+        Files.deleteIfExists(cmdLogPath);
+
+        return Files.createFile(cmdLogPath);
+    }
+
+    private Path getLogFinalPath(final Cmd cmd) {
+        return Paths.get(DEFAULT_LOG_PATH.toString(), cmd.getId() + ".out.zip");
     }
 }
