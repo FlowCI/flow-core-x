@@ -1,24 +1,33 @@
 package com.flow.platform.cc.test.service;
 
+import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.cc.test.controller.CmdControllerTest;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
+import java.util.Queue;
 
 import static junit.framework.TestCase.fail;
 
@@ -37,6 +46,9 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private ZoneService zoneService;
+
+    @Autowired
+    private Queue<Path> cmdLoggingQueue;
 
     private Process mockProcess = new Process() {
         @Override
@@ -69,6 +81,11 @@ public class CmdServiceTest extends TestBase {
 
         }
     };
+
+    @Before
+    public void before() {
+        cmdLoggingQueue.clear();
+    }
 
     @Test
     public void should_create_cmd() {
@@ -243,5 +260,26 @@ public class CmdServiceTest extends TestBase {
 
         // then: send command to agent again should raise AgentErr.BusyException.class
         cmdService.send(cmd);
+    }
+
+    @Test
+    public void should_write_cmd_log() throws Throwable {
+        // given:
+        String zoneName = zkHelper.getZones()[0];
+        String agentName = "test-agent-005";
+
+        CmdBase baseInfo = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
+        Cmd created = cmdService.create(baseInfo);
+
+        byte[] mockData = "test".getBytes();
+        String originalFilename = created.getId() + ".out.zip";
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", originalFilename, "application/zip", mockData);
+
+        // when:
+        cmdService.writeFullLog(created.getId(), mockMultipartFile);
+
+        // then:
+        Assert.assertTrue(Files.exists(Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename)));
+        Assert.assertEquals(1, cmdLoggingQueue.size());
     }
 }

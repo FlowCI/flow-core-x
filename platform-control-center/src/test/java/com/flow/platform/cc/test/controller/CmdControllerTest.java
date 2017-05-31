@@ -150,5 +150,6 @@ public class CmdControllerTest extends TestBase {
 
         Assert.assertEquals(1, cmdLoggingQueue.size());
         Assert.assertEquals(zippedLogPath, cmdLoggingQueue.peek());
+        Assert.assertEquals(data.length, Files.size(zippedLogPath));
     }
 }
