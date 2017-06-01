@@ -249,8 +249,7 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // report busy status
-        CmdBase cmdToMakeBusy = new CmdBase(agentBusy1, Cmd.Type.RUN_SHELL, "echo \"hello\"");
-        cmdService.send(cmdToMakeBusy);
+        cmdService.send(new CmdBase(agentBusy1, Cmd.Type.RUN_SHELL, "echo \"hello\""));
         Assert.assertEquals(Agent.Status.BUSY, agentService.find(agentBusy1).getStatus());
 
         // set idle agent 1 date, before idle agent 2
@@ -258,11 +257,24 @@ public class CmdServiceTest extends TestBase {
         agentService.find(agentIdle1).setUpdatedDate(Date.from(date));
 
         // when: send cmd to zone
-        CmdBase cmdBase = new CmdBase(zoneName, null, Cmd.Type.RUN_SHELL, "echo \"hello\"");
-        Cmd cmd = cmdService.send(cmdBase);
+        Cmd cmdForIdle1 = cmdService.send(new CmdBase(zoneName, null, Cmd.Type.RUN_SHELL, "echo \"hello\""));
 
         // then: should select agent idle 1 as target
-        Assert.assertEquals(agentIdle1, cmd.getAgentPath());
+        Assert.assertEquals(agentIdle1, cmdForIdle1.getAgentPath());
+        Assert.assertEquals(Agent.Status.BUSY, agentService.find(agentIdle1).getStatus());
+
+        // when: send cmd to make all agent to busy
+        Cmd cmdForIdle2 = cmdService.send(new CmdBase(zoneName, null, Cmd.Type.RUN_SHELL, "echo \"hello\""));
+        Assert.assertEquals(agentIdle2, cmdForIdle2.getAgentPath());
+        Assert.assertEquals(Agent.Status.BUSY, agentService.find(agentIdle2).getStatus());
+
+        // then: should raise NotAvailableException
+        try {
+            cmdService.send(new CmdBase(zoneName, null, Cmd.Type.RUN_SHELL, "echo \"hello\""));
+            fail();
+        } catch (Throwable e) {
+            Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
+        }
     }
 
     @Test(expected = AgentErr.NotFoundException.class)

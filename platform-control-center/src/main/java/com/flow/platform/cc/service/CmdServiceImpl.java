@@ -188,6 +188,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      *
      * @param cmd
      * @return Agent or null
+     * @exception com.flow.platform.cc.exception.AgentErr.NotAvailableException no idle agent in zone
      */
     private Agent selectAgent(CmdBase cmd) {
         AgentPath agentPath = cmd.getAgentPath();
@@ -200,7 +201,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 cmd.setAgentPath(target.getPath()); // reset cmd path
                 return target;
             }
-            return null;
+
+            throw new AgentErr.NotAvailableException(cmd.getAgent());
         }
 
         return agentService.find(agentPath);
