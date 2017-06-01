@@ -4,6 +4,8 @@ import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Jsonable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -13,13 +15,13 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
  * Copyright fir.im
  */
+@Configuration
 public class AppConfig {
 
     public final static SimpleDateFormat APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
@@ -52,12 +54,13 @@ public class AppConfig {
     }
 
     @Bean
-    public ExecutorService executorService() {
-        return Executors.newFixedThreadPool(ASYNC_POOL_SIZE, r -> {
-            Thread t = Executors.defaultThreadFactory().newThread(r);
-            t.setDaemon(true);
-            return t;
-        });
+    public Executor taskExecutor(){
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
+        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
+        taskExecutor.setQueueCapacity(100);
+        taskExecutor.setThreadNamePrefix("async-task");
+        return taskExecutor;
     }
 
     /**

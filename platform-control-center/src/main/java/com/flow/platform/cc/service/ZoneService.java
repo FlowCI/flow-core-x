@@ -1,5 +1,7 @@
 package com.flow.platform.cc.service;
 
+import java.util.List;
+
 /**
  * Handle on zone level
  *
@@ -16,4 +18,11 @@ public interface ZoneService {
      * @return zk node path of zone
      */
     String createZone(String zoneName);
+
+    /**
+     * Get zone list from zk
+     *
+     * @return zone list
+     */
+    List<String> getZones();
 }

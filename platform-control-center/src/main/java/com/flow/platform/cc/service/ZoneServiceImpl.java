@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 /**
  * Created by gy@fir.im on 17/05/2017.
@@ -27,7 +27,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
     private AgentConfig agentConfig;
 
     @Autowired
-    private ExecutorService executorService;
+    private Executor taskExecutor;
 
     private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
@@ -63,6 +63,11 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         return zonePath;
     }
 
+    @Override
+    public List<String> getZones() {
+        return ZkNodeHelper.getChildrenNodes(zkClient, zkHelper.getRoot());
+    }
+
     private Collection<AgentPath> buildKeys(String zone, Collection<String> agents) {
         ArrayList<AgentPath> keys = new ArrayList<>(agents.size());
         for (String agentName : agents) {
@@ -91,7 +96,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
             ZkNodeHelper.watchChildren(zkClient, zonePath, this, 5);
 
             if (ZkEventHelper.isChildrenChanged(event)) {
-                executorService.execute(() -> {
+                taskExecutor.execute(() -> {
                     List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
                     agentService.reportOnline(zoneName, buildKeys(zoneName, agents));
                 });

@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.PathResource;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -27,9 +27,11 @@ import java.util.List;
  */
 @Configuration
 @EnableWebMvc
+@EnableScheduling
 @ComponentScan({
         "com.flow.platform.cc.controller",
         "com.flow.platform.cc.service",
+        "com.flow.platform.cc.scheduler",
         "com.flow.platform.cc.util"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {

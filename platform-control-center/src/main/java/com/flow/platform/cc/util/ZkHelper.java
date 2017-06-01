@@ -103,6 +103,15 @@ public class ZkHelper {
     }
 
     /**
+     * Get zk root node name
+     *
+     * @return
+     */
+    public String getRoot() {
+        return zkRootName;
+    }
+
+    /**
      * Get predefined zones list
      *
      * @return
