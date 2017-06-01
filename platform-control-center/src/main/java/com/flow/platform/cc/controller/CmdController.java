@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;

@@ -65,22 +65,32 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         return cmdList;
     }
 
+    /**
+     * Send cmd in transaction for agent status
+     *
+     * @param cmd
+     * @return
+     */
     @Override
     public Cmd send(CmdBase cmd) {
-        AgentPath agentPath = new AgentPath(cmd.getZone(), cmd.getAgent());
-        Agent target = agentService.find(agentPath);
-        String agentNodePath = zkHelper.getZkPath(agentPath);
         mockTrans.lock();
 
         try {
-            // check agent is online
-            if (target == null || ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
+            Agent target = selectAgent(cmd);
+            if (target == null) {
                 throw new AgentErr.NotFoundException(cmd.getAgent());
+            }
+
+            // double check agent in zk node
+            String agentNodePath = zkHelper.getZkPath(target.getPath());
+            if (ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
+                throw new AgentErr.NotFoundException(target.getPath().toString());
             }
 
             // create cmd info
             Cmd cmdInfo = create(cmd);
 
+            // set agent status before cmd sent
             switch (cmd.getType()) {
                 case RUN_SHELL:
                     if (target.getStatus() != Agent.Status.IDLE) {
@@ -170,6 +180,30 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         } catch (InvalidPathException e) {
             throw new IllegalArgumentException("Zipped log file not exist");
         }
+    }
+
+    /**
+     * Select agent by AgentPath
+     *  - auto select agent if only defined zone name
+     *
+     * @param cmd
+     * @return Agent or null
+     */
+    private Agent selectAgent(CmdBase cmd) {
+        AgentPath agentPath = cmd.getAgentPath();
+
+        // auto select agent inside zone
+        if (agentPath.getName() == null) {
+            List<Agent> availableList = agentService.findAvailable(agentPath.getZone());
+            if (availableList.size() > 0) {
+                Agent target = availableList.get(0);
+                cmd.setAgentPath(target.getPath()); // reset cmd path
+                return target;
+            }
+            return null;
+        }
+
+        return agentService.find(agentPath);
     }
 
     /**

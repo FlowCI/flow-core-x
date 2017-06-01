@@ -4,6 +4,7 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by gy@fir.im on 24/05/2017.
@@ -41,7 +42,7 @@ public interface AgentService {
      * @param zone
      * @return
      */
-    Collection<Agent> findAvailable(String zone);
+    List<Agent> findAvailable(String zone);
 
     /**
      * Update agent status

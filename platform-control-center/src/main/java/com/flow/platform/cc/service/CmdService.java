@@ -41,7 +41,12 @@ public interface CmdService {
     List<Cmd> listByAgentPath(AgentPath agentPath);
 
     /**
-     * Send ZkCmd to agent
+     * Send CmdBase with AgentPath which to identify where is cmd destination
+     *  - AgentPath,
+     *   - 'zone' field is required
+     *   - 'name' field is optional
+     *      - which mean system will automatic select idle agent to send
+     *        throw AgentErr.NotAvailableException if no idle agent
      *
      * @param cmd
      * @return command objc with id

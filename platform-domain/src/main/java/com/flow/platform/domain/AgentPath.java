@@ -10,16 +10,22 @@ import java.io.Serializable;
  */
 public class AgentPath implements Serializable {
 
-    public final static String RESERVED_CHAR = "#";
+    private final static String RESERVED_CHAR = "#";
 
     private String zone;
 
     private String name;
 
     public AgentPath(String zone, String name) {
-        if (zone.contains(RESERVED_CHAR) || name.contains(RESERVED_CHAR)) {
+        if (zone.contains(RESERVED_CHAR)) {
             throw new IllegalArgumentException("Agent key not valid");
         }
+
+        // name is nullable
+        if (name != null && name.contains(RESERVED_CHAR)) {
+            throw new IllegalArgumentException("Agent key not valid");
+        }
+
         this.zone = zone;
         this.name = name;
     }
@@ -40,13 +46,13 @@ public class AgentPath implements Serializable {
         AgentPath agentPath = (AgentPath) o;
 
         if (!zone.equals(agentPath.zone)) return false;
-        return name.equals(agentPath.name);
+        return name != null ? name.equals(agentPath.name) : agentPath.name == null;
     }
 
     @Override
     public int hashCode() {
         int result = zone.hashCode();
-        result = 31 * result + name.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         return result;
     }
 

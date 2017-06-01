@@ -2,8 +2,6 @@ package com.flow.platform.cc.controller;
 
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

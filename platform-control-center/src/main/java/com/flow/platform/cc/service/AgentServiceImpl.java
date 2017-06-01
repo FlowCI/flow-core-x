@@ -57,8 +57,20 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     }
 
     @Override
-    public Collection<Agent> findAvailable(String zone) {
-        return null;
+    public List<Agent> findAvailable(String zone) {
+        Collection<Agent> onlines = onlineList(zone);
+
+        // find available agent
+        List<Agent> availableList = new LinkedList<>();
+        for (Agent agent : onlines) {
+            if (agent.getStatus() == Agent.Status.IDLE) {
+                availableList.add(agent);
+            }
+        }
+
+        // sort by update date, the first element is longest idle
+        availableList.sort(Comparator.comparing(Agent::getUpdatedDate));
+        return availableList;
     }
 
     @Override

@@ -23,10 +23,14 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 
+import static java.time.LocalDate.of;
 import static junit.framework.TestCase.fail;
 
 /**
@@ -229,6 +233,36 @@ public class CmdServiceTest extends TestBase {
         List<Cmd> cmdList = cmdService.listByAgentPath(cmd.getAgentPath());
         Assert.assertEquals(2, cmdList.size());
         Assert.assertTrue(cmdList.get(1).getStatus().contains(Cmd.Status.REJECTED));
+    }
+
+    @Test
+    public void should_auto_select_idle_agent_when_cmd_send() throws Throwable {
+        // given:
+        String zoneName = zkHelper.getZones()[0];
+        AgentPath agentIdle1 = new AgentPath(zoneName, "idle-agent-01");
+        AgentPath agentIdle2 = new AgentPath(zoneName, "idle-agent-02");
+        AgentPath agentBusy1 = new AgentPath(zoneName, "busy-agent-01");
+
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentIdle1), "");
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentIdle2), "");
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentBusy1), "");
+        Thread.sleep(1000);
+
+        // report busy status
+        CmdBase cmdToMakeBusy = new CmdBase(agentBusy1, Cmd.Type.RUN_SHELL, "echo \"hello\"");
+        cmdService.send(cmdToMakeBusy);
+        Assert.assertEquals(Agent.Status.BUSY, agentService.find(agentBusy1).getStatus());
+
+        // set idle agent 1 date, before idle agent 2
+        Instant date = LocalDate.of(2017, 5, 10).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        agentService.find(agentIdle1).setUpdatedDate(Date.from(date));
+
+        // when: send cmd to zone
+        CmdBase cmdBase = new CmdBase(zoneName, null, Cmd.Type.RUN_SHELL, "echo \"hello\"");
+        Cmd cmd = cmdService.send(cmdBase);
+
+        // then: should select agent idle 1 as target
+        Assert.assertEquals(agentIdle1, cmd.getAgentPath());
     }
 
     @Test(expected = AgentErr.NotFoundException.class)
