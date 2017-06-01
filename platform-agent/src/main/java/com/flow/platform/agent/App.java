@@ -15,8 +15,6 @@ import java.io.IOException;
 public class App {
 
     private static final String ZK_HOME = "54.222.129.38:2181";
-    private static final int ZK_TIMEOUT = 2000;
-
     private static final String AGENT_ZONE = "firmac";
     private static final String AGENT_NAME = "test-001";
 
@@ -45,7 +43,7 @@ public class App {
         try {
             Logger.info("========= Init config =========");
 
-            Config.AGENT_CONFIG = Config.loadAgentConfig(zkHome, ZK_TIMEOUT, zone, 5);
+            Config.AGENT_CONFIG = Config.loadAgentConfig(zkHome, Config.zkTimeout(), zone, 5);
             Logger.info(String.format(" -- Agent Config: %s", Config.agentConfig()));
 
             Config.ZK_URL = zkHome;
@@ -64,7 +62,7 @@ public class App {
         }
 
         try {
-            AgentManager client = new AgentManager(zkHome, ZK_TIMEOUT, zone, name);
+            AgentManager client = new AgentManager(zkHome, Config.zkTimeout(), zone, name);
             new Thread(client).start();
         } catch (Throwable e) {
             Logger.err(e, "Got exception when agent running");

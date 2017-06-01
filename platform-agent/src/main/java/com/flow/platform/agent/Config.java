@@ -29,6 +29,7 @@ public class Config {
     public final static String PROP_SUDO_PASSWORD = "flow.agent.sudo.pwd";
     public final static String PROP_DEL_AGENT_LOG = "flow.agent.log.delete";
     public final static String PROP_LOG_DIR = "flow.agent.log.dir";
+    public final static String PROP_ZK_TIMEOUT = "flow.agent.zk.timeout";
 
     public static AgentConfig AGENT_CONFIG;
     public static String ZK_URL;
@@ -38,6 +39,11 @@ public class Config {
     public static boolean isDebug() {
         String boolStr = System.getProperty(PROP_IS_DEBUG, "false");
         return Boolean.parseBoolean(boolStr);
+    }
+
+    public static int zkTimeout() {
+        String intStr = System.getProperty(PROP_ZK_TIMEOUT, "10000"); // default 10 seconds
+        return Integer.parseInt(intStr);
     }
 
     /**

@@ -57,6 +57,11 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     }
 
     @Override
+    public Collection<Agent> findAvailable(String zone) {
+        return null;
+    }
+
+    @Override
     public Collection<Agent> onlineList(String zone) {
         Collection<Agent> zoneAgents = new ArrayList<>(agentOnlineList.size());
         Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());

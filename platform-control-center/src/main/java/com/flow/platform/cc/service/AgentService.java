@@ -36,6 +36,14 @@ public interface AgentService {
     Agent find(AgentPath key);
 
     /**
+     * Find available agent by zone name
+     *
+     * @param zone
+     * @return
+     */
+    Collection<Agent> findAvailable(String zone);
+
+    /**
      * Update agent status
      *
      * @param path
