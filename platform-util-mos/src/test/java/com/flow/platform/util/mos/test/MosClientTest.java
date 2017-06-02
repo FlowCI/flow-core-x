@@ -1,9 +1,6 @@
 package com.flow.platform.util.mos.test;
 
-import com.flow.platform.util.mos.ImageTemplate;
-import com.flow.platform.util.mos.Instance;
-import com.flow.platform.util.mos.MosClient;
-import com.flow.platform.util.mos.Zone;
+import com.flow.platform.util.mos.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -51,11 +48,20 @@ public class MosClientTest {
         Assert.assertEquals(4, zones.size()); // keep track mos zone change
     }
 
-    @Ignore
+    @Test
+    public void should_get_nat_gateway() throws Exception {
+        List<NatGateway> gateways = client.getNatGateWay();
+        Assert.assertNotNull(gateways);
+        Assert.assertTrue(gateways.size() >= 0);
+    }
+
     @Test
     public void should_create_instance() throws Exception {
         Instance instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-unit-test-01");
         Assert.assertNotNull(instance.getInstanceId());
         Assert.assertEquals("init", instance.getStatus());
+
+        Thread.sleep(5000);
+        client.deleteInstance(instance.getInstanceId());
     }
 }
