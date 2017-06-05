@@ -97,14 +97,17 @@ public class MosClient {
         }
 
         // bind net
-        if (!bindNatGateway(instance.getInstanceId())) {
-            String msg = String.format("Fail to bind nat gateway for instance: %s, return false",
-                    instance.getInstanceId());
+        try {
+            if (!bindNatGateway(instance.getInstanceId())) {
+                String msg = String.format("Fail to bind nat gateway for instance: %s, return false",
+                        instance.getInstanceId());
 
+                throw new MosException(msg, null);
+            }
+        } catch (Throwable e) {
             // force to terminate instance if bind nat gateway failure
             deleteInstance(instance.getInstanceId());
-
-            throw new MosException(msg, null);
+            throw new MosException(e.getMessage(), e);
         }
 
         return instance;
