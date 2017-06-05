@@ -1,14 +1,10 @@
 package com.flow.platform.util.mos.test;
 
 import com.flow.platform.util.mos.*;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
+import java.util.LinkedList;
 import java.util.List;
-
-import static junit.framework.TestCase.fail;
 
 /**
  * Created by gy@fir.im on 01/06/2017.
@@ -21,9 +17,16 @@ public class MosClientTest {
 
     private static MosClient client;
 
+    private final List<Instance> instanceList = new LinkedList<>();
+
     @BeforeClass
     public static void beforeClass() throws Throwable {
         client = new MosClient(TEST_KEY, TEST_SECRET);
+    }
+
+    @Before
+    public void before() {
+        instanceList.clear();
     }
 
     @Test
@@ -59,18 +62,35 @@ public class MosClientTest {
 
     @Test
     public void should_create_instance() throws Exception {
-        // given: create and start instance
+        // when: create and start instance
         Instance instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-unit-test-01");
         Assert.assertNotNull(instance.getInstanceId());
         Assert.assertEquals("init", instance.getStatus());
+        instanceList.add(instance);
 
         // when: wait instance status to running
         Thread.sleep(20000);
         String status = client.instanceStatus(instance.getInstanceId());
         Assert.assertEquals(Instance.STATUS_RUNNING, status);
+    }
 
-        // then: delete instance
-        Thread.sleep(5000);
-        client.deleteInstance(instance.getInstanceId());
+    @Test
+    public void should_create_instance_and_load_status_in_sync() throws InterruptedException {
+        // when: create and start instance
+        Instance instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-unit-test-02");
+        Assert.assertNotNull(instance.getInstanceId());
+        Assert.assertEquals("init", instance.getStatus());
+        instanceList.add(instance);
+
+        // then: wait instance status to running
+        Assert.assertEquals(true,
+                client.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 1000 * 20));
+    }
+
+    @After
+    public void after() {
+        for (Instance instance : instanceList) {
+            client.deleteInstance(instance.getInstanceId());
+        }
     }
 }

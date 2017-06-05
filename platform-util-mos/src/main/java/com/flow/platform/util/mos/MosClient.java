@@ -7,6 +7,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by gy@fir.im on 01/06/2017.
@@ -187,6 +190,56 @@ public class MosClient {
             throw new MosException("InstanceStatus: Exception from request", e);
         }
     }
+
+    /**
+     * Periodically retrive instance status, exit until got expect stauts or timeout
+     *
+     * @param instanceId
+     * @param expectStatus
+     * @param timeout      in millseconds
+     * @return boolean is status loaded or not
+     */
+    public boolean instanceStatusSync(final String instanceId, final String expectStatus, final long timeout) {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AtomicBoolean canExit = new AtomicBoolean(false);
+        final AtomicBoolean canLoadInstance = new AtomicBoolean(true);
+
+        try {
+            Thread loadInstanceThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        while (!canExit.get()) {
+                            String loadedStatus = instanceStatus(instanceId);
+                            System.out.println(loadedStatus);
+
+                            if (Objects.equals(expectStatus, loadedStatus)) {
+                                latch.countDown();
+                                break;
+                            }
+                            Thread.sleep(1000);
+                        }
+                    } catch (Throwable e) {
+                        canLoadInstance.set(false);
+                        latch.countDown();
+                    }
+                }
+            });
+
+            loadInstanceThread.setDaemon(true);
+            loadInstanceThread.start();
+
+            if (latch.await(timeout, TimeUnit.MILLISECONDS) && canLoadInstance.get()) {
+                return true;
+            }
+            return false;
+        } catch (InterruptedException e) {
+            return false;
+        } finally {
+            canExit.set(true);
+        }
+    }
+
 
     private void initAvailableZones() {
         JSONObject raw = null;

@@ -11,9 +11,9 @@ import java.util.Date;
  */
 public class Instance implements Serializable {
 
-    public final static String STATUS_DEPLOYING = "deploying";
     public final static String STATUS_DISK = "disk";
-    public final static String STATUS_READY = "ready";
+    public final static String STATUS_DEPLOYING = "deploying";
+    public final static String STATUS_READY = "start_start";
     public final static String STATUS_RUNNING = "running";
 
     private Integer cpu;
@@ -155,5 +155,20 @@ public class Instance implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Instance instance = (Instance) o;
+
+        return instanceId != null ? instanceId.equals(instance.instanceId) : instance.instanceId == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return instanceId != null ? instanceId.hashCode() : 0;
     }
 }
