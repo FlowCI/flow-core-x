@@ -11,10 +11,12 @@ import java.util.Date;
  */
 public class Instance implements Serializable {
 
-    public final static String STATUS_DISK = "disk";
-    public final static String STATUS_DEPLOYING = "deploying";
-    public final static String STATUS_READY = "start_start";
-    public final static String STATUS_RUNNING = "running";
+    public final static String STATUS_DISK = "disk";                        // 0
+    public final static String STATUS_START_DEPLOY = "start_deploy";        // 1
+    public final static String STATUS_DEPLOYING = "deploying";              // 2
+    public final static String STATUS_READY = "ready";                      // 3
+    public final static String STATUS_START = "start_start";                // 4
+    public final static String STATUS_RUNNING = "running";                  // 5
 
     private Integer cpu;
 

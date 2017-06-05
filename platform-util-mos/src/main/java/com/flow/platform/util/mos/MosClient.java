@@ -19,15 +19,15 @@ public class MosClient {
 
     private final static Gson GSON = new Gson();
 
-    private final static String DEFAULT_API_URL = "https://mosapi.meituan.com/mcs/v1";
-    private final static String DEFAULT_REGION = "Beijing";
+    private final static String DEFAULT_API_URL = MosConfig.DEFAULT_API_URL;
+    private final static String DEFAULT_REGION = MosConfig.DEFAULT_REGION;
 
-    private final static String DEFAULT_NET_ID = "2a9e0312-2e85-47d5-ab86-776861bd84bc";
-    private final static String DEFAULT_KEY_NAME = "53f9459b-2bfc-48c3-9bf8-fb59b8cc077f";
-    private final static String DEFAULT_ZONE_ID = "df2e198b-a8cd-45a5-8a9e-d6314e809031"; // 北京4区, runze
-    private final static String DEFAULT_INSTANCE_TYPE = "781f1634-da01-4762-9702-af82f3fa3911";
-    private final static String DEFAULT_DURATION = "1H";
-    private final static String DEFAULT_GROUP_ID = "0907776e-5784-4d25-8ce1-81689084fcbb";
+    private final static String DEFAULT_NET_ID = MosConfig.DEFAULT_NET_ID;
+    private final static String DEFAULT_KEY_NAME = MosConfig.DEFAULT_KEY_NAME;
+    private final static String DEFAULT_ZONE_ID = MosConfig.DEFAULT_ZONE_ID;
+    private final static String DEFAULT_INSTANCE_TYPE = MosConfig.DEFAULT_INSTANCE_TYPE;
+    private final static String DEFAULT_DURATION = MosConfig.DEFAULT_DURATION;
+    private final static String DEFAULT_GROUP_ID = MosConfig.DEFAULT_GROUP_ID;
 
     private final static int DEFAULT_TIMEOUT = 10; // request timeout in seconds
 
@@ -214,8 +214,6 @@ public class MosClient {
                     try {
                         while (!canExit.get()) {
                             String loadedStatus = instanceStatus(instanceId);
-                            System.out.println(loadedStatus);
-
                             if (Objects.equals(expectStatus, loadedStatus)) {
                                 latch.countDown();
                                 break;
