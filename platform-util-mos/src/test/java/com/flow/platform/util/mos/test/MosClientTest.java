@@ -8,6 +8,8 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static junit.framework.TestCase.fail;
+
 /**
  * Created by gy@fir.im on 01/06/2017.
  * Copyright fir.im
@@ -57,10 +59,17 @@ public class MosClientTest {
 
     @Test
     public void should_create_instance() throws Exception {
+        // given: create and start instance
         Instance instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-unit-test-01");
         Assert.assertNotNull(instance.getInstanceId());
         Assert.assertEquals("init", instance.getStatus());
 
+        // when: wait instance status to running
+        Thread.sleep(20000);
+        String status = client.instanceStatus(instance.getInstanceId());
+        Assert.assertEquals(Instance.STATUS_RUNNING, status);
+
+        // then: delete instance
         Thread.sleep(5000);
         client.deleteInstance(instance.getInstanceId());
     }

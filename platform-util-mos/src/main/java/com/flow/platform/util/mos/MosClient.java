@@ -97,6 +97,10 @@ public class MosClient {
         if (!bindNatGateway(instance.getInstanceId())) {
             String msg = String.format("Fail to bind nat gateway for instance: %s, return false",
                     instance.getInstanceId());
+
+            // force to terminate instance if bind nat gateway failure
+            deleteInstance(instance.getInstanceId());
+
             throw new MosException(msg, null);
         }
 
@@ -155,8 +159,33 @@ public class MosClient {
         }
     }
 
-    public void deleteInstance(String instanceId) throws Exception {
-        client.TerminateInstance(instanceId);
+    public void deleteInstance(String instanceId) {
+        try {
+            client.TerminateInstance(instanceId);
+        } catch (Throwable e) {
+            throw new MosException("DeleteInstance: Exception from request", e);
+        }
+    }
+
+    public void stopInstance(String instanceId, boolean force) {
+        try {
+            client.StopInstance(instanceId, force);
+        } catch (Throwable e) {
+            throw new MosException("StopInstance: Exception from request", e);
+        }
+    }
+
+    public String instanceStatus(String instanceId) {
+        try {
+            JSONObject response = client.DescribeInstanceStatus(instanceId);
+            return response.getJSONObject("DescribeInstanceStatusResponse")
+                    .getJSONObject("InstanceStatus")
+                    .getString("status");
+        } catch (JSONException e) {
+            throw new MosException("InstanceStatus: Wrong response data, maybe instance doesn't exist.", e);
+        } catch (Throwable e) {
+            throw new MosException("InstanceStatus: Exception from request", e);
+        }
     }
 
     private void initAvailableZones() {
