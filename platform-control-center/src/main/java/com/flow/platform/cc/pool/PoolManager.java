@@ -1,5 +1,8 @@
 package com.flow.platform.cc.pool;
 
+import com.flow.platform.util.mos.Instance;
+
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -7,6 +10,20 @@ import java.util.List;
  * Copyright fir.im
  */
 public interface PoolManager {
+
+    /**
+     * Get running instance list
+     *
+     * @return
+     */
+    Collection<Instance> runningInstance();
+
+    /**
+     * Get failure instance which start with err
+     *
+     * @return
+     */
+    Collection<Instance> failureInstance();
 
     /**
      * Async to start instance
@@ -20,4 +37,9 @@ public interface PoolManager {
      * Periodically check and delete failure instance
      */
     void deleteFailureInstance();
+
+    /**
+     * Delete all instance and clean the pool
+     */
+    void clean();
 }

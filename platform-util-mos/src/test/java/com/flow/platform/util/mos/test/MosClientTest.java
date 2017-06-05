@@ -60,31 +60,18 @@ public class MosClientTest {
         Assert.assertTrue(gateways.size() >= 0);
     }
 
+    @Ignore
     @Test
-    public void should_create_instance() throws Exception {
+    public void should_create_instance_and_load_status_in_sync() throws InterruptedException {
         // when: create and start instance
         Instance instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-unit-test-01");
         Assert.assertNotNull(instance.getInstanceId());
         Assert.assertEquals("init", instance.getStatus());
         instanceList.add(instance);
 
-        // when: wait instance status to running
-        Thread.sleep(20000);
-        String status = client.instanceStatus(instance.getInstanceId());
-        Assert.assertEquals(Instance.STATUS_RUNNING, status);
-    }
-
-    @Test
-    public void should_create_instance_and_load_status_in_sync() throws InterruptedException {
-        // when: create and start instance
-        Instance instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-unit-test-02");
-        Assert.assertNotNull(instance.getInstanceId());
-        Assert.assertEquals("init", instance.getStatus());
-        instanceList.add(instance);
-
         // then: wait instance status to running
         Assert.assertEquals(true,
-                client.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 1000 * 20));
+                client.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 1000 * 30));
     }
 
     @After

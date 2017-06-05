@@ -8,11 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 /**
@@ -21,7 +18,7 @@ import java.util.concurrent.Executor;
  * Created by gy@fir.im on 01/06/2017.
  * Copyright fir.im
  */
-@Component
+@Component(value = "mosPoolManager")
 public class MosPoolManager implements PoolManager {
 
     @Value("${mos.key}")
@@ -33,16 +30,19 @@ public class MosPoolManager implements PoolManager {
     @Value("${mos.image}")
     private String mosImage;
 
+    @Value("${mos.instance_name_pattern}")
+    private String mosInstanceNamePattern;
+
     @Autowired
     private Executor taskExecutor;
 
     private MosClient mosClient;
 
     // running mos instance
-    private final Queue<Instance> mosRunningQueue = new ConcurrentLinkedQueue<>();
+    private final Map<String, Instance> mosRunningQueue = new ConcurrentHashMap<>();
 
     // failed mos instances
-    private final Queue<Instance> mosFailureQueue = new ConcurrentLinkedQueue<>();
+    private final Map<String, Instance> mosFailureQueue = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init () throws Throwable {
@@ -50,10 +50,20 @@ public class MosPoolManager implements PoolManager {
     }
 
     @Override
+    public Collection<Instance> runningInstance() {
+        return mosRunningQueue.values();
+    }
+
+    @Override
+    public Collection<Instance> failureInstance() {
+        return mosFailureQueue.values();
+    }
+
+    @Override
     public List<String> batchStartInstance(int numOfInstance) {
         List<String> expectNameList = new ArrayList<>(numOfInstance);
         for (int i = 0; i < numOfInstance; i ++) {
-            String instanceName = String.format("flow-platform-mos-%s", UUID.randomUUID());
+            String instanceName = String.format(mosInstanceNamePattern, UUID.randomUUID());
             taskExecutor.execute(new StartMosInstanceWorker(mosClient, mosImage, instanceName));
             expectNameList.add(instanceName);
         }
@@ -63,8 +73,22 @@ public class MosPoolManager implements PoolManager {
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedRate = 60 * 1000)
     public void deleteFailureInstance() {
-        for (Instance instance : mosFailureQueue) {
-            mosClient.deleteInstance(instance.getInstanceId());
+        cleanRunningInstance(mosFailureQueue);
+    }
+
+    @Override
+    public void clean() {
+        deleteFailureInstance();
+        cleanRunningInstance(mosRunningQueue);
+    }
+
+    private void cleanRunningInstance(Map<String, Instance> instanceMap) {
+        Iterator<Map.Entry<String, Instance>> iterator = instanceMap.entrySet().iterator();
+        while(iterator.hasNext()) {
+            Map.Entry<String, Instance> entry = iterator.next();
+            Instance mosInstance = entry.getValue();
+            mosClient.deleteInstance(mosInstance.getInstanceId());
+            iterator.remove();
         }
     }
 
@@ -91,14 +115,15 @@ public class MosPoolManager implements PoolManager {
 
                 // wait instance status to running with 30 seconds timeout
                 if (mosClient.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 30 * 1000)) {
-                    mosRunningQueue.add(instance);
+                    System.out.println(instance);
+                    mosRunningQueue.put(instanceName, instance);
                 } else {
-                    mosFailureQueue.add(instance);
+                    mosFailureQueue.put(instanceName, instance);
                 }
             } catch (Throwable e) {
                 // TODO: should add logging
                 if (instance != null) {
-                    mosFailureQueue.add(instance);
+                    mosFailureQueue.put(instanceName, instance);
                 }
             }
         }
