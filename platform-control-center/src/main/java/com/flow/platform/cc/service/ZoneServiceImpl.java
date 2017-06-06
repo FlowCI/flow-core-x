@@ -1,11 +1,15 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.cloud.InstanceManager;
+import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -20,6 +24,8 @@ import java.util.concurrent.Executor;
 @Service(value = "zoneService")
 public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
+    private static final int MIN_NUM_OF_IDLE_AGENT = 2;
+
     @Autowired
     private AgentService agentService;
 
@@ -28,6 +34,9 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
     @Autowired
     private Executor taskExecutor;
+
+    @Autowired
+    private SpringContextUtil springContextUtil;
 
     private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
@@ -65,7 +74,35 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
     @Override
     public List<String> getZones() {
-        return ZkNodeHelper.getChildrenNodes(zkClient, zkHelper.getRoot());
+        String rootName = zkHelper.getRoot();
+        String rootPath = ZkPathBuilder.create(rootName).path();
+        return ZkNodeHelper.getChildrenNodes(zkClient, rootPath);
+    }
+
+    @Override
+    @Scheduled(initialDelay = 10 * 1000, fixedRate = 120 * 1000)
+    public void keepIdleAgent() {
+        if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
+            System.out.println("ZoneService.keepIdleAgent: Task not enabled");
+            return;
+        }
+
+        // get num of idle agent
+        for (String zone : getZones()) {
+            int numOfIdle = agentService.findAvailable(zone).size();
+
+            System.out.println(" ===== " + numOfIdle);
+
+            // TODO: find related instance manager
+            // find instance manager by zone
+            String beanName = String.format("%sInstanceManager", zone);
+            InstanceManager instanceManager = (InstanceManager) springContextUtil.getBean(beanName);
+            if (instanceManager != null) {
+                if (numOfIdle <= MIN_NUM_OF_IDLE_AGENT) {
+                    instanceManager.batchStartInstance(MIN_NUM_OF_IDLE_AGENT * 2);
+                }
+            }
+        }
     }
 
     private Collection<AgentPath> buildKeys(String zone, Collection<String> agents) {

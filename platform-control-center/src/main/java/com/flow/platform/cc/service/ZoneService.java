@@ -25,4 +25,10 @@ public interface ZoneService {
      * @return zone list
      */
     List<String> getZones();
+
+    /**
+     * Scheduler task, periodically, every 1 min to check available agent in zone
+     * It will start instance if num of available agent not enough
+     */
+    void keepIdleAgent();
 }

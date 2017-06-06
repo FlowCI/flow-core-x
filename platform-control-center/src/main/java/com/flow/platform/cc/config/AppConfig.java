@@ -28,6 +28,13 @@ public class AppConfig {
 
     public final static Path CMD_LOG_DIR = Paths.get(System.getenv("HOME"), "uploaded-agent-log");
 
+    /**
+     * Core Config
+     * Enable scheduler task for check idle agent and start instance by zone
+     */
+    public final static boolean ENABLE_KEEP_IDLE_AGENT_TASK =
+            Boolean.parseBoolean(System.getProperty("flow.cc.task.keep_idle_agent", "true"));
+
     private final static int ASYNC_POOL_SIZE = 100;
 
     @Value("${agent.config.socket_io_url}")

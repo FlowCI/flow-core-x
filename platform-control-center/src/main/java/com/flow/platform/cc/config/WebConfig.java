@@ -17,8 +17,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -37,8 +35,6 @@ import java.util.List;
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private final static int MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
-
-    private final static Path UPLOAD_TEMP_FOLDER = Paths.get(System.getenv("HOME"), "upload");
 
     @Bean
     public PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {

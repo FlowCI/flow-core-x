@@ -2,7 +2,6 @@ package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.WebConfig;
-import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.google.gson.Gson;
@@ -21,7 +20,6 @@ import org.springframework.web.context.WebApplicationContext;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -37,6 +35,8 @@ public abstract class TestBase {
     static {
         try {
             System.setProperty("flow.cc.env", "local");
+            System.setProperty("flow.cc.task.keep_idle_agent", "false");
+
             ZkLocalBuilder.start();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
