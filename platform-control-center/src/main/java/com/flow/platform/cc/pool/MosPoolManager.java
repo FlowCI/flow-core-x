@@ -84,7 +84,7 @@ public class MosPoolManager implements PoolManager {
      */
     @Override
     public void clean() {
-        deleteFailureInstance();
+        cleanInstance(mosFailureQueue);
         cleanInstance(mosRunningQueue);
     }
 
