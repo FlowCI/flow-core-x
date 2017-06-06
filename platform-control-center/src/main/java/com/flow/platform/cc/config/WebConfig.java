@@ -31,7 +31,7 @@ import java.util.List;
 @ComponentScan({
         "com.flow.platform.cc.controller",
         "com.flow.platform.cc.service",
-        "com.flow.platform.cc.pool",
+        "com.flow.platform.cc.cloud",
         "com.flow.platform.cc.util"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {

@@ -1,4 +1,4 @@
-package com.flow.platform.cc.pool;
+package com.flow.platform.cc.cloud;
 
 import com.flow.platform.util.mos.Instance;
 import com.flow.platform.util.mos.MosClient;
@@ -13,13 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 /**
- * Meituan cloud pool manager
+ * Meituan cloud cloud manager
  * <p>
  * Created by gy@fir.im on 01/06/2017.
  * Copyright fir.im
  */
-@Component(value = "mosPoolManager")
-public class MosPoolManager implements PoolManager {
+@Component(value = "mosInstanceManager")
+public class MosInstanceManager implements InstanceManager {
 
     @Value("${mos.key}")
     private String mosKey;

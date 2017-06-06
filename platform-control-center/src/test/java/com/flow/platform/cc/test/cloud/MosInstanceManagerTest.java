@@ -1,6 +1,6 @@
-package com.flow.platform.cc.test.pool;
+package com.flow.platform.cc.test.cloud;
 
-import com.flow.platform.cc.pool.MosPoolManager;
+import com.flow.platform.cc.cloud.MosInstanceManager;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.util.mos.Instance;
 import org.junit.After;
@@ -16,12 +16,12 @@ import java.util.List;
  * Created by gy@fir.im on 05/06/2017.
  * Copyright fir.im
  */
-public class MosPoolManagerTest extends TestBase {
+public class MosInstanceManagerTest extends TestBase {
 
     private final static int POOL_SIZE = 1;
 
     @Resource
-    private MosPoolManager mosPoolManager;
+    private MosInstanceManager mosPoolManager;
 
     @Ignore
     @Test

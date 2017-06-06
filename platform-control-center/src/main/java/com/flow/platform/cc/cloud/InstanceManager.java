@@ -1,4 +1,4 @@
-package com.flow.platform.cc.pool;
+package com.flow.platform.cc.cloud;
 
 import com.flow.platform.util.mos.Instance;
 
@@ -9,7 +9,7 @@ import java.util.List;
  * Created by gy@fir.im on 05/06/2017.
  * Copyright fir.im
  */
-public interface PoolManager {
+public interface InstanceManager {
 
     /**
      * Get running instance list
@@ -39,7 +39,7 @@ public interface PoolManager {
     void deleteFailureInstance();
 
     /**
-     * Delete all instance and clean the pool
+     * Delete all instance and clean the cloud
      */
     void clean();
 }
