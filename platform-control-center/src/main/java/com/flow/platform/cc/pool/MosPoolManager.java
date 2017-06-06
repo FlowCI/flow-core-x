@@ -70,19 +70,25 @@ public class MosPoolManager implements PoolManager {
         return expectNameList;
     }
 
+    /**
+     * Delete failed created instance every 2 mins
+     */
     @Override
-    @Scheduled(initialDelay = 10 * 1000, fixedRate = 60 * 1000)
+    @Scheduled(initialDelay = 10 * 1000, fixedRate = 120 * 1000)
     public void deleteFailureInstance() {
-        cleanRunningInstance(mosFailureQueue);
+        cleanInstance(mosFailureQueue);
     }
 
+    /**
+     * Delete all failure and running instance
+     */
     @Override
     public void clean() {
         deleteFailureInstance();
-        cleanRunningInstance(mosRunningQueue);
+        cleanInstance(mosRunningQueue);
     }
 
-    private void cleanRunningInstance(Map<String, Instance> instanceMap) {
+    private void cleanInstance(Map<String, Instance> instanceMap) {
         Iterator<Map.Entry<String, Instance>> iterator = instanceMap.entrySet().iterator();
         while(iterator.hasNext()) {
             Map.Entry<String, Instance> entry = iterator.next();

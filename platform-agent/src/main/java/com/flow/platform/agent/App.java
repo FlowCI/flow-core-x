@@ -19,7 +19,7 @@ public class App {
     private static final String AGENT_NAME = "test-001";
 
     public static void main(String args[]) {
-        String zkHome; // zookeeper addres
+        String zkHome; // zookeeper address
         String zone; // agent zone
         String name; // agent name
 
