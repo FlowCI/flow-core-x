@@ -33,7 +33,7 @@ public class AppConfig {
      * Enable scheduler task for check idle agent and start instance by zone
      */
     public final static boolean ENABLE_KEEP_IDLE_AGENT_TASK =
-            Boolean.parseBoolean(System.getProperty("flow.cc.task.keep_idle_agent", "false"));
+            Boolean.parseBoolean(System.getProperty("flow.cc.task.keep_idle_agent", "true"));
 
     private final static int ASYNC_POOL_SIZE = 100;
 

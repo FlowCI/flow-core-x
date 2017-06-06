@@ -26,7 +26,7 @@ import java.util.concurrent.Executor;
 @Service(value = "zoneService")
 public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
-    private static final int MIN_NUM_OF_IDLE_AGENT = 2;
+    private static final int MIN_NUM_OF_IDLE_AGENT = 1;
 
     @Autowired
     private AgentService agentService;
@@ -80,7 +80,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
     }
 
     @Override
-    @Scheduled(initialDelay = 10 * 1000, fixedRate = 120 * 1000)
+    @Scheduled(initialDelay = 10 * 1000, fixedRate = 60 * 1000)
     public void keepIdleAgent() {
         if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
             System.out.println("ZoneService.keepIdleAgent: Task not enabled");
@@ -97,8 +97,8 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
             String beanName = String.format("%sInstanceManager", zone.getCloudProvider());
             InstanceManager instanceManager = (InstanceManager) springContextUtil.getBean(beanName);
             if (instanceManager != null) {
-                if (numOfIdle <= MIN_NUM_OF_IDLE_AGENT) {
-                    instanceManager.batchStartInstance(MIN_NUM_OF_IDLE_AGENT * 2);
+                if (numOfIdle < MIN_NUM_OF_IDLE_AGENT) {
+                    instanceManager.batchStartInstance(MIN_NUM_OF_IDLE_AGENT);
                 }
             }
         }
