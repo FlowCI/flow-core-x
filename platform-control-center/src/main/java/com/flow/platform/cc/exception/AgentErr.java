@@ -17,4 +17,10 @@ public class AgentErr {
             super(String.format("Cannot receive command since agent '%s' is offline or busy", agentName));
         }
     }
+
+    public static class AgentMustBeSpecified extends RuntimeException {
+        public AgentMustBeSpecified() {
+            super("Agent name must be specified when cmd type is not RUN_SHELL");
+        }
+    }
 }
