@@ -90,8 +90,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         // get num of idle agent
         for (Zone zone : getZones()) {
             int numOfIdle = agentService.findAvailable(zone.getName()).size();
-
-            System.out.println(" ===== " + numOfIdle);
+            System.out.println(String.format("Num of idle agent in zone %s = %s", zone.getName(), numOfIdle));
 
             // TODO: find related instance manager
             // find instance manager by zone

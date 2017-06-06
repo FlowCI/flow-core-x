@@ -2,6 +2,7 @@ package com.flow.platform.cc.cloud;
 
 import com.flow.platform.util.mos.Instance;
 import com.flow.platform.util.mos.MosClient;
+import com.flow.platform.util.mos.MosException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -74,7 +75,7 @@ public class MosInstanceManager implements InstanceManager {
      * Delete failed created instance every 2 mins
      */
     @Override
-    @Scheduled(initialDelay = 10 * 1000, fixedRate = 120 * 1000)
+    @Scheduled(initialDelay = 10 * 1000, fixedRate = 60 * 1000)
     public void deleteFailureInstance() {
         cleanInstance(mosFailureQueue);
     }
@@ -128,8 +129,14 @@ public class MosInstanceManager implements InstanceManager {
                 }
             } catch (Throwable e) {
                 // TODO: should add logging
-                if (instance != null) {
-                    mosFailureQueue.put(instanceName, instance);
+
+                if (e instanceof MosException) {
+                    MosException mosException = (MosException) e;
+
+                    // should deal with failed created instance
+                    if (mosException.getInstance() != null) {
+                        mosFailureQueue.put(instanceName, mosException.getInstance());
+                    }
                 }
             }
         }

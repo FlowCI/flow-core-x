@@ -64,19 +64,28 @@ public class MosClientTest {
     @Test
     public void should_create_instance_and_load_status_in_sync() throws InterruptedException {
         // when: create and start instance
-        Instance instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-unit-test-01");
-        Assert.assertNotNull(instance.getInstanceId());
-        Assert.assertEquals("init", instance.getStatus());
-        instanceList.add(instance);
+        Instance instance = null;
 
-        // then: wait instance status to running
-        Assert.assertEquals(true,
-                client.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 1000 * 30));
+        try {
+            instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-test-01");
+            Assert.assertNotNull(instance.getInstanceId());
+            Assert.assertEquals("init", instance.getStatus());
+            instanceList.add(instance);
+
+            // then: wait instance status to running
+            Assert.assertEquals(true,
+                    client.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 1000 * 30));
+        } catch (MosException e) {
+            if (e.getInstance() != null) {
+                instanceList.add(e.getInstance());
+            }
+        }
     }
 
     @After
     public void after() {
         for (Instance instance : instanceList) {
+            client.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 1000 * 30);
             client.deleteInstance(instance.getInstanceId());
         }
     }

@@ -96,18 +96,16 @@ public class MosClient {
             throw new MosException("CreateInstance: Fail to create instance", e);
         }
 
-        // bind net
+        // bind nat gateway if instance created
         try {
             if (!bindNatGateway(instance.getInstanceId())) {
                 String msg = String.format("Fail to bind nat gateway for instance: %s, return false",
                         instance.getInstanceId());
 
-                throw new MosException(msg, null);
+                throw new MosException(msg, null, instance);
             }
         } catch (Throwable e) {
-            // force to terminate instance if bind nat gateway failure
-            deleteInstance(instance.getInstanceId());
-            throw new MosException(e.getMessage(), e);
+            throw new MosException(e.getMessage(), e, instance);
         }
 
         return instance;

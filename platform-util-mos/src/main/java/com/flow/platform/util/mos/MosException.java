@@ -8,9 +8,15 @@ import org.json.JSONObject;
  */
 public class MosException extends RuntimeException {
     private JSONObject error;
+    private Instance instance;
 
     public MosException(String message, Throwable e) {
         super(message, e);
+    }
+
+    public MosException(String message, Throwable e, Instance instance) {
+        super(message, e);
+        this.instance = instance;
     }
 
     public JSONObject getError() {
@@ -19,5 +25,13 @@ public class MosException extends RuntimeException {
 
     public void setError(JSONObject error) {
         this.error = error;
+    }
+
+    public Instance getInstance() {
+        return instance;
+    }
+
+    public void setInstance(Instance instance) {
+        this.instance = instance;
     }
 }
