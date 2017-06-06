@@ -1,6 +1,7 @@
 package com.flow.platform.cc.test.service;
 
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.junit.Assert;
@@ -17,8 +18,8 @@ public class ZkServiceTest extends TestBase {
 
     @Test
     public void should_zk_service_initialized() {
-        for (String zoneName : zkHelper.getZones()) {
-            String zonePath = ZkPathBuilder.create("flow-agents").append(zoneName).path();
+        for (Zone zone : zkHelper.getZones()) {
+            String zonePath = ZkPathBuilder.create("flow-agents").append(zone.getName()).path();
             Assert.assertTrue(ZkNodeHelper.exist(zkClient, zonePath) != null);
         }
     }

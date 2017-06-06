@@ -5,7 +5,9 @@ import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.zk.*;
+import com.google.common.collect.Lists;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +40,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
     @Autowired
     private SpringContextUtil springContextUtil;
 
-    private final Map<String, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
+    private final Map<Zone, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
     @PostConstruct
     private void init() {
@@ -47,14 +49,14 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         ZkNodeHelper.createNode(zkClient, rootPath, "");
 
         // init zone nodes
-        for (String zone : zkHelper.getZones()) {
+        for (Zone zone : zkHelper.getZones()) {
             createZone(zone);
         }
     }
 
     @Override
-    public String createZone(String zoneName) {
-        String zonePath = zkHelper.buildZkPath(zoneName, null).path();
+    public String createZone(Zone zone) {
+        final String zonePath = zkHelper.buildZkPath(zone.getName(), null).path();
 
         // zone node not exited
         if (ZkNodeHelper.exist(zkClient, zonePath) == null){
@@ -62,21 +64,19 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         } else{
             ZkNodeHelper.setNodeData(zkClient, zonePath, agentConfig.toJson());
             List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
-            agentService.reportOnline(zoneName, buildKeys(zoneName, agents));
+            agentService.reportOnline(zone.getName(), buildKeys(zone.getName(), agents));
         }
 
         ZoneEventWatcher zoneEventWatcher =
-                zoneEventWatchers.computeIfAbsent(zonePath, p -> new ZoneEventWatcher(zoneName, p));
+                zoneEventWatchers.computeIfAbsent(zone, z -> new ZoneEventWatcher(z, zonePath));
 
         ZkNodeHelper.watchChildren(zkClient, zonePath, zoneEventWatcher, 5);
         return zonePath;
     }
 
     @Override
-    public List<String> getZones() {
-        String rootName = zkHelper.getRoot();
-        String rootPath = ZkPathBuilder.create(rootName).path();
-        return ZkNodeHelper.getChildrenNodes(zkClient, rootPath);
+    public List<Zone> getZones() {
+        return Lists.newArrayList(zoneEventWatchers.keySet());
     }
 
     @Override
@@ -88,14 +88,14 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         }
 
         // get num of idle agent
-        for (String zone : getZones()) {
-            int numOfIdle = agentService.findAvailable(zone).size();
+        for (Zone zone : getZones()) {
+            int numOfIdle = agentService.findAvailable(zone.getName()).size();
 
             System.out.println(" ===== " + numOfIdle);
 
             // TODO: find related instance manager
             // find instance manager by zone
-            String beanName = String.format("%sInstanceManager", zone);
+            String beanName = String.format("%sInstanceManager", zone.getCloudProvider());
             InstanceManager instanceManager = (InstanceManager) springContextUtil.getBean(beanName);
             if (instanceManager != null) {
                 if (numOfIdle <= MIN_NUM_OF_IDLE_AGENT) {
@@ -118,11 +118,11 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
      */
     private class ZoneEventWatcher implements Watcher {
 
-        private String zoneName;
-        private String zonePath;
+        private final Zone zone;
+        private final String zonePath;
 
-        ZoneEventWatcher(String zoneName, String zonePath) {
-            this.zoneName = zoneName;
+        ZoneEventWatcher(Zone zone, String zonePath) {
+            this.zone = zone;
             this.zonePath = zonePath;
         }
 
@@ -135,7 +135,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
             if (ZkEventHelper.isChildrenChanged(event)) {
                 taskExecutor.execute(() -> {
                     List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
-                    agentService.reportOnline(zoneName, buildKeys(zoneName, agents));
+                    agentService.reportOnline(zone.getName(), buildKeys(zone.getName(), agents));
                 });
             }
         }

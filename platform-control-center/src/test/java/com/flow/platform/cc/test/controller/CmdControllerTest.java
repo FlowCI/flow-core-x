@@ -88,7 +88,7 @@ public class CmdControllerTest extends TestBase {
     public void should_send_cmd_to_agent() throws Throwable {
         // given:
         String zoneName = "test-zone-02";
-        zoneService.createZone(zoneName);
+        zoneService.createZone(new Zone(zoneName, "mock-cloud-provider-name"));
         Thread.sleep(1000);
 
         String agentName = "act-002";

@@ -137,7 +137,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_update_agent_status_by_cmd_status() throws Throwable {
         // given
-        String zoneName = zkHelper.getZones()[0];
+        String zoneName = zkHelper.getZones().get(0).getName();
         String agentName = "test-agent-001";
 
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
@@ -191,7 +191,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_send_cmd_to_agent() throws InterruptedException {
         // given:
-        String zoneName = zkHelper.getZones()[0];
+        String zoneName = zkHelper.getZones().get(0).getName();
         String agentName = "test-agent-002";
 
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
@@ -238,7 +238,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_auto_select_idle_agent_when_cmd_send() throws Throwable {
         // given:
-        String zoneName = zkHelper.getZones()[0];
+        String zoneName = zkHelper.getZones().get(0).getName();
         AgentPath agentIdle1 = new AgentPath(zoneName, "idle-agent-01");
         AgentPath agentIdle2 = new AgentPath(zoneName, "idle-agent-02");
         AgentPath agentBusy1 = new AgentPath(zoneName, "busy-agent-01");
@@ -280,7 +280,7 @@ public class CmdServiceTest extends TestBase {
     @Test(expected = AgentErr.NotFoundException.class)
     public void should_raise_exception_agent_not_exit() {
         // given:
-        String zoneName = zkHelper.getZones()[0];
+        String zoneName = zkHelper.getZones().get(0).getName();
         String agentName = "test-agent-003";
 
         // then: send command immediately should raise AgentErr.NotFoundException
@@ -291,7 +291,7 @@ public class CmdServiceTest extends TestBase {
     @Test(expected = AgentErr.NotAvailableException.class)
     public void should_raise_exception_agent_busy() throws InterruptedException {
         // given:
-        String zoneName = zkHelper.getZones()[0];
+        String zoneName = zkHelper.getZones().get(0).getName();
         String agentName = "test-agent-004";
 
         // when: create node and send command to agent
@@ -309,7 +309,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_write_cmd_log() throws Throwable {
         // given:
-        String zoneName = zkHelper.getZones()[0];
+        String zoneName = zkHelper.getZones().get(0).getName();
         String agentName = "test-agent-005";
 
         CmdBase baseInfo = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");

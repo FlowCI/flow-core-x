@@ -3,6 +3,7 @@ package com.flow.platform.cc.util;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.WatchedEvent;
@@ -13,10 +14,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -34,10 +32,10 @@ public class ZkHelper {
         private String host;
         private Integer timeout;
         private String root;
-        private String[] zones;
+        private List<Zone> zones;
         private ZkStatus status;
 
-        public ZkInfo(String host, Integer timeout, String root, String[] zones, ZkStatus status) {
+        public ZkInfo(String host, Integer timeout, String root, List<Zone> zones, ZkStatus status) {
             this.host = host;
             this.timeout = timeout;
             this.root = root;
@@ -57,7 +55,7 @@ public class ZkHelper {
             return root;
         }
 
-        public String[] getZones() {
+        public List<Zone> getZones() {
             return zones;
         }
 
@@ -116,8 +114,14 @@ public class ZkHelper {
      *
      * @return
      */
-    public String[] getZones() {
-        return zkZone.split(";");
+    public List<Zone> getZones() {
+        String[] zoneAndProviderList = zkZone.split(";");
+        List<Zone> zoneList = new ArrayList<>(zoneAndProviderList.length);
+        for (String zoneAndProvider : zoneAndProviderList) {
+            String[] zoneAndProviderData = zoneAndProvider.split("=");
+            zoneList.add(new Zone(zoneAndProviderData[0], zoneAndProviderData[1]));
+        }
+        return zoneList;
     }
 
     /**
@@ -137,7 +141,7 @@ public class ZkHelper {
     }
 
     public ZkInfo getInfo() {
-        return new ZkInfo(zkHost, zkTimeout, zkRootName, getZones(), zkStatus);
+        return new ZkInfo(zkHost, zkTimeout, zkRootName, getZones() , zkStatus);
     }
 
     /**

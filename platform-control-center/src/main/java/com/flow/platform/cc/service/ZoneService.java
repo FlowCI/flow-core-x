@@ -1,5 +1,7 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.domain.Zone;
+
 import java.util.List;
 
 /**
@@ -14,17 +16,17 @@ public interface ZoneService {
     /**
      * Create zk node for agent zone
      *
-     * @param zoneName
+     * @param zone
      * @return zk node path of zone
      */
-    String createZone(String zoneName);
+    String createZone(Zone zone);
 
     /**
      * Get zone list from zk
      *
      * @return zone list
      */
-    List<String> getZones();
+    List<Zone> getZones();
 
     /**
      * Scheduler task, periodically, every 1 min to check available agent in zone

@@ -6,6 +6,7 @@ import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.gson.Gson;
@@ -31,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AgentControllerTest extends TestBase {
 
+    private final static String MOCK_CLOUD_PROVIDER_NAME = "test";
+
     @Autowired
     private AgentService agentService;
 
@@ -50,7 +53,7 @@ public class AgentControllerTest extends TestBase {
     public void should_has_agent_config_in_zone_data() throws Throwable {
         // given:
         String zoneName = "test-zone-00";
-        zoneService.createZone(zoneName);
+        zoneService.createZone(new Zone(zoneName, MOCK_CLOUD_PROVIDER_NAME));
         Thread.sleep(1000);
 
         // when:
@@ -69,7 +72,7 @@ public class AgentControllerTest extends TestBase {
     public void should_list_all_online_agent() throws Throwable {
         // given:
         String zoneName = "test-zone-01";
-        zoneService.createZone(zoneName);
+        zoneService.createZone(new Zone(zoneName, MOCK_CLOUD_PROVIDER_NAME));
         Thread.sleep(1000);
 
         String agentName = "act-001";
@@ -95,7 +98,7 @@ public class AgentControllerTest extends TestBase {
     public void should_report_agent_status() throws Throwable {
         // given:
         String zoneName = "test-zone-03";
-        zoneService.createZone(zoneName);
+        zoneService.createZone(new Zone(zoneName, MOCK_CLOUD_PROVIDER_NAME));
         Thread.sleep(1000);
 
         String agentName = "act-003";
