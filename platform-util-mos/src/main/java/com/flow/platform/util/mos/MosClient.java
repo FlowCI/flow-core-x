@@ -1,6 +1,7 @@
 package com.flow.platform.util.mos;
 
 import com.google.gson.*;
+import com.google.gson.annotations.SerializedName;
 import com.meituan.mos.sdk.v1.Client;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,6 +18,42 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Copyright fir.im
  */
 public class MosClient {
+
+    private static class MosSizeInfo {
+
+        @SerializedName("Total")
+        private int total;
+
+        @SerializedName("Limit")
+        private int limit;
+
+        @SerializedName("Offset")
+        private int offset;
+
+        public int getTotal() {
+            return total;
+        }
+
+        public void setTotal(int total) {
+            this.total = total;
+        }
+
+        public int getLimit() {
+            return limit;
+        }
+
+        public void setLimit(int limit) {
+            this.limit = limit;
+        }
+
+        public int getOffset() {
+            return offset;
+        }
+
+        public void setOffset(int offset) {
+            this.offset = offset;
+        }
+    }
 
     private final static Gson GSON = new GsonBuilder().create();
 
@@ -68,19 +105,26 @@ public class MosClient {
     /**
      * Instance list
      *
-     * @param size size per page
-     * @param page page index, start from 0
      * @return instance list
      */
-    public List<Instance> listInstance(int size, int page) {
+    public List<Instance> listInstance() {
         JSONObject response = null;
         List<Instance> list = null;
+        Object rawInstances = null;
 
         try {
-            response = client.DescribeInstances(null, null, size, page, null);
-            Object rawInstances = response.getJSONObject("DescribeInstancesResponse")
-                    .getJSONObject("InstanceSet")
-                    .get("Instance");
+            response = client.DescribeInstances(null, null, 100, 0, null);
+            JSONObject jsonInstanceSet = response
+                    .getJSONObject("DescribeInstancesResponse")
+                    .getJSONObject("InstanceSet");
+
+            try {
+                 rawInstances = jsonInstanceSet.get("Instance");
+            } catch (JSONException e) {
+                // cannot find instance data since data is out of range
+                MosSizeInfo sizeInfo = GSON.fromJson(jsonInstanceSet.toString(), MosSizeInfo.class);
+                return new ArrayList<>(0);
+            }
 
             // only one instance
             if (rawInstances instanceof JSONObject) {

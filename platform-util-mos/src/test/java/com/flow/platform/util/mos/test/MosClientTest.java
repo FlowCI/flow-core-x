@@ -62,7 +62,7 @@ public class MosClientTest {
 
     @Test
     public void should_list_instances() {
-        List<Instance> instances = client.listInstance(100, 0);
+        List<Instance> instances = client.listInstance();
         Assert.assertNotNull(instances);
         Assert.assertTrue(instances.size() > 0);
     }
