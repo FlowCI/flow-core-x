@@ -1,21 +1,22 @@
 package com.flow.platform.cc.test.service;
 
+import com.flow.platform.cc.cloud.MosInstanceManager;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
+import com.flow.platform.cc.service.AgentServiceImpl;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.domain.*;
+import com.flow.platform.cc.util.SpringContextUtil;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
-import com.google.common.collect.Lists;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by gy@fir.im on 24/05/2017.
@@ -30,6 +31,9 @@ public class AgentServiceTest extends TestBase {
 
     @Autowired
     private ZoneService zoneService;
+
+    @Autowired
+    private SpringContextUtil springContextUtil;
 
     @Test
     public void should_agent_initialized() throws InterruptedException, KeeperException {
@@ -115,5 +119,39 @@ public class AgentServiceTest extends TestBase {
 
         AgentPath pathObj = new AgentPath(zoneName, agentName);
         agentService.reportStatus(pathObj, Agent.Status.BUSY);
+    }
+
+    @Test
+    public void should_clean_up_agent_when_pool_size_over_max() throws Throwable {
+        // given: mock to start num of agent over pool size
+        final int maxPoolSize = 2;
+        final String mockAgentNamePattern = "mock-agent-%d";
+        final String zoneName = "test-mos-mac";
+
+        Zone zone = new Zone(zoneName, "mos");
+        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
+
+        for (int i = 0; i < maxPoolSize + 1; i++) {
+            String path = zkHelper.buildZkPath(zone.getName(), String.format(mockAgentNamePattern, i)).path();
+            ZkNodeHelper.createEphemeralNode(zkClient, path, "");
+            Thread.sleep(1000); // wait for agent start and make them in time sequence
+        }
+
+        // when: shutdown instance which over the max agent pool size
+        AgentServiceImpl agentService = (AgentServiceImpl) this.agentService;
+        agentService.keepIdleAgentMaxSize(zone, instanceManager, maxPoolSize);
+
+        // then: check shutdown cmd should be sent
+        ZkPathBuilder mockAgent0Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 0));
+        byte[] shutdownCmdRaw = ZkNodeHelper.getNodeData(zkClient, mockAgent0Path.path(), null);
+        Cmd shutdownCmd = Cmd.parse(shutdownCmdRaw, Cmd.class);
+        Assert.assertEquals(Cmd.Type.SHUTDOWN, shutdownCmd.getType());
+        Assert.assertEquals(Agent.Status.OFFLINE, agentService.find(shutdownCmd.getAgentPath()).getStatus());
+
+        ZkPathBuilder mockAgent1Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 1));
+        Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent1Path.path(), null).length);
+
+        ZkPathBuilder mockAgent2Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 2));
+        Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent2Path.path(), null).length);
     }
 }

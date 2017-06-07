@@ -131,11 +131,11 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
                 continue;
             }
 
-            if (keepIdleAgentMinSize(zone, instanceManager)) {
+            if (keepIdleAgentMinSize(zone, instanceManager, MIN_IDLE_AGENT_POOL)) {
                 continue;
             }
 
-            keepIdleAgentMaxSize(zone, instanceManager);
+            keepIdleAgentMaxSize(zone, instanceManager, MAX_IDLE_AGENT_POOL);
         }
     }
 
@@ -148,12 +148,12 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
      *          true = need start instance,
      *          false = has enough idle agent
      */
-    private synchronized boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager) {
+    public synchronized boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager, int minPoolSize) {
         int numOfIdle = this.findAvailable(zone.getName()).size();
         System.out.println(String.format("Num of idle agent in zone %s = %s", zone, numOfIdle));
 
-        if (numOfIdle < MIN_IDLE_AGENT_POOL) {
-            instanceManager.batchStartInstance(MIN_IDLE_AGENT_POOL);
+        if (numOfIdle < minPoolSize) {
+            instanceManager.batchStartInstance(minPoolSize);
             return true;
         }
 
@@ -168,13 +168,13 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
      * @param instanceManager
      * @return
      */
-    private synchronized boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager) {
+    public synchronized boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager, int maxPoolSize) {
         List<Agent> agentList = this.findAvailable(zone.getName());
         int numOfIdle = agentList.size();
         System.out.println(String.format("Num of idle agent in zone %s = %s", zone, numOfIdle));
 
-        if (numOfIdle > MAX_IDLE_AGENT_POOL) {
-            int numOfRemove = numOfIdle - MAX_IDLE_AGENT_POOL;
+        if (numOfIdle > maxPoolSize) {
+            int numOfRemove = numOfIdle - maxPoolSize;
 
             for (int i = 0; i < numOfRemove; i++) {
                 Agent idleAgent = agentList.get(i);
@@ -185,7 +185,9 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
                 // add instance to cleanup list
                 Instance instance = instanceManager.find(idleAgent.getPath());
-                instanceManager.addToCleanList(instance);
+                if (instance != null) {
+                    instanceManager.addToCleanList(instance);
+                }
             }
 
             return true;
