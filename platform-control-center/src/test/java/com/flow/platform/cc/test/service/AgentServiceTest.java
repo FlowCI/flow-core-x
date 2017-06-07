@@ -14,14 +14,15 @@ import com.flow.platform.domain.Zone;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.KeeperException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by gy@fir.im on 24/05/2017.
  * Copyright fir.im
  */
+@FixMethodOrder(value = MethodSorters.NAME_ASCENDING)
 public class AgentServiceTest extends TestBase {
 
     private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
@@ -121,6 +122,25 @@ public class AgentServiceTest extends TestBase {
         agentService.reportStatus(pathObj, Agent.Status.BUSY);
     }
 
+    @Ignore
+    @Test
+    public void should_start_instance_when_pool_size_less_than_min() throws Throwable {
+        // given:
+        final String zoneName = "test-mos-mac";
+        final int minPoolSize = 1;
+
+        Zone zone = new Zone(zoneName, "mos");
+        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
+
+        // when: check and start instance to make sure min idle pool size
+        AgentServiceImpl agentService = (AgentServiceImpl) this.agentService;
+        agentService.keepIdleAgentMinSize(zone, instanceManager, minPoolSize);
+
+        // then: wait for 30 seconds and check running instance
+        Thread.sleep(1000 * 30);
+        Assert.assertEquals(1, instanceManager.runningInstance().size());
+    }
+
     @Test
     public void should_clean_up_agent_when_pool_size_over_max() throws Throwable {
         // given: mock to start num of agent over pool size
@@ -153,5 +173,11 @@ public class AgentServiceTest extends TestBase {
 
         ZkPathBuilder mockAgent2Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 2));
         Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent2Path.path(), null).length);
+    }
+
+    @After
+    public void after() {
+        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
+        instanceManager.cleanAll();
     }
 }
