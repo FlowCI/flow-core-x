@@ -9,6 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -23,12 +27,16 @@ import java.util.concurrent.Executor;
 public class MosInstanceManager implements InstanceManager {
 
     private final static String INSTANCE_NAME_PATTERN = "%s.cloud.mos";
+    private final static int INSTANCE_MAX_ALIVE_DURATION = 600; // max instance alive time in seconds
 
     @Value("${mos.image}")
-    private String mosImage;
+    private String imageName;
 
     @Value("${mos.instance_name_pattern}")
-    private String mosInstanceNamePattern;
+    private String instanceNamePattern;
+
+    @Value("${mos.instance_name_start_rule}")
+    private String instanceNameStartWith;
 
     @Autowired
     private Executor taskExecutor;
@@ -68,7 +76,7 @@ public class MosInstanceManager implements InstanceManager {
         List<String> expectNameList = new ArrayList<>(numOfInstance);
         for (int i = 0; i < numOfInstance; i ++) {
             String instanceName = createUniqueInstanceName();
-            taskExecutor.execute(new StartMosInstanceWorker(mosClient, mosImage, instanceName));
+            taskExecutor.execute(new StartMosInstanceWorker(mosClient, imageName, instanceName));
             expectNameList.add(instanceName);
         }
         return expectNameList;
@@ -80,13 +88,33 @@ public class MosInstanceManager implements InstanceManager {
         mosCleanupList.putIfAbsent(instance.getName(), instance);
     }
 
-    /**
-     * Delete failed created instance every 2 mins
-     */
     @Override
-    @Scheduled(initialDelay = 10 * 1000, fixedRate = 60 * 1000)
-    public void cleanInstanceTask() {
-        cleanInstance(mosCleanupList);
+    public void cleanFromProvider(long maxAliveDuration, String status) {
+        List<Instance> instances = mosClient.listInstance();
+
+        ZoneId utc = ZoneId.of("UTC");
+        Instant instant = new Date().toInstant();
+        ZonedDateTime timeForNow = instant.atZone(utc);
+
+        for (Instance instance : instances) {
+
+            // check instance is controlled by platform
+            if (!instance.getName().startsWith(instanceNameStartWith)) {
+                continue;
+            }
+
+            // find alive duration
+            Date createdAt = instance.getCreatedAt();
+            ZonedDateTime mosUtcTime = createdAt.toInstant().atZone(utc);
+            long aliveInSeconds = ChronoUnit.SECONDS.between(mosUtcTime, timeForNow);
+
+            System.out.println(String.format("Instance %s alive %s", instance.getName(), aliveInSeconds));
+
+            // delete instance if instance status is ready (closed) and alive duration > max alive duration
+            if (aliveInSeconds >= maxAliveDuration && instance.getStatus().equals(status)) {
+                mosClient.deleteInstance(instance.getInstanceId());
+            }
+        }
     }
 
     /**
@@ -96,6 +124,16 @@ public class MosInstanceManager implements InstanceManager {
     public void cleanAll() {
         cleanInstance(mosCleanupList);
         cleanInstance(mosRunningList);
+    }
+
+    /**
+     * Delete failed created instance every 2 mins
+     */
+    @Override
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 60 * 1000)
+    public void cleanInstanceTask() {
+        cleanInstance(mosCleanupList);
+        cleanFromProvider(INSTANCE_MAX_ALIVE_DURATION, Instance.STATUS_READY);
     }
 
     private void cleanInstance(Map<String, Instance> instanceMap) {
@@ -109,7 +147,7 @@ public class MosInstanceManager implements InstanceManager {
     }
 
     private String createUniqueInstanceName() {
-        return String.format(mosInstanceNamePattern, UUID.randomUUID());
+        return String.format(instanceNamePattern, UUID.randomUUID());
     }
 
     /**

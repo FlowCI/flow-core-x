@@ -58,12 +58,20 @@ public interface InstanceManager {
     void addToCleanList(Instance instance);
 
     /**
-     * Periodically check and delete cleanAll up instance list
+     * Load instance from provider, check alive duration is over the target and status
+     *
+     * @param maxAliveDuration target alive duration in seconds
+     * @param status instance status
      */
-    void cleanInstanceTask();
+    void cleanFromProvider(long maxAliveDuration, String status);
 
     /**
      * Delete all instance and cleanAll the cloud
      */
     void cleanAll();
+
+    /**
+     * Periodically check and delete cleanAll up instance list
+     */
+    void cleanInstanceTask();
 }
