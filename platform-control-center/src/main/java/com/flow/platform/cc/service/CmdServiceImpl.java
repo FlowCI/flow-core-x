@@ -81,9 +81,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         try {
             Agent target = selectAgent(cmd);
-            if (target == null) {
-                throw new AgentErr.NotFoundException(cmd.getAgent());
-            }
 
             // double check agent in zk node
             String agentNodePath = zkHelper.getZkPath(target.getPath());
@@ -100,14 +97,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     if (target.getStatus() != Agent.Status.IDLE) {
                         // add reject status since busy
                         cmdInfo.addStatus(Cmd.Status.REJECTED);
-
-                        // try to start instance
-                        Zone zone = zoneService.getZone(cmd.getZone());
-                        InstanceManager instanceManager = zoneService.findInstanceManager(zone);
-                        if (instanceManager != null) {
-                            instanceManager.batchStartInstance(AgentService.MIN_IDLE_AGENT_POOL);
-                        }
-
                         throw new AgentErr.NotAvailableException(cmd.getAgent());
                     }
 
@@ -130,6 +119,14 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmdInfo.toJson());
             return cmdInfo;
 
+        } catch (AgentErr.NotAvailableException e) {
+            // try to start instance
+            Zone zone = zoneService.getZone(cmd.getZone());
+            InstanceManager instanceManager = zoneService.findInstanceManager(zone);
+            if (instanceManager != null) {
+                instanceManager.batchStartInstance(AgentService.MIN_IDLE_AGENT_POOL);
+            }
+            throw e;
         } catch (ZkException.ZkNoNodeException e) {
             throw new AgentErr.NotFoundException(cmd.getAgent());
         } finally {
@@ -203,6 +200,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      * @return Agent or null
      * @exception com.flow.platform.cc.exception.AgentErr.NotAvailableException no idle agent in zone
      * @exception com.flow.platform.cc.exception.AgentErr.AgentMustBeSpecified name must for operation cmd type
+     * @exception com.flow.platform.cc.exception.AgentErr.NotFoundException target agent not found
      */
     private Agent selectAgent(CmdBase cmd) {
         AgentPath agentPath = cmd.getAgentPath();
@@ -223,7 +221,11 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw new AgentErr.NotAvailableException(cmd.getAgent());
         }
 
-        return agentService.find(agentPath);
+        Agent agent = agentService.find(agentPath);
+        if (agent == null) {
+            throw new AgentErr.NotFoundException(cmd.getAgent());
+        }
+        return agent;
     }
 
     /**

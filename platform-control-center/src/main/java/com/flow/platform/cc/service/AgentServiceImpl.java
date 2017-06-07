@@ -28,9 +28,6 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
 
     @Autowired
-    private SpringContextUtil springContextUtil;
-
-    @Autowired
     private ZoneService zoneService;
 
     @Autowired
