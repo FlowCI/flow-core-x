@@ -1,5 +1,6 @@
 package com.flow.platform.cc.test.service;
 
+import com.flow.platform.cc.cloud.MosInstanceManager;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Zone;
@@ -33,5 +34,17 @@ public class ZoneServiceTest extends TestBase {
         List<Zone> zones = zoneService.getZones();
         Assert.assertNotNull(zones);
         Assert.assertTrue(zones.size() >= 4); // 2 for default, 2 for created
+    }
+
+    @Test
+    public void should_find_instance_manager() {
+        // when:
+        Zone mosZone = new Zone("mos-ut", "mos");
+        zoneService.createZone(mosZone);
+
+        // then:
+        Zone found = zoneService.getZone("mos-ut");
+        Assert.assertNotNull(found);
+        Assert.assertTrue(zoneService.findInstanceManager(found) instanceof MosInstanceManager);
     }
 }

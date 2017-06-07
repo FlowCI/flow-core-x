@@ -1,5 +1,7 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.cloud.InstanceManager;
+import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Zone;
@@ -31,6 +33,9 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
     @Autowired
     private Executor taskExecutor;
+
+    @Autowired
+    private SpringContextUtil springContextUtil;
 
     private final Map<Zone, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
@@ -67,8 +72,24 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
     }
 
     @Override
+    public Zone getZone(String zoneName) {
+        for (Zone zone : zoneEventWatchers.keySet()) {
+            if (Objects.equals(zoneName, zone.getName())) {
+                return zone;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public List<Zone> getZones() {
         return Lists.newArrayList(zoneEventWatchers.keySet());
+    }
+
+    @Override
+    public InstanceManager findInstanceManager(Zone zone) {
+        String beanName = String.format("%sInstanceManager", zone.getCloudProvider());
+        return (InstanceManager) springContextUtil.getBean(beanName);
     }
 
     private Collection<AgentPath> buildKeys(String zone, Collection<String> agents) {

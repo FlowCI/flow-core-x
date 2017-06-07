@@ -125,9 +125,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
         // get num of idle agent
         for (Zone zone : zoneService.getZones()) {
-            // find instance manager by zone
-            String beanName = String.format("%sInstanceManager", zone.getCloudProvider());
-            InstanceManager instanceManager = (InstanceManager) springContextUtil.getBean(beanName);
+            InstanceManager instanceManager = zoneService.findInstanceManager(zone);
             if (instanceManager == null) {
                 continue;
             }

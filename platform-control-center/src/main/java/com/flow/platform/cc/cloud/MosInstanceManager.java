@@ -27,6 +27,7 @@ import java.util.concurrent.Executor;
 public class MosInstanceManager implements InstanceManager {
 
     private final static String INSTANCE_NAME_PATTERN = "%s.cloud.mos";
+    private final static int MAX_NUM_OF_INSTANCE = 10; // max num of instance control by platform
     private final static int INSTANCE_MAX_ALIVE_DURATION = 600; // max instance alive time in seconds
 
     @Value("${mos.image}")
@@ -73,6 +74,12 @@ public class MosInstanceManager implements InstanceManager {
 
     @Override
     public List<String> batchStartInstance(int numOfInstance) {
+        // check total num of instance
+        int totalInstance = mosCleanupList.size() + mosRunningList.size();
+        if (totalInstance + numOfInstance > MAX_NUM_OF_INSTANCE) {
+            numOfInstance = MAX_NUM_OF_INSTANCE - totalInstance;
+        }
+
         List<String> expectNameList = new ArrayList<>(numOfInstance);
         for (int i = 0; i < numOfInstance; i ++) {
             String instanceName = createUniqueInstanceName();

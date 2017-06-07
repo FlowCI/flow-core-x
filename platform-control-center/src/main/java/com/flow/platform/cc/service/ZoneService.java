@@ -1,5 +1,6 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.domain.Zone;
 
 import java.util.List;
@@ -22,9 +23,25 @@ public interface ZoneService {
     String createZone(Zone zone);
 
     /**
+     * Find zone object by name
+     *
+     * @param zoneName
+     * @return
+     */
+    Zone getZone(String zoneName);
+
+    /**
      * Get zone list from zk
      *
      * @return zone list
      */
     List<Zone> getZones();
+
+    /**
+     * Find instance manager by zone name
+     *
+     * @param zone
+     * @return
+     */
+    InstanceManager findInstanceManager(Zone zone);
 }
