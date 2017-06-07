@@ -7,8 +7,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,16 +20,17 @@ public class MosInstanceManagerTest extends TestBase {
 
     private final static int POOL_SIZE = 1;
 
-    @Resource
+    @Autowired
     private MosInstanceManager mosPoolManager;
 
     @Ignore
     @Test
     public void should_batch_start_instance() throws Exception {
-        List<String> nameList = mosPoolManager.batchStartInstance(POOL_SIZE * 2);
-        Assert.assertEquals(POOL_SIZE * 2, nameList.size());
+        List<String> nameList = mosPoolManager.batchStartInstance(POOL_SIZE);
+        Assert.assertEquals(POOL_SIZE, nameList.size());
 
-        Thread.sleep(60 * 1000);
+        Thread.sleep(30 * 1000); // wait for instance start
+
         Collection<Instance> running = mosPoolManager.runningInstance();
         Assert.assertTrue(running.size() >= POOL_SIZE);
     }

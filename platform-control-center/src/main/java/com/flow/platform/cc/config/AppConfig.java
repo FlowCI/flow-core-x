@@ -2,6 +2,7 @@ package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.mos.MosClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,6 +47,12 @@ public class AppConfig {
     @Value("${agent.config.cmd_log_url}")
     private String cmdLogUrl;
 
+    @Value("${mos.key}")
+    private String mosKey;
+
+    @Value("${mos.secret}")
+    private String mosSecret;
+
     @PostConstruct
     public void init() {
         try {
@@ -58,6 +65,11 @@ public class AppConfig {
     @Bean
     public AgentConfig agentConfig() {
         return new AgentConfig(socketIoUrl, cmdReportUrl, cmdLogUrl);
+    }
+
+    @Bean
+    public MosClient mosClient() throws Throwable {
+        return new MosClient(mosKey, mosSecret);
     }
 
     @Bean

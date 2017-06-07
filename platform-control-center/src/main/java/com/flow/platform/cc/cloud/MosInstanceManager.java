@@ -1,6 +1,5 @@
 package com.flow.platform.cc.cloud;
 
-import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.mos.Instance;
 import com.flow.platform.util.mos.MosClient;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -26,12 +24,6 @@ public class MosInstanceManager implements InstanceManager {
 
     private final static String INSTANCE_NAME_PATTERN = "%s.cloud.mos";
 
-    @Value("${mos.key}")
-    private String mosKey;
-
-    @Value("${mos.secret}")
-    private String mosSecret;
-
     @Value("${mos.image}")
     private String mosImage;
 
@@ -41,6 +33,7 @@ public class MosInstanceManager implements InstanceManager {
     @Autowired
     private Executor taskExecutor;
 
+    @Autowired
     private MosClient mosClient;
 
     // running mos instance
@@ -48,11 +41,6 @@ public class MosInstanceManager implements InstanceManager {
 
     // failed mos instances or instance needs to clean
     private final Map<String, Instance> mosCleanupList = new ConcurrentHashMap<>();
-
-    @PostConstruct
-    public void init () throws Throwable {
-        mosClient = new MosClient(mosKey, mosSecret);
-    }
 
     @Override
     public Instance find(String name) {
