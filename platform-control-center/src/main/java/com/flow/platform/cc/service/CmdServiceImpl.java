@@ -1,5 +1,6 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.*;
@@ -27,6 +28,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private ZoneService zoneService;
 
     @Autowired
     private Queue<Path> cmdLoggingQueue;
@@ -94,7 +98,16 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             switch (cmd.getType()) {
                 case RUN_SHELL:
                     if (target.getStatus() != Agent.Status.IDLE) {
-                        cmdInfo.addStatus(Cmd.Status.REJECTED); // reject since busy
+                        // add reject status since busy
+                        cmdInfo.addStatus(Cmd.Status.REJECTED);
+
+                        // try to start instance
+                        Zone zone = zoneService.getZone(cmd.getZone());
+                        InstanceManager instanceManager = zoneService.findInstanceManager(zone);
+                        if (instanceManager != null) {
+                            instanceManager.batchStartInstance(AgentService.MIN_IDLE_AGENT_POOL);
+                        }
+
                         throw new AgentErr.NotAvailableException(cmd.getAgent());
                     }
 

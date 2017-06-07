@@ -23,10 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service(value = "agentService")
 public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
-    private static final int MIN_IDLE_AGENT_POOL = 1; // min pool size
-    private static final int MAX_IDLE_AGENT_POOL = 2; // max pool size
-    private static final int KEEP_IDLE_AGENT_TASK_PERIOD = 45 * 1000; // millisecond
-
     private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
 
     private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
