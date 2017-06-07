@@ -1,8 +1,14 @@
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.cloud.InstanceManager;
+import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Zone;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -15,9 +21,21 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service(value = "agentService")
 public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
+    private static final int MIN_IDLE_AGENT_POOL = 2; // min pool size
+    private static final int MAX_IDLE_AGENT_POOL = 4; // max pool size
+
     private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
 
     private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
+
+    @Autowired
+    private SpringContextUtil springContextUtil;
+
+    @Autowired
+    private ZoneService zoneService;
+
+    @Autowired
+    private CmdService cmdService;
 
     @Override
     public void reportOnline(String zone, Collection<AgentPath> keys) {
@@ -92,6 +110,41 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
             throw new AgentErr.NotFoundException(path.getName());
         }
         exist.setStatus(status);
+    }
+
+    @Override
+    @Scheduled(initialDelay = 10 * 1000, fixedRate = 60 * 1000)
+    public void keepIdleAgent() {
+        if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
+            System.out.println("ZoneService.keepIdleAgent: Task not enabled");
+            return;
+        }
+
+        // get num of idle agent
+        for (Zone zone : zoneService.getZones()) {
+            int numOfIdle = this.findAvailable(zone.getName()).size();
+            System.out.println(String.format("Num of idle agent in zone %s = %s", zone.getName(), numOfIdle));
+
+            // find instance manager by zone
+            String beanName = String.format("%sInstanceManager", zone.getCloudProvider());
+            InstanceManager instanceManager = (InstanceManager) springContextUtil.getBean(beanName);
+            if (instanceManager == null) {
+                continue;
+            }
+
+            // start batch of instance to ensure idle pool if size < min pool size
+            if (numOfIdle < MIN_IDLE_AGENT_POOL) {
+                instanceManager.batchStartInstance(MIN_IDLE_AGENT_POOL);
+                continue;
+            }
+
+            // clean pool if idle pool size > max pool size
+            List<Agent> idleList = this.findAvailable(zone.getName());
+            numOfIdle = idleList.size();
+            if (numOfIdle > MAX_IDLE_AGENT_POOL) {
+                // TODO: clean instance when idle pool > max idle pool size
+            }
+        }
     }
 
     /**

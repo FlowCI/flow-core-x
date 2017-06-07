@@ -51,4 +51,10 @@ public interface AgentService {
      * @param status
      */
     void reportStatus(AgentPath path, Agent.Status status);
+
+    /**
+     * Scheduler task, periodically, every 1 min to check available agent in zone
+     * It will start instance if num of available agent not enough
+     */
+    void keepIdleAgent();
 }

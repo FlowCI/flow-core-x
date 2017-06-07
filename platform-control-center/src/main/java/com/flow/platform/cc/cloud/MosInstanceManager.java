@@ -40,10 +40,10 @@ public class MosInstanceManager implements InstanceManager {
     private MosClient mosClient;
 
     // running mos instance
-    private final Map<String, Instance> mosRunningQueue = new ConcurrentHashMap<>();
+    private final Map<String, Instance> mosRunningList = new ConcurrentHashMap<>();
 
-    // failed mos instances
-    private final Map<String, Instance> mosFailureQueue = new ConcurrentHashMap<>();
+    // failed mos instances or instance needs to clean
+    private final Map<String, Instance> mosCleanupList = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init () throws Throwable {
@@ -52,12 +52,12 @@ public class MosInstanceManager implements InstanceManager {
 
     @Override
     public Collection<Instance> runningInstance() {
-        return mosRunningQueue.values();
+        return mosRunningList.values();
     }
 
     @Override
     public Collection<Instance> failureInstance() {
-        return mosFailureQueue.values();
+        return mosCleanupList.values();
     }
 
     @Override
@@ -77,7 +77,7 @@ public class MosInstanceManager implements InstanceManager {
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedRate = 60 * 1000)
     public void deleteFailureInstance() {
-        cleanInstance(mosFailureQueue);
+        cleanInstance(mosCleanupList);
     }
 
     /**
@@ -85,8 +85,8 @@ public class MosInstanceManager implements InstanceManager {
      */
     @Override
     public void clean() {
-        cleanInstance(mosFailureQueue);
-        cleanInstance(mosRunningQueue);
+        cleanInstance(mosCleanupList);
+        cleanInstance(mosRunningList);
     }
 
     private void cleanInstance(Map<String, Instance> instanceMap) {
@@ -123,9 +123,9 @@ public class MosInstanceManager implements InstanceManager {
                 // wait instance status to running with 30 seconds timeout
                 if (mosClient.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 30 * 1000)) {
                     System.out.println(instance);
-                    mosRunningQueue.put(instanceName, instance);
+                    mosRunningList.put(instanceName, instance);
                 } else {
-                    mosFailureQueue.put(instanceName, instance);
+                    mosCleanupList.put(instanceName, instance);
                 }
             } catch (Throwable e) {
                 // TODO: should add logging
@@ -135,7 +135,7 @@ public class MosInstanceManager implements InstanceManager {
 
                     // should deal with failed created instance
                     if (mosException.getInstance() != null) {
-                        mosFailureQueue.put(instanceName, mosException.getInstance());
+                        mosCleanupList.put(instanceName, mosException.getInstance());
                     }
                 }
             }
