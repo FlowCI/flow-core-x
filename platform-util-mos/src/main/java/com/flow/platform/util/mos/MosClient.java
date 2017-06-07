@@ -1,11 +1,12 @@
 package com.flow.platform.util.mos;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.meituan.mos.sdk.v1.Client;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class MosClient {
 
-    private final static Gson GSON = new Gson();
+    private final static Gson GSON = new GsonBuilder().create();
 
     private final static String DEFAULT_API_URL = MosConfig.DEFAULT_API_URL;
     private final static String DEFAULT_REGION = MosConfig.DEFAULT_REGION;
@@ -62,6 +63,57 @@ public class MosClient {
 
     public List<Zone> getZones() {
         return zones;
+    }
+
+    /**
+     * Instance list
+     *
+     * @param size size per page
+     * @param page page index, start from 0
+     * @return instance list
+     */
+    public List<Instance> listInstance(int size, int page) {
+        JSONObject response = null;
+        List<Instance> list = null;
+
+        try {
+            response = client.DescribeInstances(null, null, size, page, null);
+            Object rawInstances = response.getJSONObject("DescribeInstancesResponse")
+                    .getJSONObject("InstanceSet")
+                    .get("Instance");
+
+            // only one instance
+            if (rawInstances instanceof JSONObject) {
+                JSONObject jsonObject = (JSONObject) rawInstances;
+                Instance instance = GSON.fromJson(jsonObject.toString(), Instance.class);
+
+                list = new ArrayList<>(1);
+                list.add(instance);
+                return list;
+            }
+
+            if (rawInstances instanceof JSONArray) {
+                JSONArray jsonArray = (JSONArray) rawInstances;
+                list = new ArrayList<>(jsonArray.length());
+
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonItem = jsonArray.getJSONObject(i);
+                    Instance instance = GSON.fromJson(jsonItem.toString(), Instance.class);
+                    list.add(instance);
+                }
+
+                return list;
+            }
+
+            throw new IllegalStateException("Data cannot be convert to Instance object");
+
+        } catch (JSONException e) {
+            MosException mosException = new MosException("DescribeInstances: Wrong response data", e);
+            mosException.setError(response);
+            throw mosException;
+        } catch (Throwable e) {
+            throw new MosException("DescribeInstances: Exception from request", e);
+        }
     }
 
     public Instance createInstance(String imageName, String instanceName) {

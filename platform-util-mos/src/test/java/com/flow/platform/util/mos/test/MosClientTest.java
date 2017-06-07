@@ -60,6 +60,13 @@ public class MosClientTest {
         Assert.assertTrue(gateways.size() >= 0);
     }
 
+    @Test
+    public void should_list_instances() {
+        List<Instance> instances = client.listInstance(100, 0);
+        Assert.assertNotNull(instances);
+        Assert.assertTrue(instances.size() > 0);
+    }
+
     @Ignore
     @Test
     public void should_create_instance_and_load_status_in_sync() throws InterruptedException {
