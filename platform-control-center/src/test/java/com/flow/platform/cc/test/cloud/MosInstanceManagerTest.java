@@ -36,6 +36,6 @@ public class MosInstanceManagerTest extends TestBase {
 
     @After
     public void after() {
-        mosPoolManager.clean();
+        mosPoolManager.cleanAll();
     }
 }

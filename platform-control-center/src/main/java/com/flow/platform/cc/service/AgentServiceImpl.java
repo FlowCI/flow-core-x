@@ -6,7 +6,9 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.Zone;
+import com.flow.platform.util.mos.Instance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -113,18 +115,15 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     }
 
     @Override
-    @Scheduled(initialDelay = 10 * 1000, fixedRate = 60 * 1000)
-    public void keepIdleAgent() {
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 60 * 1000)
+    public void keepIdleAgentTask() {
         if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
-            System.out.println("ZoneService.keepIdleAgent: Task not enabled");
+            System.out.println("ZoneService.keepIdleAgentTask: Task not enabled");
             return;
         }
 
         // get num of idle agent
         for (Zone zone : zoneService.getZones()) {
-            int numOfIdle = this.findAvailable(zone.getName()).size();
-            System.out.println(String.format("Num of idle agent in zone %s = %s", zone.getName(), numOfIdle));
-
             // find instance manager by zone
             String beanName = String.format("%sInstanceManager", zone.getCloudProvider());
             InstanceManager instanceManager = (InstanceManager) springContextUtil.getBean(beanName);
@@ -132,19 +131,67 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
                 continue;
             }
 
-            // start batch of instance to ensure idle pool if size < min pool size
-            if (numOfIdle < MIN_IDLE_AGENT_POOL) {
-                instanceManager.batchStartInstance(MIN_IDLE_AGENT_POOL);
+            if (keepIdleAgentMinSize(zone, instanceManager)) {
                 continue;
             }
 
-            // clean pool if idle pool size > max pool size
-            List<Agent> idleList = this.findAvailable(zone.getName());
-            numOfIdle = idleList.size();
-            if (numOfIdle > MAX_IDLE_AGENT_POOL) {
-                // TODO: clean instance when idle pool > max idle pool size
-            }
+            keepIdleAgentMaxSize(zone, instanceManager);
         }
+    }
+
+    /**
+     * Find num of idle agent and batch start instance
+     *
+     * @param zone
+     * @param instanceManager
+     * @return boolean
+     *          true = need start instance,
+     *          false = has enough idle agent
+     */
+    private synchronized boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager) {
+        int numOfIdle = this.findAvailable(zone.getName()).size();
+        System.out.println(String.format("Num of idle agent in zone %s = %s", zone, numOfIdle));
+
+        if (numOfIdle < MIN_IDLE_AGENT_POOL) {
+            instanceManager.batchStartInstance(MIN_IDLE_AGENT_POOL);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Find num of idle agent and check max pool size,
+     * send shutdown cmd to agent and delete instance
+     *
+     * @param zone
+     * @param instanceManager
+     * @return
+     */
+    private synchronized boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager) {
+        List<Agent> agentList = this.findAvailable(zone.getName());
+        int numOfIdle = agentList.size();
+        System.out.println(String.format("Num of idle agent in zone %s = %s", zone, numOfIdle));
+
+        if (numOfIdle > MAX_IDLE_AGENT_POOL) {
+            int numOfRemove = numOfIdle - MAX_IDLE_AGENT_POOL;
+
+            for (int i = 0; i < numOfRemove; i++) {
+                Agent idleAgent = agentList.get(i);
+
+                // send shutdown cmd
+                CmdBase cmd = new CmdBase(idleAgent.getPath(), CmdBase.Type.SHUTDOWN, "flow.ci");
+                cmdService.send(cmd);
+
+                // add instance to cleanup list
+                Instance instance = instanceManager.find(idleAgent.getPath());
+                instanceManager.addToCleanList(instance);
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

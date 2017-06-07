@@ -40,7 +40,7 @@ public interface AgentService {
      * Find available agent by zone name
      *
      * @param zone
-     * @return
+     * @return Sorted agent list by updated date
      */
     List<Agent> findAvailable(String zone);
 
@@ -56,5 +56,5 @@ public interface AgentService {
      * Scheduler task, periodically, every 1 min to check available agent in zone
      * It will start instance if num of available agent not enough
      */
-    void keepIdleAgent();
+    void keepIdleAgentTask();
 }

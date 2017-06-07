@@ -1,5 +1,7 @@
 package com.flow.platform.cc.cloud;
 
+import com.flow.platform.cc.service.CmdService;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.mos.Instance;
 import com.flow.platform.util.mos.MosClient;
 import com.flow.platform.util.mos.MosException;
@@ -21,6 +23,8 @@ import java.util.concurrent.Executor;
  */
 @Component(value = "mosInstanceManager")
 public class MosInstanceManager implements InstanceManager {
+
+    private final static String INSTANCE_NAME_PATTERN = "%s.cloud.mos";
 
     @Value("${mos.key}")
     private String mosKey;
@@ -51,6 +55,17 @@ public class MosInstanceManager implements InstanceManager {
     }
 
     @Override
+    public Instance find(String name) {
+        return mosRunningList.get(name);
+    }
+
+    @Override
+    public Instance find(AgentPath agentPath) {
+        String instanceName = String.format(INSTANCE_NAME_PATTERN, agentPath.getName());
+        return find(instanceName);
+    }
+
+    @Override
     public Collection<Instance> runningInstance() {
         return mosRunningList.values();
     }
@@ -64,11 +79,17 @@ public class MosInstanceManager implements InstanceManager {
     public List<String> batchStartInstance(int numOfInstance) {
         List<String> expectNameList = new ArrayList<>(numOfInstance);
         for (int i = 0; i < numOfInstance; i ++) {
-            String instanceName = String.format(mosInstanceNamePattern, UUID.randomUUID());
+            String instanceName = createUniqueInstanceName();
             taskExecutor.execute(new StartMosInstanceWorker(mosClient, mosImage, instanceName));
             expectNameList.add(instanceName);
         }
         return expectNameList;
+    }
+
+    @Override
+    public void addToCleanList(Instance instance) {
+        mosRunningList.remove(instance.getName());
+        mosCleanupList.putIfAbsent(instance.getName(), instance);
     }
 
     /**
@@ -76,7 +97,7 @@ public class MosInstanceManager implements InstanceManager {
      */
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedRate = 60 * 1000)
-    public void deleteFailureInstance() {
+    public void cleanInstanceTask() {
         cleanInstance(mosCleanupList);
     }
 
@@ -84,7 +105,7 @@ public class MosInstanceManager implements InstanceManager {
      * Delete all failure and running instance
      */
     @Override
-    public void clean() {
+    public void cleanAll() {
         cleanInstance(mosCleanupList);
         cleanInstance(mosRunningList);
     }
@@ -97,6 +118,10 @@ public class MosInstanceManager implements InstanceManager {
             mosClient.deleteInstance(mosInstance.getInstanceId());
             iterator.remove();
         }
+    }
+
+    private String createUniqueInstanceName() {
+        return String.format(mosInstanceNamePattern, UUID.randomUUID());
     }
 
     /**

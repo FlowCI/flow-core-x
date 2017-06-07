@@ -1,5 +1,6 @@
 package com.flow.platform.cc.cloud;
 
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.mos.Instance;
 
 import java.util.Collection;
@@ -10,6 +11,22 @@ import java.util.List;
  * Copyright fir.im
  */
 public interface InstanceManager {
+
+    /**
+     * Find instance by unique name
+     *
+     * @param name instance unique name
+     * @return instance object
+     */
+    Instance find(String name);
+
+    /**
+     * Find instance by agent path
+     *
+     * @param agentPath
+     * @return
+     */
+    Instance find(AgentPath agentPath);
 
     /**
      * Get running instance list
@@ -34,12 +51,19 @@ public interface InstanceManager {
     List<String> batchStartInstance(final int numOfInstance);
 
     /**
-     * Periodically check and delete failure instance
+     * Add instance to clean list
+     *
+     * @param instance
      */
-    void deleteFailureInstance();
+    void addToCleanList(Instance instance);
 
     /**
-     * Delete all instance and clean the cloud
+     * Periodically check and delete cleanAll up instance list
      */
-    void clean();
+    void cleanInstanceTask();
+
+    /**
+     * Delete all instance and cleanAll the cloud
+     */
+    void cleanAll();
 }
