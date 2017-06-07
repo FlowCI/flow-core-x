@@ -55,4 +55,12 @@ public class Zone {
     public int hashCode() {
         return name.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "Zone{" +
+                "name='" + name + '\'' +
+                ", cloudProvider='" + cloudProvider + '\'' +
+                '}';
+    }
 }

@@ -173,4 +173,13 @@ public class Instance implements Serializable {
     public int hashCode() {
         return instanceId != null ? instanceId.hashCode() : 0;
     }
+
+    @Override
+    public String toString() {
+        return "MosInstance{" +
+                "name='" + name + '\'' +
+                ", instanceId='" + instanceId + '\'' +
+                ", ipAddresses='" + ipAddresses + '\'' +
+                '}';
+    }
 }

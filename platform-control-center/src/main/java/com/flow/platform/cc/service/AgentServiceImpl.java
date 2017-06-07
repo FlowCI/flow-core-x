@@ -23,8 +23,9 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service(value = "agentService")
 public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
-    private static final int MIN_IDLE_AGENT_POOL = 2; // min pool size
-    private static final int MAX_IDLE_AGENT_POOL = 4; // max pool size
+    private static final int MIN_IDLE_AGENT_POOL = 1; // min pool size
+    private static final int MAX_IDLE_AGENT_POOL = 2; // max pool size
+    private static final int KEEP_IDLE_AGENT_TASK_PERIOD = 45 * 1000; // millisecond
 
     private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
 
@@ -115,7 +116,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     }
 
     @Override
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 60 * 1000)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = KEEP_IDLE_AGENT_TASK_PERIOD)
     public void keepIdleAgentTask() {
         if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
             System.out.println("ZoneService.keepIdleAgentTask: Task not enabled");
