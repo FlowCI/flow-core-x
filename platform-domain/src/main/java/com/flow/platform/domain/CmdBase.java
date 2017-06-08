@@ -42,6 +42,7 @@ public class CmdBase extends Jsonable {
 
     /**
      * Destination of command
+     * Agent name can be null, that means platform select a instance to run cmd
      */
     private AgentPath agentPath;
 
@@ -54,6 +55,21 @@ public class CmdBase extends Jsonable {
      * Command content (Required when type = RUN_SHELL)
      */
     private String cmd;
+
+    /**
+     * Reserved field for cmd queue
+     */
+    private Integer priority;
+
+    /**
+     * Platform will reserve a machine for session
+     */
+    private Boolean sessionEnabled;
+
+    /**
+     * Session id used to find reserved agent
+     */
+    private String sessionId;
 
     public CmdBase() {
     }
@@ -98,6 +114,30 @@ public class CmdBase extends Jsonable {
 
     public void setCmd(String cmd) {
         this.cmd = cmd;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
+    public Boolean getSessionEnabled() {
+        return sessionEnabled;
+    }
+
+    public void setSessionEnabled(Boolean sessionEnabled) {
+        this.sessionEnabled = sessionEnabled;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     @Override

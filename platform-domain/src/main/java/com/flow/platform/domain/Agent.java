@@ -40,6 +40,11 @@ public class Agent extends Jsonable {
     private Status status = Status.OFFLINE;
 
     /**
+     * Reserved for session id
+     */
+    private String sessionId;
+
+    /**
      * Created date
      */
     private Date createdDate;
@@ -94,6 +99,14 @@ public class Agent extends Jsonable {
         this.status = status;
     }
 
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
     public Date getCreatedDate() {
         return createdDate;
     }
@@ -129,7 +142,8 @@ public class Agent extends Jsonable {
         return "Agent{" +
                 "zone='" + path.getZone() + '\'' +
                 ", name='" + path.getName() + '\'' +
-                ", status=" + status +
+                ", status=" + status + '\'' +
+                ", sessionId=" + sessionId +
                 '}';
     }
 }
