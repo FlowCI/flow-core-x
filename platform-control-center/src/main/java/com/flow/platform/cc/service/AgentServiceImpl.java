@@ -11,7 +11,6 @@ import com.flow.platform.util.mos.Instance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -73,17 +72,20 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
     @Override
     public Agent find(String sessionId) {
-//        //TODO: should replace with dao
-//        for (Zone zone : zoneService.getZones()) {
-//            Map<AgentPath, Agent> agentMap = agentOnlineList.get(zone.getName());
-//            for (Agent agent : agentMap.values()) {
-//                if (agent.getSessionId() != null && Objects.equals(agent.getSessionId(), sessionId)) {
-//                    return agent;
-//                }
-//            }
-//        }
-//        return null;
-        throw new NotImplementedException();
+        //TODO: should replace with dao
+        for (Zone zone : zoneService.getZones()) {
+            Map<AgentPath, Agent> agentMap = agentOnlineList.get(zone.getName());
+            if (agentMap == null) {
+                continue;
+            }
+
+            for (Agent agent : agentMap.values()) {
+                if (agent.getSessionId() != null && Objects.equals(agent.getSessionId(), sessionId)) {
+                    return agent;
+                }
+            }
+        }
+        return null;
     }
 
     @Override

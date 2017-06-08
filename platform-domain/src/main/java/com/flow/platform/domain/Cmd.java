@@ -203,7 +203,7 @@ public class Cmd extends CmdBase {
     public String toString() {
         return "Cmd{" +
                 "id='" + id + '\'' +
-                ", info =" + super.toString() +
+                ", info=" + super.toString() +
                 ", createdDate=" + createdDate +
                 ", updatedDate=" + updatedDate +
                 '}';

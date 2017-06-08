@@ -137,6 +137,10 @@ public class CmdBase extends Jsonable {
         this.sessionId = sessionId;
     }
 
+    public boolean hasSession() {
+        return sessionId != null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -160,8 +164,8 @@ public class CmdBase extends Jsonable {
     @Override
     public String toString() {
         return "CmdBase{" +
-                "zone='" + agentPath.getZone() + '\'' +
-                ", agent='" + agentPath.getName() + '\'' +
+                " zone=" + (agentPath == null ? "null" : agentPath.getZone()) +
+                ", agent=" + (agentPath == null ? "null" : agentPath.getName()) +
                 ", type=" + type +
                 ", cmd='" + cmd + '\'' +
                 ", sessionId='" + sessionId + '\'' +

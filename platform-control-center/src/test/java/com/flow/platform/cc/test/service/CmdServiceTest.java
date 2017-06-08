@@ -4,7 +4,6 @@ import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
-import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -30,7 +29,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 
-import static java.time.LocalDate.of;
 import static junit.framework.TestCase.fail;
 
 /**
@@ -322,5 +320,35 @@ public class CmdServiceTest extends TestBase {
         // then:
         Assert.assertTrue(Files.exists(Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename)));
         Assert.assertEquals(1, cmdLoggingQueue.size());
+    }
+
+    @Test
+    public void should_create_session_and_send_cmd_with_session() throws Throwable {
+        // given:
+        String zoneName = zkHelper.getZones().get(0).getName();
+        String agentName = "test-agent-006";
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.buildZkPath(zoneName, agentName).path(), "");
+        Thread.sleep(1000);
+
+        // when: send cmd for create session
+        Cmd cmd = cmdService.send(new CmdBase(zoneName, null, CmdBase.Type.CREATE_SESSION, null));
+        Assert.assertNotNull(cmd.getSessionId());
+
+        // then: check agent is locked by session
+        Agent target = agentService.find(cmd.getAgentPath());
+        Assert.assertEquals(Agent.Status.BUSY, target.getStatus());
+        Assert.assertNotNull(target.getSessionId());
+        Assert.assertEquals(cmd.getSessionId(), target.getSessionId());
+
+        // when: send cmd with session id
+        CmdBase cmdWithSession = new CmdBase(zoneName, null, CmdBase.Type.RUN_SHELL, "echo hello");
+        cmdWithSession.setSessionId(target.getSessionId());
+        cmd = cmdService.send(cmdWithSession);
+
+        // then:
+        Agent sessionAgent = agentService.find(cmd.getAgentPath());
+        Assert.assertEquals(target, sessionAgent);
+        Assert.assertEquals(target.getSessionId(), sessionAgent.getSessionId());
+        Assert.assertEquals(Agent.Status.BUSY, sessionAgent.getStatus());
     }
 }

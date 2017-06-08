@@ -81,8 +81,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         mockTrans.lock();
 
         try {
-            // find agent by cmd
-            Agent target = selectAgent(cmd);
+            Agent target = selectAgent(cmd); // find agent by cmd
+            cmd.setAgentPath(target.getPath()); // reset cmd path since some of cmd missing agent name
 
             // double check agent in zk node
             String agentNodePath = zkHelper.getZkPath(target.getPath());
@@ -90,16 +90,19 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 throw new AgentErr.NotFoundException(target.getPath().toString());
             }
 
-            // create cmd info
-            Cmd cmdInfo = create(cmd);
+            Cmd cmdInfo = create(cmd); // create cmd info
 
             // set agent status before cmd sent
             switch (cmd.getType()) {
                 case RUN_SHELL:
+                    if (cmdInfo.hasSession()) {
+                        break;
+                    }
+
                     if (target.getStatus() != Agent.Status.IDLE) {
                         // add reject status since busy
                         cmdInfo.addStatus(Cmd.Status.REJECTED);
-                        throw new AgentErr.NotAvailableException(cmd.getAgent());
+                        throw new AgentErr.NotAvailableException(target.getName());
                     }
 
                     target.setStatus(Agent.Status.BUSY);
@@ -107,8 +110,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
                 case CREATE_SESSION:
                     String sessionId = UUID.randomUUID().toString();
-                    cmd.setSessionId(sessionId);
-                    target.setSessionId(sessionId);
+                    cmdInfo.setSessionId(sessionId); // set session id to cmd
+                    target.setSessionId(sessionId); // set session id to agent
                     target.setStatus(Agent.Status.BUSY);
                     break;
 
@@ -216,7 +219,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      */
     private Agent selectAgent(CmdBase cmd) {
         // check session id as top priority
-        if (cmd.getSessionId() != null) {
+        if (cmd.hasSession()) {
             Agent target = agentService.find(cmd.getSessionId());
             if (target == null) {
                 throw new AgentErr.NotFoundException(cmd.getSessionId());
@@ -226,7 +229,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         // verify agent path is presented
         AgentPath agentPath = cmd.getAgentPath();
-        if (agentPath.getName() == null && cmd.getType() != CmdBase.Type.RUN_SHELL) {
+        if (isAgentPathFail(cmd, agentPath)) {
             throw new AgentErr.AgentMustBeSpecified();
         }
 
@@ -239,7 +242,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 return target;
             }
 
-            throw new AgentErr.NotAvailableException(cmd.getAgent());
+            throw new AgentErr.NotAvailableException(agentPath.getZone() + ":null");
         }
 
         // find agent by path
@@ -249,6 +252,13 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         return target;
+    }
+
+    private boolean isAgentPathFail(CmdBase cmd, AgentPath agentPath) {
+        if (cmd.getType() == CmdBase.Type.CREATE_SESSION || cmd.getType() == CmdBase.Type.DELETE_SESSION) {
+            return false;
+        }
+        return agentPath.getName() == null && cmd.getType() != CmdBase.Type.RUN_SHELL;
     }
 
     /**
