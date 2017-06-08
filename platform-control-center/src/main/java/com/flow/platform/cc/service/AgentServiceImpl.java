@@ -23,6 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service(value = "agentService")
 public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
+    // {zone : {path, agent}}
     private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
 
     private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
@@ -72,6 +73,16 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
     @Override
     public Agent find(String sessionId) {
+//        //TODO: should replace with dao
+//        for (Zone zone : zoneService.getZones()) {
+//            Map<AgentPath, Agent> agentMap = agentOnlineList.get(zone.getName());
+//            for (Agent agent : agentMap.values()) {
+//                if (agent.getSessionId() != null && Objects.equals(agent.getSessionId(), sessionId)) {
+//                    return agent;
+//                }
+//            }
+//        }
+//        return null;
         throw new NotImplementedException();
     }
 

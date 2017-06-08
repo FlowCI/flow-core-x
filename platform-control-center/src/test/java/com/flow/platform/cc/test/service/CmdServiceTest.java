@@ -47,9 +47,6 @@ public class CmdServiceTest extends TestBase {
     private AgentService agentService;
 
     @Autowired
-    private ZoneService zoneService;
-
-    @Autowired
     private Queue<Path> cmdLoggingQueue;
 
     private Process mockProcess = new Process() {

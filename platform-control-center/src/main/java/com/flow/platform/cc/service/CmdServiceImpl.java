@@ -81,6 +81,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         mockTrans.lock();
 
         try {
+            // find agent by cmd
             Agent target = selectAgent(cmd);
 
             // double check agent in zk node
@@ -102,6 +103,16 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     }
 
                     target.setStatus(Agent.Status.BUSY);
+                    break;
+
+                case CREATE_SESSION:
+                    String sessionId = UUID.randomUUID().toString();
+                    cmd.setSessionId(sessionId);
+                    target.setSessionId(sessionId);
+                    target.setStatus(Agent.Status.BUSY);
+                    break;
+
+                case DELETE_SESSION:
                     break;
 
                 case KILL:
@@ -194,7 +205,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     /**
-     * Select agent by AgentPath
+     * Select agent by AgentPath or session id
      *  - auto select agent if only defined zone name
      *
      * @param cmd
@@ -204,8 +215,17 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      * @exception com.flow.platform.cc.exception.AgentErr.NotFoundException target agent not found
      */
     private Agent selectAgent(CmdBase cmd) {
-        AgentPath agentPath = cmd.getAgentPath();
+        // check session id as top priority
+        if (cmd.getSessionId() != null) {
+            Agent target = agentService.find(cmd.getSessionId());
+            if (target == null) {
+                throw new AgentErr.NotFoundException(cmd.getSessionId());
+            }
+            return target;
+        }
 
+        // verify agent path is presented
+        AgentPath agentPath = cmd.getAgentPath();
         if (agentPath.getName() == null && cmd.getType() != CmdBase.Type.RUN_SHELL) {
             throw new AgentErr.AgentMustBeSpecified();
         }
@@ -222,12 +242,13 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw new AgentErr.NotAvailableException(cmd.getAgent());
         }
 
-        Agent agent = agentService.find(agentPath);
-        if (agent == null) {
+        // find agent by path
+        Agent target = agentService.find(agentPath);
+        if (target == null) {
             throw new AgentErr.NotFoundException(cmd.getAgent());
         }
 
-        return agent;
+        return target;
     }
 
     /**
@@ -237,6 +258,13 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      * @param cmd Cmd object
      */
     private void updateAgentStatusWhenUpdateCmd(Cmd cmd) {
+        // do not update agent status since duration session
+        String sessionId = cmd.getSessionId();
+        if (sessionId != null && agentService.find(sessionId) != null) {
+            return;
+        }
+
+        // update agent status by cmd status
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
         for (Cmd tmp : mockCmdList.values()) {
@@ -258,6 +286,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         if (agent == null) {
             throw new IllegalStateException("Cannot find related agent for cmd");
         }
+
         agent.setStatus(isAgentBusy ? Agent.Status.BUSY : Agent.Status.IDLE);
     }
 }
