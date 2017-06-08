@@ -15,6 +15,16 @@ public class CmdBase extends Jsonable {
         RUN_SHELL("RUN_SHELL"),
 
         /**
+         * Find an agent and create session for it
+         */
+        CREATE_SESSION("CREATE_SESSION"),
+
+        /**
+         * Release agent for session
+         */
+        DELETE_SESSION("DELETE_SESSION"),
+
+        /**
          * KILL current running processes
          */
         KILL("KILL"),
@@ -44,32 +54,27 @@ public class CmdBase extends Jsonable {
      * Destination of command
      * Agent name can be null, that means platform select a instance to run cmd
      */
-    private AgentPath agentPath;
+    protected AgentPath agentPath;
 
     /**
      * Command type (Required)
      */
-    private CmdBase.Type type;
+    protected CmdBase.Type type;
 
     /**
      * Command content (Required when type = RUN_SHELL)
      */
-    private String cmd;
+    protected String cmd;
 
     /**
      * Reserved field for cmd queue
      */
-    private Integer priority;
+    protected Integer priority;
 
     /**
      * Platform will reserve a machine for session
      */
-    private Boolean sessionEnabled;
-
-    /**
-     * Session id used to find reserved agent
-     */
-    private String sessionId;
+    protected String sessionId;
 
     public CmdBase() {
     }
@@ -124,14 +129,6 @@ public class CmdBase extends Jsonable {
         this.priority = priority;
     }
 
-    public Boolean getSessionEnabled() {
-        return sessionEnabled;
-    }
-
-    public void setSessionEnabled(Boolean sessionEnabled) {
-        this.sessionEnabled = sessionEnabled;
-    }
-
     public String getSessionId() {
         return sessionId;
     }
@@ -167,6 +164,7 @@ public class CmdBase extends Jsonable {
                 ", agent='" + agentPath.getName() + '\'' +
                 ", type=" + type +
                 ", cmd='" + cmd + '\'' +
+                ", sessionId='" + sessionId + '\'' +
                 '}';
     }
 }

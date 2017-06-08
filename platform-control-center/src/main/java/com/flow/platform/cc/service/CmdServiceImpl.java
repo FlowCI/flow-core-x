@@ -44,6 +44,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         String cmdId = UUID.randomUUID().toString();
         Cmd cmdInfo = new Cmd(cmd);
         cmdInfo.setId(cmdId);
+        cmdInfo.setSessionId(cmd.getSessionId());
         cmdInfo.setCreatedDate(new Date());
         cmdInfo.setUpdatedDate(new Date());
         mockCmdList.put(cmdId, cmdInfo);
@@ -225,6 +226,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         if (agent == null) {
             throw new AgentErr.NotFoundException(cmd.getAgent());
         }
+
         return agent;
     }
 

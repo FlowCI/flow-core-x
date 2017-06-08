@@ -41,6 +41,14 @@ public interface AgentService {
     Agent find(AgentPath key);
 
     /**
+     * FInd agent by session id
+     *
+     * @param sessionId
+     * @return
+     */
+    Agent find(String sessionId);
+
+    /**
      * Find available agent by zone name
      *
      * @param zone

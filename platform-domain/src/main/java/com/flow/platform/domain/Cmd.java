@@ -2,7 +2,6 @@ package com.flow.platform.domain;
 
 import com.google.common.collect.Sets;
 
-import javax.annotation.Resource;
 import java.util.Date;
 import java.util.Set;
 

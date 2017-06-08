@@ -3,7 +3,6 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.CmdBase;
@@ -12,6 +11,7 @@ import com.flow.platform.util.mos.Instance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -68,6 +68,11 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
         String zone = key.getZone();
         Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
         return agentList.get(key);
+    }
+
+    @Override
+    public Agent find(String sessionId) {
+        throw new NotImplementedException();
     }
 
     @Override
