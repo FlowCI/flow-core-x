@@ -64,7 +64,7 @@ public class CmdControllerTest extends TestBase {
         AgentPath path = new AgentPath("test-zone-00", "test-001");
         agentService.reportOnline("test-zone-00", Lists.newArrayList(path));
 
-        CmdBase base = new CmdBase("test-zone-00", "test-001", CmdBase.Type.STOP, null);
+        CmdBase base = new CmdBase("test-zone-00", "test-001", CmdType.STOP, null);
         Cmd cmd = cmdService.create(base);
 
         // when:
@@ -97,7 +97,7 @@ public class CmdControllerTest extends TestBase {
         Thread.sleep(1000);
 
         // when: send post request
-        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "~/hello.sh");
+        CmdBase cmd = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, "~/hello.sh");
         gsonConfig.toJson(cmd);
 
         MockHttpServletRequestBuilder content = post("/cmd/send")
@@ -133,7 +133,7 @@ public class CmdControllerTest extends TestBase {
         Path path = Paths.get(resource.getFile());
         byte[] data = Files.readAllBytes(path);
 
-        CmdBase cmdBase = new CmdBase("test-zone-1", "test-agent-1", Cmd.Type.RUN_SHELL, "~/hello.sh");
+        CmdBase cmdBase = new CmdBase("test-zone-1", "test-agent-1", CmdType.RUN_SHELL, "~/hello.sh");
         Cmd cmd = cmdService.create(cmdBase);
 
         String originalFilename = cmd.getId() + ".out.zip";

@@ -187,7 +187,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
                 Agent idleAgent = agentList.get(i);
 
                 // send shutdown cmd
-                CmdBase cmd = new CmdBase(idleAgent.getPath(), CmdBase.Type.SHUTDOWN, "flow.ci");
+                CmdBase cmd = new CmdBase(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci");
                 cmdService.send(cmd);
 
                 // add instance to cleanup list

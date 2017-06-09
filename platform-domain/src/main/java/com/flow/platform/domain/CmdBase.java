@@ -8,48 +8,6 @@ package com.flow.platform.domain;
  */
 public class CmdBase extends Jsonable {
 
-    public enum Type {
-        /**
-         * Run a shell script in agent
-         */
-        RUN_SHELL("RUN_SHELL"),
-
-        /**
-         * Find an agent and create session for it
-         */
-        CREATE_SESSION("CREATE_SESSION"),
-
-        /**
-         * Release agent for session
-         */
-        DELETE_SESSION("DELETE_SESSION"),
-
-        /**
-         * KILL current running processes
-         */
-        KILL("KILL"),
-
-        /**
-         * Stop agent
-         */
-        STOP("STOP"),
-
-        /**
-         * Stop agent and shutdown machine
-         */
-        SHUTDOWN("SHUTDOWN");
-
-        private String name;
-
-        Type(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-
     /**
      * Destination of command
      * Agent name can be null, that means platform select a instance to run cmd
@@ -59,7 +17,7 @@ public class CmdBase extends Jsonable {
     /**
      * Command type (Required)
      */
-    protected CmdBase.Type type;
+    protected CmdType type;
 
     /**
      * Command content (Required when type = RUN_SHELL)
@@ -79,11 +37,11 @@ public class CmdBase extends Jsonable {
     public CmdBase() {
     }
 
-    public CmdBase(String zone, String agent, Type type, String cmd) {
+    public CmdBase(String zone, String agent, CmdType type, String cmd) {
         this(new AgentPath(zone, agent), type, cmd);
     }
 
-    public CmdBase(AgentPath agentPath, Type type, String cmd) {
+    public CmdBase(AgentPath agentPath, CmdType type, String cmd) {
         this.agentPath = agentPath;
         this.type = type;
         this.cmd = cmd;
@@ -105,11 +63,11 @@ public class CmdBase extends Jsonable {
         return agentPath.getName();
     }
 
-    public Cmd.Type getType() {
+    public CmdType getType() {
         return type;
     }
 
-    public void setType(Cmd.Type type) {
+    public void setType(CmdType type) {
         this.type = type;
     }
 

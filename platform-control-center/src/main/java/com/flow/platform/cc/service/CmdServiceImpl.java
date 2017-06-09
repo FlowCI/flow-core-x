@@ -258,10 +258,10 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     private boolean isAgentPathFail(CmdBase cmd, AgentPath agentPath) {
-        if (cmd.getType() == CmdBase.Type.CREATE_SESSION || cmd.getType() == CmdBase.Type.DELETE_SESSION) {
+        if (cmd.getType() == CmdType.CREATE_SESSION || cmd.getType() == CmdType.DELETE_SESSION) {
             return false;
         }
-        return agentPath.getName() == null && cmd.getType() != CmdBase.Type.RUN_SHELL;
+        return agentPath.getName() == null && cmd.getType() != CmdType.RUN_SHELL;
     }
 
     /**
@@ -281,7 +281,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
         for (Cmd tmp : mockCmdList.values()) {
-            if (tmp.getType() != Cmd.Type.RUN_SHELL) {
+            if (tmp.getType() != CmdType.RUN_SHELL) {
                 continue;
             }
 

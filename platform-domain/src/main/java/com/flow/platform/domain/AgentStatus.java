@@ -1,10 +1,12 @@
 package com.flow.platform.domain;
 
+import java.io.Serializable;
+
 /**
  * Created by gy@fir.im on 09/06/2017.
  * Copyright fir.im
  */
-public enum AgentStatus {
+public enum AgentStatus implements Serializable {
 
     OFFLINE("OFFLINE"),
 

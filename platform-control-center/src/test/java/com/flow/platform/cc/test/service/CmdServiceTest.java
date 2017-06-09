@@ -87,7 +87,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_create_cmd() {
         // given:
-        CmdBase base = new CmdBase("test-zone", "test-agent", Cmd.Type.KILL, null);
+        CmdBase base = new CmdBase("test-zone", "test-agent", CmdType.KILL, null);
 
         // when:
         Cmd cmd = cmdService.create(base);
@@ -108,7 +108,7 @@ public class CmdServiceTest extends TestBase {
         AgentPath agentPath = new AgentPath("test-zone", "test-agent");
         agentService.reportOnline("test-zone", Lists.newArrayList(agentPath));
 
-        CmdBase base = new CmdBase(agentPath, Cmd.Type.RUN_SHELL, null);
+        CmdBase base = new CmdBase(agentPath, CmdType.RUN_SHELL, null);
         Cmd cmd = cmdService.create(base);
         Assert.assertNotNull(cmd);
         Assert.assertNotNull(cmd.getId());
@@ -143,7 +143,7 @@ public class CmdServiceTest extends TestBase {
         for (Cmd.Status reportStatus : Cmd.FINISH_STATUS) {
 
             // when: send cmd status and mock to report cmd status
-            CmdBase base = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, null);
+            CmdBase base = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, null);
             Cmd current = cmdService.send(base);
 
             Agent relatedAgent = agentService.find(base.getAgentPath());
@@ -163,7 +163,7 @@ public class CmdServiceTest extends TestBase {
         for (Cmd.Status status : Cmd.WORKING_STATUS) {
 
             // when: send cmd status and mock to report cmd status
-            CmdBase base = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, null);
+            CmdBase base = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, null);
             Cmd current = cmdService.send(base);
 
             Agent relatedAgent = agentService.find(base.getAgentPath());
@@ -194,7 +194,7 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // when: send command
-        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
+        CmdBase cmd = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
         Cmd cmdInfo = cmdService.send(cmd);
 
         // then:
@@ -244,7 +244,7 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // report busy status
-        cmdService.send(new CmdBase(agentBusy1, Cmd.Type.RUN_SHELL, "echo \"hello\""));
+        cmdService.send(new CmdBase(agentBusy1, CmdType.RUN_SHELL, "echo \"hello\""));
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentBusy1).getStatus());
 
         // set idle agent 1 date, before idle agent 2
@@ -252,20 +252,20 @@ public class CmdServiceTest extends TestBase {
         agentService.find(agentIdle1).setUpdatedDate(Date.from(date));
 
         // when: send cmd to zone
-        Cmd cmdForIdle1 = cmdService.send(new CmdBase(zoneName, null, Cmd.Type.RUN_SHELL, "echo \"hello\""));
+        Cmd cmdForIdle1 = cmdService.send(new CmdBase(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
 
         // then: should select agent idle 1 as target
         Assert.assertEquals(agentIdle1, cmdForIdle1.getAgentPath());
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentIdle1).getStatus());
 
         // when: send cmd to make all agent to busy
-        Cmd cmdForIdle2 = cmdService.send(new CmdBase(zoneName, null, Cmd.Type.RUN_SHELL, "echo \"hello\""));
+        Cmd cmdForIdle2 = cmdService.send(new CmdBase(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
         Assert.assertEquals(agentIdle2, cmdForIdle2.getAgentPath());
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentIdle2).getStatus());
 
         // then: should raise NotAvailableException
         try {
-            cmdService.send(new CmdBase(zoneName, null, Cmd.Type.RUN_SHELL, "echo \"hello\""));
+            cmdService.send(new CmdBase(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
             fail();
         } catch (Throwable e) {
             Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
@@ -279,7 +279,7 @@ public class CmdServiceTest extends TestBase {
         String agentName = "test-agent-003";
 
         // then: send command immediately should raise AgentErr.NotFoundException
-        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
+        CmdBase cmd = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
         cmdService.send(cmd);
     }
 
@@ -294,7 +294,7 @@ public class CmdServiceTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
         Thread.sleep(1000);
 
-        CmdBase cmd = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
+        CmdBase cmd = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
         cmdService.send(cmd);
 
         // then: send command to agent again should raise AgentErr.BusyException.class
@@ -307,7 +307,7 @@ public class CmdServiceTest extends TestBase {
         String zoneName = zkHelper.getZones().get(0).getName();
         String agentName = "test-agent-005";
 
-        CmdBase baseInfo = new CmdBase(zoneName, agentName, Cmd.Type.RUN_SHELL, "/test.sh");
+        CmdBase baseInfo = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
         Cmd created = cmdService.create(baseInfo);
 
         byte[] mockData = "test".getBytes();
@@ -331,7 +331,7 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // when: send cmd for create session
-        Cmd cmd = cmdService.send(new CmdBase(zoneName, null, CmdBase.Type.CREATE_SESSION, null));
+        Cmd cmd = cmdService.send(new CmdBase(zoneName, null, CmdType.CREATE_SESSION, null));
         Assert.assertNotNull(cmd.getSessionId());
 
         // then: check agent is locked by session
@@ -341,7 +341,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertEquals(cmd.getSessionId(), target.getSessionId());
 
         // when: send cmd with session id
-        CmdBase cmdWithSession = new CmdBase(zoneName, null, CmdBase.Type.RUN_SHELL, "echo hello");
+        CmdBase cmdWithSession = new CmdBase(zoneName, null, CmdType.RUN_SHELL, "echo hello");
         cmdWithSession.setSessionId(target.getSessionId());
         cmd = cmdService.send(cmdWithSession);
 
@@ -352,7 +352,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertEquals(AgentStatus.BUSY, sessionAgent.getStatus());
 
         // when: delete session
-        CmdBase cmdToDelSession = new CmdBase(zoneName, null, CmdBase.Type.DELETE_SESSION, null);
+        CmdBase cmdToDelSession = new CmdBase(zoneName, null, CmdType.DELETE_SESSION, null);
         cmdToDelSession.setSessionId(cmd.getSessionId());
         cmd = cmdService.send(cmdToDelSession);
 

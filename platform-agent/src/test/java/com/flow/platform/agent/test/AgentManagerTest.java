@@ -2,6 +2,7 @@ package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.AgentManager;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import com.flow.platform.util.zk.ZkLocalBuilder;
@@ -92,7 +93,7 @@ public class AgentManagerTest extends TestBase {
                     Cmd cmd = Jsonable.parse(raw, Cmd.class);
 
                     // then
-                    assertEquals(new Cmd(ZONE, MACHINE, Cmd.Type.RUN_SHELL, "~/test.sh"), cmd);
+                    assertEquals(new Cmd(ZONE, MACHINE, CmdType.RUN_SHELL, "~/test.sh"), cmd);
 
                     // simulate cmd running need 5 seconds
                     Thread.sleep(2000);
@@ -114,7 +115,7 @@ public class AgentManagerTest extends TestBase {
         waitForConnect.await();
 
         // when: send command to agent
-        Cmd cmd = new Cmd(ZONE, MACHINE, Cmd.Type.RUN_SHELL, "~/test.sh");
+        Cmd cmd = new Cmd(ZONE, MACHINE, CmdType.RUN_SHELL, "~/test.sh");
         ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), cmd.toJson());
 
         // then: check agent status when command received

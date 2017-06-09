@@ -5,6 +5,7 @@ import com.flow.platform.agent.Config;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdType;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 
@@ -77,16 +78,16 @@ public class CmdManagerTest extends TestBase {
         });
 
         // create mock cmd
-        Cmd cmd1 = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd1 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
         cmd1.setId(UUID.randomUUID().toString());
 
-        Cmd cmd2 = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd2 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
         cmd2.setId(UUID.randomUUID().toString());
 
-        Cmd cmd3 = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd3 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
         cmd3.setId(UUID.randomUUID().toString());
 
-        Cmd cmd4 = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd4 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
         cmd4.setId(UUID.randomUUID().toString());
 
         // when: execute four command by thread
@@ -126,7 +127,7 @@ public class CmdManagerTest extends TestBase {
     @Test
     public void should_be_correct_status_for_killed_process() throws Throwable {
         // given
-        Cmd cmd = new Cmd("zone1", "agent1", Cmd.Type.RUN_SHELL, resourcePath);
+        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
         cmd.setId(UUID.randomUUID().toString());
 
         CountDownLatch startLatch = new CountDownLatch(1);

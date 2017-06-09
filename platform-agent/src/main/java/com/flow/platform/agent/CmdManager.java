@@ -4,6 +4,7 @@ import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdType;
 import com.google.common.collect.Maps;
 
 import java.util.ArrayList;
@@ -117,7 +118,7 @@ public class CmdManager {
      * @param cmd Cmd object
      */
     public synchronized void execute(final Cmd cmd) {
-        if (cmd.getType() == Cmd.Type.RUN_SHELL) {
+        if (cmd.getType() == CmdType.RUN_SHELL) {
             // check max concurrent proc
             int max = cmdExecutor.getMaximumPoolSize();
             int cur = cmdExecutor.getActiveCount();
@@ -144,18 +145,18 @@ public class CmdManager {
         }
 
         // kill current running proc
-        if (cmd.getType() == Cmd.Type.KILL) {
+        if (cmd.getType() == CmdType.KILL) {
             defaultExecutor.execute(this::kill);
             return;
         }
 
         // stop current agent
-        if (cmd.getType() == Cmd.Type.STOP) {
+        if (cmd.getType() == CmdType.STOP) {
             defaultExecutor.execute(this::stop);
             return;
         }
 
-        if (cmd.getType() == Cmd.Type.SHUTDOWN) {
+        if (cmd.getType() == CmdType.SHUTDOWN) {
             defaultExecutor.execute(() -> {
                 String passwordOfSudo = cmd.getCmd();
                 shutdown(passwordOfSudo);

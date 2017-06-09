@@ -123,7 +123,7 @@ public class Cmd extends CmdBase {
                 cmdBase.getCmd());
     }
 
-    public Cmd(String zone, String agent, Type type, String cmd) {
+    public Cmd(String zone, String agent, CmdType type, String cmd) {
         super(zone, agent, type, cmd);
     }
 
