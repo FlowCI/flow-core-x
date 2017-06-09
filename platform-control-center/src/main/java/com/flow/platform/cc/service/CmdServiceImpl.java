@@ -255,7 +255,18 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             return;
         }
 
-        // TODO: check cmd timeout and update related agent status
+        // find all running status cmd
+        for (Cmd cmd : mockCmdList.values()) {
+            if (cmd.getType() == CmdType.RUN_SHELL && cmd.isCurrent()) {
+                if (isTimeout(cmd)) {
+                    // kill current running cmd and report status
+                    send(new CmdBase(cmd.getAgentPath(), CmdType.KILL, null));
+                    report(cmd.getId(), CmdStatus.TIMEOUT, cmd.getResult());
+                }
+            }
+        }
+
+        // // TODO: should batch save cmd status
     }
 
     /**
