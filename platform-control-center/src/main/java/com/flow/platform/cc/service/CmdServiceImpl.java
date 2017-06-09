@@ -117,6 +117,20 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     break;
 
                 case DELETE_SESSION:
+                    // check has current cmd running in agent
+                    boolean hasCurrentCmd = false;
+                    List<Cmd> agentCmdList = listByAgentPath(target.getPath());
+                    for (Cmd cmdItem : agentCmdList) {
+                        if (cmdItem.isCurrent()) {
+                            hasCurrentCmd = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasCurrentCmd) {
+                        target.setStatus(AgentStatus.IDLE);
+                    }
+
                     target.setSessionId(null); // release session from target
                     // target.save
                     break;
