@@ -2,6 +2,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
 
 import java.util.Collection;
 import java.util.List;
@@ -62,7 +63,7 @@ public interface AgentService {
      * @param path
      * @param status
      */
-    void reportStatus(AgentPath path, Agent.Status status);
+    void reportStatus(AgentPath path, AgentStatus status);
 
     /**
      * Scheduler task, periodically, every 1 min to check available agent in zone

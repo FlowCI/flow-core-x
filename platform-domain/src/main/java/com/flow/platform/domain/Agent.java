@@ -8,25 +8,6 @@ import java.util.Date;
  */
 public class Agent extends Jsonable {
 
-    public enum Status {
-
-        OFFLINE("OFFLINE"),
-
-        IDLE("IDLE"),
-
-        BUSY("BUSY");
-
-        private String name;
-
-        Status(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-
     private AgentPath path;
 
     /**
@@ -37,7 +18,7 @@ public class Agent extends Jsonable {
     /**
      * Agent busy or idle
      */
-    private Status status = Status.OFFLINE;
+    private AgentStatus status = AgentStatus.OFFLINE;
 
     /**
      * Reserved for session id
@@ -91,11 +72,11 @@ public class Agent extends Jsonable {
         this.concurrentProc = concurrentProc;
     }
 
-    public Status getStatus() {
+    public AgentStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(AgentStatus status) {
         this.status = status;
     }
 

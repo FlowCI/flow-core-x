@@ -3,10 +3,7 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.CmdBase;
-import com.flow.platform.domain.Zone;
+import com.flow.platform.domain.*;
 import com.flow.platform.util.mos.Instance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,7 +43,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
             // remote from online list and update status
             for (AgentPath key : offlines) {
                 Agent offlineAgent = agentList.get(key);
-                offlineAgent.setStatus(Agent.Status.OFFLINE);
+                offlineAgent.setStatus(AgentStatus.OFFLINE);
                 agentList.remove(key);
             }
 
@@ -95,7 +92,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
         // find available agent
         List<Agent> availableList = new LinkedList<>();
         for (Agent agent : onlines) {
-            if (agent.getStatus() == Agent.Status.IDLE) {
+            if (agent.getStatus() == AgentStatus.IDLE) {
                 availableList.add(agent);
             }
         }
@@ -118,7 +115,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     }
 
     @Override
-    public void reportStatus(AgentPath path, Agent.Status status) {
+    public void reportStatus(AgentPath path, AgentStatus status) {
         Agent exist = find(path);
         if (exist == null) {
             throw new AgentErr.NotFoundException(path.getName());
@@ -217,7 +214,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
             String zone = key.getZone();
             Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
             Agent agent = new Agent(key);
-            agent.setStatus(Agent.Status.IDLE);
+            agent.setStatus(AgentStatus.IDLE);
             agentList.put(key, agent);
         }
     }

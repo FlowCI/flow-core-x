@@ -3,10 +3,7 @@ package com.flow.platform.cc.test.controller;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentConfig;
-import com.flow.platform.domain.Jsonable;
-import com.flow.platform.domain.Zone;
+import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.gson.Gson;
@@ -107,7 +104,7 @@ public class AgentControllerTest extends TestBase {
 
         // when: send agent info
         Agent agentObj = new Agent(zoneName, agentName);
-        agentObj.setStatus(Agent.Status.BUSY);
+        agentObj.setStatus(AgentStatus.BUSY);
 
         MockHttpServletRequestBuilder content = post("/agent/report")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -119,6 +116,6 @@ public class AgentControllerTest extends TestBase {
 
         // then: check status from agent service
         Agent loaded = agentService.find(agentObj.getPath());
-        Assert.assertEquals(Agent.Status.BUSY, loaded.getStatus());
+        Assert.assertEquals(AgentStatus.BUSY, loaded.getStatus());
     }
 }

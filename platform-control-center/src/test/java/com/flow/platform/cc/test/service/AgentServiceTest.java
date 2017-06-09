@@ -7,10 +7,7 @@ import com.flow.platform.cc.service.AgentServiceImpl;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.SpringContextUtil;
-import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.Zone;
+import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.KeeperException;
@@ -106,11 +103,11 @@ public class AgentServiceTest extends TestBase {
 
         // when: report status
         AgentPath pathObj = new AgentPath(zoneName, agentName);
-        agentService.reportStatus(pathObj, Agent.Status.BUSY);
+        agentService.reportStatus(pathObj, AgentStatus.BUSY);
 
         // then:
         Agent exit = agentService.find(pathObj);
-        Assert.assertEquals(Agent.Status.BUSY, exit.getStatus());
+        Assert.assertEquals(AgentStatus.BUSY, exit.getStatus());
     }
 
     @Test(expected = AgentErr.NotFoundException.class)
@@ -119,7 +116,7 @@ public class AgentServiceTest extends TestBase {
         String agentName = "test-agent-for-status-exception";
 
         AgentPath pathObj = new AgentPath(zoneName, agentName);
-        agentService.reportStatus(pathObj, Agent.Status.BUSY);
+        agentService.reportStatus(pathObj, AgentStatus.BUSY);
     }
 
     @Ignore
@@ -166,7 +163,7 @@ public class AgentServiceTest extends TestBase {
         byte[] shutdownCmdRaw = ZkNodeHelper.getNodeData(zkClient, mockAgent0Path.path(), null);
         Cmd shutdownCmd = Cmd.parse(shutdownCmdRaw, Cmd.class);
         Assert.assertEquals(Cmd.Type.SHUTDOWN, shutdownCmd.getType());
-        Assert.assertEquals(Agent.Status.OFFLINE, agentService.find(shutdownCmd.getAgentPath()).getStatus());
+        Assert.assertEquals(AgentStatus.OFFLINE, agentService.find(shutdownCmd.getAgentPath()).getStatus());
 
         ZkPathBuilder mockAgent1Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 1));
         Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent1Path.path(), null).length);

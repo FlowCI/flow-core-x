@@ -126,7 +126,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(loaded.getResult());
         Assert.assertEquals(mockProcess, loaded.getResult().getProcess());
 
-        Assert.assertEquals(Agent.Status.BUSY, agentService.find(agentPath).getStatus());
+        Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentPath).getStatus());
     }
 
     @Test
@@ -147,7 +147,7 @@ public class CmdServiceTest extends TestBase {
             Cmd current = cmdService.send(base);
 
             Agent relatedAgent = agentService.find(base.getAgentPath());
-            Assert.assertEquals(Agent.Status.BUSY, relatedAgent.getStatus());
+            Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
             cmdService.report(current.getId(), reportStatus, new CmdResult());
 
@@ -156,7 +156,7 @@ public class CmdServiceTest extends TestBase {
             Assert.assertEquals(current, loaded);
 
             relatedAgent = agentService.find(base.getAgentPath());
-            Assert.assertEquals(Agent.Status.IDLE, relatedAgent.getStatus());
+            Assert.assertEquals(AgentStatus.IDLE, relatedAgent.getStatus());
         }
 
         // Agent.status.BUSY from cmd working status
@@ -167,7 +167,7 @@ public class CmdServiceTest extends TestBase {
             Cmd current = cmdService.send(base);
 
             Agent relatedAgent = agentService.find(base.getAgentPath());
-            Assert.assertEquals(Agent.Status.BUSY, relatedAgent.getStatus());
+            Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
             cmdService.report(current.getId(), status, new CmdResult());
 
@@ -176,10 +176,10 @@ public class CmdServiceTest extends TestBase {
             Assert.assertEquals(current, loaded);
 
             relatedAgent = agentService.find(base.getAgentPath());
-            Assert.assertEquals(Agent.Status.BUSY, relatedAgent.getStatus());
+            Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
             // reset agent status
-            relatedAgent.setStatus(Agent.Status.IDLE);
+            relatedAgent.setStatus(AgentStatus.IDLE);
         }
     }
 
@@ -209,7 +209,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertTrue(cmdService.listByAgentPath(cmd.getAgentPath()).contains(cmdInfo));
 
         // check agent status
-        Assert.assertEquals(Agent.Status.BUSY, agentService.find(cmd.getAgentPath()).getStatus());
+        Assert.assertEquals(AgentStatus.BUSY, agentService.find(cmd.getAgentPath()).getStatus());
 
         // check zk node received the same cmd
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, agentPath, null);
@@ -245,7 +245,7 @@ public class CmdServiceTest extends TestBase {
 
         // report busy status
         cmdService.send(new CmdBase(agentBusy1, Cmd.Type.RUN_SHELL, "echo \"hello\""));
-        Assert.assertEquals(Agent.Status.BUSY, agentService.find(agentBusy1).getStatus());
+        Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentBusy1).getStatus());
 
         // set idle agent 1 date, before idle agent 2
         Instant date = LocalDate.of(2017, 5, 10).atStartOfDay(ZoneId.systemDefault()).toInstant();
@@ -256,12 +256,12 @@ public class CmdServiceTest extends TestBase {
 
         // then: should select agent idle 1 as target
         Assert.assertEquals(agentIdle1, cmdForIdle1.getAgentPath());
-        Assert.assertEquals(Agent.Status.BUSY, agentService.find(agentIdle1).getStatus());
+        Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentIdle1).getStatus());
 
         // when: send cmd to make all agent to busy
         Cmd cmdForIdle2 = cmdService.send(new CmdBase(zoneName, null, Cmd.Type.RUN_SHELL, "echo \"hello\""));
         Assert.assertEquals(agentIdle2, cmdForIdle2.getAgentPath());
-        Assert.assertEquals(Agent.Status.BUSY, agentService.find(agentIdle2).getStatus());
+        Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentIdle2).getStatus());
 
         // then: should raise NotAvailableException
         try {
@@ -336,7 +336,7 @@ public class CmdServiceTest extends TestBase {
 
         // then: check agent is locked by session
         Agent target = agentService.find(cmd.getAgentPath());
-        Assert.assertEquals(Agent.Status.BUSY, target.getStatus());
+        Assert.assertEquals(AgentStatus.BUSY, target.getStatus());
         Assert.assertNotNull(target.getSessionId());
         Assert.assertEquals(cmd.getSessionId(), target.getSessionId());
 
@@ -349,7 +349,7 @@ public class CmdServiceTest extends TestBase {
         Agent sessionAgent = agentService.find(cmd.getAgentPath());
         Assert.assertEquals(target, sessionAgent);
         Assert.assertEquals(target.getSessionId(), sessionAgent.getSessionId());
-        Assert.assertEquals(Agent.Status.BUSY, sessionAgent.getStatus());
+        Assert.assertEquals(AgentStatus.BUSY, sessionAgent.getStatus());
 
         // when: delete session
         CmdBase cmdToDelSession = new CmdBase(zoneName, null, CmdBase.Type.DELETE_SESSION, null);

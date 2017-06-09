@@ -99,20 +99,20 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                         break;
                     }
 
-                    if (target.getStatus() != Agent.Status.IDLE) {
+                    if (target.getStatus() != AgentStatus.IDLE) {
                         // add reject status since busy
                         cmdInfo.addStatus(Cmd.Status.REJECTED);
                         throw new AgentErr.NotAvailableException(target.getName());
                     }
 
-                    target.setStatus(Agent.Status.BUSY);
+                    target.setStatus(AgentStatus.BUSY);
                     break;
 
                 case CREATE_SESSION:
                     String sessionId = UUID.randomUUID().toString();
                     cmdInfo.setSessionId(sessionId); // set session id to cmd
                     target.setSessionId(sessionId); // set session id to agent
-                    target.setStatus(Agent.Status.BUSY);
+                    target.setStatus(AgentStatus.BUSY);
                     // target.save
                     break;
 
@@ -126,11 +126,11 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     break;
 
                 case STOP:
-                    target.setStatus(Agent.Status.OFFLINE);
+                    target.setStatus(AgentStatus.OFFLINE);
                     break;
 
                 case SHUTDOWN:
-                    target.setStatus(Agent.Status.OFFLINE);
+                    target.setStatus(AgentStatus.OFFLINE);
                     break;
             }
 
@@ -300,6 +300,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw new IllegalStateException("Cannot find related agent for cmd");
         }
 
-        agent.setStatus(isAgentBusy ? Agent.Status.BUSY : Agent.Status.IDLE);
+        agent.setStatus(isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
     }
 }
