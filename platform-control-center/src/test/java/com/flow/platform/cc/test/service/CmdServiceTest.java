@@ -117,12 +117,12 @@ public class CmdServiceTest extends TestBase {
         CmdResult result = new CmdResult();
         result.setStartTime(new Date());
         result.setProcess(mockProcess);
-        cmdService.report(cmd.getId(), Cmd.Status.RUNNING, result);
+        cmdService.report(cmd.getId(), CmdStatus.RUNNING, result);
 
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
 
-        Assert.assertTrue(loaded.getStatus().contains(Cmd.Status.RUNNING));
+        Assert.assertTrue(loaded.getStatus().contains(CmdStatus.RUNNING));
         Assert.assertNotNull(loaded.getResult());
         Assert.assertEquals(mockProcess, loaded.getResult().getProcess());
 
@@ -140,7 +140,7 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // should Agent.status.IDLE from cmd finish status
-        for (Cmd.Status reportStatus : Cmd.FINISH_STATUS) {
+        for (CmdStatus reportStatus : Cmd.FINISH_STATUS) {
 
             // when: send cmd status and mock to report cmd status
             CmdBase base = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, null);
@@ -160,7 +160,7 @@ public class CmdServiceTest extends TestBase {
         }
 
         // Agent.status.BUSY from cmd working status
-        for (Cmd.Status status : Cmd.WORKING_STATUS) {
+        for (CmdStatus status : Cmd.WORKING_STATUS) {
 
             // when: send cmd status and mock to report cmd status
             CmdBase base = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, null);
@@ -201,7 +201,7 @@ public class CmdServiceTest extends TestBase {
 
         // check cmd status
         Assert.assertNotNull(cmdInfo.getId());
-        Assert.assertTrue(cmdInfo.getStatus().contains(Cmd.Status.PENDING));
+        Assert.assertTrue(cmdInfo.getStatus().contains(CmdStatus.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
         Assert.assertEquals(agentName, cmdInfo.getAgent());
 
@@ -227,7 +227,7 @@ public class CmdServiceTest extends TestBase {
         // then:
         List<Cmd> cmdList = cmdService.listByAgentPath(cmd.getAgentPath());
         Assert.assertEquals(2, cmdList.size());
-        Assert.assertTrue(cmdList.get(1).getStatus().contains(Cmd.Status.REJECTED));
+        Assert.assertTrue(cmdList.get(1).getStatus().contains(CmdStatus.REJECTED));
     }
 
     @Test

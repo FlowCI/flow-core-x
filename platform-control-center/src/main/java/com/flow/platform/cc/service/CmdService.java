@@ -1,10 +1,7 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
-import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Path;
@@ -61,7 +58,7 @@ public interface CmdService {
      * @param status
      * @param result
      */
-    void report(String cmdId, Cmd.Status status, CmdResult result);
+    void report(String cmdId, CmdStatus status, CmdResult result);
 
     /**
      * Record full zipped log to store

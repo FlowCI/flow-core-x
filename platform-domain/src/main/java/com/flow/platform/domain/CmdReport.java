@@ -12,7 +12,7 @@ public class CmdReport extends Jsonable {
     private String id;
 
     // reported status
-    private Cmd.Status status;
+    private CmdStatus status;
 
     // reported result
     private CmdResult result;
@@ -20,7 +20,7 @@ public class CmdReport extends Jsonable {
     public CmdReport() {
     }
 
-    public CmdReport(String id, Cmd.Status status, CmdResult result) {
+    public CmdReport(String id, CmdStatus status, CmdResult result) {
         this.id = id;
         this.status = status;
         this.result = result;
@@ -34,11 +34,11 @@ public class CmdReport extends Jsonable {
         this.id = id;
     }
 
-    public Cmd.Status getStatus() {
+    public CmdStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Cmd.Status status) {
+    public void setStatus(CmdStatus status) {
         this.status = status;
     }
 

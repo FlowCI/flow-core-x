@@ -5,6 +5,7 @@ import com.flow.platform.agent.ReportManager;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
@@ -47,7 +48,7 @@ public class ReportManagerTest extends TestBase {
 
         // then:
         CmdResult mockResult = new CmdResult();
-        boolean result = reportManager.cmdReportSync("cmdId-001", Cmd.Status.RUNNING, mockResult);
+        boolean result = reportManager.cmdReportSync("cmdId-001", CmdStatus.RUNNING, mockResult);
         Assert.assertTrue(result);
     }
 

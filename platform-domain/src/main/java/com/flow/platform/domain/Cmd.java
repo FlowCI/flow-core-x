@@ -16,73 +16,14 @@ public class Cmd extends CmdBase {
     /**
      * Working status set
      */
-    public static final Set<Status> WORKING_STATUS =
-            Sets.newHashSet(Status.PENDING, Status.RUNNING, Status.EXECUTED);
+    public static final Set<CmdStatus> WORKING_STATUS =
+            Sets.newHashSet(CmdStatus.PENDING, CmdStatus.RUNNING, CmdStatus.EXECUTED);
 
     /**
      * Finish status set
      */
-    public static final Set<Status> FINISH_STATUS =
-            Sets.newHashSet(Status.LOGGED, Status.EXCEPTION, Status.KILLED, Status.REJECTED);
-
-    /**
-     * Status for TYPE.RUN_SHELL
-     */
-    public enum Status {
-
-        /**
-         * Init status when cmd prepare send to agent
-         * is_current_cmd = true
-         */
-        PENDING("PENDING"),
-
-        /**
-         * Cmd is running
-         * is_current_cmd = true
-         */
-        RUNNING("RUNNING"), // current cmd
-
-        /**
-         * Cmd executed but not finish logging
-         * is_current_cmd = true
-         */
-        EXECUTED("EXECUTED"), // current cmd
-
-        /**
-         * Log uploaded, cmd completely finished
-         * is_current_cmd = false
-         */
-        LOGGED("LOGGED"),
-
-        /**
-         * Got exception when running
-         * is_current_cmd = false
-         */
-        EXCEPTION("EXCEPTION"),
-
-        /**
-         * Killed by controller
-         * is_current_cmd = false
-         */
-        KILLED("KILLED"),
-
-        /**
-         * Cannot execute since over agent limit
-         * is_current_cmd = false
-         */
-        REJECTED("REJECTED");
-
-        private String name;
-
-        Status(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-
+    public static final Set<CmdStatus> FINISH_STATUS =
+            Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED);
     /**
      * Server generated command id
      */
@@ -91,7 +32,7 @@ public class Cmd extends CmdBase {
     /**
      * Cmd status set
      */
-    private Set<Status> statusSet = Sets.newHashSet(Status.PENDING);
+    private Set<CmdStatus> statusSet = Sets.newHashSet(CmdStatus.PENDING);
 
     /**
      * Path for full log
@@ -135,11 +76,11 @@ public class Cmd extends CmdBase {
         this.id = id;
     }
 
-    public Set<Status> getStatus() {
+    public Set<CmdStatus> getStatus() {
         return statusSet;
     }
 
-    public void addStatus(Status status) {
+    public void addStatus(CmdStatus status) {
         statusSet.add(status);
     }
 
@@ -177,7 +118,7 @@ public class Cmd extends CmdBase {
 
     public Boolean isCurrent() {
         // check status set has finished status
-        Sets.SetView<Status> intersection = Sets.intersection(statusSet, FINISH_STATUS);
+        Sets.SetView<CmdStatus> intersection = Sets.intersection(statusSet, FINISH_STATUS);
         return intersection.size() <= 0;
     }
 

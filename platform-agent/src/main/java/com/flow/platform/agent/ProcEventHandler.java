@@ -3,6 +3,7 @@ package com.flow.platform.agent;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,7 @@ public class ProcEventHandler implements ProcListener {
         running.put(cmd, result);
 
         // report cmd async
-        reportManager.cmdReport(cmd.getId(), Cmd.Status.RUNNING, result);
+        reportManager.cmdReport(cmd.getId(), CmdStatus.RUNNING, result);
 
         for (ProcListener listener : extraProcEventListeners) {
             listener.onStarted(result);
@@ -44,7 +45,7 @@ public class ProcEventHandler implements ProcListener {
     @Override
     public void onExecuted(CmdResult result) {
         // report cmd sync since block current thread
-        reportManager.cmdReportSync(cmd.getId(), Cmd.Status.EXECUTED, result);
+        reportManager.cmdReportSync(cmd.getId(), CmdStatus.EXECUTED, result);
 
         for (ProcListener listener : extraProcEventListeners) {
             listener.onExecuted(result);
@@ -57,7 +58,7 @@ public class ProcEventHandler implements ProcListener {
         finished.put(cmd, result);
 
         // report cmd sync since block current thread
-        reportManager.cmdReportSync(cmd.getId(), Cmd.Status.LOGGED, result);
+        reportManager.cmdReportSync(cmd.getId(), CmdStatus.LOGGED, result);
 
         for (ProcListener listener : extraProcEventListeners) {
             listener.onLogged(result);
@@ -70,7 +71,7 @@ public class ProcEventHandler implements ProcListener {
         finished.put(cmd, result);
 
         // report cmd sync since block current thread
-        reportManager.cmdReportSync(cmd.getId(), Cmd.Status.EXCEPTION, result);
+        reportManager.cmdReportSync(cmd.getId(), CmdStatus.EXCEPTION, result);
 
         for (ProcListener listener : extraProcEventListeners) {
             listener.onException(result);

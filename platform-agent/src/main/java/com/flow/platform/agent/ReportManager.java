@@ -3,6 +3,7 @@ package com.flow.platform.agent;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -50,7 +51,7 @@ public class ReportManager {
      * @param result
      */
     public void cmdReport(final String cmdId,
-                          final Cmd.Status status,
+                          final CmdStatus status,
                           final CmdResult result) {
         executor.execute(() -> {
             cmdReportSync(cmdId, status, result);
@@ -66,7 +67,7 @@ public class ReportManager {
      * @return
      */
     public boolean cmdReportSync(final String cmdId,
-                                 final Cmd.Status status,
+                                 final CmdStatus status,
                                  final CmdResult result) {
         try {
             cmdReportSync(cmdId, status, result, 5);
@@ -94,7 +95,7 @@ public class ReportManager {
     }
 
     private void cmdReportSync(final String cmdId,
-                               final Cmd.Status status,
+                               final CmdStatus status,
                                final CmdResult result,
                                final int retry) throws IOException {
         // build post body

@@ -4,6 +4,7 @@ import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.google.common.collect.Maps;
 
@@ -176,7 +177,7 @@ public class CmdManager {
 
             r.getProcess().destroy();
 
-            ReportManager.getInstance().cmdReportSync(cmd.getId(), Cmd.Status.KILLED, r);
+            ReportManager.getInstance().cmdReportSync(cmd.getId(), CmdStatus.KILLED, r);
             Logger.info(String.format("Kill process : %s", r.toString()));
         }
 
@@ -203,7 +204,7 @@ public class CmdManager {
         rejectResult.setFinishTime(now);
 
         rejected.put(cmd, rejectResult);
-        ReportManager.getInstance().cmdReportSync(cmd.getId(), Cmd.Status.REJECTED, null);
+        ReportManager.getInstance().cmdReportSync(cmd.getId(), CmdStatus.REJECTED, null);
         Logger.warn(String.format("Reject cmd '%s' since over the limit proc of agent", cmd.getId()));
     }
 

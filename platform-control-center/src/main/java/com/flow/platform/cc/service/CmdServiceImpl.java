@@ -101,7 +101,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
                     if (target.getStatus() != AgentStatus.IDLE) {
                         // add reject status since busy
-                        cmdInfo.addStatus(Cmd.Status.REJECTED);
+                        cmdInfo.addStatus(CmdStatus.REJECTED);
                         throw new AgentErr.NotAvailableException(target.getName());
                     }
 
@@ -153,7 +153,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    public void report(String cmdId, Cmd.Status status, CmdResult result) {
+    public void report(String cmdId, CmdStatus status, CmdResult result) {
         Cmd cmd = find(cmdId);
         if (cmd == null) {
             throw new IllegalArgumentException("Cmd not exist");
