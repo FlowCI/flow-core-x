@@ -76,4 +76,9 @@ public interface CmdService {
      * @return
      */
     Path getFullLog(String cmdId);
+
+    /**
+     * Check timeout cmd by created date for all busy agent
+     */
+    void checkCmdTimeoutTask();
 }

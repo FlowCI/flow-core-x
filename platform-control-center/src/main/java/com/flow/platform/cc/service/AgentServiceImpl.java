@@ -127,7 +127,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = KEEP_IDLE_AGENT_TASK_PERIOD)
     public void keepIdleAgentTask() {
         if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
-            System.out.println("ZoneService.keepIdleAgentTask: Task not enabled");
+            System.out.println("AgentService.keepIdleAgentTask: Task not enabled");
             return;
         }
 

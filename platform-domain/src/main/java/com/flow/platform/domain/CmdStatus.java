@@ -48,7 +48,12 @@ public enum CmdStatus {
      * Cannot execute since over agent limit
      * is_current_cmd = false
      */
-    REJECTED("REJECTED");
+    REJECTED("REJECTED"),
+
+    /**
+     * Cmd exec timeout which is found by scheduler task
+     */
+    TIMEOUT("TIMEOUT");
 
     private String name;
 

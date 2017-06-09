@@ -36,6 +36,9 @@ public class AppConfig {
     public final static boolean ENABLE_KEEP_IDLE_AGENT_TASK =
             Boolean.parseBoolean(System.getProperty("flow.cc.task.keep_idle_agent", "true"));
 
+    public final static boolean ENABLE_CMD_TIMEOUT_TASK =
+            Boolean.parseBoolean(System.getProperty("flow.cc.task.cmd_timeout", "true"));
+
     private final static int ASYNC_POOL_SIZE = 100;
 
     @Value("${agent.config.socket_io_url}")

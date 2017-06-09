@@ -7,6 +7,7 @@ import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -222,6 +223,16 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         } catch (InvalidPathException e) {
             throw new IllegalArgumentException("Zipped log file not exist");
         }
+    }
+
+    @Scheduled(fixedDelay = 300 * 1000)
+    public void checkCmdTimeoutTask() {
+        if (!AppConfig.ENABLE_CMD_TIMEOUT_TASK) {
+            System.out.println("CmdService.checkCmdTimeoutTask: Task not enabled");
+            return;
+        }
+
+        // TODO: check cmd timeout and update related agent status
     }
 
     /**
