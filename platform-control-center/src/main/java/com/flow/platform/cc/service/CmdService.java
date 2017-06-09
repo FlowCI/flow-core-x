@@ -13,6 +13,8 @@ import java.util.List;
  */
 public interface CmdService {
 
+    long CMD_TIMEOUT_SECONDS = 300;
+
     /**
      * Create command from CmdBase
      *
@@ -50,6 +52,14 @@ public interface CmdService {
      * @exception AgentErr.NotAvailableException if agent busy
      */
     Cmd send(CmdBase cmd);
+
+    /**
+     * Check cmd is timeout
+     *
+     * @param cmd
+     * @return timeout or not
+     */
+    boolean isTimeout(Cmd cmd);
 
     /**
      * Update cmd status and result

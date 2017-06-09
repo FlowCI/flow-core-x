@@ -1,5 +1,6 @@
 package com.flow.platform.cc.cloud;
 
+import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.mos.Instance;
 import com.flow.platform.util.mos.MosClient;
@@ -9,8 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -99,9 +98,7 @@ public class MosInstanceManager implements InstanceManager {
     public void cleanFromProvider(long maxAliveDuration, String status) {
         List<Instance> instances = mosClient.listInstance();
 
-        ZoneId utc = ZoneId.of("UTC");
-        Instant instant = new Date().toInstant();
-        ZonedDateTime timeForNow = instant.atZone(utc);
+        ZonedDateTime timeForNow = DateUtil.fromDateForUTC(new Date());
 
         for (Instance instance : instances) {
 
@@ -112,7 +109,7 @@ public class MosInstanceManager implements InstanceManager {
 
             // find alive duration
             Date createdAt = instance.getCreatedAt();
-            ZonedDateTime mosUtcTime = createdAt.toInstant().atZone(utc);
+            ZonedDateTime mosUtcTime = DateUtil.fromDateForUTC(createdAt);
             long aliveInSeconds = ChronoUnit.SECONDS.between(mosUtcTime, timeForNow);
 
             System.out.println(String.format("Instance %s alive %s", instance.getName(), aliveInSeconds));

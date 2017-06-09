@@ -3,6 +3,7 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -16,6 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -71,6 +74,26 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         return cmdList;
     }
 
+    @Override
+    public boolean isTimeout(Cmd cmd) {
+        if (cmd.getType() != CmdType.RUN_SHELL) {
+            throw new UnsupportedOperationException("Check timeout only for run shell");
+        }
+
+        // not timeout since cmd is executed
+        if (!cmd.isCurrent()) {
+            return false;
+        }
+
+        ZonedDateTime timeForNow = DateUtil.fromDateForUTC(new Date());
+
+        Date createdAt = cmd.getCreatedDate();
+        ZonedDateTime cmdUtcTime = DateUtil.fromDateForUTC(createdAt);
+
+        final long runningInSeconds = ChronoUnit.SECONDS.between(cmdUtcTime, timeForNow);
+        return runningInSeconds >= CMD_TIMEOUT_SECONDS;
+    }
+
     /**
      * Send cmd in transaction for agent status
      *
@@ -122,7 +145,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     boolean hasCurrentCmd = false;
                     List<Cmd> agentCmdList = listByAgentPath(target.getPath());
                     for (Cmd cmdItem : agentCmdList) {
-                        if (cmdItem.isCurrent()) {
+                        if (cmdItem.getType() == CmdType.RUN_SHELL && cmdItem.isCurrent()) {
                             hasCurrentCmd = true;
                             break;
                         }
