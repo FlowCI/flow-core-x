@@ -350,5 +350,13 @@ public class CmdServiceTest extends TestBase {
         Assert.assertEquals(target, sessionAgent);
         Assert.assertEquals(target.getSessionId(), sessionAgent.getSessionId());
         Assert.assertEquals(Agent.Status.BUSY, sessionAgent.getStatus());
+
+        // when: delete session
+        CmdBase cmdToDelSession = new CmdBase(zoneName, null, CmdBase.Type.DELETE_SESSION, null);
+        cmdToDelSession.setSessionId(cmd.getSessionId());
+        cmd = cmdService.send(cmdToDelSession);
+
+        Agent sessionShouldReleased = agentService.find(cmd.getAgentPath());
+        Assert.assertNull(sessionShouldReleased.getSessionId());
     }
 }

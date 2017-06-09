@@ -113,9 +113,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     cmdInfo.setSessionId(sessionId); // set session id to cmd
                     target.setSessionId(sessionId); // set session id to agent
                     target.setStatus(Agent.Status.BUSY);
+                    // target.save
                     break;
 
                 case DELETE_SESSION:
+                    target.setSessionId(null); // release session from target
+                    // target.save
                     break;
 
                 case KILL:
