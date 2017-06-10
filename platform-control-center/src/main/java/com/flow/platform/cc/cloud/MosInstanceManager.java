@@ -137,6 +137,8 @@ public class MosInstanceManager implements InstanceManager {
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = 60 * 1000)
     public void cleanInstanceTask() {
         cleanInstance(mosCleanupList);
+
+        // clean up mos instance when status is shutdown
         cleanFromProvider(INSTANCE_MAX_ALIVE_DURATION, Instance.STATUS_READY);
     }
 

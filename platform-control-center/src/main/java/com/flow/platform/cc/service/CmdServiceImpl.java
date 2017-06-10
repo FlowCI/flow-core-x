@@ -136,6 +136,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     String sessionId = UUID.randomUUID().toString();
                     cmdInfo.setSessionId(sessionId); // set session id to cmd
                     target.setSessionId(sessionId); // set session id to agent
+                    target.setSessionDate(new Date());
                     target.setStatus(AgentStatus.BUSY);
                     // target.save
                     break;

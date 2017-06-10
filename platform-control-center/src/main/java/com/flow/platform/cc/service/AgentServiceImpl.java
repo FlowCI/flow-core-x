@@ -3,12 +3,15 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.mos.Instance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -144,6 +147,33 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
             keepIdleAgentMaxSize(zone, instanceManager, MAX_IDLE_AGENT_POOL);
         }
+    }
+
+    @Override
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
+    public void sessionTimeoutTask() {
+        // TODO: should be replaced by db query
+        Date now = new Date();
+        for (Zone zone : zoneService.getZones()) {
+            Collection<Agent> agents = onlineList(zone.getName());
+            for (Agent agent : agents) {
+                if (agent.getSessionId() != null && isSessionTimeout(agent, now, AGENT_SESSION_TIMEOUT)) {
+                    CmdBase cmd = new CmdBase(agent.getPath(), CmdType.DELETE_SESSION, null);
+                    cmdService.send(cmd);
+                }
+            }
+        }
+    }
+
+    public boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds) {
+        if (agent.getSessionId() == null) {
+            throw new UnsupportedOperationException("Target agent is not enable session");
+        }
+
+        ZonedDateTime utcDate = DateUtil.fromDateForUTC(compareDate);
+        long sessionAlive = ChronoUnit.SECONDS.between(DateUtil.fromDateForUTC(agent.getSessionDate()), utcDate);
+
+        return sessionAlive >= timeoutInSeconds;
     }
 
     /**
