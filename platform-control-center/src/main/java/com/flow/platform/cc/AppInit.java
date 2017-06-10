@@ -1,6 +1,7 @@
 package com.flow.platform.cc;
 
 import com.flow.platform.cc.config.WebConfig;
+import com.flow.platform.util.logger.Logger;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -15,8 +16,10 @@ import javax.servlet.ServletRegistration;
  */
 public class AppInit implements WebApplicationInitializer {
 
+    private final static Logger logger = new Logger(AppInit.class);
+
     public void onStartup(ServletContext servletContext) throws ServletException {
-        System.out.println("Initializing Application for " + servletContext.getServerInfo());
+        logger.trace("Initializing Application for %s", servletContext.getServerInfo());
 
         // Create ApplicationContext
         AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext();

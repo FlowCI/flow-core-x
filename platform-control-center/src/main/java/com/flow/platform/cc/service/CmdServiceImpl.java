@@ -252,7 +252,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     @Scheduled(fixedDelay = 300 * 1000)
     public void checkCmdTimeoutTask() {
         if (!AppConfig.ENABLE_CMD_TIMEOUT_TASK) {
-            System.out.println("CmdService.checkCmdTimeoutTask: Task not enabled");
             return;
         }
 

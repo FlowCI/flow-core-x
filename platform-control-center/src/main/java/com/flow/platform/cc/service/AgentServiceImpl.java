@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service(value = "agentService")
 public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
-    private final static Logger logger = new Logger(AgentService.class);
+    private final static Logger LOGGER = new Logger(AgentService.class);
 
     // {zone : {path, agent}}
     private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
@@ -135,7 +135,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
         if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
             return;
         }
-        logger.trace("keepIdleAgentTask", "start");
+        LOGGER.traceMarker("keepIdleAgentTask", "start");
 
         // get num of idle agent
         for (Zone zone : zoneService.getZones()) {
@@ -156,7 +156,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
     public void sessionTimeoutTask() {
         // TODO: should be replaced by db query
-        logger.trace("sessionTimeoutTask", "start");
+        LOGGER.traceMarker("sessionTimeoutTask", "start");
         Date now = new Date();
         for (Zone zone : zoneService.getZones()) {
             Collection<Agent> agents = onlineList(zone.getName());
@@ -191,7 +191,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
      */
     public synchronized boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager, int minPoolSize) {
         int numOfIdle = this.findAvailable(zone.getName()).size();
-        logger.trace("keepIdleAgentMinSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
+        LOGGER.traceMarker("keepIdleAgentMinSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
 
         if (numOfIdle < minPoolSize) {
             instanceManager.batchStartInstance(minPoolSize);
@@ -212,7 +212,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     public synchronized boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager, int maxPoolSize) {
         List<Agent> agentList = this.findAvailable(zone.getName());
         int numOfIdle = agentList.size();
-        logger.trace("keepIdleAgentMaxSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
+        LOGGER.traceMarker("keepIdleAgentMaxSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
 
         if (numOfIdle > maxPoolSize) {
             int numOfRemove = numOfIdle - maxPoolSize;

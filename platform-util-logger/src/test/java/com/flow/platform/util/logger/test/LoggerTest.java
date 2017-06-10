@@ -13,10 +13,11 @@ public class LoggerTest {
 
     @Test
     public void should_print_log() {
-        logger.trace("should_print_log", "my formatter test %s", 123);
-        logger.info("should_print_log", "my formatter test %s", 123);
-        logger.warn("should_print_log", "my formatter test %s", 123);
-        logger.error("should_print_log", "my formatter test %s", 123);
-        logger.debug("should_print_log", "my formatter test %s", 123);
+        logger.traceMarker("should_print_log", "my formatter test %s", 123);
+        logger.infoMarker("should_print_log", "my formatter test %s", 123);
+        logger.warnMarker("should_print_log", "my formatter test %s", 123);
+        logger.errorMarker("should_print_log", "my formatter test", new Exception("test exception"));
+        logger.errorMarker("should_print_log", "my formatter test", null);
+        logger.debugMarker("should_print_log", "my formatter test %s", 123);
     }
 }

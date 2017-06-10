@@ -20,7 +20,7 @@ public class Logger {
         logger.trace(String.format(message, params));
     }
 
-    public void trace(String method, String message, Object ...params) {
+    public void traceMarker(String method, String message, Object ...params) {
         logger.trace(MarkerManager.getMarker(method), String.format(message, params));
     }
 
@@ -28,7 +28,7 @@ public class Logger {
         logger.info(String.format(message, params));
     }
 
-    public void info(String method, String message, Object ...params) {
+    public void infoMarker(String method, String message, Object ...params) {
         logger.info(MarkerManager.getMarker(method), String.format(message, params));
     }
 
@@ -36,19 +36,15 @@ public class Logger {
         logger.error(message, e);
     }
 
-    public void error(String method, String message, Throwable e) {
+    public void errorMarker(String method, String message, Throwable e) {
         logger.error(MarkerManager.getMarker(method), message, e);
-    }
-
-    public void error(String method, String message, Object ...params) {
-        logger.error(MarkerManager.getMarker(method), String.format(message, params));
     }
 
     public void warn(String message, Object ...params) {
         logger.warn(String.format(message, params));
     }
 
-    public void warn(String method, String message, Object ...params) {
+    public void warnMarker(String method, String message, Object ...params) {
         logger.warn(MarkerManager.getMarker(method), String.format(message, params));
     }
 
@@ -56,7 +52,7 @@ public class Logger {
         logger.debug(String.format(message, params));
     }
 
-    public void debug(String method, String message, Object ...params) {
+    public void debugMarker(String method, String message, Object ...params) {
         logger.debug(MarkerManager.getMarker(method), String.format(message, params));
     }
 }

@@ -4,6 +4,7 @@ import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.Zone;
+import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.WatchedEvent;
@@ -67,6 +68,8 @@ public class ZkHelper {
     public enum ZkStatus {
         UNKNOWN, OK, WARNING
     }
+
+    private final static Logger LOGGER = new Logger(ZkHelper.class);
 
     @Value("${zk.host}")
     private String zkHost;
@@ -230,6 +233,7 @@ public class ZkHelper {
         @Override
         public void process(WatchedEvent event) {
             recordEvent(zkRootName, event);
+            LOGGER.traceMarker("ZookeeperRootEventHandler", "Zookeeper event received %s", event.toString());
 
             if (ZkEventHelper.isConnectToServer(event)) {
                 zkConnectLatch.countDown();
@@ -239,7 +243,7 @@ public class ZkHelper {
                 try {
                     zkClient = reconnect();
                 } catch (Throwable e) {
-                    // TODO: should handle zk connection exception
+                    LOGGER.errorMarker("ZookeeperRootEventHandler", "Error on reconnect to zookeeper when session expired", e);
                     throw new RuntimeException(e.getMessage());
                 }
             }
