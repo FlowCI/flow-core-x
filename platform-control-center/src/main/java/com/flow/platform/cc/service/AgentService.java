@@ -18,7 +18,7 @@ public interface AgentService {
     int AGENT_SESSION_TIMEOUT = 600; // seconds
 
     int KEEP_IDLE_AGENT_TASK_PERIOD = 45 * 1000; // millisecond
-    int AGENT_SESSION_TIMEOUT_TASK_PERIOD = 600 * 1000; // millisecond
+    int AGENT_SESSION_TIMEOUT_TASK_PERIOD = 60 * 1000; // millisecond
 
     /**
      * Batch reportOnline agent

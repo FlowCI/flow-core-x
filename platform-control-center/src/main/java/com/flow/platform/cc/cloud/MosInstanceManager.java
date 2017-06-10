@@ -147,6 +147,7 @@ public class MosInstanceManager implements InstanceManager {
         while(iterator.hasNext()) {
             Map.Entry<String, Instance> entry = iterator.next();
             Instance mosInstance = entry.getValue();
+
             mosClient.deleteInstance(mosInstance.getInstanceId());
             iterator.remove();
         }
