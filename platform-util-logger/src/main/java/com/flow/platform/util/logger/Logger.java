@@ -13,15 +13,23 @@ public class Logger {
     private org.apache.logging.log4j.Logger logger = null;
 
     public Logger(Class clazz) {
-        logger = LogManager.getLogger(clazz);
+        logger = LogManager.getLogger(clazz.getSimpleName());
     }
 
     public void trace(String message, Object ...params) {
-        logger.trace(message, params);
+        logger.trace(String.format(message, params));
     }
 
     public void trace(String method, String message, Object ...params) {
-        logger.trace(MarkerManager.getMarker(method), message, params);
+        logger.trace(MarkerManager.getMarker(method), String.format(message, params));
+    }
+
+    public void info(String message, Object ...params) {
+        logger.info(String.format(message, params));
+    }
+
+    public void info(String method, String message, Object ...params) {
+        logger.info(MarkerManager.getMarker(method), String.format(message, params));
     }
 
     public void error(String message, Throwable e) {
@@ -33,22 +41,22 @@ public class Logger {
     }
 
     public void error(String method, String message, Object ...params) {
-        logger.error(MarkerManager.getMarker(method), message, params);
+        logger.error(MarkerManager.getMarker(method), String.format(message, params));
     }
 
     public void warn(String message, Object ...params) {
-        logger.warn(message, params);
+        logger.warn(String.format(message, params));
     }
 
     public void warn(String method, String message, Object ...params) {
-        logger.warn(MarkerManager.getMarker(method), message, params);
+        logger.warn(MarkerManager.getMarker(method), String.format(message, params));
     }
 
     public void debug(String message, Object ...params) {
-        logger.debug(message, params);
+        logger.debug(String.format(message, params));
     }
 
     public void debug(String method, String message, Object ...params) {
-        logger.debug(MarkerManager.getMarker(method), message, params);
+        logger.debug(MarkerManager.getMarker(method), String.format(message, params));
     }
 }
