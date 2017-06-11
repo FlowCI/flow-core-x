@@ -15,6 +15,9 @@ import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+import java.util.concurrent.ThreadPoolExecutor;
+
 /**
  * Created by gy@fir.im on 24/05/2017.
  * Copyright fir.im
@@ -170,6 +173,19 @@ public class AgentServiceTest extends TestBase {
 
         ZkPathBuilder mockAgent2Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 2));
         Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent2Path.path(), null).length);
+    }
+
+    @Test
+    public void should_agent_session_timeout() throws Throwable {
+        // when:
+        AgentServiceImpl agentService = (AgentServiceImpl) this.agentService;
+        Agent mockAgent = new Agent("test-zone", "session-timeout-agent");
+        mockAgent.setSessionId("mock-session-id");
+        mockAgent.setSessionDate(new Date());
+
+        // then:
+        Thread.sleep(1500); // wait for 2 seconds
+        Assert.assertTrue(agentService.isSessionTimeout(mockAgent, new Date(), 1));
     }
 
     @After

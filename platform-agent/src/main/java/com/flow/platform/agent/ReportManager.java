@@ -1,9 +1,9 @@
 package com.flow.platform.agent;
 
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.util.logger.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -29,6 +29,8 @@ import java.util.concurrent.Executors;
  * Copyright fir.im
  */
 public class ReportManager {
+
+    private final static Logger LOGGER = new Logger(ReportManager.class);
 
     private final static ReportManager INSTANCE = new ReportManager();
 
@@ -73,10 +75,10 @@ public class ReportManager {
             cmdReportSync(cmdId, status, result, 5);
             return true;
         } catch (IOException e) {
-            Logger.err(e, "IOException when close http client");
+            LOGGER.error("IOException when close http client", e);
             return false;
         } catch (Throwable e) {
-            Logger.err(e, "Fail to report status after 5 times");
+            LOGGER.error("Fail to report status after 5 times", e);
             return false;
         }
     }
@@ -86,10 +88,10 @@ public class ReportManager {
             cmdLogUploadSync(cmdId, path, 5);
             return true;
         } catch (IOException e) {
-            Logger.err(e, "IOException when close http client");
+            LOGGER.error("IOException when close http client", e);
             return false;
         } catch (Throwable e) {
-            Logger.err(e, "Fail to upload cmd log after 5 times");
+            LOGGER.error("Fail to upload cmd log after 5 times", e);
             return false;
         }
     }
@@ -137,9 +139,8 @@ public class ReportManager {
             HttpResponse response = client.execute(request);
             int code = response.getStatusLine().getStatusCode();
             if (code != HttpStatus.SC_OK) {
-                throw new RuntimeException(successMsg);
+                throw new RuntimeException(failMsg);
             }
-            Logger.info(failMsg);
             return response;
         } catch (Throwable e) {
             if (retry > 0) {

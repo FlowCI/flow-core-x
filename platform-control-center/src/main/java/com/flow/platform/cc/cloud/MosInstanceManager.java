@@ -1,6 +1,8 @@
 package com.flow.platform.cc.cloud;
 
+import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.mos.Instance;
 import com.flow.platform.util.mos.MosClient;
 import com.flow.platform.util.mos.MosException;
@@ -9,8 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -29,6 +29,8 @@ public class MosInstanceManager implements InstanceManager {
     private final static String INSTANCE_NAME_PATTERN = "%s.cloud.mos";
     private final static int MAX_NUM_OF_INSTANCE = 10; // max num of instance control by platform
     private final static int INSTANCE_MAX_ALIVE_DURATION = 600; // max instance alive time in seconds
+
+    private final static Logger LOGGER = new Logger(MosInstanceManager.class);
 
     @Value("${mos.image}")
     private String imageName;
@@ -99,9 +101,7 @@ public class MosInstanceManager implements InstanceManager {
     public void cleanFromProvider(long maxAliveDuration, String status) {
         List<Instance> instances = mosClient.listInstance();
 
-        ZoneId utc = ZoneId.of("UTC");
-        Instant instant = new Date().toInstant();
-        ZonedDateTime timeForNow = instant.atZone(utc);
+        ZonedDateTime timeForNow = DateUtil.fromDateForUTC(new Date());
 
         for (Instance instance : instances) {
 
@@ -112,10 +112,10 @@ public class MosInstanceManager implements InstanceManager {
 
             // find alive duration
             Date createdAt = instance.getCreatedAt();
-            ZonedDateTime mosUtcTime = createdAt.toInstant().atZone(utc);
+            ZonedDateTime mosUtcTime = DateUtil.fromDateForUTC(createdAt);
             long aliveInSeconds = ChronoUnit.SECONDS.between(mosUtcTime, timeForNow);
 
-            System.out.println(String.format("Instance %s alive %s", instance.getName(), aliveInSeconds));
+            LOGGER.trace("Instance %s alive %s", instance.getName(), aliveInSeconds);
 
             // delete instance if instance status is ready (closed) and alive duration > max alive duration
             if (aliveInSeconds >= maxAliveDuration && instance.getStatus().equals(status)) {
@@ -140,6 +140,8 @@ public class MosInstanceManager implements InstanceManager {
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = 60 * 1000)
     public void cleanInstanceTask() {
         cleanInstance(mosCleanupList);
+
+        // clean up mos instance when status is shutdown
         cleanFromProvider(INSTANCE_MAX_ALIVE_DURATION, Instance.STATUS_READY);
     }
 
@@ -148,6 +150,7 @@ public class MosInstanceManager implements InstanceManager {
         while(iterator.hasNext()) {
             Map.Entry<String, Instance> entry = iterator.next();
             Instance mosInstance = entry.getValue();
+
             mosClient.deleteInstance(mosInstance.getInstanceId());
             iterator.remove();
         }
@@ -175,18 +178,20 @@ public class MosInstanceManager implements InstanceManager {
         @Override
         public void run() {
             Instance instance = null;
+            final int timeToWait = 30; // seconds
+
             try {
                 instance = mosClient.createInstance(imageName, instanceName);
-
                 // wait instance status to running with 30 seconds timeout
-                if (mosClient.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 30 * 1000)) {
-                    System.out.println(instance);
+                if (mosClient.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, timeToWait * 1000)) {
+                    LOGGER.trace("Instance status is running %s", instance);
                     mosRunningList.put(instanceName, instance);
                 } else {
+                    LOGGER.trace("Instance status not correct after %s seconds %s", timeToWait, instance);
                     mosCleanupList.put(instanceName, instance);
                 }
             } catch (Throwable e) {
-                // TODO: should add logging
+                LOGGER.error("Unable to create mos instance", e);
 
                 if (e instanceof MosException) {
                     MosException mosException = (MosException) e;

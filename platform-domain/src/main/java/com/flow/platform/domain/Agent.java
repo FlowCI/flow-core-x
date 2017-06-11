@@ -26,6 +26,11 @@ public class Agent extends Jsonable {
     private String sessionId;
 
     /**
+     * The date to start session
+     */
+    private Date sessionDate;
+
+    /**
      * Created date
      */
     private Date createdDate;
@@ -86,6 +91,14 @@ public class Agent extends Jsonable {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public Date getSessionDate() {
+        return sessionDate;
+    }
+
+    public void setSessionDate(Date sessionDate) {
+        this.sessionDate = sessionDate;
     }
 
     public Date getCreatedDate() {

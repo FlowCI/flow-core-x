@@ -130,6 +130,24 @@ public class CmdServiceTest extends TestBase {
     }
 
     @Test
+    public void should_cmd_timeout() throws Throwable {
+        // given:
+        String zoneName = zkHelper.getZones().get(0).getName();
+        String agentName = "test-agent-for-timeout";
+
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
+        ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
+        Thread.sleep(500);
+
+        // when: send cmd
+        Cmd cmd = cmdService.send(new CmdBase(zoneName, null, CmdType.RUN_SHELL, "test"));
+        Assert.assertTrue(cmd.isCurrent());
+
+        // then: check is timeout
+        Assert.assertEquals(false, cmdService.isTimeout(cmd));
+    }
+
+    @Test
     public void should_update_agent_status_by_cmd_status() throws Throwable {
         // given
         String zoneName = zkHelper.getZones().get(0).getName();
@@ -330,7 +348,7 @@ public class CmdServiceTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.buildZkPath(zoneName, agentName).path(), "");
         Thread.sleep(1000);
 
-        // when: send cmd for create session
+        // when: send cmd for create agent session
         Cmd cmd = cmdService.send(new CmdBase(zoneName, null, CmdType.CREATE_SESSION, null));
         Assert.assertNotNull(cmd.getSessionId());
 
@@ -345,11 +363,15 @@ public class CmdServiceTest extends TestBase {
         cmdWithSession.setSessionId(target.getSessionId());
         cmd = cmdService.send(cmdWithSession);
 
-        // then:
+        // then: check target is found correctly by session id
         Agent sessionAgent = agentService.find(cmd.getAgentPath());
         Assert.assertEquals(target, sessionAgent);
         Assert.assertEquals(target.getSessionId(), sessionAgent.getSessionId());
         Assert.assertEquals(AgentStatus.BUSY, sessionAgent.getStatus());
+        Assert.assertNotNull(sessionAgent.getSessionDate());
+
+        // then: mock cmd been executed
+        cmd.getStatus().add(CmdStatus.LOGGED);
 
         // when: delete session
         CmdBase cmdToDelSession = new CmdBase(zoneName, null, CmdType.DELETE_SESSION, null);
@@ -358,5 +380,6 @@ public class CmdServiceTest extends TestBase {
 
         Agent sessionShouldReleased = agentService.find(cmd.getAgentPath());
         Assert.assertNull(sessionShouldReleased.getSessionId());
+        Assert.assertEquals(AgentStatus.IDLE, sessionShouldReleased.getStatus());
     }
 }

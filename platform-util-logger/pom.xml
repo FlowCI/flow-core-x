@@ -9,20 +9,19 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <description>To run linux shell and send log to server by socket.io</description>
+    <description>log4j2 logging wrapper</description>
 
-    <artifactId>platform-cmd-runner</artifactId>
+    <artifactId>platform-util-logger</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>com.flow.platform</groupId>
-            <artifactId>platform-domain</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>io.socket</groupId>
-            <artifactId>socket.io-client</artifactId>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
         </dependency>
 
         <dependency>

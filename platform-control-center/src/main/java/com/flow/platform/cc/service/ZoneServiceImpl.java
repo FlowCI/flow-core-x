@@ -5,6 +5,7 @@ import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Zone;
+import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.collect.Lists;
@@ -24,6 +25,8 @@ import java.util.concurrent.Executor;
 
 @Service(value = "zoneService")
 public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
+
+    private final static Logger LOGGER = new Logger(ZoneService.class);
 
     @Autowired
     private AgentService agentService;
@@ -115,6 +118,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
         public void process(WatchedEvent event) {
             zkHelper.recordEvent(zonePath, event);
+            LOGGER.traceMarker("ZookeeperZoneEventHandler", "Zookeeper event received %s", event.toString());
 
             // continue to watch zone path
             ZkNodeHelper.watchChildren(zkClient, zonePath, this, 5);

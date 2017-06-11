@@ -25,7 +25,7 @@ public class AgentController {
     /**
      * List online agents by zone name
      */
-    @RequestMapping(path = "/list", method = RequestMethod.GET)
+    @GetMapping(path = "/list")
     public Collection<Agent> list(@RequestParam(name = "zone") String zoneName) {
         return agentService.onlineList(zoneName);
     }
@@ -37,7 +37,7 @@ public class AgentController {
      *
      * @param agent agent objc
      */
-    @RequestMapping(path= "/report", method = RequestMethod.POST, consumes = "application/json")
+    @PostMapping(path= "/report", consumes = "application/json")
     public void reportStatus(@RequestBody Agent agent) {
         if (agent.getPath() == null || agent.getStatus() == null) {
             throw new IllegalArgumentException("Agent path and status are required");

@@ -3,6 +3,7 @@ package com.flow.platform.agent;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.util.logger.Logger;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
@@ -18,11 +19,13 @@ import java.util.zip.ZipOutputStream;
 /**
  * Record log to $HOME/agent-log/{cmd id}.out.zip
  * Send log via socket io if socket.io url provided
- *
+ * <p>
  * Created by gy@fir.im on 29/05/2017.
  * Copyright fir.im
  */
 public class LogEventHandler implements LogListener {
+
+    private final static Logger LOGGER = new Logger(LogEventHandler.class);
 
     private final static String SOCKET_EVENT_TYPE = "agent-logging";
     private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
@@ -51,10 +54,10 @@ public class LogEventHandler implements LogListener {
             fileOs = new FileOutputStream(logTempPath.toFile());
             zipOs = new ZipOutputStream(fileOs);
 
-            ZipEntry ze= new ZipEntry(cmd.getId() + ".out");
+            ZipEntry ze = new ZipEntry(cmd.getId() + ".out");
             zipOs.putNextEntry(ze);
         } catch (IOException e) {
-            Logger.err(e, "Fail to init cmd log file");
+            LOGGER.error("Fail to init cmd log file", e);
         }
 
         AgentConfig config = Config.agentConfig();
@@ -76,7 +79,7 @@ public class LogEventHandler implements LogListener {
             }
 
         } catch (URISyntaxException | InterruptedException e) {
-            Logger.err(e, "Fail to connect socket io server: " + config.getLoggingUrl());
+            LOGGER.error("Fail to connect socket io server: " + config.getLoggingUrl(), e);
         }
     }
 
@@ -91,11 +94,11 @@ public class LogEventHandler implements LogListener {
                 zipOs.write(log.getBytes());
                 zipOs.write("\n".getBytes());
             } catch (IOException e) {
-                Logger.warn("Log cannot write : " + log);
+                LOGGER.warn("Log cannot write : " + log);
             }
         }
 
-        Logger.debug(log);
+        LOGGER.debug(log);
     }
 
     @Override
@@ -105,7 +108,7 @@ public class LogEventHandler implements LogListener {
             try {
                 socket.close();
             } catch (Throwable e) {
-                Logger.err(e, "Exception while close socket io");
+                LOGGER.error("Exception while close socket io", e);
             }
         }
 
@@ -116,12 +119,12 @@ public class LogEventHandler implements LogListener {
                 zipOs.closeEntry();
                 zipOs.close();
             } catch (IOException e) {
-                Logger.err(e, "Exception while close zip stream");
+                LOGGER.error("Exception while close zip stream", e);
             } finally {
                 try {
                     fileOs.close();
                 } catch (IOException e) {
-                    Logger.err(e, "Exception while close log file");
+                    LOGGER.error("Exception while close log file", e);
                 }
             }
 
@@ -136,7 +139,7 @@ public class LogEventHandler implements LogListener {
                         Files.deleteIfExists(logFinalPath);
                     }
                 } catch (IOException e) {
-                    Logger.err(e, "Exception while move update log name from temp");
+                    LOGGER.error("Exception while move update log name from temp", e);
                 }
             }
         }
@@ -157,7 +160,7 @@ public class LogEventHandler implements LogListener {
         try {
             Files.createDirectory(DEFAULT_LOG_PATH);
         } catch (FileAlreadyExistsException ignore) {
-            Logger.warn(String.format("Log path %s already exist", DEFAULT_LOG_PATH));
+            LOGGER.warn("Log path %s already exist", DEFAULT_LOG_PATH);
         }
 
         // init zipped log file for tmp

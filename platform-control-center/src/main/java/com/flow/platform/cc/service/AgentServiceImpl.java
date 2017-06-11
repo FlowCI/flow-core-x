@@ -3,12 +3,16 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.*;
+import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.mos.Instance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -18,6 +22,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service(value = "agentService")
 public class AgentServiceImpl extends ZkServiceBase implements AgentService {
+
+    private final static Logger LOGGER = new Logger(AgentService.class);
 
     // {zone : {path, agent}}
     private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
@@ -127,9 +133,9 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = KEEP_IDLE_AGENT_TASK_PERIOD)
     public void keepIdleAgentTask() {
         if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
-            System.out.println("AgentService.keepIdleAgentTask: Task not enabled");
             return;
         }
+        LOGGER.traceMarker("keepIdleAgentTask", "start");
 
         // get num of idle agent
         for (Zone zone : zoneService.getZones()) {
@@ -146,6 +152,34 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
         }
     }
 
+    @Override
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
+    public void sessionTimeoutTask() {
+        // TODO: should be replaced by db query
+        LOGGER.traceMarker("sessionTimeoutTask", "start");
+        Date now = new Date();
+        for (Zone zone : zoneService.getZones()) {
+            Collection<Agent> agents = onlineList(zone.getName());
+            for (Agent agent : agents) {
+                if (agent.getSessionId() != null && isSessionTimeout(agent, now, AGENT_SESSION_TIMEOUT)) {
+                    CmdBase cmd = new CmdBase(agent.getPath(), CmdType.DELETE_SESSION, null);
+                    cmdService.send(cmd);
+                }
+            }
+        }
+    }
+
+    public boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds) {
+        if (agent.getSessionId() == null) {
+            throw new UnsupportedOperationException("Target agent is not enable session");
+        }
+
+        ZonedDateTime utcDate = DateUtil.fromDateForUTC(compareDate);
+        long sessionAlive = ChronoUnit.SECONDS.between(DateUtil.fromDateForUTC(agent.getSessionDate()), utcDate);
+
+        return sessionAlive >= timeoutInSeconds;
+    }
+
     /**
      * Find num of idle agent and batch start instance
      *
@@ -157,7 +191,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
      */
     public synchronized boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager, int minPoolSize) {
         int numOfIdle = this.findAvailable(zone.getName()).size();
-        System.out.println(String.format("Num of idle agent in zone %s = %s", zone, numOfIdle));
+        LOGGER.traceMarker("keepIdleAgentMinSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
 
         if (numOfIdle < minPoolSize) {
             instanceManager.batchStartInstance(minPoolSize);
@@ -178,7 +212,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     public synchronized boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager, int maxPoolSize) {
         List<Agent> agentList = this.findAvailable(zone.getName());
         int numOfIdle = agentList.size();
-        System.out.println(String.format("Num of idle agent in zone %s = %s", zone, numOfIdle));
+        LOGGER.traceMarker("keepIdleAgentMaxSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
 
         if (numOfIdle > maxPoolSize) {
             int numOfRemove = numOfIdle - maxPoolSize;

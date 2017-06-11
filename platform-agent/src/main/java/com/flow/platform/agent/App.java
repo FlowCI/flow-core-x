@@ -2,6 +2,7 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.zk.ZkEventAdaptor;
 import org.apache.zookeeper.WatchedEvent;
 
@@ -9,14 +10,15 @@ import java.io.IOException;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public class App {
 
-    private static final String ZK_HOME = "54.222.129.38:2181";
-    private static final String AGENT_ZONE = "firmac";
-    private static final String AGENT_NAME = "test-001";
+    private final static Logger LOGGER = new Logger(App.class);
+
+    private final static String ZK_HOME = "54.222.129.38:2181";
+    private final static String AGENT_ZONE = "firmac";
+    private final static String AGENT_NAME = "test-001";
 
     public static void main(String args[]) {
         String zkHome; // zookeeper address
@@ -32,32 +34,32 @@ public class App {
             zone = args[1];
             name = args[2];
 
-            Logger.info(zkHome);
-            Logger.info(zone);
-            Logger.info(name);
+            LOGGER.info(zkHome);
+            LOGGER.info(zone);
+            LOGGER.info(name);
         }
 
-        Logger.info("========= Run agent =========");
+        LOGGER.trace("========= Run agent =========");
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
         try {
-            Logger.info("========= Init config =========");
+            LOGGER.trace("========= Init config =========");
 
             Config.AGENT_CONFIG = Config.loadAgentConfig(zkHome, Config.zkTimeout(), zone, 5);
-            Logger.info(String.format(" -- Agent Config: %s", Config.agentConfig()));
+            LOGGER.trace(" -- Agent Config: %s", Config.agentConfig());
 
             Config.ZK_URL = zkHome;
-            Logger.info(String.format(" -- Zookeeper Url: %s", Config.zkUrl()));
+            LOGGER.trace(" -- Zookeeper Url: %s", Config.zkUrl());
 
             Config.ZONE = zone;
-            Logger.info(String.format(" -- Zone Name: %s", Config.zone()));
+            LOGGER.trace(" -- Zone Name: %s", Config.zone());
 
             Config.NAME = name;
-            Logger.info(String.format(" -- Agent Name: %s", Config.name()));
+            LOGGER.trace(" -- Agent Name: %s", Config.name());
 
-            Logger.info("========= Config initialized =========");
+            LOGGER.trace("========= Config initialized =========");
         } catch (Throwable e) {
-            Logger.err(e, "Cannot load agent config from zone");
+            LOGGER.error("Cannot load agent config from zone", e);
             Runtime.getRuntime().exit(1);
         }
 
@@ -65,7 +67,7 @@ public class App {
             AgentManager client = new AgentManager(zkHome, Config.zkTimeout(), zone, name);
             new Thread(client).start();
         } catch (Throwable e) {
-            Logger.err(e, "Got exception when agent running");
+            LOGGER.error("Got exception when agent running", e);
             Runtime.getRuntime().exit(1);
         }
     }
@@ -73,8 +75,8 @@ public class App {
     private static class ShutdownHook extends Thread {
         @Override
         public void run() {
-            Logger.info("========= Agent end =========");
-            Logger.info("========= JVM EXIT =========");
+            LOGGER.trace("========= Agent end =========");
+            LOGGER.trace("========= JVM EXIT =========");
         }
     }
 }

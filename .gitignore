@@ -2,6 +2,7 @@
 *.iml
 .DS_Store
 
+logs/
 target/
 pom.xml.tag
 pom.xml.releaseBackup

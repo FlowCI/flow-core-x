@@ -13,9 +13,13 @@ import java.util.List;
  */
 public interface AgentService {
 
-    int MIN_IDLE_AGENT_POOL = 0; // min pool size
-    int MAX_IDLE_AGENT_POOL = 0; // max pool size
+
+    int MIN_IDLE_AGENT_POOL = 1; // min pool size
+    int MAX_IDLE_AGENT_POOL = 2; // max pool size
+    int AGENT_SESSION_TIMEOUT = 600; // seconds
+
     int KEEP_IDLE_AGENT_TASK_PERIOD = 45 * 1000; // millisecond
+    int AGENT_SESSION_TIMEOUT_TASK_PERIOD = 60 * 1000; // millisecond
 
     /**
      * Batch reportOnline agent
@@ -70,4 +74,9 @@ public interface AgentService {
      * It will start instance if num of available agent not enough
      */
     void keepIdleAgentTask();
+
+    /**
+     * To check agent session timeout
+     */
+    void sessionTimeoutTask();
 }
