@@ -6,6 +6,7 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.util.logger.Logger;
 import com.google.common.collect.Maps;
 
 import java.util.ArrayList;
@@ -22,7 +23,9 @@ import java.util.concurrent.*;
  */
 public class CmdManager {
 
-    private static final CmdManager INSTANCE = new CmdManager();
+    private final static Logger LOGGER = new Logger(CmdManager.class);
+
+    private final static CmdManager INSTANCE = new CmdManager();
 
     public static CmdManager getInstance() {
         return INSTANCE;
@@ -97,12 +100,12 @@ public class CmdManager {
             }
 
             if (password == null) {
-                Logger.info("Shutdown cannot be executed since sudo password is null");
+                LOGGER.trace("Shutdown cannot be executed since sudo password is null");
                 return;
             }
 
             String shutdownCmd = String.format("echo %s | sudo -S shutdown -h now", password);
-            Logger.info("Shutdown command: " + shutdownCmd);
+            LOGGER.trace("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
             CmdExecutor executor = new CmdExecutor(null, null, "/bin/bash", "-c", shutdownCmd);
@@ -123,7 +126,7 @@ public class CmdManager {
             // check max concurrent proc
             int max = cmdExecutor.getMaximumPoolSize();
             int cur = cmdExecutor.getActiveCount();
-            Logger.info(String.format(" ===== CmdExecutor: max=%s, current=%s =====", max, cur));
+            LOGGER.trace(" ===== CmdExecutor: max=%s, current=%s =====", max, cur);
 
             // reach max proc number, reject this execute
             if (max == cur) {
@@ -178,19 +181,19 @@ public class CmdManager {
             r.getProcess().destroy();
 
             ReportManager.getInstance().cmdReportSync(cmd.getId(), CmdStatus.KILLED, r);
-            Logger.info(String.format("Kill process : %s", r.toString()));
+            LOGGER.trace("Kill process : %s", r.toString());
         }
 
         try {
             if (!cmdExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
                 cmdExecutor.shutdownNow();
-                Logger.warn("Force to terminate CmdExecutor since been waiting 10 seconds");
+                LOGGER.warn("Force to terminate CmdExecutor since been waiting 10 seconds");
             }
         } catch (Throwable e) {
-            Logger.err(e, "Exception while waiting for all cmd thread finish");
+            LOGGER.error("Exception while waiting for all cmd thread finish", e);
         } finally {
             cmdExecutor = createExecutor(); // reset cmd executor
-            Logger.info("Cmd thread terminated");
+            LOGGER.trace("Cmd thread terminated");
         }
     }
 
@@ -205,7 +208,7 @@ public class CmdManager {
 
         rejected.put(cmd, rejectResult);
         ReportManager.getInstance().cmdReportSync(cmd.getId(), CmdStatus.REJECTED, null);
-        Logger.warn(String.format("Reject cmd '%s' since over the limit proc of agent", cmd.getId()));
+        LOGGER.warn("Reject cmd '%s' since over the limit proc of agent", cmd.getId());
     }
 
     private ThreadPoolExecutor createExecutor() {
@@ -220,7 +223,7 @@ public class CmdManager {
                     if (r instanceof TaskRunner) {
                         TaskRunner task = (TaskRunner) r;
                         onReject(task.getCmd());
-                        Logger.warn("Reject cmd: " + task.getCmd());
+                        LOGGER.warn("Reject cmd: %s", task.getCmd());
                     }
                 });
     }

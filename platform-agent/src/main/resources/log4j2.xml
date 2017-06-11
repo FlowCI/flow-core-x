@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Properties>
+        <Property name="baseDir">logs</Property>
+        <Property name="defaultPattern">
+            %highlight{%d{YYYY-MM-dd HH:mm:ss.SSS} [%-5level] %logger%varsNotEmpty{:%marker} - %msg%n%throwable}{FATAL=white, ERROR=red, WARN=blue, INFO=black, DEBUG=green, TRACE=blue}
+        </Property>
+        <Property name="defaultPatternForFile">
+            %d{YYYY-MM-dd HH:mm:ss.SSS} [%-5level] %logger%varsNotEmpty{:%marker} - %msg%n%throwable
+        </Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${defaultPattern}"/>
+        </Console>
+
+        <RollingFile name="RollingFileInfo" fileName="${baseDir}/agent-info.log"
+                     filePattern="${baseDir}/$${date:yyyy-MM}/agent-info-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout pattern="${defaultPatternForFile}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="200 MB"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.springframework" level="info"></Logger>
+        <Root level="all">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFileInfo"/>
+            <AppenderRef ref="RollingFileError"/>
+        </Root>
+    </Loggers>
+</Configuration>

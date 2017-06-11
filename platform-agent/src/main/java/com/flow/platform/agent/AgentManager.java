@@ -3,6 +3,7 @@ package com.flow.platform.agent;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -19,9 +20,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AgentManager implements Runnable, Watcher {
 
-    /**
-     * Zk root path /flow-agents/{zone}/{name}
-     */
+    private final static Logger LOGGER = new Logger(AgentManager.class);
+
+    // Zk root path /flow-agents/{zone}/{name}
     private final static Object STATUS_LOCKER = new Object();
     private final static int ZK_RECONNECT_TIME = 5;
 
@@ -95,7 +96,7 @@ public class AgentManager implements Runnable, Watcher {
 
     @Override
     public void process(WatchedEvent event) {
-        Logger.info(event.toString());
+        LOGGER.trace("Agent receive zookeeper event %s", event.toString());
 
         try {
             if (ZkEventHelper.isConnectToServer(event)) {
@@ -117,7 +118,7 @@ public class AgentManager implements Runnable, Watcher {
                 onReconnect(event);
             }
         } catch (Throwable e) {
-            Logger.err(e, "Unexpected error");
+            LOGGER.error("Unexpected error", e);
 
             // TODO: to handle zookeeper exception for reconnection, delete only temp solution
             onDeleted(event);
@@ -130,14 +131,14 @@ public class AgentManager implements Runnable, Watcher {
      * @param event
      */
     private void onDeleted(WatchedEvent event) {
-//        try {
-//            if (zkEventListener != null) {
-//                zkEventListener.onDeleted(event);
-//            }
-//            stop();
-//        } finally {
-//            Runtime.getRuntime().exit(1);
-//        }
+        try {
+            if (zkEventListener != null) {
+                zkEventListener.onDeleted(event);
+            }
+            stop();
+        } finally {
+            Runtime.getRuntime().exit(1);
+        }
     }
 
     private void onConnected(WatchedEvent event) {
@@ -160,7 +161,7 @@ public class AgentManager implements Runnable, Watcher {
             }
 
         } catch (Throwable e) {
-            Logger.err(e, "Invalid cmd from server");
+            LOGGER.error("Invalid cmd from server", e);
         } finally {
             if (zkEventListener != null) {
                 zkEventListener.afterOnDataChanged(event);
@@ -172,7 +173,7 @@ public class AgentManager implements Runnable, Watcher {
         try {
             this.zk = new ZooKeeper(zkHost, zkTimeout, this);
         } catch (IOException e) {
-            Logger.err(e, "Network failure while reconnect to zookeeper server");
+            LOGGER.error("Network failure while reconnect to zookeeper server", e);
         }
     }
 
@@ -195,20 +196,20 @@ public class AgentManager implements Runnable, Watcher {
 
         @Override
         public void onConnected(WatchedEvent event, String path) {
-            Logger.info("========= Agent connected to server =========");
+            LOGGER.trace("========= Agent connected to server =========");
         }
 
         @Override
         public void onDataChanged(WatchedEvent event, byte[] raw) {
             Cmd cmd = Jsonable.parse(raw, Cmd.class);
-            Logger.info("Received command: " + cmd.toString());
+            LOGGER.trace("Received command: " + cmd.toString());
             CmdManager.getInstance().execute(cmd);
         }
 
         @Override
         public void onDeleted(WatchedEvent event) {
-//            CmdManager.getInstance().shutdown(null);
-            Logger.info("========= Agent been deleted =========");
+            CmdManager.getInstance().shutdown(null);
+            LOGGER.trace("========= Agent been deleted =========");
         }
     }
 }
