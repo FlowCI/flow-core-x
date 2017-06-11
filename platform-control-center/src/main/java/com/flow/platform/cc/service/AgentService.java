@@ -13,8 +13,8 @@ import java.util.List;
  */
 public interface AgentService {
 
-    int MIN_IDLE_AGENT_POOL = 1; // min pool size
-    int MAX_IDLE_AGENT_POOL = 2; // max pool size
+    int MIN_IDLE_AGENT_POOL = 0; // min pool size
+    int MAX_IDLE_AGENT_POOL = 0; // max pool size
     int KEEP_IDLE_AGENT_TASK_PERIOD = 45 * 1000; // millisecond
 
     /**

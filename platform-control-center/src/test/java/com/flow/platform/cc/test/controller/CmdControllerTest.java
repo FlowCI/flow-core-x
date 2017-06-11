@@ -81,7 +81,7 @@ public class CmdControllerTest extends TestBase {
         // then:
         Cmd loaded = cmdService.find(cmd.getId());
         Assert.assertNotNull(loaded);
-        Assert.assertTrue(loaded.getStatus().contains(CmdStatus.EXECUTED));
+        Assert.assertTrue(loaded.getStatus().equals(CmdStatus.EXECUTED));
     }
 
     @Test
@@ -112,7 +112,7 @@ public class CmdControllerTest extends TestBase {
 
         Cmd cmdInfo = gsonConfig.fromJson(result.getResponse().getContentAsString(), Cmd.class);
         Assert.assertNotNull(cmdInfo);
-        Assert.assertTrue(cmdInfo.getStatus().contains(CmdStatus.PENDING));
+        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
         Assert.assertEquals(agentName, cmdInfo.getAgent());
 

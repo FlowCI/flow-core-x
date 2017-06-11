@@ -87,6 +87,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
             // double check agent in zk node
             String agentNodePath = zkHelper.getZkPath(target.getPath());
+//            zkClient = zkHelper.getClient();
             if (ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
                 throw new AgentErr.NotFoundException(target.getPath().toString());
             }

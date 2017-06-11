@@ -30,9 +30,14 @@ public class Cmd extends CmdBase {
     private String id;
 
     /**
-     * Cmd status set
+     * record current status
      */
-    private Set<CmdStatus> statusSet = Sets.newHashSet(CmdStatus.PENDING);
+    private CmdStatus status;
+
+//    /**
+//     * Cmd status set
+//     */
+//    private Set<CmdStatus> statusSet = Sets.newHashSet(CmdStatus.PENDING);
 
     /**
      * Path for full log
@@ -53,6 +58,19 @@ public class Cmd extends CmdBase {
      * Updated date
      */
     private Date updatedDate;
+
+    public Date getFinishedDate() {
+        return finishedDate;
+    }
+
+    public void setFinishedDate(Date finishedDate) {
+        this.finishedDate = finishedDate;
+    }
+
+    /**
+     * finish time
+     */
+    private Date finishedDate;
 
 
     public Cmd() {
@@ -76,12 +94,31 @@ public class Cmd extends CmdBase {
         this.id = id;
     }
 
-    public Set<CmdStatus> getStatus() {
-        return statusSet;
+    public void setStatus(CmdStatus status) {
+        this.status = status;
     }
 
+    public CmdStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * only level gt current level
+     * @param status
+     */
     public void addStatus(CmdStatus status) {
-        statusSet.add(status);
+        if (this.status == null){
+            this.status = status;
+            return;
+        }
+
+        if (this.status.getLevel() < status.getLevel()){
+            this.status = status;
+
+            if(FINISH_STATUS.contains(status)){
+                this.finishedDate = new Date();
+            }
+        }
     }
 
     public String getFullLogPath() {
@@ -117,9 +154,10 @@ public class Cmd extends CmdBase {
     }
 
     public Boolean isCurrent() {
-        // check status set has finished status
-        Sets.SetView<CmdStatus> intersection = Sets.intersection(statusSet, FINISH_STATUS);
-        return intersection.size() <= 0;
+        if(WORKING_STATUS.contains(status)){
+            return true;
+        }
+        return false;
     }
 
     @Override
