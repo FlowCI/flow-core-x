@@ -12,53 +12,60 @@ public enum CmdStatus {
      * Init status when cmd prepare send to agent
      * is_current_cmd = true
      */
-    PENDING("PENDING"),
+    PENDING("PENDING", 0),
 
     /**
      * Cmd is running
      * is_current_cmd = true
      */
-    RUNNING("RUNNING"), // current cmd
+    RUNNING("RUNNING", 1), // current cmd
 
     /**
      * Cmd executed but not finish logging
      * is_current_cmd = true
      */
-    EXECUTED("EXECUTED"), // current cmd
+    EXECUTED("EXECUTED", 2), // current cmd
 
     /**
      * Log uploaded, cmd completely finished
      * is_current_cmd = false
      */
-    LOGGED("LOGGED"),
+    LOGGED("LOGGED", 3),
 
     /**
      * Got exception when running
      * is_current_cmd = false
      */
-    EXCEPTION("EXCEPTION"),
+    EXCEPTION("EXCEPTION", 3),
 
     /**
      * Killed by controller
      * is_current_cmd = false
      */
-    KILLED("KILLED"),
+    KILLED("KILLED", 3),
 
     /**
      * Cannot execute since over agent limit
      * is_current_cmd = false
      */
-    REJECTED("REJECTED"),
+    REJECTED("REJECTED", 3),
 
     /**
      * Cmd exec timeout which is found by scheduler task
      */
-    TIMEOUT("TIMEOUT");
+    TIMEOUT("TIMEOUT", 3);
 
     private String name;
 
-    CmdStatus(String name) {
+    public Integer getLevel() {
+        return level;
+    }
+
+    private Integer level;
+
+    CmdStatus(String name, Integer level) {
         this.name = name;
+        this.level = level;
     }
 
     public String getName() {
