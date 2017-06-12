@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.domain">
+    <class name="Cmd" table="Cmds">
+        <id name="id" column="id" type="string">
+            <generator class="uuid"/>
+        </id>
+        <property name="createdDate" type="date"/>
+        <property name="updatedDate" type="date"/>
+        <property name="cmd" type="string"/>
+        <property name="fullLogPath" type="string"/>
+
+        <component name="agentPath" class="AgentPath">
+            <property name="zone"></property>
+            <property name="name"></property>
+        </component>
+
+        <!--<property name="type">-->
+            <!--<type name="org.hibernate.type.EnumType">-->
+                <!--<param name="enumClass">com.flow.platform.domain.CmdType</param>-->
+                <!--<param name="useNamed">true</param>-->
+            <!--</type>-->
+        <!--</property>-->
+
+
+        <property name="status">
+            <type name="org.hibernate.type.EnumType">
+                <!--<param name="enumClass">com.flow.platform.domain.CmdStatus</param>-->
+                <param name="enumClass">com.flow.platform.domain.CmdBase.Type</param>
+                <param name="useNamed">true</param>
+            </type>
+        </property>
+
+    </class>
+</hibernate-mapping>

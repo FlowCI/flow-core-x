@@ -14,6 +14,8 @@ public class CmdResult implements Serializable {
     public static final Integer EXIT_VALUE_FOR_KILL = 143;
     public static final Integer EXIT_VALUE_FOR_REJECT = -100;
 
+    private String id;
+
     /**
      * Only agent local, cannot parse to json
      */
@@ -58,6 +60,14 @@ public class CmdResult implements Serializable {
      * Exception while cmd running
      */
     private final List<Throwable> exceptions = new ArrayList<>(5);
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public Process getProcess() {
         return process;
