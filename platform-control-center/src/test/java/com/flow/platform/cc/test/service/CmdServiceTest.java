@@ -371,7 +371,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(sessionAgent.getSessionDate());
 
         // then: mock cmd been executed
-        cmd.getStatus().add(CmdStatus.LOGGED);
+        cmd.addStatus(CmdStatus.LOGGED);
 
         // when: delete session
         CmdBase cmdToDelSession = new CmdBase(zoneName, null, CmdType.DELETE_SESSION, null);

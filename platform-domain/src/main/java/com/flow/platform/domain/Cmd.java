@@ -32,7 +32,7 @@ public class Cmd extends CmdBase {
     /**
      * record current status
      */
-    private CmdStatus status;
+    private CmdStatus status = CmdStatus.PENDING;
 
 //    /**
 //     * Cmd status set
