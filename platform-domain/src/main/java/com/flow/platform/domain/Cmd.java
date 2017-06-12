@@ -34,11 +34,6 @@ public class Cmd extends CmdBase {
      */
     private CmdStatus status = CmdStatus.PENDING;
 
-//    /**
-//     * Cmd status set
-//     */
-//    private Set<CmdStatus> statusSet = Sets.newHashSet(CmdStatus.PENDING);
-
     /**
      * Path for full log
      */
@@ -59,14 +54,6 @@ public class Cmd extends CmdBase {
      */
     private Date updatedDate;
 
-    public Date getFinishedDate() {
-        return finishedDate;
-    }
-
-    public void setFinishedDate(Date finishedDate) {
-        this.finishedDate = finishedDate;
-    }
-
     /**
      * finish time
      */
@@ -84,6 +71,14 @@ public class Cmd extends CmdBase {
 
     public Cmd(String zone, String agent, CmdType type, String cmd) {
         super(zone, agent, type, cmd);
+    }
+
+    public Date getFinishedDate() {
+        return finishedDate;
+    }
+
+    public void setFinishedDate(Date finishedDate) {
+        this.finishedDate = finishedDate;
     }
 
     public String getId() {
