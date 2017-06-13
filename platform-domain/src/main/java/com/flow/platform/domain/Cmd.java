@@ -40,6 +40,11 @@ public class Cmd extends CmdBase {
     private String fullLogPath;
 
     /**
+     * commands agent
+     */
+    private Agent agent;
+
+    /**
      * Cmd execution result
      */
     private CmdResult result;
@@ -153,6 +158,14 @@ public class Cmd extends CmdBase {
             return true;
         }
         return false;
+    }
+
+    public Agent getAgent() {
+        return agent;
+    }
+
+    public void setAgent(Agent agent) {
+        this.agent = agent;
     }
 
     @Override

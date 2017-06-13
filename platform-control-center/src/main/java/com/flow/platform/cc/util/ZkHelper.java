@@ -185,7 +185,7 @@ public class ZkHelper {
      */
     public String getZkPath(CmdBase cmd) {
         ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName);
-        pathBuilder.append(cmd.getZone()).append(cmd.getAgent());
+        pathBuilder.append(cmd.getZone()).append(cmd.getAgentName());
         return pathBuilder.path();
     }
 

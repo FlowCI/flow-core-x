@@ -4,35 +4,42 @@
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.domain">
-    <class name="Cmd" table="Cmds">
-        <id name="id" column="id" type="string">
-            <generator class="uuid"/>
+    <class name="Cmd" table="Cmd">
+        <id name="id" type="string">
+            <generator class="org.hibernate.id.UUIDGenerator"/>
         </id>
-        <property name="createdDate" type="date"/>
-        <property name="updatedDate" type="date"/>
-        <property name="cmd" type="string"/>
-        <property name="fullLogPath" type="string"/>
+        <property name="createdDate" type="date" column="CREATED_DATE"/>
+        <property name="updatedDate" type="date" column="UPDATED_DATE"/>
+        <property name="finishedDate" type="date" column="FINISHED_DATE"/>
+        <property name="cmd" type="string" column="CMD"/>
+        <property name="fullLogPath" type="string" column="FULL_LOG_PATH"/>
 
         <component name="agentPath" class="AgentPath">
-            <property name="zone"></property>
-            <property name="name"></property>
+            <property name="zone" column="AGENT_ZONE"></property>
+            <property name="name" column="AGENT_NAME"></property>
         </component>
 
-        <!--<property name="type">-->
-            <!--<type name="org.hibernate.type.EnumType">-->
-                <!--<param name="enumClass">com.flow.platform.domain.CmdType</param>-->
-                <!--<param name="useNamed">true</param>-->
-            <!--</type>-->
-        <!--</property>-->
-
-
-        <property name="status">
+        <property name="type" column="TYPE">
             <type name="org.hibernate.type.EnumType">
-                <!--<param name="enumClass">com.flow.platform.domain.CmdStatus</param>-->
-                <param name="enumClass">com.flow.platform.domain.CmdBase.Type</param>
+                <param name="enumClass">com.flow.platform.domain.CmdType</param>
                 <param name="useNamed">true</param>
             </type>
         </property>
+
+
+        <property name="status" column="STATUS">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">com.flow.platform.domain.CmdStatus</param>
+                <param name="useNamed">true</param>
+            </type>
+        </property>
+
+        <many-to-one
+                name="agent"
+                column="AGENT_ID"
+                not-null="true"/>
+        <!--<one-to-one name="result" class="CmdResult" constrained="true" ></one-to-one>-->
+        <one-to-one name="result" class="CmdResult"></one-to-one>
 
     </class>
 </hibernate-mapping>

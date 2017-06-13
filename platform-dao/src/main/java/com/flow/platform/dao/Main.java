@@ -1,7 +1,5 @@
-import com.flow.platform.dao.AgentDaoImp;
-import com.flow.platform.dao.CmdDaoImp;
-import com.flow.platform.dao.model.AgentModel;
-import com.flow.platform.dao.model.CmdModel;
+package com.flow.platform.dao;
+
 import com.flow.platform.domain.*;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -9,6 +7,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 
+import java.sql.Time;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class Main {
     public static void main(String[] args) {
         try{
             factory = new Configuration().
-                    configure().
+                    configure("hibernate.cfg.xml").
                     //addPackage("com.xyz") //add package if used.
 //                            addAnnotatedClass(AgentModel.class).
 //                            addAnnotatedClass(CmdModel.class).
@@ -47,14 +47,44 @@ public class Main {
 
 
 
-        Session session = factory.openSession();
+
+//        Session session = factory.openSession();
+//        session.beginTransaction();
+//        Agent agent = new Agent("XXX", "sss");
+//        agent.setSessionDate(new Date());
+//        agent.setStatus(AgentStatus.BUSY);
+//        session.save( agent);
+//        session.getTransaction().commit();
+
+          DaoBase daobase = new DaoBase();
+        daobase.setSessionFactory(factory);
         Agent agent = new Agent("XXX", "sss");
-        session.save( agent);
+        Agent agent1 = daobase.save(agent);
+
+        agent.setStatus(AgentStatus.IDLE);
+        agent = daobase.update(agent);
+
+        AgentPath agentPath = new AgentPath("test1", "jinan");
+        Cmd cmd = new Cmd(new CmdBase(agentPath, CmdType.KILL, "ls"));
+        cmd.setId("000000000000001");
+        cmd.setAgent(agent);
+
+        CmdResult cmdResult = new CmdResult();
+        cmdResult.setCmd(cmd);
+        cmd.setResult(cmdResult);
+        daobase.save(cmd);
+        daobase.save(cmdResult);
+
+//        daobase.delete(agent);
+//
+//        agent = daobase.get(Agent.class, agent.getId());
+
+
+
 //
 //        AgentPath agentPath = new AgentPath("test1", "jinan");
 //        Cmd cmd = new Cmd(new CmdBase(agentPath, CmdType.KILL, "ls"));
 //        session.save(cmd);
-        session.close();
 
 //        AgentModel am = new AgentModel(new Agent("XXX", "sss"));
 
@@ -74,6 +104,20 @@ public class Main {
 //
 //      /* List down new list of the employees */
 //        ME.listEmployees();
+
+
+//        Cmd cmd2 = daobase.get(Cmd.class, cmd.getId());
+//        CmdResult cmdResult3 = cmd2.getResult();
+
+        CmdResult cmdResult1 = daobase.get(CmdResult.class, cmdResult.getId());
+        Cmd cmd1 = cmdResult1.getCmd();
+        cmd1.setStatus(CmdStatus.EXECUTED);
+        daobase.update(cmd1);
+        CmdResult cmdResult2 = cmd1.getResult();
+        cmdResult2.setStartTime(new Date());
+        cmdResult2.setFinishTime(new Date());
+        daobase.update(cmdResult2);
+
     }
 //    /* Method to CREATE an employee in the database */
 //    public Integer addEmployee(String fname, String lname, int salary){

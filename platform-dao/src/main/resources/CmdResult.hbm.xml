@@ -5,35 +5,23 @@
 
 <hibernate-mapping package="com.flow.platform.domain">
     <class name="CmdResult" table="CmdResult">
-        <id name="id" column="id" type="string">
+        <id name="id" type="string" >
+            <generator class="foreign">
+                <param name="property">cmd</param>
+            </generator>
+            <!--<generator class="foreign">-->
+                <!--<param name="property">cmd</param>-->
+            <!--</generator>-->
         </id>
 
-        <property name="createdDate" type="date"/>
-        <property name="updatedDate" type="date"/>
-        <property name="cmd" type="string"/>
-        <property name="fullLogPath" type="string"/>
-
-        <component name="agentPath" class="AgentPath">
-            <property name="zone"></property>
-            <property name="name"></property>
-        </component>
-
-        <property name="type">
-            <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">com.flow.platform.domain.CmdType</param>
-                <param name="useNamed">true</param>
-            </type>
-        </property>
-
-        <property name="updatedDate" type="date"/>
-        <property name="updatedDate" type="date"/>
-
-        <property name="status">
-            <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">com.flow.platform.domain.CmdStatus</param>
-                <param name="useNamed">true</param>
-            </type>
-        </property>
-
+        <property name="processId" column="PROCESS_ID"/>
+        <property name="exitValue" column="EXIT_VALUE"/>
+        <property name="duration" column="DURATION"/>
+        <property name="totalDuration" column="TOTAL_DURATION"/>
+        <property name="startTime" column="START_TIME"/>
+        <property name="executedTime" column="EXECUTED_TIME"/>
+        <property name="finishTime" column="FINISH_TIME"/>
+        <one-to-one name="cmd" class="Cmd" constrained="true" ></one-to-one>
+        <!--<many-to-one  name="cmd"  class="Cmd" column="CMD_ID" unique="true"></many-to-one>-->
     </class>
 </hibernate-mapping>

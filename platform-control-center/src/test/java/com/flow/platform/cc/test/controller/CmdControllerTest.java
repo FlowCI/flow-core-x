@@ -114,7 +114,7 @@ public class CmdControllerTest extends TestBase {
         Assert.assertNotNull(cmdInfo);
         Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
-        Assert.assertEquals(agentName, cmdInfo.getAgent());
+        Assert.assertEquals(agentName, cmdInfo.getAgentName());
 
         // then: check node data
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);

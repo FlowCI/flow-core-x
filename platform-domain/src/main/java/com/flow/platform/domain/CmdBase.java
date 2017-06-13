@@ -59,7 +59,7 @@ public class CmdBase extends Jsonable {
         return agentPath.getZone();
     }
 
-    public String getAgent() {
+    public String getAgentName() {
         return agentPath.getName();
     }
 

@@ -221,7 +221,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(cmdInfo.getId());
         Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
-        Assert.assertEquals(agentName, cmdInfo.getAgent());
+        Assert.assertEquals(agentName, cmdInfo.getAgentName());
 
         // check cmd been recorded
         Assert.assertTrue(cmdService.listByAgentPath(cmd.getAgentPath()).contains(cmdInfo));

@@ -4,15 +4,18 @@
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.domain">
-    <class name="Agent" table="AGENT">
-        <id name="id" column="AGENT_ID" type="string">
-            <generator class="uuid"/>
+    <class name="Agent" table="AGENTS">
+        <id name="id" type="string">
+            <generator class="org.hibernate.id.UUIDGenerator"/>
         </id>
+
         <property name="createdDate" type="date" column="CREATED_DATE"/>
         <property name="updatedDate" type="date" column="UPDATED_DATE"/>
         <property name="concurrentProc" column="CONCURRENT_PROC"></property>
+        <property name="sessionId" column="SESSION_ID"></property>
+        <property name="sessionDate" column="SESSION_DATE"></property>
 
-        <property name="status">
+        <property name="status" column="STATUS">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">com.flow.platform.domain.AgentStatus</param>
                 <param name="useNamed">true</param>
@@ -23,8 +26,6 @@
             <property name="name" column="AGENT_NAME"/>
             <property name="zone" column="AGENT_ZONE"/>
         </component>
-
-
 
     </class>
 </hibernate-mapping>

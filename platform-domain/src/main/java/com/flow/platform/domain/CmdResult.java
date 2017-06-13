@@ -17,6 +17,11 @@ public class CmdResult implements Serializable {
     private String id;
 
     /**
+     * result's cmd
+     */
+    private Cmd cmd;
+
+    /**
      * Only agent local, cannot parse to json
      */
     private transient Process process;
@@ -60,6 +65,14 @@ public class CmdResult implements Serializable {
      * Exception while cmd running
      */
     private final List<Throwable> exceptions = new ArrayList<>(5);
+
+    public Cmd getCmd() {
+        return cmd;
+    }
+
+    public void setCmd(Cmd cmd) {
+        this.cmd = cmd;
+    }
 
     public String getId() {
         return id;
@@ -118,8 +131,10 @@ public class CmdResult implements Serializable {
     }
 
     public void setExecutedTime(Date executedTime) {
-        this.executedTime = executedTime;
-        this.duration = (this.executedTime.getTime() - this.startTime.getTime()) / 1000;
+        if(executedTime != null){
+            this.executedTime = executedTime;
+            this.duration = (this.executedTime.getTime() - this.startTime.getTime()) / 1000;
+        }
     }
 
     public Date getFinishTime() {
@@ -127,8 +142,20 @@ public class CmdResult implements Serializable {
     }
 
     public void setFinishTime(Date finishTime) {
-        this.finishTime = finishTime;
-        this.totalDuration = (this.finishTime.getTime() - this.startTime.getTime()) / 1000;
+        if(finishTime != null){
+            this.finishTime = finishTime;
+            if(this.startTime != null){
+                this.totalDuration = (this.finishTime.getTime() - this.startTime.getTime()) / 1000;
+            }
+        }
+    }
+
+    public void setDuration(Long duration) {
+        this.duration = duration;
+    }
+
+    public void setTotalDuration(Long totalDuration) {
+        this.totalDuration = totalDuration;
     }
 
     @Override

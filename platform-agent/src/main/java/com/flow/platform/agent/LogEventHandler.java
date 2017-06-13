@@ -152,7 +152,7 @@ public class LogEventHandler implements LogListener {
      * @return
      */
     private String getLogFormat(String log) {
-        return String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgent(), cmd.getId(), log);
+        return String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgentName(), cmd.getId(), log);
     }
 
     private Path initZipLogFile(final Cmd cmd) throws IOException {

@@ -185,7 +185,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             }
             throw e;
         } catch (ZkException.ZkNoNodeException e) {
-            throw new AgentErr.NotFoundException(cmd.getAgent());
+            throw new AgentErr.NotFoundException(cmd.getAgentName());
         } finally {
             mockTrans.unlock();
         }
@@ -310,7 +310,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         // find agent by path
         Agent target = agentService.find(agentPath);
         if (target == null) {
-            throw new AgentErr.NotFoundException(cmd.getAgent());
+            throw new AgentErr.NotFoundException(cmd.getAgentName());
         }
 
         return target;
