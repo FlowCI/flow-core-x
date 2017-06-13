@@ -2,6 +2,7 @@ package com.flow.platform.cc.controller;
 
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,12 @@ public class AgentController {
     @GetMapping(path = "/list")
     public Collection<Agent> list(@RequestParam(name = "zone") String zoneName) {
         return agentService.onlineList(zoneName);
+    }
+
+    @GetMapping(path = "/find")
+    public Agent find(@RequestParam(name = "zone") String zoneName,
+                      @RequestParam(name = "name") String agentName) {
+        return agentService.find(new AgentPath(zoneName, agentName));
     }
 
     /**
