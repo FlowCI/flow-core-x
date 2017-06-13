@@ -59,6 +59,21 @@ public class CmdControllerTest extends TestBase {
     }
 
     @Test
+    public void should_list_cmd_types() throws Throwable {
+        // when:
+        MvcResult result = this.mockMvc.perform(get("/cmd/types"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // then:
+        String raw = result.getResponse().getContentAsString();
+        CmdType[] types = gsonConfig.fromJson(raw, CmdType[].class);
+        Assert.assertNotNull(types);
+        Assert.assertTrue(types.length == 6);
+    }
+
+    @Test
     public void should_update_cmd_status() throws Throwable {
         // given:
         AgentPath path = new AgentPath("test-zone-00", "test-001");
