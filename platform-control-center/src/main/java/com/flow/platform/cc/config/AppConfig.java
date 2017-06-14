@@ -29,15 +29,21 @@ public class AppConfig {
 
     public final static Path CMD_LOG_DIR = Paths.get(System.getenv("HOME"), "uploaded-agent-log");
 
-    /**
-     * Core Config
-     * Enable scheduler task for check idle agent and start instance by zone
-     */
-    public final static boolean ENABLE_KEEP_IDLE_AGENT_TASK =
-            Boolean.parseBoolean(System.getProperty("flow.cc.task.keep_idle_agent", "true"));
+    // task toggle for keep idle agent, this task will handle could instance
+    public final static boolean TASK_ENABLE_KEEP_IDLE_AGENT =
+            Boolean.parseBoolean(System.getProperty("flow.cc.task.agent.keep_idle", "true"));
 
-    public final static boolean ENABLE_CMD_TIMEOUT_TASK =
-            Boolean.parseBoolean(System.getProperty("flow.cc.task.cmd_timeout", "true"));
+    // task toggle for check agent session timeout
+    public final static boolean TASK_ENABLE_AGENT_SESSION_TIMEOUT =
+            Boolean.parseBoolean(System.getProperty("flow.cc.task.agent.session_timeout", "true"));
+
+    // task toggle for check cmd execution timeout
+    public final static boolean TASK_ENABLE_CMD_TIMEOUT =
+            Boolean.parseBoolean(System.getProperty("flow.cc.task.cmd.timeout", "true"));
+
+    // task toggle for clean mos instance
+    public static final boolean TASK_ENABLE_MOS_INSTANCE_CLEAN =
+            Boolean.parseBoolean(System.getProperty("flow.cc.task.mos.instance.clean", "true"));
 
     private final static int ASYNC_POOL_SIZE = 100;
 

@@ -132,7 +132,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = KEEP_IDLE_AGENT_TASK_PERIOD)
     public void keepIdleAgentTask() {
-        if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
+        if (!AppConfig.TASK_ENABLE_KEEP_IDLE_AGENT) {
             return;
         }
         LOGGER.traceMarker("keepIdleAgentTask", "start");
@@ -150,11 +150,17 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
             keepIdleAgentMaxSize(zone, instanceManager, MAX_IDLE_AGENT_POOL);
         }
+
+        LOGGER.traceMarker("keepIdleAgentTask", "end");
     }
 
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
     public void sessionTimeoutTask() {
+        if (!AppConfig.TASK_ENABLE_AGENT_SESSION_TIMEOUT) {
+            return;
+        }
+
         // TODO: should be replaced by db query
         LOGGER.traceMarker("sessionTimeoutTask", "start");
         Date now = new Date();
@@ -167,6 +173,8 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
                 }
             }
         }
+
+        LOGGER.traceMarker("sessionTimeoutTask", "end");
     }
 
     public boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds) {

@@ -5,6 +5,7 @@ import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.*;
+import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service(value = "cmdService")
 public class CmdServiceImpl extends ZkServiceBase implements CmdService {
+
+    private final static Logger LOGGER = new Logger(CmdService.class);
 
     @Autowired
     private AgentService agentService;
@@ -256,10 +259,11 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Scheduled(fixedDelay = 300 * 1000)
-    public void checkCmdTimeoutTask() {
-        if (!AppConfig.ENABLE_CMD_TIMEOUT_TASK) {
+    public void checkTimeoutTask() {
+        if (!AppConfig.TASK_ENABLE_CMD_TIMEOUT) {
             return;
         }
+        LOGGER.traceMarker("checkTimeoutTask", "start");
 
         // find all running status cmd
         for (Cmd cmd : mockCmdList.values()) {
@@ -273,6 +277,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         // // TODO: should batch save cmd status
+        LOGGER.traceMarker("checkTimeoutTask", "end");
     }
 
     /**

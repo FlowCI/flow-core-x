@@ -210,6 +210,7 @@ public class MosClient {
     public boolean bindNatGateway(String instanceId) {
         JSONObject result = null;
         try {
+            this.instanceStatusSync(instanceId, Instance.STATUS_RUNNING, 40 * 1000); // wait mos instance running
             result = client.AssociateNatGateway(DEFAULT_NET_ID, instanceId, DEFAULT_ZONE_ID);
             return result.getJSONObject("AssociateNatGatewayResponse").getBoolean("return");
         } catch (JSONException e) {

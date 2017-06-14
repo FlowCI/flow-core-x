@@ -1,5 +1,6 @@
 package com.flow.platform.cc.cloud;
 
+import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.logger.Logger;
@@ -115,7 +116,7 @@ public class MosInstanceManager implements InstanceManager {
             ZonedDateTime mosUtcTime = DateUtil.fromDateForUTC(createdAt);
             long aliveInSeconds = ChronoUnit.SECONDS.between(mosUtcTime, timeForNow);
 
-            LOGGER.trace("Instance %s alive %s", instance.getName(), aliveInSeconds);
+            LOGGER.trace("Instance %s alive %s seconds", instance.getName(), aliveInSeconds);
 
             // delete instance if instance status is ready (closed) and alive duration > max alive duration
             if (aliveInSeconds >= maxAliveDuration && instance.getStatus().equals(status)) {
@@ -134,15 +135,22 @@ public class MosInstanceManager implements InstanceManager {
     }
 
     /**
-     * Delete failed created instance every 2 mins
+     * Delete failed created instance
+     * Delete the instance which reach the max alive duration
      */
     @Override
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 60 * 1000)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 300 * 1000)
     public void cleanInstanceTask() {
+        if (!AppConfig.TASK_ENABLE_MOS_INSTANCE_CLEAN) {
+            return;
+        }
+
+        LOGGER.traceMarker("cleanInstanceTask", "start");
         cleanInstance(mosCleanupList);
 
         // clean up mos instance when status is shutdown
         cleanFromProvider(INSTANCE_MAX_ALIVE_DURATION, Instance.STATUS_READY);
+        LOGGER.traceMarker("cleanInstanceTask", "end");
     }
 
     private void cleanInstance(Map<String, Instance> instanceMap) {

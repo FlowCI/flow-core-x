@@ -90,5 +90,5 @@ public interface CmdService {
     /**
      * Check timeout cmd by created date for all busy agent
      */
-    void checkCmdTimeoutTask();
+    void checkTimeoutTask();
 }
