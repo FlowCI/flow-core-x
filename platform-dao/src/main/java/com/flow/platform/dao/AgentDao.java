@@ -14,6 +14,7 @@ public interface AgentDao {
     Agent find(AgentPath agentPath);
     Agent findOnline(AgentPath agentPath);
     Agent find(String sessionId);
+    List<Agent> onlineList();
     Agent findOnline(String sessionId);
     List<Agent> findAvailable(String zone);
 }

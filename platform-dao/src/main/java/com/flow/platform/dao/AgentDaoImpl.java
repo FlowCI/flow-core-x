@@ -26,6 +26,17 @@ public class AgentDaoImpl extends DaoBase implements AgentDao {
     }
 
     @Override
+    public List<Agent> onlineList() {
+        Session session = getSession();
+        List<Agent> agents;
+        agents = session.createQuery("from Agent where STATUS <> :offline")
+                .setParameter("offline", AgentStatus.OFFLINE.toString())
+                .list();
+        session.close();
+        return agents;
+    }
+
+    @Override
     public Agent find(AgentPath agentPath) {
         Session session = getSession();
         Agent agent = (Agent) session.createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")

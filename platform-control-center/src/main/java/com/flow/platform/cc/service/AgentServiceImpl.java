@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -51,6 +54,15 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
     @Autowired
     private CmdResultDaoImpl cmdResultDao;
+
+    @PostConstruct
+    public void init(){
+        List<Agent> agents = agentDao.onlineList();
+        for(Agent agent : agents){
+            Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(agent.getZone(), k -> new HashMap<>());
+            agentList.put(agent.getPath(), agent);
+        }
+    }
 
     @Override
     public void reportOnline(String zone, Collection<AgentPath> keys) {
