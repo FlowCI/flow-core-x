@@ -15,4 +15,6 @@ public class MosConfig {
     public static String DEFAULT_INSTANCE_TYPE = "781f1634-da01-4762-9702-af82f3fa3911";
     public static String DEFAULT_DURATION = "1H";
     public static String DEFAULT_GROUP_ID = "0907776e-5784-4d25-8ce1-81689084fcbb";
+
+    public static long DEFAULT_TIMEOUT_BIND_GATWAY_CHECK = 40 * 1000;
 }

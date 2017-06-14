@@ -66,6 +66,8 @@ public class MosClient {
     private final static String DEFAULT_INSTANCE_TYPE = MosConfig.DEFAULT_INSTANCE_TYPE;
     private final static String DEFAULT_DURATION = MosConfig.DEFAULT_DURATION;
     private final static String DEFAULT_GROUP_ID = MosConfig.DEFAULT_GROUP_ID;
+ª
+    private final static long DEFAULT_GATWAY_TIMEOUT = MosConfig.DEFAULT_TIMEOUT_BIND_GATWAY_CHECK;
 
     private final static int DEFAULT_TIMEOUT = 10; // request timeout in seconds
 
@@ -210,7 +212,7 @@ public class MosClient {
     public boolean bindNatGateway(String instanceId) {
         JSONObject result = null;
         try {
-            this.instanceStatusSync(instanceId, Instance.STATUS_RUNNING, 40 * 1000); // wait mos instance running
+            this.instanceStatusSync(instanceId, Instance.STATUS_RUNNING, DEFAULT_GATWAY_TIMEOUT); // wait mos instance running
             result = client.AssociateNatGateway(DEFAULT_NET_ID, instanceId, DEFAULT_ZONE_ID);
             return result.getJSONObject("AssociateNatGatewayResponse").getBoolean("return");
         } catch (JSONException e) {
