@@ -18,18 +18,34 @@ import java.util.List;
 public class Main {
     private static SessionFactory factory;
     public static void main(String[] args) {
-        try{
-            factory = new Configuration().
-                    configure("hibernate.cfg.xml").
-                    //addPackage("com.xyz") //add package if used.
-//                            addAnnotatedClass(AgentModel.class).
-//                            addAnnotatedClass(CmdModel.class).
-        buildSessionFactory();
-        }catch (Throwable ex) {
-            System.err.println("Failed to create sessionFactory object." + ex);
-            throw new ExceptionInInitializerError(ex);
-        }
+//        try{
+//            factory = new Configuration().
+//                    configure("hibernate.cfg.xml").
+//                    //addPackage("com.xyz") //add package if used.
+////                            addAnnotatedClass(AgentModel.class).
+////                            addAnnotatedClass(CmdModel.class).
+//        buildSessionFactory();
+//        }catch (Throwable ex) {
+//            System.err.println("Failed to create sessionFactory object." + ex);
+//            throw new ExceptionInInitializerError(ex);
+//        }
 
+//
+        Configuration configuration = new Configuration();
+        configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost:3306/hibernate1")
+                .setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver")
+                .setProperty("hibernate.connection.username", "root")
+                .setProperty("show_sql", "true")
+                .setProperty("hbm2ddl.auto", "update")
+                .setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect")
+                .setProperty("hibernate.enable_lazy_load_no_trans", "true");
+        configuration
+//                .addClass(com.flow.platform.domain.Agent.class)
+//                .addClass(com.flow.platform.domain.Cmd.class);
+                .addResource("Agent.hbm.xml")
+                .addResource("CmdResult.hbm.xml")
+                .addResource("Cmd.hbm.xml");
+        SessionFactory factory = configuration.buildSessionFactory();
 //
 //        AgentDaoImp adi = new AgentDaoImp();
 //        adi.setSessionFactory(factory);

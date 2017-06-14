@@ -12,6 +12,8 @@ import java.util.List;
 public interface AgentDao {
     Collection<Agent> onlineList(String zone);
     Agent find(AgentPath agentPath);
+    Agent findOnline(AgentPath agentPath);
     Agent find(String sessionId);
+    Agent findOnline(String sessionId);
     List<Agent> findAvailable(String zone);
 }

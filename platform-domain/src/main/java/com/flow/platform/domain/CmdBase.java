@@ -47,6 +47,20 @@ public class CmdBase extends Jsonable {
         this.cmd = cmd;
     }
 
+    /**
+     * commands agent
+     */
+    protected Agent agent;
+
+    public Agent getAgent() {
+        return agent;
+    }
+
+    public void setAgent(Agent agent) {
+        this.agent = agent;
+    }
+
+
     public AgentPath getAgentPath() {
         return agentPath;
     }

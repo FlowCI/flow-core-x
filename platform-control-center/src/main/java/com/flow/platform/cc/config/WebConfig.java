@@ -1,7 +1,10 @@
 package com.flow.platform.cc.config;
 
+import com.flow.platform.cc.util.SessionFactoryHelper;
+import com.flow.platform.dao.DaoBase;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.Gson;
+import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +35,7 @@ import java.util.List;
         "com.flow.platform.cc.service",
         "com.flow.platform.cc.cloud",
         "com.flow.platform.cc.util"})
-@Import({AppConfig.class})
+@Import({AppConfig.class, DatabaseConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private final static int MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
@@ -56,6 +59,17 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     public Gson gsonConfig() {
         return Jsonable.GSON_CONFIG;
     }
+
+//    @Bean(name = "sessionFactory")
+//    public SessionFactory sessionFactory(){
+//        SessionFactory sessionFactory = null;
+//        try {
+//            sessionFactory = new SessionFactoryHelper().getSessionFactory();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return sessionFactory;
+//    }
 
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {

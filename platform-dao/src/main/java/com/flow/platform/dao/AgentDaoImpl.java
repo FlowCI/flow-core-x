@@ -37,6 +37,19 @@ public class AgentDaoImpl extends DaoBase implements AgentDao {
     }
 
     @Override
+    public Agent findOnline(AgentPath agentPath) {
+        Session session = getSession();
+        Agent agent = (Agent) session.createQuery("from Agent where agentZone = :zone and agentName = :name and status <> :offline")
+                .setParameter("zone", agentPath.getZone())
+                .setParameter( "name", agentPath.getName())
+                .setParameter("offline", AgentStatus.OFFLINE)
+                .uniqueResult();
+        session.close();
+        return agent;
+    }
+
+
+    @Override
     public Agent find(String sessionId) {
         Session session = getSession();
         Agent agent = (Agent) session.createQuery("from Agent where sessionId = :sessionId")
@@ -46,10 +59,20 @@ public class AgentDaoImpl extends DaoBase implements AgentDao {
     }
 
     @Override
+    public Agent findOnline(String sessionId) {
+        Session session = getSession();
+        Agent agent = (Agent) session.createQuery("from Agent where sessionId = :sessionId and status <> :offline")
+                .setParameter("sessionId", sessionId)
+                .setParameter("offline", AgentStatus.OFFLINE)
+                .uniqueResult();
+        return agent;
+    }
+
+    @Override
     public List<Agent> findAvailable(String zone) {
         List<Agent> agents = getSession().createQuery("from Agent where agentZone = :zone and status = :idle")
                 .setParameter("zone", zone)
-                .setParameter("idle", AgentStatus.IDLE.toString())
+                .setParameter("status", AgentStatus.IDLE.toString())
                 .list();
         return agents;
     }

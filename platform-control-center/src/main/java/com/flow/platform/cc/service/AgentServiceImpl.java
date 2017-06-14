@@ -4,9 +4,13 @@ import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.DateUtil;
+import com.flow.platform.dao.AgentDaoImpl;
+import com.flow.platform.dao.CmdDaoImpl;
+import com.flow.platform.dao.CmdResultDaoImpl;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.mos.Instance;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -36,6 +40,18 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     @Autowired
     private CmdService cmdService;
 
+    @Autowired
+    private SessionFactory sessionFactory;
+
+    @Autowired
+    private AgentDaoImpl agentDao;
+
+    @Autowired
+    private CmdDaoImpl cmdDao;
+
+    @Autowired
+    private CmdResultDaoImpl cmdResultDao;
+
     @Override
     public void reportOnline(String zone, Collection<AgentPath> keys) {
         onlineListUpdateLock.lock();
@@ -50,6 +66,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
             for (AgentPath key : offlines) {
                 Agent offlineAgent = agentList.get(key);
                 offlineAgent.setStatus(AgentStatus.OFFLINE);
+                agentDao.update(offlineAgent);
                 agentList.remove(key);
             }
 
@@ -61,6 +78,10 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
             for (AgentPath key : onlines) {
                 reportOnline(key);
             }
+
+            // 这里的操作是一个zone下的所有的节点报上来，设置 online 还是 offline
+
+
         } finally {
             onlineListUpdateLock.unlock();
         }
@@ -68,55 +89,45 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
 
     @Override
     public Agent find(AgentPath key) {
-        String zone = key.getZone();
-        Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
-        return agentList.get(key);
+        //在所有的Agent中查询 并不是 online 的
+        Agent agent  = agentDao.find(key);
+        return agent;
     }
 
     @Override
     public Agent find(String sessionId) {
-        //TODO: should replace with dao
-        for (Zone zone : zoneService.getZones()) {
-            Map<AgentPath, Agent> agentMap = agentOnlineList.get(zone.getName());
-            if (agentMap == null) {
-                continue;
-            }
-
-            for (Agent agent : agentMap.values()) {
-                if (agent.getSessionId() != null && Objects.equals(agent.getSessionId(), sessionId)) {
-                    return agent;
-                }
-            }
-        }
-        return null;
+        return agentDao.find(sessionId);
     }
 
     @Override
     public List<Agent> findAvailable(String zone) {
-        Collection<Agent> onlines = onlineList(zone);
-
-        // find available agent
+//        Collection<Agent> onlines = onlineList(zone);
+//
+//        // find available agent
+//        List<Agent> availableList = new LinkedList<>();
+//        for (Agent agent : onlines) {
+//            if (agent.getStatus() == AgentStatus.IDLE) {
+//                availableList.add(agent);
+//            }
+//        }
+//
+//        // sort by update date, the first element is longest idle
+//        availableList.sort(Comparator.comparing(Agent::getUpdatedDate));
         List<Agent> availableList = new LinkedList<>();
-        for (Agent agent : onlines) {
-            if (agent.getStatus() == AgentStatus.IDLE) {
-                availableList.add(agent);
-            }
-        }
-
-        // sort by update date, the first element is longest idle
-        availableList.sort(Comparator.comparing(Agent::getUpdatedDate));
+        availableList = agentDao.findAvailable(zone);
         return availableList;
     }
 
     @Override
     public Collection<Agent> onlineList(String zone) {
-        Collection<Agent> zoneAgents = new ArrayList<>(agentOnlineList.size());
-        Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
-        for (Agent agent : agentList.values()) {
-            if (agent.getZone().equals(zone)) {
-                zoneAgents.add(agent);
-            }
-        }
+//        Collection<Agent> zoneAgents = new ArrayList<>(agentOnlineList.size());
+//        Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
+//        for (Agent agent : agentList.values()) {
+//            if (agent.getZone().equals(zone)) {
+//                zoneAgents.add(agent);
+//            }
+//        }
+        Collection<Agent> zoneAgents = agentDao.onlineList(zone);
         return zoneAgents;
     }
 
@@ -249,6 +260,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
             Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
             Agent agent = new Agent(key);
             agent.setStatus(AgentStatus.IDLE);
+            agentDao.save(agent);
             agentList.put(key, agent);
         }
     }

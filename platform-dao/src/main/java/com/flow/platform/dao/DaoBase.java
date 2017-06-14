@@ -62,7 +62,8 @@ public class DaoBase {
         Session session = getSession();
         try {
             Transaction tx = session.beginTransaction();
-            session.update(var2);
+//            session.update(var2);
+            session.saveOrUpdate(var2);
             tx.commit();
         }catch (RuntimeException e){
             session.getTransaction().rollback();

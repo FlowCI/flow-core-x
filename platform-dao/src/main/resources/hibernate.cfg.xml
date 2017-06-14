@@ -7,6 +7,7 @@
         <property name="connection.url">jdbc:mysql://localhost:3306/hibernate1</property>
         <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
         <property name="connection.username">root</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</property>
         <property name="show_sql">true</property>
         <property name="hbm2ddl.auto">update</property>
         <property name="hibernate.enable_lazy_load_no_trans">true</property>

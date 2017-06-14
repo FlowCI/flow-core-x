@@ -4,6 +4,10 @@ import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.DateUtil;
+import com.flow.platform.dao.AgentDaoImpl;
+import com.flow.platform.dao.CmdDaoImpl;
+import com.flow.platform.dao.CmdResultDaoImpl;
+import com.flow.platform.dao.DaoBase;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -39,6 +43,16 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     @Autowired
     private Queue<Path> cmdLoggingQueue;
 
+    @Autowired
+    private AgentDaoImpl agentDao;
+
+    @Autowired
+    private CmdDaoImpl cmdDao;
+
+    @Autowired
+    private CmdResultDaoImpl cmdResultDao;
+
+
     private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
 
     private final ReentrantLock mockTrans = new ReentrantLock();
@@ -51,7 +65,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         cmdInfo.setSessionId(cmd.getSessionId());
         cmdInfo.setCreatedDate(new Date());
         cmdInfo.setUpdatedDate(new Date());
-        mockCmdList.put(cmdId, cmdInfo);
+        // 关联Agent
+        Agent agent = agentDao.find(cmd.getAgentPath());
+        cmdInfo.setAgent(agent);
+
+        cmdInfo = cmdDao.save(cmdInfo);
+        mockCmdList.put(cmdInfo.getId(), cmdInfo);
         return cmdInfo;
     }
 
@@ -62,15 +81,17 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     public List<Cmd> listByAgentPath(AgentPath agentPath) {
-        List<Cmd> cmdList = new LinkedList<>();
-        for (Cmd tmp : mockCmdList.values()) {
-            if (!tmp.getAgentPath().equals(agentPath)) {
-                continue;
-            }
-            cmdList.add(tmp);
-        }
+//        List<Cmd> cmdList = new LinkedList<>();
+//        for (Cmd tmp : mockCmdList.values()) {
+//            if (!tmp.getAgentPath().equals(agentPath)) {
+//                continue;
+//            }
+//            cmdList.add(tmp);
+//        }
+//
+//        cmdList.sort(Comparator.comparing(Cmd::getCreatedDate));
 
-        cmdList.sort(Comparator.comparing(Cmd::getCreatedDate));
+        List<Cmd> cmdList  = cmdDao.listByAgentPath(agentPath);
         return cmdList;
     }
 
@@ -126,10 +147,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     if (target.getStatus() != AgentStatus.IDLE) {
                         // add reject status since busy
                         cmdInfo.addStatus(CmdStatus.REJECTED);
+                        cmdDao.update(cmdInfo);
                         throw new AgentErr.NotAvailableException(target.getName());
                     }
 
                     target.setStatus(AgentStatus.BUSY);
+                    agentDao.update(target);
                     break;
 
                 case CREATE_SESSION:
@@ -138,6 +161,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     target.setSessionId(sessionId); // set session id to agent
                     target.setSessionDate(new Date());
                     target.setStatus(AgentStatus.BUSY);
+                    agentDao.update(target);
                     // target.save
                     break;
 
@@ -157,6 +181,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     }
 
                     target.setSessionId(null); // release session from target
+                    agentDao.update(target);
                     // target.save
                     break;
 
@@ -166,10 +191,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
                 case STOP:
                     target.setStatus(AgentStatus.OFFLINE);
+                    agentDao.update(target);
                     break;
 
                 case SHUTDOWN:
                     target.setStatus(AgentStatus.OFFLINE);
+                    agentDao.update(target);
                     break;
             }
 
@@ -205,7 +232,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             cmd.addStatus(status);
             cmd.setResult(result);
             cmd.setUpdatedDate(new Date());
-
+            cmdDao.update(cmd);
             // update agent status
             updateAgentStatusWhenUpdateCmd(cmd);
         } finally {
@@ -225,6 +252,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             Files.write(target, file.getBytes());
 
             cmd.setFullLogPath(target.toString());
+            cmdDao.update(cmd);
             cmdLoggingQueue.add(target);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -360,5 +388,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         agent.setStatus(isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
+        agentDao.save(agent);
     }
 }
