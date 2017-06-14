@@ -123,8 +123,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                         break;
                     }
 
-                    if (target.getStatus() != AgentStatus.IDLE) {
-                        // add reject status since busy
+                    // add reject status since busy
+                    if (!target.isAvailable()) {
                         cmdInfo.addStatus(CmdStatus.REJECTED);
                         throw new AgentErr.NotAvailableException(target.getName());
                     }
@@ -133,6 +133,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     break;
 
                 case CREATE_SESSION:
+                    // add reject status since busy
+                    if (!target.isAvailable()) {
+                        cmdInfo.addStatus(CmdStatus.REJECTED);
+                        throw new AgentErr.NotAvailableException(target.getName());
+                    }
+
                     String sessionId = UUID.randomUUID().toString();
                     cmdInfo.setSessionId(sessionId); // set session id to cmd
                     target.setSessionId(sessionId); // set session id to agent
@@ -311,13 +317,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         Agent target = agentService.find(agentPath);
         if (target == null) {
             throw new AgentErr.NotFoundException(cmd.getAgent());
-        }
-
-        // check agent status for Cmd create session and run shell
-        if (cmd.getType() == CmdType.CREATE_SESSION || cmd.getType() == CmdType.RUN_SHELL) {
-            if (target.getStatus() != AgentStatus.IDLE) {
-                throw new AgentErr.NotAvailableException(agentPath.toString());
-            }
         }
 
         return target;
