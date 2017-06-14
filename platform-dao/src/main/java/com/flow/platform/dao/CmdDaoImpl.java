@@ -18,7 +18,7 @@ public class CmdDaoImpl extends DaoBase implements CmdDao {
 
     @Override
     public List<Cmd> listByAgentPath(AgentPath agentPath) {
-        List<Cmd> cmds = getSession().createQuery("from Cmd where agentZone = :zone and agentName = :name")
+        List<Cmd> cmds = getSession().createQuery("from Cmd where AGENT_ZONE = :zone and AGENT_NAME = :name")
                 .setParameter("zone", agentPath.getZone())
                 .setParameter("name", agentPath.getName())
                 .list();

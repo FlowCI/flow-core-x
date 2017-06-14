@@ -8,6 +8,7 @@ import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 
 import java.sql.Time;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -32,11 +33,11 @@ public class Main {
 
 //
         Configuration configuration = new Configuration();
-        configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost:3306/hibernate1")
+        configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost:3306/hibernate2")
                 .setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver")
                 .setProperty("hibernate.connection.username", "root")
-                .setProperty("show_sql", "true")
-                .setProperty("hbm2ddl.auto", "update")
+                .setProperty("hibernate.show_sql", "true")
+                .setProperty("hibernate.hbm2ddl.auto", "update")
                 .setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect")
                 .setProperty("hibernate.enable_lazy_load_no_trans", "true");
         configuration
@@ -72,24 +73,27 @@ public class Main {
 //        session.save( agent);
 //        session.getTransaction().commit();
 
-          DaoBase daobase = new DaoBase();
-        daobase.setSessionFactory(factory);
-        Agent agent = new Agent("XXX", "sss");
-        Agent agent1 = daobase.save(agent);
+          AgentDaoImpl daobase = new AgentDaoImpl();
+         daobase.setSessionFactory(factory);
+//        Agent agent = new Agent("XXX", "sss");
+//        Agent agent1 = daobase.save(agent);
+//
+//        agent.setStatus(AgentStatus.IDLE);
+//        agent = daobase.update(agent);
+//
+//        AgentPath agentPath = new AgentPath("test1", "jinan");
+//        Cmd cmd = new Cmd(new CmdBase(agentPath, CmdType.KILL, "ls"));
+//        cmd.setId("000000000000001");
+//        cmd.setAgent(agent);
+//
+//        CmdResult cmdResult = new CmdResult();
+//        cmdResult.setCmd(cmd);
+//        cmd.setResult(cmdResult);
+//        daobase.save(cmd);
+//        daobase.save(cmdResult);
 
-        agent.setStatus(AgentStatus.IDLE);
-        agent = daobase.update(agent);
 
-        AgentPath agentPath = new AgentPath("test1", "jinan");
-        Cmd cmd = new Cmd(new CmdBase(agentPath, CmdType.KILL, "ls"));
-        cmd.setId("000000000000001");
-        cmd.setAgent(agent);
-
-        CmdResult cmdResult = new CmdResult();
-        cmdResult.setCmd(cmd);
-        cmd.setResult(cmdResult);
-        daobase.save(cmd);
-        daobase.save(cmdResult);
+        Collection<Agent> agent12 = daobase.onlineList("test-zone-1");
 
 //        daobase.delete(agent);
 //
@@ -125,14 +129,14 @@ public class Main {
 //        Cmd cmd2 = daobase.get(Cmd.class, cmd.getId());
 //        CmdResult cmdResult3 = cmd2.getResult();
 
-        CmdResult cmdResult1 = daobase.get(CmdResult.class, cmdResult.getId());
-        Cmd cmd1 = cmdResult1.getCmd();
-        cmd1.setStatus(CmdStatus.EXECUTED);
-        daobase.update(cmd1);
-        CmdResult cmdResult2 = cmd1.getResult();
-        cmdResult2.setStartTime(new Date());
-        cmdResult2.setFinishTime(new Date());
-        daobase.update(cmdResult2);
+//        CmdResult cmdResult1 = daobase.get(CmdResult.class, cmdResult.getId());
+//        Cmd cmd1 = cmdResult1.getCmd();
+//        cmd1.setStatus(CmdStatus.EXECUTED);
+//        daobase.update(cmd1);
+//        CmdResult cmdResult2 = cmd1.getResult();
+//        cmdResult2.setStartTime(new Date());
+//        cmdResult2.setFinishTime(new Date());
+//        daobase.update(cmdResult2);
 
     }
 //    /* Method to CREATE an employee in the database */

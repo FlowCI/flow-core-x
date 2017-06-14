@@ -47,8 +47,8 @@ public class DatabaseConfig {
         configuration.setProperty("hibernate.connection.url", connectionUrl)
                 .setProperty("hibernate.connection.driver_class", connectionDriverClass)
                 .setProperty("hibernate.connection.username", connectionUsername)
-                .setProperty("show_sql", showSql.toString())
-                .setProperty("hbm2ddl.auto", hbHbm2ddlAuto)
+                .setProperty("hibernate.show_sql", showSql.toString())
+                .setProperty("hibernate.hbm2ddl.auto", hbHbm2ddlAuto)
                 .setProperty("hibernate.dialect", connectionDialect)
                 .setProperty("hibernate.enable_lazy_load_no_trans", enableLazyLoadNoTrans.toString());
         configuration.addResource("Agent.hbm.xml")

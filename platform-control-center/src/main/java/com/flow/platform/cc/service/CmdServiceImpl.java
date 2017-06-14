@@ -4,10 +4,8 @@ import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.DateUtil;
-import com.flow.platform.dao.AgentDaoImpl;
-import com.flow.platform.dao.CmdDaoImpl;
-import com.flow.platform.dao.CmdResultDaoImpl;
-import com.flow.platform.dao.DaoBase;
+import com.flow.platform.cc.util.ZkHelper;
+import com.flow.platform.dao.*;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -131,6 +129,10 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
             // double check agent in zk node
             String agentNodePath = zkHelper.getZkPath(target.getPath());
+
+            // 经常session超时
+            zkClient = zkHelper.getClient();
+
             if (ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
                 throw new AgentErr.NotFoundException(target.getPath().toString());
             }
@@ -228,16 +230,36 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         mockTrans.lock();
 
         try {
+            if(cmd.getResult() != null){
+                cmd.setResult(coverCmdResult(cmd.getResult(), result));
+            }else{
+                cmd.setResult(result);
+            }
             // update cmd status
+            result.setCmd(cmd);
             cmd.addStatus(status);
-            cmd.setResult(result);
             cmd.setUpdatedDate(new Date());
             cmdDao.update(cmd);
+            cmdResultDao.update(cmd.getResult());
             // update agent status
             updateAgentStatusWhenUpdateCmd(cmd);
         } finally {
             mockTrans.unlock();
         }
+    }
+
+    public CmdResult coverCmdResult(CmdResult source, CmdResult dest){
+        if(dest.getFinishTime() != null){
+            source.setStartTime(dest.getStartTime());
+            source.setFinishTime(dest.getFinishTime());
+            source.setExecutedTime(dest.getExecutedTime());
+            source.setDuration(dest.getDuration());
+            source.setExitValue(dest.getExitValue());
+            source.setProcess(dest.getProcess());
+            source.setProcessId(dest.getProcessId());
+            source.setTotalDuration(dest.getTotalDuration());
+        }
+        return source;
     }
 
     @Override
@@ -388,6 +410,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         agent.setStatus(isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
-        agentDao.save(agent);
+        agentDao.update(agent);
     }
 }

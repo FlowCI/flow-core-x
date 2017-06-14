@@ -108,7 +108,7 @@ public class Cmd extends CmdBase {
         }
 
         if (this.status.getLevel() < status.getLevel()){
-            this.status = status;
+             this.status = status;
 
             if(FINISH_STATUS.contains(status)){
                 this.finishedDate = new Date();
