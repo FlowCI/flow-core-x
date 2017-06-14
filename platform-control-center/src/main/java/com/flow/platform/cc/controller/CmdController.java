@@ -1,10 +1,7 @@
 package com.flow.platform.cc.controller;
 
 import com.flow.platform.cc.service.CmdService;
-import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
-import com.flow.platform.domain.CmdReport;
+import com.flow.platform.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -26,6 +23,11 @@ public class CmdController {
 
     @Autowired
     private CmdService cmdService;
+
+    @GetMapping(path = "/types")
+    public CmdType[] getCmdTypes() {
+        return CmdType.values();
+    }
 
     /**
      * Send command to agent
