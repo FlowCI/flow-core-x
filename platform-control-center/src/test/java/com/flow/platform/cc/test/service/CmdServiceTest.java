@@ -358,6 +358,14 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(target.getSessionId());
         Assert.assertEquals(cmd.getSessionId(), target.getSessionId());
 
+        // when: send cmd to create agent session again should fail
+        try {
+            cmdService.send(new CmdBase(zoneName, agentName, CmdType.CREATE_SESSION, null));
+            fail();
+        } catch (Throwable e) {
+            Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
+        }
+
         // when: send cmd with session id
         CmdBase cmdWithSession = new CmdBase(zoneName, null, CmdType.RUN_SHELL, "echo hello");
         cmdWithSession.setSessionId(target.getSessionId());

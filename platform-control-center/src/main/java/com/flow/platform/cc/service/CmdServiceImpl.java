@@ -313,6 +313,13 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw new AgentErr.NotFoundException(cmd.getAgent());
         }
 
+        // check agent status for Cmd create session and run shell
+        if (cmd.getType() == CmdType.CREATE_SESSION || cmd.getType() == CmdType.RUN_SHELL) {
+            if (target.getStatus() != AgentStatus.IDLE) {
+                throw new AgentErr.NotAvailableException(agentPath.toString());
+            }
+        }
+
         return target;
     }
 
