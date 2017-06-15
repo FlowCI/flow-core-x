@@ -6,7 +6,7 @@ package com.flow.platform.cmd;
  */
 public interface LogListener {
 
-    void onLog(String log);
+    void onLog(Log log);
 
     void onFinish();
 }

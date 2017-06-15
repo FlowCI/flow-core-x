@@ -10,7 +10,7 @@ import java.util.concurrent.*;
  * Created by gy@fir.im on 12/05/2017.
  * Copyright fir.im
  */
-public class App {
+public final class App {
 
     private final static ProcListener procListener = new ProcListener() {
         @Override
@@ -37,8 +37,8 @@ public class App {
 
     private final static LogListener logListener = new LogListener() {
         @Override
-        public void onLog(String log) {
-            System.out.println("Log: " + log);
+        public void onLog(Log log) {
+            System.out.println(log);
         }
 
         @Override
@@ -65,25 +65,30 @@ public class App {
             });
 
     public static void main(String[] args) throws InterruptedException {
-        executor.execute(new MyThread());
-        executor.execute(new MyThread());
-        executor.execute(new MyThread());
-
-//        new Thread(() -> {
-//            try {
-//                Thread.sleep(2000);
-//                executor.shutdownNow();
-//            } catch (InterruptedException e) {
+//        executor.execute(new MyThread());
+//        executor.execute(new MyThread());
+//        executor.execute(new MyThread());
 //
-//            }
+////        new Thread(() -> {
+////            try {
+////                Thread.sleep(2000);
+////                executor.shutdownNow();
+////            } catch (InterruptedException e) {
+////
+////            }
+////
+////        }).start();
 //
-//        }).start();
+//        executor.shutdown();
+//        if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+//            executor.shutdownNow();
+//        }
+//        System.out.println("CLose!!");
 
-        executor.shutdown();
-        if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-            executor.shutdownNow();
-        }
-        System.out.println("CLose!!");
+//        "echo \"Error: no test specified\" && exit 1
+        CmdExecutor executor = new CmdExecutor(procListener, logListener, "/bin/bash", "-c", "echo hello >&2 && echo hello 1");
+        executor.run();
+
     }
 
     private static class MyThread implements Runnable {

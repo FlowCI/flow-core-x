@@ -29,7 +29,7 @@ public class MosInstanceManager implements InstanceManager {
 
     private final static String INSTANCE_NAME_PATTERN = "%s.cloud.mos";
     private final static int MAX_NUM_OF_INSTANCE = 10; // max num of instance control by platform
-    private final static int INSTANCE_MAX_ALIVE_DURATION = 600; // max instance alive time in seconds
+    private final static int INSTANCE_MAX_ALIVE_DURATION = 600; // max instance stopped time in seconds
 
     private final static Logger LOGGER = new Logger(MosInstanceManager.class);
 

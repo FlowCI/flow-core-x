@@ -1,6 +1,7 @@
 package com.flow.platform.cmd.test;
 
 import com.flow.platform.cmd.CmdExecutor;
+import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.CmdResult;
@@ -48,8 +49,8 @@ public class CmdExecutorTest {
 
         LogListener logListener = new LogListener() {
             @Override
-            public void onLog(String log) {
-                System.out.println("Log: " + log);
+            public void onLog(Log log) {
+                System.out.println(log);
             }
 
             @Override

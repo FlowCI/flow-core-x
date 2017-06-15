@@ -4,6 +4,7 @@ import com.flow.platform.domain.CmdResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -11,19 +12,20 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by gy@fir.im on 12/05/2017.
  * Copyright fir.im
  */
-public class CmdExecutor {
+public final class CmdExecutor {
 
-    private final CountDownLatch waitLock = new CountDownLatch(1);
-    private final Queue<String> loggingQueue = new LinkedList<>();
+    private final CountDownLatch logLath = new CountDownLatch(1);
+    private final Queue<Log> loggingQueue = new LinkedList<>();
     private final AtomicInteger loggingQueueSize = new AtomicInteger(0);
-    private final AtomicBoolean isLoggingFinish = new AtomicBoolean(false);
+
+    private final AtomicInteger stdCounter = new AtomicInteger(2); // std, stderr
+
     private final int bufferSize = 1024 * 1024 * 10;
 
     private ProcessBuilder pBuilder;
@@ -40,7 +42,6 @@ public class CmdExecutor {
         this.logListener = logListener;
 
         pBuilder = new ProcessBuilder(cmd);
-        pBuilder.redirectErrorStream(true);
     }
 
     public void run() {
@@ -58,14 +59,16 @@ public class CmdExecutor {
                 procListener.onStarted(outputResult);
             }
 
-            // start thread to read logging stream
-            Thread threadForStream = new Thread(createCmdStreamReader(p));
+            // thread to read stdout and stderr stream and enqueue
+            Thread stdout = new Thread(createStdStreamReader(Log.Type.STDOUT, p.getInputStream()));
+            Thread stderr= new Thread(createStdStreamReader(Log.Type.STDERR, p.getErrorStream()));
 
-            // start thread to make dequeue operation
-            Thread threadForLogging = new Thread(createCmdLoggingReader());
+            // thread to make dequeue operation
+            Thread logging = new Thread(createCmdLoggingReader());
 
-            threadForStream.start();
-            threadForLogging.start();
+            stdout.start();
+            stderr.start();
+            logging.start();
 
             outputResult.setExitValue(p.waitFor());
             outputResult.setExecutedTime(new Date());
@@ -75,14 +78,14 @@ public class CmdExecutor {
                 procListener.onExecuted(outputResult);
             }
 
-            waitLock.await(30, TimeUnit.SECONDS); // wait max 30 seconds
+            logLath.await(30, TimeUnit.SECONDS); // wait max 30 seconds
             outputResult.setFinishTime(new Date());
 
             if (procListener != null) {
                 procListener.onLogged(outputResult);
             }
 
-            System.out.println(String.format("====== 2. Logging executed : %s ======", waitLock.getCount()));
+            System.out.println(String.format("====== 2. Logging executed : %s ======", logLath.getCount()));
 
         } catch (Throwable e) {
             outputResult.getExceptions().add(e);
@@ -121,19 +124,19 @@ public class CmdExecutor {
             public void run() {
                 try {
                     while (true) {
-                        if (isLoggingFinish.get() && loggingQueueSize.get() <= 0) {
+                        if (stdCounter.get() == 0 && loggingQueueSize.get() <= 0) {
                             break;
                         }
 
-                        String line = loggingQueue.poll();
-                        if (line == null) {
+                        Log log = loggingQueue.poll();
+                        if (log == null) {
                             try {
                                 Thread.sleep(100);
                             } catch (InterruptedException ignored) {
                             }
                         } else {
                             if (logListener != null) {
-                                logListener.onLog(line);
+                                logListener.onLog(log);
                             }
                             loggingQueueSize.getAndDecrement();
                         }
@@ -142,29 +145,28 @@ public class CmdExecutor {
                     if (logListener != null) {
                         logListener.onFinish();
                     }
-                    waitLock.countDown();
+                    logLath.countDown();
                     System.out.println(" ===== Logging Reader Thread Finish =====");
                 }
             }
         };
     }
 
-    private Runnable createCmdStreamReader(final Process p) {
+    private Runnable createStdStreamReader(final Log.Type type, final InputStream inputStream) {
         return new Runnable() {
             @Override
             public void run() {
-                isLoggingFinish.set(false);
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()), bufferSize)) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream), bufferSize)) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        loggingQueue.add(line);
+                        loggingQueue.add(new Log(type, line));
                         loggingQueueSize.getAndIncrement();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
-                    isLoggingFinish.set(true);
-                    System.out.println(" ===== Stream Reader Thread Finish =====");
+                    stdCounter.decrementAndGet();
+                    System.out.println(String.format(" ===== %s Stream Reader Thread Finish =====", type));
                 }
             }
         };
