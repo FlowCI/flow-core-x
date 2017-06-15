@@ -62,7 +62,7 @@ public class CmdManagerTest extends TestBase {
 
         ThreadPoolExecutor cmdExecutor = cmdManager.getCmdExecutor();
         cmdExecutor.shutdown();
-        cmdExecutor.awaitTermination(30, TimeUnit.SECONDS);
+        cmdExecutor.awaitTermination(60, TimeUnit.SECONDS);
 
         Assert.assertTrue(Files.exists(Paths.get(TEMP_LOG_DIR.toString(), cmd.getId() + ".out.zip")));
         Assert.assertTrue(Files.exists(Paths.get(TEMP_LOG_DIR.toString(), cmd.getId() + ".err.zip")));

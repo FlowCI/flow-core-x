@@ -77,16 +77,7 @@ public interface CmdService {
      * @param cmdId
      * @param file
      */
-    void saveFullLog(String cmdId, MultipartFile file);
-
-    /**
-     * Get full log path
-     * TODO: should replace local file system
-     *
-     * @param cmdId
-     * @return
-     */
-    Path getFullLog(String cmdId);
+    void saveLog(String cmdId, MultipartFile file);
 
     /**
      * Check timeout cmd by created date for all busy agent

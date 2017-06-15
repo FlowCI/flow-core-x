@@ -2,7 +2,9 @@ package com.flow.platform.domain;
 
 import com.google.common.collect.Sets;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -37,7 +39,7 @@ public class Cmd extends CmdBase {
     /**
      * Path for full log
      */
-    private String fullLogPath;
+    private List<String> logPaths = new ArrayList<>(5);
 
     /**
      * Cmd execution result
@@ -116,12 +118,12 @@ public class Cmd extends CmdBase {
         }
     }
 
-    public String getFullLogPath() {
-        return fullLogPath;
+    public List<String> getLogPaths() {
+        return logPaths;
     }
 
-    public void setFullLogPath(String fullLogPath) {
-        this.fullLogPath = fullLogPath;
+    public void setLogPaths(List<String> logPaths) {
+        this.logPaths = logPaths;
     }
 
     public CmdResult getResult() {

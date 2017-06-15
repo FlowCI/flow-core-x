@@ -345,7 +345,7 @@ public class CmdServiceTest extends TestBase {
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", originalFilename, "application/zip", mockData);
 
         // when:
-        cmdService.saveFullLog(created.getId(), mockMultipartFile);
+        cmdService.saveLog(created.getId(), mockMultipartFile);
 
         // then:
         Assert.assertTrue(Files.exists(Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename)));

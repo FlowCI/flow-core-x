@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -74,7 +75,7 @@ public class CmdController {
         if (!Objects.equals(file.getContentType(), "application/zip")) {
             throw new IllegalArgumentException("Illegal zipped log file format");
         }
-        cmdService.saveFullLog(cmdId, file);
+        cmdService.saveLog(cmdId, file);
     }
 
     /**
@@ -84,12 +85,23 @@ public class CmdController {
      * @return
      */
     @GetMapping(path = "/log/download", produces = "application/zip")
-    public Resource downloadFullLog(@RequestParam String cmdId, HttpServletResponse httpResponse) {
-        Path filePath = cmdService.getFullLog(cmdId);
-        FileSystemResource resource = new FileSystemResource(filePath.toFile());
+    public Resource downloadFullLog(@RequestParam String cmdId,
+                                    @RequestParam Integer index,
+                                    HttpServletResponse httpResponse) {
 
-        httpResponse.setHeader("Content-Disposition",
-                String.format("attachment; filename=%s", filePath.getFileName().toString()));
-        return resource;
+        Cmd cmd = cmdService.find(cmdId);
+        if (cmd == null) {
+            throw new RuntimeException("Cmd not found");
+        }
+
+        try {
+            Path filePath = Paths.get(cmd.getLogPaths().get(index));
+            FileSystemResource resource = new FileSystemResource(filePath.toFile());
+            httpResponse.setHeader("Content-Disposition",
+                    String.format("attachment; filename=%s", filePath.getFileName().toString()));
+            return resource;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new RuntimeException("Log not found");
+        }
     }
 }

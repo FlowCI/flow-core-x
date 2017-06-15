@@ -174,7 +174,8 @@ public class CmdControllerTest extends TestBase {
         Assert.assertEquals(data.length, Files.size(zippedLogPath));
 
         // when: download uploaded zipped cmd log
-        MvcResult result = this.mockMvc.perform(get("/cmd/log/download").param("cmdId", cmd.getId()))
+        MvcResult result = this.mockMvc.perform(get("/cmd/log/download")
+                .param("cmdId", cmd.getId()).param("index", Integer.toString(0)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
