@@ -13,12 +13,7 @@ import java.util.List;
  */
 public interface AgentService {
 
-
-    int MIN_IDLE_AGENT_POOL = 1; // min pool size
-    int MAX_IDLE_AGENT_POOL = 2; // max pool size
     int AGENT_SESSION_TIMEOUT = 600; // seconds
-
-    int KEEP_IDLE_AGENT_TASK_PERIOD = 45 * 1000; // millisecond
     int AGENT_SESSION_TIMEOUT_TASK_PERIOD = 60 * 1000; // millisecond
 
     /**
@@ -68,12 +63,6 @@ public interface AgentService {
      * @param status
      */
     void reportStatus(AgentPath path, AgentStatus status);
-
-    /**
-     * Scheduler task, periodically, every 1 min to check available agent in zone
-     * It will start instance if num of available agent not enough
-     */
-    void keepIdleAgentTask();
 
     /**
      * To check agent session timeout

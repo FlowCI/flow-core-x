@@ -186,12 +186,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             return cmdInfo;
 
         } catch (AgentErr.NotAvailableException e) {
-            // try to start instance
-            Zone zone = zoneService.getZone(cmd.getZone());
-            InstanceManager instanceManager = zoneService.findInstanceManager(zone);
-            if (instanceManager != null) {
-                instanceManager.batchStartInstance(AgentService.MIN_IDLE_AGENT_POOL);
-            }
+            // force to check idle agent
+            zoneService.keepIdleAgentTask();
             throw e;
         } catch (ZkException.ZkNoNodeException e) {
             throw new AgentErr.NotFoundException(cmd.getAgent());
