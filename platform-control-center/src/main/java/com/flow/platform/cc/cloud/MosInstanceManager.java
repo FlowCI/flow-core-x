@@ -1,6 +1,6 @@
 package com.flow.platform.cc.cloud;
 
-import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.logger.Logger;
@@ -47,6 +47,9 @@ public class MosInstanceManager implements InstanceManager {
 
     @Autowired
     private MosClient mosClient;
+
+    @Autowired
+    private TaskConfig taskConfig;
 
     // running mos instance
     private final Map<String, Instance> mosRunningList = new ConcurrentHashMap<>();
@@ -141,7 +144,7 @@ public class MosInstanceManager implements InstanceManager {
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = 300 * 1000)
     public void cleanInstanceTask() {
-        if (!AppConfig.TASK_ENABLE_MOS_INSTANCE_CLEAN) {
+        if (!taskConfig.isEnableMosCleanTask()) {
             return;
         }
 

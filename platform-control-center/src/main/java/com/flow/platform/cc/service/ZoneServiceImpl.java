@@ -2,6 +2,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.logger.Logger;
@@ -43,6 +44,9 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
     @Autowired
     private SpringContextUtil springContextUtil;
+
+    @Autowired
+    private TaskConfig taskConfig;
 
     private final Map<Zone, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
@@ -102,9 +106,10 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = KEEP_IDLE_AGENT_TASK_PERIOD)
     public void keepIdleAgentTask() {
-        if (!AppConfig.TASK_ENABLE_KEEP_IDLE_AGENT) {
+        if (!taskConfig.isEnableKeepIdleAgentTask()) {
             return;
         }
+
         LOGGER.traceMarker("keepIdleAgentTask", "start");
 
         // get num of idle agent

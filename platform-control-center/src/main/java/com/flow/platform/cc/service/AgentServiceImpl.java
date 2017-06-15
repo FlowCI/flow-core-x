@@ -1,12 +1,10 @@
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.cloud.InstanceManager;
-import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.logger.Logger;
-import com.flow.platform.util.mos.Instance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -35,6 +33,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private CmdService cmdService;
+
+    @Autowired
+    private TaskConfig taskConfig;
 
     @Override
     public void reportOnline(String zone, Collection<AgentPath> keys) {
@@ -132,7 +133,7 @@ public class AgentServiceImpl implements AgentService {
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
     public void sessionTimeoutTask() {
-        if (!AppConfig.TASK_ENABLE_AGENT_SESSION_TIMEOUT) {
+        if (!taskConfig.isEnableAgentSessionTimeoutTask()) {
             return;
         }
 

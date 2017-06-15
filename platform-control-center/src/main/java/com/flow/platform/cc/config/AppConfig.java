@@ -24,28 +24,12 @@ import java.util.concurrent.Executor;
  * Copyright fir.im
  */
 @Configuration
-@Import({MosConfig.class})
+@Import({MosConfig.class, TaskConfig.class})
 public class AppConfig {
 
     public final static SimpleDateFormat APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
 
     public final static Path CMD_LOG_DIR = Paths.get(System.getenv("HOME"), "uploaded-agent-log");
-
-    // task toggle for keep idle agent, this task will handle could instance
-    public final static boolean TASK_ENABLE_KEEP_IDLE_AGENT =
-            Boolean.parseBoolean(System.getProperty("flow.cc.task.agent.keep_idle", "true"));
-
-    // task toggle for check agent session timeout
-    public final static boolean TASK_ENABLE_AGENT_SESSION_TIMEOUT =
-            Boolean.parseBoolean(System.getProperty("flow.cc.task.agent.session_timeout", "true"));
-
-    // task toggle for check cmd execution timeout
-    public final static boolean TASK_ENABLE_CMD_TIMEOUT =
-            Boolean.parseBoolean(System.getProperty("flow.cc.task.cmd.timeout", "true"));
-
-    // task toggle for clean mos instance
-    public static final boolean TASK_ENABLE_MOS_INSTANCE_CLEAN =
-            Boolean.parseBoolean(System.getProperty("flow.cc.task.mos.instance.clean", "true"));
 
     private final static int ASYNC_POOL_SIZE = 100;
 

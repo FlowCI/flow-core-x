@@ -1,7 +1,7 @@
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.*;
@@ -38,6 +38,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Autowired
     private ZoneService zoneService;
+
+    @Autowired
+    private TaskConfig taskConfig;
 
     @Autowired
     private Queue<Path> cmdLoggingQueue;
@@ -256,7 +259,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Scheduled(fixedDelay = 300 * 1000)
     public void checkTimeoutTask() {
-        if (!AppConfig.TASK_ENABLE_CMD_TIMEOUT) {
+        if (!taskConfig.isEnableCmdExecTimeoutTask()) {
             return;
         }
         LOGGER.traceMarker("checkTimeoutTask", "start");
