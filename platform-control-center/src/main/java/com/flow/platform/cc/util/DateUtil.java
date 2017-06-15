@@ -17,4 +17,8 @@ public class DateUtil {
         Instant instant = date.toInstant();
         return instant.atZone(ZONE_UTC);
     }
+
+    public static Date toDate(ZonedDateTime zonedDateTime) {
+        return Date.from(zonedDateTime.toInstant());
+    }
 }

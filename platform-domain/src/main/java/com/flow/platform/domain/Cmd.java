@@ -23,7 +23,7 @@ public class Cmd extends CmdBase {
      * Finish status set
      */
     public static final Set<CmdStatus> FINISH_STATUS =
-            Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED, CmdStatus.TIMEOUT);
+            Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED, CmdStatus.TIMEOUT_KILL);
     /**
      * Server generated command id
      */

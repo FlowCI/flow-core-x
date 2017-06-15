@@ -5,6 +5,7 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
@@ -25,6 +26,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Queue;
@@ -143,8 +145,18 @@ public class CmdServiceTest extends TestBase {
         Cmd cmd = cmdService.send(new CmdBase(zoneName, null, CmdType.RUN_SHELL, "test"));
         Assert.assertTrue(cmd.isCurrent());
 
-        // then: check is timeout
+        // then: check should not timeout
         Assert.assertEquals(false, cmdService.isTimeout(cmd));
+
+        // when: mock cmd timeout
+        Date timeoutDate = DateUtil.toDate(ZonedDateTime.now().minusSeconds(CmdService.CMD_TIMEOUT_SECONDS + 10));
+        cmd.setCreatedDate(timeoutDate);
+        cmd.setStatus(CmdStatus.RUNNING);
+
+        // then: should timeout and status should be TIMEOUT_KILL
+        Assert.assertEquals(true, cmdService.isTimeout(cmd));
+        cmdService.checkTimeoutTask();
+        Assert.assertEquals(CmdStatus.TIMEOUT_KILL, cmdService.find(cmd.getId()).getStatus());
     }
 
     @Test
@@ -349,7 +361,7 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // when: send cmd for create agent session
-        Cmd cmd = cmdService.send(new CmdBase(zoneName, null, CmdType.CREATE_SESSION, null));
+        Cmd cmd = cmdService.send(new CmdBase(zoneName, agentName, CmdType.CREATE_SESSION, null));
         Assert.assertNotNull(cmd.getSessionId());
 
         // then: check agent is locked by session
@@ -358,7 +370,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(target.getSessionId());
         Assert.assertEquals(cmd.getSessionId(), target.getSessionId());
 
-        // when: send cmd to create agent session again should fail
+        // when: send cmd to create agent session again should fail since agent not available
         try {
             cmdService.send(new CmdBase(zoneName, agentName, CmdType.CREATE_SESSION, null));
             fail();

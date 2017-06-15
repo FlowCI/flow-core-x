@@ -270,7 +270,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 if (isTimeout(cmd)) {
                     // kill current running cmd and report status
                     send(new CmdBase(cmd.getAgentPath(), CmdType.KILL, null));
-                    report(cmd.getId(), CmdStatus.TIMEOUT, cmd.getResult());
+                    report(cmd.getId(), CmdStatus.TIMEOUT_KILL, cmd.getResult());
                 }
             }
         }

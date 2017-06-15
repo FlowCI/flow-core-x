@@ -13,6 +13,7 @@ import java.util.List;
  */
 public interface CmdService {
 
+    // default cmd execution timeout in seconds
     long CMD_TIMEOUT_SECONDS = 300;
 
     /**

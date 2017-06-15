@@ -15,31 +15,31 @@ public enum CmdStatus {
     PENDING("PENDING", 0),
 
     /**
-     * Cmd is running
+     * Cmd is running, should agent reported
      * is_current_cmd = true
      */
     RUNNING("RUNNING", 1), // current cmd
 
     /**
-     * Cmd executed but not finish logging
+     * Cmd executed but not finish logging, should agent reported
      * is_current_cmd = true
      */
     EXECUTED("EXECUTED", 2), // current cmd
 
     /**
-     * Log uploaded, cmd completely finished
+     * Log uploaded, cmd completely finished, should agent reported
      * is_current_cmd = false
      */
     LOGGED("LOGGED", 3),
 
     /**
-     * Got exception when running
+     * Got exception when running, should agent reported
      * is_current_cmd = false
      */
     EXCEPTION("EXCEPTION", 3),
 
     /**
-     * Killed by controller
+     * Killed by controller, should agent reported
      * is_current_cmd = false
      */
     KILLED("KILLED", 3),
@@ -53,7 +53,7 @@ public enum CmdStatus {
     /**
      * Cmd exec timeout which is found by scheduler task
      */
-    TIMEOUT("TIMEOUT", 3);
+    TIMEOUT_KILL("TIMEOUT_KILL", 4);
 
     private String name;
 
