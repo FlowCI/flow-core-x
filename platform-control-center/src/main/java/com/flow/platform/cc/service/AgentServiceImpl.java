@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Copyright fir.im
  */
 @Service(value = "agentService")
-public class AgentServiceImpl extends ZkServiceBase implements AgentService {
+public class AgentServiceImpl implements AgentService {
 
     private final static Logger LOGGER = new Logger(AgentService.class);
 
