@@ -2,6 +2,7 @@ package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.mos.MosClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,8 @@ public class AppConfig {
 
     private final static int ASYNC_POOL_SIZE = 100;
 
+    private final static Logger LOGGER = new Logger(AppConfig.class);
+
     @Value("${agent.config.socket_io_url}")
     private String socketIoUrl;
 
@@ -44,6 +47,11 @@ public class AppConfig {
 
     @PostConstruct
     public void init() {
+
+        LOGGER.traceMarker("AgentReportUrl", "SocketIoUrl: %s", socketIoUrl);
+        LOGGER.traceMarker("AgentReportUrl", "CmdReportUrl: %s", cmdReportUrl);
+        LOGGER.traceMarker("AgentReportUrl", "CmdLogUrl: %s", cmdLogUrl);
+
         try {
             Files.createDirectories(CMD_LOG_DIR);
         } catch (IOException e) {

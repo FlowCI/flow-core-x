@@ -1,9 +1,12 @@
 package com.flow.platform.cc.config;
 
+import com.flow.platform.util.logger.Logger;
 import com.flow.platform.util.mos.MosClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
 
 import static com.flow.platform.util.mos.MosConfig.*;
 
@@ -15,6 +18,8 @@ import static com.flow.platform.util.mos.MosConfig.*;
  */
 @Configuration
 public class MosConfig {
+
+    private final static Logger LOGGER = new Logger(MosConfig.class);
 
     @Value("${mos.key}")
     private String apiKey;
@@ -39,6 +44,16 @@ public class MosConfig {
 
     @Value("${mos.group_id}")
     private String groupId;
+
+    @PostConstruct
+    public void init() {
+        LOGGER.trace("NetId: %s", netId);
+        LOGGER.trace("SSH key name: %s", sshKeyName);
+        LOGGER.trace("ZoneId: %s", zoneId);
+        LOGGER.trace("InstanceType: %s", instanceType);
+        LOGGER.trace("Duration: %s", duration);
+        LOGGER.trace("GroupId: %s", groupId);
+    }
 
     @Bean
     public MosClient mosClient() throws Throwable {
