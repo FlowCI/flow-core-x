@@ -7,7 +7,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -61,7 +60,7 @@ public class MosClient {
     private final static String DEFAULT_REGION = MosConfig.DEFAULT_REGION;
 
     private final static String DEFAULT_NET_ID = MosConfig.DEFAULT_NET_ID;
-    private final static String DEFAULT_KEY_NAME = MosConfig.DEFAULT_KEY_NAME;
+    private final static String DEFAULT_SSH_KEY_NAME = MosConfig.DEFAULT_SSH_KEY_NAME;
     private final static String DEFAULT_ZONE_ID = MosConfig.DEFAULT_ZONE_ID;
     private final static String DEFAULT_INSTANCE_TYPE = MosConfig.DEFAULT_INSTANCE_TYPE;
     private final static String DEFAULT_DURATION = MosConfig.DEFAULT_DURATION;
@@ -171,7 +170,7 @@ public class MosClient {
             result = client.CreateInstance(
                     template.getTemplateId(),
                     DEFAULT_INSTANCE_TYPE,
-                    DEFAULT_KEY_NAME,
+                    DEFAULT_SSH_KEY_NAME,
                     0,
                     0,
                     null,

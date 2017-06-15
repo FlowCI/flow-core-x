@@ -6,6 +6,7 @@ import com.flow.platform.util.mos.MosClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.PostConstruct;
@@ -23,6 +24,7 @@ import java.util.concurrent.Executor;
  * Copyright fir.im
  */
 @Configuration
+@Import({MosConfig.class})
 public class AppConfig {
 
     public final static SimpleDateFormat APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
@@ -56,12 +58,6 @@ public class AppConfig {
     @Value("${agent.config.cmd_log_url}")
     private String cmdLogUrl;
 
-    @Value("${mos.key}")
-    private String mosKey;
-
-    @Value("${mos.secret}")
-    private String mosSecret;
-
     @PostConstruct
     public void init() {
         try {
@@ -77,12 +73,7 @@ public class AppConfig {
     }
 
     @Bean
-    public MosClient mosClient() throws Throwable {
-        return new MosClient(mosKey, mosSecret);
-    }
-
-    @Bean
-    public Executor taskExecutor(){
+    public Executor taskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
         taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
