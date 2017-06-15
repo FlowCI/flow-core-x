@@ -1,5 +1,6 @@
 package com.flow.platform.agent;
 
+import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Cmd;
@@ -38,24 +39,20 @@ public class LogEventHandler implements LogListener {
     private Socket socket;
     private boolean socketEnabled = false;
 
-    private Path logTempPath;
-    private Path logFinalPath;
-    private FileOutputStream fileOs;
-    private ZipOutputStream zipOs;
+    private Path stdoutLogPath;
+    private FileOutputStream stdoutLogStream;
+    private ZipOutputStream stdoutLogZipStream;
+
+    private Path stderrLogPath;
+    private FileOutputStream stderrLogStream;
+    private ZipOutputStream stderrLogZipStream;
 
     public LogEventHandler(Cmd cmd) {
         this.cmd = cmd;
 
         // init zip log path
         try {
-            logTempPath = initZipLogFile(this.cmd);
-            logFinalPath = getLogFinalPath(this.cmd);
-
-            fileOs = new FileOutputStream(logTempPath.toFile());
-            zipOs = new ZipOutputStream(fileOs);
-
-            ZipEntry ze = new ZipEntry(cmd.getId() + ".out");
-            zipOs.putNextEntry(ze);
+            initZipLogFile(this.cmd);
         } catch (IOException e) {
             LOGGER.error("Fail to init cmd log file", e);
         }
@@ -84,78 +81,114 @@ public class LogEventHandler implements LogListener {
     }
 
     @Override
-    public void onLog(String log) {
+    public void onLog(Log log) {
+        LOGGER.debug(log.toString());
+
+        writeSocketIo(log);
+
+        // write stdout & stderr
+        writeZipStream(stdoutLogZipStream, log.getContent());
+
+        // write stderr only
+        if (log.getType() == Log.Type.STDERR) {
+            writeZipStream(stderrLogZipStream, log.getContent());
+        }
+    }
+
+    private void writeSocketIo(Log log) {
         if (socketEnabled) {
-            socket.emit(SOCKET_EVENT_TYPE, getLogFormat(log));
+            String format = String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgent(), cmd.getId(), log.getContent());
+            socket.emit(SOCKET_EVENT_TYPE, format);
         }
-
-        if (zipOs != null) {
-            try {
-                zipOs.write(log.getBytes());
-                zipOs.write("\n".getBytes());
-            } catch (IOException e) {
-                LOGGER.warn("Log cannot write : " + log);
-            }
-        }
-
-        LOGGER.debug(log);
     }
 
     @Override
     public void onFinish() {
         // close socket io
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (Throwable e) {
-                LOGGER.error("Exception while close socket io", e);
-            }
+        closeSocketIo();
+
+        if (closeZipAndFileStream(stdoutLogZipStream, stdoutLogStream)) {
+            renameAndUpload(stdoutLogPath, Log.Type.STDOUT);
         }
 
-        // close zip logging file
-        if (zipOs != null) {
+        if (closeZipAndFileStream(stderrLogZipStream, stderrLogStream)) {
+            renameAndUpload(stderrLogPath, Log.Type.STDERR);
+        }
+    }
+
+    private void renameAndUpload(Path logPath, Log.Type logType) {
+        // rename xxx.out.tmp to xxx.out.zip and renameAndUpload to server
+        if (Files.exists(logPath)) {
             try {
-                zipOs.flush();
-                zipOs.closeEntry();
-                zipOs.close();
+                Path target = Paths.get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, logType, false));
+                Files.move(logPath, target);
+
+                // delete if uploaded
+                ReportManager reportManager = ReportManager.getInstance();
+                if (reportManager.cmdLogUploadSync(cmd.getId(), target) && Config.isDeleteLog()) {
+                    Files.deleteIfExists(target);
+                }
             } catch (IOException e) {
-                LOGGER.error("Exception while close zip stream", e);
-            } finally {
-                try {
-                    fileOs.close();
-                } catch (IOException e) {
-                    LOGGER.error("Exception while close log file", e);
-                }
+                LOGGER.error("Exception while move update log name from temp", e);
             }
+        }
+    }
 
-            // rename xxx.out.tmp to xxx.out.zip and upload to server
-            if (Files.exists(logTempPath)) {
-                try {
-                    Files.move(logTempPath, logFinalPath);
-
-                    // delete if uploaded
-                    ReportManager reportManager = ReportManager.getInstance();
-                    if (reportManager.cmdLogUploadSync(cmd.getId(), logFinalPath) && Config.isDeleteLog()) {
-                        Files.deleteIfExists(logFinalPath);
-                    }
-                } catch (IOException e) {
-                    LOGGER.error("Exception while move update log name from temp", e);
-                }
+    private boolean closeZipAndFileStream(final ZipOutputStream zipStream, final FileOutputStream fileStream) {
+        try {
+            if (zipStream != null) {
+                zipStream.flush();
+                zipStream.closeEntry();
+                zipStream.close();
+                return true;
             }
+        } catch (IOException e) {
+            LOGGER.error("Exception while close zip stream", e);
+        } finally {
+            try {
+                if (fileStream != null) {
+                    fileStream.close();
+                }
+            } catch (IOException e) {
+                LOGGER.error("Exception while close log file", e);
+            }
+        }
+        return false;
+    }
+
+    private void closeSocketIo() {
+        if (socket == null) {
+            return;
+        }
+
+        try {
+            socket.close();
+        } catch (Throwable e) {
+            LOGGER.error("Exception while close socket io", e);
+        }
+    }
+
+    private void writeZipStream(final ZipOutputStream stream, final String log) {
+        if (stream == null) {
+            return;
+        }
+
+        // write to zip output stream
+        try {
+            stream.write(log.getBytes());
+            stream.write("\n".getBytes());
+        } catch (IOException e) {
+            LOGGER.warn("Log cannot write : " + log);
         }
     }
 
     /**
-     * Send log by format zone#agent#cmdId#log_raw_data
+     * Init {cmd id}.out.tmp, {cmd id}.err.tmp and zip stream
      *
-     * @param log
-     * @return
+     * @param cmd
+     * @throws IOException
      */
-    private String getLogFormat(String log) {
-        return String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgent(), cmd.getId(), log);
-    }
-
-    private Path initZipLogFile(final Cmd cmd) throws IOException {
+    private void initZipLogFile(final Cmd cmd) throws IOException {
         // init log directory
         try {
             Files.createDirectory(DEFAULT_LOG_PATH);
@@ -164,13 +197,31 @@ public class LogEventHandler implements LogListener {
         }
 
         // init zipped log file for tmp
-        Path cmdLogPath = Paths.get(DEFAULT_LOG_PATH.toString(), cmd.getId() + ".out.tmp");
-        Files.deleteIfExists(cmdLogPath);
+        Path stdoutPath = Paths.get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDOUT, true));
+        Files.deleteIfExists(stdoutPath);
+        stdoutLogPath = Files.createFile(stdoutPath);
 
-        return Files.createFile(cmdLogPath);
+        // init zip stream for stdout log
+        stdoutLogStream = new FileOutputStream(stdoutLogPath.toFile());
+        stdoutLogZipStream = new ZipOutputStream(stdoutLogStream);
+        ZipEntry outEntry = new ZipEntry(cmd.getId() + ".out");
+        stdoutLogZipStream.putNextEntry(outEntry);
+
+        // init zipped log file for tmp
+        Path stderrPath = Paths.get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDERR, true));
+        Files.deleteIfExists(stderrPath);
+        stderrLogPath = Files.createFile(stderrPath);
+
+        // init zip stream for stderr log
+        stderrLogStream = new FileOutputStream(stderrLogPath.toFile());
+        stderrLogZipStream = new ZipOutputStream(stderrLogStream);
+        ZipEntry errEntry = new ZipEntry(cmd.getId() + ".err");
+        stderrLogZipStream.putNextEntry(errEntry);
     }
 
-    private Path getLogFinalPath(final Cmd cmd) {
-        return Paths.get(DEFAULT_LOG_PATH.toString(), cmd.getId() + ".out.zip");
+    private String getLogFileName(Cmd cmd, Log.Type logType, boolean isTemp) {
+        String logTypeSuffix = logType == Log.Type.STDERR ? ".err" : ".out";
+        String tempSuffix = isTemp ? ".tmp" : ".zip";
+        return cmd.getId() + logTypeSuffix + tempSuffix;
     }
 }

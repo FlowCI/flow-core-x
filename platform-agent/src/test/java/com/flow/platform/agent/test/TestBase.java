@@ -1,7 +1,9 @@
 package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.Config;
+import com.flow.platform.domain.AgentConfig;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,17 +16,25 @@ import java.nio.file.Paths;
  */
 public abstract class TestBase {
 
-    private final static Path tmp = Paths.get(System.getenv("TMPDIR"), "flow-agent-log");
+    protected final static Path TEMP_LOG_DIR = Paths.get(System.getenv("TMPDIR"), "flow-agent-log");
 
     static {
-        System.setProperty(Config.PROP_LOG_DIR, tmp.toString());
-        System.out.println("Setting flow-agent-log in path: " + tmp.toString());
+        System.setProperty(Config.PROP_LOG_DIR, TEMP_LOG_DIR.toString());
+        System.out.println("Setting flow-agent-log in path: " + TEMP_LOG_DIR.toString());
+    }
+
+    @BeforeClass
+    public static void beforeClassBase() {
+        Config.AGENT_CONFIG = new AgentConfig(
+                "http://localhost:3000/agent",
+                "http://localhost:8080/cmd/status",
+                "http://localhost:8080/cmd/log/upload");
     }
 
     @AfterClass
-    public static void afterClass() {
+    public static void afterClassBase() {
         try {
-            Files.list(tmp).forEach(path -> {
+            Files.list(TEMP_LOG_DIR).forEach(path -> {
                 try {
                     Files.deleteIfExists(path);
                 } catch (IOException e) {
@@ -32,7 +42,7 @@ public abstract class TestBase {
                 }
             });
 
-            Files.deleteIfExists(tmp);
+            Files.deleteIfExists(TEMP_LOG_DIR);
         } catch (IOException e) { }
     }
 }

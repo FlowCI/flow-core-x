@@ -80,6 +80,10 @@ public class CmdManager {
         return rejected;
     }
 
+    public ThreadPoolExecutor getCmdExecutor () {
+        return cmdExecutor;
+    }
+
     public List<ProcListener> getExtraProcEventListeners() {
         return extraProcEventListeners;
     }

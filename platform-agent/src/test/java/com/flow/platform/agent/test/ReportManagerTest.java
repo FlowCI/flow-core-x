@@ -1,13 +1,13 @@
 package com.flow.platform.agent.test;
 
-import com.flow.platform.agent.Config;
 import com.flow.platform.agent.ReportManager;
-import com.flow.platform.domain.AgentConfig;
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.FixMethodOrder;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.net.URL;
@@ -27,14 +27,6 @@ public class ReportManagerTest extends TestBase {
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
     private ReportManager reportManager = ReportManager.getInstance();
-
-    @BeforeClass
-    public static void init() {
-        Config.AGENT_CONFIG = new AgentConfig(
-                "http://localhost:3000/agent",
-                "http://localhost:8080/cmd/status",
-                "http://localhost:8080/cmd/log/upload");
-    }
 
     @Test
     public void should_report_cmd_status() {
