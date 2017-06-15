@@ -19,7 +19,11 @@ public abstract class TestBase {
     protected final static Path TEMP_LOG_DIR = Paths.get(System.getenv("TMPDIR"), "flow-agent-log");
 
     static {
-        System.setProperty(Config.PROP_LOG_DIR, TEMP_LOG_DIR.toString());
+        if (TEMP_LOG_DIR != null) {
+            System.setProperty(Config.PROP_LOG_DIR, TEMP_LOG_DIR.toString());
+        } else {
+            System.setProperty(Config.PROP_LOG_DIR, Paths.get(System.getenv("HOME"), "flow-agent-log-ut").toString());
+        }
         System.out.println("Setting flow-agent-log in path: " + TEMP_LOG_DIR.toString());
     }
 
