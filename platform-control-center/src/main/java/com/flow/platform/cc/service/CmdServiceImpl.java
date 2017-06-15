@@ -269,6 +269,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             if (cmd.getType() == CmdType.RUN_SHELL && cmd.isCurrent()) {
                 if (isTimeout(cmd)) {
                     // kill current running cmd and report status
+                    LOGGER.traceMarker("checkTimeoutTask", "Cmd %s timeout", cmd);
                     send(new CmdBase(cmd.getAgentPath(), CmdType.KILL, null));
                     report(cmd.getId(), CmdStatus.TIMEOUT_KILL, cmd.getResult());
                 }
