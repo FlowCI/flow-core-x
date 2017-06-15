@@ -118,12 +118,12 @@ public class MosInstanceManager implements InstanceManager {
             Date createdAt = instance.getCreatedAt();
             ZonedDateTime mosUtcTime = DateUtil.fromDateForUTC(createdAt);
             long aliveInSeconds = ChronoUnit.SECONDS.between(mosUtcTime, timeForNow);
-
             LOGGER.trace("Instance %s alive %s seconds", instance.getName(), aliveInSeconds);
 
             // delete instance if instance status is ready (closed) and alive duration > max alive duration
             if (aliveInSeconds >= maxAliveDuration && instance.getStatus().equals(status)) {
                 mosClient.deleteInstance(instance.getInstanceId());
+                LOGGER.trace("Clean instance which over max alive time: %s", instance);
             }
         }
     }
@@ -164,6 +164,7 @@ public class MosInstanceManager implements InstanceManager {
 
             mosClient.deleteInstance(mosInstance.getInstanceId());
             iterator.remove();
+            LOGGER.trace("Clean instance from cleanup list: %s", mosInstance);
         }
     }
 

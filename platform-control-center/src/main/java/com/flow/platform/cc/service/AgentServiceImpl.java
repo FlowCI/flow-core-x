@@ -146,6 +146,7 @@ public class AgentServiceImpl implements AgentService {
                 if (agent.getSessionId() != null && isSessionTimeout(agent, now, AGENT_SESSION_TIMEOUT)) {
                     CmdBase cmd = new CmdBase(agent.getPath(), CmdType.DELETE_SESSION, null);
                     cmdService.send(cmd);
+                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
                 }
             }
         }
