@@ -1,6 +1,7 @@
 package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.util.DateUtil;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -71,7 +72,7 @@ public final class CmdExecutor {
         CmdResult outputResult = new CmdResult();
 
         long startTime = System.currentTimeMillis();
-        outputResult.setStartTime(new Date());
+        outputResult.setStartTime(DateUtil.utcNow());
 
         try {
             Process p = pBuilder.start();
@@ -94,7 +95,7 @@ public final class CmdExecutor {
             logging.start();
 
             outputResult.setExitValue(p.waitFor());
-            outputResult.setExecutedTime(new Date());
+            outputResult.setExecutedTime(DateUtil.utcNow());
 
             System.out.println(String.format("====== 1. Process executed : %s ======", outputResult.getExitValue()));
             if (procListener != null) {
@@ -102,7 +103,7 @@ public final class CmdExecutor {
             }
 
             logLath.await(30, TimeUnit.SECONDS); // wait max 30 seconds
-            outputResult.setFinishTime(new Date());
+            outputResult.setFinishTime(DateUtil.utcNow());
 
             if (procListener != null) {
                 procListener.onLogged(outputResult);
@@ -112,7 +113,7 @@ public final class CmdExecutor {
 
         } catch (Throwable e) {
             outputResult.getExceptions().add(e);
-            outputResult.setFinishTime(new Date());
+            outputResult.setFinishTime(DateUtil.utcNow());
 
             if (procListener != null) {
                 procListener.onException(outputResult);

@@ -36,7 +36,7 @@
 
         <dependency>
             <groupId>com.flow.platform</groupId>
-            <artifactId>platform-util-logger</artifactId>
+            <artifactId>platform-util</artifactId>
             <version>${project.version}</version>
         </dependency>
 

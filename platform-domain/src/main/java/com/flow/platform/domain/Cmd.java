@@ -1,5 +1,6 @@
 package com.flow.platform.domain;
 
+import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
@@ -118,7 +119,7 @@ public class Cmd extends CmdBase {
             this.status = status;
 
             if(FINISH_STATUS.contains(status)){
-                this.finishedDate = new Date();
+                this.finishedDate = DateUtil.utcNow();
             }
         }
     }

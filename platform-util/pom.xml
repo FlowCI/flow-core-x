@@ -11,7 +11,7 @@
 
     <description>log4j2 logging wrapper</description>
 
-    <artifactId>platform-util-logger</artifactId>
+    <artifactId>platform-util</artifactId>
 
     <dependencies>
         <dependency>

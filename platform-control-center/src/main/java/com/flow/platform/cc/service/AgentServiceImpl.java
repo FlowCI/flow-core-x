@@ -138,7 +138,7 @@ public class AgentServiceImpl implements AgentService {
 
         String sessionId = UUID.randomUUID().toString();
         agent.setSessionId(sessionId); // set session id to agent
-        agent.setSessionDate(new Date());
+        agent.setSessionDate(DateUtil.utcNow());
         agent.setStatus(AgentStatus.BUSY);
         // agent.save
         return sessionId;
