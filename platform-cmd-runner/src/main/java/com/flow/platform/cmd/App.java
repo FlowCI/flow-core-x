@@ -2,6 +2,9 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -64,7 +67,7 @@ public final class App {
                 System.out.println("Rejected !!!");
             });
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Throwable {
 //        executor.execute(new MyThread());
 //        executor.execute(new MyThread());
 //        executor.execute(new MyThread());
@@ -86,7 +89,17 @@ public final class App {
 //        System.out.println("CLose!!");
 
 //        "echo \"Error: no test specified\" && exit 1
-        CmdExecutor executor = new CmdExecutor(procListener, logListener, "/bin/bash", "-c", "echo hello >&2 && echo hello 1");
+        Map<String, String> inputs = new HashMap<>();
+        inputs.put("TEST", "echo \"hello\"");
+        inputs.put("FLOW_INPUT", "HELLO");
+
+        CmdExecutor executor = new CmdExecutor(
+                procListener,
+                logListener,
+                inputs,
+                "test",
+                "/bin/bash", "-c", "$TEST && echo $FLOW_INPUT && echo $PWD");
+
         executor.run();
 
     }
@@ -94,8 +107,19 @@ public final class App {
     private static class MyThread implements Runnable {
         @Override
         public void run() {
-            CmdExecutor executor = new CmdExecutor(procListener, logListener, "/bin/bash", "-c", "sleep 10 && echo \"hello\"");
-            executor.run();
+            try {
+                CmdExecutor executor = new CmdExecutor(
+                        procListener,
+                        logListener,
+                        null,
+                        null,
+                        "/bin/bash", "-c", "sleep 10 && echo \"hello\"");
+
+                executor.run();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
         }
     }
 }

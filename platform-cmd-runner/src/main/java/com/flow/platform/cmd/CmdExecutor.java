@@ -2,13 +2,11 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Copyright fir.im
  */
 public final class CmdExecutor {
+
+    private final static File DEFAULT_WORKING_DIR = new File(System.getProperty("user.home"));
 
     private final CountDownLatch logLath = new CountDownLatch(1);
     private final Queue<Log> loggingQueue = new LinkedList<>();
@@ -35,13 +35,36 @@ public final class CmdExecutor {
     /**
      * @param procListener nullable
      * @param logListener  nullable
-     * @param cmd
+     * @param inputs       nullable input env
+     * @param workingDir   nullable, for set cmd working directory, default is user.dir
+     * @param cmd          exec cmd
+     * @throws FileNotFoundException throw when working dir defined but not found
      */
-    public CmdExecutor(ProcListener procListener, LogListener logListener, String... cmd) {
+    public CmdExecutor(final ProcListener procListener,
+                       final LogListener logListener,
+                       final Map<String, String> inputs,
+                       final String workingDir,
+                       final String... cmd) throws FileNotFoundException {
         this.procListener = procListener;
         this.logListener = logListener;
 
         pBuilder = new ProcessBuilder(cmd);
+
+        // check and init working dir
+        if (workingDir == null) {
+            pBuilder.directory(DEFAULT_WORKING_DIR);
+        } else {
+            File dir = new File(workingDir);
+            if (!dir.exists()) {
+                throw new FileNotFoundException(String.format("Cmd defined working dir '%s' not found", workingDir));
+            }
+            pBuilder.directory(dir);
+        }
+
+        // init inputs env
+        if (inputs != null && inputs.size() > 0) {
+            pBuilder.environment().putAll(inputs);
+        }
     }
 
     public void run() {
@@ -61,7 +84,7 @@ public final class CmdExecutor {
 
             // thread to read stdout and stderr stream and enqueue
             Thread stdout = new Thread(createStdStreamReader(Log.Type.STDOUT, p.getInputStream()));
-            Thread stderr= new Thread(createStdStreamReader(Log.Type.STDERR, p.getErrorStream()));
+            Thread stderr = new Thread(createStdStreamReader(Log.Type.STDERR, p.getErrorStream()));
 
             // thread to make dequeue operation
             Thread logging = new Thread(createCmdLoggingReader());

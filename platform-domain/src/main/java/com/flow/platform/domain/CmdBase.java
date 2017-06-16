@@ -1,5 +1,8 @@
 package com.flow.platform.domain;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Only include basic properties of command
  * <p>
@@ -33,6 +36,17 @@ public class CmdBase extends Jsonable {
      * Platform will reserve a machine for session
      */
     protected String sessionId;
+
+    /**
+     * Input parameter, deal with export XX=XX before cmd execute
+     * Add input: getInputs().add(key, value)
+     */
+    protected Map<String, String> inputs = new HashMap<>();
+
+    /**
+     * Cmd working dir, default is user.home
+     */
+    protected String workingDir;
 
     public CmdBase() {
     }
@@ -97,6 +111,22 @@ public class CmdBase extends Jsonable {
 
     public boolean hasSession() {
         return sessionId != null;
+    }
+
+    public Map<String, String> getInputs() {
+        return inputs;
+    }
+
+    public void setInputs(Map<String, String> inputs) {
+        this.inputs = inputs;
+    }
+
+    public String getWorkingDir() {
+        return workingDir;
+    }
+
+    public void setWorkingDir(String workingDir) {
+        this.workingDir = workingDir;
     }
 
     @Override

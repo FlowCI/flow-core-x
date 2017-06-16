@@ -80,7 +80,7 @@ public class CmdManager {
         return rejected;
     }
 
-    public ThreadPoolExecutor getCmdExecutor () {
+    public ThreadPoolExecutor getCmdExecutor() {
         return cmdExecutor;
     }
 
@@ -112,7 +112,7 @@ public class CmdManager {
             LOGGER.trace("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
-            CmdExecutor executor = new CmdExecutor(null, null, "/bin/bash", "-c", shutdownCmd);
+            CmdExecutor executor = new CmdExecutor(null, null, null, null, "/bin/bash", "-c", shutdownCmd);
             executor.run();
 
         } catch (Throwable e) {
@@ -144,7 +144,24 @@ public class CmdManager {
                     LogEventHandler logListener = new LogEventHandler(getCmd());
                     ProcEventHandler procEventHandler = new ProcEventHandler(getCmd(), extraProcEventListeners, running, finished);
 
-                    CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", getCmd().getCmd());
+                    CmdExecutor executor;
+                    try {
+                        executor = new CmdExecutor(
+                                procEventHandler,
+                                logListener,
+                                cmd.getInputs(),
+                                cmd.getWorkingDir(),
+                                "/bin/bash", "-c", getCmd().getCmd());
+                    } catch (Throwable e) {
+                        LOGGER.errorMarker("execute", "Cannot init CmdExecutor for cmd " + cmd, e);
+
+                        CmdResult result = new CmdResult();
+                        result.getExceptions().add(e);
+                        procEventHandler.onException(result);
+
+                        return;
+                    }
+
                     executor.run();
                 }
             });

@@ -15,7 +15,7 @@ import org.junit.Test;
 public class CmdExecutorTest {
 
     @Test
-    public void should_execute_command_with_correct_event() {
+    public void should_execute_command_with_correct_event() throws Throwable {
         ClassLoader loader = this.getClass().getClassLoader();
         String path = loader.getResource("test.sh").getFile();
 
@@ -59,7 +59,7 @@ public class CmdExecutorTest {
             }
         };
 
-        CmdExecutor executor = new CmdExecutor(procListener, logListener, "/bin/bash", "-c", path);
+        CmdExecutor executor = new CmdExecutor(procListener, logListener, null, null, "/bin/bash", "-c", path);
         executor.run();
     }
 }
