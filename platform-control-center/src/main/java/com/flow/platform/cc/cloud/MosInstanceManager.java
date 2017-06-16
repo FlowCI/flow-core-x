@@ -1,7 +1,7 @@
 package com.flow.platform.cc.cloud;
 
 import com.flow.platform.cc.config.TaskConfig;
-import com.flow.platform.cc.util.DateUtil;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.mos.Instance;
