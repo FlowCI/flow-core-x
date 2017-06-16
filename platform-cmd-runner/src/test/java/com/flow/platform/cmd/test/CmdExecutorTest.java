@@ -59,7 +59,7 @@ public class CmdExecutorTest {
             }
         };
 
-        CmdExecutor executor = new CmdExecutor(procListener, logListener, null, null, "/bin/bash", "-c", path);
+        CmdExecutor executor = new CmdExecutor(procListener, logListener, null, null, null, "/bin/bash", "-c", path);
         executor.run();
     }
 }

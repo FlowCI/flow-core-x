@@ -97,8 +97,9 @@ public final class App {
                 procListener,
                 logListener,
                 inputs,
-                "test",
-                "/bin/bash", "-c", "$TEST && echo $FLOW_INPUT && echo $PWD");
+                null,
+                null,
+                "/bin/bash", "-c", "$TEST && echo $FLOW_INPUT && echo $PWD && export FLOW_TEST=112233 ");
 
         executor.run();
 
@@ -111,6 +112,7 @@ public final class App {
                 CmdExecutor executor = new CmdExecutor(
                         procListener,
                         logListener,
+                        null,
                         null,
                         null,
                         "/bin/bash", "-c", "sleep 10 && echo \"hello\"");

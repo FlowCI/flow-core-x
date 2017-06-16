@@ -71,6 +71,7 @@ public class Cmd extends CmdBase {
                 cmdBase.getType(),
                 cmdBase.getCmd());
 
+        this.timeout = cmdBase.getTimeout();
         this.inputs = cmdBase.getInputs();
         this.workingDir = cmdBase.getWorkingDir();
         this.sessionId = cmdBase.getSessionId();

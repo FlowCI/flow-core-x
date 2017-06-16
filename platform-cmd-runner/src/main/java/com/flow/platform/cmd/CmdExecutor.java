@@ -32,6 +32,7 @@ public final class CmdExecutor {
     private ProcessBuilder pBuilder;
     private ProcListener procListener;
     private LogListener logListener;
+    private Long timeout = new Long(3600 * 2); // process timeout in seconds, default is 2 hour
 
     /**
      * @param procListener nullable
@@ -45,6 +46,7 @@ public final class CmdExecutor {
                        final LogListener logListener,
                        final Map<String, String> inputs,
                        final String workingDir,
+                       final Long timeout,
                        final String... cmd) throws FileNotFoundException {
         this.procListener = procListener;
         this.logListener = logListener;
@@ -65,6 +67,11 @@ public final class CmdExecutor {
         // init inputs env
         if (inputs != null && inputs.size() > 0) {
             pBuilder.environment().putAll(inputs);
+        }
+
+        // init timeout
+        if (timeout != null) {
+            this.timeout = timeout;
         }
     }
 
@@ -94,10 +101,16 @@ public final class CmdExecutor {
             stderr.start();
             logging.start();
 
-            outputResult.setExitValue(p.waitFor());
-            outputResult.setExecutedTime(DateUtil.utcNow());
+            // wait for max process timeout
+            if (p.waitFor(timeout.longValue(), TimeUnit.SECONDS)) {
+                outputResult.setExitValue(p.exitValue());
+            } else {
+                outputResult.setExitValue(CmdResult.EXIT_VALUE_FOR_TIMEOUT);
+            }
 
+            outputResult.setExecutedTime(DateUtil.utcNow());
             System.out.println(String.format("====== 1. Process executed : %s ======", outputResult.getExitValue()));
+
             if (procListener != null) {
                 procListener.onExecuted(outputResult);
             }

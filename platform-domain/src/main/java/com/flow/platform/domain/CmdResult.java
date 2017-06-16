@@ -1,9 +1,7 @@
 package com.flow.platform.domain;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by gy@fir.im on 12/05/2017.
@@ -11,8 +9,9 @@ import java.util.List;
  */
 public class CmdResult implements Serializable {
 
-    public static final Integer EXIT_VALUE_FOR_KILL = 143;
+    public static final Integer EXIT_VALUE_FOR_KILL = 143; // auto set while kill process
     public static final Integer EXIT_VALUE_FOR_REJECT = -100;
+    public static final Integer EXIT_VALUE_FOR_TIMEOUT = -200;
 
     /**
      * Only agent local, cannot parse to json
@@ -53,6 +52,11 @@ public class CmdResult implements Serializable {
      * Cmd finish time with logging
      */
     private Date finishTime;
+
+    /**
+     * Env for output
+     */
+    private final Map<String, String> output = new HashMap<>(5);
 
     /**
      * Exception while cmd running
@@ -119,6 +123,11 @@ public class CmdResult implements Serializable {
     public void setFinishTime(Date finishTime) {
         this.finishTime = finishTime;
         this.totalDuration = (this.finishTime.getTime() - this.startTime.getTime()) / 1000;
+    }
+
+
+    public Map<String, String> getOutput() {
+        return output;
     }
 
     @Override

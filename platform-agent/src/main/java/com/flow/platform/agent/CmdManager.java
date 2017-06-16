@@ -112,7 +112,7 @@ public class CmdManager {
             LOGGER.trace("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
-            CmdExecutor executor = new CmdExecutor(null, null, null, null, "/bin/bash", "-c", shutdownCmd);
+            CmdExecutor executor = new CmdExecutor(null, null, null, null, null, "/bin/bash", "-c", shutdownCmd);
             executor.run();
 
         } catch (Throwable e) {
@@ -151,6 +151,7 @@ public class CmdManager {
                                 logListener,
                                 cmd.getInputs(),
                                 cmd.getWorkingDir(),
+                                cmd.getTimeout(),
                                 "/bin/bash", "-c", getCmd().getCmd());
                     } catch (Throwable e) {
                         LOGGER.errorMarker("execute", "Cannot init CmdExecutor for cmd " + cmd, e);
