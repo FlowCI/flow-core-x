@@ -17,6 +17,45 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class CmdExecutor {
 
+    /**
+     * Class for null proc listener
+     */
+    private final class NullProcListener implements ProcListener {
+        @Override
+        public void onStarted(CmdResult result) {
+
+        }
+
+        @Override
+        public void onLogged(CmdResult result) {
+
+        }
+
+        @Override
+        public void onExecuted(CmdResult result) {
+
+        }
+
+        @Override
+        public void onException(CmdResult result) {
+        }
+    }
+
+    /**
+     * Class for null log listener
+     */
+    private final class NullLogListener implements LogListener {
+        @Override
+        public void onLog(Log log) {
+
+        }
+
+        @Override
+        public void onFinish() {
+
+        }
+    }
+
     private final static File DEFAULT_WORKING_DIR = new File(System.getProperty("user.home"));
 
     private final CountDownLatch logLath = new CountDownLatch(1);
@@ -28,8 +67,8 @@ public final class CmdExecutor {
     private final int bufferSize = 1024 * 1024 * 5; // 5 mb buffer
 
     private ProcessBuilder pBuilder;
-    private ProcListener procListener;
-    private LogListener logListener;
+    private ProcListener procListener = new NullProcListener();
+    private LogListener logListener = new NullLogListener();
     private Long timeout = new Long(3600 * 2); // process timeout in seconds, default is 2 hour
 
     /**
@@ -46,8 +85,14 @@ public final class CmdExecutor {
                        final String workingDir,
                        final Long timeout,
                        final String cmd) throws FileNotFoundException {
-        this.procListener = procListener;
-        this.logListener = logListener;
+
+        if (procListener != null) {
+            this.procListener = procListener;
+        }
+
+        if (logListener != null) {
+            this.logListener = logListener;
+        }
 
         pBuilder = new ProcessBuilder("/bin/bash", "-c", String.format("%s && echo %s", cmd, endTerm));
 
@@ -84,9 +129,7 @@ public final class CmdExecutor {
             outputResult.setProcessId(getPid(p));
             outputResult.setProcess(p);
 
-            if (procListener != null) {
-                procListener.onStarted(outputResult);
-            }
+            procListener.onStarted(outputResult);
 
             // thread to read stdout and stderr stream and enqueue
             Thread stdout = new Thread(createStdStreamReader(Log.Type.STDOUT, p.getInputStream()));
@@ -109,16 +152,12 @@ public final class CmdExecutor {
             outputResult.setExecutedTime(DateUtil.utcNow());
             System.out.println(String.format("====== 1. Process executed : %s ======", outputResult.getExitValue()));
 
-            if (procListener != null) {
-                procListener.onExecuted(outputResult);
-            }
+            procListener.onExecuted(outputResult);
 
             logLath.await(30, TimeUnit.SECONDS); // wait max 30 seconds
             outputResult.setFinishTime(DateUtil.utcNow());
 
-            if (procListener != null) {
-                procListener.onLogged(outputResult);
-            }
+            procListener.onLogged(outputResult);
 
             System.out.println(String.format("====== 2. Logging executed : %s ======", logLath.getCount()));
 
@@ -126,9 +165,7 @@ public final class CmdExecutor {
             outputResult.getExceptions().add(e);
             outputResult.setFinishTime(DateUtil.utcNow());
 
-            if (procListener != null) {
-                procListener.onException(outputResult);
-            }
+            procListener.onException(outputResult);
         } finally {
             System.out.println("====== 3. Process Done ======");
         }
@@ -170,16 +207,12 @@ public final class CmdExecutor {
                             } catch (InterruptedException ignored) {
                             }
                         } else {
-                            if (logListener != null) {
-                                logListener.onLog(log);
-                            }
+                            logListener.onLog(log);
                             loggingQueueSize.getAndDecrement();
                         }
                     }
                 } finally {
-                    if (logListener != null) {
-                        logListener.onFinish();
-                    }
+                    logListener.onFinish();
                     logLath.countDown();
                     System.out.println(" ===== Logging Reader Thread Finish =====");
                 }
