@@ -115,26 +115,35 @@ public class MosClient {
 
         try {
             response = client.DescribeInstances(null, null, 100, 0, null);
-            JSONObject jsonInstanceSet = response
+            Object jsonInstanceSet = response
                     .getJSONObject("DescribeInstancesResponse")
-                    .getJSONObject("InstanceSet");
+                    .get("InstanceSet");
 
-            try {
-                 rawInstances = jsonInstanceSet.get("Instance");
-            } catch (JSONException e) {
-                // cannot find instance data since data is out of range
-                MosSizeInfo sizeInfo = GSON.fromJson(jsonInstanceSet.toString(), MosSizeInfo.class);
+            // empty instance will return empty string for in instance set
+            if (jsonInstanceSet instanceof String) {
                 return new ArrayList<>(0);
             }
 
-            // only one instance
-            if (rawInstances instanceof JSONObject) {
-                JSONObject jsonObject = (JSONObject) rawInstances;
-                Instance instance = GSON.fromJson(jsonObject.toString(), Instance.class);
+            // has instance if type is JSONObject
+            if (jsonInstanceSet instanceof JSONObject) {
+                try {
+                    JSONObject jsonSet = (JSONObject) jsonInstanceSet;
+                    rawInstances = jsonSet.get("Instance");
+                } catch (JSONException e) {
+                    // cannot find instance data since data is out of range
+                    MosSizeInfo sizeInfo = GSON.fromJson(jsonInstanceSet.toString(), MosSizeInfo.class);
+                    return new ArrayList<>(0);
+                }
 
-                list = new ArrayList<>(1);
-                list.add(instance);
-                return list;
+                // only one instance
+                if (rawInstances instanceof JSONObject) {
+                    JSONObject jsonObject = (JSONObject) rawInstances;
+                    Instance instance = GSON.fromJson(jsonObject.toString(), Instance.class);
+
+                    list = new ArrayList<>(1);
+                    list.add(instance);
+                    return list;
+                }
             }
 
             if (rawInstances instanceof JSONArray) {
