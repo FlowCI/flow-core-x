@@ -69,6 +69,11 @@ public class Cmd extends CmdBase {
         super(cmdBase.getAgentPath(),
                 cmdBase.getType(),
                 cmdBase.getCmd());
+
+        this.inputs = cmdBase.getInputs();
+        this.workingDir = cmdBase.getWorkingDir();
+        this.sessionId = cmdBase.getSessionId();
+        this.priority = cmdBase.getPriority();
     }
 
     public Cmd(String zone, String agent, CmdType type, String cmd) {

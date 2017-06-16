@@ -113,6 +113,11 @@ public class CmdControllerTest extends TestBase {
 
         // when: send post request
         CmdBase cmd = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, "~/hello.sh");
+        cmd.getInputs().put("FLOW_P_1", "flow-1");
+        cmd.getInputs().put("FLOW_P_2", "flow-2");
+        cmd.setWorkingDir("/user/flow");
+        cmd.setPriority(1);
+
         gsonConfig.toJson(cmd);
 
         MockHttpServletRequestBuilder content = post("/cmd/send")
@@ -130,6 +135,9 @@ public class CmdControllerTest extends TestBase {
         Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
         Assert.assertEquals(agentName, cmdInfo.getAgent());
+        Assert.assertEquals(2, cmdInfo.getInputs().size());
+        Assert.assertEquals("/user/flow", cmdInfo.getWorkingDir());
+        Assert.assertEquals(1, cmdInfo.getPriority().intValue());
 
         // then: check node data
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);
@@ -138,6 +146,9 @@ public class CmdControllerTest extends TestBase {
         Cmd received = Jsonable.parse(raw, Cmd.class);
         Assert.assertNotNull(received);
         Assert.assertEquals(cmdInfo, received);
+        Assert.assertEquals(2, received.getInputs().size());
+        Assert.assertEquals("/user/flow", received.getWorkingDir());
+        Assert.assertEquals(1, received.getPriority().intValue());
     }
 
     @Test
