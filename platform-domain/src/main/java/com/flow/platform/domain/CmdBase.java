@@ -53,6 +53,11 @@ public class CmdBase extends Jsonable {
      */
     protected String workingDir;
 
+    /**
+     * Filter for env input to CmdResult.output map
+     */
+    protected String outputEnvFilter;
+
     public CmdBase() {
     }
 
@@ -140,6 +145,14 @@ public class CmdBase extends Jsonable {
 
     public void setWorkingDir(String workingDir) {
         this.workingDir = workingDir;
+    }
+
+    public String getOutputEnvFilter() {
+        return outputEnvFilter;
+    }
+
+    public void setOutputEnvFilter(String outputEnvFilter) {
+        this.outputEnvFilter = outputEnvFilter;
     }
 
     @Override

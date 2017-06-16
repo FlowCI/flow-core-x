@@ -76,6 +76,7 @@ public class Cmd extends CmdBase {
         this.workingDir = cmdBase.getWorkingDir();
         this.sessionId = cmdBase.getSessionId();
         this.priority = cmdBase.getPriority();
+        this.outputEnvFilter = cmdBase.getOutputEnvFilter();
     }
 
     public Cmd(String zone, String agent, CmdType type, String cmd) {

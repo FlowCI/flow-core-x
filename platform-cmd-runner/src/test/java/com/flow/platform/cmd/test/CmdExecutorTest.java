@@ -59,7 +59,7 @@ public class CmdExecutorTest {
             }
         };
 
-        CmdExecutor executor = new CmdExecutor(procListener, logListener, null, null, null, path);
+        CmdExecutor executor = new CmdExecutor(procListener, logListener, null, null, null, null, path);
         executor.run();
     }
 }

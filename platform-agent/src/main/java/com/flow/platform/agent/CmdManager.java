@@ -112,7 +112,7 @@ public class CmdManager {
             LOGGER.trace("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
-            CmdExecutor executor = new CmdExecutor(null, null, null, null, null, shutdownCmd);
+            CmdExecutor executor = new CmdExecutor(null, null, null, null, null, null, shutdownCmd);
             executor.run();
 
         } catch (Throwable e) {
@@ -151,6 +151,7 @@ public class CmdManager {
                                 logListener,
                                 cmd.getInputs(),
                                 cmd.getWorkingDir(),
+                                cmd.getOutputEnvFilter(),
                                 cmd.getTimeout(),
                                 getCmd().getCmd());
                     } catch (Throwable e) {

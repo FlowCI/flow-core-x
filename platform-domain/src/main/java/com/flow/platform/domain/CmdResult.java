@@ -140,6 +140,7 @@ public class CmdResult implements Serializable {
                 ", startTime=" + startTime +
                 ", executedTime=" + executedTime +
                 ", finishTime=" + finishTime +
+                ", outputSize=" + output.size() +
                 '}';
     }
 }

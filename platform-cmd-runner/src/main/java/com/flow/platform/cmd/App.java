@@ -98,8 +98,9 @@ public final class App {
                 logListener,
                 inputs,
                 null,
+                "FLOW_", // find env start with FLOW_ and put to cmd result output map
                 null,
-                "$TEST && echo $FLOW_INPUT && echo $PWD && export FLOW_TEST=112233 ");
+                "$TEST", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/", "./test.sh");
 
         executor.run();
 
@@ -112,6 +113,7 @@ public final class App {
                 CmdExecutor executor = new CmdExecutor(
                         procListener,
                         logListener,
+                        null,
                         null,
                         null,
                         null,

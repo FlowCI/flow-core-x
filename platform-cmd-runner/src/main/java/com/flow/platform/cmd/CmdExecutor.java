@@ -2,7 +2,8 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.DateUtil;
-import org.apache.logging.log4j.message.StringFormattedMessage;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -63,28 +64,33 @@ public final class CmdExecutor {
     private final AtomicInteger loggingQueueSize = new AtomicInteger(0);
 
     private final AtomicInteger stdCounter = new AtomicInteger(2); // std, stderr
-    private final String endTerm = String.format("=====%s=====", UUID.randomUUID());
+    private final String endTerm = String.format("=====EOF-%s=====", UUID.randomUUID());
     private final int bufferSize = 1024 * 1024 * 5; // 5 mb buffer
 
     private ProcessBuilder pBuilder;
     private ProcListener procListener = new NullProcListener();
     private LogListener logListener = new NullLogListener();
     private Long timeout = new Long(3600 * 2); // process timeout in seconds, default is 2 hour
+    private List<String> cmdList;
+    private String outputEnvFilter;
+    private CmdResult outputResult;
 
     /**
-     * @param procListener nullable
-     * @param logListener  nullable
-     * @param inputs       nullable input env
-     * @param workingDir   nullable, for set cmd working directory, default is user.dir
-     * @param cmd          exec cmd
+     * @param procListener    nullable
+     * @param logListener     nullable
+     * @param inputs          nullable input env
+     * @param workingDir      nullable, for set cmd working directory, default is user.dir
+     * @param outputEnvFilter nullable, for start_with env to cmd result output
+     * @param cmd             exec cmd
      * @throws FileNotFoundException throw when working dir defined but not found
      */
     public CmdExecutor(final ProcListener procListener,
                        final LogListener logListener,
                        final Map<String, String> inputs,
                        final String workingDir,
+                       final String outputEnvFilter,
                        final Long timeout,
-                       final String cmd) throws FileNotFoundException {
+                       final String... cmd) throws FileNotFoundException {
 
         if (procListener != null) {
             this.procListener = procListener;
@@ -94,7 +100,9 @@ public final class CmdExecutor {
             this.logListener = logListener;
         }
 
-        pBuilder = new ProcessBuilder("/bin/bash", "-c", String.format("%s && echo %s", cmd, endTerm));
+        this.outputEnvFilter = outputEnvFilter;
+        cmdList = Lists.newArrayList(cmd);
+        pBuilder = new ProcessBuilder("/bin/bash");
 
         // check and init working dir
         if (workingDir == null) {
@@ -118,8 +126,8 @@ public final class CmdExecutor {
         }
     }
 
-    public void run() {
-        CmdResult outputResult = new CmdResult();
+    public CmdResult run() {
+        outputResult = new CmdResult();
 
         long startTime = System.currentTimeMillis();
         outputResult.setStartTime(DateUtil.utcNow());
@@ -131,13 +139,22 @@ public final class CmdExecutor {
 
             procListener.onStarted(outputResult);
 
+            Thread cmdRun = new Thread(createCmdListExec(p.getOutputStream(), cmdList));
+            cmdRun.setDaemon(true);
+
             // thread to read stdout and stderr stream and enqueue
             Thread stdout = new Thread(createStdStreamReader(Log.Type.STDOUT, p.getInputStream()));
+            stdout.setDaemon(true);
+
+
             Thread stderr = new Thread(createStdStreamReader(Log.Type.STDERR, p.getErrorStream()));
+            stderr.setDaemon(true);
 
             // thread to make dequeue operation
             Thread logging = new Thread(createCmdLoggingReader());
+            logging.setDaemon(true);
 
+            cmdRun.start();
             stdout.start();
             stderr.start();
             logging.start();
@@ -169,6 +186,8 @@ public final class CmdExecutor {
         } finally {
             System.out.println("====== 3. Process Done ======");
         }
+
+        return outputResult;
     }
 
     /**
@@ -188,6 +207,38 @@ public final class CmdExecutor {
         } catch (Exception e) {
             return -1;
         }
+    }
+
+    /**
+     * Make runnable to exec each cmd
+     *
+     * @param outputStream
+     * @param cmdList
+     * @return
+     */
+    private Runnable createCmdListExec(final OutputStream outputStream, final List<String> cmdList) {
+
+        return new Runnable() {
+            @Override
+            public void run() {
+                try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
+                    for (String cmd : cmdList) {
+                        writer.write(cmd + "\n");
+                        writer.flush();
+                    }
+
+                    // find env and set to result output if output filter is not null or empty
+                    if (!Strings.isNullOrEmpty(outputEnvFilter)) {
+                        writer.write(String.format("echo %s\n", endTerm));
+                        writer.write("env\n");
+                        writer.flush();
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
     }
 
     private Runnable createCmdLoggingReader() {
@@ -220,13 +271,20 @@ public final class CmdExecutor {
         };
     }
 
-    private Runnable createStdStreamReader(final Log.Type type, final InputStream inputStream) {
+    private Runnable createStdStreamReader(final Log.Type type, final InputStream is) {
         return new Runnable() {
             @Override
             public void run() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream), bufferSize)) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is), bufferSize)) {
                     String line;
                     while ((line = reader.readLine()) != null) {
+                        if (Objects.equals(line, endTerm)) {
+                            if (outputResult != null) {
+                                readEnv(reader, outputResult.getOutput(), outputEnvFilter);
+                            }
+                            break;
+                        }
+
                         loggingQueue.add(new Log(type, line));
                         loggingQueueSize.getAndIncrement();
                     }
@@ -238,5 +296,28 @@ public final class CmdExecutor {
                 }
             }
         };
+    }
+
+    /**
+     * Start when find log match 'endTerm', and load all env,
+     * put env item which match 'start with filter' to CmdResult.output map
+     *
+     * @param reader
+     * @param output
+     * @param filter
+     * @throws IOException
+     */
+    private void readEnv(final BufferedReader reader,
+                         final Map<String, String> output,
+                         final String filter) throws IOException {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.startsWith(filter)) {
+                int index = line.indexOf('=');
+                String key = line.substring(0, index);
+                String value = line.substring(index + 1);
+                output.put(key, value);
+            }
+        }
     }
 }
