@@ -99,7 +99,7 @@ public final class App {
                 inputs,
                 null,
                 null,
-                "/bin/bash", "-c", "$TEST && echo $FLOW_INPUT && echo $PWD && export FLOW_TEST=112233 ");
+                "$TEST && echo $FLOW_INPUT && echo $PWD && export FLOW_TEST=112233 ");
 
         executor.run();
 
@@ -115,7 +115,7 @@ public final class App {
                         null,
                         null,
                         null,
-                        "/bin/bash", "-c", "sleep 10 && echo \"hello\"");
+                        "sleep 10 && echo \"hello\"");
 
                 executor.run();
             } catch (FileNotFoundException e) {

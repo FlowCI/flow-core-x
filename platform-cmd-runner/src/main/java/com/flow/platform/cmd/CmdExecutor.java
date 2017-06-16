@@ -2,13 +2,11 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.DateUtil;
+import org.apache.logging.log4j.message.StringFormattedMessage;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,8 +24,8 @@ public final class CmdExecutor {
     private final AtomicInteger loggingQueueSize = new AtomicInteger(0);
 
     private final AtomicInteger stdCounter = new AtomicInteger(2); // std, stderr
-
-    private final int bufferSize = 1024 * 1024 * 10;
+    private final String endTerm = String.format("=====%s=====", UUID.randomUUID());
+    private final int bufferSize = 1024 * 1024 * 5; // 5 mb buffer
 
     private ProcessBuilder pBuilder;
     private ProcListener procListener;
@@ -47,11 +45,11 @@ public final class CmdExecutor {
                        final Map<String, String> inputs,
                        final String workingDir,
                        final Long timeout,
-                       final String... cmd) throws FileNotFoundException {
+                       final String cmd) throws FileNotFoundException {
         this.procListener = procListener;
         this.logListener = logListener;
 
-        pBuilder = new ProcessBuilder(cmd);
+        pBuilder = new ProcessBuilder("/bin/bash", "-c", String.format("%s && echo %s", cmd, endTerm));
 
         // check and init working dir
         if (workingDir == null) {
