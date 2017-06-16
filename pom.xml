@@ -12,11 +12,11 @@
     <modules>
         <module>platform-domain</module>
         <module>platform-agent</module>
-        <module>platform-util-zk</module>
         <module>platform-cmd-runner</module>
         <module>platform-control-center</module>
+        <module>platform-util</module>
         <module>platform-util-mos</module>
-        <module>platform-util-logger</module>
+        <module>platform-util-zk</module>
     </modules>
 
     <properties>

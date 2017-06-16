@@ -1,11 +1,10 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.cloud.InstanceManager;
-import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.*;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.mos.Instance;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkNodeHelper;

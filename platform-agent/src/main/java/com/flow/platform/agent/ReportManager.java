@@ -3,7 +3,7 @@ package com.flow.platform.agent;
 import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;

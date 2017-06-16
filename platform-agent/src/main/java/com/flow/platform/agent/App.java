@@ -1,12 +1,6 @@
 package com.flow.platform.agent;
 
-import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.util.logger.Logger;
-import com.flow.platform.util.zk.ZkEventAdaptor;
-import org.apache.zookeeper.WatchedEvent;
-
-import java.io.IOException;
+import com.flow.platform.util.Logger;
 
 /**
  * Created by gy@fir.im on 03/05/2017.

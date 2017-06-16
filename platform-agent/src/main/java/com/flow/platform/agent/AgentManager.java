@@ -1,17 +1,14 @@
 package com.flow.platform.agent;
 
-import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.*;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by gy@fir.im on 03/05/2017.

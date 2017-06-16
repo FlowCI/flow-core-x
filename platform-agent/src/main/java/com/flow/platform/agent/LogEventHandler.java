@@ -4,7 +4,7 @@ import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 

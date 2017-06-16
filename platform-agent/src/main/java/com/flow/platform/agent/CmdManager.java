@@ -6,7 +6,7 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import com.google.common.collect.Maps;
 
 import java.util.ArrayList;

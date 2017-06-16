@@ -2,8 +2,7 @@ package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.logger.Logger;
-import com.flow.platform.util.mos.MosClient;
+import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

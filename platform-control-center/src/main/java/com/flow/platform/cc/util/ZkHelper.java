@@ -4,7 +4,7 @@ import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.Zone;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.WatchedEvent;

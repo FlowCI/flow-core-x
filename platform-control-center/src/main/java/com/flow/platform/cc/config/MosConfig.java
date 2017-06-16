@@ -1,6 +1,6 @@
 package com.flow.platform.cc.config;
 
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.mos.MosClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
