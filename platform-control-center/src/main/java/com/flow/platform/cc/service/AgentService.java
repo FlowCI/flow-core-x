@@ -57,6 +57,21 @@ public interface AgentService {
     List<Agent> findAvailable(String zone);
 
     /**
+     * Create agent session
+     *
+     * @param agent
+     * @return session id or null if unable to create session
+     */
+    String createSession(Agent agent);
+
+    /**
+     * Check has running cmd and delete agent session
+     *
+     * @param agent
+     */
+    void deleteSession(Agent agent);
+
+    /**
      * Update agent status
      *
      * @param path

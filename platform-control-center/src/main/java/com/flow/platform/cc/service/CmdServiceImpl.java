@@ -139,37 +139,18 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     break;
 
                 case CREATE_SESSION:
-                    // add reject status since busy
-                    if (!target.isAvailable()) {
+                    // add reject status since unable to create session for agent
+                    String sessionId = agentService.createSession(target);
+                    if (sessionId == null) {
                         cmdInfo.addStatus(CmdStatus.REJECTED);
                         throw new AgentErr.NotAvailableException(target.getName());
                     }
 
-                    String sessionId = UUID.randomUUID().toString();
                     cmdInfo.setSessionId(sessionId); // set session id to cmd
-                    target.setSessionId(sessionId); // set session id to agent
-                    target.setSessionDate(new Date());
-                    target.setStatus(AgentStatus.BUSY);
-                    // target.save
                     break;
 
                 case DELETE_SESSION:
-                    // check has current cmd running in agent
-                    boolean hasCurrentCmd = false;
-                    List<Cmd> agentCmdList = listByAgentPath(target.getPath());
-                    for (Cmd cmdItem : agentCmdList) {
-                        if (cmdItem.getType() == CmdType.RUN_SHELL && cmdItem.isCurrent()) {
-                            hasCurrentCmd = true;
-                            break;
-                        }
-                    }
-
-                    if (!hasCurrentCmd) {
-                        target.setStatus(AgentStatus.IDLE);
-                    }
-
-                    target.setSessionId(null); // release session from target
-                    // target.save
+                    agentService.deleteSession(target);
                     break;
 
                 case KILL:
@@ -177,10 +158,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     break;
 
                 case STOP:
+                    agentService.deleteSession(target);
                     target.setStatus(AgentStatus.OFFLINE);
                     break;
 
                 case SHUTDOWN:
+                    agentService.deleteSession(target);
                     target.setStatus(AgentStatus.OFFLINE);
                     break;
             }

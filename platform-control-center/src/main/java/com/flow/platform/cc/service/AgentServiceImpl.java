@@ -131,6 +131,39 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
+    public String createSession(Agent agent) {
+        if(!agent.isAvailable()) {
+            return null;
+        }
+
+        String sessionId = UUID.randomUUID().toString();
+        agent.setSessionId(sessionId); // set session id to agent
+        agent.setSessionDate(new Date());
+        agent.setStatus(AgentStatus.BUSY);
+        // agent.save
+        return sessionId;
+    }
+
+    @Override
+    public void deleteSession(Agent agent) {
+        boolean hasCurrentCmd = false;
+        List<Cmd> agentCmdList = cmdService.listByAgentPath(agent.getPath());
+        for (Cmd cmdItem : agentCmdList) {
+            if (cmdItem.getType() == CmdType.RUN_SHELL && cmdItem.isCurrent()) {
+                hasCurrentCmd = true;
+                break;
+            }
+        }
+
+        if (!hasCurrentCmd) {
+            agent.setStatus(AgentStatus.IDLE);
+        }
+
+        agent.setSessionId(null); // release session from target
+        // agent.save
+    }
+
+    @Override
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
     public void sessionTimeoutTask() {
         if (!taskConfig.isEnableAgentSessionTimeoutTask()) {
