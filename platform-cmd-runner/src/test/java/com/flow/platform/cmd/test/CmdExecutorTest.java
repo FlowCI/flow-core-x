@@ -32,6 +32,7 @@ public class CmdExecutorTest {
                 Assert.assertNotNull(result.getExitValue());
                 Assert.assertNotNull(result.getDuration());
                 Assert.assertNotNull(result.getExecutedTime());
+                Assert.assertTrue(result.getOutput().size() == 1);
             }
 
             @Override
@@ -59,7 +60,7 @@ public class CmdExecutorTest {
             }
         };
 
-        CmdExecutor executor = new CmdExecutor(procListener, logListener, null, null, null, null, path);
+        CmdExecutor executor = new CmdExecutor(procListener, logListener, null, null, "CMD_RUNNER", null, path);
         executor.run();
     }
 }
