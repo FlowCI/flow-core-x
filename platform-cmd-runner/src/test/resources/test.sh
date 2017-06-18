@@ -2,6 +2,6 @@
 
 echo "test shell"
 export CMD_RUNNER_TEST=test
-sleep 10000
+sleep 2
 echo "done"
 
