@@ -6,12 +6,7 @@
 <hibernate-mapping package="com.flow.platform.domain">
     <class name="CmdResult" table="CmdResult">
         <id name="id" type="string" >
-            <generator class="foreign">
-                <param name="property">cmd</param>
-            </generator>
-            <!--<generator class="foreign">-->
-                <!--<param name="property">cmd</param>-->
-            <!--</generator>-->
+            <generator class="org.hibernate.id.UUIDGenerator"/>
         </id>
 
         <property name="processId" column="PROCESS_ID"/>
@@ -21,7 +16,6 @@
         <property name="startTime" column="START_TIME"/>
         <property name="executedTime" column="EXECUTED_TIME"/>
         <property name="finishTime" column="FINISH_TIME"/>
-        <one-to-one name="cmd" class="Cmd" constrained="true" ></one-to-one>
-        <!--<many-to-one  name="cmd"  class="Cmd" column="CMD_ID" unique="true"></many-to-one>-->
+
     </class>
 </hibernate-mapping>

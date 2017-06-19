@@ -29,12 +29,12 @@ public enum CmdType implements Serializable {
     KILL("KILL"),
 
     /**
-     * Stop agent
+     * Stop agent, and delete session
      */
     STOP("STOP"),
 
     /**
-     * Stop agent and shutdown machine
+     * Stop agent, delete session and shutdown machine
      */
     SHUTDOWN("SHUTDOWN");
 

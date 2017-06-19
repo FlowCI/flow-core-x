@@ -30,7 +30,6 @@
         <Root level="all">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFileInfo"/>
-            <AppenderRef ref="RollingFileError"/>
         </Root>
     </Loggers>
 </Configuration>

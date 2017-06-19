@@ -122,59 +122,6 @@ public class AgentServiceTest extends TestBase {
         agentService.reportStatus(pathObj, AgentStatus.BUSY);
     }
 
-    @Ignore
-    @Test
-    public void should_start_instance_when_pool_size_less_than_min() throws Throwable {
-        // given:
-        final String zoneName = "test-mos-mac";
-        final int minPoolSize = 1;
-
-        Zone zone = new Zone(zoneName, "mos");
-        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
-
-        // when: check and start instance to make sure min idle pool size
-        AgentServiceImpl agentService = (AgentServiceImpl) this.agentService;
-        agentService.keepIdleAgentMinSize(zone, instanceManager, minPoolSize);
-
-        // then: wait for 30 seconds and check running instance
-        Thread.sleep(1000 * 30);
-        Assert.assertEquals(1, instanceManager.runningInstance().size());
-    }
-
-    @Test
-    public void should_clean_up_agent_when_pool_size_over_max() throws Throwable {
-        // given: mock to start num of agent over pool size
-        final int maxPoolSize = 2;
-        final String mockAgentNamePattern = "mock-agent-%d";
-        final String zoneName = "test-mos-mac";
-
-        Zone zone = new Zone(zoneName, "mos");
-        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
-
-        for (int i = 0; i < maxPoolSize + 1; i++) {
-            String path = zkHelper.buildZkPath(zone.getName(), String.format(mockAgentNamePattern, i)).path();
-            ZkNodeHelper.createEphemeralNode(zkClient, path, "");
-            Thread.sleep(1000); // wait for agent start and make them in time sequence
-        }
-
-        // when: shutdown instance which over the max agent pool size
-        AgentServiceImpl agentService = (AgentServiceImpl) this.agentService;
-        agentService.keepIdleAgentMaxSize(zone, instanceManager, maxPoolSize);
-
-        // then: check shutdown cmd should be sent
-        ZkPathBuilder mockAgent0Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 0));
-        byte[] shutdownCmdRaw = ZkNodeHelper.getNodeData(zkClient, mockAgent0Path.path(), null);
-        Cmd shutdownCmd = Cmd.parse(shutdownCmdRaw, Cmd.class);
-        Assert.assertEquals(CmdType.SHUTDOWN, shutdownCmd.getType());
-        Assert.assertEquals(AgentStatus.OFFLINE, agentService.find(shutdownCmd.getAgentPath()).getStatus());
-
-        ZkPathBuilder mockAgent1Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 1));
-        Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent1Path.path(), null).length);
-
-        ZkPathBuilder mockAgent2Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 2));
-        Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent2Path.path(), null).length);
-    }
-
     @Test
     public void should_agent_session_timeout() throws Throwable {
         // when:

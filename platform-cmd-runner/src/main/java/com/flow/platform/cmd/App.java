@@ -2,6 +2,9 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -10,7 +13,7 @@ import java.util.concurrent.*;
  * Created by gy@fir.im on 12/05/2017.
  * Copyright fir.im
  */
-public class App {
+public final class App {
 
     private final static ProcListener procListener = new ProcListener() {
         @Override
@@ -37,8 +40,8 @@ public class App {
 
     private final static LogListener logListener = new LogListener() {
         @Override
-        public void onLog(String log) {
-            System.out.println("Log: " + log);
+        public void onLog(Log log) {
+            System.out.println(log);
         }
 
         @Override
@@ -64,33 +67,63 @@ public class App {
                 System.out.println("Rejected !!!");
             });
 
-    public static void main(String[] args) throws InterruptedException {
-        executor.execute(new MyThread());
-        executor.execute(new MyThread());
-        executor.execute(new MyThread());
-
-//        new Thread(() -> {
-//            try {
-//                Thread.sleep(2000);
-//                executor.shutdownNow();
-//            } catch (InterruptedException e) {
+    public static void main(String[] args) throws Throwable {
+//        executor.execute(new MyThread());
+//        executor.execute(new MyThread());
+//        executor.execute(new MyThread());
 //
-//            }
+////        new Thread(() -> {
+////            try {
+////                Thread.sleep(2000);
+////                executor.shutdownNow();
+////            } catch (InterruptedException e) {
+////
+////            }
+////
+////        }).start();
 //
-//        }).start();
+//        executor.shutdown();
+//        if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+//            executor.shutdownNow();
+//        }
+//        System.out.println("CLose!!");
 
-        executor.shutdown();
-        if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-            executor.shutdownNow();
-        }
-        System.out.println("CLose!!");
+//        "echo \"Error: no test specified\" && exit 1
+        Map<String, String> inputs = new HashMap<>();
+        inputs.put("TEST", "echo \"hello\"");
+        inputs.put("FLOW_INPUT", "HELLO");
+
+        CmdExecutor executor = new CmdExecutor(
+                procListener,
+                logListener,
+                inputs,
+                null,
+                "FLOW_", // find env start with FLOW_ and put to cmd result output map
+                null,
+                "$TEST", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/", "./test.sh");
+
+        executor.run();
+
     }
 
     private static class MyThread implements Runnable {
         @Override
         public void run() {
-            CmdExecutor executor = new CmdExecutor(procListener, logListener, "/bin/bash", "-c", "sleep 10 && echo \"hello\"");
-            executor.run();
+            try {
+                CmdExecutor executor = new CmdExecutor(
+                        procListener,
+                        logListener,
+                        null,
+                        null,
+                        null,
+                        null,
+                        "sleep 10 && echo \"hello\"");
+
+                executor.run();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
         }
     }
 }

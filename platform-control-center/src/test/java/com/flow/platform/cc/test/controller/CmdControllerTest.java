@@ -5,6 +5,8 @@ import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.dao.AgentDao;
+import com.flow.platform.dao.CmdDao;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
@@ -52,6 +54,12 @@ public class CmdControllerTest extends TestBase {
 
     @Autowired
     private Queue<Path> cmdLoggingQueue;
+
+    @Autowired
+    private CmdDao cmdDao;
+
+    @Autowired
+    private AgentDao agentDao;
 
     @Before
     public void before() {
@@ -113,6 +121,11 @@ public class CmdControllerTest extends TestBase {
 
         // when: send post request
         CmdBase cmd = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, "~/hello.sh");
+        cmd.getInputs().put("FLOW_P_1", "flow-1");
+        cmd.getInputs().put("FLOW_P_2", "flow-2");
+        cmd.setWorkingDir("/user/flow");
+        cmd.setPriority(1);
+
         gsonConfig.toJson(cmd);
 
         MockHttpServletRequestBuilder content = post("/cmd/send")
@@ -130,6 +143,10 @@ public class CmdControllerTest extends TestBase {
         Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
         Assert.assertEquals(agentName, cmdInfo.getAgentName());
+        Assert.assertEquals(agentName, agentDao.find(cmdInfo.getAgentPath()));
+        Assert.assertEquals(2, cmdInfo.getInputs().size());
+        Assert.assertEquals("/user/flow", cmdInfo.getWorkingDir());
+        Assert.assertEquals(1, cmdInfo.getPriority().intValue());
 
         // then: check node data
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);
@@ -138,6 +155,9 @@ public class CmdControllerTest extends TestBase {
         Cmd received = Jsonable.parse(raw, Cmd.class);
         Assert.assertNotNull(received);
         Assert.assertEquals(cmdInfo, received);
+        Assert.assertEquals(2, received.getInputs().size());
+        Assert.assertEquals("/user/flow", received.getWorkingDir());
+        Assert.assertEquals(1, received.getPriority().intValue());
     }
 
     @Test
@@ -174,7 +194,8 @@ public class CmdControllerTest extends TestBase {
         Assert.assertEquals(data.length, Files.size(zippedLogPath));
 
         // when: download uploaded zipped cmd log
-        MvcResult result = this.mockMvc.perform(get("/cmd/log/download").param("cmdId", cmd.getId()))
+        MvcResult result = this.mockMvc.perform(get("/cmd/log/download")
+                .param("cmdId", cmd.getId()).param("index", Integer.toString(0)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();

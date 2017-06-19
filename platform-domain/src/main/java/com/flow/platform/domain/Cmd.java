@@ -1,8 +1,11 @@
 package com.flow.platform.domain;
 
+import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,11 +26,13 @@ public class Cmd extends CmdBase {
      * Finish status set
      */
     public static final Set<CmdStatus> FINISH_STATUS =
-            Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED, CmdStatus.TIMEOUT);
+            Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED, CmdStatus.TIMEOUT_KILL);
     /**
      * Server generated command id
      */
     private String id;
+
+    private String cmdResultId;
 
     /**
      * record current status
@@ -37,12 +42,7 @@ public class Cmd extends CmdBase {
     /**
      * Path for full log
      */
-    private String fullLogPath;
-
-    /**
-     * Cmd execution result
-     */
-    private CmdResult result;
+    private List<String> logPaths = new ArrayList<>(5);
 
     /**
      * Created date
@@ -67,6 +67,13 @@ public class Cmd extends CmdBase {
         super(cmdBase.getAgentPath(),
                 cmdBase.getType(),
                 cmdBase.getCmd());
+
+        this.timeout = cmdBase.getTimeout();
+        this.inputs = cmdBase.getInputs();
+        this.workingDir = cmdBase.getWorkingDir();
+        this.sessionId = cmdBase.getSessionId();
+        this.priority = cmdBase.getPriority();
+        this.outputEnvFilter = cmdBase.getOutputEnvFilter();
     }
 
     public Cmd(String zone, String agent, CmdType type, String cmd) {
@@ -111,26 +118,28 @@ public class Cmd extends CmdBase {
              this.status = status;
 
             if(FINISH_STATUS.contains(status)){
-                this.finishedDate = new Date();
+                this.finishedDate = DateUtil.utcNow();
             }
         }
     }
 
-    public String getFullLogPath() {
-        return fullLogPath;
+    public List<String> getLogPaths() {
+        return logPaths;
     }
 
-    public void setFullLogPath(String fullLogPath) {
-        this.fullLogPath = fullLogPath;
+    public void setLogPaths(List<String> logPaths) {
+        this.logPaths = logPaths;
     }
 
-    public CmdResult getResult() {
-        return result;
+
+    public String getCmdResultId() {
+        return cmdResultId;
     }
 
-    public void setResult(CmdResult result) {
-        this.result = result;
+    public void setCmdResultId(String cmdResultId) {
+        this.cmdResultId = cmdResultId;
     }
+
 
     public Date getCreatedDate() {
         return createdDate;

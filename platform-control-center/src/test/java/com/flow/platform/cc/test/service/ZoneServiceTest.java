@@ -1,10 +1,20 @@
 package com.flow.platform.cc.test.service;
 
 import com.flow.platform.cc.cloud.MosInstanceManager;
+import com.flow.platform.cc.service.AgentService;
+import com.flow.platform.cc.service.AgentServiceImpl;
 import com.flow.platform.cc.service.ZoneService;
+import com.flow.platform.cc.service.ZoneServiceImpl;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.cc.util.SpringContextUtil;
+import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
+import com.flow.platform.util.zk.ZkNodeHelper;
+import com.flow.platform.util.zk.ZkPathBuilder;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,6 +28,12 @@ public class ZoneServiceTest extends TestBase {
 
     @Autowired
     private ZoneService zoneService;
+
+    @Autowired
+    private AgentService agentService;
+
+    @Autowired
+    private SpringContextUtil springContextUtil;
 
     @Test
     public void should_create_and_get_zones() {
@@ -46,5 +62,58 @@ public class ZoneServiceTest extends TestBase {
         Zone found = zoneService.getZone("mos-ut");
         Assert.assertNotNull(found);
         Assert.assertTrue(zoneService.findInstanceManager(found) instanceof MosInstanceManager);
+    }
+
+    @Ignore
+    @Test
+    public void should_start_instance_when_pool_size_less_than_min() throws Throwable {
+        // given:
+        final String zoneName = "test-mos-mac";
+        final int minPoolSize = 1;
+
+        Zone zone = new Zone(zoneName, "mos");
+        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
+
+        // when: check and start instance to make sure min idle pool size
+        ZoneServiceImpl zoneService = (ZoneServiceImpl) this.zoneService;
+        zoneService.keepIdleAgentMinSize(zone, instanceManager, minPoolSize);
+
+        // then: wait for 30 seconds and check running instance
+        Thread.sleep(1000 * 30);
+        Assert.assertEquals(1, instanceManager.runningInstance().size());
+    }
+
+    @Test
+    public void should_clean_up_agent_when_pool_size_over_max() throws Throwable {
+        // given: mock to start num of agent over pool size
+        final int maxPoolSize = 2;
+        final String mockAgentNamePattern = "mock-agent-%d";
+        final String zoneName = "test-mos-mac";
+
+        Zone zone = new Zone(zoneName, "mos");
+        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
+
+        for (int i = 0; i < maxPoolSize + 1; i++) {
+            String path = zkHelper.buildZkPath(zone.getName(), String.format(mockAgentNamePattern, i)).path();
+            ZkNodeHelper.createEphemeralNode(zkClient, path, "");
+            Thread.sleep(1000); // wait for agent start and make them in time sequence
+        }
+
+        // when: shutdown instance which over the max agent pool size
+        ZoneServiceImpl zoneService = (ZoneServiceImpl) this.zoneService;
+        zoneService.keepIdleAgentMaxSize(zone, instanceManager, maxPoolSize);
+
+        // then: check shutdown cmd should be sent
+        ZkPathBuilder mockAgent0Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 0));
+        byte[] shutdownCmdRaw = ZkNodeHelper.getNodeData(zkClient, mockAgent0Path.path(), null);
+        Cmd shutdownCmd = Cmd.parse(shutdownCmdRaw, Cmd.class);
+        Assert.assertEquals(CmdType.SHUTDOWN, shutdownCmd.getType());
+        Assert.assertEquals(AgentStatus.OFFLINE, agentService.find(shutdownCmd.getAgentPath()).getStatus());
+
+        ZkPathBuilder mockAgent1Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 1));
+        Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent1Path.path(), null).length);
+
+        ZkPathBuilder mockAgent2Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 2));
+        Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent2Path.path(), null).length);
     }
 }

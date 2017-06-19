@@ -1,8 +1,7 @@
-package com.flow.platform.util.logger;
+package com.flow.platform.util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.MarkerManager;
-
 
 /**
  * Created by gy@fir.im on 10/06/2017.

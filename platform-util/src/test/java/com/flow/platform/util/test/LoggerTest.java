@@ -1,6 +1,6 @@
-package com.flow.platform.util.logger.test;
+package com.flow.platform.util.test;
 
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import org.junit.Test;
 
 /**

@@ -26,6 +26,9 @@ public class DatabaseConfig {
     @Value("${hb.connection.username}")
     private String connectionUsername;
 
+    @Value("${hb.connection.password}")
+    private String connectionPassword;
+
     @Value("${hb.show_sql}")
     private Boolean showSql;
 
@@ -37,6 +40,9 @@ public class DatabaseConfig {
 
     @Value("${hb.hibernate.dialect}")
     private String connectionDialect;
+
+    @Value("${hb.connection.pool_size}")
+    private String connectionPoolSize;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -50,6 +56,8 @@ public class DatabaseConfig {
                 .setProperty("hibernate.show_sql", showSql.toString())
                 .setProperty("hibernate.hbm2ddl.auto", hbHbm2ddlAuto)
                 .setProperty("hibernate.dialect", connectionDialect)
+                .setProperty("hibernate.connection.password", connectionPassword)
+                .setProperty("hibernate.connection.pool_size", connectionPoolSize)
                 .setProperty("hibernate.enable_lazy_load_no_trans", enableLazyLoadNoTrans.toString());
         configuration.addResource("Agent.hbm.xml")
                 .addResource("CmdResult.hbm.xml")

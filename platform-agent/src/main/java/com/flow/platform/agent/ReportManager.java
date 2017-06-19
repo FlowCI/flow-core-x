@@ -3,7 +3,7 @@ package com.flow.platform.agent;
 import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -100,6 +100,12 @@ public class ReportManager {
                                final CmdStatus status,
                                final CmdResult result,
                                final int retry) throws IOException {
+
+        if (!Config.isReportCmdStatus()) {
+            LOGGER.trace("Cmd report toggle is disabled");
+            return;
+        }
+
         // build post body
         CmdReport postCmd = new CmdReport(cmdId, status, result);
 
@@ -115,6 +121,11 @@ public class ReportManager {
     }
 
     private void cmdLogUploadSync(final String cmdId, final Path logPath, final int retry) throws IOException {
+        if (!Config.isUploadLog()) {
+            LOGGER.trace("Log upload toggle is disabled");
+            return;
+        }
+
         FileBody zippedFile = new FileBody(logPath.toFile(), ContentType.create("application/zip"));
         HttpEntity entity = MultipartEntityBuilder.create()
                 .addPart("file", zippedFile)

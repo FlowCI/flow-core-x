@@ -127,6 +127,10 @@ public class Agent extends Jsonable {
         this.id = id;
     }
 
+    public boolean isAvailable() {
+        return getStatus() == AgentStatus.IDLE;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

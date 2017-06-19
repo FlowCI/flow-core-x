@@ -35,6 +35,10 @@ public class Main {
         Configuration configuration = new Configuration();
         configuration.setProperty("hibernate.connection.url", "jdbc:mysql://localhost:3306/hibernate2")
                 .setProperty("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver")
+                .setProperty("hibernate.connection.provider_class", "org.hibernate.connection.C3P0ConnectionProvider")
+                .setProperty("hibernate.c3p0.max_size", "50")
+                .setProperty("hibernate.c3p0.min_size", "5")
+                .setProperty("hibernate.c3p0.timeout", "20")
                 .setProperty("hibernate.connection.username", "root")
                 .setProperty("hibernate.show_sql", "true")
                 .setProperty("hibernate.hbm2ddl.auto", "update")
@@ -75,8 +79,8 @@ public class Main {
 
           AgentDaoImpl daobase = new AgentDaoImpl();
          daobase.setSessionFactory(factory);
-//        Agent agent = new Agent("XXX", "sss");
-//        Agent agent1 = daobase.save(agent);
+        Agent agent = new Agent("XXX", "sss");
+        Agent agent1 = daobase.save(agent);
 //
 //        agent.setStatus(AgentStatus.IDLE);
 //        agent = daobase.update(agent);
@@ -93,7 +97,7 @@ public class Main {
 //        daobase.save(cmdResult);
 
 
-        Collection<Agent> agent12 = daobase.onlineList("test-zone-1");
+//        Collection<Agent> agent12 = daobase.onlineList("test-zone-1");
 
 //        daobase.delete(agent);
 //

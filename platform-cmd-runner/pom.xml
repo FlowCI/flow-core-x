@@ -21,6 +21,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.flow.platform</groupId>
+            <artifactId>platform-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.socket</groupId>
             <artifactId>socket.io-client</artifactId>
         </dependency>

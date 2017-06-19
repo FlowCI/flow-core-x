@@ -9,9 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <description>log4j2 logging wrapper</description>
+    <description>util can be used for all module</description>
 
-    <artifactId>platform-util-logger</artifactId>
+    <artifactId>platform-util</artifactId>
 
     <dependencies>
         <dependency>

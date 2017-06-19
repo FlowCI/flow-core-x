@@ -11,4 +11,5 @@ import java.util.List;
 public interface CmdDao {
     Cmd find(String cmdId);
     List<Cmd> listByAgentPath(AgentPath agentPath);
+    Cmd findByCmdResultId(String cmdResultId);
 }

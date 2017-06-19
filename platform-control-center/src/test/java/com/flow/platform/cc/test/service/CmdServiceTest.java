@@ -5,6 +5,9 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.dao.CmdDao;
+import com.flow.platform.dao.CmdResultDao;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
@@ -25,6 +28,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Queue;
@@ -46,6 +50,13 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private Queue<Path> cmdLoggingQueue;
+
+    @Autowired
+    private CmdResultDao cmdResultDao;
+
+    @Autowired
+    private CmdDao cmdDao;
+
 
     private Process mockProcess = new Process() {
         @Override
@@ -123,8 +134,8 @@ public class CmdServiceTest extends TestBase {
         Cmd loaded = cmdService.find(cmd.getId());
 
         Assert.assertTrue(loaded.getStatus().equals(CmdStatus.RUNNING));
-        Assert.assertNotNull(loaded.getResult());
-        Assert.assertEquals(mockProcess, loaded.getResult().getProcess());
+        Assert.assertNotNull(cmdResultDao.findByCmdId(cmd.getId()));
+        Assert.assertEquals(mockProcess, cmdResultDao.findByCmdId(cmd.getId()).getProcess());
 
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentPath).getStatus());
     }
@@ -143,8 +154,18 @@ public class CmdServiceTest extends TestBase {
         Cmd cmd = cmdService.send(new CmdBase(zoneName, null, CmdType.RUN_SHELL, "test"));
         Assert.assertTrue(cmd.isCurrent());
 
-        // then: check is timeout
+        // then: check should not timeout
         Assert.assertEquals(false, cmdService.isTimeout(cmd));
+
+        // when: mock cmd timeout
+        Date timeoutDate = DateUtil.toDate(ZonedDateTime.now().minusSeconds(CmdService.CMD_TIMEOUT_SECONDS + 10));
+        cmd.setCreatedDate(timeoutDate);
+        cmd.setStatus(CmdStatus.RUNNING);
+
+        // then: should timeout and status should be TIMEOUT_KILL
+        Assert.assertEquals(true, cmdService.isTimeout(cmd));
+        cmdService.checkTimeoutTask();
+        Assert.assertEquals(CmdStatus.TIMEOUT_KILL, cmdService.find(cmd.getId()).getStatus());
     }
 
     @Test
@@ -333,7 +354,7 @@ public class CmdServiceTest extends TestBase {
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", originalFilename, "application/zip", mockData);
 
         // when:
-        cmdService.saveFullLog(created.getId(), mockMultipartFile);
+        cmdService.saveLog(created.getId(), mockMultipartFile);
 
         // then:
         Assert.assertTrue(Files.exists(Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename)));
@@ -349,7 +370,7 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // when: send cmd for create agent session
-        Cmd cmd = cmdService.send(new CmdBase(zoneName, null, CmdType.CREATE_SESSION, null));
+        Cmd cmd = cmdService.send(new CmdBase(zoneName, agentName, CmdType.CREATE_SESSION, null));
         Assert.assertNotNull(cmd.getSessionId());
 
         // then: check agent is locked by session
@@ -357,6 +378,14 @@ public class CmdServiceTest extends TestBase {
         Assert.assertEquals(AgentStatus.BUSY, target.getStatus());
         Assert.assertNotNull(target.getSessionId());
         Assert.assertEquals(cmd.getSessionId(), target.getSessionId());
+
+        // when: send cmd to create agent session again should fail since agent not available
+        try {
+            cmdService.send(new CmdBase(zoneName, agentName, CmdType.CREATE_SESSION, null));
+            fail();
+        } catch (Throwable e) {
+            Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
+        }
 
         // when: send cmd with session id
         CmdBase cmdWithSession = new CmdBase(zoneName, null, CmdType.RUN_SHELL, "echo hello");

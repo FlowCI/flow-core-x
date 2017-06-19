@@ -1,8 +1,9 @@
 package com.flow.platform.cc.cloud;
 
-import com.flow.platform.cc.util.DateUtil;
+import com.flow.platform.cc.config.TaskConfig;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.mos.Instance;
 import com.flow.platform.util.mos.MosClient;
 import com.flow.platform.util.mos.MosException;
@@ -28,7 +29,7 @@ public class MosInstanceManager implements InstanceManager {
 
     private final static String INSTANCE_NAME_PATTERN = "%s.cloud.mos";
     private final static int MAX_NUM_OF_INSTANCE = 10; // max num of instance control by platform
-    private final static int INSTANCE_MAX_ALIVE_DURATION = 600; // max instance alive time in seconds
+    private final static int INSTANCE_MAX_ALIVE_DURATION = 600; // max instance stopped time in seconds
 
     private final static Logger LOGGER = new Logger(MosInstanceManager.class);
 
@@ -46,6 +47,9 @@ public class MosInstanceManager implements InstanceManager {
 
     @Autowired
     private MosClient mosClient;
+
+    @Autowired
+    private TaskConfig taskConfig;
 
     // running mos instance
     private final Map<String, Instance> mosRunningList = new ConcurrentHashMap<>();
@@ -114,12 +118,12 @@ public class MosInstanceManager implements InstanceManager {
             Date createdAt = instance.getCreatedAt();
             ZonedDateTime mosUtcTime = DateUtil.fromDateForUTC(createdAt);
             long aliveInSeconds = ChronoUnit.SECONDS.between(mosUtcTime, timeForNow);
-
-            LOGGER.trace("Instance %s alive %s", instance.getName(), aliveInSeconds);
+            LOGGER.trace("Instance %s alive %s seconds", instance.getName(), aliveInSeconds);
 
             // delete instance if instance status is ready (closed) and alive duration > max alive duration
             if (aliveInSeconds >= maxAliveDuration && instance.getStatus().equals(status)) {
                 mosClient.deleteInstance(instance.getInstanceId());
+                LOGGER.trace("Clean instance which over max alive time: %s", instance);
             }
         }
     }
@@ -134,15 +138,22 @@ public class MosInstanceManager implements InstanceManager {
     }
 
     /**
-     * Delete failed created instance every 2 mins
+     * Delete failed created instance
+     * Delete the instance which reach the max alive duration
      */
     @Override
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 60 * 1000)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 300 * 1000)
     public void cleanInstanceTask() {
+        if (!taskConfig.isEnableMosCleanTask()) {
+            return;
+        }
+
+        LOGGER.traceMarker("cleanInstanceTask", "start");
         cleanInstance(mosCleanupList);
 
         // clean up mos instance when status is shutdown
         cleanFromProvider(INSTANCE_MAX_ALIVE_DURATION, Instance.STATUS_READY);
+        LOGGER.traceMarker("cleanInstanceTask", "end");
     }
 
     private void cleanInstance(Map<String, Instance> instanceMap) {
@@ -153,6 +164,7 @@ public class MosInstanceManager implements InstanceManager {
 
             mosClient.deleteInstance(mosInstance.getInstanceId());
             iterator.remove();
+            LOGGER.trace("Clean instance from cleanup list: %s", mosInstance);
         }
     }
 

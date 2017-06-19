@@ -7,7 +7,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -61,11 +60,13 @@ public class MosClient {
     private final static String DEFAULT_REGION = MosConfig.DEFAULT_REGION;
 
     private final static String DEFAULT_NET_ID = MosConfig.DEFAULT_NET_ID;
-    private final static String DEFAULT_KEY_NAME = MosConfig.DEFAULT_KEY_NAME;
+    private final static String DEFAULT_SSH_KEY_NAME = MosConfig.DEFAULT_SSH_KEY_NAME;
     private final static String DEFAULT_ZONE_ID = MosConfig.DEFAULT_ZONE_ID;
     private final static String DEFAULT_INSTANCE_TYPE = MosConfig.DEFAULT_INSTANCE_TYPE;
     private final static String DEFAULT_DURATION = MosConfig.DEFAULT_DURATION;
     private final static String DEFAULT_GROUP_ID = MosConfig.DEFAULT_GROUP_ID;
+
+    private final static long DEFAULT_GATWAY_TIMEOUT = MosConfig.DEFAULT_TIMEOUT_BIND_GATWAY_CHECK;
 
     private final static int DEFAULT_TIMEOUT = 10; // request timeout in seconds
 
@@ -114,26 +115,35 @@ public class MosClient {
 
         try {
             response = client.DescribeInstances(null, null, 100, 0, null);
-            JSONObject jsonInstanceSet = response
+            Object jsonInstanceSet = response
                     .getJSONObject("DescribeInstancesResponse")
-                    .getJSONObject("InstanceSet");
+                    .get("InstanceSet");
 
-            try {
-                 rawInstances = jsonInstanceSet.get("Instance");
-            } catch (JSONException e) {
-                // cannot find instance data since data is out of range
-                MosSizeInfo sizeInfo = GSON.fromJson(jsonInstanceSet.toString(), MosSizeInfo.class);
+            // empty instance will return empty string for in instance set
+            if (jsonInstanceSet instanceof String) {
                 return new ArrayList<>(0);
             }
 
-            // only one instance
-            if (rawInstances instanceof JSONObject) {
-                JSONObject jsonObject = (JSONObject) rawInstances;
-                Instance instance = GSON.fromJson(jsonObject.toString(), Instance.class);
+            // has instance if type is JSONObject
+            if (jsonInstanceSet instanceof JSONObject) {
+                try {
+                    JSONObject jsonSet = (JSONObject) jsonInstanceSet;
+                    rawInstances = jsonSet.get("Instance");
+                } catch (JSONException e) {
+                    // cannot find instance data since data is out of range
+                    MosSizeInfo sizeInfo = GSON.fromJson(jsonInstanceSet.toString(), MosSizeInfo.class);
+                    return new ArrayList<>(0);
+                }
 
-                list = new ArrayList<>(1);
-                list.add(instance);
-                return list;
+                // only one instance
+                if (rawInstances instanceof JSONObject) {
+                    JSONObject jsonObject = (JSONObject) rawInstances;
+                    Instance instance = GSON.fromJson(jsonObject.toString(), Instance.class);
+
+                    list = new ArrayList<>(1);
+                    list.add(instance);
+                    return list;
+                }
             }
 
             if (rawInstances instanceof JSONArray) {
@@ -169,7 +179,7 @@ public class MosClient {
             result = client.CreateInstance(
                     template.getTemplateId(),
                     DEFAULT_INSTANCE_TYPE,
-                    DEFAULT_KEY_NAME,
+                    DEFAULT_SSH_KEY_NAME,
                     0,
                     0,
                     null,
@@ -210,6 +220,7 @@ public class MosClient {
     public boolean bindNatGateway(String instanceId) {
         JSONObject result = null;
         try {
+            this.instanceStatusSync(instanceId, Instance.STATUS_RUNNING, DEFAULT_GATWAY_TIMEOUT); // wait mos instance running
             result = client.AssociateNatGateway(DEFAULT_NET_ID, instanceId, DEFAULT_ZONE_ID);
             return result.getJSONObject("AssociateNatGatewayResponse").getBoolean("return");
         } catch (JSONException e) {

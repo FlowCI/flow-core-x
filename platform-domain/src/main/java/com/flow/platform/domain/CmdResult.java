@@ -1,9 +1,7 @@
 package com.flow.platform.domain;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by gy@fir.im on 12/05/2017.
@@ -11,20 +9,18 @@ import java.util.List;
  */
 public class CmdResult implements Serializable {
 
-    public static final Integer EXIT_VALUE_FOR_KILL = 143;
+    public static final Integer EXIT_VALUE_FOR_KILL = 143; // auto set while kill process
     public static final Integer EXIT_VALUE_FOR_REJECT = -100;
+    public static final Integer EXIT_VALUE_FOR_TIMEOUT = -200;
 
     private String id;
-
-    /**
-     * result's cmd
-     */
-    private Cmd cmd;
 
     /**
      * Only agent local, cannot parse to json
      */
     private transient Process process;
+
+    private String cmdId;
 
     /**
      * Process id
@@ -62,16 +58,21 @@ public class CmdResult implements Serializable {
     private Date finishTime;
 
     /**
+     * Env for output
+     */
+    private final Map<String, String> output = new HashMap<>(5);
+
+    /**
      * Exception while cmd running
      */
     private final List<Throwable> exceptions = new ArrayList<>(5);
 
-    public Cmd getCmd() {
-        return cmd;
+    public String getCmdId() {
+        return cmdId;
     }
 
-    public void setCmd(Cmd cmd) {
-        this.cmd = cmd;
+    public void setCmdId(String cmdId) {
+        this.cmdId = cmdId;
     }
 
     public String getId() {
@@ -158,6 +159,11 @@ public class CmdResult implements Serializable {
         this.totalDuration = totalDuration;
     }
 
+
+    public Map<String, String> getOutput() {
+        return output;
+    }
+
     @Override
     public String toString() {
         return "CmdResult{" +
@@ -168,6 +174,7 @@ public class CmdResult implements Serializable {
                 ", startTime=" + startTime +
                 ", executedTime=" + executedTime +
                 ", finishTime=" + finishTime +
+                ", outputSize=" + output.size() +
                 '}';
     }
 }

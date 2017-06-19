@@ -24,4 +24,12 @@ public class CmdDaoImpl extends DaoBase implements CmdDao {
                 .list();
         return cmds;
     }
+
+    @Override
+    public Cmd findByCmdResultId(String cmdResultId) {
+        Cmd cmd = (Cmd)getSession().createQuery("from Cmd where CMD_RESULT_ID = :cmdReultId")
+                .setParameter("cmdResultId", cmdResultId)
+                .uniqueResult();
+        return cmd;
+    }
 }

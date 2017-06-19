@@ -1,23 +1,19 @@
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.cloud.InstanceManager;
-import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.cc.util.DateUtil;
 import com.flow.platform.dao.AgentDaoImpl;
 import com.flow.platform.dao.CmdDaoImpl;
 import com.flow.platform.dao.CmdResultDaoImpl;
 import com.flow.platform.domain.*;
-import com.flow.platform.util.logger.Logger;
-import com.flow.platform.util.mos.Instance;
 import org.hibernate.SessionFactory;
+import com.flow.platform.util.DateUtil;
+import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -28,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Copyright fir.im
  */
 @Service(value = "agentService")
-public class AgentServiceImpl extends ZkServiceBase implements AgentService {
+public class AgentServiceImpl implements AgentService {
 
     private final static Logger LOGGER = new Logger(AgentService.class);
 
@@ -44,6 +40,7 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
     private CmdService cmdService;
 
     @Autowired
+
     private SessionFactory sessionFactory;
 
     @Autowired
@@ -63,6 +60,8 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
             agentList.put(agent.getPath(), agent);
         }
     }
+
+    private TaskConfig taskConfig;
 
     @Override
     public void reportOnline(String zone, Collection<AgentPath> keys) {
@@ -150,34 +149,49 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
             throw new AgentErr.NotFoundException(path.getName());
         }
         exist.setStatus(status);
+        agentDao.update(exist);
     }
 
     @Override
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = KEEP_IDLE_AGENT_TASK_PERIOD)
-    public void keepIdleAgentTask() {
-        if (!AppConfig.ENABLE_KEEP_IDLE_AGENT_TASK) {
-            return;
+    public String createSession(Agent agent) {
+        if(!agent.isAvailable()) {
+            return null;
         }
-        LOGGER.traceMarker("keepIdleAgentTask", "start");
 
-        // get num of idle agent
-        for (Zone zone : zoneService.getZones()) {
-            InstanceManager instanceManager = zoneService.findInstanceManager(zone);
-            if (instanceManager == null) {
-                continue;
+        String sessionId = UUID.randomUUID().toString();
+        agent.setSessionId(sessionId); // set session id to agent
+        agent.setSessionDate(DateUtil.utcNow());
+        agent.setStatus(AgentStatus.BUSY);
+        // agent.save
+        return sessionId;
+    }
+
+    @Override
+    public void deleteSession(Agent agent) {
+        boolean hasCurrentCmd = false;
+        List<Cmd> agentCmdList = cmdService.listByAgentPath(agent.getPath());
+        for (Cmd cmdItem : agentCmdList) {
+            if (cmdItem.getType() == CmdType.RUN_SHELL && cmdItem.isCurrent()) {
+                hasCurrentCmd = true;
+                break;
             }
-
-            if (keepIdleAgentMinSize(zone, instanceManager, MIN_IDLE_AGENT_POOL)) {
-                continue;
-            }
-
-            keepIdleAgentMaxSize(zone, instanceManager, MAX_IDLE_AGENT_POOL);
         }
+
+        if (!hasCurrentCmd) {
+            agent.setStatus(AgentStatus.IDLE);
+        }
+
+        agent.setSessionId(null); // release session from target
+        agentDao.update(agent);
     }
 
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
     public void sessionTimeoutTask() {
+        if (!taskConfig.isEnableAgentSessionTimeoutTask()) {
+            return;
+        }
+
         // TODO: should be replaced by db query
         LOGGER.traceMarker("sessionTimeoutTask", "start");
         Date now = new Date();
@@ -187,9 +201,12 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
                 if (agent.getSessionId() != null && isSessionTimeout(agent, now, AGENT_SESSION_TIMEOUT)) {
                     CmdBase cmd = new CmdBase(agent.getPath(), CmdType.DELETE_SESSION, null);
                     cmdService.send(cmd);
+                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
                 }
             }
         }
+
+        LOGGER.traceMarker("sessionTimeoutTask", "end");
     }
 
     public boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds) {
@@ -201,63 +218,6 @@ public class AgentServiceImpl extends ZkServiceBase implements AgentService {
         long sessionAlive = ChronoUnit.SECONDS.between(DateUtil.fromDateForUTC(agent.getSessionDate()), utcDate);
 
         return sessionAlive >= timeoutInSeconds;
-    }
-
-    /**
-     * Find num of idle agent and batch start instance
-     *
-     * @param zone
-     * @param instanceManager
-     * @return boolean
-     *          true = need start instance,
-     *          false = has enough idle agent
-     */
-    public synchronized boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager, int minPoolSize) {
-        int numOfIdle = this.findAvailable(zone.getName()).size();
-        LOGGER.traceMarker("keepIdleAgentMinSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
-
-        if (numOfIdle < minPoolSize) {
-            instanceManager.batchStartInstance(minPoolSize);
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Find num of idle agent and check max pool size,
-     * send shutdown cmd to agent and delete instance
-     *
-     * @param zone
-     * @param instanceManager
-     * @return
-     */
-    public synchronized boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager, int maxPoolSize) {
-        List<Agent> agentList = this.findAvailable(zone.getName());
-        int numOfIdle = agentList.size();
-        LOGGER.traceMarker("keepIdleAgentMaxSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
-
-        if (numOfIdle > maxPoolSize) {
-            int numOfRemove = numOfIdle - maxPoolSize;
-
-            for (int i = 0; i < numOfRemove; i++) {
-                Agent idleAgent = agentList.get(i);
-
-                // send shutdown cmd
-                CmdBase cmd = new CmdBase(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci");
-                cmdService.send(cmd);
-
-                // add instance to cleanup list
-                Instance instance = instanceManager.find(idleAgent.getPath());
-                if (instance != null) {
-                    instanceManager.addToCleanList(instance);
-                }
-            }
-
-            return true;
-        }
-
-        return false;
     }
 
     /**

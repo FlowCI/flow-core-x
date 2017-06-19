@@ -26,10 +26,14 @@ public class Config {
     /* Config properties by using -Dxxx.xxx = xxx as JVM parameter */
     public final static String PROP_IS_DEBUG = "flow.agent.debug";
     public final static String PROP_CONCURRENT_THREAD = "flow.agent.cmd.thread";
-    public final static String PROP_SUDO_PASSWORD = "flow.agent.sudo.pwd";
+    public final static String PROP_REPORT_STATUS = "flow.agent.cmd.report";
+
+    public final static String PROP_UPLOAD_AGENT_LOG = "flow.agent.log.upload";
     public final static String PROP_DEL_AGENT_LOG = "flow.agent.log.delete";
     public final static String PROP_LOG_DIR = "flow.agent.log.dir";
+
     public final static String PROP_ZK_TIMEOUT = "flow.agent.zk.timeout";
+    public final static String PROP_SUDO_PASSWORD = "flow.agent.sudo.pwd";
 
     public static AgentConfig AGENT_CONFIG;
     public static String ZK_URL;
@@ -53,6 +57,16 @@ public class Config {
      */
     public static boolean isDeleteLog() {
         String boolStr = System.getProperty(PROP_DEL_AGENT_LOG, "false");
+        return Boolean.parseBoolean(boolStr);
+    }
+
+    public static boolean isUploadLog() {
+        String boolStr = System.getProperty(PROP_UPLOAD_AGENT_LOG, "true");
+        return Boolean.parseBoolean(boolStr);
+    }
+
+    public static boolean isReportCmdStatus() {
+        String boolStr = System.getProperty(PROP_REPORT_STATUS, "true");
         return Boolean.parseBoolean(boolStr);
     }
 

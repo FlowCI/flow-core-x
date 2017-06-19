@@ -1,7 +1,7 @@
 package com.flow.platform.cc;
 
 import com.flow.platform.cc.config.WebConfig;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;

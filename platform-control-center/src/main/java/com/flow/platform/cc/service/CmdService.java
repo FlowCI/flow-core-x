@@ -13,6 +13,7 @@ import java.util.List;
  */
 public interface CmdService {
 
+    // default cmd execution timeout in seconds
     long CMD_TIMEOUT_SECONDS = 300;
 
     /**
@@ -76,19 +77,10 @@ public interface CmdService {
      * @param cmdId
      * @param file
      */
-    void saveFullLog(String cmdId, MultipartFile file);
-
-    /**
-     * Get full log path
-     * TODO: should replace local file system
-     *
-     * @param cmdId
-     * @return
-     */
-    Path getFullLog(String cmdId);
+    void saveLog(String cmdId, MultipartFile file);
 
     /**
      * Check timeout cmd by created date for all busy agent
      */
-    void checkCmdTimeoutTask();
+    void checkTimeoutTask();
 }

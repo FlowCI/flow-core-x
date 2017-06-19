@@ -10,9 +10,13 @@ import org.junit.*;
 import org.junit.runners.MethodSorters;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gy@fir.im on 16/05/2017.
@@ -29,6 +33,8 @@ public class CmdManagerTest extends TestBase {
     public static void beforeClass() throws IOException {
         System.setProperty(Config.PROP_CONCURRENT_THREAD, "2");
         System.setProperty(Config.PROP_IS_DEBUG, "true");
+        System.setProperty(Config.PROP_UPLOAD_AGENT_LOG, "false");
+        System.setProperty(Config.PROP_REPORT_STATUS, "false");
 
         ClassLoader classLoader = CmdManagerTest.class.getClassLoader();
         resourcePath = classLoader.getResource("test.sh").getFile();
@@ -46,6 +52,20 @@ public class CmdManagerTest extends TestBase {
     @Test
     public void should_be_singleton() {
         Assert.assertEquals(cmdManager, CmdManager.getInstance());
+    }
+
+    @Test
+    public void should_has_cmd_log() throws Throwable {
+        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        cmd.setId(UUID.randomUUID().toString());
+        cmdManager.execute(cmd);
+
+        ThreadPoolExecutor cmdExecutor = cmdManager.getCmdExecutor();
+        cmdExecutor.shutdown();
+        cmdExecutor.awaitTermination(60, TimeUnit.SECONDS);
+
+        Assert.assertTrue(Files.exists(Paths.get(TEMP_LOG_DIR.toString(), cmd.getId() + ".out.zip")));
+        Assert.assertTrue(Files.exists(Paths.get(TEMP_LOG_DIR.toString(), cmd.getId() + ".err.zip")));
     }
 
     @Test

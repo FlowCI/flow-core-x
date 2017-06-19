@@ -6,7 +6,7 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.logger.Logger;
+import com.flow.platform.util.Logger;
 import com.google.common.collect.Maps;
 
 import java.util.ArrayList;
@@ -80,6 +80,10 @@ public class CmdManager {
         return rejected;
     }
 
+    public ThreadPoolExecutor getCmdExecutor() {
+        return cmdExecutor;
+    }
+
     public List<ProcListener> getExtraProcEventListeners() {
         return extraProcEventListeners;
     }
@@ -108,7 +112,7 @@ public class CmdManager {
             LOGGER.trace("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
-            CmdExecutor executor = new CmdExecutor(null, null, "/bin/bash", "-c", shutdownCmd);
+            CmdExecutor executor = new CmdExecutor(null, null, null, null, null, null, shutdownCmd);
             executor.run();
 
         } catch (Throwable e) {
@@ -140,7 +144,26 @@ public class CmdManager {
                     LogEventHandler logListener = new LogEventHandler(getCmd());
                     ProcEventHandler procEventHandler = new ProcEventHandler(getCmd(), extraProcEventListeners, running, finished);
 
-                    CmdExecutor executor = new CmdExecutor(procEventHandler, logListener, "/bin/bash", "-c", getCmd().getCmd());
+                    CmdExecutor executor;
+                    try {
+                        executor = new CmdExecutor(
+                                procEventHandler,
+                                logListener,
+                                cmd.getInputs(),
+                                cmd.getWorkingDir(),
+                                cmd.getOutputEnvFilter(),
+                                cmd.getTimeout(),
+                                getCmd().getCmd());
+                    } catch (Throwable e) {
+                        LOGGER.errorMarker("execute", "Cannot init CmdExecutor for cmd " + cmd, e);
+
+                        CmdResult result = new CmdResult();
+                        result.getExceptions().add(e);
+                        procEventHandler.onException(result);
+
+                        return;
+                    }
+
                     executor.run();
                 }
             });

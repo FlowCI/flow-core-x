@@ -12,7 +12,8 @@
         <property name="updatedDate" type="date" column="UPDATED_DATE"/>
         <property name="finishedDate" type="date" column="FINISHED_DATE"/>
         <property name="cmd" type="string" column="CMD"/>
-        <property name="fullLogPath" type="string" column="FULL_LOG_PATH"/>
+        <property name="cmdResultId" type="string" column="CMD_RESULT_ID"/>
+        <!--<property name="fullLogPath" type="string" column="FULL_LOG_PATH"/>-->
 
         <component name="agentPath" class="AgentPath">
             <property name="zone" column="AGENT_ZONE"></property>
@@ -33,13 +34,6 @@
                 <param name="useNamed">true</param>
             </type>
         </property>
-
-        <many-to-one
-                name="agent"
-                column="AGENT_ID"
-                not-null="true"/>
-        <!--<one-to-one name="result" class="CmdResult" constrained="true" ></one-to-one>-->
-        <one-to-one name="result" class="CmdResult"></one-to-one>
 
     </class>
 </hibernate-mapping>

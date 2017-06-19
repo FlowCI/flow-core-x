@@ -1,5 +1,8 @@
 package com.flow.platform.domain;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Only include basic properties of command
  * <p>
@@ -25,6 +28,11 @@ public class CmdBase extends Jsonable {
     protected String cmd;
 
     /**
+     * Cmd timeout
+     */
+    protected Long timeout;
+
+    /**
      * Reserved field for cmd queue
      */
     protected Integer priority;
@@ -33,6 +41,24 @@ public class CmdBase extends Jsonable {
      * Platform will reserve a machine for session
      */
     protected String sessionId;
+
+    /**
+     * Input parameter, deal with export XX=XX before cmd execute
+     * Add input: getInputs().add(key, value)
+     */
+    protected Map<String, String> inputs = new HashMap<>();
+
+    /**
+     * Cmd working dir, default is user.home
+     */
+    protected String workingDir;
+
+    /**
+     * Filter for env input to CmdResult.output map
+     */
+    protected String outputEnvFilter;
+
+    protected Agent agent;
 
     public CmdBase() {
     }
@@ -45,19 +71,6 @@ public class CmdBase extends Jsonable {
         this.agentPath = agentPath;
         this.type = type;
         this.cmd = cmd;
-    }
-
-    /**
-     * commands agent
-     */
-    protected Agent agent;
-
-    public Agent getAgent() {
-        return agent;
-    }
-
-    public void setAgent(Agent agent) {
-        this.agent = agent;
     }
 
 
@@ -93,6 +106,14 @@ public class CmdBase extends Jsonable {
         this.cmd = cmd;
     }
 
+    public Long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(Long timeout) {
+        this.timeout = timeout;
+    }
+
     public Integer getPriority() {
         return priority;
     }
@@ -111,6 +132,38 @@ public class CmdBase extends Jsonable {
 
     public boolean hasSession() {
         return sessionId != null;
+    }
+
+    public Map<String, String> getInputs() {
+        return inputs;
+    }
+
+    public void setInputs(Map<String, String> inputs) {
+        this.inputs = inputs;
+    }
+
+    public String getWorkingDir() {
+        return workingDir;
+    }
+
+    public void setWorkingDir(String workingDir) {
+        this.workingDir = workingDir;
+    }
+
+    public String getOutputEnvFilter() {
+        return outputEnvFilter;
+    }
+
+    public void setOutputEnvFilter(String outputEnvFilter) {
+        this.outputEnvFilter = outputEnvFilter;
+    }
+
+    public Agent getAgent() {
+        return agent;
+    }
+
+    public void setAgent(Agent agent) {
+        this.agent = agent;
     }
 
     @Override

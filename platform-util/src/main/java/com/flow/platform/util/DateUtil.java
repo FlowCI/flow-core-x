@@ -1,4 +1,4 @@
-package com.flow.platform.cc.util;
+package com.flow.platform.util;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -16,5 +16,13 @@ public class DateUtil {
     public static ZonedDateTime fromDateForUTC(Date date) {
         Instant instant = date.toInstant();
         return instant.atZone(ZONE_UTC);
+    }
+
+    public static Date toDate(ZonedDateTime zonedDateTime) {
+        return Date.from(zonedDateTime.toInstant());
+    }
+
+    public static Date utcNow() {
+        return toDate(ZonedDateTime.now(ZONE_UTC));
     }
 }

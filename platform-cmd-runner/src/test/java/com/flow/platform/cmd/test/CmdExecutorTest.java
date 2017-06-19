@@ -1,6 +1,7 @@
 package com.flow.platform.cmd.test;
 
 import com.flow.platform.cmd.CmdExecutor;
+import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.CmdResult;
@@ -14,7 +15,7 @@ import org.junit.Test;
 public class CmdExecutorTest {
 
     @Test
-    public void should_execute_command_with_correct_event() {
+    public void should_execute_command_with_correct_event() throws Throwable {
         ClassLoader loader = this.getClass().getClassLoader();
         String path = loader.getResource("test.sh").getFile();
 
@@ -31,6 +32,7 @@ public class CmdExecutorTest {
                 Assert.assertNotNull(result.getExitValue());
                 Assert.assertNotNull(result.getDuration());
                 Assert.assertNotNull(result.getExecutedTime());
+                Assert.assertTrue(result.getOutput().size() == 1);
             }
 
             @Override
@@ -48,8 +50,8 @@ public class CmdExecutorTest {
 
         LogListener logListener = new LogListener() {
             @Override
-            public void onLog(String log) {
-                System.out.println("Log: " + log);
+            public void onLog(Log log) {
+                System.out.println(log);
             }
 
             @Override
@@ -58,7 +60,7 @@ public class CmdExecutorTest {
             }
         };
 
-        CmdExecutor executor = new CmdExecutor(procListener, logListener, "/bin/bash", "-c", path);
+        CmdExecutor executor = new CmdExecutor(procListener, logListener, null, null, "CMD_RUNNER", null, path);
         executor.run();
     }
 }

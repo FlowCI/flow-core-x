@@ -14,6 +14,26 @@ import java.io.Serializable;
 public class DaoBase {
 
 
+//    interface Executable<T> {
+//        public T execute(Session session);
+//    }
+//
+//    private <T> T execute(Executable<T> ex)
+//    {
+//
+//        Session session = getSession();
+//        try {
+//            Transaction tx = session.beginTransaction();
+//            ex.execute(session);
+//            tx.commit();
+//        }catch (RuntimeException e){
+//            session.getTransaction().rollback();
+//            throw  e;
+//        }finally {
+//            session.close();
+//        }
+//    }
+
     /**
      * Session Factory
      */
@@ -42,6 +62,7 @@ public class DaoBase {
         try {
             Transaction tx = session.beginTransaction();
             session.save(var2);
+
             tx.commit();
         }catch (RuntimeException e){
             session.getTransaction().rollback();
@@ -62,7 +83,6 @@ public class DaoBase {
         Session session = getSession();
         try {
             Transaction tx = session.beginTransaction();
-//            session.update(var2);
             session.saveOrUpdate(var2);
             tx.commit();
         }catch (RuntimeException e){

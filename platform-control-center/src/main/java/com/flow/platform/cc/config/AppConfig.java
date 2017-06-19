@@ -2,10 +2,11 @@ package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.mos.MosClient;
+import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.PostConstruct;
@@ -23,23 +24,16 @@ import java.util.concurrent.Executor;
  * Copyright fir.im
  */
 @Configuration
+@Import({MosConfig.class, TaskConfig.class})
 public class AppConfig {
 
     public final static SimpleDateFormat APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
 
     public final static Path CMD_LOG_DIR = Paths.get(System.getenv("HOME"), "uploaded-agent-log");
 
-    /**
-     * Core Config
-     * Enable scheduler task for check idle agent and start instance by zone
-     */
-    public final static boolean ENABLE_KEEP_IDLE_AGENT_TASK =
-            Boolean.parseBoolean(System.getProperty("flow.cc.task.keep_idle_agent", "true"));
-
-    public final static boolean ENABLE_CMD_TIMEOUT_TASK =
-            Boolean.parseBoolean(System.getProperty("flow.cc.task.cmd_timeout", "true"));
-
     private final static int ASYNC_POOL_SIZE = 100;
+
+    private final static Logger LOGGER = new Logger(AppConfig.class);
 
     @Value("${agent.config.socket_io_url}")
     private String socketIoUrl;
@@ -50,14 +44,13 @@ public class AppConfig {
     @Value("${agent.config.cmd_log_url}")
     private String cmdLogUrl;
 
-    @Value("${mos.key}")
-    private String mosKey;
-
-    @Value("${mos.secret}")
-    private String mosSecret;
-
     @PostConstruct
     public void init() {
+
+        LOGGER.traceMarker("AgentReportUrl", "SocketIoUrl: %s", socketIoUrl);
+        LOGGER.traceMarker("AgentReportUrl", "CmdReportUrl: %s", cmdReportUrl);
+        LOGGER.traceMarker("AgentReportUrl", "CmdLogUrl: %s", cmdLogUrl);
+
         try {
             Files.createDirectories(CMD_LOG_DIR);
         } catch (IOException e) {
@@ -71,12 +64,7 @@ public class AppConfig {
     }
 
     @Bean
-    public MosClient mosClient() throws Throwable {
-        return new MosClient(mosKey, mosSecret);
-    }
-
-    @Bean
-    public Executor taskExecutor(){
+    public Executor taskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
         taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
