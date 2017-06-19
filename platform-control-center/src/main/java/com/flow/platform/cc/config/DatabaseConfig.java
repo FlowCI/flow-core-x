@@ -44,6 +44,18 @@ public class DatabaseConfig {
     @Value("${hb.connection.pool_size}")
     private String connectionPoolSize;
 
+    @Value("${hb.connection.provider_class}")
+    private String c3p0ConnectionProvider;
+
+    @Value("${hb.c3p0.max_size}")
+    private String c3p0MaxSize;
+
+    @Value("${hb.c3p0.min_size}")
+    private String c3p0MinSize;
+
+    @Value("${hb.c3p0.timeout}")
+    private String c3p0Timeout;
+
     @Autowired
     private SessionFactory sessionFactory;
 
@@ -57,8 +69,10 @@ public class DatabaseConfig {
                 .setProperty("hibernate.hbm2ddl.auto", hbHbm2ddlAuto)
                 .setProperty("hibernate.dialect", connectionDialect)
                 .setProperty("hibernate.connection.password", connectionPassword)
-                .setProperty("hibernate.connection.pool_size", connectionPoolSize)
-                .setProperty("hibernate.enable_lazy_load_no_trans", enableLazyLoadNoTrans.toString());
+                .setProperty("hibernate.connection.provider_class", c3p0ConnectionProvider)
+                .setProperty("hibernate.c3p0.max_size", c3p0MaxSize)
+                .setProperty("hibernate.c3p0.min_size", c3p0MinSize)
+                .setProperty("hibernate.c3p0.timeout", c3p0Timeout);
         configuration.addResource("Agent.hbm.xml")
                 .addResource("CmdResult.hbm.xml")
                 .addResource("Cmd.hbm.xml");
@@ -79,7 +93,6 @@ public class DatabaseConfig {
         cmdResultDao.setSessionFactory(sessionFactory);
         return cmdResultDao;
     }
-
 
     @Bean(name = "cmdDao")
     public CmdDaoImpl cmdDao(){

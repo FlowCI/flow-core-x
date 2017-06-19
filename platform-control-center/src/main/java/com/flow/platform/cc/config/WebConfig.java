@@ -1,10 +1,7 @@
 package com.flow.platform.cc.config;
 
-import com.flow.platform.cc.util.SessionFactoryHelper;
-import com.flow.platform.dao.DaoBase;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.Gson;
-import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

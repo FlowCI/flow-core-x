@@ -40,6 +40,7 @@ public class Main {
                 .setProperty("hibernate.c3p0.min_size", "5")
                 .setProperty("hibernate.c3p0.timeout", "20")
                 .setProperty("hibernate.connection.username", "root")
+                .setProperty("hibernate.connection.password", "")
                 .setProperty("hibernate.show_sql", "true")
                 .setProperty("hibernate.hbm2ddl.auto", "update")
                 .setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect")

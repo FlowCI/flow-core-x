@@ -15,76 +15,69 @@ import java.util.List;
 public class AgentDaoImpl extends DaoBase implements AgentDao {
     @Override
     public Collection<Agent> onlineList(String zone) {
-        Session session = getSession();
-        Collection<Agent> agents;
-        agents = session.createQuery("from Agent where AGENT_ZONE = :zone and STATUS <> :offline")
-                        .setParameter("offline", AgentStatus.OFFLINE.toString())
-                        .setParameter("zone", zone)
-                        .list();
-        session.close();
+        Collection<Agent> agents = execute(session -> session.createQuery("from Agent where AGENT_ZONE = :zone and STATUS <> :offline")
+                .setParameter("offline", AgentStatus.OFFLINE.toString())
+                .setParameter("zone", zone)
+                .list());
         return agents;
     }
 
     @Override
     public List<Agent> onlineList() {
-        Session session = getSession();
         List<Agent> agents;
-        agents = session.createQuery("from Agent where STATUS <> :offline")
+        agents = execute((Session session) -> {
+            List<Agent> agentList = session.createQuery("from Agent where STATUS <> :offline")
                 .setParameter("offline", AgentStatus.OFFLINE.toString())
                 .list();
-        session.close();
+            return agentList;
+        });
+
         return agents;
     }
 
     @Override
     public Agent find(AgentPath agentPath) {
-        Session session = getSession();
-        Agent agent = (Agent) session.createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
-                .setParameter("zone", agentPath.getZone())
-                .setParameter( "name", agentPath.getName())
-                .uniqueResult();
-        session.close();
+        Agent agent = execute(session -> (Agent) session.createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
+            .setParameter("zone", agentPath.getZone())
+            .setParameter( "name", agentPath.getName())
+            .uniqueResult());
         return agent;
     }
 
     @Override
     public Agent findOnline(AgentPath agentPath) {
-        Session session = getSession();
-        Agent agent = (Agent) session.createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name and status <> :offline")
+        Agent agent = execute(session -> (Agent) session.createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name and status <> :offline")
                 .setParameter("zone", agentPath.getZone())
                 .setParameter( "name", agentPath.getName())
                 .setParameter("offline", AgentStatus.OFFLINE)
-                .uniqueResult();
-        session.close();
+                .uniqueResult());
         return agent;
     }
 
 
     @Override
     public Agent find(String sessionId) {
-        Session session = getSession();
-        Agent agent = (Agent) session.createQuery("from Agent where sessionId = :sessionId")
+        Agent agent = execute(session -> (Agent) session.createQuery("from Agent where sessionId = :sessionId")
                 .setParameter("sessionId", sessionId)
-                .uniqueResult();
+                .uniqueResult());
         return agent;
     }
 
     @Override
     public Agent findOnline(String sessionId) {
-        Session session = getSession();
-        Agent agent = (Agent) session.createQuery("from Agent where sessionId = :sessionId and STATUS <> :offline")
+        Agent agent = execute(session -> (Agent) session.createQuery("from Agent where sessionId = :sessionId and STATUS <> :offline")
                 .setParameter("sessionId", sessionId)
                 .setParameter("offline", AgentStatus.OFFLINE)
-                .uniqueResult();
+                .uniqueResult());
         return agent;
     }
 
     @Override
     public List<Agent> findAvailable(String zone) {
-        List<Agent> agents = getSession().createQuery("from Agent where AGENT_ZONE = :zone and STATUS = :idle")
+        List<Agent> agents = execute(session -> session.createQuery("from Agent where AGENT_ZONE = :zone and STATUS = :idle")
                 .setParameter("zone", zone)
                 .setParameter("idle", AgentStatus.IDLE.toString())
-                .list();
+                .list());
         return agents;
     }
 }

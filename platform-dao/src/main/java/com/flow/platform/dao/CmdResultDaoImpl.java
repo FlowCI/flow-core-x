@@ -8,9 +8,9 @@ import com.flow.platform.domain.CmdResult;
 public class CmdResultDaoImpl extends DaoBase implements CmdResultDao {
     @Override
     public CmdResult findByCmdId(String cmdId) {
-        CmdResult cmdResult = (CmdResult)getSession().createQuery("from CmdResult where CMD_ID = :cmdId")
+        CmdResult cmdResult = execute(session -> (CmdResult)getSession().createQuery("from CmdResult where CMD_ID = :cmdId")
                 .setParameter("cmdId", cmdId)
-                .uniqueResult();
+                .uniqueResult());
         return cmdResult;
     }
 }

@@ -13,26 +13,23 @@ import java.io.Serializable;
  */
 public class DaoBase {
 
+    @FunctionalInterface
+    interface Executable<T> {
+        public T execute(Session session);
+    }
 
-//    interface Executable<T> {
-//        public T execute(Session session);
-//    }
-//
-//    private <T> T execute(Executable<T> ex)
-//    {
-//
-//        Session session = getSession();
-//        try {
-//            Transaction tx = session.beginTransaction();
-//            ex.execute(session);
-//            tx.commit();
-//        }catch (RuntimeException e){
-//            session.getTransaction().rollback();
-//            throw  e;
-//        }finally {
-//            session.close();
-//        }
-//    }
+    protected  <T> T execute(Executable<T> ex)
+    {
+
+        Session session = getSession();
+        try {
+            return ex.execute(session);
+        }catch (RuntimeException e){
+            throw  e;
+        }finally {
+            session.close();
+        }
+    }
 
     /**
      * Session Factory
@@ -62,7 +59,6 @@ public class DaoBase {
         try {
             Transaction tx = session.beginTransaction();
             session.save(var2);
-
             tx.commit();
         }catch (RuntimeException e){
             session.getTransaction().rollback();
@@ -74,6 +70,7 @@ public class DaoBase {
     }
 
     /**
+     *
      * update
      * @param var2
      * @param <T>
@@ -102,18 +99,7 @@ public class DaoBase {
      * @return
      */
     public <T> T get(Class<T> arg, Serializable id){
-        Session session = getSession();
-        T result;
-        try {
-            Transaction tx = session.beginTransaction();
-            result = session.get(arg, id);
-            tx.commit();
-        }catch (RuntimeException e){
-            session.getTransaction().rollback();
-            throw e;
-        }finally {
-            session.close();
-        }
+        T result = execute(session -> session.get(arg, id));
         return result;
     }
 
@@ -136,7 +122,4 @@ public class DaoBase {
             session.close();
         }
     }
-
-
-
 }
