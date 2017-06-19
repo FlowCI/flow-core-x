@@ -98,16 +98,22 @@ public class CmdManagerTest extends TestBase {
         });
 
         // create mock cmd
-        Cmd cmd1 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        String content = String.format("source %s", resourcePath);
+
+        Cmd cmd1 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
+        cmd1.setOutputEnvFilter("FLOW_AGENT");
         cmd1.setId(UUID.randomUUID().toString());
 
-        Cmd cmd2 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        Cmd cmd2 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
+        cmd2.setOutputEnvFilter("FLOW_AGENT");
         cmd2.setId(UUID.randomUUID().toString());
 
-        Cmd cmd3 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        Cmd cmd3 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
+        cmd3.setOutputEnvFilter("FLOW_AGENT");
         cmd3.setId(UUID.randomUUID().toString());
 
-        Cmd cmd4 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        Cmd cmd4 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
+        cmd4.setOutputEnvFilter("FLOW_AGENT");
         cmd4.setId(UUID.randomUUID().toString());
 
         // when: execute four command by thread
@@ -141,6 +147,7 @@ public class CmdManagerTest extends TestBase {
             Assert.assertEquals(true, r.getDuration() >= 2);
             Assert.assertEquals(true, r.getTotalDuration() >= 2);
             Assert.assertEquals(0, r.getExceptions().size());
+            Assert.assertEquals(2, r.getOutput().size());
         }
     }
 
