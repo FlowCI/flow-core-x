@@ -54,9 +54,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     @Autowired
     private CmdResultDaoImpl cmdResultDao;
 
-
-    private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
-
     private final ReentrantLock mockTrans = new ReentrantLock();
 
     @Override
@@ -67,29 +64,17 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         cmdInfo.setSessionId(cmd.getSessionId());
         cmdInfo.setCreatedDate(new Date());
         cmdInfo.setUpdatedDate(new Date());
-        // 关联Agent
         cmdInfo = cmdDao.save(cmdInfo);
-        mockCmdList.put(cmdInfo.getId(), cmdInfo);
         return cmdInfo;
     }
 
     @Override
     public Cmd find(String cmdId) {
-        return mockCmdList.get(cmdId);
+        return cmdDao.find(cmdId);
     }
 
     @Override
     public List<Cmd> listByAgentPath(AgentPath agentPath) {
-//        List<Cmd> cmdList = new LinkedList<>();
-//        for (Cmd tmp : mockCmdList.values()) {
-//            if (!tmp.getAgentPath().equals(agentPath)) {
-//                continue;
-//            }
-//            cmdList.add(tmp);
-//        }
-//
-//        cmdList.sort(Comparator.comparing(Cmd::getCreatedDate));
-
         List<Cmd> cmdList  = cmdDao.listByAgentPath(agentPath);
         return cmdList;
     }
@@ -264,9 +249,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         try {
             Path target = Paths.get(AppConfig.CMD_LOG_DIR.toString(), file.getOriginalFilename());
             Files.write(target, file.getBytes());
-//
-//            cmd.setFullLogPath(target.toString());
-//            cmdDao.update(cmd);
             cmd.getLogPaths().add(target.toString());
             cmdLoggingQueue.add(target);
         } catch (IOException e) {
@@ -282,7 +264,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         LOGGER.traceMarker("checkTimeoutTask", "start");
 
         // find all running status cmd
-        for (Cmd cmd : mockCmdList.values()) {
+        for (Cmd cmd : getRunningCmds()) {
             if (cmd.getType() == CmdType.RUN_SHELL && cmd.isCurrent()) {
                 if (isTimeout(cmd)) {
                     // kill current running cmd and report status
@@ -345,6 +327,10 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         return target;
     }
 
+    private List<Cmd> getRunningCmds(){
+        return cmdDao.listByStatus(CmdStatus.RUNNING.toString());
+    }
+
     private boolean isAgentPathFail(CmdBase cmd, AgentPath agentPath) {
         if (cmd.getType() == CmdType.CREATE_SESSION || cmd.getType() == CmdType.DELETE_SESSION) {
             return false;
@@ -368,7 +354,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         // update agent status by cmd status
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
-        for (Cmd tmp : mockCmdList.values()) {
+        for (Cmd tmp : getRunningCmds()) {
             if (tmp.getType() != CmdType.RUN_SHELL) {
                 continue;
             }

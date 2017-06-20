@@ -29,10 +29,23 @@ public class CmdDaoImpl extends DaoBase implements CmdDao {
     }
 
     @Override
+    public List<Cmd> listByStatus(String status) {
+        List<Cmd> cmds = execute(session -> {
+            List<Cmd> cmdList = session.createQuery("from Cmd where status = :status")
+                    .setParameter("status", status)
+                    .list();
+            return cmdList;
+        });
+        return cmds;
+    }
+
+    @Override
     public Cmd findByCmdResultId(String cmdResultId) {
         Cmd cmd = execute(session ->  (Cmd)getSession().createQuery("from Cmd where CMD_RESULT_ID = :cmdReultId")
                 .setParameter("cmdResultId", cmdResultId)
                 .uniqueResult());
         return cmd;
     }
+
+
 }

@@ -32,7 +32,7 @@ import java.util.List;
         "com.flow.platform.cc.service",
         "com.flow.platform.cc.cloud",
         "com.flow.platform.cc.util"})
-@Import({AppConfig.class, DatabaseConfig.class})
+@Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private final static int MAX_UPLOAD_SIZE = 20 * 1024 * 1024;

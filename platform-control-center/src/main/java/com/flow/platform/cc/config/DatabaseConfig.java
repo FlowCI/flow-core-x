@@ -41,9 +41,6 @@ public class DatabaseConfig {
     @Value("${hb.hibernate.dialect}")
     private String connectionDialect;
 
-    @Value("${hb.connection.pool_size}")
-    private String connectionPoolSize;
-
     @Value("${hb.connection.provider_class}")
     private String c3p0ConnectionProvider;
 
@@ -80,14 +77,14 @@ public class DatabaseConfig {
         return sessionFactory;
     }
 
-    @Bean(name = "agentDao")
+    @Bean
     public AgentDaoImpl agentDao(){
         AgentDaoImpl agentDao = new AgentDaoImpl();
         agentDao.setSessionFactory(sessionFactory);
         return agentDao;
     }
 
-    @Bean(name = "cmdResultDao")
+    @Bean
     public CmdResultDaoImpl cmdResultDao(){
         CmdResultDaoImpl cmdResultDao = new CmdResultDaoImpl();
         cmdResultDao.setSessionFactory(sessionFactory);

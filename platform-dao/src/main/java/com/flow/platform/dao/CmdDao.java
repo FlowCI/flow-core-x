@@ -12,4 +12,5 @@ public interface CmdDao {
     Cmd find(String cmdId);
     List<Cmd> listByAgentPath(AgentPath agentPath);
     Cmd findByCmdResultId(String cmdResultId);
+    List<Cmd> listByStatus(String status);
 }

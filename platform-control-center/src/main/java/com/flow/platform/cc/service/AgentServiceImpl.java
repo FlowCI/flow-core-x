@@ -2,6 +2,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.dao.AgentDaoImpl;
 import com.flow.platform.dao.CmdDaoImpl;
 import com.flow.platform.dao.CmdResultDaoImpl;
@@ -28,9 +29,6 @@ public class AgentServiceImpl implements AgentService {
 
     private final static Logger LOGGER = new Logger(AgentService.class);
 
-    // {zone : {path, agent}}
-    private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
-
     private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
 
     @Autowired
@@ -40,25 +38,19 @@ public class AgentServiceImpl implements AgentService {
     private CmdService cmdService;
 
     @Autowired
-
-    private SessionFactory sessionFactory;
-
-    @Autowired
     private AgentDaoImpl agentDao;
 
     @Autowired
-    private CmdDaoImpl cmdDao;
+    private SpringContextUtil springContextUtil;
 
-    @Autowired
-    private CmdResultDaoImpl cmdResultDao;
-
-    @PostConstruct
-    public void init(){
+    public Map<String, Map<AgentPath, Agent>> getAgentOnlineList(){
+        Map<String, Map<AgentPath, Agent>> agentOnline = new HashMap<>();
         List<Agent> agents = agentDao.onlineList();
         for(Agent agent : agents){
-            Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(agent.getZone(), k -> new HashMap<>());
+            Map<AgentPath, Agent> agentList = agentOnline.computeIfAbsent(agent.getZone(), k -> new HashMap<>());
             agentList.put(agent.getPath(), agent);
         }
+        return agentOnline;
     }
 
     private TaskConfig taskConfig;
@@ -67,7 +59,7 @@ public class AgentServiceImpl implements AgentService {
     public void reportOnline(String zone, Collection<AgentPath> keys) {
         onlineListUpdateLock.lock();
         try {
-            Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
+            Map<AgentPath, Agent> agentList = getAgentOnlineList().computeIfAbsent(zone, k -> new HashMap<>());
 
             // find offline agent
             HashSet<AgentPath> offlines = new HashSet<>(agentList.keySet());
@@ -89,9 +81,9 @@ public class AgentServiceImpl implements AgentService {
             for (AgentPath key : onlines) {
                 reportOnline(key);
             }
-
-            // 这里的操作是一个zone下的所有的节点报上来，设置 online 还是 offline
-
+//
+//            // 这里的操作是一个zone下的所有的节点报上来，设置 online 还是 offline
+//
 
         } finally {
             onlineListUpdateLock.unlock();
@@ -228,12 +220,9 @@ public class AgentServiceImpl implements AgentService {
     private void reportOnline(AgentPath key) {
         Agent exist = find(key);
         if (exist == null) {
-            String zone = key.getZone();
-            Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
             Agent agent = new Agent(key);
             agent.setStatus(AgentStatus.IDLE);
             agentDao.save(agent);
-            agentList.put(key, agent);
         }
     }
 }
