@@ -182,6 +182,7 @@
                 <artifactId>hibernate-c3p0</artifactId>
                 <version>${hibernate_c3p0.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 </project>
