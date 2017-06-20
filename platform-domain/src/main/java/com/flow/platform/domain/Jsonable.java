@@ -29,4 +29,8 @@ public abstract class Jsonable implements Serializable {
     public String toJson() {
         return GSON_CONFIG.toJson(this);
     }
+
+    public byte[] toBytes() {
+        return toJson().getBytes();
+    }
 }

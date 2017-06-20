@@ -35,6 +35,7 @@ public class MQConfig {
     // define send and consume channel for cmd
     private Channel cmdSendChannel;
     private Channel cmdConsumeChannel;
+    private String cmdConsumeQueue;
 
     @PostConstruct
     public void init() {
@@ -47,9 +48,9 @@ public class MQConfig {
             LOGGER.trace("RabbitMQ cmd send channel created : %s", cmdSendChannel.toString());
 
             cmdConsumeChannel = rabbitMqConn.createChannel();
-            String queueName = cmdConsumeChannel.queueDeclare().getQueue();
-            cmdConsumeChannel.queueBind(queueName, cmdExchangeName, "");
-            LOGGER.trace("RabbitMQ cmd consume channel created : %s", queueName);
+            cmdConsumeQueue = cmdConsumeChannel.queueDeclare().getQueue();
+            cmdConsumeChannel.queueBind(cmdConsumeQueue, cmdExchangeName, "");
+            LOGGER.trace("RabbitMQ cmd consume channel created : %s", cmdConsumeQueue);
 
         } catch (Throwable e) {
             LOGGER.error(String.format("Fail to init MQ for host: %s with exchange name: %s", host, cmdExchangeName), e);
@@ -64,6 +65,11 @@ public class MQConfig {
     @Bean
     public Channel cmdConsumeChannel() {
         return cmdConsumeChannel;
+    }
+
+    @Bean
+    public String cmdConsumeQueue() {
+        return cmdConsumeQueue;
     }
 
     @PreDestroy
