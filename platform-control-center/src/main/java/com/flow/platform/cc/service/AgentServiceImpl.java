@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -36,6 +38,14 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private TaskConfig taskConfig;
+
+    @Autowired
+    private CountDownLatch initLatch;
+
+    @PostConstruct
+    public void init() {
+        initLatch.countDown();
+    }
 
     @Override
     public void reportOnline(String zone, Collection<AgentPath> keys) {
@@ -132,7 +142,7 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public String createSession(Agent agent) {
-        if(!agent.isAvailable()) {
+        if (!agent.isAvailable()) {
             return null;
         }
 

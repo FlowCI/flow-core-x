@@ -12,9 +12,13 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
+ * RabbitMQ configuration
+ *
  * Created by gy@fir.im on 20/06/2017.
  * Copyright fir.im
  */
@@ -22,6 +26,9 @@ import java.util.concurrent.TimeoutException;
 public class MQConfig {
 
     private final static Logger LOGGER = new Logger(MQConfig.class);
+
+    private final static int MAX_PRIORITY = 10;
+    private final static int MAX_LENGTH = 100;
 
     @Value("${mq.host}")
     private String host;
@@ -47,8 +54,12 @@ public class MQConfig {
             cmdSendChannel.exchangeDeclare(cmdExchangeName, BuiltinExchangeType.FANOUT);
             LOGGER.trace("RabbitMQ cmd send channel created : %s", cmdSendChannel.toString());
 
+            Map<String, Object> args = new HashMap<>();
+            args.put("x-max-length", MAX_LENGTH);
+            args.put("x-max-priority", MAX_PRIORITY);
+
             cmdConsumeChannel = rabbitMqConn.createChannel();
-            cmdConsumeQueue = cmdConsumeChannel.queueDeclare().getQueue();
+            cmdConsumeQueue = cmdConsumeChannel.queueDeclare("", false, true, true, args).getQueue();
             cmdConsumeChannel.queueBind(cmdConsumeQueue, cmdExchangeName, "");
             LOGGER.trace("RabbitMQ cmd consume channel created : %s", cmdConsumeQueue);
 

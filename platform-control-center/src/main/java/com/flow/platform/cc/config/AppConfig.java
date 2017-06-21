@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
 /**
@@ -56,6 +57,15 @@ public class AppConfig {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Used for zone service waiting for AgentService initialized
+     * @return CountDownLatch
+     */
+    @Bean
+    public CountDownLatch initLatch() {
+        return new CountDownLatch(1);
     }
 
     @Bean
