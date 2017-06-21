@@ -4,7 +4,7 @@
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.domain">
-    <class name="Agent" table="AGENTS">
+    <class name="Agent" table="Agent">
         <id name="id" type="string">
             <generator class="org.hibernate.id.UUIDGenerator"/>
         </id>
