@@ -49,15 +49,14 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     private final ReentrantLock mockTrans = new ReentrantLock();
 
     @Override
-    public Cmd create(CmdBase cmd) {
+    public Cmd create(CmdBase cmdBase) {
         String cmdId = UUID.randomUUID().toString();
-        Cmd cmdInfo = new Cmd(cmd);
-        cmdInfo.setId(cmdId);
-        cmdInfo.setSessionId(cmd.getSessionId());
-        cmdInfo.setCreatedDate(new Date());
-        cmdInfo.setUpdatedDate(new Date());
-        mockCmdList.put(cmdId, cmdInfo);
-        return cmdInfo;
+        Cmd cmd = Cmd.convert(cmdBase);
+        cmd.setId(cmdId);
+        cmd.setCreatedDate(DateUtil.utcNow());
+        cmd.setUpdatedDate(DateUtil.utcNow());
+        mockCmdList.put(cmdId, cmd);
+        return cmd;
     }
 
     @Override

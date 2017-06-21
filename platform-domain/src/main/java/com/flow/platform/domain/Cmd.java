@@ -27,6 +27,7 @@ public class Cmd extends CmdBase {
      */
     public static final Set<CmdStatus> FINISH_STATUS =
             Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED, CmdStatus.TIMEOUT_KILL);
+
     /**
      * Server generated command id
      */
@@ -64,19 +65,6 @@ public class Cmd extends CmdBase {
 
 
     public Cmd() {
-    }
-
-    public Cmd(CmdBase cmdBase) {
-        super(cmdBase.getAgentPath(),
-                cmdBase.getType(),
-                cmdBase.getCmd());
-
-        this.timeout = cmdBase.getTimeout();
-        this.inputs = cmdBase.getInputs();
-        this.workingDir = cmdBase.getWorkingDir();
-        this.sessionId = cmdBase.getSessionId();
-        this.priority = cmdBase.getPriority();
-        this.outputEnvFilter = cmdBase.getOutputEnvFilter();
     }
 
     public Cmd(String zone, String agent, CmdType type, String cmd) {
@@ -198,5 +186,20 @@ public class Cmd extends CmdBase {
                 ", createdDate=" + createdDate +
                 ", updatedDate=" + updatedDate +
                 '}';
+    }
+
+    public static Cmd convert(CmdBase base) {
+        Cmd cmd = new Cmd();
+        cmd.agentPath = base.agentPath;
+        cmd.type = base.getType();
+        cmd.cmd = base.getCmd();
+        cmd.timeout = base.getTimeout();
+        cmd.inputs = base.getInputs();
+        cmd.workingDir = base.getWorkingDir();
+        cmd.sessionId = base.getSessionId();
+        cmd.priority = base.getPriority();
+        cmd.outputEnvFilter = base.getOutputEnvFilter();
+        cmd.statusCallbackUrl = base.getStatusCallbackUrl();
+        return cmd;
     }
 }

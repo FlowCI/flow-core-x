@@ -58,6 +58,11 @@ public class CmdBase extends Jsonable {
      */
     protected String outputEnvFilter;
 
+    /**
+     * Url for report cmd status to other system
+     */
+    protected String statusCallbackUrl;
+
     public CmdBase() {
     }
 
@@ -153,6 +158,14 @@ public class CmdBase extends Jsonable {
 
     public void setOutputEnvFilter(String outputEnvFilter) {
         this.outputEnvFilter = outputEnvFilter;
+    }
+
+    public String getStatusCallbackUrl() {
+        return statusCallbackUrl;
+    }
+
+    public void setStatusCallbackUrl(String statusCallbackUrl) {
+        this.statusCallbackUrl = statusCallbackUrl;
     }
 
     @Override
