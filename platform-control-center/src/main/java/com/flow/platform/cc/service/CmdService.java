@@ -68,8 +68,9 @@ public interface CmdService {
      * @param cmdId
      * @param status
      * @param result
+     * @param updateAgentStatus should update agent status according to cmd status
      */
-    void report(String cmdId, CmdStatus status, CmdResult result);
+    void updateStatus(String cmdId, CmdStatus status, CmdResult result, boolean updateAgentStatus);
 
     /**
      * Record full zipped log to store

@@ -130,7 +130,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
                     // add reject status since busy
                     if (!target.isAvailable()) {
-                        cmdInfo.addStatus(CmdStatus.REJECTED);
+                        updateStatus(cmdInfo.getId(), CmdStatus.REJECTED, null, true);
                         throw new AgentErr.NotAvailableException(target.getName());
                     }
 
@@ -141,7 +141,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     // add reject status since unable to create session for agent
                     String sessionId = agentService.createSession(target);
                     if (sessionId == null) {
-                        cmdInfo.addStatus(CmdStatus.REJECTED);
+                        updateStatus(cmdInfo.getId(), CmdStatus.REJECTED, null, false);
                         throw new AgentErr.NotAvailableException(target.getName());
                     }
 
@@ -182,7 +182,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    public void report(String cmdId, CmdStatus status, CmdResult result) {
+    public void updateStatus(String cmdId, CmdStatus status, CmdResult result, boolean updateAgentStatus) {
         Cmd cmd = find(cmdId);
         if (cmd == null) {
             throw new IllegalArgumentException("Cmd not exist");
@@ -192,12 +192,15 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         try {
             // update cmd status
-            cmd.addStatus(status);
-            cmd.setResult(result);
-            cmd.setUpdatedDate(new Date());
+            if (cmd.addStatus(status)) {
+                cmd.setResult(result);
+                cmd.setUpdatedDate(DateUtil.utcNow());
 
-            // update agent status
-            updateAgentStatusWhenUpdateCmd(cmd);
+                // update agent status
+                if (updateAgentStatus) {
+                    updateAgentStatusWhenUpdateCmd(cmd);
+                }
+            }
         } finally {
             mockTrans.unlock();
         }
@@ -236,7 +239,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     send(new CmdBase(cmd.getAgentPath(), CmdType.KILL, null));
                     LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
 
-                    report(cmd.getId(), CmdStatus.TIMEOUT_KILL, cmd.getResult());
+                    updateStatus(cmd.getId(), CmdStatus.TIMEOUT_KILL, cmd.getResult(), true);
                 }
             }
         }

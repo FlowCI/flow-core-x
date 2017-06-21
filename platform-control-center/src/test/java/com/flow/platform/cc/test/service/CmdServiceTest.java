@@ -119,7 +119,7 @@ public class CmdServiceTest extends TestBase {
         CmdResult result = new CmdResult();
         result.setStartTime(new Date());
         result.setProcess(mockProcess);
-        cmdService.report(cmd.getId(), CmdStatus.RUNNING, result);
+        cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
 
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
@@ -179,7 +179,7 @@ public class CmdServiceTest extends TestBase {
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
-            cmdService.report(current.getId(), reportStatus, new CmdResult());
+            cmdService.updateStatus(current.getId(), reportStatus, new CmdResult(), true);
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
@@ -199,7 +199,7 @@ public class CmdServiceTest extends TestBase {
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
-            cmdService.report(current.getId(), status, new CmdResult());
+            cmdService.updateStatus(current.getId(), status, new CmdResult(), true);
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
@@ -391,7 +391,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(sessionAgent.getSessionDate());
 
         // then: mock cmd been executed
-        cmd.addStatus(CmdStatus.LOGGED);
+        cmdService.updateStatus(cmd.getId(), CmdStatus.LOGGED, new CmdResult(), true);
 
         // when: delete session
         CmdBase cmdToDelSession = new CmdBase(zoneName, null, CmdType.DELETE_SESSION, null);

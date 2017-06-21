@@ -51,7 +51,7 @@ public class CmdController {
         if (reportData.getId() == null || reportData.getStatus() == null || reportData.getResult() == null) {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
         }
-        cmdService.report(reportData.getId(), reportData.getStatus(), reportData.getResult());
+        cmdService.updateStatus(reportData.getId(), reportData.getStatus(), reportData.getResult(), true);
     }
 
     /**

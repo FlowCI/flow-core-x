@@ -10,7 +10,7 @@ import java.util.Set;
 
 /**
  * Command object to communicate between c/s
- *
+ * <p>
  * Created by gy@fir.im on 12/05/2017.
  * Copyright fir.im
  */
@@ -99,6 +99,7 @@ public class Cmd extends CmdBase {
         this.id = id;
     }
 
+    // DO NOT used in programming to set cmd status, using addStatus instead this func
     public void setStatus(CmdStatus status) {
         this.status = status;
     }
@@ -109,21 +110,27 @@ public class Cmd extends CmdBase {
 
     /**
      * only level gt current level
-     * @param status
+     *
+     * @param status target status
+     * @return true if status updated
      */
-    public void addStatus(CmdStatus status) {
-        if (this.status == null){
+    public boolean addStatus(CmdStatus status) {
+        if (this.status == null) {
             this.status = status;
-            return;
+            return true;
         }
 
-        if (this.status.getLevel() < status.getLevel()){
+        if (this.status.getLevel() < status.getLevel()) {
             this.status = status;
 
-            if(FINISH_STATUS.contains(status)){
+            if(!isCurrent()) {
                 this.finishedDate = DateUtil.utcNow();
             }
+
+            return true;
         }
+
+        return false;
     }
 
     public List<String> getLogPaths() {
@@ -159,7 +166,7 @@ public class Cmd extends CmdBase {
     }
 
     public Boolean isCurrent() {
-        if(WORKING_STATUS.contains(status)){
+        if (WORKING_STATUS.contains(status)) {
             return true;
         }
         return false;
