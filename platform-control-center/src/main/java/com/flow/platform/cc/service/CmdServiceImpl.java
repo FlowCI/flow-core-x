@@ -79,6 +79,20 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
+    public List<Cmd> listByZone(String zone) {
+        List<Cmd> cmdList = new LinkedList<>();
+        for (Cmd tmp : mockCmdList.values()) {
+            if (!Objects.equals(tmp.getAgentPath().getZone(), zone)) {
+                continue;
+            }
+            cmdList.add(tmp);
+        }
+
+        cmdList.sort(Comparator.comparing(Cmd::getCreatedDate));
+        return cmdList;
+    }
+
+    @Override
     public boolean isTimeout(Cmd cmd) {
         if (cmd.getType() != CmdType.RUN_SHELL) {
             throw new UnsupportedOperationException("Check timeout only for run shell");
@@ -221,6 +235,11 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void webhookCallback(CmdBase cmdBase) {
+
     }
 
     @Scheduled(fixedDelay = 300 * 1000)

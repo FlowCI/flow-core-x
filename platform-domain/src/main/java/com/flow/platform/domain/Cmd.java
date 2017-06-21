@@ -188,9 +188,15 @@ public class Cmd extends CmdBase {
                 '}';
     }
 
+    /**
+     * Convert CmdBase to Cmd
+     *
+     * @param base
+     * @return
+     */
     public static Cmd convert(CmdBase base) {
         Cmd cmd = new Cmd();
-        cmd.agentPath = base.agentPath;
+        cmd.agentPath = base.getAgentPath();
         cmd.type = base.getType();
         cmd.cmd = base.getCmd();
         cmd.timeout = base.getTimeout();
@@ -199,7 +205,7 @@ public class Cmd extends CmdBase {
         cmd.sessionId = base.getSessionId();
         cmd.priority = base.getPriority();
         cmd.outputEnvFilter = base.getOutputEnvFilter();
-        cmd.statusCallbackUrl = base.getStatusCallbackUrl();
+        cmd.webhooks = base.getWebhooks();
         return cmd;
     }
 }

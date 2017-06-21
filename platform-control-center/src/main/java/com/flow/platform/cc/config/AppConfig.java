@@ -79,7 +79,7 @@ public class AppConfig {
         taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
         taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
         taskExecutor.setQueueCapacity(100);
-        taskExecutor.setThreadNamePrefix("async-task");
+        taskExecutor.setThreadNamePrefix("async-task-");
         return taskExecutor;
     }
 

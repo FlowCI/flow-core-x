@@ -28,6 +28,8 @@ public class CmdQueueConsumer {
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
 
     private final static long MAX_CMD_INQUEUE_TIME = 60; // in seconds
+    private final static int RETRY_QUEUE_PRIORITY = 5;
+    private final static int RETRY_TIMES = 5;
 
     @Value("${mq.exchange.name}")
     private String cmdExchangeName;
@@ -64,7 +66,7 @@ public class CmdQueueConsumer {
                 CmdBase inputCmd;
                 try {
                     inputCmd = CmdBase.parse(body, CmdBase.class);
-                    LOGGER.trace("receive a cmd from queue : %s", inputCmd);
+                    LOGGER.trace("Receive a cmd from queue : %s", inputCmd);
                 } catch (Throwable e) {
                     LOGGER.error("Unable to recognize cmd type", e);
                     return;
@@ -74,7 +76,7 @@ public class CmdQueueConsumer {
                 try {
                     cmdService.send(inputCmd);
                 } catch (AgentErr.NotAvailableException e) {
-                    resend(inputCmd, 5, 5);
+                    resend(inputCmd, RETRY_QUEUE_PRIORITY, RETRY_TIMES);
                 } catch (Throwable e) {
                     // unexpected err, throw e
                     LOGGER.error("Error when consume cmd from queue", e);
@@ -99,7 +101,7 @@ public class CmdQueueConsumer {
                         .priority(priority)
                         .build();
 
-                LOGGER.trace("Re-enqueue for cmd %s with mq priority", cmd, priority);
+                LOGGER.trace("Re-enqueue for cmd %s with mq priority %s", cmd, priority);
                 cmdSendChannel.basicPublish(cmdExchangeName, "", properties, cmd.toBytes());
             } catch (IOException e) {
                 LOGGER.error(String.format("Cmd %s re-enqueue fail, retry %s", cmd, retry), e);

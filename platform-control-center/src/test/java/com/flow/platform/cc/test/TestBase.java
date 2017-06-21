@@ -3,7 +3,9 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.util.ZkHelper;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.ZkLocalBuilder;
+import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.gson.Gson;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.AfterClass;
@@ -73,5 +75,11 @@ public abstract class TestBase {
                 e.printStackTrace();
             }
         });
+    }
+
+    protected AgentPath createMockAgent(String zone, String agent) {
+        AgentPath agentPath = new AgentPath(zone, agent);
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentPath), "");
+        return agentPath;
     }
 }
