@@ -3,6 +3,7 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.util.SpringContextUtil;
+import com.flow.platform.dao.AgentDaoImpl;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.mos.Instance;
@@ -47,10 +48,15 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
     @Autowired
     private TaskConfig taskConfig;
 
+    @Autowired
+    private AgentDaoImpl agentDao;
+
     private final Map<Zone, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
     @PostConstruct
     private void init() {
+        //因为这时候依赖注入还没有完成
+        initAgentService();
         // init root node and watch children event
         String rootPath = zkHelper.buildZkPath(null, null).path();
         ZkNodeHelper.createNode(zkClient, rootPath, "");
@@ -59,6 +65,10 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         for (Zone zone : zkHelper.getZones()) {
             createZone(zone);
         }
+    }
+
+    public void initAgentService(){
+        agentService.setUnAutowiredInstance(agentDao, this, cmdService);
     }
 
     @Override

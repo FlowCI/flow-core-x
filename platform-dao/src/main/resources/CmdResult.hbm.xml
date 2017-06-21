@@ -16,6 +16,7 @@
         <property name="startTime" column="START_TIME"/>
         <property name="executedTime" column="EXECUTED_TIME"/>
         <property name="finishTime" column="FINISH_TIME"/>
+        <property name="cmdId" column="CMD_ID"/>
 
     </class>
 </hibernate-mapping>

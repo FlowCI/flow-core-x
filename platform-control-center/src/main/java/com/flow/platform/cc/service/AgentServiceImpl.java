@@ -225,4 +225,11 @@ public class AgentServiceImpl implements AgentService {
             agentDao.save(agent);
         }
     }
+
+    @Override
+    public void setUnAutowiredInstance(AgentDaoImpl agentDao, ZoneService zoneService, CmdService cmdService) {
+        this.agentDao = agentDao;
+        this.zoneService = zoneService;
+        this.cmdService = cmdService;
+    }
 }
