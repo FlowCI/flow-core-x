@@ -6,24 +6,14 @@ CREATE TABLE `Agent` (
   `SESSION_ID` varchar(255) DEFAULT NULL,
   `SESSION_DATE` datetime DEFAULT NULL,
   `STATUS` varchar(255) DEFAULT NULL,
-  `AGENT_NAME` varchar(255) DEFAULT NULL,
-  `AGENT_ZONE` varchar(255) DEFAULT NULL,
+  `AGENT_NAME` varchar(20) DEFAULT NULL,
+  `AGENT_ZONE` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-
-CREATE TABLE `CmdResult` (
-  `id` varchar(255) NOT NULL,
-  `PROCESS_ID` int(11) DEFAULT NULL,
-  `EXIT_VALUE` int(11) DEFAULT NULL,
-  `DURATION` bigint(20) DEFAULT NULL,
-  `TOTAL_DURATION` bigint(20) DEFAULT NULL,
-  `START_TIME` datetime DEFAULT NULL,
-  `EXECUTED_TIME` datetime DEFAULT NULL,
-  `FINISH_TIME` datetime DEFAULT NULL,
-  `CMD_ID` varchar(255) DEFAULT NULL
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+alter table Agent add unique (AGENT_NAME, AGENT_ZONE);
+alter table Agent add index (STATUS);
+alter table Agent add index (AGENT_ZONE);
 
 
 CREATE TABLE `Cmd` (
@@ -39,10 +29,26 @@ CREATE TABLE `Cmd` (
   `OUTPUT_ENV_FILTER` varchar(255) DEFAULT NULL,
   `LOG_PATHS` longtext,
   `INPUTS` longtext,
-  `AGENT_ZONE` varchar(255) DEFAULT NULL,
-  `AGENT_NAME` varchar(255) DEFAULT NULL,
+  `AGENT_ZONE` varchar(20) DEFAULT NULL,
+  `AGENT_NAME` varchar(20) DEFAULT NULL,
   `TYPE` varchar(255) DEFAULT NULL,
   `STATUS` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+alter table Agent add unique (AGENT_NAME, AGENT_ZONE);
+
+
+
+CREATE TABLE `CmdResult` (
+  `id` varchar(255) NOT NULL,
+  `PROCESS_ID` int(11) DEFAULT NULL,
+  `EXIT_VALUE` int(11) DEFAULT NULL,
+  `DURATION` bigint(20) DEFAULT NULL,
+  `TOTAL_DURATION` bigint(20) DEFAULT NULL,
+  `START_TIME` datetime DEFAULT NULL,
+  `EXECUTED_TIME` datetime DEFAULT NULL,
+  `FINISH_TIME` datetime DEFAULT NULL,
+  `CMD_ID` varchar(255) DEFAULT NULL
+    PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
