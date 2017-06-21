@@ -1,15 +1,13 @@
-package com.flow.platform.cc.test.service;
+package com.flow.platform.cc.test.consumer;
 
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.zk.ZkNodeHelper;
-import com.google.common.collect.Lists;
 import com.rabbitmq.client.Channel;
 import org.junit.Assert;
 import org.junit.Test;

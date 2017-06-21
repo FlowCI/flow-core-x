@@ -1,12 +1,16 @@
-package com.flow.platform.cc.service;
+package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.Logger;
-import com.rabbitmq.client.*;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -18,7 +22,7 @@ import java.util.concurrent.Executor;
  * Created by gy@fir.im on 20/06/2017.
  * Copyright fir.im
  */
-@Service
+@Component(value = "cmdQueueConsumer")
 public class CmdQueueConsumer {
 
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
@@ -88,19 +92,19 @@ public class CmdQueueConsumer {
                 Thread.sleep(1000); // wait 1 seconds and enqueue again with priority
             } catch (InterruptedException e) {
                 // do nothing
-            } finally {
-                try {
-                    AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
-                            .priority(priority)
-                            .build();
+            }
 
-                    LOGGER.trace("Re-enqueue for cmd %s with mq priority", cmd, priority);
-                    cmdSendChannel.basicPublish(cmdExchangeName, "", properties, cmd.toBytes());
-                } catch (IOException e) {
-                    LOGGER.error(String.format("Cmd %s re-enqueue fail, retry %s", cmd, retry), e);
-                    if (retry > 0) {
-                        resend(cmd, priority, retry - 1);
-                    }
+            try {
+                AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
+                        .priority(priority)
+                        .build();
+
+                LOGGER.trace("Re-enqueue for cmd %s with mq priority", cmd, priority);
+                cmdSendChannel.basicPublish(cmdExchangeName, "", properties, cmd.toBytes());
+            } catch (IOException e) {
+                LOGGER.error(String.format("Cmd %s re-enqueue fail, retry %s", cmd, retry), e);
+                if (retry > 0) {
+                    resend(cmd, priority, retry - 1);
                 }
             }
         });
