@@ -50,7 +50,6 @@
     <Loggers>
         <Logger name="org.springframework" level="info"></Logger>
         <Root level="all">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFileInfo"/>
             <AppenderRef ref="RollingFileError"/>
         </Root>
