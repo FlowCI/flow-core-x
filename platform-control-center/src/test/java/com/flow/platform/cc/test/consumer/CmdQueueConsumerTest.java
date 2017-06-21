@@ -35,7 +35,7 @@ public class CmdQueueConsumerTest extends TestBase {
     @Test
     public void should_receive_cmd_via_queue() throws Throwable {
         // given:
-        String zoneName = "ut-test-zone-1";
+        String zoneName = "ut-test-zone-for-queue";
         zoneService.createZone(new Zone(zoneName, "mock-cloud-provider"));
 
         String agentName = "mock-agent-1";
