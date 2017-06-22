@@ -16,8 +16,8 @@
         <property name="hibernate.enable_lazy_load_no_trans">true</property>
 
         <!-- DB schema will be updated if needed -->
-        <mapping resource="Agent.hbm.xml" />
-        <mapping resource="Cmd.hbm.xml" />
+        <mapping resource="agent.hbm.xml" />
+        <mapping resource="cmd.hbm.xml" />
         <mapping resource="CmdResult.hbm.xml"/>
     </session-factory>
 </hibernate-configuration>

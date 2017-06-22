@@ -4,7 +4,7 @@
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.domain">
-    <class name="Agent" table="Agent">
+    <class name="Agent" table="agent">
         <composite-id name="path" class="AgentPath">
             <key-property name="name" type="string" column="AGENT_NAME"/>
             <key-property name="zone" type="string" column="AGENT_ZONE"/>

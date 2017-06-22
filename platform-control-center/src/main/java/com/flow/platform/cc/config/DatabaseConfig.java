@@ -70,9 +70,7 @@ public class DatabaseConfig {
                 .setProperty("hibernate.c3p0.min_size", c3p0MinSize)
                 .setProperty("hibernate.c3p0.timeout", c3p0Timeout);
 
-        configuration.addResource("Agent.hbm.xml")
-                .addResource("CmdResult.hbm.xml")
-                .addResource("Cmd.hbm.xml");
+        configuration.addResource("agent.hbm.xml").addResource("cmd.hbm.xml");
 
         return configuration.buildSessionFactory();
     }

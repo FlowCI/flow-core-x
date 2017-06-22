@@ -1,14 +1,8 @@
 package com.flow.platform.dao;
 
 import com.flow.platform.domain.*;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-
-import java.sql.Time;
-import java.util.*;
 
 /**
  * Created by Will on 17/6/7.
@@ -45,9 +39,8 @@ public class Main {
         configuration
 //                .addClass(com.flow.platform.domain.Agent.class)
 //                .addClass(com.flow.platform.domain.Cmd.class);
-                .addResource("Agent.hbm.xml")
-                .addResource("CmdResult.hbm.xml")
-                .addResource("Cmd.hbm.xml");
+                .addResource("agent.hbm.xml")
+                .addResource("cmd.hbm.xml");
         SessionFactory factory = configuration.buildSessionFactory();
 //
 //        AgentDaoImp adi = new AgentDaoImp();
