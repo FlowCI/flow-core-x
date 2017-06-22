@@ -30,6 +30,17 @@ public class AgentPath implements Serializable {
         this.name = name;
     }
 
+    public AgentPath() {
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getZone() {
         return zone;
     }

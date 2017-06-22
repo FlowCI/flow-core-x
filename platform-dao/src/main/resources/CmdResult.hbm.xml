@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.domain">
+    <class name="CmdResult" table="CmdResult">
+        <id name="id" type="string" >
+            <generator class="org.hibernate.id.UUIDGenerator"/>
+        </id>
+
+        <property name="processId" column="PROCESS_ID"/>
+        <property name="exitValue" column="EXIT_VALUE"/>
+        <property name="duration" column="DURATION"/>
+        <property name="totalDuration" column="TOTAL_DURATION"/>
+        <property name="startTime" column="START_TIME"/>
+        <property name="executedTime" column="EXECUTED_TIME"/>
+        <property name="finishTime" column="FINISH_TIME"/>
+        <property name="cmdId" column="CMD_ID"/>
+
+    </class>
+</hibernate-mapping>

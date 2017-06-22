@@ -3,6 +3,7 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.util.SpringContextUtil;
+import com.flow.platform.dao.AgentDaoImpl;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.mos.Instance;
@@ -47,6 +48,9 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
     @Autowired
     private TaskConfig taskConfig;
+
+    @Autowired
+    private AgentDaoImpl agentDao;
 
     @Autowired
     private CountDownLatch initLatch;

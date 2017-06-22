@@ -4,7 +4,12 @@ import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
+import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.dao.CmdDao;
+import com.flow.platform.dao.CmdDaoImpl;
+import com.flow.platform.dao.CmdResultDao;
+import com.flow.platform.dao.CmdResultDaoImpl;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -48,6 +53,18 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private Queue<Path> cmdLoggingQueue;
+
+    @Autowired
+    private CmdResultDaoImpl cmdResultDao;
+
+    @Autowired
+    private CmdDaoImpl cmdDao;
+
+    @Autowired
+    private ZoneService zoneService;
+
+    private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
+
 
     private Process mockProcess = new Process() {
         @Override
@@ -101,7 +118,7 @@ public class CmdServiceTest extends TestBase {
         // then:
         Cmd loaded = cmdService.find(cmd.getId());
         Assert.assertNotNull(loaded);
-        Assert.assertEquals(cmd, loaded);
+        Assert.assertEquals(cmd.getId(), loaded.getId());
     }
 
     @Test
@@ -119,15 +136,15 @@ public class CmdServiceTest extends TestBase {
         CmdResult result = new CmdResult();
         result.setStartTime(new Date());
         result.setProcess(mockProcess);
+        result.setProcessId(mockProcess.hashCode());
+        cmdResultDao.update(result);
         cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
-
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
 
         Assert.assertTrue(loaded.getStatus().equals(CmdStatus.RUNNING));
-        Assert.assertNotNull(loaded.getResult());
-        Assert.assertEquals(mockProcess, loaded.getResult().getProcess());
-
+        Assert.assertNotNull(cmdResultDao.findByCmdId(cmd.getId()));
+        Assert.assertEquals((Integer) mockProcess.hashCode(), cmdResultDao.findByCmdId(cmd.getId()).getProcessId());
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentPath).getStatus());
     }
 
@@ -152,7 +169,7 @@ public class CmdServiceTest extends TestBase {
         Date timeoutDate = DateUtil.toDate(ZonedDateTime.now().minusSeconds(CmdService.CMD_TIMEOUT_SECONDS + 10));
         cmd.setCreatedDate(timeoutDate);
         cmd.setStatus(CmdStatus.RUNNING);
-
+        cmdDao.update(cmd);
         // then: should timeout and status should be TIMEOUT_KILL
         Assert.assertEquals(true, cmdService.isTimeout(cmd));
         cmdService.checkTimeoutTask();
@@ -164,7 +181,6 @@ public class CmdServiceTest extends TestBase {
         // given
         String zoneName = zkHelper.getZones().get(0).getName();
         String agentName = "test-agent-001";
-
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
@@ -183,7 +199,7 @@ public class CmdServiceTest extends TestBase {
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
-            Assert.assertEquals(current, loaded);
+            Assert.assertEquals(current.getId(), loaded.getId());
 
             relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.IDLE, relatedAgent.getStatus());
@@ -210,6 +226,7 @@ public class CmdServiceTest extends TestBase {
 
             // reset agent status
             relatedAgent.setStatus(AgentStatus.IDLE);
+            agentDao.update(relatedAgent);
         }
     }
 
@@ -233,7 +250,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(cmdInfo.getId());
         Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
-        Assert.assertEquals(agentName, cmdInfo.getAgent());
+        Assert.assertEquals(agentName, cmdInfo.getAgentName());
 
         // check cmd been recorded
         Assert.assertTrue(cmdService.listByAgentPath(cmd.getAgentPath()).contains(cmdInfo));
@@ -279,9 +296,12 @@ public class CmdServiceTest extends TestBase {
 
         // set idle agent 1 date, before idle agent 2
         Instant date = LocalDate.of(2017, 5, 10).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        agentService.find(agentIdle1).setUpdatedDate(Date.from(date));
+        Agent agent = agentService.find(agentIdle1);
+        agent.setUpdatedDate(Date.from(date));
+        agentDao.update(agent);
 
         // when: send cmd to zone
+
         Cmd cmdForIdle1 = cmdService.send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
 
         // then: should select agent idle 1 as target
@@ -289,6 +309,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentIdle1).getStatus());
 
         // when: send cmd to make all agent to busy
+
         Cmd cmdForIdle2 = cmdService.send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
         Assert.assertEquals(agentIdle2, cmdForIdle2.getAgentPath());
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentIdle2).getStatus());

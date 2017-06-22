@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.domain">
+    <class name="Cmd" table="Cmd">
+        <id name="id" type="string">
+            <generator class="org.hibernate.id.UUIDGenerator"/>
+        </id>
+        <property name="createdDate"  column="CREATED_DATE"/>
+        <property name="updatedDate"  column="UPDATED_DATE"/>
+        <property name="finishedDate"  column="FINISHED_DATE"/>
+        <property name="cmd" type="string" column="CMD"/>
+        <property name="cmdResultId" type="string" column="CMD_RESULT_ID"/>
+        <property name="timeout" type="long" column="TIMEOUT"/>
+        <property name="priority" type="integer" column="PRIORITY"/>
+        <property name="workingDir" type="string" column="WORKING_DIR"/>
+        <property name="outputEnvFilter" type="string" column="OUTPUT_ENV_FILTER"/>
+        <property name="logPaths" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="LOG_PATHS"></property>
+        <property name="inputs" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="INPUTS"></property>
+        <component name="agentPath" class="AgentPath">
+            <property name="zone" column="AGENT_ZONE"></property>
+            <property name="name" column="AGENT_NAME"></property>
+        </component>
+
+        <property name="type" column="TYPE">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">com.flow.platform.domain.CmdType</param>
+                <param name="useNamed">true</param>
+            </type>
+        </property>
+
+
+        <property name="status" column="STATUS">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">com.flow.platform.domain.CmdStatus</param>
+                <param name="useNamed">true</param>
+            </type>
+        </property>
+
+    </class>
+</hibernate-mapping>

@@ -2,8 +2,13 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.util.DateUtil;
+import com.flow.platform.cc.util.SpringContextUtil;
+import com.flow.platform.dao.AgentDaoImpl;
+import com.flow.platform.dao.CmdDaoImpl;
+import com.flow.platform.dao.CmdResultDaoImpl;
 import com.flow.platform.domain.*;
+import org.hibernate.SessionFactory;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,9 +30,6 @@ public class AgentServiceImpl implements AgentService {
 
     private final static Logger LOGGER = new Logger(AgentService.class);
 
-    // {zone : {path, agent}}
-    private final Map<String, Map<AgentPath, Agent>> agentOnlineList = new HashMap<>();
-
     private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
 
     @Autowired
@@ -37,6 +39,21 @@ public class AgentServiceImpl implements AgentService {
     private CmdService cmdService;
 
     @Autowired
+    private AgentDaoImpl agentDao;
+
+    @Autowired
+    private SpringContextUtil springContextUtil;
+
+    public Map<String, Map<AgentPath, Agent>> getAgentOnlineList(){
+        Map<String, Map<AgentPath, Agent>> agentOnline = new HashMap<>();
+        List<Agent> agents = agentDao.onlineList();
+        for(Agent agent : agents){
+            Map<AgentPath, Agent> agentList = agentOnline.computeIfAbsent(agent.getZone(), k -> new HashMap<>());
+            agentList.put(agent.getPath(), agent);
+        }
+        return agentOnline;
+    }
+
     private TaskConfig taskConfig;
 
     @Autowired
@@ -51,7 +68,7 @@ public class AgentServiceImpl implements AgentService {
     public void reportOnline(String zone, Collection<AgentPath> keys) {
         onlineListUpdateLock.lock();
         try {
-            Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
+            Map<AgentPath, Agent> agentList = getAgentOnlineList().computeIfAbsent(zone, k -> new HashMap<>());
 
             // find offline agent
             HashSet<AgentPath> offlines = new HashSet<>(agentList.keySet());
@@ -61,6 +78,7 @@ public class AgentServiceImpl implements AgentService {
             for (AgentPath key : offlines) {
                 Agent offlineAgent = agentList.get(key);
                 offlineAgent.setStatus(AgentStatus.OFFLINE);
+                agentDao.update(offlineAgent);
                 agentList.remove(key);
             }
 
@@ -79,55 +97,25 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Agent find(AgentPath key) {
-        String zone = key.getZone();
-        Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
-        return agentList.get(key);
+        Agent agent  = agentDao.find(key);
+        return agent;
     }
 
     @Override
     public Agent find(String sessionId) {
-        //TODO: should replace with dao
-        for (Zone zone : zoneService.getZones()) {
-            Map<AgentPath, Agent> agentMap = agentOnlineList.get(zone.getName());
-            if (agentMap == null) {
-                continue;
-            }
-
-            for (Agent agent : agentMap.values()) {
-                if (agent.getSessionId() != null && Objects.equals(agent.getSessionId(), sessionId)) {
-                    return agent;
-                }
-            }
-        }
-        return null;
+        return agentDao.find(sessionId);
     }
 
     @Override
     public List<Agent> findAvailable(String zone) {
-        Collection<Agent> onlines = onlineList(zone);
-
-        // find available agent
-        List<Agent> availableList = new LinkedList<>();
-        for (Agent agent : onlines) {
-            if (agent.getStatus() == AgentStatus.IDLE) {
-                availableList.add(agent);
-            }
-        }
-
-        // sort by update date, the first element is longest idle
-        availableList.sort(Comparator.comparing(Agent::getUpdatedDate));
+        List<Agent> availableList;
+        availableList = agentDao.findAvailable(zone);
         return availableList;
     }
 
     @Override
     public Collection<Agent> onlineList(String zone) {
-        Collection<Agent> zoneAgents = new ArrayList<>(agentOnlineList.size());
-        Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
-        for (Agent agent : agentList.values()) {
-            if (agent.getZone().equals(zone)) {
-                zoneAgents.add(agent);
-            }
-        }
+        Collection<Agent> zoneAgents = agentDao.onlineList(zone);
         return zoneAgents;
     }
 
@@ -138,6 +126,7 @@ public class AgentServiceImpl implements AgentService {
             throw new AgentErr.NotFoundException(path.getName());
         }
         exist.setStatus(status);
+        agentDao.update(exist);
     }
 
     @Override
@@ -170,7 +159,7 @@ public class AgentServiceImpl implements AgentService {
         }
 
         agent.setSessionId(null); // release session from target
-        // agent.save
+        agentDao.update(agent);
     }
 
     @Override
@@ -216,11 +205,9 @@ public class AgentServiceImpl implements AgentService {
     private void reportOnline(AgentPath key) {
         Agent exist = find(key);
         if (exist == null) {
-            String zone = key.getZone();
-            Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
             Agent agent = new Agent(key);
             agent.setStatus(AgentStatus.IDLE);
-            agentList.put(key, agent);
+            agentDao.save(agent);
         }
     }
 }

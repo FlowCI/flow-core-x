@@ -5,6 +5,8 @@ import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.dao.AgentDao;
+import com.flow.platform.dao.CmdDao;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
@@ -52,6 +54,12 @@ public class CmdControllerTest extends TestBase {
 
     @Autowired
     private Queue<Path> cmdLoggingQueue;
+
+    @Autowired
+    private CmdDao cmdDao;
+
+    @Autowired
+    private AgentDao agentDao;
 
     @Before
     public void before() {
@@ -134,7 +142,8 @@ public class CmdControllerTest extends TestBase {
         Assert.assertNotNull(cmdInfo);
         Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
-        Assert.assertEquals(agentName, cmdInfo.getAgent());
+        Assert.assertEquals(agentName, cmdInfo.getAgentName());
+        Assert.assertEquals(agentName, agentDao.find(cmdInfo.getAgentPath()).getName());
         Assert.assertEquals(2, cmdInfo.getInputs().size());
         Assert.assertEquals("/user/flow", cmdInfo.getWorkingDir());
         Assert.assertEquals(1, cmdInfo.getPriority().intValue());

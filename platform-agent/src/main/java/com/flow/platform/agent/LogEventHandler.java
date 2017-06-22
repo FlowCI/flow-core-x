@@ -47,6 +47,7 @@ public class LogEventHandler implements LogListener {
     private FileOutputStream stderrLogStream;
     private ZipOutputStream stderrLogZipStream;
 
+
     public LogEventHandler(Cmd cmd) {
         this.cmd = cmd;
 
@@ -188,6 +189,10 @@ public class LogEventHandler implements LogListener {
      * @param cmd
      * @throws IOException
      */
+    private String getLogFormat(String log) {
+        return String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgentName(), cmd.getId(), log);
+    }
+
     private void initZipLogFile(final Cmd cmd) throws IOException {
         // init log directory
         try {

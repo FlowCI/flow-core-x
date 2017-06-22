@@ -3,6 +3,7 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.dao.*;
 import com.flow.platform.cc.task.CmdWebhookTask;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.domain.*;
@@ -47,6 +48,14 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     private Queue<Path> cmdLoggingQueue;
 
     @Autowired
+    private CmdDaoImpl cmdDao;
+
+    @Autowired
+    private CmdResultDaoImpl cmdResultDao;
+
+    @Autowired
+    private AgentDaoImpl agentDao;
+
     private Executor taskExecutor;
 
     private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
@@ -60,26 +69,18 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         cmd.setId(cmdId);
         cmd.setCreatedDate(DateUtil.utcNow());
         cmd.setUpdatedDate(DateUtil.utcNow());
-        mockCmdList.put(cmdId, cmd);
+        cmdDao.save(cmd);
         return cmd;
     }
 
     @Override
     public Cmd find(String cmdId) {
-        return mockCmdList.get(cmdId);
+        return cmdDao.find(cmdId);
     }
 
     @Override
     public List<Cmd> listByAgentPath(AgentPath agentPath) {
-        List<Cmd> cmdList = new LinkedList<>();
-        for (Cmd tmp : mockCmdList.values()) {
-            if (!tmp.getAgentPath().equals(agentPath)) {
-                continue;
-            }
-            cmdList.add(tmp);
-        }
-
-        cmdList.sort(Comparator.comparing(Cmd::getCreatedDate));
+        List<Cmd> cmdList  = cmdDao.listByAgentPath(agentPath);
         return cmdList;
     }
 
@@ -133,6 +134,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
             // double check agent in zk node
             String agentNodePath = zkHelper.getZkPath(target.getPath());
+
             if (ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
                 throw new AgentErr.NotFoundException(target.getPath().toString());
             }
@@ -164,6 +166,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     }
 
                     cmdInfo.setSessionId(sessionId); // set session id to cmd
+                    target.setSessionId(sessionId); // set session id to agent
+                    target.setSessionDate(new Date());
+                    target.setStatus(AgentStatus.BUSY);
                     break;
 
                 case DELETE_SESSION:
@@ -184,7 +189,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     target.setStatus(AgentStatus.OFFLINE);
                     break;
             }
-
+            agentDao.update(target);
             ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmdInfo.toJson());
             return cmdInfo;
 
@@ -193,7 +198,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             zoneService.keepIdleAgentTask();
             throw e;
         } catch (ZkException.ZkNoNodeException e) {
-            throw new AgentErr.NotFoundException(cmd.getAgent());
+            throw new AgentErr.NotFoundException(cmd.getAgentName());
         } finally {
             mockTrans.unlock();
         }
@@ -209,11 +214,21 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         mockTrans.lock();
 
         try {
+            CmdResult cmdResult = cmdResultDao.findByCmdId(cmd.getId());
+            if(cmdResult != null){
+                coverCmdResult(cmdResult, result);
+            }else{
+                cmdResult = result;
+            }
+            if(cmdResult != null){
+                cmdResult.setCmdId(cmd.getId());
+                cmdResultDao.update(cmdResult);
+                cmd.setCmdResultId(cmdResult.getId());
+            }
             // update cmd status
             if (cmd.addStatus(status)) {
-                cmd.setResult(result);
                 cmd.setUpdatedDate(DateUtil.utcNow());
-
+                cmdDao.update(cmd);
                 // update agent status
                 if (updateAgentStatus) {
                     updateAgentStatusWhenUpdateCmd(cmd);
@@ -227,6 +242,20 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
     }
 
+    public CmdResult coverCmdResult(CmdResult source, CmdResult dest){
+        if(dest.getFinishTime() != null){
+            source.setStartTime(dest.getStartTime());
+            source.setFinishTime(dest.getFinishTime());
+            source.setExecutedTime(dest.getExecutedTime());
+            source.setDuration(dest.getDuration());
+            source.setExitValue(dest.getExitValue());
+            source.setProcess(dest.getProcess());
+            source.setProcessId(dest.getProcessId());
+            source.setTotalDuration(dest.getTotalDuration());
+        }
+        return source;
+    }
+
     @Override
     public void saveLog(String cmdId, MultipartFile file) {
         Cmd cmd = find(cmdId);
@@ -237,8 +266,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         try {
             Path target = Paths.get(AppConfig.CMD_LOG_DIR.toString(), file.getOriginalFilename());
             Files.write(target, file.getBytes());
-
             cmd.getLogPaths().add(target.toString());
+            cmdDao.update(cmd);
             cmdLoggingQueue.add(target);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -262,14 +291,13 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         LOGGER.traceMarker("checkTimeoutTask", "start");
 
         // find all running status cmd
-        for (Cmd cmd : mockCmdList.values()) {
+        for (Cmd cmd : getRunningCmds()) {
             if (cmd.getType() == CmdType.RUN_SHELL && cmd.isCurrent()) {
                 if (isTimeout(cmd)) {
                     // kill current running cmd and report status
                     send(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
                     LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
-
-                    updateStatus(cmd.getId(), CmdStatus.TIMEOUT_KILL, cmd.getResult(), true);
+                    updateStatus(cmd.getId(), CmdStatus.TIMEOUT_KILL, cmdResultDao.findByCmdId(cmd.getId()), true);
                 }
             }
         }
@@ -319,10 +347,14 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         // find agent by path
         Agent target = agentService.find(agentPath);
         if (target == null) {
-            throw new AgentErr.NotFoundException(cmd.getAgent());
+            throw new AgentErr.NotFoundException(cmd.getAgentName());
         }
 
         return target;
+    }
+
+    private List<Cmd> getRunningCmds(){
+        return cmdDao.listByStatus(CmdStatus.RUNNING.toString());
     }
 
     private boolean isAgentPathFail(CmdBase cmd, AgentPath agentPath) {
@@ -348,7 +380,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         // update agent status by cmd status
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
-        for (Cmd tmp : mockCmdList.values()) {
+        for (Cmd tmp : listByAgentPath(agentPath)) {
             if (tmp.getType() != CmdType.RUN_SHELL) {
                 continue;
             }
@@ -369,5 +401,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         agent.setStatus(isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
+        agentDao.update(agent);
     }
 }

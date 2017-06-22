@@ -25,7 +25,7 @@ import java.util.concurrent.Executor;
  * Copyright fir.im
  */
 @Configuration
-@Import({MosConfig.class, TaskConfig.class, MQConfig.class})
+@Import({MosConfig.class, TaskConfig.class, MQConfig.class, DatabaseConfig.class})
 public class AppConfig {
 
     public final static SimpleDateFormat APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;

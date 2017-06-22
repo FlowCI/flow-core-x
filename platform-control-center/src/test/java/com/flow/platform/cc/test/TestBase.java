@@ -3,6 +3,9 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.util.ZkHelper;
+import com.flow.platform.dao.AgentDaoImpl;
+import com.flow.platform.dao.CmdDaoImpl;
+import com.flow.platform.dao.CmdResultDaoImpl;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -58,10 +61,24 @@ public abstract class TestBase {
 
     protected MockMvc mockMvc;
 
+    @Autowired
+    protected AgentDaoImpl agentDao;
+
+    @Autowired
+    protected CmdDaoImpl cmdDao;
+
+    @Autowired
+    protected CmdResultDaoImpl cmdResultDao;
+
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         zkClient = zkHelper.getClient();
+
+        // clear table
+        cmdDao.baseDelete("1=1");
+        cmdResultDao.baseDelete("1=1");
+        agentDao.baseDelete("1=1");
     }
 
     @AfterClass
