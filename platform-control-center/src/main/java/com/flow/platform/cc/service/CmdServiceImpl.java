@@ -221,6 +221,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             }
         } finally {
             mockTrans.unlock();
+
+            // try to call webhhook of cmd
+            webhookCallback(cmd);
         }
     }
 
