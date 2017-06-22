@@ -58,17 +58,6 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         return Jsonable.GSON_CONFIG;
     }
 
-//    @Bean(name = "sessionFactory")
-//    public SessionFactory sessionFactory(){
-//        SessionFactory sessionFactory = null;
-//        try {
-//            sessionFactory = new SessionFactoryHelper().getSessionFactory();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return sessionFactory;
-//    }
-
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         for (HttpMessageConverter converter : converters) {

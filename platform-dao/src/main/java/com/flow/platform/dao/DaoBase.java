@@ -34,7 +34,7 @@ public class DaoBase {
     /**
      * Session Factory
      */
-    private SessionFactory sessionFactory = SessionFactoryBuilder.getInstance().getSessionFactory();
+    private SessionFactory sessionFactory;
 
     public SessionFactory getSessionFactory() {
         return sessionFactory;

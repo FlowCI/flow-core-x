@@ -85,6 +85,4 @@ public interface AgentService {
      */
     void sessionTimeoutTask();
 
-    void setUnAutowiredInstance(AgentDaoImpl agentDao, ZoneService zoneService, CmdService cmdService);
-
 }

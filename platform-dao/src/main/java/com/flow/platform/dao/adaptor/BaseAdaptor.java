@@ -40,7 +40,6 @@ public class BaseAdaptor implements UserType {
     }
 
     /**
-     * 将数据库的字段转化成自定义数据类型
      * @param rs
      * @param names
      * @param session
@@ -63,7 +62,6 @@ public class BaseAdaptor implements UserType {
     }
 
     /**
-     * 将自定义类型转化成数据库类型
      * @param st
      * @param value
      * @param index
