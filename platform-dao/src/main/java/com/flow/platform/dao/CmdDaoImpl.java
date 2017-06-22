@@ -20,7 +20,7 @@ public class CmdDaoImpl extends DaoBase implements CmdDao {
     @Override
     public List<Cmd> listByAgentPath(AgentPath agentPath) {
         List<Cmd> cmds = execute(session -> {
-            List<Cmd> cmdList = session.createQuery("from Cmd where AGENT_ZONE = :zone and AGENT_NAME = :name")
+            List<Cmd> cmdList = session.createQuery("from Cmd where AGENT_ZONE = :zone and AGENT_NAME = :name order by CREATED_DATE asc")
                     .setParameter("zone", agentPath.getZone())
                     .setParameter("name", agentPath.getName())
                     .list();

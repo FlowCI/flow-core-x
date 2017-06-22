@@ -32,7 +32,7 @@ public interface CmdService {
     Cmd find(String cmdId);
 
     /**
-     * List cmd by agent path
+     * List cmd by agent path, order by cmd create date
      *
      * @param agentPath
      * @return
@@ -40,7 +40,7 @@ public interface CmdService {
     List<Cmd> listByAgentPath(AgentPath agentPath);
 
     /**
-     * List cmd by zone
+     * List cmd by zone, order by cmd create date
      *
      * @param zone
      * @return
