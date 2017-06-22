@@ -29,6 +29,7 @@ import java.util.List;
 @EnableScheduling
 @ComponentScan({
         "com.flow.platform.cc.controller",
+        "com.flow.platform.cc.consumer",
         "com.flow.platform.cc.service",
         "com.flow.platform.cc.cloud",
         "com.flow.platform.cc.util"})

@@ -41,6 +41,14 @@ public interface CmdService {
     List<Cmd> listByAgentPath(AgentPath agentPath);
 
     /**
+     * List cmd by zone
+     *
+     * @param zone
+     * @return
+     */
+    List<Cmd> listByZone(String zone);
+
+    /**
      * Send CmdBase with AgentPath which to identify where is cmd destination
      *  - AgentPath,
      *   - 'zone' field is required
@@ -65,11 +73,12 @@ public interface CmdService {
     /**
      * Update cmd status and result
      *
-     * @param cmdId
-     * @param status
-     * @param result
+     * @param cmdId  target cmd id
+     * @param status target cmd status should updated
+     * @param result CmdResult, nullable
+     * @param updateAgentStatus should update agent status according to cmd status
      */
-    void report(String cmdId, CmdStatus status, CmdResult result);
+    void updateStatus(String cmdId, CmdStatus status, CmdResult result, boolean updateAgentStatus);
 
     /**
      * Record full zipped log to store
@@ -78,6 +87,13 @@ public interface CmdService {
      * @param file
      */
     void saveLog(String cmdId, MultipartFile file);
+
+    /**
+     * Invoke webhook url to report Cmd
+     *
+     * @param cmdBase
+     */
+    void webhookCallback(CmdBase cmdBase);
 
     /**
      * Check timeout cmd by created date for all busy agent

@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
 /**
@@ -24,7 +25,7 @@ import java.util.concurrent.Executor;
  * Copyright fir.im
  */
 @Configuration
-@Import({MosConfig.class, TaskConfig.class, DatabaseConfig.class})
+@Import({MosConfig.class, TaskConfig.class, MQConfig.class, DatabaseConfig.class})
 public class AppConfig {
 
     public final static SimpleDateFormat APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
@@ -58,6 +59,15 @@ public class AppConfig {
         }
     }
 
+    /**
+     * Used for zone service waiting for AgentService initialized
+     * @return CountDownLatch
+     */
+    @Bean
+    public CountDownLatch initLatch() {
+        return new CountDownLatch(1);
+    }
+
     @Bean
     public AgentConfig agentConfig() {
         return new AgentConfig(socketIoUrl, cmdReportUrl, cmdLogUrl);
@@ -69,7 +79,7 @@ public class AppConfig {
         taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
         taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
         taskExecutor.setQueueCapacity(100);
-        taskExecutor.setThreadNamePrefix("async-task");
+        taskExecutor.setThreadNamePrefix("async-task-");
         return taskExecutor;
     }
 

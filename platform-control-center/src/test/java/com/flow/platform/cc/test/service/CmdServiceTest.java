@@ -4,6 +4,7 @@ import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
+import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.dao.CmdDao;
 import com.flow.platform.dao.CmdDaoImpl;
@@ -58,6 +59,11 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private CmdDaoImpl cmdDao;
+
+    @Autowired
+    private ZoneService zoneService;
+
+    private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
 
 
     private Process mockProcess = new Process() {
@@ -132,8 +138,7 @@ public class CmdServiceTest extends TestBase {
         result.setProcess(mockProcess);
         result.setProcessId(mockProcess.hashCode());
         cmdResultDao.update(result);
-        cmdService.report(cmd.getId(), CmdStatus.RUNNING, result);
-
+        cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
 
@@ -176,7 +181,6 @@ public class CmdServiceTest extends TestBase {
         // given
         String zoneName = zkHelper.getZones().get(0).getName();
         String agentName = "test-agent-001";
-
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
@@ -191,7 +195,7 @@ public class CmdServiceTest extends TestBase {
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
-            cmdService.report(current.getId(), reportStatus, new CmdResult());
+            cmdService.updateStatus(current.getId(), reportStatus, new CmdResult(), true);
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
@@ -211,7 +215,7 @@ public class CmdServiceTest extends TestBase {
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
-            cmdService.report(current.getId(), status, new CmdResult());
+            cmdService.updateStatus(current.getId(), status, new CmdResult(), true);
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
@@ -405,8 +409,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(sessionAgent.getSessionDate());
 
         // then: mock cmd been executed
-        cmd.addStatus(CmdStatus.LOGGED);
-        cmdDao.update(cmd);
+        cmdService.updateStatus(cmd.getId(), CmdStatus.LOGGED, new CmdResult(), true);
 
         // when: delete session
         CmdBase cmdToDelSession = new CmdBase(zoneName, null, CmdType.DELETE_SESSION, null);

@@ -1,6 +1,8 @@
 package com.flow.platform.domain;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,6 +61,10 @@ public class CmdBase extends Jsonable {
     protected String outputEnvFilter;
 
     protected Agent agent;
+    /**
+     * Url for report cmd status to other system
+     */
+    protected String webhook;
 
     public CmdBase() {
     }
@@ -166,6 +172,13 @@ public class CmdBase extends Jsonable {
         this.agent = agent;
     }
 
+    public String getWebhook() {
+        return webhook;
+    }
+
+    public void setWebhook(String webhook) {
+        this.webhook = webhook;
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

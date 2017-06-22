@@ -40,6 +40,7 @@
         <hibernate.version>5.2.10.Final</hibernate.version>
         <mysql_connect.version>6.0.6</mysql_connect.version>
         <hibernate_c3p0.version>5.2.10.Final</hibernate_c3p0.version>
+        <amqp-client.version>4.1.0</amqp-client.version>
     </properties>
 
     <repositories>
@@ -60,6 +61,25 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -124,6 +144,12 @@
                 <groupId>io.socket</groupId>
                 <artifactId>socket.io-client</artifactId>
                 <version>${socket.io-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.rabbitmq</groupId>
+                <artifactId>amqp-client</artifactId>
+                <version>${amqp-client.version}</version>
             </dependency>
 
             <dependency>

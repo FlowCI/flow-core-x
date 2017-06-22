@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
 /**
@@ -51,23 +52,28 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
     @Autowired
     private AgentDaoImpl agentDao;
 
+    @Autowired
+    private CountDownLatch initLatch;
+
     private final Map<Zone, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
 
     @PostConstruct
     private void init() {
-        initAgentService();
         // init root node and watch children event
         String rootPath = zkHelper.buildZkPath(null, null).path();
         ZkNodeHelper.createNode(zkClient, rootPath, "");
 
-        // init zone nodes
-        for (Zone zone : zkHelper.getZones()) {
-            createZone(zone);
-        }
-    }
-
-    public void initAgentService(){
-        agentService.setUnAutowiredInstance(agentDao, this, cmdService);
+        // init zone nodes via thread, should wait agent service initialized
+        taskExecutor.execute(() -> {
+            try {
+                initLatch.await();
+                for (Zone zone : zkHelper.getZones()) {
+                    createZone(zone);
+                }
+            } catch (InterruptedException e) {
+                LOGGER.error("Interrupted while waiting for agent service initialized", e);
+            }
+        });
     }
 
     @Override
