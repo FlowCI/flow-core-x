@@ -16,6 +16,7 @@ CREATE TABLE `Agent` (
 
 alter table Agent add unique UK_NAME_ZONE(AGENT_NAME, AGENT_ZONE);
 alter table Agent add index (STATUS);
+alter table Agent add index (SESSION_ID);
 
 
 CREATE TABLE `Cmd` (
@@ -39,6 +40,7 @@ CREATE TABLE `Cmd` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 alter table Cmd add index IX_NAME_ZONE(AGENT_NAME, AGENT_ZONE);
 alter table Cmd add index (CMD_RESULT_ID);
+alter table Cmd add index (STATUS);
 
 
 CREATE TABLE `CmdResult` (
