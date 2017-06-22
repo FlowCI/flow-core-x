@@ -9,8 +9,6 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.rabbitmq.client.Channel;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -45,9 +43,6 @@ public class CmdQueueConsumerTest extends TestBase {
     @Value("${mq.exchange.name}")
     private String cmdExchangeName;
 
-    @Autowired
-    private String cmdConsumeQueue;
-
     @Before
     public void before() {
         zoneService.createZone(new Zone(ZONE, "mock-cloud-provider"));
@@ -76,13 +71,12 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: send cmd without available agent
         CmdBase mockCmd = new CmdBase(ZONE, null, CmdType.RUN_SHELL, "echo hello");
         cmdSendChannel.basicPublish(cmdExchangeName, "", null, mockCmd.toBytes());
-        Thread.sleep(3000); // wait for re_enqueue
+        Thread.sleep(30000); // wait for re_enqueue
     }
 
     private static HttpResponse httpSend(final HttpUriRequest request) throws IOException {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpResponse response = client.execute(request);
-            return response;
+            return client.execute(request);
         }
     }
 }

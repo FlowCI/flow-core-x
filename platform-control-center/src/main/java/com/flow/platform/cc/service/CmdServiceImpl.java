@@ -3,6 +3,7 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.task.CmdWebhookTask;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.Logger;
@@ -21,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -43,6 +45,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Autowired
     private Queue<Path> cmdLoggingQueue;
+
+    @Autowired
+    private Executor taskExecutor;
 
     private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
 
@@ -239,7 +244,11 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     public void webhookCallback(CmdBase cmdBase) {
+        if (cmdBase == null || cmdBase.getWebhook() == null) {
+            return;
+        }
 
+        taskExecutor.execute(new CmdWebhookTask(cmdBase));
     }
 
     @Scheduled(fixedDelay = 300 * 1000)

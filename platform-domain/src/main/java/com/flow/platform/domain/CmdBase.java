@@ -63,7 +63,7 @@ public class CmdBase extends Jsonable {
     /**
      * Url for report cmd status to other system
      */
-    protected List<String> webhooks = new ArrayList<>(5);
+    protected String webhook;
 
     public CmdBase() {
     }
@@ -162,12 +162,12 @@ public class CmdBase extends Jsonable {
         this.outputEnvFilter = outputEnvFilter;
     }
 
-    public List<String> getWebhooks() {
-        return webhooks;
+    public String getWebhook() {
+        return webhook;
     }
 
-    public void setWebhooks(List<String> webhooks) {
-        this.webhooks = webhooks;
+    public void setWebhook(String webhook) {
+        this.webhook = webhook;
     }
 
     @Override

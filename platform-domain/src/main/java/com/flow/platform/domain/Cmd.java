@@ -205,7 +205,7 @@ public class Cmd extends CmdBase {
         cmd.sessionId = base.getSessionId();
         cmd.priority = base.getPriority();
         cmd.outputEnvFilter = base.getOutputEnvFilter();
-        cmd.webhooks = base.getWebhooks();
+        cmd.webhook = base.getWebhook();
         return cmd;
     }
 }
