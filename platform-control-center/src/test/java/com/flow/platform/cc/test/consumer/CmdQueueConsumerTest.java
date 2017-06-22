@@ -3,19 +3,13 @@ package com.flow.platform.cc.test.consumer;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.CmdBase;
-import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Zone;
+import com.flow.platform.domain.*;
 import com.rabbitmq.client.Channel;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,27 +43,29 @@ public class CmdQueueConsumerTest extends TestBase {
     }
 
     @Test
-    public void should_receive_cmd_via_queue() throws Throwable {
+    public void should_receive_cmd_from_queue() throws Throwable {
         // given:
         String agentName = "mock-agent-1";
         AgentPath agentPath = createMockAgent(ZONE, agentName);
         Thread.sleep(1000);
 
         // when: send cmd by rabbit mq with cmd exchange name
-        CmdBase mockCmd = new CmdBase(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
+        CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
         cmdSendChannel.basicPublish(cmdExchangeName, "", null, mockCmd.toBytes());
         Thread.sleep(1000);
 
         // then: cmd should received in zookeeper agent node
         byte[] raw = zkClient.getData(zkHelper.getZkPath(agentPath), false, null);
-        CmdBase received = CmdBase.parse(raw, CmdBase.class);
-        Assert.assertEquals(mockCmd, received);
+        Cmd received = Cmd.parse(raw, Cmd.class);
+        Assert.assertNotNull(received.getId());
+        Assert.assertEquals(mockCmd.getAgentPath(), received.getAgentPath());
     }
 
+    @Ignore("this ut not finished yet")
     @Test
     public void should_re_enqueue_if_no_agent() throws Throwable {
         // when: send cmd without available agent
-        CmdBase mockCmd = new CmdBase(ZONE, null, CmdType.RUN_SHELL, "echo hello");
+        CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
         cmdSendChannel.basicPublish(cmdExchangeName, "", null, mockCmd.toBytes());
         Thread.sleep(30000); // wait for re_enqueue
     }

@@ -3,6 +3,7 @@ package com.flow.platform.cc.consumer;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.util.Logger;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
@@ -63,9 +64,9 @@ public class CmdQueueConsumer {
                                        byte[] body) throws IOException {
 
                 // convert byte to CmdBase
-                CmdBase inputCmd;
+                CmdInfo inputCmd;
                 try {
-                    inputCmd = CmdBase.parse(body, CmdBase.class);
+                    inputCmd = CmdInfo.parse(body, CmdInfo.class);
                     LOGGER.trace("Receive a cmd from queue : %s", inputCmd);
                 } catch (Throwable e) {
                     LOGGER.error("Unable to recognize cmd type", e);

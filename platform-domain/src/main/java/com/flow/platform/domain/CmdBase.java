@@ -1,8 +1,6 @@
 package com.flow.platform.domain;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,7 +9,7 @@ import java.util.Map;
  * Created by gy@fir.im on 20/05/2017.
  * Copyright fir.im
  */
-public class CmdBase extends Jsonable {
+public abstract class CmdBase extends Jsonable {
 
     /**
      * Destination of command
