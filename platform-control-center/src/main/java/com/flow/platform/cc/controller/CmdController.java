@@ -37,7 +37,7 @@ public class CmdController {
      * @return
      */
     @PostMapping(path = "/send", consumes = "application/json")
-    public Cmd sendCommand(@RequestBody CmdBase cmd) {
+    public Cmd sendCommand(@RequestBody CmdInfo cmd) {
         return cmdService.send(cmd);
     }
 

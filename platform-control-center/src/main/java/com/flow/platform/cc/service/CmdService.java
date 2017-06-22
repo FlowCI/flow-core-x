@@ -4,7 +4,6 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -22,7 +21,7 @@ public interface CmdService {
      * @param cmd
      * @return Cmd objc with id
      */
-    Cmd create(CmdBase cmd);
+    Cmd create(CmdInfo cmd);
 
     /**
      * Find cmd obj by id
@@ -56,11 +55,11 @@ public interface CmdService {
      *      - which mean system will automatic select idle agent to send
      *        throw AgentErr.NotAvailableException if no idle agent
      *
-     * @param cmd
+     * @param cmdInfo
      * @return command objc with id
      * @exception AgentErr.NotAvailableException if agent busy
      */
-    Cmd send(CmdBase cmd);
+    Cmd send(CmdInfo cmdInfo);
 
     /**
      * Check cmd is timeout

@@ -79,7 +79,7 @@ public class CmdControllerTest extends TestBase {
         AgentPath path = new AgentPath("test-zone-00", "test-001");
         agentService.reportOnline("test-zone-00", Lists.newArrayList(path));
 
-        CmdBase base = new CmdBase("test-zone-00", "test-001", CmdType.STOP, null);
+        CmdInfo base = new CmdInfo("test-zone-00", "test-001", CmdType.STOP, null);
         Cmd cmd = cmdService.create(base);
 
         // when:
@@ -112,7 +112,7 @@ public class CmdControllerTest extends TestBase {
         Thread.sleep(1000);
 
         // when: send post request
-        CmdBase cmd = new CmdBase(zoneName, agentName, CmdType.RUN_SHELL, "~/hello.sh");
+        CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, "~/hello.sh");
         cmd.getInputs().put("FLOW_P_1", "flow-1");
         cmd.getInputs().put("FLOW_P_2", "flow-2");
         cmd.setWorkingDir("/user/flow");
@@ -159,7 +159,7 @@ public class CmdControllerTest extends TestBase {
         Path path = Paths.get(resource.getFile());
         byte[] data = Files.readAllBytes(path);
 
-        CmdBase cmdBase = new CmdBase("test-zone-1", "test-agent-1", CmdType.RUN_SHELL, "~/hello.sh");
+        CmdInfo cmdBase = new CmdInfo("test-zone-1", "test-agent-1", CmdType.RUN_SHELL, "~/hello.sh");
         Cmd cmd = cmdService.create(cmdBase);
 
         String originalFilename = cmd.getId() + ".out.zip";

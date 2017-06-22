@@ -187,8 +187,8 @@ public class AgentServiceImpl implements AgentService {
             Collection<Agent> agents = onlineList(zone.getName());
             for (Agent agent : agents) {
                 if (agent.getSessionId() != null && isSessionTimeout(agent, now, AGENT_SESSION_TIMEOUT)) {
-                    CmdBase cmd = new CmdBase(agent.getPath(), CmdType.DELETE_SESSION, null);
-                    cmdService.send(cmd);
+                    CmdInfo cmdInfo = new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null);
+                    cmdService.send(cmdInfo);
                     LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
                 }
             }

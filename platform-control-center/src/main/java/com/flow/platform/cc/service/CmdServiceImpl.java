@@ -54,9 +54,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     private final ReentrantLock mockTrans = new ReentrantLock();
 
     @Override
-    public Cmd create(CmdBase cmdBase) {
+    public Cmd create(CmdInfo info) {
         String cmdId = UUID.randomUUID().toString();
-        Cmd cmd = Cmd.convert(cmdBase);
+        Cmd cmd = Cmd.convert(info);
         cmd.setId(cmdId);
         cmd.setCreatedDate(DateUtil.utcNow());
         cmd.setUpdatedDate(DateUtil.utcNow());
@@ -124,7 +124,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      * @return
      */
     @Override
-    public Cmd send(CmdBase cmd) {
+    public Cmd send(CmdInfo cmd) {
         mockTrans.lock();
 
         try {
@@ -266,7 +266,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             if (cmd.getType() == CmdType.RUN_SHELL && cmd.isCurrent()) {
                 if (isTimeout(cmd)) {
                     // kill current running cmd and report status
-                    send(new CmdBase(cmd.getAgentPath(), CmdType.KILL, null));
+                    send(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
                     LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
 
                     updateStatus(cmd.getId(), CmdStatus.TIMEOUT_KILL, cmd.getResult(), true);

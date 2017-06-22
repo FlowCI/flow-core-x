@@ -188,8 +188,8 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
                 Agent idleAgent = agentList.get(i);
 
                 // send shutdown cmd
-                CmdBase cmd = new CmdBase(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci");
-                cmdService.send(cmd);
+                CmdInfo cmdInfo = new CmdInfo(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci");
+                cmdService.send(cmdInfo);
                 LOGGER.traceMarker("keepIdleAgentMaxSize", "Send SHUTDOWN to idle agent: %s", idleAgent);
 
                 // add instance to cleanup list
