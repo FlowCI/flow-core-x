@@ -5,18 +5,16 @@
 
 <hibernate-mapping package="com.flow.platform.domain">
     <class name="CmdResult" table="CmdResult">
-        <id name="id" type="string" >
-            <generator class="org.hibernate.id.UUIDGenerator"/>
+        <id name="cmdId" type="string" column="CMD_ID">
+            <generator class="assigned"/>
         </id>
 
-        <property name="processId" column="PROCESS_ID"/>
-        <property name="exitValue" column="EXIT_VALUE"/>
-        <property name="duration" column="DURATION"/>
-        <property name="totalDuration" column="TOTAL_DURATION"/>
-        <property name="startTime" column="START_TIME"/>
-        <property name="executedTime" column="EXECUTED_TIME"/>
-        <property name="finishTime" column="FINISH_TIME"/>
-        <property name="cmdId" column="CMD_ID"/>
-
+        <property name="processId" not-null="false" column="PROCESS_ID"/>
+        <property name="exitValue" not-null="false" column="EXIT_VALUE"/>
+        <property name="duration" not-null="false" column="DURATION"/>
+        <property name="totalDuration" not-null="false" column="TOTAL_DURATION"/>
+        <property name="startTime" not-null="false" column="START_TIME"/>
+        <property name="executedTime" not-null="false" column="EXECUTED_TIME"/>
+        <property name="finishTime" not-null="false" column="FINISH_TIME"/>
     </class>
 </hibernate-mapping>

@@ -13,13 +13,14 @@ public class CmdResult implements Serializable {
     public static final Integer EXIT_VALUE_FOR_REJECT = -100;
     public static final Integer EXIT_VALUE_FOR_TIMEOUT = -200;
 
-    private String id;
-
     /**
      * Only agent local, cannot parse to json
      */
     private transient Process process;
 
+    /**
+     * Related cmd id
+     */
     private String cmdId;
 
     /**
@@ -73,14 +74,6 @@ public class CmdResult implements Serializable {
 
     public void setCmdId(String cmdId) {
         this.cmdId = cmdId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public Process getProcess() {

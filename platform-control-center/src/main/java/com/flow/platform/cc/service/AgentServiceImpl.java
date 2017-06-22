@@ -2,12 +2,8 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.dao.AgentDaoImpl;
-import com.flow.platform.dao.CmdDaoImpl;
-import com.flow.platform.dao.CmdResultDaoImpl;
 import com.flow.platform.domain.*;
-import org.hibernate.SessionFactory;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,18 +38,6 @@ public class AgentServiceImpl implements AgentService {
     private AgentDaoImpl agentDao;
 
     @Autowired
-    private SpringContextUtil springContextUtil;
-
-    public Map<String, Map<AgentPath, Agent>> getAgentOnlineList(){
-        Map<String, Map<AgentPath, Agent>> agentOnline = new HashMap<>();
-        List<Agent> agents = agentDao.onlineList();
-        for(Agent agent : agents){
-            Map<AgentPath, Agent> agentList = agentOnline.computeIfAbsent(agent.getZone(), k -> new HashMap<>());
-            agentList.put(agent.getPath(), agent);
-        }
-        return agentOnline;
-    }
-
     private TaskConfig taskConfig;
 
     @Autowired
@@ -97,8 +81,7 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Agent find(AgentPath key) {
-        Agent agent  = agentDao.find(key);
-        return agent;
+        return agentDao.find(key);
     }
 
     @Override
@@ -108,15 +91,12 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public List<Agent> findAvailable(String zone) {
-        List<Agent> availableList;
-        availableList = agentDao.findAvailable(zone);
-        return availableList;
+        return agentDao.findAvailable(zone);
     }
 
     @Override
     public Collection<Agent> onlineList(String zone) {
-        Collection<Agent> zoneAgents = agentDao.onlineList(zone);
-        return zoneAgents;
+        return agentDao.onlineList(zone);
     }
 
     @Override
@@ -139,7 +119,8 @@ public class AgentServiceImpl implements AgentService {
         agent.setSessionId(sessionId); // set session id to agent
         agent.setSessionDate(DateUtil.utcNow());
         agent.setStatus(AgentStatus.BUSY);
-        // agent.save
+        agentDao.update(agent);
+
         return sessionId;
     }
 
@@ -184,6 +165,16 @@ public class AgentServiceImpl implements AgentService {
         }
 
         LOGGER.traceMarker("sessionTimeoutTask", "end");
+    }
+
+    public Map<String, Map<AgentPath, Agent>> getAgentOnlineList(){
+        Map<String, Map<AgentPath, Agent>> agentOnline = new HashMap<>();
+        List<Agent> agents = agentDao.onlineList();
+        for(Agent agent : agents){
+            Map<AgentPath, Agent> agentList = agentOnline.computeIfAbsent(agent.getZone(), k -> new HashMap<>());
+            agentList.put(agent.getPath(), agent);
+        }
+        return agentOnline;
     }
 
     public boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds) {

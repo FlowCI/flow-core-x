@@ -6,12 +6,10 @@ import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.dao.CmdDao;
 import com.flow.platform.dao.CmdDaoImpl;
-import com.flow.platform.dao.CmdResultDao;
 import com.flow.platform.dao.CmdResultDaoImpl;
-import com.flow.platform.util.DateUtil;
 import com.flow.platform.domain.*;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Lists;
@@ -52,6 +50,9 @@ public class CmdServiceTest extends TestBase {
     private AgentService agentService;
 
     @Autowired
+    private ZoneService zoneService;
+
+    @Autowired
     private Queue<Path> cmdLoggingQueue;
 
     @Autowired
@@ -59,9 +60,6 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private CmdDaoImpl cmdDao;
-
-    @Autowired
-    private ZoneService zoneService;
 
     private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
 
@@ -137,7 +135,7 @@ public class CmdServiceTest extends TestBase {
         result.setStartTime(new Date());
         result.setProcess(mockProcess);
         result.setProcessId(mockProcess.hashCode());
-        cmdResultDao.update(result);
+
         cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
@@ -280,7 +278,10 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_auto_select_idle_agent_when_cmd_send() throws Throwable {
         // given:
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = "auto-select-zone";
+        zoneService.createZone(new Zone(zoneName, MOCK_PROVIDER_NAME));
+        Thread.sleep(1000);
+
         AgentPath agentIdle1 = new AgentPath(zoneName, "idle-agent-01");
         AgentPath agentIdle2 = new AgentPath(zoneName, "idle-agent-02");
         AgentPath agentBusy1 = new AgentPath(zoneName, "busy-agent-01");

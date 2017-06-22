@@ -7,16 +7,21 @@ import com.flow.platform.cc.service.AgentServiceImpl;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.SpringContextUtil;
-import com.flow.platform.domain.*;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.KeeperException;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Created by gy@fir.im on 24/05/2017.

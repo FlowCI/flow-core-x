@@ -48,7 +48,10 @@
     </Appenders>
 
     <Loggers>
-        <Logger name="org.springframework" level="info"></Logger>
+        <Logger name="org.springframework" level="info"/>
+        <Logger name="org.hibernate" level="error"/>
+        <Logger name="org.jboss.logging" level="off"/>
+
         <Root level="all">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RollingFileInfo"/>

@@ -33,8 +33,6 @@ public class Cmd extends CmdBase {
      */
     private String id;
 
-    private String cmdResultId;
-
     /**
      * record current status
      */
@@ -125,16 +123,6 @@ public class Cmd extends CmdBase {
     public void setLogPaths(List<String> logPaths) {
         this.logPaths = logPaths;
     }
-
-
-    public String getCmdResultId() {
-        return cmdResultId;
-    }
-
-    public void setCmdResultId(String cmdResultId) {
-        this.cmdResultId = cmdResultId;
-    }
-
 
     public Date getCreatedDate() {
         return createdDate;

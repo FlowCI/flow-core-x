@@ -12,7 +12,7 @@ CREATE TABLE `Agent` (
   `AGENT_NAME` varchar(50) DEFAULT NULL,
   `AGENT_ZONE` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 alter table Agent add unique UK_NAME_ZONE(AGENT_NAME, AGENT_ZONE);
 alter table Agent add index (STATUS);
@@ -37,7 +37,8 @@ CREATE TABLE `Cmd` (
   `TYPE` varchar(50) DEFAULT NULL,
   `STATUS` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 alter table Cmd add index IX_NAME_ZONE(AGENT_NAME, AGENT_ZONE);
 alter table Cmd add index (CMD_RESULT_ID);
 alter table Cmd add index (STATUS);
@@ -54,6 +55,7 @@ CREATE TABLE `CmdResult` (
   `FINISH_TIME` datetime DEFAULT NULL,
   `CMD_ID` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 alter table CmdResult add index (CMD_ID);
 

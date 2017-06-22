@@ -8,9 +8,10 @@ import java.util.Date;
  */
 public class Agent extends Jsonable {
 
+    /**
+     * Composite key
+     */
     private AgentPath path;
-
-    private String id;
 
     /**
      * Max concurrent proc number
@@ -117,14 +118,6 @@ public class Agent extends Jsonable {
 
     public void setUpdatedDate(Date updatedDate) {
         this.updatedDate = updatedDate;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public boolean isAvailable() {
