@@ -130,6 +130,7 @@ public class CmdServiceTest extends TestBase {
         CmdResult result = new CmdResult();
         result.setStartTime(new Date());
         result.setProcess(mockProcess);
+        result.setProcessId(mockProcess.hashCode());
         cmdResultDao.update(result);
         cmdService.report(cmd.getId(), CmdStatus.RUNNING, result);
 
@@ -138,10 +139,7 @@ public class CmdServiceTest extends TestBase {
 
         Assert.assertTrue(loaded.getStatus().equals(CmdStatus.RUNNING));
         Assert.assertNotNull(cmdResultDao.findByCmdId(cmd.getId()));
-
-        // TODO: ensure this meaning
-//        Assert.assertEquals(mockProcess, cmdResultDao.findByCmdId(cmd.getId()).getProcess());
-
+        Assert.assertEquals((Integer) mockProcess.hashCode(), cmdResultDao.findByCmdId(cmd.getId()).getProcessId());
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentPath).getStatus());
     }
 
