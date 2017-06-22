@@ -82,7 +82,7 @@ public class AgentDaoImpl extends DaoBase implements AgentDao {
 
     @Override
     public List<Agent> findAvailable(String zone) {
-        List<Agent> agents = execute(session -> session.createQuery("from Agent where AGENT_ZONE = :zone and STATUS = :idle ORDER BY CREATED_DATE DESC")
+        List<Agent> agents = execute(session -> session.createQuery("from Agent where AGENT_ZONE = :zone and STATUS = :idle ORDER BY UPDATED_DATE ASC")
                 .setParameter("zone", zone)
                 .setParameter("idle", AgentStatus.IDLE.toString())
                 .list());

@@ -296,16 +296,17 @@ public class CmdServiceTest extends TestBase {
 
         // set idle agent 1 date, before idle agent 2
         Instant date = LocalDate.of(2017, 5, 10).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        agentService.find(agentIdle1).setUpdatedDate(Date.from(date));
+        Agent agent = agentService.find(agentIdle1);
+        agent.setUpdatedDate(Date.from(date));
+        agentDao.update(agent);
 
         // when: send cmd to zone
 
         Cmd cmdForIdle1 = cmdService.send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
 
         // then: should select agent idle 1 as target
-        Assert.assertEquals(agentIdle2.getName(), cmdForIdle1.getAgentPath().getName());
-        Assert.assertEquals(agentIdle2.getZone(), cmdForIdle1.getAgentPath().getZone());
-        Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentIdle2).getStatus());
+        Assert.assertEquals(agentIdle1, cmdForIdle1.getAgentPath());
+        Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentIdle1).getStatus());
 
         // when: send cmd to make all agent to busy
 
