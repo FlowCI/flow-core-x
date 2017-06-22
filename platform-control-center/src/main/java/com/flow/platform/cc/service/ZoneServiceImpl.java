@@ -55,7 +55,6 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
     @PostConstruct
     private void init() {
-        //因为这时候依赖注入还没有完成
         initAgentService();
         // init root node and watch children event
         String rootPath = zkHelper.buildZkPath(null, null).path();

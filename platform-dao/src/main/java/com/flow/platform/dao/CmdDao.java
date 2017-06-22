@@ -13,4 +13,5 @@ public interface CmdDao {
     List<Cmd> listByAgentPath(AgentPath agentPath);
     Cmd findByCmdResultId(String cmdResultId);
     List<Cmd> listByStatus(String status);
+    void baseDelete(String condition);
 }

@@ -116,9 +116,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             // double check agent in zk node
             String agentNodePath = zkHelper.getZkPath(target.getPath());
 
-            // 经常session超时
-            zkClient = zkHelper.getClient();
-
             if (ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
                 throw new AgentErr.NotFoundException(target.getPath().toString());
             }
@@ -210,13 +207,14 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             }else{
                 cmdResult = result;
             }
-            cmdResult.setCmdId(cmd.getId());
-            cmdResultDao.update(cmdResult);
+            if(cmdResult != null){
+                cmdResult.setCmdId(cmd.getId());
+                cmdResultDao.update(cmdResult);
+                cmd.setCmdResultId(cmdResult.getId());
+            }
             // update cmd status
-
             cmd.addStatus(status);
             cmd.setUpdatedDate(new Date());
-            cmd.setCmdResultId(cmdResult.getId());
             cmdDao.update(cmd);
             // update agent status
             updateAgentStatusWhenUpdateCmd(cmd);
@@ -250,6 +248,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             Path target = Paths.get(AppConfig.CMD_LOG_DIR.toString(), file.getOriginalFilename());
             Files.write(target, file.getBytes());
             cmd.getLogPaths().add(target.toString());
+            cmdDao.update(cmd);
             cmdLoggingQueue.add(target);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -354,7 +353,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         // update agent status by cmd status
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
-        for (Cmd tmp : getRunningCmds()) {
+        for (Cmd tmp : listByAgentPath(agentPath)) {
             if (tmp.getType() != CmdType.RUN_SHELL) {
                 continue;
             }

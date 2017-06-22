@@ -3,6 +3,7 @@ package com.flow.platform.dao;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import java.util.List;
 
@@ -29,9 +30,17 @@ public class CmdDaoImpl extends DaoBase implements CmdDao {
     }
 
     @Override
+    public void baseDelete(String condition) {
+        Session session = getSession();
+        Transaction tx = session.beginTransaction();
+        session.createQuery("delete Cmd where ".concat(condition)).executeUpdate();
+        tx.commit();
+    }
+
+    @Override
     public List<Cmd> listByStatus(String status) {
         List<Cmd> cmds = execute(session -> {
-            List<Cmd> cmdList = session.createQuery("from Cmd where status = :status")
+            List<Cmd> cmdList = session.createQuery("from Cmd where STATUS = :status")
                     .setParameter("status", status)
                     .list();
             return cmdList;

@@ -52,14 +52,14 @@ public class BaseAdaptor implements UserType {
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws HibernateException, SQLException {
 
-        if(rs.wasNull() == false){
+//        if(rs.wasNull() == false){
             String str = rs.getString(names[0]);
             if (str == null) {
                 return null;
             }
             return jsonToObject(str);
-        }
-        return null;
+//        }
+//        return null;
     }
 
     /**

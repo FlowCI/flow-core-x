@@ -7,4 +7,5 @@ import com.flow.platform.domain.CmdResult;
  */
 public interface CmdResultDao {
     CmdResult findByCmdId(String cmdId);
+    void baseDelete(String condition);
 }

@@ -143,7 +143,7 @@ public class CmdControllerTest extends TestBase {
         Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
         Assert.assertEquals(zoneName, cmdInfo.getZone());
         Assert.assertEquals(agentName, cmdInfo.getAgentName());
-        Assert.assertEquals(agentName, agentDao.find(cmdInfo.getAgentPath()));
+        Assert.assertEquals(agentName, agentDao.find(cmdInfo.getAgentPath()).getName());
         Assert.assertEquals(2, cmdInfo.getInputs().size());
         Assert.assertEquals("/user/flow", cmdInfo.getWorkingDir());
         Assert.assertEquals(1, cmdInfo.getPriority().intValue());

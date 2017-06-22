@@ -3,6 +3,11 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.util.ZkHelper;
+import com.flow.platform.dao.AgentDaoImpl;
+import com.flow.platform.dao.CmdDaoImpl;
+import com.flow.platform.dao.CmdResultDao;
+import com.flow.platform.dao.CmdResultDaoImpl;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.google.gson.Gson;
 import org.apache.zookeeper.ZooKeeper;
@@ -56,10 +61,22 @@ public abstract class TestBase {
 
     protected MockMvc mockMvc;
 
+    @Autowired
+    protected AgentDaoImpl agentDao;
+
+    @Autowired
+    protected CmdDaoImpl cmdDao;
+
+    @Autowired
+    protected CmdResultDaoImpl cmdResultDao;
+
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         zkClient = zkHelper.getClient();
+        cmdDao.baseDelete("1=1");
+        cmdResultDao.baseDelete("1=1");
+        agentDao.baseDelete("1=1");
     }
 
     @AfterClass

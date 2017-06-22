@@ -23,6 +23,14 @@ public class AgentDaoImpl extends DaoBase implements AgentDao {
     }
 
     @Override
+    public void baseDelete(String condition) {
+        Session session = getSession();
+        Transaction tx = session.beginTransaction();
+        session.createQuery("delete from Agent where ".concat(condition)).executeUpdate();
+        tx.commit();
+    }
+
+    @Override
     public List<Agent> onlineList() {
         List<Agent> agents;
         agents = execute((Session session) -> {
@@ -74,7 +82,7 @@ public class AgentDaoImpl extends DaoBase implements AgentDao {
 
     @Override
     public List<Agent> findAvailable(String zone) {
-        List<Agent> agents = execute(session -> session.createQuery("from Agent where AGENT_ZONE = :zone and STATUS = :idle")
+        List<Agent> agents = execute(session -> session.createQuery("from Agent where AGENT_ZONE = :zone and STATUS = :idle ORDER BY CREATED_DATE DESC")
                 .setParameter("zone", zone)
                 .setParameter("idle", AgentStatus.IDLE.toString())
                 .list());

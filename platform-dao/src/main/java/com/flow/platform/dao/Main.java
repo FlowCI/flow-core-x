@@ -77,25 +77,29 @@ public class Main {
 
           AgentDaoImpl daobase = new AgentDaoImpl();
          daobase.setSessionFactory(factory);
-//        Agent agent = new Agent("XXX", "sss");
-//        Agent agent1 = daobase.save(agent);
-//
+        Agent agent = new Agent("XXX", "sss");
+        Agent agent1 = daobase.save(agent);
+
+        daobase.baseDelete("1=1");
 //        agent.setStatus(AgentStatus.IDLE);
 //        agent = daobase.update(agent);
 //
-        AgentPath agentPath = new AgentPath("test1", "jinan");
-        Cmd cmd = new Cmd(new CmdBase(agentPath, CmdType.KILL, "ls"));
-        cmd.setId("000000000000001");
-        List<String> logs = new ArrayList<>(3);
-        logs.add("xxxx");
-        logs.add("aaaaa");
-        logs.add("bbbb");
-        Map<String, String> inputs = new HashMap<>();
-        inputs.put("a", "b");
-        inputs.put("c", "d");
-        cmd.setLogPaths(logs);
-        cmd.setInputs(inputs);
-        daobase.save(cmd);
+//        CmdDaoImpl cmdDao = new CmdDaoImpl();
+//        cmdDao.setSessionFactory(factory);
+//        List<Cmd> list = cmdDao.listByStatus(CmdStatus.PENDING.toString());
+//        AgentPath agentPath = new AgentPath("test1", "jinan");
+//        Cmd cmd = new Cmd(new CmdBase(agentPath, CmdType.KILL, "ls"));
+//        cmd.setId("000000000000001");
+//        List<String> logs = new ArrayList<>(3);
+//        logs.add("xxxx");
+//        logs.add("aaaaa");
+//        logs.add("bbbb");
+//        Map<String, String> inputs = new HashMap<>();
+//        inputs.put("a", "b");
+//        inputs.put("c", "d");
+//        cmd.setLogPaths(logs);
+//        cmd.setInputs(inputs);
+//        daobase.save(cmd);
 
 //         Cmd cmd = daobase.get(Cmd.class, "ffc2b79b-6ba7-433b-b4e7-a12d3cfdf92e");
 //         cmd.getLogPaths();

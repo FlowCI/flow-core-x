@@ -8,9 +8,9 @@
         <id name="id" type="string">
             <generator class="org.hibernate.id.UUIDGenerator"/>
         </id>
-        <property name="createdDate" type="date" column="CREATED_DATE"/>
-        <property name="updatedDate" type="date" column="UPDATED_DATE"/>
-        <property name="finishedDate" type="date" column="FINISHED_DATE"/>
+        <property name="createdDate"  column="CREATED_DATE"/>
+        <property name="updatedDate"  column="UPDATED_DATE"/>
+        <property name="finishedDate"  column="FINISHED_DATE"/>
         <property name="cmd" type="string" column="CMD"/>
         <property name="cmdResultId" type="string" column="CMD_RESULT_ID"/>
         <property name="timeout" type="long" column="TIMEOUT"/>

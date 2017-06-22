@@ -175,6 +175,9 @@ public class CmdBase extends Jsonable {
 
         if (!agentPath.equals(cmdBase.agentPath)) return false;
         if (type != cmdBase.type) return false;
+        if(cmd == null){
+            return cmd == cmdBase.cmd;
+        }
         return cmd.equals(cmdBase.cmd);
     }
 

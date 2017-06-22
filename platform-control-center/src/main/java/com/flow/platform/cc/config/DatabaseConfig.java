@@ -64,12 +64,13 @@ public class DatabaseConfig {
                 .setProperty("hibernate.connection.username", connectionUsername)
                 .setProperty("hibernate.show_sql", showSql.toString())
                 .setProperty("hibernate.hbm2ddl.auto", hbHbm2ddlAuto)
+                .setProperty("hibernate.jdbc.time_zone", "UTC")
                 .setProperty("hibernate.dialect", connectionDialect)
                 .setProperty("hibernate.connection.password", connectionPassword)
-                .setProperty("hibernate.connection.provider_class", c3p0ConnectionProvider)
-                .setProperty("hibernate.c3p0.max_size", c3p0MaxSize)
-                .setProperty("hibernate.c3p0.min_size", c3p0MinSize)
-                .setProperty("hibernate.c3p0.timeout", c3p0Timeout);
+                .setProperty("hibernate.connection.provider_class", c3p0ConnectionProvider);
+//                .setProperty("hibernate.c3p0.max_size", c3p0MaxSize)
+//                .setProperty("hibernate.c3p0.min_size", c3p0MinSize)
+//                .setProperty("hibernate.c3p0.timeout", c3p0Timeout);
         configuration.addResource("Agent.hbm.xml")
                 .addResource("CmdResult.hbm.xml")
                 .addResource("Cmd.hbm.xml");

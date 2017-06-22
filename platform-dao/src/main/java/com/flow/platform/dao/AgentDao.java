@@ -17,4 +17,5 @@ public interface AgentDao {
     List<Agent> onlineList();
     Agent findOnline(String sessionId);
     List<Agent> findAvailable(String zone);
+    void baseDelete(String condition);
 }

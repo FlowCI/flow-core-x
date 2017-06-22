@@ -81,10 +81,6 @@ public class AgentServiceImpl implements AgentService {
             for (AgentPath key : onlines) {
                 reportOnline(key);
             }
-//
-//            // 这里的操作是一个zone下的所有的节点报上来，设置 online 还是 offline
-//
-
         } finally {
             onlineListUpdateLock.unlock();
         }
@@ -92,7 +88,6 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Agent find(AgentPath key) {
-        //在所有的Agent中查询 并不是 online 的
         Agent agent  = agentDao.find(key);
         return agent;
     }
@@ -104,32 +99,13 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public List<Agent> findAvailable(String zone) {
-//        Collection<Agent> onlines = onlineList(zone);
-//
-//        // find available agent
-//        List<Agent> availableList = new LinkedList<>();
-//        for (Agent agent : onlines) {
-//            if (agent.getStatus() == AgentStatus.IDLE) {
-//                availableList.add(agent);
-//            }
-//        }
-//
-//        // sort by update date, the first element is longest idle
-//        availableList.sort(Comparator.comparing(Agent::getUpdatedDate));
-        List<Agent> availableList = new LinkedList<>();
+        List<Agent> availableList;
         availableList = agentDao.findAvailable(zone);
         return availableList;
     }
 
     @Override
     public Collection<Agent> onlineList(String zone) {
-//        Collection<Agent> zoneAgents = new ArrayList<>(agentOnlineList.size());
-//        Map<AgentPath, Agent> agentList = agentOnlineList.computeIfAbsent(zone, k -> new HashMap<>());
-//        for (Agent agent : agentList.values()) {
-//            if (agent.getZone().equals(zone)) {
-//                zoneAgents.add(agent);
-//            }
-//        }
         Collection<Agent> zoneAgents = agentDao.onlineList(zone);
         return zoneAgents;
     }

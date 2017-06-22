@@ -76,6 +76,7 @@ public class AgentControllerTest extends TestBase {
         ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
+        Thread.sleep(1000);
         // when: send get request
         MvcResult result = this.mockMvc.perform(get("/agent/list").param("zone", zoneName))
                 .andDo(print())
@@ -102,6 +103,7 @@ public class AgentControllerTest extends TestBase {
         ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
 
+        Thread.sleep(1000);
         // when: send agent info
         Agent agentObj = new Agent(zoneName, agentName);
         agentObj.setStatus(AgentStatus.BUSY);
