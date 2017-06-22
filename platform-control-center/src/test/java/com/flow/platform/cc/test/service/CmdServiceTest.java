@@ -261,7 +261,7 @@ public class CmdServiceTest extends TestBase {
         Cmd loaded = Jsonable.parse(raw, Cmd.class);
         Assert.assertEquals(cmdInfo, loaded);
 
-        Thread.sleep(100); // mock network delay
+        Thread.sleep(1000); // mock network delay
 
         // when: send command again to the same agent
         try {
