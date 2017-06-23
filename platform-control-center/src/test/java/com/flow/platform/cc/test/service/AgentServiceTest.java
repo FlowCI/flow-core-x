@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 /**
@@ -133,7 +134,7 @@ public class AgentServiceTest extends TestBase {
         AgentServiceImpl agentService = (AgentServiceImpl) this.agentService;
         Agent mockAgent = new Agent("test-zone", "session-timeout-agent");
         mockAgent.setSessionId("mock-session-id");
-        mockAgent.setSessionDate(new Date());
+        mockAgent.setSessionDate(ZonedDateTime.now());
 
         // then:
         Thread.sleep(1500); // wait for 2 seconds

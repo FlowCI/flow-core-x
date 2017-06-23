@@ -68,8 +68,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         String cmdId = UUID.randomUUID().toString();
         Cmd cmd = Cmd.convert(info);
         cmd.setId(cmdId);
-        cmd.setCreatedDate(DateUtil.utcNow());
-        cmd.setUpdatedDate(DateUtil.utcNow());
+        cmd.setCreatedDate(new Date());
+        cmd.setUpdatedDate(new Date());
         cmdDao.save(cmd);
         return cmd;
     }
@@ -231,7 +231,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
             // update cmd status
             if (cmd.addStatus(status)) {
-                cmd.setUpdatedDate(DateUtil.utcNow());
+                cmd.setUpdatedDate(new Date());
                 cmdDao.update(cmd);
                 // update agent status
                 if (updateAgentStatus) {

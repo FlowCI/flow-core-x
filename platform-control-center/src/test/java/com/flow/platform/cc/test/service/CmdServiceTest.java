@@ -132,7 +132,7 @@ public class CmdServiceTest extends TestBase {
 
         // when:
         CmdResult result = new CmdResult();
-        result.setStartTime(new Date());
+        result.setStartTime(ZonedDateTime.now());
         result.setProcess(mockProcess);
         result.setProcessId(mockProcess.hashCode());
 
@@ -300,7 +300,7 @@ public class CmdServiceTest extends TestBase {
         // set idle agent 1 date, before idle agent 2
         Instant date = LocalDate.of(2017, 5, 10).atStartOfDay(ZoneId.systemDefault()).toInstant();
         Agent agent = agentService.find(agentIdle1);
-        agent.setUpdatedDate(Date.from(date));
+        agent.setUpdatedDate(date.atZone(ZoneId.systemDefault()));
         agentDao.update(agent);
 
         // when: send cmd to zone

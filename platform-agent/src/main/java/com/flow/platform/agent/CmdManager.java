@@ -9,6 +9,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.Logger;
 import com.google.common.collect.Maps;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -224,7 +225,7 @@ public class CmdManager {
         CmdResult rejectResult = new CmdResult();
         rejectResult.setExitValue(CmdResult.EXIT_VALUE_FOR_REJECT);
 
-        Date now = new Date();
+        ZonedDateTime now = ZonedDateTime.now();
         rejectResult.setStartTime(now);
         rejectResult.setExecutedTime(now);
         rejectResult.setFinishTime(now);

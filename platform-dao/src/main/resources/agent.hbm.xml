@@ -10,8 +10,8 @@
             <key-property name="zone" type="string" column="agent_zone"/>
         </composite-id>
 
-        <property name="createdDate" type="date" column="created_date"/>
-        <property name="updatedDate" type="date" column="updated_date"/>
+        <property name="createdDate" column="created_date"/>
+        <property name="updatedDate" column="updated_date"/>
         <property name="concurrentProc" column="concurrent_proc"></property>
         <property name="sessionId" column="session_id"></property>
         <property name="sessionDate" column="session_date"></property>

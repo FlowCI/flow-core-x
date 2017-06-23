@@ -1,6 +1,6 @@
 package com.flow.platform.domain;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
@@ -31,17 +31,17 @@ public class Agent extends Jsonable {
     /**
      * The date to start session
      */
-    private Date sessionDate;
+    private ZonedDateTime sessionDate;
 
     /**
      * Created date
      */
-    private Date createdDate;
+    private ZonedDateTime createdDate;
 
     /**
      * Updated date
      */
-    private Date updatedDate;
+    private ZonedDateTime updatedDate;
 
     public Agent() {
     }
@@ -52,8 +52,8 @@ public class Agent extends Jsonable {
 
     public Agent(AgentPath path) {
         this.path = path;
-        this.createdDate = new Date();
-        this.updatedDate = new Date();
+        this.createdDate = ZonedDateTime.now();
+        this.updatedDate = ZonedDateTime.now();
     }
 
     public AgentPath getPath() {
@@ -96,27 +96,27 @@ public class Agent extends Jsonable {
         this.sessionId = sessionId;
     }
 
-    public Date getSessionDate() {
+    public ZonedDateTime getSessionDate() {
         return sessionDate;
     }
 
-    public void setSessionDate(Date sessionDate) {
+    public void setSessionDate(ZonedDateTime sessionDate) {
         this.sessionDate = sessionDate;
     }
 
-    public Date getCreatedDate() {
+    public ZonedDateTime getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(Date createdDate) {
+    public void setCreatedDate(ZonedDateTime createdDate) {
         this.createdDate = createdDate;
     }
 
-    public Date getUpdatedDate() {
+    public ZonedDateTime getUpdatedDate() {
         return updatedDate;
     }
 
-    public void setUpdatedDate(Date updatedDate) {
+    public void setUpdatedDate(ZonedDateTime updatedDate) {
         this.updatedDate = updatedDate;
     }
 

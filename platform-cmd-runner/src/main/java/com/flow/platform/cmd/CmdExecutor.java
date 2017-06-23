@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -130,7 +131,7 @@ public final class CmdExecutor {
         outputResult = new CmdResult();
 
         long startTime = System.currentTimeMillis();
-        outputResult.setStartTime(DateUtil.utcNow());
+        outputResult.setStartTime(ZonedDateTime.now());
 
         try {
             Process p = pBuilder.start();
@@ -166,13 +167,13 @@ public final class CmdExecutor {
                 outputResult.setExitValue(CmdResult.EXIT_VALUE_FOR_TIMEOUT);
             }
 
-            outputResult.setExecutedTime(DateUtil.utcNow());
+            outputResult.setExecutedTime(ZonedDateTime.now());
             System.out.println(String.format("====== 1. Process executed : %s ======", outputResult.getExitValue()));
 
             procListener.onExecuted(outputResult);
 
             logLath.await(30, TimeUnit.SECONDS); // wait max 30 seconds
-            outputResult.setFinishTime(DateUtil.utcNow());
+            outputResult.setFinishTime(ZonedDateTime.now());
 
             procListener.onLogged(outputResult);
 
@@ -180,7 +181,7 @@ public final class CmdExecutor {
 
         } catch (Throwable e) {
             outputResult.getExceptions().add(e);
-            outputResult.setFinishTime(DateUtil.utcNow());
+            outputResult.setFinishTime(ZonedDateTime.now());
 
             procListener.onException(outputResult);
         } finally {

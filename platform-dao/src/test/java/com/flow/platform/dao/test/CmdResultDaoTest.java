@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,9 +29,9 @@ public class CmdResultDaoTest extends TestBase {
         result.setCmdId(UUID.randomUUID().toString());
         result.setExitValue(1);
         result.setDuration(10L);
-        result.setStartTime(new Date());
-        result.setFinishTime(new Date());
-        result.setExecutedTime(new Date());
+        result.setStartTime(ZonedDateTime.now());
+        result.setFinishTime(ZonedDateTime.now());
+        result.setExecutedTime(ZonedDateTime.now());
         result.setProcessId(1013);
         result.setTotalDuration(10L);
         result.setOutput(output);

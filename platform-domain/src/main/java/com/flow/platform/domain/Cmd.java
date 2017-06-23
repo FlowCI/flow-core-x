@@ -107,7 +107,7 @@ public class Cmd extends CmdBase {
             this.status = status;
 
             if(!isCurrent()) {
-                this.finishedDate = DateUtil.utcNow();
+                this.finishedDate = new Date();
             }
 
             return true;

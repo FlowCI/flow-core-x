@@ -1,6 +1,8 @@
 package com.flow.platform.domain;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -46,17 +48,17 @@ public class CmdResult implements Serializable {
     /**
      * Cmd start time
      */
-    private Date startTime;
+    private ZonedDateTime startTime;
 
     /**
      * Cmd executed time
      */
-    private Date executedTime;
+    private ZonedDateTime executedTime;
 
     /**
      * Cmd finish time with logging
      */
-    private Date finishTime;
+    private ZonedDateTime finishTime;
 
     /**
      * Env for output
@@ -108,34 +110,34 @@ public class CmdResult implements Serializable {
         return totalDuration;
     }
 
-    public Date getStartTime() {
+    public ZonedDateTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Date startTime) {
+    public void setStartTime(ZonedDateTime startTime) {
         this.startTime = startTime;
     }
 
-    public Date getExecutedTime() {
+    public ZonedDateTime getExecutedTime() {
         return executedTime;
     }
 
-    public void setExecutedTime(Date executedTime) {
+    public void setExecutedTime(ZonedDateTime executedTime) {
         if(executedTime != null){
             this.executedTime = executedTime;
-            this.duration = (this.executedTime.getTime() - this.startTime.getTime()) / 1000;
+            this.duration = ChronoUnit.SECONDS.between(this.startTime, this.executedTime);
         }
     }
 
-    public Date getFinishTime() {
+    public ZonedDateTime getFinishTime() {
         return finishTime;
     }
 
-    public void setFinishTime(Date finishTime) {
+    public void setFinishTime(ZonedDateTime finishTime) {
         if(finishTime != null){
             this.finishTime = finishTime;
             if(this.startTime != null){
-                this.totalDuration = (this.finishTime.getTime() - this.startTime.getTime()) / 1000;
+                this.totalDuration = ChronoUnit.SECONDS.between(this.startTime, this.finishTime);
             }
         }
     }

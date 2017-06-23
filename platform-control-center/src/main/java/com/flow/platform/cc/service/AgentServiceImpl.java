@@ -117,7 +117,7 @@ public class AgentServiceImpl implements AgentService {
 
         String sessionId = UUID.randomUUID().toString();
         agent.setSessionId(sessionId); // set session id to agent
-        agent.setSessionDate(DateUtil.utcNow());
+        agent.setSessionDate(ZonedDateTime.now());
         agent.setStatus(AgentStatus.BUSY);
         agentDao.update(agent);
 
@@ -183,7 +183,7 @@ public class AgentServiceImpl implements AgentService {
         }
 
         ZonedDateTime utcDate = DateUtil.fromDateForUTC(compareDate);
-        long sessionAlive = ChronoUnit.SECONDS.between(DateUtil.fromDateForUTC(agent.getSessionDate()), utcDate);
+        long sessionAlive = ChronoUnit.SECONDS.between(agent.getSessionDate(), utcDate);
 
         return sessionAlive >= timeoutInSeconds;
     }

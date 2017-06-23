@@ -4,6 +4,7 @@ import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.Zone;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -197,7 +199,7 @@ public class ZkHelper {
      */
     public void recordEvent(String path, WatchedEvent event) {
         List<String> historyList = eventHistory.computeIfAbsent(path, k -> new LinkedList<>());
-        String history = String.format("[%s] %s", AppConfig.APP_DATE_FORMAT.format(new Date()), event.toString());
+        String history = String.format("[%s] %s", AppConfig.APP_DATE_FORMAT.format(ZonedDateTime.now()), event.toString());
         historyList.add(history);
 
         if (ZkEventHelper.isConnectToServer(event)) {
