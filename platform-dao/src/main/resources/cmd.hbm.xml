@@ -52,5 +52,7 @@
         <property name="startTime" not-null="false" column="start_time"/>
         <property name="executedTime" not-null="false" column="executed_time"/>
         <property name="finishTime" not-null="false" column="finish_time"/>
+        <property name="output" not-null="false" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="output"/>
+        <property name="exceptions" not-null="false" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="exceptions"/>
     </class>
 </hibernate-mapping>

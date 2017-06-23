@@ -61,12 +61,12 @@ public class CmdResult implements Serializable {
     /**
      * Env for output
      */
-    private final Map<String, String> output = new HashMap<>(5);
+    private Map<String, String> output = new HashMap<>(5);
 
     /**
      * Exception while cmd running
      */
-    private final List<Throwable> exceptions = new ArrayList<>(5);
+    private List<Throwable> exceptions = new ArrayList<>(5);
 
     public String getCmdId() {
         return cmdId;
@@ -106,10 +106,6 @@ public class CmdResult implements Serializable {
 
     public Long getTotalDuration() {
         return totalDuration;
-    }
-
-    public List<Throwable> getExceptions() {
-        return exceptions;
     }
 
     public Date getStartTime() {
@@ -152,9 +148,20 @@ public class CmdResult implements Serializable {
         this.totalDuration = totalDuration;
     }
 
-
     public Map<String, String> getOutput() {
         return output;
+    }
+
+    public void setOutput(Map<String, String> output) {
+        this.output = output;
+    }
+
+    public List<Throwable> getExceptions() {
+        return exceptions;
+    }
+
+    public void setExceptions(List<Throwable> exceptions) {
+        this.exceptions = exceptions;
     }
 
     @Override

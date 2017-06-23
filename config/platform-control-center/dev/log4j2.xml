@@ -49,6 +49,9 @@
 
     <Loggers>
         <Logger name="org.springframework" level="info"></Logger>
+        <Logger name="org.hibernate" level="error"/>
+        <Logger name="org.jboss.logging" level="error"/>
+
         <Root level="all">
             <AppenderRef ref="RollingFileInfo"/>
             <AppenderRef ref="RollingFileError"/>

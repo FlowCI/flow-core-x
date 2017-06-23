@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="connection.url">jdbc:mysql://localhost:3306/flow_cc_db_ut</property>
+        <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="connection.username">root</property>
+        <property name="connection.password"></property>
+
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</property>
+        <property name="show_sql">false</property>
+        <property name="format_sql">false</property>
+        <property name="hbm2ddl.auto">update</property>
+        <property name="hibernate.dialect.storage_engine">innodb</property>
+        <property name="hibernate.enable_lazy_load_no_trans">true</property>
+
+        <property name="hibernate.connection.CharSet">utf8</property>
+        <property name="hibernate.connection.characterEncoding">utf8</property>
+        <property name="hibernate.connection.useUnicode">true</property>
+        <property name="hibernate.connection.useSSL">false</property>
+        <property name="hibernate.connection.createDatabaseIfNotExist">true</property>
+
+        <!-- DB schema will be updated if needed -->
+        <mapping resource="agent.hbm.xml"/>
+        <mapping resource="cmd.hbm.xml"/>
+    </session-factory>
+</hibernate-configuration>

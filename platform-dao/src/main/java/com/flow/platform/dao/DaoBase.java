@@ -1,6 +1,5 @@
 package com.flow.platform.dao;
 
-import com.flow.platform.domain.Agent;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -15,7 +14,7 @@ public class DaoBase {
 
     @FunctionalInterface
     interface Executable<T> {
-        public T execute(Session session);
+        T execute(Session session);
     }
 
     protected  <T> T execute(Executable<T> ex)

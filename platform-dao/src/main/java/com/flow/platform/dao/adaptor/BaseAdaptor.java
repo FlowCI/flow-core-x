@@ -49,16 +49,15 @@ public class BaseAdaptor implements UserType {
      * @throws SQLException
      */
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws HibernateException, SQLException {
-
-//        if(rs.wasNull() == false){
-            String str = rs.getString(names[0]);
-            if (str == null) {
-                return null;
-            }
-            return jsonToObject(str);
-//        }
-//        return null;
+    public Object nullSafeGet(ResultSet rs,
+                              String[] names,
+                              SharedSessionContractImplementor session,
+                              Object owner) throws HibernateException, SQLException {
+        String str = rs.getString(names[0]);
+        if (str == null) {
+            return null;
+        }
+        return jsonToObject(str);
     }
 
     /**
@@ -70,22 +69,26 @@ public class BaseAdaptor implements UserType {
      * @throws SQLException
      */
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws HibernateException, SQLException {
-        if(value == null){
+    public void nullSafeSet(PreparedStatement st,
+                            Object value,
+                            int index,
+                            SharedSessionContractImplementor session) throws HibernateException, SQLException {
+        if (value == null) {
             st.setString(index, null);
-        }else{
+        } else {
             String str = objectToJson(value);
             st.setString(index, str);
         }
     }
 
-    Object jsonToObject(String json){
+    Object jsonToObject(String json) {
         Gson gson = new Gson();
-        Object object = gson.fromJson(json, new TypeToken<Object>(){}.getType());
+        Object object = gson.fromJson(json, new TypeToken<Object>() {
+        }.getType());
         return object;
     }
 
-    String objectToJson(Object object){
+    String objectToJson(Object object) {
         Gson gson = new Gson();
         String json = gson.toJson(object);
         return json;
@@ -93,7 +96,7 @@ public class BaseAdaptor implements UserType {
 
     @Override
     public Object deepCopy(Object value) throws HibernateException {
-        if(value == null){
+        if (value == null) {
             return null;
         }
         String cp = objectToJson(value);
