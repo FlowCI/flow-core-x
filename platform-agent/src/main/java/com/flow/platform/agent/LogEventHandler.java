@@ -74,6 +74,7 @@ public class LogEventHandler implements LogListener {
             initLatch.await(SOCKET_CONN_TIMEOUT, TimeUnit.SECONDS);
             if (initLatch.getCount() <= 0 && socket.connected()) {
                 socketEnabled = true;
+                LOGGER.trace("Init socket io successfully : %s", config.getLoggingUrl());
             }
 
         } catch (URISyntaxException | InterruptedException e) {
@@ -100,6 +101,7 @@ public class LogEventHandler implements LogListener {
         if (socketEnabled) {
             String format = String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgent(), cmd.getId(), log.getContent());
             socket.emit(SOCKET_EVENT_TYPE, format);
+            LOGGER.debugMarker("SocketIO", "Message sent : %s", format);
         }
     }
 
