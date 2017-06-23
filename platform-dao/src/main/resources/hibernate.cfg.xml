@@ -18,6 +18,5 @@
         <!-- DB schema will be updated if needed -->
         <mapping resource="agent.hbm.xml" />
         <mapping resource="cmd.hbm.xml" />
-        <mapping resource="CmdResult.hbm.xml"/>
     </session-factory>
 </hibernate-configuration>

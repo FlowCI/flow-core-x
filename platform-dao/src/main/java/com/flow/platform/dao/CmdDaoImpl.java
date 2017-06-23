@@ -50,7 +50,7 @@ public class CmdDaoImpl extends DaoBase implements CmdDao {
 
     @Override
     public Cmd findByCmdResultId(String cmdResultId) {
-        Cmd cmd = execute(session ->  (Cmd)getSession().createQuery("from Cmd where CMD_RESULT_ID = :cmdReultId")
+        Cmd cmd = execute(session ->  (Cmd)getSession().createQuery("from Cmd where ID = :cmdReultId")
                 .setParameter("cmdResultId", cmdResultId)
                 .uniqueResult());
         return cmd;

@@ -8,30 +8,30 @@
         <id name="id" type="string">
             <generator class="assigned"/>
         </id>
-        <property name="createdDate"  column="CREATED_DATE"/>
-        <property name="updatedDate"  column="UPDATED_DATE"/>
-        <property name="finishedDate"  column="FINISHED_DATE"/>
-        <property name="cmd" type="string" column="CMD"/>
-        <property name="timeout" type="long" column="TIMEOUT"/>
-        <property name="priority" type="integer" column="PRIORITY"/>
-        <property name="workingDir" type="string" column="WORKING_DIR"/>
-        <property name="outputEnvFilter" type="string" column="OUTPUT_ENV_FILTER"/>
-        <property name="logPaths" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="LOG_PATHS"></property>
-        <property name="inputs" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="INPUTS"></property>
+        <property name="createdDate"  column="created_date"/>
+        <property name="updatedDate"  column="updated_date"/>
+        <property name="finishedDate"  column="finished_date"/>
+        <property name="cmd" type="string" column="cmd"/>
+        <property name="timeout" type="long" column="timeout"/>
+        <property name="priority" type="integer" column="priority"/>
+        <property name="workingDir" type="string" column="working_dir"/>
+        <property name="outputEnvFilter" type="string" column="output_env_filter"/>
+        <property name="logPaths" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="log_paths"></property>
+        <property name="inputs" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="inputs"></property>
 
         <component name="agentPath" class="AgentPath">
-            <property name="zone" column="AGENT_ZONE"></property>
-            <property name="name" column="AGENT_NAME"></property>
+            <property name="zone" column="agent_zone"></property>
+            <property name="name" column="agent_name"></property>
         </component>
 
-        <property name="type" column="TYPE">
+        <property name="type" column="type">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">com.flow.platform.domain.CmdType</param>
                 <param name="useNamed">true</param>
             </type>
         </property>
 
-        <property name="status" column="STATUS">
+        <property name="status" column="status">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">com.flow.platform.domain.CmdStatus</param>
                 <param name="useNamed">true</param>
@@ -41,16 +41,16 @@
 
     <!--for cmd result definition-->
     <class name="CmdResult" table="cmd_result">
-        <id name="cmdId" type="string" column="CMD_ID">
+        <id name="cmdId" type="string" column="cmd_id">
             <generator class="assigned"/>
         </id>
 
-        <property name="processId" not-null="false" column="PROCESS_ID"/>
-        <property name="exitValue" not-null="false" column="EXIT_VALUE"/>
-        <property name="duration" not-null="false" column="DURATION"/>
-        <property name="totalDuration" not-null="false" column="TOTAL_DURATION"/>
-        <property name="startTime" not-null="false" column="START_TIME"/>
-        <property name="executedTime" not-null="false" column="EXECUTED_TIME"/>
-        <property name="finishTime" not-null="false" column="FINISH_TIME"/>
+        <property name="processId" not-null="false" column="process_id"/>
+        <property name="exitValue" not-null="false" column="exit_value"/>
+        <property name="duration" not-null="false" column="duration"/>
+        <property name="totalDuration" not-null="false" column="total_duration"/>
+        <property name="startTime" not-null="false" column="start_time"/>
+        <property name="executedTime" not-null="false" column="executed_time"/>
+        <property name="finishTime" not-null="false" column="finish_time"/>
     </class>
 </hibernate-mapping>
