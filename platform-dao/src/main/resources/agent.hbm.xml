@@ -6,12 +6,10 @@
 <hibernate-mapping package="com.flow.platform.domain">
     <class name="Agent" table="agent">
         <composite-id name="path" class="AgentPath">
-            <key-property name="name" type="string" column="agent_name"/>
             <key-property name="zone" type="string" column="agent_zone"/>
+            <key-property name="name" type="string" column="agent_name"/>
         </composite-id>
 
-        <property name="createdDate" column="created_date"/>
-        <property name="updatedDate" column="updated_date"/>
         <property name="concurrentProc" column="concurrent_proc"></property>
         <property name="sessionId" column="session_id"></property>
         <property name="sessionDate" column="session_date"></property>
@@ -22,5 +20,8 @@
                 <param name="useNamed">true</param>
             </type>
         </property>
+
+        <property name="createdDate" column="created_date"/>
+        <property name="updatedDate" column="updated_date"/>
     </class>
 </hibernate-mapping>

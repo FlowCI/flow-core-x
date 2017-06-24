@@ -17,15 +17,13 @@ public class DaoBase {
         T execute(Session session);
     }
 
-    protected  <T> T execute(Executable<T> ex)
-    {
-
+    protected <T> T execute(Executable<T> ex) {
         Session session = getSession();
         try {
             return ex.execute(session);
-        }catch (RuntimeException e){
-            throw  e;
-        }finally {
+        } catch (RuntimeException e) {
+            throw e;
+        } finally {
             session.close();
         }
     }
@@ -43,48 +41,49 @@ public class DaoBase {
         this.sessionFactory = sessionFactory;
     }
 
-    public Session getSession(){
+    public Session getSession() {
         return sessionFactory.openSession();
     }
 
     /**
      * save
+     *
      * @param var2
      * @param <T>
      * @return
      */
-    public <T> T save(T var2){
+    public <T> T save(T var2) {
         Session session = getSession();
         try {
             Transaction tx = session.beginTransaction();
             session.save(var2);
             tx.commit();
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             session.getTransaction().rollback();
-            throw  e;
-        }finally {
+            throw e;
+        } finally {
             session.close();
         }
         return var2;
     }
 
     /**
-     *
      * update
+     *
      * @param var2
      * @param <T>
      * @return
      */
-    public <T> T update(T var2){
+    public <T> T update(T var2) {
         Session session = getSession();
         try {
             Transaction tx = session.beginTransaction();
             session.saveOrUpdate(var2);
             tx.commit();
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             session.getTransaction().rollback();
             throw e;
-        }finally {
+        } finally {
             session.close();
         }
         return var2;
@@ -92,32 +91,32 @@ public class DaoBase {
 
     /**
      * Get
+     *
      * @param arg
      * @param id
      * @param <T>
      * @return
      */
-    public <T> T get(Class<T> arg, Serializable id){
+    public <T> T get(Class<T> arg, Serializable id) {
         T result = execute(session -> session.get(arg, id));
         return result;
     }
 
     /**
      * Delete
+     *
      * @param object
      */
-    public void delete(Object object){
+    public void delete(Object object) {
         Session session = getSession();
         try {
             Transaction tx = session.beginTransaction();
             session.delete(object);
             tx.commit();
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             session.getTransaction().rollback();
             throw e; // or display error message
-        }
-        finally {
+        } finally {
             session.close();
         }
     }

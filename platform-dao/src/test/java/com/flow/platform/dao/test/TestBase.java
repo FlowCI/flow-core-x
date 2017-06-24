@@ -1,5 +1,6 @@
 package com.flow.platform.dao.test;
 
+import com.flow.platform.dao.AgentDaoImpl;
 import com.flow.platform.dao.CmdDaoImpl;
 import com.flow.platform.dao.CmdResultDaoImpl;
 import com.flow.platform.domain.CmdResult;
@@ -19,6 +20,8 @@ public abstract class TestBase {
 
     static CmdDaoImpl cmdDao;
 
+    static AgentDaoImpl agentDao;
+
     static CmdResultDaoImpl cmdResultDao;
 
     static {
@@ -30,11 +33,15 @@ public abstract class TestBase {
 
         cmdResultDao = new CmdResultDaoImpl();
         cmdResultDao.setSessionFactory(factory);
+
+        agentDao = new AgentDaoImpl();
+        agentDao.setSessionFactory(factory);
     }
 
     @After
     public void after() {
         cmdDao.baseDelete("1=1");
         cmdResultDao.baseDelete("1=1");
+        agentDao.baseDelete("1=1");
     }
 }

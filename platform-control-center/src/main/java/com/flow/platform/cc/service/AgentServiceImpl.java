@@ -6,6 +6,7 @@ import com.flow.platform.dao.AgentDaoImpl;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -52,26 +53,28 @@ public class AgentServiceImpl implements AgentService {
     public void reportOnline(String zone, Collection<AgentPath> keys) {
         onlineListUpdateLock.lock();
         try {
-            Map<AgentPath, Agent> agentList = getAgentOnlineList().computeIfAbsent(zone, k -> new HashMap<>());
+            List<Agent> agents = onlineList(zone);
 
-            // find offline agent
-            HashSet<AgentPath> offlines = new HashSet<>(agentList.keySet());
-            offlines.removeAll(keys);
-
-            // remote from online list and update status
-            for (AgentPath key : offlines) {
-                Agent offlineAgent = agentList.get(key);
-                offlineAgent.setStatus(AgentStatus.OFFLINE);
-                agentDao.update(offlineAgent);
-                agentList.remove(key);
+            // convert to map for performance
+            Map<AgentPath, Agent> onlineAgentMap = new HashMap<>(agents.size());
+            for (Agent agent : agents) {
+                onlineAgentMap.put(agent.getPath(), agent);
             }
 
-            // fine newly online agent
-            HashSet<AgentPath> onlines = new HashSet<>(keys);
-            onlines.removeAll(agentList.keySet());
+            // find offline agents
+            Set<AgentPath> offlines = Sets.newHashSet(onlineAgentMap.keySet());
+            offlines.removeAll(keys);
+
+            // remove offline agents from online list and update status
+            for (AgentPath key : offlines) {
+                Agent offlineAgent = onlineAgentMap.get(key);
+                offlineAgent.setStatus(AgentStatus.OFFLINE);
+                agentDao.update(offlineAgent);
+                onlineAgentMap.remove(key);
+            }
 
             // report online
-            for (AgentPath key : onlines) {
+            for (AgentPath key : keys) {
                 reportOnline(key);
             }
         } finally {
@@ -91,12 +94,12 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public List<Agent> findAvailable(String zone) {
-        return agentDao.findAvailable(zone);
+        return agentDao.list(zone, AgentStatus.IDLE);
     }
 
     @Override
-    public Collection<Agent> onlineList(String zone) {
-        return agentDao.onlineList(zone);
+    public List<Agent> onlineList(String zone) {
+        return agentDao.list(zone, AgentStatus.IDLE, AgentStatus.BUSY);
     }
 
     @Override
@@ -167,16 +170,6 @@ public class AgentServiceImpl implements AgentService {
         LOGGER.traceMarker("sessionTimeoutTask", "end");
     }
 
-    public Map<String, Map<AgentPath, Agent>> getAgentOnlineList(){
-        Map<String, Map<AgentPath, Agent>> agentOnline = new HashMap<>();
-        List<Agent> agents = agentDao.onlineList();
-        for(Agent agent : agents){
-            Map<AgentPath, Agent> agentList = agentOnline.computeIfAbsent(agent.getZone(), k -> new HashMap<>());
-            agentList.put(agent.getPath(), agent);
-        }
-        return agentOnline;
-    }
-
     public boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds) {
         if (agent.getSessionId() == null) {
             throw new UnsupportedOperationException("Target agent is not enable session");
@@ -195,10 +188,19 @@ public class AgentServiceImpl implements AgentService {
      */
     private void reportOnline(AgentPath key) {
         Agent exist = find(key);
+
+        // create new agent with idle status
         if (exist == null) {
             Agent agent = new Agent(key);
             agent.setStatus(AgentStatus.IDLE);
             agentDao.save(agent);
+            return;
+        }
+
+        // update exist offline agent to idle status
+        if (exist.getStatus() == AgentStatus.OFFLINE){
+            exist.setStatus(AgentStatus.IDLE);
+            agentDao.update(exist);
         }
     }
 }

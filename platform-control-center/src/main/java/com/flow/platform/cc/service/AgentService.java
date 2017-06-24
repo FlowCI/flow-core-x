@@ -1,6 +1,5 @@
 package com.flow.platform.cc.service;
 
-import com.flow.platform.dao.AgentDaoImpl;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -31,7 +30,7 @@ public interface AgentService {
      * @param zone
      * @return
      */
-    Collection<Agent> onlineList(String zone);
+    List<Agent> onlineList(String zone);
 
     /**
      * Find agent by zone and agent name from online list
