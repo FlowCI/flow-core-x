@@ -8,9 +8,6 @@
         <id name="id" type="string">
             <generator class="assigned"/>
         </id>
-        <property name="createdDate"  column="created_date"/>
-        <property name="updatedDate"  column="updated_date"/>
-        <property name="finishedDate"  column="finished_date"/>
         <property name="cmd" type="string" column="cmd"/>
         <property name="timeout" type="long" column="timeout"/>
         <property name="priority" type="integer" column="priority"/>
@@ -18,6 +15,9 @@
         <property name="outputEnvFilter" type="string" column="output_env_filter"/>
         <property name="logPaths" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="log_paths"></property>
         <property name="inputs" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="inputs"></property>
+        <property name="createdDate"  column="created_date"/>
+        <property name="updatedDate"  column="updated_date"/>
+        <property name="finishedDate"  column="finished_date"/>
 
         <component name="agentPath" class="AgentPath">
             <property name="zone" column="agent_zone"></property>

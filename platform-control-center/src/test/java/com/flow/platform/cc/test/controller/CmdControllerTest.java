@@ -141,7 +141,7 @@ public class CmdControllerTest extends TestBase {
         Cmd cmdInfo = gsonConfig.fromJson(result.getResponse().getContentAsString(), Cmd.class);
         Assert.assertNotNull(cmdInfo);
         Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
-        Assert.assertEquals(zoneName, cmdInfo.getZone());
+        Assert.assertEquals(zoneName, cmdInfo.getZoneName());
         Assert.assertEquals(agentName, cmdInfo.getAgentName());
         Assert.assertEquals(agentName, agentDao.find(cmdInfo.getAgentPath()).getName());
         Assert.assertEquals(2, cmdInfo.getInputs().size());

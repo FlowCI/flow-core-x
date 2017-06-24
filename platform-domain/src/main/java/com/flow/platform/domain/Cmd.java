@@ -1,6 +1,5 @@
 package com.flow.platform.domain;
 
-import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
 
 import java.util.ArrayList;

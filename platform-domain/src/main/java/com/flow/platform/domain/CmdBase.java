@@ -58,7 +58,6 @@ public abstract class CmdBase extends Jsonable {
      */
     protected String outputEnvFilter;
 
-    protected Agent agent;
     /**
      * Url for report cmd status to other system
      */
@@ -77,7 +76,6 @@ public abstract class CmdBase extends Jsonable {
         this.cmd = cmd;
     }
 
-
     public AgentPath getAgentPath() {
         return agentPath;
     }
@@ -86,11 +84,17 @@ public abstract class CmdBase extends Jsonable {
         this.agentPath = agentPath;
     }
 
-    public String getZone() {
+    public String getZoneName() {
+        if (agentPath == null) {
+            return null;
+        }
         return agentPath.getZone();
     }
 
     public String getAgentName() {
+        if (agentPath == null) {
+            return null;
+        }
         return agentPath.getName();
     }
 
@@ -160,14 +164,6 @@ public abstract class CmdBase extends Jsonable {
 
     public void setOutputEnvFilter(String outputEnvFilter) {
         this.outputEnvFilter = outputEnvFilter;
-    }
-
-    public Agent getAgent() {
-        return agent;
-    }
-
-    public void setAgent(Agent agent) {
-        this.agent = agent;
     }
 
     public String getWebhook() {

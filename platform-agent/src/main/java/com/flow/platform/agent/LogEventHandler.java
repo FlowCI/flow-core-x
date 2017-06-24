@@ -47,7 +47,6 @@ public class LogEventHandler implements LogListener {
     private FileOutputStream stderrLogStream;
     private ZipOutputStream stderrLogZipStream;
 
-
     public LogEventHandler(Cmd cmd) {
         this.cmd = cmd;
 
@@ -99,7 +98,7 @@ public class LogEventHandler implements LogListener {
 
     private void writeSocketIo(Log log) {
         if (socketEnabled) {
-            String format = String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgent(), cmd.getId(), log.getContent());
+            String format = socketIoLogFormat(log);
             socket.emit(SOCKET_EVENT_TYPE, format);
             LOGGER.debugMarker("SocketIO", "Message sent : %s", format);
         }
@@ -117,6 +116,10 @@ public class LogEventHandler implements LogListener {
         if (closeZipAndFileStream(stderrLogZipStream, stderrLogStream)) {
             renameAndUpload(stderrLogPath, Log.Type.STDERR);
         }
+    }
+
+    public String socketIoLogFormat(Log log) {
+        return String.format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(), log.getContent());
     }
 
     private void renameAndUpload(Path logPath, Log.Type logType) {
@@ -183,16 +186,6 @@ public class LogEventHandler implements LogListener {
         } catch (IOException e) {
             LOGGER.warn("Log cannot write : " + log);
         }
-    }
-
-    /**
-     * Init {cmd id}.out.tmp, {cmd id}.err.tmp and zip stream
-     *
-     * @param cmd
-     * @throws IOException
-     */
-    private String getLogFormat(String log) {
-        return String.format("%s#%s#%s#%s", cmd.getZone(), cmd.getAgentName(), cmd.getId(), log);
     }
 
     private void initZipLogFile(final Cmd cmd) throws IOException {
