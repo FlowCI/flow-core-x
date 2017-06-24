@@ -13,6 +13,8 @@ import com.flow.platform.util.zk.ZkNodeHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -31,6 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Copyright fir.im
  */
 @Service(value = "cmdService")
+@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
@@ -48,13 +51,13 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     private Queue<Path> cmdLoggingQueue;
 
     @Autowired
-    private CmdDaoImpl cmdDao;
+    private CmdDao cmdDao;
 
     @Autowired
-    private CmdResultDaoImpl cmdResultDao;
+    private CmdResultDao cmdResultDao;
 
     @Autowired
-    private AgentDaoImpl agentDao;
+    private AgentDao agentDao;
 
     @Autowired
     private Executor taskExecutor;

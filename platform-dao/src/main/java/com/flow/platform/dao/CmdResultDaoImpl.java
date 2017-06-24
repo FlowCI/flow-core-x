@@ -1,14 +1,14 @@
 package com.flow.platform.dao;
 
 import com.flow.platform.domain.CmdResult;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by Will on 17/6/13.
  */
 @Repository
+@Transactional
 public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> implements CmdResultDao {
 
     @Override
@@ -25,10 +25,6 @@ public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> impleme
 
     @Override
     public void baseDelete(String condition) {
-        try (Session session = getSession()) {
-            Transaction tx = session.beginTransaction();
-            session.createQuery("delete CmdResult where ".concat(condition)).executeUpdate();
-            tx.commit();
-        }
+        getSession().createQuery("delete CmdResult where ".concat(condition)).executeUpdate();
     }
 }

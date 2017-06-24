@@ -144,7 +144,6 @@ public class AgentServiceTest extends TestBase {
     @Test
     public void should_agent_session_timeout() throws Throwable {
         // when:
-        AgentServiceImpl agentService = (AgentServiceImpl) this.agentService;
         Agent mockAgent = new Agent("test-zone", "session-timeout-agent");
         mockAgent.setSessionId("mock-session-id");
         mockAgent.setSessionDate(ZonedDateTime.now());

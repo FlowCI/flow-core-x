@@ -5,14 +5,15 @@ import com.flow.platform.domain.Cmd;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 /**
  * Created by Will on 17/6/13.
  */
 @Repository
+@Transactional
 public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
 
     @Override
@@ -40,11 +41,7 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
 
     @Override
     public void baseDelete(String condition) {
-        try (Session session = getSession()) {
-            Transaction tx = session.beginTransaction();
-            session.createQuery("delete Cmd where ".concat(condition)).executeUpdate();
-            tx.commit();
-        }
+        getSession().createQuery("delete Cmd where ".concat(condition)).executeUpdate();
     }
 
     @Override

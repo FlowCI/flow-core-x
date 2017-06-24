@@ -2,7 +2,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.dao.AgentDaoImpl;
+import com.flow.platform.dao.AgentDao;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
@@ -10,6 +10,8 @@ import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.time.ZonedDateTime;
@@ -23,6 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Copyright fir.im
  */
 @Service(value = "agentService")
+@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class AgentServiceImpl implements AgentService {
 
     private final static Logger LOGGER = new Logger(AgentService.class);
@@ -36,7 +39,7 @@ public class AgentServiceImpl implements AgentService {
     private CmdService cmdService;
 
     @Autowired
-    private AgentDaoImpl agentDao;
+    private AgentDao agentDao;
 
     @Autowired
     private TaskConfig taskConfig;
@@ -147,6 +150,18 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
+    public boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds) {
+        if (agent.getSessionId() == null) {
+            throw new UnsupportedOperationException("Target agent is not enable session");
+        }
+
+        ZonedDateTime utcDate = DateUtil.fromDateForUTC(compareDate);
+        long sessionAlive = ChronoUnit.SECONDS.between(agent.getSessionDate(), utcDate);
+
+        return sessionAlive >= timeoutInSeconds;
+    }
+
+    @Override
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
     public void sessionTimeoutTask() {
         if (!taskConfig.isEnableAgentSessionTimeoutTask()) {
@@ -168,17 +183,6 @@ public class AgentServiceImpl implements AgentService {
         }
 
         LOGGER.traceMarker("sessionTimeoutTask", "end");
-    }
-
-    public boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds) {
-        if (agent.getSessionId() == null) {
-            throw new UnsupportedOperationException("Target agent is not enable session");
-        }
-
-        ZonedDateTime utcDate = DateUtil.fromDateForUTC(compareDate);
-        long sessionAlive = ChronoUnit.SECONDS.between(agent.getSessionDate(), utcDate);
-
-        return sessionAlive >= timeoutInSeconds;
     }
 
     /**

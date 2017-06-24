@@ -6,8 +6,6 @@ import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.dao.CmdDaoImpl;
-import com.flow.platform.dao.CmdResultDaoImpl;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -54,12 +52,6 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private Queue<Path> cmdLoggingQueue;
-
-    @Autowired
-    private CmdResultDaoImpl cmdResultDao;
-
-    @Autowired
-    private CmdDaoImpl cmdDao;
 
     private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
 

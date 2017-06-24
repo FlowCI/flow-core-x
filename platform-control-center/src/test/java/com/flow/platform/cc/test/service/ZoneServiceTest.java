@@ -2,7 +2,6 @@ package com.flow.platform.cc.test.service;
 
 import com.flow.platform.cc.cloud.MosInstanceManager;
 import com.flow.platform.cc.service.AgentService;
-import com.flow.platform.cc.service.AgentServiceImpl;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.service.ZoneServiceImpl;
 import com.flow.platform.cc.test.TestBase;
@@ -100,7 +99,6 @@ public class ZoneServiceTest extends TestBase {
         }
 
         // when: shutdown instance which over the max agent pool size
-        ZoneServiceImpl zoneService = (ZoneServiceImpl) this.zoneService;
         zoneService.keepIdleAgentMaxSize(zone, instanceManager, maxPoolSize);
 
         // then: check shutdown cmd should be sent

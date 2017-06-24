@@ -5,15 +5,14 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.google.common.collect.Sets;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Set;
 
@@ -70,11 +69,7 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
 
     @Override
     public void baseDelete(String condition) {
-        try (Session session = getSession()) {
-            Transaction tx = session.beginTransaction();
-            session.createQuery("delete from Agent where ".concat(condition)).executeUpdate();
-            tx.commit();
-        }
+        getSession().createQuery("delete from Agent where ".concat(condition)).executeUpdate();
     }
 
     @Override

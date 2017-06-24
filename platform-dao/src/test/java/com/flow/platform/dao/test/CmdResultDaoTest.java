@@ -1,13 +1,11 @@
 package com.flow.platform.dao.test;
 
 import com.flow.platform.domain.CmdResult;
-import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

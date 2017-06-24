@@ -50,6 +50,26 @@ public interface ZoneService {
     InstanceManager findInstanceManager(Zone zone);
 
     /**
+     * Keep agent pool for min size
+     *
+     * @param zone
+     * @param instanceManager
+     * @param minPoolSize
+     * @return
+     */
+    boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager, int minPoolSize);
+
+    /**
+     * Keep agent pool for max size
+     *
+     * @param zone
+     * @param instanceManager
+     * @param maxPoolSize
+     * @return
+     */
+    boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager, int maxPoolSize);
+
+    /**
      * Scheduler task, periodically, every 1 min to check available agent in zone
      * It will start instance if num of available agent not enough
      */

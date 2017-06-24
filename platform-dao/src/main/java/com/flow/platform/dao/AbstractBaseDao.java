@@ -2,7 +2,6 @@ package com.flow.platform.dao;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
@@ -19,22 +18,9 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
     }
 
     protected <O> O execute(Executable<O> ex) {
-        Transaction transaction = null;
         Session session = getSession();
-
-        try {
-            transaction = session.beginTransaction();
-            O result = ex.execute(session);
-            transaction.commit();
-            return result;
-        } catch (Throwable e) {
-            if (transaction != null && session.isOpen()) {
-                transaction.rollback();
-            }
-            throw e;
-        } finally {
-            session.close();
-        }
+        O result = ex.execute(session);
+        return result;
     }
 
     /**
@@ -44,7 +30,7 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
     private SessionFactory sessionFactory;
 
     protected Session getSession() {
-        return sessionFactory.openSession();
+        return sessionFactory.getCurrentSession();
     }
 
     abstract Class<T> getEntityClass();
@@ -91,8 +77,8 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
      */
     public void delete(T obj) {
         execute(session -> {
-           session.delete(obj);
-           return null;
+            session.delete(obj);
+            return null;
         });
     }
 }

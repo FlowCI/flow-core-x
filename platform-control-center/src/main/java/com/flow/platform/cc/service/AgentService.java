@@ -5,6 +5,7 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -78,6 +79,16 @@ public interface AgentService {
      * @param status
      */
     void reportStatus(AgentPath path, AgentStatus status);
+
+    /**
+     * Is agent session timeout
+     *
+     * @param agent
+     * @param compareDate
+     * @param timeoutInSeconds
+     * @return
+     */
+    boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds);
 
     /**
      * To check agent session timeout

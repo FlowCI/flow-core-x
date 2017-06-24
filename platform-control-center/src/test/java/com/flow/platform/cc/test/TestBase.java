@@ -3,9 +3,7 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.util.ZkHelper;
-import com.flow.platform.dao.AgentDaoImpl;
-import com.flow.platform.dao.CmdDaoImpl;
-import com.flow.platform.dao.CmdResultDaoImpl;
+import com.flow.platform.dao.*;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -20,6 +18,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {WebConfig.class})
+@Transactional(isolation = Isolation.REPEATABLE_READ)
 public abstract class TestBase {
 
     static {
@@ -62,13 +63,13 @@ public abstract class TestBase {
     protected MockMvc mockMvc;
 
     @Autowired
-    protected AgentDaoImpl agentDao;
+    protected AgentDao agentDao;
 
     @Autowired
-    protected CmdDaoImpl cmdDao;
+    protected CmdDao cmdDao;
 
     @Autowired
-    protected CmdResultDaoImpl cmdResultDao;
+    protected CmdResultDao cmdResultDao;
 
     @Before
     public void beforeEach() throws IOException, InterruptedException {

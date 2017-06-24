@@ -24,7 +24,7 @@
     </bean>
 
     <bean id="hikariCpDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
-        <constructor-arg name="configuration" ref="hikariConfig"/>
+        <constructor-arg ref="hikariConfig"/>
     </bean>
 
     <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
@@ -43,7 +43,6 @@
                 <prop key="hibernate.show_sql">false</prop>
                 <prop key="hibernate.format_sql">true</prop>
                 <prop key="hibernate.hbm2ddl.auto">update</prop>
-                <prop key="hibernate.show_sql">true</prop>
             </props>
         </property>
     </bean>

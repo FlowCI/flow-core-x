@@ -15,6 +15,8 @@ import org.apache.zookeeper.Watcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -27,6 +29,7 @@ import java.util.concurrent.Executor;
  */
 
 @Service(value = "zoneService")
+@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
     private final static Logger LOGGER = new Logger(ZoneService.class);
@@ -48,9 +51,6 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
     @Autowired
     private TaskConfig taskConfig;
-
-    @Autowired
-    private AgentDaoImpl agentDao;
 
     @Autowired
     private CountDownLatch initLatch;
@@ -117,6 +117,66 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         return (InstanceManager) springContextUtil.getBean(beanName);
     }
 
+    /**
+     * Find num of idle agent and batch start instance
+     *
+     * @param zone
+     * @param instanceManager
+     * @return boolean
+     *          true = need start instance,
+     *          false = has enough idle agent
+     */
+    @Override
+    public synchronized boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager, int minPoolSize) {
+        int numOfIdle = agentService.findAvailable(zone.getName()).size();
+        LOGGER.traceMarker("keepIdleAgentMinSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
+
+        if (numOfIdle < minPoolSize) {
+            instanceManager.batchStartInstance(minPoolSize);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Find num of idle agent and check max pool size,
+     * send shutdown cmd to agent and delete instance
+     *
+     * @param zone
+     * @param instanceManager
+     * @return
+     */
+    @Override
+    public synchronized boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager, int maxPoolSize) {
+        List<Agent> agentList = agentService.findAvailable(zone.getName());
+        int numOfIdle = agentList.size();
+        LOGGER.traceMarker("keepIdleAgentMaxSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
+
+        if (numOfIdle > maxPoolSize) {
+            int numOfRemove = numOfIdle - maxPoolSize;
+
+            for (int i = 0; i < numOfRemove; i++) {
+                Agent idleAgent = agentList.get(i);
+
+                // send shutdown cmd
+                CmdInfo cmdInfo = new CmdInfo(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci");
+                cmdService.send(cmdInfo);
+                LOGGER.traceMarker("keepIdleAgentMaxSize", "Send SHUTDOWN to idle agent: %s", idleAgent);
+
+                // add instance to cleanup list
+                Instance instance = instanceManager.find(idleAgent.getPath());
+                if (instance != null) {
+                    instanceManager.addToCleanList(instance);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = KEEP_IDLE_AGENT_TASK_PERIOD)
     public void keepIdleAgentTask() {
@@ -149,64 +209,6 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
             keys.add(new AgentPath(zone, agentName));
         }
         return keys;
-    }
-
-    /**
-     * Find num of idle agent and batch start instance
-     *
-     * @param zone
-     * @param instanceManager
-     * @return boolean
-     *          true = need start instance,
-     *          false = has enough idle agent
-     */
-    public synchronized boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager, int minPoolSize) {
-        int numOfIdle = agentService.findAvailable(zone.getName()).size();
-        LOGGER.traceMarker("keepIdleAgentMinSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
-
-        if (numOfIdle < minPoolSize) {
-            instanceManager.batchStartInstance(minPoolSize);
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Find num of idle agent and check max pool size,
-     * send shutdown cmd to agent and delete instance
-     *
-     * @param zone
-     * @param instanceManager
-     * @return
-     */
-    public synchronized boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager, int maxPoolSize) {
-        List<Agent> agentList = agentService.findAvailable(zone.getName());
-        int numOfIdle = agentList.size();
-        LOGGER.traceMarker("keepIdleAgentMaxSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
-
-        if (numOfIdle > maxPoolSize) {
-            int numOfRemove = numOfIdle - maxPoolSize;
-
-            for (int i = 0; i < numOfRemove; i++) {
-                Agent idleAgent = agentList.get(i);
-
-                // send shutdown cmd
-                CmdInfo cmdInfo = new CmdInfo(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci");
-                cmdService.send(cmdInfo);
-                LOGGER.traceMarker("keepIdleAgentMaxSize", "Send SHUTDOWN to idle agent: %s", idleAgent);
-
-                // add instance to cleanup list
-                Instance instance = instanceManager.find(idleAgent.getPath());
-                if (instance != null) {
-                    instanceManager.addToCleanList(instance);
-                }
-            }
-
-            return true;
-        }
-
-        return false;
     }
 
     /**
