@@ -32,23 +32,23 @@ public class AgentDaoTest extends TestBase {
         agentDao.save(agent3);
 
         // when: find agents of zone 1 without status
-        List<Agent> agents = agentDao.list(zone1);
+        List<Agent> agents = agentDao.list(zone1, null);
         Assert.assertNotNull(agents);
         Assert.assertEquals(2, agents.size());
 
         // when: find agents by zone 1 with idle status
-        agents = agentDao.list(zone1, AgentStatus.IDLE);
+        agents = agentDao.list(zone1, null, AgentStatus.IDLE);
         Assert.assertNotNull(agents);
         Assert.assertEquals(0, agents.size());
 
         // when: find agents of zone 2 without status
-        agents = agentDao.list(zone2);
+        agents = agentDao.list(zone2, null);
         Assert.assertNotNull(agents);
         Assert.assertEquals(1, agents.size());
         Assert.assertEquals(agent3, agents.get(0));
 
         // when: find empty zone list
-        agents = agentDao.list("empty-zone");
+        agents = agentDao.list("empty-zone", null);
         Assert.assertNotNull(agents);
         Assert.assertEquals(0, agents.size());
     }

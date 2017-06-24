@@ -94,12 +94,12 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public List<Agent> findAvailable(String zone) {
-        return agentDao.list(zone, AgentStatus.IDLE);
+        return agentDao.list(zone, "updatedDate", AgentStatus.IDLE);
     }
 
     @Override
     public List<Agent> onlineList(String zone) {
-        return agentDao.list(zone, AgentStatus.IDLE, AgentStatus.BUSY);
+        return agentDao.list(zone, "createdDate", AgentStatus.IDLE, AgentStatus.BUSY);
     }
 
     @Override

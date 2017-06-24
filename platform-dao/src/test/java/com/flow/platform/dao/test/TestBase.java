@@ -1,42 +1,30 @@
 package com.flow.platform.dao.test;
 
-import com.flow.platform.dao.AgentDaoImpl;
-import com.flow.platform.dao.CmdDaoImpl;
-import com.flow.platform.dao.CmdResultDaoImpl;
-import com.flow.platform.domain.CmdResult;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
+import com.flow.platform.dao.AgentDao;
+import com.flow.platform.dao.CmdDao;
+import com.flow.platform.dao.CmdResultDao;
 import org.junit.After;
-
-import java.net.URL;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Created by gy@fir.im on 23/06/2017.
  * Copyright fir.im
  */
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = {HibernateConfig.class})
 public abstract class TestBase {
 
-    private static SessionFactory factory;
+    @Autowired
+    protected AgentDao agentDao;
 
-    static CmdDaoImpl cmdDao;
+    @Autowired
+    protected CmdDao cmdDao;
 
-    static AgentDaoImpl agentDao;
-
-    static CmdResultDaoImpl cmdResultDao;
-
-    static {
-        URL resource = CmdResultDaoTest.class.getClassLoader().getResource("hibernate-ut.cfg.xml");
-        factory = new Configuration().configure(resource).buildSessionFactory();
-
-        cmdDao = new CmdDaoImpl();
-        cmdDao.setSessionFactory(factory);
-
-        cmdResultDao = new CmdResultDaoImpl();
-        cmdResultDao.setSessionFactory(factory);
-
-        agentDao = new AgentDaoImpl();
-        agentDao.setSessionFactory(factory);
-    }
+    @Autowired
+    protected CmdResultDao cmdResultDao;
 
     @After
     public void after() {

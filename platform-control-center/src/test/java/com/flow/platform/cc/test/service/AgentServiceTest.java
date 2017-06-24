@@ -73,6 +73,8 @@ public class AgentServiceTest extends TestBase {
         AgentPath agent11 = new AgentPath(zone_1, "agent-1");
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent11), "");
 
+        Thread.sleep(100); // mock network delay
+
         AgentPath agent12 = new AgentPath(zone_1, "agent-2");
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent12), "");
 
