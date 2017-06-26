@@ -1,5 +1,7 @@
 package com.flow.platform.dao;
 
+import org.hibernate.Session;
+
 import java.io.Serializable;
 
 /**
@@ -7,6 +9,8 @@ import java.io.Serializable;
  * Copyright fir.im
  */
 public interface BaseDao<K extends Serializable, T> {
+
+    Session getSession();
 
     T get(final K key);
 

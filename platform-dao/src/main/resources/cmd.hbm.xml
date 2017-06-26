@@ -40,7 +40,7 @@
     </class>
 
     <!--for cmd result definition-->
-    <class name="CmdResult" table="cmd_result" dynamic-update="true">
+    <class name="CmdResult" table="cmd_result">
         <id name="cmdId" type="string" column="cmd_id">
             <generator class="assigned"/>
         </id>

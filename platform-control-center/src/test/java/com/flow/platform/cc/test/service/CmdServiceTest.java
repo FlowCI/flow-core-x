@@ -56,7 +56,6 @@ public class CmdServiceTest extends TestBase {
 
     private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
 
-
     private Process mockProcess = new Process() {
         @Override
         public OutputStream getOutputStream() {
@@ -297,7 +296,7 @@ public class CmdServiceTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentIdle1), "");
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentIdle2), "");
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentBusy1), "");
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // report busy status
         cmdService.send(new CmdInfo(agentBusy1, CmdType.RUN_SHELL, "echo \"hello\""));

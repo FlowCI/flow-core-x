@@ -30,8 +30,8 @@ public abstract class TestBase {
 
     @After
     public void after() {
-        cmdDao.baseDelete("1=1");
-        cmdResultDao.baseDelete("1=1");
-        agentDao.baseDelete("1=1");
+//        cmdDao.baseDelete("1=1");
+//        cmdResultDao.baseDelete("1=1");
+//        agentDao.baseDelete("1=1");
     }
 }

@@ -4,8 +4,8 @@ import com.flow.platform.domain.CmdResult;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -54,6 +54,7 @@ public class CmdResultDaoTest extends TestBase {
         Assert.assertEquals(cmdResult.getExceptions().size(), loaded.getExceptions().size());
     }
 
+    @Ignore
     @Test
     public void should_update_only_for_not_null_field() throws Throwable {
         // given:

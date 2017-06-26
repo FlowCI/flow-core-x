@@ -25,6 +25,6 @@ public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> impleme
 
     @Override
     public void baseDelete(String condition) {
-        getSession().createQuery("delete CmdResult where ".concat(condition)).executeUpdate();
+        getSession().createQuery("delete from CmdResult").executeUpdate();
     }
 }
