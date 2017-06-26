@@ -6,7 +6,8 @@
         http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
-        <property name="jdbcUrl" value="jdbc:mysql://172.16.100.121:3306/flow_cc_db_ut?useSSL=false&amp;createDatabaseIfNotExist=true"/>
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="jdbcUrl" value="jdbc:mysql://172.16.100.121:3306/flow_cc_db_dev?useSSL=false&amp;createDatabaseIfNotExist=true"/>
         <property name="username" value="root"/>
         <property name="password" value="qwertyui"/>
         <property name="poolName" value="springHikariCP" />

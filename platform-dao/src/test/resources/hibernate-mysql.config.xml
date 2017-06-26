@@ -5,6 +5,7 @@
         http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
     <bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
         <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/flow_cc_db_ut?useSSL=false&amp;createDatabaseIfNotExist=true"/>
         <property name="username" value="root"/>
         <property name="password" value=""/>
