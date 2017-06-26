@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.omg.PortableServer.THREAD_POLICY_ID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -267,6 +268,20 @@ public class CmdServiceTest extends TestBase {
         List<Cmd> cmdList = cmdService.listByAgentPath(cmd.getAgentPath());
         Assert.assertEquals(2, cmdList.size());
         Assert.assertTrue(cmdList.get(1).getStatus().equals(CmdStatus.REJECTED));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void should_throw_exception_when_shutdown_cmd_miss_password() throws Throwable {
+        // given:
+        String zoneName = zkHelper.getZones().get(0).getName();
+        String agentName = "test-for-shutdown";
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
+        ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
+        Thread.sleep(1000);
+
+        // when: send shutdown command
+        CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.SHUTDOWN, null);
+        cmdService.send(cmd);
     }
 
     @Test

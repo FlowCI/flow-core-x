@@ -10,6 +10,7 @@ import com.flow.platform.domain.*;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
+import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -188,6 +189,11 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     break;
 
                 case SHUTDOWN:
+                    // in shutdown action, cmd content is sudo password
+                    if (Strings.isNullOrEmpty(cmd.getCmd())) {
+                        throw new IllegalArgumentException("For SHUTDOWN action, password of 'sudo' must be provided");
+                    }
+
                     agentService.deleteSession(target);
                     target.setStatus(AgentStatus.OFFLINE);
                     break;
