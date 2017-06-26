@@ -3,7 +3,9 @@ package com.flow.platform.dao.test;
 import com.flow.platform.domain.CmdResult;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -16,35 +18,57 @@ import java.util.UUID;
  */
 public class CmdResultDaoTest extends TestBase {
 
-    @Test
-    public void should_save_cmd_with_jsonable_type() throws Throwable {
-        // given:
+    private CmdResult cmdResult;
+
+    @Before
+    public void before() {
         Map<String, String> output = new HashMap<>();
         output.put("FLOW_DAO_TEST", "hello");
         output.put("FLOW_DAO_TEST_1", "aa");
 
-        CmdResult result = new CmdResult();
-        result.setCmdId(UUID.randomUUID().toString());
-        result.setExitValue(1);
-        result.setDuration(10L);
-        result.setStartTime(ZonedDateTime.now());
-        result.setFinishTime(ZonedDateTime.now());
-        result.setExecutedTime(ZonedDateTime.now());
-        result.setProcessId(1013);
-        result.setTotalDuration(10L);
-        result.setOutput(output);
-        result.setExceptions(Lists.newArrayList(new RuntimeException("Dummy Exception")));
+        cmdResult = new CmdResult();
+        cmdResult.setCmdId(UUID.randomUUID().toString());
+        cmdResult.setExitValue(1);
+        cmdResult.setDuration(10L);
+        cmdResult.setStartTime(ZonedDateTime.now());
+        cmdResult.setFinishTime(ZonedDateTime.now());
+        cmdResult.setExecutedTime(ZonedDateTime.now());
+        cmdResult.setProcessId(1013);
+        cmdResult.setTotalDuration(10L);
+        cmdResult.setOutput(output);
+        cmdResult.setExceptions(Lists.newArrayList(new RuntimeException("Dummy Exception")));
+    }
 
+    @Test
+    public void should_save_cmd_with_jsonable_type() throws Throwable {
         // when: save
-        cmdResultDao.save(result);
+        cmdResultDao.save(cmdResult);
 
         // then:
-        CmdResult loaded = cmdResultDao.findByCmdId(result.getCmdId());
+        CmdResult loaded = cmdResultDao.findByCmdId(cmdResult.getCmdId());
         Assert.assertNotNull(loaded);
-        Assert.assertEquals(result.getExitValue(), loaded.getExitValue());
-        Assert.assertEquals(result.getDuration(), loaded.getDuration());
+        Assert.assertEquals(cmdResult.getExitValue(), loaded.getExitValue());
+        Assert.assertEquals(cmdResult.getDuration(), loaded.getDuration());
 
-        Assert.assertEquals(result.getOutput().size(), loaded.getOutput().size());
-        Assert.assertEquals(result.getExceptions().size(), loaded.getExceptions().size());
+        Assert.assertEquals(cmdResult.getOutput().size(), loaded.getOutput().size());
+        Assert.assertEquals(cmdResult.getExceptions().size(), loaded.getExceptions().size());
+    }
+
+    @Test
+    public void should_update_only_for_not_null_field() throws Throwable {
+        // given:
+        cmdResultDao.save(cmdResult);
+
+        // when:
+        cmdResult.setExitValue(null);
+        cmdResult.setOutput(null);
+        cmdResult.setProcessId(null);
+        cmdResultDao.update(cmdResult);
+
+        // then:
+        CmdResult loaded = cmdResultDao.findByCmdId(cmdResult.getCmdId());
+        Assert.assertNotNull(loaded.getExitValue());
+        Assert.assertNotNull(loaded.getOutput());
+        Assert.assertNotNull(loaded.getProcessId());
     }
 }

@@ -128,11 +128,10 @@ public class CmdServiceTest extends TestBase {
         result.setStartTime(ZonedDateTime.now());
         result.setProcess(mockProcess);
         result.setProcessId(mockProcess.hashCode());
-
         cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
+
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
-
         Assert.assertTrue(loaded.getStatus().equals(CmdStatus.RUNNING));
         Assert.assertNotNull(cmdResultDao.findByCmdId(cmd.getId()));
         Assert.assertEquals((Integer) mockProcess.hashCode(), cmdResultDao.findByCmdId(cmd.getId()).getProcessId());
