@@ -4,6 +4,7 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentStatus;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.util.List;
 
@@ -12,6 +13,17 @@ import java.util.List;
  * Copyright fir.im
  */
 public class AgentDaoTest extends TestBase {
+
+    @Test(expected = DuplicateKeyException.class)
+    public void should_raise_exception_when_create_duplicate_agent() throws Throwable {
+        Agent agent1 = new Agent("zone-1", "agent-1");
+        agent1.setStatus(AgentStatus.OFFLINE);
+        agentDao.save(agent1);
+
+        agent1 = new Agent("zone-1", "agent-1");
+        agent1.setStatus(AgentStatus.OFFLINE);
+        agentDao.save(agent1);
+    }
 
     @Test
     public void should_list_agent_by_zone_and_status() throws Throwable {

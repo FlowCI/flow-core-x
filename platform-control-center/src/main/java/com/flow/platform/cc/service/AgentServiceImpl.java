@@ -70,7 +70,8 @@ public class AgentServiceImpl implements AgentService {
             }
 
             // find offline agents
-            Set<AgentPath> offlines = Sets.newHashSet(onlineAgentMap.keySet());
+            Set<AgentPath> onlineAgentKeys = onlineAgentMap.keySet();
+            Set<AgentPath> offlines = Sets.newHashSet(onlineAgentKeys);
             offlines.removeAll(keys);
 
             // remove offline agents from online list and update status
@@ -83,6 +84,9 @@ public class AgentServiceImpl implements AgentService {
 
             // report online
             for (AgentPath key : keys) {
+                if (onlineAgentKeys.contains(key)) {
+                    continue;
+                }
                 reportOnline(key);
             }
         } finally {
@@ -202,12 +206,12 @@ public class AgentServiceImpl implements AgentService {
         if (exist == null) {
             Agent agent = new Agent(key);
             agent.setStatus(AgentStatus.IDLE);
-            agentDao.save(agent);
+            create(agent);
             return;
         }
 
         // update exist offline agent to idle status
-        if (exist.getStatus() == AgentStatus.OFFLINE){
+        if (exist.getStatus() == AgentStatus.OFFLINE) {
             exist.setStatus(AgentStatus.IDLE);
             agentDao.update(exist);
         }
