@@ -53,6 +53,11 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
+    public void create(Agent agent) {
+        agentDao.save(agent);
+    }
+
+    @Override
     public void reportOnline(String zone, Collection<AgentPath> keys) {
         onlineListUpdateLock.lock();
         try {

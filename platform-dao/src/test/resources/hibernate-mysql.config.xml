@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/flow_cc_db_ut?useSSL=false&amp;createDatabaseIfNotExist=true"/>
+        <property name="jdbcUrl"
+                  value="jdbc:mysql://localhost:3306/flow_cc_db_ut?useSSL=false&amp;createDatabaseIfNotExist=true"/>
         <property name="username" value="root"/>
         <property name="password" value=""/>
-        <property name="poolName" value="springHikariCP" />
+        <property name="poolName" value="springHikariCP"/>
         <property name="maximumPoolSize" value="10"/>
         <property name="autoCommit" value="true"/>
         <property name="connectionTimeout" value="20000"/>
@@ -46,6 +47,9 @@
     </bean>
 
     <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
-        <property name="sessionFactory" ref="sessionFactory" />
+        <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
+
+    <bean id="persistenceExceptionTranslationPostProcessor"
+          class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
 </beans>

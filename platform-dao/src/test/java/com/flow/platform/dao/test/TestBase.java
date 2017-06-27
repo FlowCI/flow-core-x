@@ -3,7 +3,6 @@ package com.flow.platform.dao.test;
 import com.flow.platform.dao.AgentDao;
 import com.flow.platform.dao.CmdDao;
 import com.flow.platform.dao.CmdResultDao;
-import org.junit.After;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,11 +26,4 @@ public abstract class TestBase {
 
     @Autowired
     protected CmdResultDao cmdResultDao;
-
-    @After
-    public void after() {
-//        cmdDao.baseDelete("1=1");
-//        cmdResultDao.baseDelete("1=1");
-//        agentDao.baseDelete("1=1");
-    }
 }

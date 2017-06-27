@@ -16,9 +16,9 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.omg.PortableServer.THREAD_POLICY_ID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,7 +39,8 @@ import static junit.framework.TestCase.fail;
  * Created by gy@fir.im on 25/05/2017.
  * Copyright fir.im
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@FixMethodOrder(MethodSorters.JVM)
+@Transactional
 public class CmdServiceTest extends TestBase {
 
     @Autowired

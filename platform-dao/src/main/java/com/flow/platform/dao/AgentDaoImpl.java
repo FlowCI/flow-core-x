@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * Created by Will on 17/6/12.
  */
-@Repository
+@Repository(value = "agentDao")
 public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements AgentDao {
 
     private final Set<String> orderByFields = Sets.newHashSet("createdDate", "updatedDate", "sessionDate");

@@ -3,13 +3,14 @@ package com.flow.platform.cc.test;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.util.ZkHelper;
-import com.flow.platform.dao.*;
+import com.flow.platform.dao.AgentDao;
+import com.flow.platform.dao.CmdDao;
+import com.flow.platform.dao.CmdResultDao;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.gson.Gson;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -19,9 +20,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
@@ -37,7 +35,6 @@ import java.util.stream.Stream;
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {WebConfig.class})
-@Transactional(isolation = Isolation.REPEATABLE_READ)
 public abstract class TestBase {
 
     static {
@@ -77,13 +74,6 @@ public abstract class TestBase {
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         zkClient = zkHelper.getClient();
-    }
-
-    @After
-    public void afterEach() {
-        cmdDao.baseDelete("1=1");
-        cmdResultDao.baseDelete("1=1");
-        agentDao.baseDelete("1=1");
     }
 
     @AfterClass

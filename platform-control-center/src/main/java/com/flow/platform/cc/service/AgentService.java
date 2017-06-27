@@ -18,6 +18,13 @@ public interface AgentService {
     int AGENT_SESSION_TIMEOUT_TASK_PERIOD = 60 * 1000; // millisecond
 
     /**
+     * Create agent
+     *
+     * @param agent
+     */
+    void create(Agent agent);
+
+    /**
      * Batch reportOnline agent
      *
      * @param zone

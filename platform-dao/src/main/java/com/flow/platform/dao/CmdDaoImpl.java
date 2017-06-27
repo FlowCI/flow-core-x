@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * Created by Will on 17/6/13.
  */
-@Repository
-@Transactional
+@Repository(value = "cmdDao")
 public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
 
     @Override
@@ -62,6 +61,4 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
                 .uniqueResult());
         return cmd;
     }
-
-
 }

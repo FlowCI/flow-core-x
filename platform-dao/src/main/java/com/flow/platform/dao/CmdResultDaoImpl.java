@@ -2,13 +2,13 @@ package com.flow.platform.dao;
 
 import com.flow.platform.domain.CmdResult;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by Will on 17/6/13.
  */
-@Repository
-@Transactional
+@Repository(value = "cmdResultDao")
 public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> implements CmdResultDao {
 
     @Override
