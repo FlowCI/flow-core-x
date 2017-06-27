@@ -41,7 +41,7 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
 
     @Override
     public void baseDelete(String condition) {
-        getSession().createQuery("delete Cmd where ".concat(condition)).executeUpdate();
+        getSession().createQuery("delete from Cmd").executeUpdate();
     }
 
     @Override

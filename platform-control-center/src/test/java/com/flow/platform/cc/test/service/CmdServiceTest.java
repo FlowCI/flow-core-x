@@ -56,7 +56,6 @@ public class CmdServiceTest extends TestBase {
 
     private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
 
-
     private Process mockProcess = new Process() {
         @Override
         public OutputStream getOutputStream() {
@@ -128,11 +127,10 @@ public class CmdServiceTest extends TestBase {
         result.setStartTime(ZonedDateTime.now());
         result.setProcess(mockProcess);
         result.setProcessId(mockProcess.hashCode());
-
         cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
+
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
-
         Assert.assertTrue(loaded.getStatus().equals(CmdStatus.RUNNING));
         Assert.assertNotNull(cmdResultDao.findByCmdId(cmd.getId()));
         Assert.assertEquals((Integer) mockProcess.hashCode(), cmdResultDao.findByCmdId(cmd.getId()).getProcessId());
@@ -298,7 +296,7 @@ public class CmdServiceTest extends TestBase {
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentIdle1), "");
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentIdle2), "");
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentBusy1), "");
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // report busy status
         cmdService.send(new CmdInfo(agentBusy1, CmdType.RUN_SHELL, "echo \"hello\""));

@@ -29,7 +29,7 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
     @Autowired
     private SessionFactory sessionFactory;
 
-    protected Session getSession() {
+    public Session getSession() {
         return sessionFactory.getCurrentSession();
     }
 

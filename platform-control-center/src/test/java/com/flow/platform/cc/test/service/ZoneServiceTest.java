@@ -105,6 +105,7 @@ public class ZoneServiceTest extends TestBase {
         ZkPathBuilder mockAgent0Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 0));
         byte[] shutdownCmdRaw = ZkNodeHelper.getNodeData(zkClient, mockAgent0Path.path(), null);
         Cmd shutdownCmd = Cmd.parse(shutdownCmdRaw, Cmd.class);
+        Assert.assertNotNull(shutdownCmd);
         Assert.assertEquals(CmdType.SHUTDOWN, shutdownCmd.getType());
         Assert.assertEquals(AgentStatus.OFFLINE, agentService.find(shutdownCmd.getAgentPath()).getStatus());
 
