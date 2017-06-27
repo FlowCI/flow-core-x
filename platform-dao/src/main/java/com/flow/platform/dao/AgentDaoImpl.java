@@ -69,7 +69,7 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
 
     @Override
     public void baseDelete(String condition) {
-        getSession().createQuery("delete from Agent where ".concat(condition)).executeUpdate();
+        getSession().createQuery("delete from Agent").executeUpdate();
     }
 
     @Override
