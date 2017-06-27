@@ -3,10 +3,12 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.dao.*;
 import com.flow.platform.cc.task.CmdWebhookTask;
-import com.flow.platform.util.DateUtil;
+import com.flow.platform.dao.AgentDao;
+import com.flow.platform.dao.CmdDao;
+import com.flow.platform.dao.CmdResultDao;
 import com.flow.platform.domain.*;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -24,8 +26,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Date;
+import java.util.List;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -63,8 +67,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     @Autowired
     private Executor taskExecutor;
 
-    private final Map<String, Cmd> mockCmdList = new ConcurrentHashMap<>();
-
     private final ReentrantLock mockTrans = new ReentrantLock();
 
     @Override
@@ -90,16 +92,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     public List<Cmd> listByZone(String zone) {
-        List<Cmd> cmdList = new LinkedList<>();
-        for (Cmd tmp : mockCmdList.values()) {
-            if (!Objects.equals(tmp.getAgentPath().getZone(), zone)) {
-                continue;
-            }
-            cmdList.add(tmp);
-        }
-
-        cmdList.sort(Comparator.comparing(Cmd::getCreatedDate));
-        return cmdList;
+        return cmdDao.listByZone(zone);
     }
 
     @Override

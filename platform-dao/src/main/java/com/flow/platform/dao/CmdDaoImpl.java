@@ -55,6 +55,18 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
     }
 
     @Override
+    public List<Cmd> listByZone(String zone) {
+        List<Cmd> cmds = execute(session -> {
+            List<Cmd> cmdList = session.createQuery("from Cmd where AGENT_ZONE = :agentZone order by CREATED_DATE asc")
+                    .setParameter("agentZone", zone)
+                    .list();
+            return cmdList;
+        });
+
+        return cmds;
+    }
+
+    @Override
     public Cmd findByCmdResultId(String cmdResultId) {
         Cmd cmd = (Cmd) execute(session -> (Cmd) getSession().createQuery("from Cmd where ID = :cmdReultId")
                 .setParameter("cmdResultId", cmdResultId)
