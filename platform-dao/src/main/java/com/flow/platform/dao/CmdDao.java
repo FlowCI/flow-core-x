@@ -18,5 +18,7 @@ public interface CmdDao extends BaseDao<String, Cmd> {
 
     List<Cmd> listByStatus(String status);
 
+    List<Cmd> listByZone(String zone);
+
     void baseDelete(String condition);
 }
