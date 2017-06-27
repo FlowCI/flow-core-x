@@ -13,6 +13,7 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -82,17 +83,17 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     public Cmd find(String cmdId) {
-        return cmdDao.find(cmdId);
+        return cmdDao.get(cmdId);
     }
 
     @Override
     public List<Cmd> listByAgentPath(AgentPath agentPath) {
-        return cmdDao.listByAgentPath(agentPath);
+        return cmdDao.list(agentPath, null, null);
     }
 
     @Override
     public List<Cmd> listByZone(String zone) {
-        return cmdDao.listByZone(zone);
+        return cmdDao.list(new AgentPath(zone, null), null, null);
     }
 
     @Override
@@ -360,7 +361,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     private List<Cmd> getRunningCmds() {
-        return cmdDao.listByStatus(CmdStatus.RUNNING.toString());
+        return cmdDao.list(null, null, Sets.newHashSet(CmdStatus.RUNNING));
     }
 
     private boolean isAgentPathFail(CmdBase cmd, AgentPath agentPath) {
