@@ -7,5 +7,11 @@ import com.flow.platform.domain.CmdResult;
  */
 public interface CmdResultDao extends BaseDao<String, CmdResult> {
 
-    CmdResult findByCmdId(String cmdId);
+    /**
+     * Only update not null fields
+     *
+     * @param obj
+     * @return
+     */
+    int updateNotNull(CmdResult obj);
 }

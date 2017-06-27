@@ -45,7 +45,7 @@ public class CmdResultDaoTest extends TestBase {
         cmdResultDao.save(cmdResult);
 
         // then:
-        CmdResult loaded = cmdResultDao.findByCmdId(cmdResult.getCmdId());
+        CmdResult loaded = cmdResultDao.get(cmdResult.getCmdId());
         Assert.assertNotNull(loaded);
         Assert.assertEquals(cmdResult.getExitValue(), loaded.getExitValue());
         Assert.assertEquals(cmdResult.getDuration(), loaded.getDuration());
@@ -54,7 +54,7 @@ public class CmdResultDaoTest extends TestBase {
         Assert.assertEquals(cmdResult.getExceptions().size(), loaded.getExceptions().size());
     }
 
-    @Ignore
+    @Ignore(value = "not finished yet")
     @Test
     public void should_update_only_for_not_null_field() throws Throwable {
         // given:
@@ -67,7 +67,7 @@ public class CmdResultDaoTest extends TestBase {
         cmdResultDao.update(cmdResult);
 
         // then:
-        CmdResult loaded = cmdResultDao.findByCmdId(cmdResult.getCmdId());
+        CmdResult loaded = cmdResultDao.get(cmdResult.getCmdId());
         Assert.assertNotNull(loaded.getExitValue());
         Assert.assertNotNull(loaded.getOutput());
         Assert.assertNotNull(loaded.getProcessId());

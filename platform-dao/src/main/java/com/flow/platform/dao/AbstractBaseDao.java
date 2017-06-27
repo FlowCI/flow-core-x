@@ -9,7 +9,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import java.io.Serializable;
 
-
 /**
  * Created by Will on 17/6/12.
  */
@@ -21,10 +20,9 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
         O execute(Session session);
     }
 
-    protected <O> O execute(Executable<O> ex) {
+    <O> O execute(Executable<O> ex) {
         Session session = getSession();
-        O result = ex.execute(session);
-        return result;
+        return ex.execute(session);
     }
 
     /**

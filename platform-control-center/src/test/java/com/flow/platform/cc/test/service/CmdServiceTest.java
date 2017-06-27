@@ -133,8 +133,8 @@ public class CmdServiceTest extends TestBase {
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
         Assert.assertTrue(loaded.getStatus().equals(CmdStatus.RUNNING));
-        Assert.assertNotNull(cmdResultDao.findByCmdId(cmd.getId()));
-        Assert.assertEquals((Integer) mockProcess.hashCode(), cmdResultDao.findByCmdId(cmd.getId()).getProcessId());
+        Assert.assertNotNull(cmdResultDao.get(cmd.getId()));
+        Assert.assertEquals((Integer) mockProcess.hashCode(), cmdResultDao.get(cmd.getId()).getProcessId());
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentPath).getStatus());
     }
 
