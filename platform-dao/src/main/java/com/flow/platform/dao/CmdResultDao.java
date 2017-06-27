@@ -8,6 +8,4 @@ import com.flow.platform.domain.CmdResult;
 public interface CmdResultDao extends BaseDao<String, CmdResult> {
 
     CmdResult findByCmdId(String cmdId);
-
-    void baseDelete(String condition);
 }

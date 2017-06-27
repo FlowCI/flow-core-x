@@ -39,11 +39,6 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
     }
 
     @Override
-    public void baseDelete(String condition) {
-        getSession().createQuery("delete from Cmd").executeUpdate();
-    }
-
-    @Override
     public List<Cmd> listByStatus(String status) {
         List<Cmd> cmds = (List<Cmd>) execute(session -> {
             List<Cmd> cmdList = session.createQuery("from Cmd where STATUS = :status")
@@ -64,13 +59,5 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
         });
 
         return cmds;
-    }
-
-    @Override
-    public Cmd findByCmdResultId(String cmdResultId) {
-        Cmd cmd = (Cmd) execute(session -> (Cmd) getSession().createQuery("from Cmd where ID = :cmdReultId")
-                .setParameter("cmdResultId", cmdResultId)
-                .uniqueResult());
-        return cmd;
     }
 }

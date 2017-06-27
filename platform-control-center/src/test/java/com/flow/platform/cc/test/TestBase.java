@@ -11,6 +11,7 @@ import com.flow.platform.util.zk.ZkLocalBuilder;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.gson.Gson;
 import org.apache.zookeeper.ZooKeeper;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -74,6 +75,13 @@ public abstract class TestBase {
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         zkClient = zkHelper.getClient();
+    }
+
+    @After
+    public void afterEach() {
+        agentDao.deleteAll();
+        cmdDao.deleteAll();
+        cmdResultDao.deleteAll();
     }
 
     @AfterClass

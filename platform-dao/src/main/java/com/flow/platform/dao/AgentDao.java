@@ -36,6 +36,4 @@ public interface AgentDao extends BaseDao<AgentPath, Agent> {
      * @return Agent instance
      */
     Agent find(String sessionId);
-
-    void baseDelete(String condition);
 }

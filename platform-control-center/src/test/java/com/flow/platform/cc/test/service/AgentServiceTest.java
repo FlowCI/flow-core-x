@@ -19,8 +19,6 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -44,13 +42,6 @@ public class AgentServiceTest extends TestBase {
     private SpringContextUtil springContextUtil;
 
     @Test
-    @Transactional
-    @Rollback(false)
-    public void cleanDatabase() {
-        agentDao.baseDelete("1=1");
-    }
-
-    @Test
     public void should_agent_initialized() throws InterruptedException, KeeperException {
         // given:
         String zoneName = "ut-test-zone-1";
@@ -67,13 +58,6 @@ public class AgentServiceTest extends TestBase {
         Thread.sleep(1000);
         Assert.assertEquals(1, agentService.onlineList(zoneName).size());
         Assert.assertTrue(agentService.onlineList(zoneName).contains(new Agent(zoneName, agentName)));
-    }
-
-    @Test
-    @Transactional
-    @Rollback(false)
-    public void cleanDatabase1() {
-        agentDao.baseDelete("1=1");
     }
 
     @Test
@@ -97,7 +81,7 @@ public class AgentServiceTest extends TestBase {
         AgentPath agent13 = new AgentPath(zone_1, "agent-3");
         Agent agentWithOffline = new Agent(agent13);
         agentWithOffline.setStatus(AgentStatus.OFFLINE);
-        agentService.create(agentWithOffline);
+        agentDao.save(agentWithOffline);
         Assert.assertNotNull(agentService.find(agent13));
 
         /* make agent13 online again */
@@ -127,13 +111,6 @@ public class AgentServiceTest extends TestBase {
         Assert.assertEquals(2, agentService.onlineList(zone_1).size());
         Agent agent11Loaded = (Agent) agentService.onlineList(zone_1).toArray()[0];
         Assert.assertEquals(agent11, agent11Loaded.getPath());
-    }
-
-    @Test
-    @Transactional
-    @Rollback(false)
-    public void cleanDatabase2() {
-        agentDao.baseDelete("1=1");
     }
 
     @Test
@@ -173,13 +150,6 @@ public class AgentServiceTest extends TestBase {
         // then:
         Thread.sleep(1500); // wait for 2 seconds
         Assert.assertTrue(agentService.isSessionTimeout(mockAgent, new Date(), 1));
-    }
-
-    @Test
-    @Transactional
-    @Rollback(false)
-    public void cleanDatabase3() {
-        agentDao.baseDelete("1=1");
     }
 
     @After

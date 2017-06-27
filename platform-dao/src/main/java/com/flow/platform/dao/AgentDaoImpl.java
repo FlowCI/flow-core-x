@@ -68,11 +68,6 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
-    public void baseDelete(String condition) {
-        getSession().createQuery("delete from Agent").executeUpdate();
-    }
-
-    @Override
     public Agent find(AgentPath agentPath) {
         Agent agent = (Agent) execute(session -> (Agent) session.createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
             .setParameter("zone", agentPath.getZone())

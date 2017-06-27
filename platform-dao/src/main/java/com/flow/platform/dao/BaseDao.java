@@ -19,4 +19,9 @@ public interface BaseDao<K extends Serializable, T> {
     void update(final T obj);
 
     void delete(final T obj);
+
+    /**
+     * Delete all data of table. should only used for test
+     */
+    int deleteAll();
 }

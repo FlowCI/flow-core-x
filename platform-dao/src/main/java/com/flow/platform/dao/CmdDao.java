@@ -14,11 +14,7 @@ public interface CmdDao extends BaseDao<String, Cmd> {
 
     List<Cmd> listByAgentPath(AgentPath agentPath);
 
-    Cmd findByCmdResultId(String cmdResultId);
-
     List<Cmd> listByStatus(String status);
 
     List<Cmd> listByZone(String zone);
-
-    void baseDelete(String condition);
 }
