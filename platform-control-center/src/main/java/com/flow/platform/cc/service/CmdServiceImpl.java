@@ -212,8 +212,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    public void updateStatus(String cmdId, CmdStatus status, CmdResult result, boolean updateAgentStatus) {
-        LOGGER.trace("Report cmd %s status %s and result %s", cmdId, status, result);
+    public void updateStatus(String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
+        LOGGER.trace("Report cmd %s status %s and result %s", cmdId, status, inputResult);
 
         Cmd cmd = find(cmdId);
         if (cmd == null) {
@@ -224,14 +224,14 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         try {
             // compare exiting cmd result and update
-            if (result != null) {
+            if (inputResult != null) {
+                inputResult.setCmdId(cmdId);
+
                 CmdResult cmdResult = cmdResultDao.get(cmd.getId());
                 if (cmdResult != null) {
-                    cmdResultDao.updateNotNullOrEmpty(cmdResult);
+                    cmdResultDao.updateNotNullOrEmpty(inputResult);
                 } else {
-                    cmdResult = result;
-                    cmdResult.setCmdId(cmdId);
-                    cmdResultDao.save(cmdResult);
+                    cmdResultDao.save(inputResult);
                 }
             }
 
