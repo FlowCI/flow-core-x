@@ -11,6 +11,7 @@ import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -29,9 +30,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 import static junit.framework.TestCase.fail;
 
@@ -128,6 +127,13 @@ public class CmdServiceTest extends TestBase {
         result.setStartTime(ZonedDateTime.now());
         result.setProcess(mockProcess);
         result.setProcessId(mockProcess.hashCode());
+
+        result.getOutput().put("FLOW_API", "123");
+        result.getOutput().put("FLOW_TEST", "456");
+
+        result.getExceptions().add(new RuntimeException("Dummy exception 1"));
+        result.getExceptions().add(new RuntimeException("Dummy exception 2"));
+
         cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
 
         // then: check cmd status should be running and agent status should be busy
@@ -136,6 +142,24 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(cmdResultDao.get(cmd.getId()));
         Assert.assertEquals((Integer) mockProcess.hashCode(), cmdResultDao.get(cmd.getId()).getProcessId());
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentPath).getStatus());
+
+        List<CmdResult> loadedResults = cmdService.listResult(Sets.newHashSet(cmd.getId()));
+        Assert.assertEquals(1, loadedResults.size());
+        Assert.assertEquals(2, loadedResults.get(0).getOutput().size());
+        Assert.assertEquals(2, loadedResults.get(0).getExceptions().size());
+
+        // when: update status for empty output and null process id
+        result = new CmdResult();
+        result.setProcessId(null);
+        result.getOutput().clear();
+        cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
+
+        // then:
+        loadedResults = cmdService.listResult(Sets.newHashSet(cmd.getId()));
+        Assert.assertEquals(1, loadedResults.size());
+        Assert.assertNotNull(loadedResults.get(0).getProcessId());
+        Assert.assertEquals(2, loadedResults.get(0).getOutput().size());
+        Assert.assertEquals(2, loadedResults.get(0).getExceptions().size());
     }
 
     @Test

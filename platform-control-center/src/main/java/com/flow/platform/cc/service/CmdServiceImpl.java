@@ -227,8 +227,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             if (result != null) {
                 CmdResult cmdResult = cmdResultDao.get(cmd.getId());
                 if (cmdResult != null) {
-                    coverCmdResult(cmdResult, result);
-                    cmdResultDao.update(cmdResult);
+                    cmdResultDao.updateNotNullOrEmpty(cmdResult);
                 } else {
                     cmdResult = result;
                     cmdResult.setCmdId(cmdId);
