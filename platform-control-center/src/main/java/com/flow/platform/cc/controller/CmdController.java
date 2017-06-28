@@ -66,17 +66,6 @@ public class CmdController {
     }
 
     /**
-     * List cmd result by cmd list
-     *
-     * @param cmdIdList
-     * @return
-     */
-    @PostMapping(path = "/result", consumes = "application/json")
-    public Collection<CmdResult> result(@RequestBody Set<String> cmdIdList) {
-        return cmdService.listResult(cmdIdList);
-    }
-
-    /**
      * Upload zipped cmd log with multipart
      *
      * @param cmdId cmd id with text/plain
