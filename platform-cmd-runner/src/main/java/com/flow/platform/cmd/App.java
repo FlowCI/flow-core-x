@@ -68,27 +68,6 @@ public final class App {
             });
 
     public static void main(String[] args) throws Throwable {
-//        executor.execute(new MyThread());
-//        executor.execute(new MyThread());
-//        executor.execute(new MyThread());
-//
-////        new Thread(() -> {
-////            try {
-////                Thread.sleep(2000);
-////                executor.shutdownNow();
-////            } catch (InterruptedException e) {
-////
-////            }
-////
-////        }).start();
-//
-//        executor.shutdown();
-//        if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-//            executor.shutdownNow();
-//        }
-//        System.out.println("CLose!!");
-
-//        "echo \"Error: no test specified\" && exit 1
         Map<String, String> inputs = new HashMap<>();
         inputs.put("TEST", "echo \"hello\"");
         inputs.put("FLOW_INPUT", "HELLO");
@@ -100,10 +79,9 @@ public final class App {
                 null,
                 "FLOW_", // find env start with FLOW_ and put to cmd result output map
                 null,
-                "$TEST", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/", "./test.sh");
+                "$TEST", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/");
 
         executor.run();
-
     }
 
     private static class MyThread implements Runnable {

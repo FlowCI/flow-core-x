@@ -252,20 +252,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
     }
 
-    private CmdResult coverCmdResult(CmdResult source, CmdResult dest) {
-        if (dest.getFinishTime() != null) {
-            source.setStartTime(dest.getStartTime());
-            source.setFinishTime(dest.getFinishTime());
-            source.setExecutedTime(dest.getExecutedTime());
-            source.setDuration(dest.getDuration());
-            source.setExitValue(dest.getExitValue());
-            source.setProcess(dest.getProcess());
-            source.setProcessId(dest.getProcessId());
-            source.setTotalDuration(dest.getTotalDuration());
-        }
-        return source;
-    }
-
     @Override
     public void saveLog(String cmdId, MultipartFile file) {
         Cmd cmd = find(cmdId);
@@ -294,6 +280,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Scheduled(fixedDelay = 300 * 1000)
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void checkTimeoutTask() {
         if (!taskConfig.isEnableCmdExecTimeoutTask()) {
             return;
@@ -301,14 +288,14 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         LOGGER.traceMarker("checkTimeoutTask", "start");
 
         // find all running status cmd
-        for (Cmd cmd : getRunningCmds()) {
-            if (cmd.getType() == CmdType.RUN_SHELL && cmd.isCurrent()) {
-                if (isTimeout(cmd)) {
-                    // kill current running cmd and report status
-                    send(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
-                    LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
-                    updateStatus(cmd.getId(), CmdStatus.TIMEOUT_KILL, null, true);
-                }
+        List<Cmd> cmds = cmdDao.list(null, Sets.newHashSet(CmdType.RUN_SHELL), Cmd.WORKING_STATUS);
+
+        for (Cmd cmd : cmds) {
+            if (isTimeout(cmd)) {
+                // kill current running cmd and report status
+                send(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
+                LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
+                updateStatus(cmd.getId(), CmdStatus.TIMEOUT_KILL, null, true);
             }
         }
 
@@ -361,10 +348,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         return target;
-    }
-
-    private List<Cmd> getRunningCmds() {
-        return cmdDao.list(null, null, Sets.newHashSet(CmdStatus.RUNNING));
     }
 
     private boolean isAgentPathFail(CmdBase cmd, AgentPath agentPath) {
