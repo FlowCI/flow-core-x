@@ -1,24 +1,25 @@
-package com.flow.platform.dao.adaptor;
+package com.flow.platform.dao.adaptor.list;
 
+import com.flow.platform.dao.adaptor.BaseAdaptor;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Created by gy@fir.im on 28/06/2017.
  * Copyright fir.im
  */
-public class MapAdaptor extends BaseAdaptor {
+public class ListAdaptor extends BaseAdaptor {
 
     @Override
     public Class returnedClass() {
-        return Map.class;
+        return List.class;
     }
 
     @Override
     protected Type getTargetType() {
-        TypeToken<Map<String, String>> typeToken = new TypeToken<Map<String, String>>() {};
+        TypeToken<List<String>> typeToken = new TypeToken<List<String>>() {};
         return typeToken.getType();
     }
 }

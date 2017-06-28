@@ -7,6 +7,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +19,8 @@ import java.sql.Types;
 public abstract class BaseAdaptor implements UserType {
 
     public static final Gson GSON = Jsonable.GSON_CONFIG;
+
+    protected abstract Type getTargetType();
 
     @Override
     public int[] sqlTypes() {
@@ -115,7 +118,7 @@ public abstract class BaseAdaptor implements UserType {
     }
 
     protected Object jsonToObject(String json) {
-        return GSON.fromJson(json, returnedClass());
+        return GSON.fromJson(json, getTargetType());
     }
 
     protected String objectToJson(Object object) {

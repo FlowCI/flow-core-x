@@ -171,6 +171,21 @@ public class CmdResult extends Jsonable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CmdResult cmdResult = (CmdResult) o;
+
+        return cmdId != null ? cmdId.equals(cmdResult.cmdId) : cmdResult.cmdId == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return cmdId != null ? cmdId.hashCode() : 0;
+    }
+
+    @Override
     public String toString() {
         return "CmdResult{" +
                 "processId=" + processId +

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
 import java.util.Set;
@@ -14,6 +15,7 @@ import java.util.Set;
  * Created by gy@fir.im on 28/06/2017.
  * Copyright fir.im
  */
+@RestController
 @RequestMapping("/cmd/result")
 public class CmdResultController {
 
@@ -27,7 +29,7 @@ public class CmdResultController {
      * @return
      */
     @PostMapping(path = "/list", consumes = "application/json")
-    public Collection<CmdResult> result(@RequestBody Set<String> cmdIdList) {
+    public Collection<CmdResult> list(@RequestBody Set<String> cmdIdList) {
         return cmdService.listResult(cmdIdList);
     }
 }
