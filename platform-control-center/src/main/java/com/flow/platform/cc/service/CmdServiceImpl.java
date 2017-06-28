@@ -213,6 +213,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     public void updateStatus(String cmdId, CmdStatus status, CmdResult result, boolean updateAgentStatus) {
+        LOGGER.trace("Report cmd %s status %s and result %s", cmdId, status, result);
+
         Cmd cmd = find(cmdId);
         if (cmd == null) {
             throw new IllegalArgumentException("Cmd not exist");
