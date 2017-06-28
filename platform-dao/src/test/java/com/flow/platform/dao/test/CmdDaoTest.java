@@ -4,11 +4,13 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +20,39 @@ import java.util.UUID;
  */
 @Transactional
 public class CmdDaoTest extends TestBase {
+
+    @Test
+    public void should_save_all_fields() throws Throwable {
+        // given:
+        Cmd cmd = new Cmd("zone", "agent", CmdType.SHUTDOWN, "123");
+        cmd.setId(UUID.randomUUID().toString());
+        cmd.setStatus(CmdStatus.KILLED);
+        cmd.setOutputEnvFilter("FLOW_VAR");
+        cmd.setCreatedDate(new Date());
+        cmd.setUpdatedDate(new Date());
+        cmd.setFinishedDate(new Date());
+        cmd.setLogPaths(Lists.newArrayList("/test/log/path"));
+        cmd.setPriority(1);
+        cmd.setTimeout(10L);
+        cmd.setWebhook("http://webhook.com");
+        cmd.getInputs().put("VAR_1", "1");
+        cmd.getInputs().put("VAR_2", "2");
+        cmd.setWorkingDir("/");
+        cmd.setSessionId("session-id");
+
+        // when:
+        cmdDao.save(cmd);
+
+        // then:
+        Cmd loaded = cmdDao.get(cmd.getId());
+        Assert.assertEquals(cmd.getZoneName(), loaded.getZoneName());
+        Assert.assertEquals(cmd.getAgentName(), loaded.getAgentName());
+        Assert.assertEquals(cmd.getType(), loaded.getType());
+        Assert.assertEquals(cmd.getCmd(), loaded.getCmd());
+        Assert.assertEquals(cmd.getStatus(), loaded.getStatus());
+        Assert.assertEquals(cmd.getOutputEnvFilter(), loaded.getOutputEnvFilter());
+        Assert.assertEquals(cmd.getWebhook(), loaded.getWebhook());
+    }
 
     @Test
     public void should_get_cmd_by_agent_path() throws Throwable {

@@ -28,7 +28,7 @@ public abstract class CmdBase extends Jsonable {
     protected String cmd;
 
     /**
-     * Cmd timeout
+     * Cmd timeout in seconds
      */
     protected Long timeout;
 

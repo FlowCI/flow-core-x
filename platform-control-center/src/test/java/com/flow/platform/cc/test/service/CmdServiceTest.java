@@ -97,6 +97,7 @@ public class CmdServiceTest extends TestBase {
     public void should_create_cmd() {
         // given:
         CmdInfo base = new CmdInfo("test-zone", "test-agent", CmdType.KILL, null);
+        base.setWebhook("http://hooks.com");
 
         // when:
         Cmd cmd = cmdService.create(base);
@@ -104,11 +105,13 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(cmd.getId());
         Assert.assertNotNull(cmd.getCreatedDate());
         Assert.assertNotNull(cmd.getUpdatedDate());
+        Assert.assertNotNull(cmd.getWebhook());
 
         // then:
         Cmd loaded = cmdService.find(cmd.getId());
         Assert.assertNotNull(loaded);
         Assert.assertEquals(cmd.getId(), loaded.getId());
+        Assert.assertEquals(base.getWebhook(), cmd.getWebhook());
     }
 
     @Test

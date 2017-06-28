@@ -8,16 +8,6 @@
         <id name="id" type="string">
             <generator class="assigned"/>
         </id>
-        <property name="cmd" type="text" column="cmd"/>
-        <property name="timeout" type="long" column="timeout"/>
-        <property name="priority" type="integer" column="priority"/>
-        <property name="workingDir" type="string" column="working_dir"/>
-        <property name="outputEnvFilter" type="string" column="output_env_filter"/>
-        <property name="logPaths" type="com.flow.platform.dao.adaptor.list.ListAdaptor" column="log_paths"></property>
-        <property name="inputs" type="com.flow.platform.dao.adaptor.MapAdaptor" column="inputs"></property>
-        <property name="createdDate"  column="created_date"/>
-        <property name="updatedDate"  column="updated_date"/>
-        <property name="finishedDate"  column="finished_date"/>
 
         <component name="agentPath" class="AgentPath">
             <property name="zone" column="agent_zone"></property>
@@ -37,6 +27,19 @@
                 <param name="useNamed">true</param>
             </type>
         </property>
+
+        <property name="cmd" type="text" column="cmd"/>
+        <property name="timeout" type="long" column="timeout"/>
+        <property name="priority" type="integer" column="priority"/>
+        <property name="workingDir" type="string" column="working_dir"/>
+        <property name="outputEnvFilter" type="string" column="output_env_filter"/>
+        <property name="logPaths" type="com.flow.platform.dao.adaptor.list.ListAdaptor" column="log_paths"></property>
+        <property name="inputs" type="com.flow.platform.dao.adaptor.MapAdaptor" column="inputs"></property>
+        <property name="webhook" type="string" column="webhook"/>
+        <property name="createdDate" column="created_date"/>
+        <property name="updatedDate" column="updated_date"/>
+        <property name="finishedDate" column="finished_date"/>
+
     </class>
 
     <!--for cmd result definition-->
@@ -53,6 +56,7 @@
         <property name="executedTime" not-null="false" column="executed_time"/>
         <property name="finishTime" not-null="false" column="finish_time"/>
         <property name="output" not-null="false" type="com.flow.platform.dao.adaptor.MapAdaptor" column="output"/>
-        <property name="exceptions" not-null="false" type="com.flow.platform.dao.adaptor.list.ListThrowableAdaptor" column="exceptions"/>
+        <property name="exceptions" not-null="false" type="com.flow.platform.dao.adaptor.list.ListThrowableAdaptor"
+                  column="exceptions"/>
     </class>
 </hibernate-mapping>
