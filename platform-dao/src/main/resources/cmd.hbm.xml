@@ -13,8 +13,8 @@
         <property name="priority" type="integer" column="priority"/>
         <property name="workingDir" type="string" column="working_dir"/>
         <property name="outputEnvFilter" type="string" column="output_env_filter"/>
-        <property name="logPaths" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="log_paths"></property>
-        <property name="inputs" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="inputs"></property>
+        <property name="logPaths" type="com.flow.platform.dao.adaptor.ListAdaptor" column="log_paths"></property>
+        <property name="inputs" type="com.flow.platform.dao.adaptor.MapAdaptor" column="inputs"></property>
         <property name="createdDate"  column="created_date"/>
         <property name="updatedDate"  column="updated_date"/>
         <property name="finishedDate"  column="finished_date"/>
@@ -52,7 +52,7 @@
         <property name="startTime" not-null="false" column="start_time"/>
         <property name="executedTime" not-null="false" column="executed_time"/>
         <property name="finishTime" not-null="false" column="finish_time"/>
-        <property name="output" not-null="false" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="output"/>
-        <property name="exceptions" not-null="false" type="com.flow.platform.dao.adaptor.BaseAdaptor" column="exceptions"/>
+        <property name="output" not-null="false" type="com.flow.platform.dao.adaptor.MapAdaptor" column="output"/>
+        <property name="exceptions" not-null="false" type="com.flow.platform.dao.adaptor.ListAdaptor" column="exceptions"/>
     </class>
 </hibernate-mapping>

@@ -1,7 +1,7 @@
 package com.flow.platform.dao.adaptor;
 
+import com.flow.platform.domain.Jsonable;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
@@ -11,22 +11,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Will on 17/6/20.
  */
-public class BaseAdaptor implements UserType {
+public abstract class BaseAdaptor implements UserType {
+
+    public static final Gson GSON = Jsonable.GSON_CONFIG;
 
     @Override
     public int[] sqlTypes() {
         return new int[]{Types.LONGVARCHAR};
-    }
-
-    @Override
-    public Class returnedClass() {
-        return String.class;
     }
 
     @Override
@@ -73,25 +68,21 @@ public class BaseAdaptor implements UserType {
                             Object value,
                             int index,
                             SharedSessionContractImplementor session) throws HibernateException, SQLException {
+
+        // set to null
         if (value == null) {
             st.setString(index, null);
-        } else {
-            String str = objectToJson(value);
-            st.setString(index, str);
+            return;
         }
-    }
 
-    Object jsonToObject(String json) {
-        Gson gson = new Gson();
-        Object object = gson.fromJson(json, new TypeToken<Object>() {
-        }.getType());
-        return object;
-    }
+        // value already in string type
+        if (value instanceof String) {
+            st.setString(index, (String) value);
+            return;
+        }
 
-    String objectToJson(Object object) {
-        Gson gson = new Gson();
-        String json = gson.toJson(object);
-        return json;
+        String str = objectToJson(value);
+        st.setString(index, str);
     }
 
     @Override
@@ -121,5 +112,13 @@ public class BaseAdaptor implements UserType {
     @Override
     public Object replace(Object original, Object target, Object owner) throws HibernateException {
         return deepCopy(original);
+    }
+
+    protected Object jsonToObject(String json) {
+        return GSON.fromJson(json, returnedClass());
+    }
+
+    protected String objectToJson(Object object) {
+        return GSON.toJson(object);
     }
 }

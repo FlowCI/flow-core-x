@@ -1,5 +1,6 @@
 package com.flow.platform.dao;
 
+import com.flow.platform.dao.adaptor.BaseAdaptor;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.ObjectUtil;
@@ -60,20 +61,25 @@ public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> impleme
             return 0;
         }
 
-        Session session = getSession();
-        CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaUpdate<CmdResult> update = builder.createCriteriaUpdate(CmdResult.class);
+        return execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaUpdate<CmdResult> update = builder.createCriteriaUpdate(CmdResult.class);
+            Root<CmdResult> from = update.from(CmdResult.class);
 
-        Root<CmdResult> from = update.from(CmdResult.class);
+            for (Map.Entry<Field, Object> entry : notNullFields.entrySet()) {
+                Field field = entry.getKey();
+                Object value = entry.getValue();
 
-        for (Map.Entry<Field, Object> entry : notNullFields.entrySet()) {
-            Field field = entry.getKey();
-            Object value = entry.getValue();
-            update.set(field.getName(), value);
-        }
+                // for cmd result exception type, adaptor will get item of list.. maybe its bug of hibenrate
+                if (value instanceof List) {
+                    value = BaseAdaptor.GSON.toJson(value);
+                }
 
-        update.where(builder.equal(from.get("cmdId"), obj.getCmdId()));
+                update.set(field.getName(), value);
+            }
 
-        return session.createQuery(update).executeUpdate();
+            update.where(builder.equal(from.get("cmdId"), obj.getCmdId()));
+            return session.createQuery(update).executeUpdate();
+        });
     }
 }

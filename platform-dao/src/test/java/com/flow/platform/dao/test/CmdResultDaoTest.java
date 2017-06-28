@@ -35,7 +35,8 @@ public class CmdResultDaoTest extends TestBase {
         cmdResult.setProcessId(1013);
         cmdResult.setTotalDuration(10L);
         cmdResult.setOutput(output);
-        cmdResult.setExceptions(Lists.newArrayList(new RuntimeException("Dummy Exception")));
+        cmdResult.setExceptions(Lists.newArrayList(
+                new RuntimeException("Dummy Exception"), new RuntimeException("Dummy Exception")));
     }
 
     @Test
@@ -69,7 +70,6 @@ public class CmdResultDaoTest extends TestBase {
         Assert.assertEquals(cmdResult.getExceptions().size(), loaded.getExceptions().size());
     }
 
-    @Ignore
     @Test
     public void should_update_only_for_not_null_field() throws Throwable {
         // given:
@@ -79,6 +79,8 @@ public class CmdResultDaoTest extends TestBase {
         cmdResult.setExitValue(null);
         cmdResult.setOutput(null);
         cmdResult.setProcessId(null);
+        cmdResult.setOutput(null);
+        cmdResult.setExceptions(null);
         cmdResultDao.updateNotNull(cmdResult);
 
         // then:
@@ -86,6 +88,8 @@ public class CmdResultDaoTest extends TestBase {
         Assert.assertNotNull(loaded.getExitValue());
         Assert.assertNotNull(loaded.getOutput());
         Assert.assertNotNull(loaded.getProcessId());
+        Assert.assertEquals(2, loaded.getOutput().size());
+        Assert.assertEquals(2, loaded.getExceptions().size());
     }
 
     @After

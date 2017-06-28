@@ -1,15 +1,17 @@
 package com.flow.platform.domain;
 
-import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by gy@fir.im on 12/05/2017.
  * Copyright fir.im
  */
-public class CmdResult implements Serializable {
+public class CmdResult extends Jsonable {
 
     public static final Integer EXIT_VALUE_FOR_KILL = 143; // auto set while kill process
     public static final Integer EXIT_VALUE_FOR_REJECT = -100;
@@ -123,9 +125,11 @@ public class CmdResult implements Serializable {
     }
 
     public void setExecutedTime(ZonedDateTime executedTime) {
-        if(executedTime != null){
+        if (executedTime != null) {
             this.executedTime = executedTime;
-            this.duration = ChronoUnit.SECONDS.between(this.startTime, this.executedTime);
+            if (startTime != null) {
+                this.duration = ChronoUnit.SECONDS.between(this.startTime, this.executedTime);
+            }
         }
     }
 
@@ -134,9 +138,9 @@ public class CmdResult implements Serializable {
     }
 
     public void setFinishTime(ZonedDateTime finishTime) {
-        if(finishTime != null){
+        if (finishTime != null) {
             this.finishTime = finishTime;
-            if(this.startTime != null){
+            if (this.startTime != null) {
                 this.totalDuration = ChronoUnit.SECONDS.between(this.startTime, this.finishTime);
             }
         }
