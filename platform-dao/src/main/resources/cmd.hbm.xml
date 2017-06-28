@@ -8,7 +8,7 @@
         <id name="id" type="string">
             <generator class="assigned"/>
         </id>
-        <property name="cmd" type="string" column="cmd"/>
+        <property name="cmd" type="text" column="cmd"/>
         <property name="timeout" type="long" column="timeout"/>
         <property name="priority" type="integer" column="priority"/>
         <property name="workingDir" type="string" column="working_dir"/>
