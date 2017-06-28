@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -72,8 +72,8 @@ public class CmdController {
      * @return
      */
     @PostMapping(path = "/result", consumes = "application/json")
-    public Collection<CmdResult> result(@RequestBody List<String> cmdIdList) {
-        return null;
+    public Collection<CmdResult> result(@RequestBody Set<String> cmdIdList) {
+        return cmdService.listResult(cmdIdList);
     }
 
     /**

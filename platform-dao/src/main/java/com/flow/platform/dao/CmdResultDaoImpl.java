@@ -17,8 +17,7 @@ import javax.persistence.criteria.Root;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Will on 17/6/13.
@@ -29,6 +28,23 @@ public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> impleme
     @Override
     Class getEntityClass() {
         return CmdResult.class;
+    }
+
+    @Override
+    public List<CmdResult> list(Collection<String> cmdIds) {
+        if (cmdIds == null || cmdIds.size() == 0) {
+            return new ArrayList<>(0);
+        }
+
+        return execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+
+            CriteriaQuery select = builder.createQuery(getEntityClass());
+            Root from = select.from(getEntityClass());
+            select.where(from.get("cmdId").in(cmdIds));
+
+            return session.createQuery(select).getResultList();
+        });
     }
 
     @Override
@@ -46,9 +62,7 @@ public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> impleme
 
         Session session = getSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
-
         CriteriaUpdate<CmdResult> update = builder.createCriteriaUpdate(CmdResult.class);
-
 
         Root<CmdResult> from = update.from(CmdResult.class);
 

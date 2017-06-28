@@ -95,7 +95,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     public List<CmdResult> listResult(Set<String> cmdIds) {
-        return null;
+        return cmdResultDao.list(cmdIds);
     }
 
     @Override

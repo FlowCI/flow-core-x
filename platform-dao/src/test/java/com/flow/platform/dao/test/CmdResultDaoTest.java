@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,7 +40,22 @@ public class CmdResultDaoTest extends TestBase {
 
     @Test
     @Transactional
-    public void should_save_cmd_with_jsonable_type() throws Throwable {
+    public void should_list_cmd_result_by_ids() throws Throwable {
+        // given: save
+        cmdResultDao.save(cmdResult);
+
+        // when:
+        List<CmdResult> list = cmdResultDao.list(Lists.newArrayList(cmdResult.getCmdId()));
+
+        // then:
+        Assert.assertNotNull(list);
+        Assert.assertEquals(1, list.size());
+        Assert.assertEquals(cmdResult, list.get(0));
+    }
+
+    @Test
+    @Transactional
+    public void should_save_cmd_result_with_jsonable_type() throws Throwable {
         // when: save
         cmdResultDao.save(cmdResult);
 
