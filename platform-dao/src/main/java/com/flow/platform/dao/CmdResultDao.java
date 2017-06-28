@@ -24,5 +24,5 @@ public interface CmdResultDao extends BaseDao<String, CmdResult> {
      * @param obj
      * @return
      */
-    int updateNotNull(CmdResult obj);
+    int updateNotNullOrEmpty(CmdResult obj);
 }

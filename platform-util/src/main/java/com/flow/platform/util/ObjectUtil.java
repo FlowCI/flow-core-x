@@ -14,15 +14,17 @@ public class ObjectUtil {
     /**
      * Find not null fields
      *
-     * @param clazz Target class
-     * @param bean   Target java bean instance
-     * @param skipTypes Type list which not deal
+     * @param clazz         Target class
+     * @param bean          Target java bean instance
+     * @param skipTypes     Type list which not deal
+     * @param checkNotEmpty Enable to check not empty fields for collection and map
      * @return field metadata and value of not null field
      */
     public static Map<Field, Object> findNotNullFieldValue(Class<?> clazz,
                                                            Object bean,
                                                            Set<Class<?>> skipTypes,
-                                                           Set<String> skipFields) {
+                                                           Set<String> skipFields,
+                                                           boolean checkNotEmpty) {
         // find not null fields
         Field[] fields = clazz.getDeclaredFields();
         Map<Field, Object> notNullFields = new HashMap<>(fields.length);
@@ -46,9 +48,27 @@ public class ObjectUtil {
                 Method method = clazz.getDeclaredMethod("get" + fieldName);
 
                 Object value = method.invoke(bean);
-                if (value != null) {
-                    notNullFields.put(field, value);
+                if (value == null) {
+                    continue;
                 }
+
+                if (checkNotEmpty && value instanceof Collection) {
+                    Collection tmp = (Collection) value;
+                    if (tmp.size() > 0) {
+                        notNullFields.put(field, value);
+                    }
+                    continue;
+                }
+
+                if (checkNotEmpty && value instanceof Map) {
+                    Map tmp = (Map) value;
+                    if (tmp.size() > 0) {
+                        notNullFields.put(field, value);
+                    }
+                    continue;
+                }
+
+                notNullFields.put(field, value);
 
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 continue;

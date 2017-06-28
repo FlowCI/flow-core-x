@@ -80,8 +80,8 @@ public class CmdResultDaoTest extends TestBase {
         cmdResult.setOutput(null);
         cmdResult.setProcessId(null);
         cmdResult.setOutput(null);
-        cmdResult.setExceptions(null);
-        cmdResultDao.updateNotNull(cmdResult);
+        cmdResult.setExceptions(Lists.newArrayList());
+        cmdResultDao.updateNotNullOrEmpty(cmdResult);
 
         // then:
         CmdResult loaded = cmdResultDao.get(cmdResult.getCmdId());

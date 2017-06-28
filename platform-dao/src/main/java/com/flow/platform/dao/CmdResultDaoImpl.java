@@ -49,12 +49,13 @@ public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> impleme
     }
 
     @Override
-    public int updateNotNull(final CmdResult obj) {
+    public int updateNotNullOrEmpty(final CmdResult obj) {
         final Map<Field, Object> notNullFields =
                 ObjectUtil.findNotNullFieldValue(getEntityClass(),
                         obj,
                         Sets.newHashSet(Process.class),
-                        Sets.newHashSet("cmdId"));
+                        Sets.newHashSet("cmdId"),
+                        true);
 
         // all fields are null
         if (notNullFields.isEmpty()) {
