@@ -5,6 +5,7 @@ import com.flow.platform.domain.AgentStatus;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
  * Created by gy@fir.im on 24/06/2017.
  * Copyright fir.im
  */
+@Transactional
 public class AgentDaoTest extends TestBase {
 
     @Test(expected = DuplicateKeyException.class)

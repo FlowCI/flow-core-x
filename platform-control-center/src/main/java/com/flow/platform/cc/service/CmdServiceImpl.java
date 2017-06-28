@@ -27,10 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -94,6 +91,11 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     @Override
     public List<Cmd> listByZone(String zone) {
         return cmdDao.list(new AgentPath(zone, null), null, null);
+    }
+
+    @Override
+    public List<CmdResult> listResult(Set<String> cmdIds) {
+        return null;
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.flow.platform.domain.CmdType;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
  * Created by gy@fir.im on 27/06/2017.
  * Copyright fir.im
  */
+@Transactional
 public class CmdDaoTest extends TestBase {
 
     @Test

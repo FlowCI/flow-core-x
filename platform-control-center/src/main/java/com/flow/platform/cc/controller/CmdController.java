@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -62,6 +63,17 @@ public class CmdController {
     @PostMapping(path = "/list", consumes = "application/json")
     public Collection<Cmd> list(@RequestBody AgentPath agentPath) {
         return cmdService.listByAgentPath(agentPath);
+    }
+
+    /**
+     * List cmd result by cmd list
+     *
+     * @param cmdIdList
+     * @return
+     */
+    @PostMapping(path = "/result", consumes = "application/json")
+    public Collection<CmdResult> result(@RequestBody List<String> cmdIdList) {
+        return null;
     }
 
     /**

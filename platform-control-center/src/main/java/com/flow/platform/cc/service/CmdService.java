@@ -5,6 +5,7 @@ import com.flow.platform.domain.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -46,6 +47,14 @@ public interface CmdService {
      * @return
      */
     List<Cmd> listByZone(String zone);
+
+    /**
+     * List cmd result by ids
+     *
+     * @param cmdIds
+     * @return
+     */
+    List<CmdResult> listResult(Set<String> cmdIds);
 
     /**
      * Send CmdBase with AgentPath which to identify where is cmd destination

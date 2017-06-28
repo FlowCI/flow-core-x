@@ -2,10 +2,8 @@ package com.flow.platform.dao.test;
 
 import com.flow.platform.domain.CmdResult;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -40,6 +38,7 @@ public class CmdResultDaoTest extends TestBase {
     }
 
     @Test
+    @Transactional
     public void should_save_cmd_with_jsonable_type() throws Throwable {
         // when: save
         cmdResultDao.save(cmdResult);
@@ -54,7 +53,7 @@ public class CmdResultDaoTest extends TestBase {
         Assert.assertEquals(cmdResult.getExceptions().size(), loaded.getExceptions().size());
     }
 
-    @Ignore(value = "not finished yet")
+    @Ignore
     @Test
     public void should_update_only_for_not_null_field() throws Throwable {
         // given:
@@ -64,12 +63,17 @@ public class CmdResultDaoTest extends TestBase {
         cmdResult.setExitValue(null);
         cmdResult.setOutput(null);
         cmdResult.setProcessId(null);
-        cmdResultDao.update(cmdResult);
+        cmdResultDao.updateNotNull(cmdResult);
 
         // then:
         CmdResult loaded = cmdResultDao.get(cmdResult.getCmdId());
         Assert.assertNotNull(loaded.getExitValue());
         Assert.assertNotNull(loaded.getOutput());
         Assert.assertNotNull(loaded.getProcessId());
+    }
+
+    @After
+    public void after() {
+        cmdResultDao.deleteAll();
     }
 }
