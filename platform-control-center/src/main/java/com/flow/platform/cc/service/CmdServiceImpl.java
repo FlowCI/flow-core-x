@@ -212,7 +212,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateStatus(String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
         LOGGER.trace("Report cmd %s status %s and result %s", cmdId, status, inputResult);
 
