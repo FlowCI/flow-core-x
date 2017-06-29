@@ -212,32 +212,29 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw new IllegalArgumentException("Cmd not exist");
         }
 
-        try {
-            // compare exiting cmd result and update
-            if (inputResult != null) {
-                inputResult.setCmdId(cmdId);
-                cmd.setFinishedDate(inputResult.getFinishTime());
+        // compare exiting cmd result and update
+        if (inputResult != null) {
+            inputResult.setCmdId(cmdId);
+            cmd.setFinishedDate(inputResult.getFinishTime());
 
-                CmdResult cmdResult = cmdResultDao.get(cmd.getId());
-                if (cmdResult != null) {
-                    cmdResultDao.updateNotNullOrEmpty(inputResult);
-                } else {
-                    cmdResultDao.save(inputResult);
-                }
+            CmdResult cmdResult = cmdResultDao.get(cmd.getId());
+            if (cmdResult != null) {
+                cmdResultDao.updateNotNullOrEmpty(inputResult);
+            } else {
+                cmdResultDao.save(inputResult);
+            }
+        }
+
+        // update cmd status
+        if (cmd.addStatus(status)) {
+            cmd.setUpdatedDate(ZonedDateTime.now());
+            cmdDao.update(cmd);
+
+            // update agent status
+            if (updateAgentStatus) {
+                updateAgentStatusWhenUpdateCmd(cmd);
             }
 
-            // update cmd status
-            if (cmd.addStatus(status)) {
-                cmd.setUpdatedDate(ZonedDateTime.now());
-                cmdDao.update(cmd);
-
-                // update agent status
-                if (updateAgentStatus) {
-                    updateAgentStatusWhenUpdateCmd(cmd);
-                }
-            }
-        } finally {
-            // try to call webhhook of cmd
             webhookCallback(cmd);
         }
     }
