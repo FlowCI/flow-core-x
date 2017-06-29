@@ -246,6 +246,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 }
             }
         } finally {
+            cmdLock.unlock();
+
             // try to call webhhook of cmd
             webhookCallback(cmd);
         }
