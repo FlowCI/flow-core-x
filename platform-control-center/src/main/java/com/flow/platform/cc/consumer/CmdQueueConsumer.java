@@ -76,6 +76,7 @@ public class CmdQueueConsumer {
                 // send cmd and deal exception
                 try {
                     cmdService.send(inputCmd);
+                    LOGGER.trace("Cmd been sent");
                 } catch (AgentErr.NotAvailableException e) {
                     resend(inputCmd, RETRY_QUEUE_PRIORITY, RETRY_TIMES);
                 } catch (Throwable e) {
