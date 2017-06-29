@@ -29,7 +29,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -64,8 +63,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Autowired
     private Executor taskExecutor;
-
-    private final ReentrantLock cmdLock = new ReentrantLock();
 
     @Override
     public Cmd create(CmdInfo info) {
@@ -126,8 +123,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      */
     @Override
     public Cmd send(CmdInfo cmdInfo) {
-        cmdLock.lock();
-
         try {
             Agent target = selectAgent(cmdInfo); // find agent by cmd
             cmdInfo.setAgentPath(target.getPath()); // reset cmd path since some of cmd missing agent name
@@ -206,8 +201,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw e;
         } catch (ZkException.ZkNoNodeException e) {
             throw new AgentErr.NotFoundException(cmdInfo.getAgentName());
-        } finally {
-            cmdLock.unlock();
         }
     }
 
@@ -219,8 +212,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         if (cmd == null) {
             throw new IllegalArgumentException("Cmd not exist");
         }
-
-        cmdLock.lock();
 
         try {
             // compare exiting cmd result and update
@@ -245,8 +236,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 }
             }
         } finally {
-            cmdLock.unlock();
-
             // try to call webhhook of cmd
             webhookCallback(cmd);
         }
