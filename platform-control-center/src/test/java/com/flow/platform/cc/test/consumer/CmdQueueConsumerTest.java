@@ -1,5 +1,6 @@
 package com.flow.platform.cc.test.consumer;
 
+import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
@@ -29,7 +30,7 @@ public class CmdQueueConsumerTest extends TestBase {
     private Channel cmdSendChannel;
 
     @Autowired
-    private CmdService cmdService;
+    private AgentService agentService;
 
     @Autowired
     private ZoneService zoneService;
@@ -45,9 +46,13 @@ public class CmdQueueConsumerTest extends TestBase {
     @Test
     public void should_receive_cmd_from_queue() throws Throwable {
         // given:
-        String agentName = "mock-agent-1";
+        String agentName = "mock-agent-for-queue-test";
         AgentPath agentPath = createMockAgent(ZONE, agentName);
-        Thread.sleep(3000);
+        Thread.sleep(2000);
+
+        Agent agent = agentService.find(agentPath);
+        Assert.assertNotNull(agent);
+        Assert.assertEquals(AgentStatus.IDLE, agent.getStatus());
 
         // when: send cmd by rabbit mq with cmd exchange name
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
