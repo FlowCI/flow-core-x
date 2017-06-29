@@ -47,7 +47,7 @@ public class CmdQueueConsumerTest extends TestBase {
         // given:
         String agentName = "mock-agent-1";
         AgentPath agentPath = createMockAgent(ZONE, agentName);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // when: send cmd by rabbit mq with cmd exchange name
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
