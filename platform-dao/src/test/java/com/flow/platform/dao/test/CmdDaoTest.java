@@ -10,7 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,9 +28,9 @@ public class CmdDaoTest extends TestBase {
         cmd.setId(UUID.randomUUID().toString());
         cmd.setStatus(CmdStatus.KILLED);
         cmd.setOutputEnvFilter("FLOW_VAR");
-        cmd.setCreatedDate(new Date());
-        cmd.setUpdatedDate(new Date());
-        cmd.setFinishedDate(new Date());
+        cmd.setCreatedDate(ZonedDateTime.now());
+        cmd.setUpdatedDate(ZonedDateTime.now());
+        cmd.setFinishedDate(ZonedDateTime.now());
         cmd.setLogPaths(Lists.newArrayList("/test/log/path"));
         cmd.setPriority(1);
         cmd.setTimeout(10L);

@@ -8,7 +8,6 @@ import com.flow.platform.dao.AgentDao;
 import com.flow.platform.dao.CmdDao;
 import com.flow.platform.dao.CmdResultDao;
 import com.flow.platform.domain.*;
-import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -27,7 +26,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 
 /**
@@ -69,8 +71,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         String cmdId = UUID.randomUUID().toString();
         Cmd cmd = Cmd.convert(info);
         cmd.setId(cmdId);
-        cmd.setCreatedDate(new Date());
-        cmd.setUpdatedDate(new Date());
+        cmd.setCreatedDate(ZonedDateTime.now());
+        cmd.setUpdatedDate(ZonedDateTime.now());
         cmdDao.save(cmd);
         return cmd;
     }
@@ -106,12 +108,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             return false;
         }
 
-        ZonedDateTime timeForNow = DateUtil.fromDateForUTC(new Date());
-
-        Date createdAt = cmd.getCreatedDate();
-        ZonedDateTime cmdUtcTime = DateUtil.fromDateForUTC(createdAt);
-
-        final long runningInSeconds = ChronoUnit.SECONDS.between(cmdUtcTime, timeForNow);
+        ZonedDateTime createdAt = cmd.getCreatedDate();
+        final long runningInSeconds = ChronoUnit.SECONDS.between(createdAt, ZonedDateTime.now());
         return runningInSeconds >= CMD_TIMEOUT_SECONDS;
     }
 
@@ -217,6 +215,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             // compare exiting cmd result and update
             if (inputResult != null) {
                 inputResult.setCmdId(cmdId);
+                cmd.setFinishedDate(inputResult.getFinishTime());
 
                 CmdResult cmdResult = cmdResultDao.get(cmd.getId());
                 if (cmdResult != null) {
@@ -228,8 +227,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
             // update cmd status
             if (cmd.addStatus(status)) {
-                cmd.setUpdatedDate(new Date());
+                cmd.setUpdatedDate(ZonedDateTime.now());
                 cmdDao.update(cmd);
+
                 // update agent status
                 if (updateAgentStatus) {
                     updateAgentStatusWhenUpdateCmd(cmd);

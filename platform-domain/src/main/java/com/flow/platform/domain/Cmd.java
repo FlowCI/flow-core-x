@@ -2,8 +2,8 @@ package com.flow.platform.domain;
 
 import com.google.common.collect.Sets;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -45,17 +45,17 @@ public class Cmd extends CmdBase {
     /**
      * Created date
      */
-    private Date createdDate;
+    private ZonedDateTime createdDate;
 
     /**
      * Updated date
      */
-    private Date updatedDate;
+    private ZonedDateTime updatedDate;
 
     /**
      * finish time
      */
-    private Date finishedDate;
+    private ZonedDateTime finishedDate;
 
 
     public Cmd() {
@@ -63,14 +63,6 @@ public class Cmd extends CmdBase {
 
     public Cmd(String zone, String agent, CmdType type, String cmd) {
         super(zone, agent, type, cmd);
-    }
-
-    public Date getFinishedDate() {
-        return finishedDate;
-    }
-
-    public void setFinishedDate(Date finishedDate) {
-        this.finishedDate = finishedDate;
     }
 
     public String getId() {
@@ -106,7 +98,7 @@ public class Cmd extends CmdBase {
             this.status = status;
 
             if(!isCurrent()) {
-                this.finishedDate = new Date();
+                this.finishedDate = ZonedDateTime.now();
             }
 
             return true;
@@ -123,27 +115,32 @@ public class Cmd extends CmdBase {
         this.logPaths = logPaths;
     }
 
-    public Date getCreatedDate() {
+    public ZonedDateTime getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(Date createdDate) {
+    public void setCreatedDate(ZonedDateTime createdDate) {
         this.createdDate = createdDate;
     }
 
-    public Date getUpdatedDate() {
+    public ZonedDateTime getUpdatedDate() {
         return updatedDate;
     }
 
-    public void setUpdatedDate(Date updatedDate) {
+    public void setUpdatedDate(ZonedDateTime updatedDate) {
         this.updatedDate = updatedDate;
     }
 
+    public ZonedDateTime getFinishedDate() {
+        return finishedDate;
+    }
+
+    public void setFinishedDate(ZonedDateTime finishedDate) {
+        this.finishedDate = finishedDate;
+    }
+
     public Boolean isCurrent() {
-        if (WORKING_STATUS.contains(status)) {
-            return true;
-        }
-        return false;
+        return WORKING_STATUS.contains(status);
     }
 
     @Override

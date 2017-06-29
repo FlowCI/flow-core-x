@@ -183,7 +183,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertEquals(false, cmdService.isTimeout(cmd));
 
         // when: mock cmd timeout
-        Date timeoutDate = DateUtil.toDate(ZonedDateTime.now().minusSeconds(CmdService.CMD_TIMEOUT_SECONDS + 10));
+        ZonedDateTime timeoutDate = ZonedDateTime.now().minusSeconds(CmdService.CMD_TIMEOUT_SECONDS + 10);
         cmd.setCreatedDate(timeoutDate);
         cmd.setStatus(CmdStatus.RUNNING);
         cmdDao.update(cmd);
