@@ -39,8 +39,7 @@
         <log4j.version>2.8.2</log4j.version>
         <hibernate.version>5.2.10.Final</hibernate.version>
         <hibernate-common-annotation.version>5.0.1.Final</hibernate-common-annotation.version>
-        <mysql_connect.version>6.0.6</mysql_connect.version>
-        <hibernate_c3p0.version>5.2.10.Final</hibernate_c3p0.version>
+        <mysql_connect.version>5.1.42</mysql_connect.version>
         <amqp-client.version>4.1.0</amqp-client.version>
         <HikariCP.version>2.6.2</HikariCP.version>
     </properties>
