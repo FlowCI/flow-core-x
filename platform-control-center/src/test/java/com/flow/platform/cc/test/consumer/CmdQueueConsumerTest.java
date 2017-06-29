@@ -52,11 +52,12 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: send cmd by rabbit mq with cmd exchange name
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
         cmdSendChannel.basicPublish(cmdExchangeName, "", null, mockCmd.toBytes());
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // then: cmd should received in zookeeper agent node
         byte[] raw = zkClient.getData(zkHelper.getZkPath(agentPath), false, null);
         Cmd received = Cmd.parse(raw, Cmd.class);
+        Assert.assertNotNull(received);
         Assert.assertNotNull(received.getId());
         Assert.assertEquals(mockCmd.getAgentPath(), received.getAgentPath());
     }
