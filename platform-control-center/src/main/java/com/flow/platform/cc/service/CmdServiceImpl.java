@@ -65,7 +65,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     @Autowired
     private Executor taskExecutor;
 
-    private final ReentrantLock mockTrans = new ReentrantLock();
+    private final ReentrantLock cmdLock = new ReentrantLock();
 
     @Override
     public Cmd create(CmdInfo info) {
@@ -126,7 +126,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      */
     @Override
     public Cmd send(CmdInfo cmdInfo) {
-        mockTrans.lock();
+        cmdLock.lock();
 
         try {
             Agent target = selectAgent(cmdInfo); // find agent by cmd
@@ -207,11 +207,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         } catch (ZkException.ZkNoNodeException e) {
             throw new AgentErr.NotFoundException(cmdInfo.getAgentName());
         } finally {
-            mockTrans.unlock();
+            cmdLock.unlock();
         }
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateStatus(String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
         LOGGER.trace("Report cmd %s status %s and result %s", cmdId, status, inputResult);
 
@@ -220,7 +221,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw new IllegalArgumentException("Cmd not exist");
         }
 
-        mockTrans.lock();
+        cmdLock.lock();
 
         try {
             // compare exiting cmd result and update
@@ -245,8 +246,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 }
             }
         } finally {
-            mockTrans.unlock();
-
             // try to call webhhook of cmd
             webhookCallback(cmd);
         }
