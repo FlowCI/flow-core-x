@@ -5,23 +5,23 @@
 
 <hibernate-mapping package="com.flow.platform.domain">
     <class name="Cmd" table="cmd">
-        <id name="id" type="string">
+        <id name="id" type="string" length="36">
             <generator class="assigned"/>
         </id>
 
         <component name="agentPath" class="AgentPath">
-            <property name="zone" column="agent_zone"></property>
-            <property name="name" column="agent_name"></property>
+            <property name="zone" column="agent_zone" length="50"></property>
+            <property name="name" column="agent_name" length="50"></property>
         </component>
 
-        <property name="type" column="type">
+        <property name="type" column="type" length="20">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">com.flow.platform.domain.CmdType</param>
                 <param name="useNamed">true</param>
             </type>
         </property>
 
-        <property name="status" column="status">
+        <property name="status" column="status" length="20">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">com.flow.platform.domain.CmdStatus</param>
                 <param name="useNamed">true</param>
@@ -32,7 +32,7 @@
         <property name="timeout" type="long" column="timeout"/>
         <property name="priority" type="integer" column="priority"/>
         <property name="workingDir" type="string" column="working_dir"/>
-        <property name="outputEnvFilter" type="string" column="output_env_filter"/>
+        <property name="outputEnvFilter" type="string" column="output_env_filter" length="50"/>
         <property name="logPaths" type="com.flow.platform.dao.adaptor.list.ListAdaptor" column="log_paths"></property>
         <property name="inputs" type="com.flow.platform.dao.adaptor.MapAdaptor" column="inputs"></property>
         <property name="webhook" type="string" column="webhook"/>
@@ -44,7 +44,7 @@
 
     <!--for cmd result definition-->
     <class name="CmdResult" table="cmd_result">
-        <id name="cmdId" type="string" column="cmd_id">
+        <id name="cmdId" type="string" column="cmd_id" length="36">
             <generator class="assigned"/>
         </id>
 
