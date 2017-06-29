@@ -14,12 +14,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 
 /**
  * Created by gy@fir.im on 25/05/2017.
@@ -74,8 +72,9 @@ public class AppConfig {
         return new AgentConfig(socketIoUrl, cmdReportUrl, cmdLogUrl);
     }
 
+    // TODO: should separate task and scheduler
     @Bean
-    public Executor taskExecutor() {
+    public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
         taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
