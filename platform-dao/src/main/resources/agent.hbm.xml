@@ -7,7 +7,7 @@
     <class name="Agent" table="agent">
         <composite-id name="path" class="AgentPath">
             <key-property name="zone" type="string" length="50" column="agent_zone"/>
-            <key-property name="name" type="string" length="50" column="agent_name"/>
+            <key-property name="name" type="string" length="100" column="agent_name"/>
         </composite-id>
 
         <property name="concurrentProc" column="concurrent_proc"></property>

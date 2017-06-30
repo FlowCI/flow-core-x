@@ -11,7 +11,7 @@
 
         <component name="agentPath" class="AgentPath">
             <property name="zone" column="agent_zone" length="50"></property>
-            <property name="name" column="agent_name" length="50"></property>
+            <property name="name" column="agent_name" length="100"></property>
         </component>
 
         <property name="type" column="type" length="20">
