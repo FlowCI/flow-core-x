@@ -1,6 +1,7 @@
 package com.flow.platform.dao.adaptor;
 
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.ObjectUtil;
 import com.google.gson.Gson;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -90,11 +91,7 @@ public abstract class BaseAdaptor implements UserType {
 
     @Override
     public Object deepCopy(Object value) throws HibernateException {
-        if (value == null) {
-            return null;
-        }
-        String cp = objectToJson(value);
-        return jsonToObject(cp);
+        return ObjectUtil.deepCopy(value);
     }
 
     @Override

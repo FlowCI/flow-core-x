@@ -1,5 +1,6 @@
 package com.flow.platform.domain;
 
+import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
 
 import java.time.ZonedDateTime;
@@ -98,7 +99,7 @@ public class Cmd extends CmdBase {
             this.status = status;
 
             if(!isCurrent()) {
-                this.finishedDate = ZonedDateTime.now();
+                this.finishedDate = DateUtil.utcNow();
             }
 
             return true;

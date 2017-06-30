@@ -4,13 +4,13 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,9 +28,9 @@ public class CmdDaoTest extends TestBase {
         cmd.setId(UUID.randomUUID().toString());
         cmd.setStatus(CmdStatus.KILLED);
         cmd.setOutputEnvFilter("FLOW_VAR");
-        cmd.setCreatedDate(ZonedDateTime.now());
-        cmd.setUpdatedDate(ZonedDateTime.now());
-        cmd.setFinishedDate(ZonedDateTime.now());
+        cmd.setCreatedDate(DateUtil.utcNow());
+        cmd.setUpdatedDate(DateUtil.utcNow());
+        cmd.setFinishedDate(null);
         cmd.setLogPaths(Lists.newArrayList("/test/log/path"));
         cmd.setPriority(1);
         cmd.setTimeout(10L);
@@ -52,6 +52,9 @@ public class CmdDaoTest extends TestBase {
         Assert.assertEquals(cmd.getStatus(), loaded.getStatus());
         Assert.assertEquals(cmd.getOutputEnvFilter(), loaded.getOutputEnvFilter());
         Assert.assertEquals(cmd.getWebhook(), loaded.getWebhook());
+        Assert.assertEquals(cmd.getCreatedDate(), loaded.getCreatedDate());
+        Assert.assertEquals(cmd.getUpdatedDate(), loaded.getUpdatedDate());
+        Assert.assertEquals(cmd.getFinishedDate(), loaded.getFinishedDate());
     }
 
     @Test

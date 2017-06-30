@@ -1,5 +1,6 @@
 package com.flow.platform.util;
 
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -76,5 +77,28 @@ public class ObjectUtil {
         }
 
         return notNullFields;
+    }
+
+    /**
+     * Deep copy object by byte array stream
+     *
+     * @param source
+     * @param <T>
+     * @return
+     */
+    public static <T> T deepCopy(T source) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+
+            try (ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+                oos.writeObject(source);
+                oos.flush();
+            }
+
+            try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()))) {
+                return (T) ois.readObject();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            return null;
+        }
     }
 }

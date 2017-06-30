@@ -8,6 +8,7 @@ import com.flow.platform.dao.AgentDao;
 import com.flow.platform.dao.CmdDao;
 import com.flow.platform.dao.CmdResultDao;
 import com.flow.platform.domain.*;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -71,8 +72,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         String cmdId = UUID.randomUUID().toString();
         Cmd cmd = Cmd.convert(info);
         cmd.setId(cmdId);
-        cmd.setCreatedDate(ZonedDateTime.now());
-        cmd.setUpdatedDate(ZonedDateTime.now());
+        cmd.setCreatedDate(DateUtil.utcNow());
+        cmd.setUpdatedDate(DateUtil.utcNow());
         cmdDao.save(cmd);
         return cmd;
     }

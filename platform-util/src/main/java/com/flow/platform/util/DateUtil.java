@@ -21,4 +21,15 @@ public class DateUtil {
     public static Date toDate(ZonedDateTime zonedDateTime) {
         return Date.from(zonedDateTime.toInstant());
     }
+
+    public static ZonedDateTime toUtc(ZonedDateTime zonedDateTime) {
+        if (zonedDateTime.getZone() != ZONE_UTC) {
+            return zonedDateTime.withZoneSameInstant(DateUtil.ZONE_UTC);
+        }
+        return zonedDateTime;
+    }
+
+    public static ZonedDateTime utcNow() {
+        return ZonedDateTime.now(ZONE_UTC);
+    }
 }

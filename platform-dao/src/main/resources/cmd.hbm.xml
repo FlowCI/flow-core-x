@@ -33,12 +33,21 @@
         <property name="priority" type="integer" column="priority"/>
         <property name="workingDir" type="string" column="working_dir"/>
         <property name="outputEnvFilter" type="string" column="output_env_filter" length="50"/>
-        <property name="logPaths" type="com.flow.platform.dao.adaptor.list.ListAdaptor" column="log_paths"></property>
-        <property name="inputs" type="com.flow.platform.dao.adaptor.MapAdaptor" column="inputs"></property>
+        <property name="logPaths" type="com.flow.platform.dao.adaptor.list.ListAdaptor" column="log_paths"/>
+        <property name="inputs" type="com.flow.platform.dao.adaptor.MapAdaptor" column="inputs"/>
         <property name="webhook" type="string" column="webhook"/>
-        <property name="createdDate" column="created_date"/>
-        <property name="updatedDate" column="updated_date"/>
-        <property name="finishedDate" column="finished_date"/>
+
+        <property name="createdDate"
+                  column="created_date"
+                  type="com.flow.platform.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+        <property name="updatedDate"
+                  column="updated_date"
+                  type="com.flow.platform.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+        <property name="finishedDate"
+                  column="finished_date"
+                  type="com.flow.platform.dao.adaptor.ZonedDateTimeAdaptor"/>
 
     </class>
 
@@ -52,9 +61,21 @@
         <property name="exitValue" not-null="false" column="exit_value"/>
         <property name="duration" not-null="false" column="duration"/>
         <property name="totalDuration" not-null="false" column="total_duration"/>
-        <property name="startTime" not-null="false" column="start_time"/>
-        <property name="executedTime" not-null="false" column="executed_time"/>
-        <property name="finishTime" not-null="false" column="finish_time"/>
+        <property name="startTime"
+                  not-null="false"
+                  column="start_time"
+                  type="com.flow.platform.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+        <property name="executedTime"
+                  not-null="false"
+                  column="executed_time"
+                  type="com.flow.platform.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+        <property name="finishTime"
+                  not-null="false"
+                  column="finish_time"
+                  type="com.flow.platform.dao.adaptor.ZonedDateTimeAdaptor"/>
+
         <property name="output" not-null="false" type="com.flow.platform.dao.adaptor.MapAdaptor" column="output"/>
         <property name="exceptions" not-null="false" type="com.flow.platform.dao.adaptor.list.ListThrowableAdaptor"
                   column="exceptions"/>
