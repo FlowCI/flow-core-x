@@ -13,6 +13,53 @@ import java.util.*;
 public class ObjectUtil {
 
     /**
+     * Convert field name xxYyZz to xx_yy_zz
+     *
+     * @return flatted field name
+     */
+    public static String convertFieldNameToFlat(String fieldName) {
+        StringBuilder builder = new StringBuilder(fieldName.length() + 10);
+        for (int i = 0; i < fieldName.length(); i++) {
+            char c = fieldName.charAt(i);
+            if (Character.isUpperCase(c)) {
+                builder.append("_").append(Character.toLowerCase(c));
+                continue;
+            }
+            builder.append(c);
+        }
+        return builder.toString();
+    }
+
+    public static boolean assignValueToField(Field field, Object bean, Object value) {
+        Class<?> aClass = bean.getClass();
+        try {
+            String setterMethodName = "set" + fieldNameForSetterGetter(field.getName());
+            Method method = aClass.getDeclaredMethod(setterMethodName, field.getType());
+            method.invoke(bean, convertType(field, value));
+            return true;
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    private static Object convertType(Field field, Object value) {
+        if (field.getType().equals(value.getClass())) {
+            return value;
+        }
+
+        if (field.getType() == Integer.class) {
+            return Integer.parseInt(value.toString());
+        }
+
+        throw new IllegalArgumentException(
+                String.format("Type from '%s' to '%s' not supported yet", value.getClass(), field.getType()));
+    }
+
+    public static Field[] getFields(Class<?> clazz) {
+        return clazz.getDeclaredFields();
+    }
+
+    /**
      * Find not null fields
      *
      * @param clazz         Target class
@@ -27,7 +74,7 @@ public class ObjectUtil {
                                                            Set<String> skipFields,
                                                            boolean checkNotEmpty) {
         // find not null fields
-        Field[] fields = clazz.getDeclaredFields();
+        Field[] fields = getFields(clazz);
         Map<Field, Object> notNullFields = new HashMap<>(fields.length);
 
         if (skipTypes == null) {
@@ -45,7 +92,7 @@ public class ObjectUtil {
 
             try {
                 String fieldName = field.getName();
-                fieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+                fieldName = fieldNameForSetterGetter(fieldName);
                 Method method = clazz.getDeclaredMethod("get" + fieldName);
 
                 Object value = method.invoke(bean);
@@ -100,5 +147,9 @@ public class ObjectUtil {
         } catch (IOException | ClassNotFoundException e) {
             return null;
         }
+    }
+
+    private static String fieldNameForSetterGetter(String fieldName) {
+        return Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     }
 }

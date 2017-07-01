@@ -2,21 +2,28 @@ package com.flow.platform.cc.util;
 
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
+import com.google.common.base.Strings;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +79,13 @@ public class ZkHelper {
 
     private final static Logger LOGGER = new Logger(ZkHelper.class);
 
+    /**
+     * Zone dynamic property naming rule
+     * - First %s is zone name
+     * - Seconds %s is property name xx_yy_zz from Zone.getXxYyZz
+     */
+    private final static String ZONE_PROPERTY_NAMING = "zone.%s.%s";
+
     @Value("${zk.host}")
     private String zkHost;
 
@@ -84,11 +98,16 @@ public class ZkHelper {
     @Value("${zk.node.zone}")
     private String zkZone;
 
+    @Autowired
+    private Environment env;
+
     private CountDownLatch zkConnectLatch = null;
 
     private ZooKeeper zkClient = null;
 
     private ZkStatus zkStatus = ZkStatus.UNKNOWN;
+
+    private final List<Zone> defaultZones = new ArrayList<>(5);
 
     // path, event list history
     private final Map<String, List<String>> eventHistory = new ConcurrentHashMap<>();
@@ -102,6 +121,7 @@ public class ZkHelper {
     @PostConstruct
     public void init() throws IOException, InterruptedException {
         zkClient = reconnect();
+        initZones();
     }
 
     /**
@@ -118,14 +138,8 @@ public class ZkHelper {
      *
      * @return
      */
-    public List<Zone> getZones() {
-        String[] zoneAndProviderList = zkZone.split(";");
-        List<Zone> zoneList = new ArrayList<>(zoneAndProviderList.length);
-        for (String zoneAndProvider : zoneAndProviderList) {
-            String[] zoneAndProviderData = zoneAndProvider.split("=");
-            zoneList.add(new Zone(zoneAndProviderData[0], zoneAndProviderData[1]));
-        }
-        return zoneList;
+    public List<Zone> getDefaultZones() {
+        return defaultZones;
     }
 
     /**
@@ -145,7 +159,7 @@ public class ZkHelper {
     }
 
     public ZkInfo getInfo() {
-        return new ZkInfo(zkHost, zkTimeout, zkRootName, getZones() , zkStatus);
+        return new ZkInfo(zkHost, zkTimeout, zkRootName, getDefaultZones(), zkStatus);
     }
 
     /**
@@ -175,18 +189,6 @@ public class ZkHelper {
     public String getZkPath(AgentPath agentPath) {
         ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName);
         pathBuilder.append(agentPath.getZone()).append(agentPath.getName());
-        return pathBuilder.path();
-    }
-
-    /**
-     * Get zookeeper path from CmdBase object
-     *
-     * @param cmd
-     * @return
-     */
-    public String getZkPath(CmdBase cmd) {
-        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName);
-        pathBuilder.append(cmd.getZoneName()).append(cmd.getAgentName());
         return pathBuilder.path();
     }
 
@@ -224,6 +226,38 @@ public class ZkHelper {
             throw new RuntimeException(String.format("Cannot connect to zookeeper server '%s' within 10 seconds", zkHost));
         }
         return zk;
+    }
+
+    /**
+     * Load default zones from app.properties
+     */
+    private void initZones() {
+        String[] zoneAndProviderList = zkZone.split(";");
+
+        for (String zoneName : zoneAndProviderList) {
+            Zone zone = new Zone();
+            zone.setName(zoneName);
+            fillZoneProperties(zone);
+            defaultZones.add(zone);
+        }
+    }
+
+    /**
+     * Dynamic fill zone properties from app.properties to Zone instance
+     *
+     * @param emptyZone
+     */
+    private void fillZoneProperties(Zone emptyZone) {
+        Field[] fields = ObjectUtil.getFields(Zone.class);
+        for (Field field : fields) {
+            String flatted = ObjectUtil.convertFieldNameToFlat(field.getName());
+            String valueFromConfig = env.getProperty(String.format(ZONE_PROPERTY_NAMING, emptyZone.getName(), flatted));
+
+            // assign value to bean
+            if (!Strings.isNullOrEmpty(valueFromConfig)) {
+                ObjectUtil.assignValueToField(field, emptyZone, valueFromConfig);
+            }
+        }
     }
 
     /**

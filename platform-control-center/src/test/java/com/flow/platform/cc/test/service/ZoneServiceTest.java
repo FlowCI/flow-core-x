@@ -68,14 +68,14 @@ public class ZoneServiceTest extends TestBase {
     public void should_start_instance_when_pool_size_less_than_min() throws Throwable {
         // given:
         final String zoneName = "test-mos-mac";
-        final int minPoolSize = 1;
 
         Zone zone = new Zone(zoneName, "mos");
+        zone.setMinPoolSize(1);
         MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
 
         // when: check and start instance to make sure min idle pool size
         ZoneServiceImpl zoneService = (ZoneServiceImpl) this.zoneService;
-        zoneService.keepIdleAgentMinSize(zone, instanceManager, minPoolSize);
+        zoneService.keepIdleAgentMinSize(zone, instanceManager);
 
         // then: wait for 30 seconds and check running instance
         Thread.sleep(1000 * 30);
@@ -85,21 +85,22 @@ public class ZoneServiceTest extends TestBase {
     @Test
     public void should_clean_up_agent_when_pool_size_over_max() throws Throwable {
         // given: mock to start num of agent over pool size
-        final int maxPoolSize = 2;
         final String mockAgentNamePattern = "mock-agent-%d";
         final String zoneName = "test-mos-mac";
 
         Zone zone = new Zone(zoneName, "mos");
+        zone.setMinPoolSize(1);
+        zone.setMaxPoolSize(2);
         MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
 
-        for (int i = 0; i < maxPoolSize + 1; i++) {
+        for (int i = 0; i < zone.getMaxPoolSize() + 1; i++) {
             String path = zkHelper.buildZkPath(zone.getName(), String.format(mockAgentNamePattern, i)).path();
             ZkNodeHelper.createEphemeralNode(zkClient, path, "");
             Thread.sleep(1000); // wait for agent start and make them in time sequence
         }
 
         // when: shutdown instance which over the max agent pool size
-        zoneService.keepIdleAgentMaxSize(zone, instanceManager, maxPoolSize);
+        zoneService.keepIdleAgentMaxSize(zone, instanceManager);
 
         // then: check shutdown cmd should be sent
         ZkPathBuilder mockAgent0Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 0));

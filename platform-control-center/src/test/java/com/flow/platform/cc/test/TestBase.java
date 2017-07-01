@@ -58,10 +58,6 @@ public abstract class TestBase {
     @Autowired
     protected Gson gsonConfig;
 
-    protected ZooKeeper zkClient;
-
-    protected MockMvc mockMvc;
-
     @Autowired
     protected AgentDao agentDao;
 
@@ -70,6 +66,10 @@ public abstract class TestBase {
 
     @Autowired
     protected CmdResultDao cmdResultDao;
+
+    protected ZooKeeper zkClient;
+
+    protected MockMvc mockMvc;
 
     @Before
     public void beforeEach() throws IOException, InterruptedException {

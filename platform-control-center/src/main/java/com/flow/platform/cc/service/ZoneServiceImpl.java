@@ -67,7 +67,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         taskExecutor.execute(() -> {
             try {
                 initLatch.await();
-                for (Zone zone : zkHelper.getZones()) {
+                for (Zone zone : zkHelper.getDefaultZones()) {
                     createZone(zone);
                 }
             } catch (InterruptedException e) {
@@ -127,12 +127,12 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
      *          false = has enough idle agent
      */
     @Override
-    public synchronized boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager, int minPoolSize) {
+    public boolean keepIdleAgentMinSize(final Zone zone, final InstanceManager instanceManager) {
         int numOfIdle = agentService.findAvailable(zone.getName()).size();
         LOGGER.traceMarker("keepIdleAgentMinSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
 
-        if (numOfIdle < minPoolSize) {
-            instanceManager.batchStartInstance(minPoolSize);
+        if (numOfIdle < zone.getMinPoolSize()) {
+            instanceManager.batchStartInstance(zone.getNumOfStart());
             return true;
         }
 
@@ -148,13 +148,13 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
      * @return
      */
     @Override
-    public synchronized boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager, int maxPoolSize) {
+    public boolean keepIdleAgentMaxSize(final Zone zone, final InstanceManager instanceManager) {
         List<Agent> agentList = agentService.findAvailable(zone.getName());
         int numOfIdle = agentList.size();
         LOGGER.traceMarker("keepIdleAgentMaxSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
 
-        if (numOfIdle > maxPoolSize) {
-            int numOfRemove = numOfIdle - maxPoolSize;
+        if (numOfIdle > zone.getMaxPoolSize()) {
+            int numOfRemove = numOfIdle - zone.getMaxPoolSize();
 
             for (int i = 0; i < numOfRemove; i++) {
                 Agent idleAgent = agentList.get(i);
@@ -193,11 +193,11 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
                 continue;
             }
 
-            if (keepIdleAgentMinSize(zone, instanceManager, MIN_IDLE_AGENT_POOL)) {
+            if (keepIdleAgentMinSize(zone, instanceManager)) {
                 continue;
             }
 
-            keepIdleAgentMaxSize(zone, instanceManager, MAX_IDLE_AGENT_POOL);
+            keepIdleAgentMaxSize(zone, instanceManager);
         }
 
         LOGGER.traceMarker("keepIdleAgentTask", "end");

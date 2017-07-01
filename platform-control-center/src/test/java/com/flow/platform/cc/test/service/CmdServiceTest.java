@@ -168,7 +168,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_cmd_timeout() throws Throwable {
         // given:
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-for-timeout";
 
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
@@ -196,7 +196,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_update_agent_status_by_cmd_status() throws Throwable {
         // given
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-001";
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
@@ -250,7 +250,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_send_cmd_to_agent() throws InterruptedException {
         // given:
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-002";
 
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
@@ -299,7 +299,7 @@ public class CmdServiceTest extends TestBase {
     @Test(expected = IllegalArgumentException.class)
     public void should_throw_exception_when_shutdown_cmd_miss_password() throws Throwable {
         // given:
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-for-shutdown";
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
@@ -362,7 +362,7 @@ public class CmdServiceTest extends TestBase {
     @Test(expected = AgentErr.NotFoundException.class)
     public void should_raise_exception_agent_not_exit() {
         // given:
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-003";
 
         // then: send command immediately should raise AgentErr.NotFoundException
@@ -373,7 +373,7 @@ public class CmdServiceTest extends TestBase {
     @Test(expected = AgentErr.NotAvailableException.class)
     public void should_raise_exception_agent_busy() throws InterruptedException {
         // given:
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-004";
 
         // when: create node and send command to agent
@@ -391,7 +391,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_write_cmd_log() throws Throwable {
         // given:
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-005";
 
         CmdInfo baseInfo = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
@@ -412,7 +412,7 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_create_session_and_send_cmd_with_session() throws Throwable {
         // given:
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-006";
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.buildZkPath(zoneName, agentName).path(), "");
         Thread.sleep(1000);

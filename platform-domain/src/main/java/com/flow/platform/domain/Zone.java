@@ -1,5 +1,10 @@
 package com.flow.platform.domain;
 
+import com.google.common.base.Strings;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by gy@fir.im on 06/06/2017.
  * Copyright fir.im
@@ -36,6 +41,11 @@ public class Zone extends Jsonable {
      * Num of instance to start while idle agent not enough
      */
     private Integer numOfStart = minPoolSize;
+
+    /**
+     * Extra settings for zone
+     */
+    private Map<String, String> settings = new HashMap<>();
 
     public Zone() {
     }
@@ -93,6 +103,18 @@ public class Zone extends Jsonable {
         this.numOfStart = numOfStart;
     }
 
+    public Map<String, String> getSettings() {
+        return settings;
+    }
+
+    public void setSettings(Map<String, String> settings) {
+        this.settings = settings;
+    }
+
+    public boolean isAvailable() {
+        return !Strings.isNullOrEmpty(cloudProvider) && !Strings.isNullOrEmpty(imageName);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -113,6 +135,10 @@ public class Zone extends Jsonable {
         return "Zone{" +
                 "name='" + name + '\'' +
                 ", cloudProvider='" + cloudProvider + '\'' +
-                '}';
+                ", imageName='" + imageName + '\'' +
+                ", minPoolSize=" + minPoolSize +
+                ", maxPoolSize=" + maxPoolSize +
+                ", numOfStart=" + numOfStart +
+                "} " + super.toString();
     }
 }

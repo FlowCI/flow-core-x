@@ -14,8 +14,6 @@ import java.util.List;
 
 public interface ZoneService {
 
-    int MIN_IDLE_AGENT_POOL = 1; // min pool size
-    int MAX_IDLE_AGENT_POOL = 2; // max pool size
     int KEEP_IDLE_AGENT_TASK_PERIOD = 45 * 1000; // millisecond
 
     /**
@@ -54,20 +52,18 @@ public interface ZoneService {
      *
      * @param zone
      * @param instanceManager
-     * @param minPoolSize
      * @return
      */
-    boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager, int minPoolSize);
+    boolean keepIdleAgentMinSize(Zone zone, InstanceManager instanceManager);
 
     /**
      * Keep agent pool for max size
      *
      * @param zone
      * @param instanceManager
-     * @param maxPoolSize
      * @return
      */
-    boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager, int maxPoolSize);
+    boolean keepIdleAgentMaxSize(Zone zone, InstanceManager instanceManager);
 
     /**
      * Scheduler task, periodically, every 1 min to check available agent in zone

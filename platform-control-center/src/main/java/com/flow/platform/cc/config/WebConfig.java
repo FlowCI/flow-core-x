@@ -2,10 +2,7 @@ package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.Gson;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -33,18 +30,11 @@ import java.util.List;
         "com.flow.platform.cc.service",
         "com.flow.platform.cc.cloud",
         "com.flow.platform.cc.util"})
+@PropertySource(value = {"classpath:/app.properties"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private final static int MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
-
-    @Bean
-    public PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
-        String envPropertiesFile = "app.properties";
-        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-        configurer.setLocation(new ClassPathResource(envPropertiesFile));
-        return configurer;
-    }
 
     @Bean(name = "multipartResolver")
     public MultipartResolver multipartResolver() throws IOException {

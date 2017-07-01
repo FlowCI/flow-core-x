@@ -116,7 +116,7 @@ public class AgentServiceTest extends TestBase {
     @Test
     public void should_report_agent_status() throws InterruptedException {
         // given: init zk agent
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-for-status";
         String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
@@ -133,7 +133,7 @@ public class AgentServiceTest extends TestBase {
 
     @Test(expected = AgentErr.NotFoundException.class)
     public void should_raise_not_found_exception_when_report_status() {
-        String zoneName = zkHelper.getZones().get(0).getName();
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-for-status-exception";
 
         AgentPath pathObj = new AgentPath(zoneName, agentName);
