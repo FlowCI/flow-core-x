@@ -55,6 +55,7 @@ public class ZoneServiceTest extends TestBase {
     public void should_find_instance_manager() {
         // when:
         Zone mosZone = new Zone("mos-ut", "mos");
+        mosZone.setImageName("test-image-name");
         zoneService.createZone(mosZone);
 
         // then:

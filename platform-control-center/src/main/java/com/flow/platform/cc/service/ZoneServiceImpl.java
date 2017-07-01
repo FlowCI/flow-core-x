@@ -113,6 +113,9 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
 
     @Override
     public InstanceManager findInstanceManager(Zone zone) {
+        if (!zone.isAvailable()) {
+            return null;
+        }
         String beanName = String.format("%sInstanceManager", zone.getCloudProvider());
         return (InstanceManager) springContextUtil.getBean(beanName);
     }

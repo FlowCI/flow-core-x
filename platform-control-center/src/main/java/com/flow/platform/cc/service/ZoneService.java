@@ -40,10 +40,10 @@ public interface ZoneService {
     List<Zone> getZones();
 
     /**
-     * Find instance manager by zone name
+     * Find instance manager by zone
      *
-     * @param zone
-     * @return
+     * @param zone Zone instance
+     * @return xxInstanceManager instance or Null
      */
     InstanceManager findInstanceManager(Zone zone);
 
