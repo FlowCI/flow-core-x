@@ -105,8 +105,6 @@ public class MosInstanceManager implements InstanceManager {
     public void cleanFromProvider(long maxAliveDuration, String status) {
         List<Instance> instances = mosClient.listInstance();
 
-        ZonedDateTime timeForNow = DateUtil.fromDateForUTC(new Date());
-
         for (Instance instance : instances) {
 
             // check instance is controlled by platform
@@ -117,7 +115,7 @@ public class MosInstanceManager implements InstanceManager {
             // find alive duration
             Date createdAt = instance.getCreatedAt();
             ZonedDateTime mosUtcTime = DateUtil.fromDateForUTC(createdAt);
-            long aliveInSeconds = ChronoUnit.SECONDS.between(mosUtcTime, timeForNow);
+            long aliveInSeconds = ChronoUnit.SECONDS.between(mosUtcTime, DateUtil.utcNow());
             LOGGER.trace("Instance %s alive %s seconds", instance.getName(), aliveInSeconds);
 
             // delete instance if instance status is ready (closed) and alive duration > max alive duration

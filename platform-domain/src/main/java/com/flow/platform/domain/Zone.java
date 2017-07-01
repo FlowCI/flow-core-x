@@ -4,7 +4,7 @@ package com.flow.platform.domain;
  * Created by gy@fir.im on 06/06/2017.
  * Copyright fir.im
  */
-public class Zone {
+public class Zone extends Jsonable {
 
     /**
      * Zone name, unique
@@ -16,6 +16,26 @@ public class Zone {
      * Cloud provider for manager instance
      */
     private String cloudProvider;
+
+    /**
+     * Zone instance image name
+     */
+    private String imageName;
+
+    /**
+     * Minimum idle agent pool size, default is 1
+     */
+    private Integer minPoolSize = 1;
+
+    /**
+     * Maximum idle agent pool size, default is 1
+     */
+    private Integer maxPoolSize = 1;
+
+    /**
+     * Num of instance to start while idle agent not enough
+     */
+    private Integer numOfStart = minPoolSize;
 
     public Zone() {
     }
@@ -39,6 +59,38 @@ public class Zone {
 
     public void setCloudProvider(String cloudProvider) {
         this.cloudProvider = cloudProvider;
+    }
+
+    public String getImageName() {
+        return imageName;
+    }
+
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
+    }
+
+    public Integer getMinPoolSize() {
+        return minPoolSize;
+    }
+
+    public void setMinPoolSize(Integer minPoolSize) {
+        this.minPoolSize = minPoolSize;
+    }
+
+    public Integer getMaxPoolSize() {
+        return maxPoolSize;
+    }
+
+    public void setMaxPoolSize(Integer maxPoolSize) {
+        this.maxPoolSize = maxPoolSize;
+    }
+
+    public Integer getNumOfStart() {
+        return numOfStart;
+    }
+
+    public void setNumOfStart(Integer numOfStart) {
+        this.numOfStart = numOfStart;
     }
 
     @Override
