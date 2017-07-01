@@ -17,6 +17,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
@@ -214,6 +215,16 @@ public class ZkHelper {
 
     public Map<String, List<String>> getZkHistory() {
         return eventHistory;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        try {
+            zkClient.close();
+            LOGGER.trace("Zookeeper client closed");
+        } catch (InterruptedException e) {
+            LOGGER.error("Error on close zookeeper client", e);
+        }
     }
 
     /**
