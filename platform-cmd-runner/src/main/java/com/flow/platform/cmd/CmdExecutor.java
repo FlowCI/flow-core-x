@@ -71,7 +71,7 @@ public final class CmdExecutor {
     private ProcessBuilder pBuilder;
     private ProcListener procListener = new NullProcListener();
     private LogListener logListener = new NullLogListener();
-    private Long timeout = new Long(3600 * 2); // process timeout in seconds, default is 2 hour
+    private Integer timeout = new Integer(3600 * 2); // process timeout in seconds, default is 2 hour
     private List<String> cmdList;
     private String outputEnvFilter;
     private CmdResult outputResult;
@@ -90,7 +90,7 @@ public final class CmdExecutor {
                        final Map<String, String> inputs,
                        final String workingDir,
                        final String outputEnvFilter,
-                       final Long timeout,
+                       final Integer timeout,
                        final String... cmd) throws FileNotFoundException {
 
         if (procListener != null) {

@@ -33,7 +33,7 @@ public class CmdDaoTest extends TestBase {
         cmd.setFinishedDate(null);
         cmd.setLogPaths(Lists.newArrayList("/test/log/path"));
         cmd.setPriority(1);
-        cmd.setTimeout(10L);
+        cmd.setTimeout(10);
         cmd.setWebhook("http://webhook.com");
         cmd.getInputs().put("VAR_1", "1");
         cmd.getInputs().put("VAR_2", "2");

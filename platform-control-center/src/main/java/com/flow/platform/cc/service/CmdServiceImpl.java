@@ -74,6 +74,13 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         cmd.setId(cmdId);
         cmd.setCreatedDate(DateUtil.utcNow());
         cmd.setUpdatedDate(DateUtil.utcNow());
+
+        // set default cmd timeout from zone setting if not defined
+        if (info.getTimeout() == null) {
+            Zone zone = zoneService.getZone(info.getZoneName());
+            cmd.setTimeout(zone.getDefaultCmdTimeout());
+        }
+
         cmdDao.save(cmd);
         return cmd;
     }
@@ -111,7 +118,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         ZonedDateTime createdAt = cmd.getCreatedDate();
         final long runningInSeconds = ChronoUnit.SECONDS.between(createdAt, ZonedDateTime.now());
-        return runningInSeconds >= CMD_TIMEOUT_SECONDS;
+        return runningInSeconds >= cmd.getTimeout();
     }
 
     /**

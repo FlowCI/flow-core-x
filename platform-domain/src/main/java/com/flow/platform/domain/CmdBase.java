@@ -30,7 +30,7 @@ public abstract class CmdBase extends Jsonable {
     /**
      * Cmd timeout in seconds
      */
-    protected Long timeout;
+    protected Integer timeout;
 
     /**
      * Reserved field for cmd queue
@@ -114,11 +114,11 @@ public abstract class CmdBase extends Jsonable {
         this.cmd = cmd;
     }
 
-    public Long getTimeout() {
+    public Integer getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(Long timeout) {
+    public void setTimeout(Integer timeout) {
         this.timeout = timeout;
     }
 

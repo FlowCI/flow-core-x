@@ -7,7 +7,6 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.*;
-import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Lists;
@@ -30,7 +29,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Queue;
 
 import static junit.framework.TestCase.fail;
 
@@ -96,7 +96,8 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_create_cmd() {
         // given:
-        CmdInfo base = new CmdInfo("test-zone", "test-agent", CmdType.KILL, null);
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
+        CmdInfo base = new CmdInfo(zoneName, "test-agent", CmdType.KILL, null);
         base.setWebhook("http://hooks.com");
 
         // when:
@@ -106,6 +107,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(cmd.getCreatedDate());
         Assert.assertNotNull(cmd.getUpdatedDate());
         Assert.assertNotNull(cmd.getWebhook());
+        Assert.assertNotNull(cmd.getTimeout()); // should have default timeout from zone setting
 
         // then:
         Cmd loaded = cmdService.find(cmd.getId());
@@ -117,7 +119,8 @@ public class CmdServiceTest extends TestBase {
     @Test
     public void should_report_cmd_status() {
         // given:
-        AgentPath agentPath = new AgentPath("test-zone", "test-agent");
+        String zoneName = zkHelper.getDefaultZones().get(0).getName();
+        AgentPath agentPath = new AgentPath(zoneName, "test-agent");
         agentService.reportOnline("test-zone", Lists.newArrayList(agentPath));
 
         CmdInfo base = new CmdInfo(agentPath, CmdType.RUN_SHELL, null);
@@ -177,13 +180,14 @@ public class CmdServiceTest extends TestBase {
 
         // when: send cmd
         Cmd cmd = cmdService.send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "test"));
+        cmd.setTimeout(600);
         Assert.assertTrue(cmd.isCurrent());
 
         // then: check should not timeout
         Assert.assertEquals(false, cmdService.isTimeout(cmd));
 
         // when: mock cmd timeout
-        ZonedDateTime timeoutDate = ZonedDateTime.now().minusSeconds(CmdService.CMD_TIMEOUT_SECONDS + 10);
+        ZonedDateTime timeoutDate = ZonedDateTime.now().minusSeconds(cmd.getTimeout() + 10);
         cmd.setCreatedDate(timeoutDate);
         cmd.setStatus(CmdStatus.RUNNING);
         cmdDao.update(cmd);

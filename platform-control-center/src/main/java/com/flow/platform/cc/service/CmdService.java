@@ -13,9 +13,6 @@ import java.util.Set;
  */
 public interface CmdService {
 
-    // default cmd execution timeout in seconds
-    long CMD_TIMEOUT_SECONDS = 300;
-
     /**
      * Create command from CmdBase
      *

@@ -53,6 +53,11 @@ public class Zone extends Jsonable {
     private Integer agentSessionTimeout = 600;
 
     /**
+     * Default cmd timeout in seconds if CmdBase.timeout not defined
+     */
+    private Integer defaultCmdTimeout = 600;
+
+    /**
      * Extra settings for zone
      */
     private Map<String, String> settings = new HashMap<>();
@@ -127,6 +132,14 @@ public class Zone extends Jsonable {
 
     public void setAgentSessionTimeout(Integer agentSessionTimeout) {
         this.agentSessionTimeout = agentSessionTimeout;
+    }
+
+    public Integer getDefaultCmdTimeout() {
+        return defaultCmdTimeout;
+    }
+
+    public void setDefaultCmdTimeout(Integer defaultCmdTimeout) {
+        this.defaultCmdTimeout = defaultCmdTimeout;
     }
 
     public Map<String, String> getSettings() {

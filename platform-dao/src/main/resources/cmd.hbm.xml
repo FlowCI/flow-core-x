@@ -29,8 +29,8 @@
         </property>
 
         <property name="cmd" type="text" column="cmd"/>
-        <property name="timeout" type="long" column="timeout"/>
-        <property name="priority" type="integer" column="priority"/>
+        <property name="timeout" column="timeout"/>
+        <property name="priority" column="priority"/>
         <property name="workingDir" type="string" column="working_dir"/>
         <property name="outputEnvFilter" type="string" column="output_env_filter" length="50"/>
         <property name="logPaths" type="com.flow.platform.dao.adaptor.list.ListAdaptor" column="log_paths"/>
