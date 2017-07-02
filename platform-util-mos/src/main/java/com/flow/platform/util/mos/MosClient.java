@@ -103,6 +103,37 @@ public class MosClient {
         return zones;
     }
 
+    public MosInstance find(String instanceId) {
+        JSONObject response = null;
+        try {
+            response = client.DescribeInstances(new String[]{instanceId}, null, 100, 0, null);
+
+            Object jsonInstanceSet = response
+                    .getJSONObject("DescribeInstancesResponse")
+                    .get("InstanceSet");
+
+            // empty instance will return empty string for in instance set
+            if (jsonInstanceSet instanceof String) {
+                return null;
+            }
+
+            if (jsonInstanceSet instanceof JSONObject) {
+                JSONObject jsonSet = (JSONObject) jsonInstanceSet;
+                JSONObject jsonObject = jsonSet.getJSONObject("Instance");
+                return GSON.fromJson(jsonObject.toString(), MosInstance.class);
+            }
+
+            return null;
+
+        } catch (JSONException e) {
+            MosException mosException = new MosException("DescribeInstances: Wrong response data", e);
+            mosException.setError(response);
+            throw mosException;
+        } catch (Throwable e) {
+            throw new MosException("DescribeInstances: Exception from request", e);
+        }
+    }
+
     /**
      * Instance list
      *
@@ -210,11 +241,13 @@ public class MosClient {
 
                 throw new MosException(msg, null, instance);
             }
+
+            // reload instance with ip address
+            return find(instance.getId());
+
         } catch (Throwable e) {
             throw new MosException(e.getMessage(), e, instance);
         }
-
-        return instance;
     }
 
     public boolean bindNatGateway(String instanceId) {

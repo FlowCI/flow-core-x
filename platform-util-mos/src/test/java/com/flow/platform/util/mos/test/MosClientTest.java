@@ -67,6 +67,18 @@ public class MosClientTest {
         Assert.assertTrue(instances.size() >= 0);
     }
 
+    @Test
+    public void should_find_instance_by_id() {
+        List<MosInstance> instances = client.listInstance();
+        Assert.assertNotNull(instances);
+        Assert.assertTrue(instances.size() >= 0);
+
+        String id = instances.get(0).getId();
+        MosInstance target = client.find(id);
+        Assert.assertNotNull(target);
+        Assert.assertNotNull(target.getIp());
+    }
+
     @Ignore
     @Test
     public void should_create_instance_and_load_status_in_sync() throws InterruptedException {
