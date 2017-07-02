@@ -4,8 +4,8 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 
+import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,7 +14,6 @@ import java.util.List;
  */
 public interface AgentService {
 
-    int AGENT_SESSION_TIMEOUT = 600; // seconds
     int AGENT_SESSION_TIMEOUT_TASK_PERIOD = 60 * 1000; // millisecond
 
     /**
@@ -88,7 +87,7 @@ public interface AgentService {
      * @param timeoutInSeconds
      * @return
      */
-    boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds);
+    boolean isSessionTimeout(Agent agent, ZonedDateTime compareDate, long timeoutInSeconds);
 
     /**
      * To check agent session timeout

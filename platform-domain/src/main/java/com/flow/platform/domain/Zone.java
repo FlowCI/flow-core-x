@@ -48,6 +48,11 @@ public class Zone extends Jsonable {
     private Integer maxInstanceNum = maxPoolSize;
 
     /**
+     * Agent session timeout in seconds
+     */
+    private Integer agentSessionTimeout = 600;
+
+    /**
      * Extra settings for zone
      */
     private Map<String, String> settings = new HashMap<>();
@@ -114,6 +119,14 @@ public class Zone extends Jsonable {
 
     public void setMaxInstanceNum(Integer maxInstanceNum) {
         this.maxInstanceNum = maxInstanceNum;
+    }
+
+    public Integer getAgentSessionTimeout() {
+        return agentSessionTimeout;
+    }
+
+    public void setAgentSessionTimeout(Integer agentSessionTimeout) {
+        this.agentSessionTimeout = agentSessionTimeout;
     }
 
     public Map<String, String> getSettings() {

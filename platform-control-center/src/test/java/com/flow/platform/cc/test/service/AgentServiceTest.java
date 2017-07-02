@@ -10,6 +10,7 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Zone;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import org.apache.zookeeper.KeeperException;
@@ -21,7 +22,6 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 
 /**
  * Created by gy@fir.im on 24/05/2017.
@@ -149,7 +149,7 @@ public class AgentServiceTest extends TestBase {
 
         // then:
         Thread.sleep(1500); // wait for 2 seconds
-        Assert.assertTrue(agentService.isSessionTimeout(mockAgent, new Date(), 1));
+        Assert.assertTrue(agentService.isSessionTimeout(mockAgent, DateUtil.utcNow(), 1));
     }
 
     @After

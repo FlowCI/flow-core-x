@@ -154,13 +154,12 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public boolean isSessionTimeout(Agent agent, Date compareDate, long timeoutInSeconds) {
+    public boolean isSessionTimeout(Agent agent, ZonedDateTime compareDate, long timeoutInSeconds) {
         if (agent.getSessionId() == null) {
             throw new UnsupportedOperationException("Target agent is not enable session");
         }
 
-        ZonedDateTime utcDate = DateUtil.fromDateForUTC(compareDate);
-        long sessionAlive = ChronoUnit.SECONDS.between(agent.getSessionDate(), utcDate);
+        long sessionAlive = ChronoUnit.SECONDS.between(agent.getSessionDate(), compareDate);
 
         return sessionAlive >= timeoutInSeconds;
     }
@@ -174,11 +173,12 @@ public class AgentServiceImpl implements AgentService {
 
         // TODO: should be replaced by db query
         LOGGER.traceMarker("sessionTimeoutTask", "start");
-        Date now = new Date();
+        ZonedDateTime now = DateUtil.utcNow();
+
         for (Zone zone : zoneService.getZones()) {
             Collection<Agent> agents = onlineList(zone.getName());
             for (Agent agent : agents) {
-                if (agent.getSessionId() != null && isSessionTimeout(agent, now, AGENT_SESSION_TIMEOUT)) {
+                if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
                     CmdInfo cmdInfo = new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null);
                     cmdService.send(cmdInfo);
                     LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
