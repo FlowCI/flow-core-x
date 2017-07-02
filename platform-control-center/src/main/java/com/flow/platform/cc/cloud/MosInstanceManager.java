@@ -1,11 +1,12 @@
 package com.flow.platform.cc.cloud;
 
 import com.flow.platform.cc.config.TaskConfig;
+import com.flow.platform.domain.Instance;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.mos.Instance;
+import com.flow.platform.util.mos.MosInstance;
 import com.flow.platform.util.mos.MosClient;
 import com.flow.platform.util.mos.MosException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,9 +110,9 @@ public class MosInstanceManager implements InstanceManager {
 
     @Override
     public void cleanFromProvider(long maxAliveDuration, String status) {
-        List<Instance> instances = mosClient.listInstance();
+        List<MosInstance> instances = mosClient.listInstance();
 
-        for (Instance instance : instances) {
+        for (MosInstance instance : instances) {
 
             // check instance is controlled by platform
             if (!instance.getName().startsWith(instanceNameStartWith)) {
@@ -126,7 +127,7 @@ public class MosInstanceManager implements InstanceManager {
 
             // delete instance if instance status is ready (closed) and alive duration > max alive duration
             if (aliveInSeconds >= maxAliveDuration && instance.getStatus().equals(status)) {
-                mosClient.deleteInstance(instance.getInstanceId());
+                mosClient.deleteInstance(instance.getId());
                 LOGGER.trace("Clean instance which over max alive time: %s", instance);
             }
         }
@@ -156,7 +157,7 @@ public class MosInstanceManager implements InstanceManager {
         cleanInstance(mosCleanupList);
 
         // clean up mos instance when status is shutdown
-        cleanFromProvider(INSTANCE_MAX_ALIVE_DURATION, Instance.STATUS_READY);
+        cleanFromProvider(INSTANCE_MAX_ALIVE_DURATION, MosInstance.STATUS_READY);
         LOGGER.traceMarker("cleanInstanceTask", "end");
     }
 
@@ -166,7 +167,7 @@ public class MosInstanceManager implements InstanceManager {
             Map.Entry<String, Instance> entry = iterator.next();
             Instance mosInstance = entry.getValue();
 
-            mosClient.deleteInstance(mosInstance.getInstanceId());
+            mosClient.deleteInstance(mosInstance.getId());
             iterator.remove();
             LOGGER.trace("Clean instance from cleanup list: %s", mosInstance);
         }
@@ -189,13 +190,13 @@ public class MosInstanceManager implements InstanceManager {
 
         @Override
         public void run() {
-            Instance instance = null;
+            MosInstance instance = null;
             final int timeToWait = 30; // seconds
 
             try {
                 instance = mosClient.createInstance(imageName, instanceName);
                 // wait instance status to running with 30 seconds timeout
-                if (mosClient.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, timeToWait * 1000)) {
+                if (mosClient.instanceStatusSync(instance.getId(), MosInstance.STATUS_RUNNING, timeToWait * 1000)) {
                     LOGGER.trace("Instance status is running %s", instance);
                     mosRunningList.put(instanceName, instance);
                 } else {

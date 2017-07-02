@@ -2,8 +2,8 @@ package com.flow.platform.cc.test.cloud;
 
 import com.flow.platform.cc.cloud.MosInstanceManager;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.domain.Instance;
 import com.flow.platform.domain.Zone;
-import com.flow.platform.util.mos.Instance;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Ignore;

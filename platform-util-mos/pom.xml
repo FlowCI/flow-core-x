@@ -16,6 +16,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.flow.platform</groupId>
+            <artifactId>platform-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>mos_java_sdk</groupId>
             <artifactId>mos_java_sdk</artifactId>
         </dependency>

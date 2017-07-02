@@ -1,15 +1,12 @@
 package com.flow.platform.util.mos;
 
-import com.google.gson.annotations.SerializedName;
-
-import java.io.Serializable;
-import java.util.Date;
+import com.flow.platform.domain.Instance;
 
 /**
  * Created by gy@fir.im on 01/06/2017.
  * Copyright fir.im
  */
-public class Instance implements Serializable {
+public final class MosInstance extends Instance {
 
     public final static String STATUS_DISK = "disk";                        // 0
     public final static String STATUS_START_DEPLOY = "start_deploy";        // 1
@@ -26,12 +23,7 @@ public class Instance implements Serializable {
 
     private String secGroupName;
 
-    @SerializedName("instanceName")
-    private String name;
-
     private String keypairName;
-
-    private String instanceId;
 
     private String instanceType;
 
@@ -39,13 +31,7 @@ public class Instance implements Serializable {
 
     private String eips;
 
-    private Date createdAt;
-
     private String billingType;
-
-    private String ipAddresses;
-
-    private String status;
 
     public Integer getCpu() {
         return cpu;
@@ -79,28 +65,12 @@ public class Instance implements Serializable {
         this.secGroupName = secGroupName;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getKeypairName() {
         return keypairName;
     }
 
     public void setKeypairName(String keypairName) {
         this.keypairName = keypairName;
-    }
-
-    public String getInstanceId() {
-        return instanceId;
-    }
-
-    public void setInstanceId(String instanceId) {
-        this.instanceId = instanceId;
     }
 
     public String getInstanceType() {
@@ -127,59 +97,11 @@ public class Instance implements Serializable {
         this.eips = eips;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public String getBillingType() {
         return billingType;
     }
 
     public void setBillingType(String billingType) {
         this.billingType = billingType;
-    }
-
-    public String getIpAddresses() {
-        return ipAddresses;
-    }
-
-    public void setIpAddresses(String ipAddresses) {
-        this.ipAddresses = ipAddresses;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Instance instance = (Instance) o;
-
-        return instanceId != null ? instanceId.equals(instance.instanceId) : instance.instanceId == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return instanceId != null ? instanceId.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "MosInstance{" +
-                "name='" + name + '\'' +
-                ", instanceId='" + instanceId + '\'' +
-                ", ipAddresses='" + ipAddresses + '\'' +
-                '}';
     }
 }

@@ -1,8 +1,8 @@
 package com.flow.platform.cc.cloud;
 
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Instance;
 import com.flow.platform.domain.Zone;
-import com.flow.platform.util.mos.Instance;
 
 import java.util.Collection;
 import java.util.List;

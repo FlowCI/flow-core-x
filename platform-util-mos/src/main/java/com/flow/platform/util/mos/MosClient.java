@@ -108,9 +108,9 @@ public class MosClient {
      *
      * @return instance list
      */
-    public List<Instance> listInstance() {
+    public List<MosInstance> listInstance() {
         JSONObject response = null;
-        List<Instance> list = null;
+        List<MosInstance> list = null;
         Object rawInstances = null;
 
         try {
@@ -138,7 +138,7 @@ public class MosClient {
                 // only one instance
                 if (rawInstances instanceof JSONObject) {
                     JSONObject jsonObject = (JSONObject) rawInstances;
-                    Instance instance = GSON.fromJson(jsonObject.toString(), Instance.class);
+                    MosInstance instance = GSON.fromJson(jsonObject.toString(), MosInstance.class);
 
                     list = new ArrayList<>(1);
                     list.add(instance);
@@ -152,7 +152,7 @@ public class MosClient {
 
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonItem = jsonArray.getJSONObject(i);
-                    Instance instance = GSON.fromJson(jsonItem.toString(), Instance.class);
+                    MosInstance instance = GSON.fromJson(jsonItem.toString(), MosInstance.class);
                     list.add(instance);
                 }
 
@@ -170,10 +170,10 @@ public class MosClient {
         }
     }
 
-    public Instance createInstance(String imageName, String instanceName) {
+    public MosInstance createInstance(String imageName, String instanceName) {
         ImageTemplate template = getImageTemplate(imageName);
 
-        Instance instance = null;
+        MosInstance instance = null;
         JSONObject result = null;
         try {
             result = client.CreateInstance(
@@ -190,8 +190,8 @@ public class MosClient {
             );
 
             JSONObject jsonObject = result.getJSONObject("CreateInstanceResponse").getJSONObject("Instance");
-            instance = GSON.fromJson(jsonObject.toString(), Instance.class);
-            if (instance == null || instance.getInstanceId() == null) {
+            instance = GSON.fromJson(jsonObject.toString(), MosInstance.class);
+            if (instance == null || instance.getId() == null) {
                 throw new IllegalStateException("Missing instance id, maybe duplicate instance name");
             }
         } catch (JSONException e) {
@@ -204,9 +204,9 @@ public class MosClient {
 
         // bind nat gateway if instance created
         try {
-            if (!bindNatGateway(instance.getInstanceId())) {
+            if (!bindNatGateway(instance.getId())) {
                 String msg = String.format("Fail to bind nat gateway for instance: %s, return false",
-                        instance.getInstanceId());
+                        instance.getId());
 
                 throw new MosException(msg, null, instance);
             }
@@ -220,7 +220,7 @@ public class MosClient {
     public boolean bindNatGateway(String instanceId) {
         JSONObject result = null;
         try {
-            this.instanceStatusSync(instanceId, Instance.STATUS_RUNNING, DEFAULT_GATWAY_TIMEOUT); // wait mos instance running
+            this.instanceStatusSync(instanceId, MosInstance.STATUS_RUNNING, DEFAULT_GATWAY_TIMEOUT); // wait mos instance running
             result = client.AssociateNatGateway(DEFAULT_NET_ID, instanceId, DEFAULT_ZONE_ID);
             return result.getJSONObject("AssociateNatGatewayResponse").getBoolean("return");
         } catch (JSONException e) {

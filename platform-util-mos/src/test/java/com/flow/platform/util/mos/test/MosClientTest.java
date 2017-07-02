@@ -17,7 +17,7 @@ public class MosClientTest {
 
     private static MosClient client;
 
-    private final List<Instance> instanceList = new LinkedList<>();
+    private final List<MosInstance> instanceList = new LinkedList<>();
 
     @BeforeClass
     public static void beforeClass() throws Throwable {
@@ -62,7 +62,7 @@ public class MosClientTest {
 
     @Test
     public void should_list_instances() {
-        List<Instance> instances = client.listInstance();
+        List<MosInstance> instances = client.listInstance();
         Assert.assertNotNull(instances);
         Assert.assertTrue(instances.size() >= 0);
     }
@@ -71,17 +71,17 @@ public class MosClientTest {
     @Test
     public void should_create_instance_and_load_status_in_sync() throws InterruptedException {
         // when: create and start instance
-        Instance instance = null;
+        MosInstance instance = null;
 
         try {
             instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-test-01");
-            Assert.assertNotNull(instance.getInstanceId());
+            Assert.assertNotNull(instance.getId());
             Assert.assertEquals("init", instance.getStatus());
             instanceList.add(instance);
 
             // then: wait instance status to running
             Assert.assertEquals(true,
-                    client.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 1000 * 30));
+                    client.instanceStatusSync(instance.getId(), MosInstance.STATUS_RUNNING, 1000 * 30));
         } catch (MosException e) {
             if (e.getInstance() != null) {
                 instanceList.add(e.getInstance());
@@ -91,9 +91,9 @@ public class MosClientTest {
 
     @After
     public void after() {
-        for (Instance instance : instanceList) {
-            client.instanceStatusSync(instance.getInstanceId(), Instance.STATUS_RUNNING, 1000 * 30);
-            client.deleteInstance(instance.getInstanceId());
+        for (MosInstance instance : instanceList) {
+            client.instanceStatusSync(instance.getId(), MosInstance.STATUS_RUNNING, 1000 * 30);
+            client.deleteInstance(instance.getId());
         }
     }
 }

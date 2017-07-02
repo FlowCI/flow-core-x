@@ -8,13 +8,13 @@ import org.json.JSONObject;
  */
 public class MosException extends RuntimeException {
     private JSONObject error;
-    private Instance instance;
+    private MosInstance instance;
 
     public MosException(String message, Throwable e) {
         super(message, e);
     }
 
-    public MosException(String message, Throwable e, Instance instance) {
+    public MosException(String message, Throwable e, MosInstance instance) {
         super(message, e);
         this.instance = instance;
     }
@@ -27,11 +27,11 @@ public class MosException extends RuntimeException {
         this.error = error;
     }
 
-    public Instance getInstance() {
+    public MosInstance getInstance() {
         return instance;
     }
 
-    public void setInstance(Instance instance) {
+    public void setInstance(MosInstance instance) {
         this.instance = instance;
     }
 }
