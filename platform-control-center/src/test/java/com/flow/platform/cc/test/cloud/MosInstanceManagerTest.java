@@ -2,6 +2,7 @@ package com.flow.platform.cc.test.cloud;
 
 import com.flow.platform.cc.cloud.MosInstanceManager;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.mos.Instance;
 import org.junit.After;
 import org.junit.Assert;
@@ -26,10 +27,18 @@ public class MosInstanceManagerTest extends TestBase {
     @Ignore
     @Test
     public void should_batch_start_instance() throws Exception {
-        List<String> nameList = mosPoolManager.batchStartInstance(POOL_SIZE);
+        // given:
+        Zone zone = new Zone("test-zone", "mos");
+        zone.setImageName("flow-osx-83-109-bj4-zk-agent");
+        zone.setMinPoolSize(1);
+        zone.setMaxPoolSize(1);
+        zone.setMaxInstanceNum(1);
+        zone.setNumOfStart(1);
+
+        List<String> nameList = mosPoolManager.batchStartInstance(zone);
         Assert.assertEquals(POOL_SIZE, nameList.size());
 
-        Thread.sleep(30 * 1000); // wait for instance start
+        Thread.sleep(60 * 1000); // wait for instance start
 
         Collection<Instance> running = mosPoolManager.runningInstance();
         Assert.assertTrue(running.size() >= POOL_SIZE);

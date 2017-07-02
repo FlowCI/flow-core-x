@@ -43,6 +43,11 @@ public class Zone extends Jsonable {
     private Integer numOfStart = minPoolSize;
 
     /**
+     * Maximum instance num
+     */
+    private Integer maxInstanceNum = maxPoolSize;
+
+    /**
      * Extra settings for zone
      */
     private Map<String, String> settings = new HashMap<>();
@@ -101,6 +106,14 @@ public class Zone extends Jsonable {
 
     public void setNumOfStart(Integer numOfStart) {
         this.numOfStart = numOfStart;
+    }
+
+    public Integer getMaxInstanceNum() {
+        return maxInstanceNum;
+    }
+
+    public void setMaxInstanceNum(Integer maxInstanceNum) {
+        this.maxInstanceNum = maxInstanceNum;
     }
 
     public Map<String, String> getSettings() {

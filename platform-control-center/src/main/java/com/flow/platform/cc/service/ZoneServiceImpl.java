@@ -135,7 +135,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         LOGGER.traceMarker("keepIdleAgentMinSize", "Num of idle agent in zone %s = %s", zone, numOfIdle);
 
         if (numOfIdle < zone.getMinPoolSize()) {
-            instanceManager.batchStartInstance(zone.getNumOfStart());
+            instanceManager.batchStartInstance(zone);
             return true;
         }
 

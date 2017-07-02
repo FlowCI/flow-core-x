@@ -1,6 +1,7 @@
 package com.flow.platform.cc.cloud;
 
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.mos.Instance;
 
 import java.util.Collection;
@@ -11,6 +12,13 @@ import java.util.List;
  * Copyright fir.im
  */
 public interface InstanceManager {
+
+    /**
+     * Create unique instance name
+     *
+     * @return Instance name
+     */
+    String instanceName();
 
     /**
      * Find instance by unique name
@@ -45,10 +53,10 @@ public interface InstanceManager {
     /**
      * Async to start instance
      *
-     * @param numOfInstance
+     * @param zone
      * @return List of instance name
      */
-    List<String> batchStartInstance(final int numOfInstance);
+    List<String> batchStartInstance(Zone zone);
 
     /**
      * Add instance to clean list

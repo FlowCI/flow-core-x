@@ -1,6 +1,7 @@
 package com.flow.platform.cc.cloud;
 
 import com.flow.platform.cc.config.TaskConfig;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.Logger;
@@ -28,13 +29,10 @@ import java.util.concurrent.Executor;
 public class MosInstanceManager implements InstanceManager {
 
     private final static String INSTANCE_NAME_PATTERN = "%s.cloud.mos";
-    private final static int MAX_NUM_OF_INSTANCE = 10; // max num of instance control by platform
+
     private final static int INSTANCE_MAX_ALIVE_DURATION = 600; // max instance stopped time in seconds
 
     private final static Logger LOGGER = new Logger(MosInstanceManager.class);
-
-    @Value("${mos.image}")
-    private String imageName;
 
     @Value("${mos.instance_name_pattern}")
     private String instanceNamePattern;
@@ -58,6 +56,11 @@ public class MosInstanceManager implements InstanceManager {
     private final Map<String, Instance> mosCleanupList = new ConcurrentHashMap<>();
 
     @Override
+    public String instanceName() {
+        return String.format(instanceNamePattern, UUID.randomUUID());
+    }
+
+    @Override
     public Instance find(String name) {
         return mosRunningList.get(name);
     }
@@ -79,19 +82,22 @@ public class MosInstanceManager implements InstanceManager {
     }
 
     @Override
-    public List<String> batchStartInstance(int numOfInstance) {
+    public List<String> batchStartInstance(final Zone zone) {
         // check total num of instance
         int totalInstance = mosCleanupList.size() + mosRunningList.size();
-        if (totalInstance + numOfInstance > MAX_NUM_OF_INSTANCE) {
-            numOfInstance = MAX_NUM_OF_INSTANCE - totalInstance;
+        int numOfInstanceToStart = zone.getNumOfStart();
+
+        // ensure num of instance not over the max
+        if (totalInstance + numOfInstanceToStart > zone.getMaxInstanceNum()) {
+            numOfInstanceToStart = zone.getMaxInstanceNum() - totalInstance;
         }
 
-        List<String> expectNameList = new ArrayList<>(numOfInstance);
-        for (int i = 0; i < numOfInstance; i ++) {
-            String instanceName = createUniqueInstanceName();
-            taskExecutor.execute(new StartMosInstanceWorker(mosClient, imageName, instanceName));
-            expectNameList.add(instanceName);
+        List<String> expectNameList = new ArrayList<>(numOfInstanceToStart);
+        for (int i = 0; i < numOfInstanceToStart; i++) {
+            taskExecutor.execute(new StartMosInstanceWorker(mosClient, zone.getImageName(), instanceName()));
+            expectNameList.add(instanceName());
         }
+
         return expectNameList;
     }
 
@@ -156,7 +162,7 @@ public class MosInstanceManager implements InstanceManager {
 
     private void cleanInstance(Map<String, Instance> instanceMap) {
         Iterator<Map.Entry<String, Instance>> iterator = instanceMap.entrySet().iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             Map.Entry<String, Instance> entry = iterator.next();
             Instance mosInstance = entry.getValue();
 
@@ -164,10 +170,6 @@ public class MosInstanceManager implements InstanceManager {
             iterator.remove();
             LOGGER.trace("Clean instance from cleanup list: %s", mosInstance);
         }
-    }
-
-    private String createUniqueInstanceName() {
-        return String.format(instanceNamePattern, UUID.randomUUID());
     }
 
     /**
