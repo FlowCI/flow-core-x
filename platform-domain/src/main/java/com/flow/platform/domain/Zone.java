@@ -179,6 +179,6 @@ public class Zone extends Jsonable {
                 ", maxPoolSize=" + maxPoolSize +
                 ", numOfStart=" + numOfStart +
                 ", maxInstanceNum=" + maxInstanceNum +
-                "} " + super.toString();
+                "} ";
     }
 }
