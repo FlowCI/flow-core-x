@@ -3,6 +3,7 @@ package com.flow.platform.dao;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -28,6 +29,15 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     @Override
     Class getEntityClass() {
         return Agent.class;
+    }
+
+    @Override
+    public void update(final Agent obj) {
+        execute(session -> {
+            obj.setUpdatedDate(DateUtil.now());
+            session.update(obj);
+            return null;
+        });
     }
 
     @Override

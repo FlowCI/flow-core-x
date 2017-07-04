@@ -1,5 +1,6 @@
 package com.flow.platform.domain;
 
+import com.flow.platform.util.DateUtil;
 import java.time.ZonedDateTime;
 
 /**
@@ -52,8 +53,8 @@ public class Agent extends Jsonable {
 
     public Agent(AgentPath path) {
         this.path = path;
-        this.createdDate = ZonedDateTime.now();
-        this.updatedDate = ZonedDateTime.now();
+        this.createdDate = DateUtil.now();
+        this.updatedDate = DateUtil.now();
     }
 
     public AgentPath getPath() {
@@ -126,8 +127,12 @@ public class Agent extends Jsonable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Agent agent = (Agent) o;
         return path.equals(agent.getPath());
@@ -141,10 +146,10 @@ public class Agent extends Jsonable {
     @Override
     public String toString() {
         return "Agent{" +
-                "zone='" + path.getZone() + '\'' +
-                ", name='" + path.getName() + '\'' +
-                ", status=" + status + '\'' +
-                ", sessionId=" + sessionId +
-                '}';
+            "zone='" + path.getZone() + '\'' +
+            ", name='" + path.getName() + '\'' +
+            ", status=" + status + '\'' +
+            ", sessionId=" + sessionId +
+            '}';
     }
 }

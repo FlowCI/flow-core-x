@@ -77,7 +77,7 @@ public interface AgentService {
      * @param path
      * @param status
      */
-    void reportStatus(AgentPath path, AgentStatus status);
+    void updateStatus(AgentPath path, AgentStatus status);
 
     /**
      * Is agent session timeout

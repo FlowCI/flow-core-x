@@ -18,7 +18,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by gy@fir.im on 24/05/2017.
@@ -29,8 +28,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class AgentServiceImpl implements AgentService {
 
     private final static Logger LOGGER = new Logger(AgentService.class);
-
-    private final ReentrantLock onlineListUpdateLock = new ReentrantLock();
 
     @Autowired
     private ZoneService zoneService;
@@ -54,38 +51,33 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public void reportOnline(String zone, Collection<AgentPath> keys) {
-        onlineListUpdateLock.lock();
-        try {
-            List<Agent> agents = onlineList(zone);
+        List<Agent> agents = onlineList(zone);
 
-            // convert to map for performance
-            Map<AgentPath, Agent> onlineAgentMap = new HashMap<>(agents.size());
-            for (Agent agent : agents) {
-                onlineAgentMap.put(agent.getPath(), agent);
+        // convert to map for performance
+        Map<AgentPath, Agent> onlineAgentMap = new HashMap<>(agents.size());
+        for (Agent agent : agents) {
+            onlineAgentMap.put(agent.getPath(), agent);
+        }
+
+        // find offline agents
+        Set<AgentPath> onlineAgentKeys = onlineAgentMap.keySet();
+        Set<AgentPath> offlines = Sets.newHashSet(onlineAgentKeys);
+        offlines.removeAll(keys);
+
+        // remove offline agents from online list and update status
+        for (AgentPath key : offlines) {
+            Agent offlineAgent = onlineAgentMap.get(key);
+            offlineAgent.setStatus(AgentStatus.OFFLINE);
+            agentDao.update(offlineAgent);
+            onlineAgentMap.remove(key);
+        }
+
+        // report online
+        for (AgentPath key : keys) {
+            if (onlineAgentKeys.contains(key)) {
+                continue;
             }
-
-            // find offline agents
-            Set<AgentPath> onlineAgentKeys = onlineAgentMap.keySet();
-            Set<AgentPath> offlines = Sets.newHashSet(onlineAgentKeys);
-            offlines.removeAll(keys);
-
-            // remove offline agents from online list and update status
-            for (AgentPath key : offlines) {
-                Agent offlineAgent = onlineAgentMap.get(key);
-                offlineAgent.setStatus(AgentStatus.OFFLINE);
-                agentDao.update(offlineAgent);
-                onlineAgentMap.remove(key);
-            }
-
-            // report online
-            for (AgentPath key : keys) {
-                if (onlineAgentKeys.contains(key)) {
-                    continue;
-                }
-                reportOnline(key);
-            }
-        } finally {
-            onlineListUpdateLock.unlock();
+            reportOnline(key);
         }
     }
 
@@ -110,7 +102,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public void reportStatus(AgentPath path, AgentStatus status) {
+    public void updateStatus(AgentPath path, AgentStatus status) {
         Agent exist = find(path);
         if (exist == null) {
             throw new AgentErr.NotFoundException(path.getName());
@@ -178,10 +170,13 @@ public class AgentServiceImpl implements AgentService {
         for (Zone zone : zoneService.getZones()) {
             Collection<Agent> agents = onlineList(zone.getName());
             for (Agent agent : agents) {
-                if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
+                if (agent.getSessionId() != null
+                    && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
+
                     CmdInfo cmdInfo = new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null);
                     cmdService.send(cmdInfo);
-                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
+                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s",
+                        agent);
                 }
             }
         }
@@ -191,8 +186,6 @@ public class AgentServiceImpl implements AgentService {
 
     /**
      * Find from online list and create
-     *
-     * @param key
      */
     private void reportOnline(AgentPath key) {
         Agent exist = find(key);

@@ -335,9 +335,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentBusy1).getStatus());
 
         // set idle agent 1 date, before idle agent 2
-        Instant date = LocalDate.of(2017, 5, 10).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Agent agent = agentService.find(agentIdle1);
-        agent.setUpdatedDate(date.atZone(ZoneId.systemDefault()));
+        Agent agent = agentService.find(agentIdle2);
         agentDao.update(agent);
 
         // when: send cmd to zone

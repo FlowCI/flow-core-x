@@ -123,9 +123,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     /**
      * Send cmd in transaction for agent status
-     *
-     * @param cmdInfo
-     * @return
      */
     @Override
     public Cmd send(CmdInfo cmdInfo) {
@@ -188,7 +185,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 case SHUTDOWN:
                     // in shutdown action, cmd content is sudo password
                     if (Strings.isNullOrEmpty(cmd.getCmd())) {
-                        throw new IllegalArgumentException("For SHUTDOWN action, password of 'sudo' must be provided");
+                        throw new IllegalArgumentException(
+                            "For SHUTDOWN action, password of 'sudo' must be provided");
                     }
 
                     agentService.deleteSession(target);
@@ -212,7 +210,8 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateStatus(String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
+    public void updateStatus(
+        String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
         LOGGER.trace("Report cmd %s status %s and result %s", cmdId, status, inputResult);
 
         Cmd cmd = find(cmdId);
@@ -235,7 +234,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         // update cmd status
         if (cmd.addStatus(status)) {
-            cmd.setUpdatedDate(ZonedDateTime.now());
             cmdDao.update(cmd);
 
             // update agent status
@@ -302,11 +300,11 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      * Select agent by AgentPath or session id
      * - auto select agent if only defined zone name
      *
-     * @param cmd
      * @return Agent or null
      * @throws com.flow.platform.cc.exception.AgentErr.NotAvailableException no idle agent in zone
-     * @throws com.flow.platform.cc.exception.AgentErr.AgentMustBeSpecified  name must for operation cmd type
-     * @throws com.flow.platform.cc.exception.AgentErr.NotFoundException     target agent not found
+     * @throws com.flow.platform.cc.exception.AgentErr.AgentMustBeSpecified name must for operation
+     * cmd type
+     * @throws com.flow.platform.cc.exception.AgentErr.NotFoundException target agent not found
      */
     private Agent selectAgent(CmdBase cmd) {
         // check session id as top priority
@@ -359,7 +357,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      * @param cmd Cmd object
      */
     private void updateAgentStatusWhenUpdateCmd(Cmd cmd) {
-        // do not update agent status since duration session
+        // do not update agent status duration session
         String sessionId = cmd.getSessionId();
         if (sessionId != null && agentService.find(sessionId) != null) {
             return;
@@ -383,12 +381,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             }
         }
 
-        Agent agent = agentService.find(agentPath);
-        if (agent == null) {
-            throw new IllegalStateException("Cannot find related agent for cmd");
-        }
-
-        agent.setStatus(isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
-        agentDao.update(agent);
+        agentService.updateStatus(agentPath, isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
     }
 }

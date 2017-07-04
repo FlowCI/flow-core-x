@@ -49,6 +49,6 @@ public class AgentController {
         if (agent.getPath() == null || agent.getStatus() == null) {
             throw new IllegalArgumentException("Agent path and status are required");
         }
-        agentService.reportStatus(agent.getPath(), agent.getStatus());
+        agentService.updateStatus(agent.getPath(), agent.getStatus());
     }
 }

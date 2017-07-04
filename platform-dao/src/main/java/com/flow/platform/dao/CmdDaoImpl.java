@@ -4,6 +4,7 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.util.DateUtil;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.*;
@@ -20,6 +21,15 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
     @Override
     Class getEntityClass() {
         return Cmd.class;
+    }
+
+    @Override
+    public void update(Cmd obj) {
+        execute(session -> {
+            obj.setUpdatedDate(DateUtil.now());
+            session.update(obj);
+            return null;
+        });
     }
 
     @Override

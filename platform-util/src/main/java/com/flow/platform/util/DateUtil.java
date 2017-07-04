@@ -32,4 +32,8 @@ public class DateUtil {
     public static ZonedDateTime utcNow() {
         return ZonedDateTime.now(ZONE_UTC);
     }
+
+    public static ZonedDateTime now() {
+        return ZonedDateTime.now(ZoneId.systemDefault());
+    }
 }
