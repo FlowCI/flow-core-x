@@ -35,7 +35,7 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
             Predicate where = buildAgentPathPredicate(builder, root.get("agentPath"), agentPath);
 
             Predicate typesPredicate = buildInPredicate(builder, root.get("type"), types);
-            if (where != null && typesPredicate != null ) {
+            if (where != null && typesPredicate != null) {
                 where = builder.and(where, typesPredicate);
             }
 
@@ -56,7 +56,8 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
         });
     }
 
-    private Predicate buildAgentPathPredicate(CriteriaBuilder builder, Path<?> path, AgentPath agentPath) {
+    private Predicate buildAgentPathPredicate(
+        CriteriaBuilder builder, Path<?> path, AgentPath agentPath) {
         Predicate predicate = null;
         if (agentPath != null) {
             String zoneName = agentPath.getZone();
@@ -75,7 +76,7 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
         return predicate;
     }
 
-    private <T> Predicate buildInPredicate(CriteriaBuilder builder, Path<?> path, Set<T> sets)  {
+    private <T> Predicate buildInPredicate(CriteriaBuilder builder, Path<?> path, Set<T> sets) {
         Predicate predicate = null;
         if (sets != null && sets.size() > 0) {
             predicate = path.in(sets);

@@ -17,6 +17,7 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
 
     @FunctionalInterface
     interface Executable<O> {
+
         O execute(Session session);
     }
 
@@ -52,7 +53,6 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
     /**
      * Save single object
      *
-     * @param obj
      * @return T with id if it is auto generated
      */
     @Override
@@ -65,8 +65,6 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
 
     /**
      * Update object
-     *
-     * @param obj
      */
     @Override
     public void update(final T obj) {
@@ -78,8 +76,6 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
 
     /**
      * Delete
-     *
-     * @param obj
      */
     @Override
     public void delete(T obj) {

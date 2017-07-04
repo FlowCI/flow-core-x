@@ -22,7 +22,8 @@ import java.util.Set;
 @Repository(value = "agentDao")
 public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements AgentDao {
 
-    private final Set<String> orderByFields = Sets.newHashSet("createdDate", "updatedDate", "sessionDate");
+    private final Set<String> orderByFields = Sets
+        .newHashSet("createdDate", "updatedDate", "sessionDate");
 
     @Override
     Class getEntityClass() {
@@ -36,7 +37,8 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
         }
 
         if (orderByField != null && !orderByFields.contains(orderByField)) {
-            throw new IllegalArgumentException("The orderByField only availabe among 'createdDate', 'updateDate' or 'sessionDate'");
+            throw new IllegalArgumentException(
+                "The orderByField only availabe among 'createdDate', 'updateDate' or 'sessionDate'");
         }
 
         return (List<Agent>) execute(new Executable() {
@@ -69,16 +71,18 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
 
     @Override
     public Agent find(AgentPath agentPath) {
-        Agent agent = (Agent) execute(session -> (Agent) session.createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
+        Agent agent = (Agent) execute(session -> (Agent) session
+            .createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
             .setParameter("zone", agentPath.getZone())
-            .setParameter( "name", agentPath.getName())
+            .setParameter("name", agentPath.getName())
             .uniqueResult());
         return agent;
     }
 
     @Override
     public Agent find(String sessionId) {
-        Agent agent = (Agent) execute(session -> (Agent) session.createQuery("from Agent where sessionId = :sessionId")
+        Agent agent = (Agent) execute(
+            session -> (Agent) session.createQuery("from Agent where sessionId = :sessionId")
                 .setParameter("sessionId", sessionId)
                 .uniqueResult());
         return agent;

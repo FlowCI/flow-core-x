@@ -14,11 +14,11 @@ import java.util.Set;
 public interface CmdDao extends BaseDao<String, Cmd> {
 
     /**
+     * List cmd by agent path, cmd type and cmd status
      *
      * @param agentPath nullable, zone or agent name also nullable
-     * @param types     nullable, select in types
-     * @param status    nullable, select in status
-     * @return
+     * @param types nullable, select in types
+     * @param status nullable, select in status
      */
     List<Cmd> list(AgentPath agentPath, Set<CmdType> types, Set<CmdStatus> status);
 }
