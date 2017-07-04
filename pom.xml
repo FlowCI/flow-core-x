@@ -42,6 +42,7 @@
         <mysql_connect.version>5.1.42</mysql_connect.version>
         <amqp-client.version>4.1.0</amqp-client.version>
         <HikariCP.version>2.6.2</HikariCP.version>
+        <jcabi-ssh.version>1.5.2</jcabi-ssh.version>
     </properties>
 
     <repositories>
@@ -232,6 +233,12 @@
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
                 <version>${HikariCP.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.jcabi</groupId>
+                <artifactId>jcabi-ssh</artifactId>
+                <version>${jcabi-ssh.version}</version>
             </dependency>
 
         </dependencies>
