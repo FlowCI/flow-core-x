@@ -47,14 +47,10 @@ public class ReportManager {
 
     /**
      * Report cmd status with result in async
-     *
-     * @param cmdId
-     * @param status
-     * @param result
      */
     public void cmdReport(final String cmdId,
-                          final CmdStatus status,
-                          final CmdResult result) {
+        final CmdStatus status,
+        final CmdResult result) {
         executor.execute(() -> {
             cmdReportSync(cmdId, status, result);
         });
@@ -62,15 +58,10 @@ public class ReportManager {
 
     /**
      * Report cmd status in sync
-     *
-     * @param cmdId
-     * @param status
-     * @param result
-     * @return
      */
     public boolean cmdReportSync(final String cmdId,
-                                 final CmdStatus status,
-                                 final CmdResult result) {
+        final CmdStatus status,
+        final CmdResult result) {
         try {
             cmdReportSync(cmdId, status, result, 5);
             return true;
@@ -97,9 +88,9 @@ public class ReportManager {
     }
 
     private void cmdReportSync(final String cmdId,
-                               final CmdStatus status,
-                               final CmdResult result,
-                               final int retry) throws IOException {
+        final CmdStatus status,
+        final CmdResult result,
+        final int retry) throws IOException {
 
         if (!Config.isReportCmdStatus()) {
             LOGGER.trace("Cmd report toggle is disabled");
@@ -120,7 +111,8 @@ public class ReportManager {
         httpSend(post, retry, successMsg, failMsg);
     }
 
-    private void cmdLogUploadSync(final String cmdId, final Path logPath, final int retry) throws IOException {
+    private void cmdLogUploadSync(final String cmdId, final Path logPath, final int retry)
+        throws IOException {
         if (!Config.isUploadLog()) {
             LOGGER.trace("Log upload toggle is disabled");
             return;
@@ -128,10 +120,10 @@ public class ReportManager {
 
         FileBody zippedFile = new FileBody(logPath.toFile(), ContentType.create("application/zip"));
         HttpEntity entity = MultipartEntityBuilder.create()
-                .addPart("file", zippedFile)
-                .addPart("cmdId", new StringBody(cmdId, ContentType.TEXT_PLAIN))
-                .setContentType(ContentType.MULTIPART_FORM_DATA)
-                .build();
+            .addPart("file", zippedFile)
+            .addPart("cmdId", new StringBody(cmdId, ContentType.TEXT_PLAIN))
+            .setContentType(ContentType.MULTIPART_FORM_DATA)
+            .build();
 
         String url = Config.agentConfig().getCmdLogUrl();
         HttpPost post = new HttpPost(url);
@@ -143,9 +135,9 @@ public class ReportManager {
     }
 
     private static HttpResponse httpSend(final HttpUriRequest request,
-                                         final int retry,
-                                         final String successMsg,
-                                         final String failMsg) {
+        final int retry,
+        final String successMsg,
+        final String failMsg) {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpResponse response = client.execute(request);
             int code = response.getStatusLine().getStatusCode();

@@ -143,18 +143,19 @@ public class CmdManager {
                 @Override
                 public void run() {
                     LogEventHandler logListener = new LogEventHandler(getCmd());
-                    ProcEventHandler procEventHandler = new ProcEventHandler(getCmd(), extraProcEventListeners, running, finished);
+                    ProcEventHandler procEventHandler = new ProcEventHandler(getCmd(),
+                        extraProcEventListeners, running, finished);
 
                     CmdExecutor executor;
                     try {
                         executor = new CmdExecutor(
-                                procEventHandler,
-                                logListener,
-                                cmd.getInputs(),
-                                cmd.getWorkingDir(),
-                                cmd.getOutputEnvFilter(),
-                                cmd.getTimeout(),
-                                getCmd().getCmd());
+                            procEventHandler,
+                            logListener,
+                            cmd.getInputs(),
+                            cmd.getWorkingDir(),
+                            cmd.getOutputEnvFilter(),
+                            cmd.getTimeout(),
+                            getCmd().getCmd());
                     } catch (Throwable e) {
                         LOGGER.errorMarker("execute", "Cannot init CmdExecutor for cmd " + cmd, e);
 
@@ -237,19 +238,19 @@ public class CmdManager {
 
     private ThreadPoolExecutor createExecutor() {
         return new ThreadPoolExecutor(
-                Config.concurrentThreadNum(),
-                Config.concurrentThreadNum(),
-                0L,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(),
-                defaultFactory,
-                (r, executor) -> {
-                    if (r instanceof TaskRunner) {
-                        TaskRunner task = (TaskRunner) r;
-                        onReject(task.getCmd());
-                        LOGGER.warn("Reject cmd: %s", task.getCmd());
-                    }
-                });
+            Config.concurrentThreadNum(),
+            Config.concurrentThreadNum(),
+            0L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            defaultFactory,
+            (r, executor) -> {
+                if (r instanceof TaskRunner) {
+                    TaskRunner task = (TaskRunner) r;
+                    onReject(task.getCmd());
+                    LOGGER.warn("Reject cmd: %s", task.getCmd());
+                }
+            });
     }
 
     private abstract class TaskRunner implements Runnable {

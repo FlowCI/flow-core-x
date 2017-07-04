@@ -16,8 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gy@fir.im on 16/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public class Config {
 
@@ -52,8 +51,6 @@ public class Config {
 
     /**
      * Is delete cmd log after uploaded
-     *
-     * @return
      */
     public static boolean isDeleteLog() {
         String boolStr = System.getProperty(PROP_DEL_AGENT_LOG, "false");
@@ -112,7 +109,8 @@ public class Config {
         return ZK_URL;
     }
 
-    public static AgentConfig loadAgentConfig(String zkHost, int zkTimeout, String zoneName, int retry) throws IOException, InterruptedException {
+    public static AgentConfig loadAgentConfig(String zkHost, int zkTimeout, String zoneName,
+        int retry) throws IOException, InterruptedException {
         final CountDownLatch connectLatch = new CountDownLatch(1);
 
         try {

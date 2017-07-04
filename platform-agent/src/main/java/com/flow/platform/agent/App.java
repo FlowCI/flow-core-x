@@ -67,6 +67,7 @@ public class App {
     }
 
     private static class ShutdownHook extends Thread {
+
         @Override
         public void run() {
             LOGGER.trace("========= Agent end =========");

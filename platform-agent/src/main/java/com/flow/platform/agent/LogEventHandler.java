@@ -119,14 +119,16 @@ public class LogEventHandler implements LogListener {
     }
 
     public String socketIoLogFormat(Log log) {
-        return String.format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(), log.getContent());
+        return String.format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
+            log.getContent());
     }
 
     private void renameAndUpload(Path logPath, Log.Type logType) {
         // rename xxx.out.tmp to xxx.out.zip and renameAndUpload to server
         if (Files.exists(logPath)) {
             try {
-                Path target = Paths.get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, logType, false));
+                Path target = Paths
+                    .get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, logType, false));
                 Files.move(logPath, target);
 
                 // delete if uploaded
@@ -140,7 +142,8 @@ public class LogEventHandler implements LogListener {
         }
     }
 
-    private boolean closeZipAndFileStream(final ZipOutputStream zipStream, final FileOutputStream fileStream) {
+    private boolean closeZipAndFileStream(final ZipOutputStream zipStream,
+        final FileOutputStream fileStream) {
         try {
             if (zipStream != null) {
                 zipStream.flush();
@@ -197,7 +200,8 @@ public class LogEventHandler implements LogListener {
         }
 
         // init zipped log file for tmp
-        Path stdoutPath = Paths.get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDOUT, true));
+        Path stdoutPath = Paths
+            .get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDOUT, true));
         Files.deleteIfExists(stdoutPath);
         stdoutLogPath = Files.createFile(stdoutPath);
 
@@ -208,7 +212,8 @@ public class LogEventHandler implements LogListener {
         stdoutLogZipStream.putNextEntry(outEntry);
 
         // init zipped log file for tmp
-        Path stderrPath = Paths.get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDERR, true));
+        Path stderrPath = Paths
+            .get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDERR, true));
         Files.deleteIfExists(stderrPath);
         stderrLogPath = Files.createFile(stderrPath);
 

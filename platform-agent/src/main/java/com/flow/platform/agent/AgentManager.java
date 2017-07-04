@@ -55,14 +55,10 @@ public class AgentManager implements Runnable, Watcher {
     /**
      * Init AgentService with ZkEventListener
      *
-     * @param zkHost
-     * @param zkTimeout
-     * @param zone
-     * @param name
-     * @param listener  the onDataChanged of ZkEventListener is async, run on thread
-     * @throws IOException
+     * @param listener the onDataChanged of ZkEventListener is async, run on thread
      */
-    public AgentManager(String zkHost, int zkTimeout, String zone, String name, ZkEventListener listener) throws IOException {
+    public AgentManager(String zkHost, int zkTimeout, String zone, String name,
+        ZkEventListener listener) throws IOException {
         this(zkHost, zkTimeout, zone, name);
         this.zkEventListener = listener; // using input listener
     }
@@ -124,8 +120,6 @@ public class AgentManager implements Runnable, Watcher {
 
     /**
      * Force to exit current agent
-     *
-     * @param event
      */
     private void onDeleted(WatchedEvent event) {
         try {

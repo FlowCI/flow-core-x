@@ -21,9 +21,9 @@ public class ProcEventHandler implements ProcListener {
     private final ReportManager reportManager = ReportManager.getInstance();
 
     public ProcEventHandler(Cmd cmd,
-                            List<ProcListener> extraProcEventListeners,
-                            Map<Cmd, CmdResult> running,
-                            Map<Cmd, CmdResult> finished) {
+        List<ProcListener> extraProcEventListeners,
+        Map<Cmd, CmdResult> running,
+        Map<Cmd, CmdResult> finished) {
         this.cmd = cmd;
         this.extraProcEventListeners = extraProcEventListeners;
         this.running = running;
