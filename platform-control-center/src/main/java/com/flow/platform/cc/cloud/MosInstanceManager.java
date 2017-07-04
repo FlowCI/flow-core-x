@@ -93,9 +93,13 @@ public class MosInstanceManager implements InstanceManager {
             numOfInstanceToStart = zone.getMaxInstanceNum() - totalInstance;
         }
 
+        LOGGER.traceMarker(
+            "batchStartInstance", "Num of instance should start %s", numOfInstanceToStart);
+
         List<String> expectNameList = new ArrayList<>(numOfInstanceToStart);
         for (int i = 0; i < numOfInstanceToStart; i++) {
-            taskExecutor.execute(new StartMosInstanceWorker(mosClient, zone.getImageName(), instanceName()));
+            taskExecutor.execute(
+                new StartMosInstanceWorker(mosClient, zone.getImageName(), instanceName()));
             expectNameList.add(instanceName());
         }
 
@@ -196,11 +200,13 @@ public class MosInstanceManager implements InstanceManager {
             try {
                 instance = mosClient.createInstance(imageName, instanceName);
                 // wait instance status to running with 30 seconds timeout
-                if (mosClient.instanceStatusSync(instance.getId(), MosInstance.STATUS_RUNNING, timeToWait * 1000)) {
+                if (mosClient.instanceStatusSync(
+                    instance.getId(), MosInstance.STATUS_RUNNING, timeToWait * 1000)) {
                     LOGGER.trace("Instance status is running %s", instance);
                     mosRunningList.put(instanceName, instance);
                 } else {
-                    LOGGER.trace("Instance status not correct after %s seconds %s", timeToWait, instance);
+                    LOGGER.trace(
+                        "Instance status not correct after %s seconds %s", timeToWait, instance);
                     mosCleanupList.put(instanceName, instance);
                 }
             } catch (Throwable e) {
