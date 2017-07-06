@@ -2,12 +2,13 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.TaskConfig;
-import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.task.CmdWebhookTask;
 import com.flow.platform.dao.AgentDao;
 import com.flow.platform.dao.CmdDao;
 import com.flow.platform.dao.CmdResultDao;
 import com.flow.platform.domain.*;
+import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
@@ -108,7 +109,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     @Override
     public boolean isTimeout(Cmd cmd) {
         if (cmd.getType() != CmdType.RUN_SHELL) {
-            throw new UnsupportedOperationException("Check timeout only for run shell");
+            throw new IllegalParameterException("Check timeout only for run shell");
         }
 
         // not timeout since cmd is executed
@@ -185,7 +186,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 case SHUTDOWN:
                     // in shutdown action, cmd content is sudo password
                     if (Strings.isNullOrEmpty(cmd.getCmd())) {
-                        throw new IllegalArgumentException(
+                        throw new IllegalParameterException(
                             "For SHUTDOWN action, password of 'sudo' must be provided");
                     }
 
@@ -301,10 +302,10 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      * - auto select agent if only defined zone name
      *
      * @return Agent or null
-     * @throws com.flow.platform.cc.exception.AgentErr.NotAvailableException no idle agent in zone
-     * @throws com.flow.platform.cc.exception.AgentErr.AgentMustBeSpecified name must for operation
+     * @throws AgentErr.NotAvailableException no idle agent in zone
+     * @throws AgentErr.AgentMustBeSpecified name must for operation
      * cmd type
-     * @throws com.flow.platform.cc.exception.AgentErr.NotFoundException target agent not found
+     * @throws AgentErr.NotFoundException target agent not found
      */
     private Agent selectAgent(CmdBase cmd) {
         // check session id as top priority

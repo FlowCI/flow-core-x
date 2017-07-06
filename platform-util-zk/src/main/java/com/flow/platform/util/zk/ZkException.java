@@ -2,8 +2,7 @@ package com.flow.platform.util.zk;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public class ZkException {
 

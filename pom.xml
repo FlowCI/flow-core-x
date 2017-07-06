@@ -18,6 +18,7 @@
         <module>platform-util-mos</module>
         <module>platform-dao</module>
         <module>platform-util-zk</module>
+      <module>platform-exception</module>
     </modules>
 
     <properties>

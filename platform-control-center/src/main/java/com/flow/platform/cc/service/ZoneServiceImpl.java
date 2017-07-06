@@ -3,12 +3,26 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.util.SpringContextUtil;
-import com.flow.platform.domain.*;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Instance;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.mos.MosInstance;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import javax.annotation.PostConstruct;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +30,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 
 /**
  * Created by gy@fir.im on 17/05/2017.

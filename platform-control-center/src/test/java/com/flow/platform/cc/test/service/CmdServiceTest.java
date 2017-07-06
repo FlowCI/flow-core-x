@@ -7,6 +7,7 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.*;
+import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Lists;
@@ -25,9 +26,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Queue;
@@ -300,7 +298,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertTrue(cmdList.get(1).getStatus().equals(CmdStatus.REJECTED));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalParameterException.class)
     public void should_throw_exception_when_shutdown_cmd_miss_password() throws Throwable {
         // given:
         String zoneName = zkHelper.getDefaultZones().get(0).getName();

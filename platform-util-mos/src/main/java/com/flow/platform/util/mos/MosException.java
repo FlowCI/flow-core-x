@@ -1,12 +1,14 @@
 package com.flow.platform.util.mos;
 
+import com.flow.platform.exception.FlowException;
 import org.json.JSONObject;
 
 /**
  * Created by gy@fir.im on 01/06/2017.
  * Copyright fir.im
  */
-public class MosException extends RuntimeException {
+public class MosException extends FlowException {
+
     private JSONObject error;
     private MosInstance instance;
 
