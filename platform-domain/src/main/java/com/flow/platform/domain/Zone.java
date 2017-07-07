@@ -43,11 +43,6 @@ public class Zone extends Jsonable {
     private Integer numOfStart = minPoolSize;
 
     /**
-     * Maximum instance num
-     */
-    private Integer maxInstanceNum = maxPoolSize;
-
-    /**
      * Agent session timeout in seconds
      */
     private Integer agentSessionTimeout = 600;
@@ -118,14 +113,6 @@ public class Zone extends Jsonable {
         this.numOfStart = numOfStart;
     }
 
-    public Integer getMaxInstanceNum() {
-        return maxInstanceNum;
-    }
-
-    public void setMaxInstanceNum(Integer maxInstanceNum) {
-        this.maxInstanceNum = maxInstanceNum;
-    }
-
     public Integer getAgentSessionTimeout() {
         return agentSessionTimeout;
     }
@@ -178,7 +165,6 @@ public class Zone extends Jsonable {
                 ", minPoolSize=" + minPoolSize +
                 ", maxPoolSize=" + maxPoolSize +
                 ", numOfStart=" + numOfStart +
-                ", maxInstanceNum=" + maxInstanceNum +
                 "} ";
     }
 }

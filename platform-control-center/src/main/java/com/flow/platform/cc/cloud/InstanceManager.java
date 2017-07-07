@@ -37,18 +37,11 @@ public interface InstanceManager {
     Instance find(AgentPath agentPath);
 
     /**
-     * Get running instance list
+     * Get all instance list
      *
-     * @return
+     * @return instance list
      */
-    Collection<Instance> runningInstance();
-
-    /**
-     * Get failure instance which start with err
-     *
-     * @return
-     */
-    Collection<Instance> failureInstance();
+    Collection<Instance> instances();
 
     /**
      * Async to start instance

@@ -1,5 +1,6 @@
 package com.flow.platform.cc.test.cloud;
 
+import com.flow.platform.cc.cloud.InstanceManager;
 import com.flow.platform.cc.cloud.MosInstanceManager;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Instance;
@@ -22,7 +23,7 @@ public class MosInstanceManagerTest extends TestBase {
     private final static int POOL_SIZE = 1;
 
     @Autowired
-    private MosInstanceManager mosPoolManager;
+    private InstanceManager mosInstanceManager;
 
     @Ignore
     @Test
@@ -32,20 +33,22 @@ public class MosInstanceManagerTest extends TestBase {
         zone.setImageName("flow-osx-83-109-bj4-zk-agent");
         zone.setMinPoolSize(1);
         zone.setMaxPoolSize(1);
-        zone.setMaxInstanceNum(1);
         zone.setNumOfStart(1);
 
-        List<String> nameList = mosPoolManager.batchStartInstance(zone);
+        List<String> nameList = mosInstanceManager.batchStartInstance(zone);
         Assert.assertEquals(POOL_SIZE, nameList.size());
 
         Thread.sleep(60 * 1000); // wait for instance start
 
-        Collection<Instance> running = mosPoolManager.runningInstance();
+        Collection<Instance> running = mosInstanceManager.instances();
         Assert.assertTrue(running.size() >= POOL_SIZE);
+
+        Instance mosInstance = mosInstanceManager.find(nameList.get(0));
+        Assert.assertNotNull(mosInstance);
     }
 
     @After
     public void after() {
-        mosPoolManager.cleanAll();
+        mosInstanceManager.cleanAll();
     }
 }

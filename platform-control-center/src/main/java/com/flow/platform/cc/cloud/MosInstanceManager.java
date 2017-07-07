@@ -9,6 +9,7 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.mos.MosInstance;
 import com.flow.platform.util.mos.MosClient;
 import com.flow.platform.util.mos.MosException;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,17 +30,22 @@ import java.util.concurrent.Executor;
 @Component(value = "mosInstanceManager")
 public class MosInstanceManager implements InstanceManager {
 
-    private final static String INSTANCE_NAME_PATTERN = "%s.cloud.mos";
-
-    private final static int INSTANCE_MAX_ALIVE_DURATION = 600; // max instance stopped time in seconds
-
     private final static Logger LOGGER = new Logger(MosInstanceManager.class);
+
+    @Value("${mos.instance_max_num}")
+    private Integer instanceMaxNum;
+
+    @Value("${mos.instance_max_alive}")
+    private Integer instanceMaxAlive; // max alive duration in seconds
 
     @Value("${mos.instance_name_pattern}")
     private String instanceNamePattern;
 
     @Value("${mos.instance_name_start_rule}")
     private String instanceNameStartWith;
+
+    @Value("${mos.agent_name_pattern}")
+    private String agentNamePattern;
 
     @Autowired
     private Executor taskExecutor;
@@ -49,9 +55,6 @@ public class MosInstanceManager implements InstanceManager {
 
     @Autowired
     private TaskConfig taskConfig;
-
-    // running mos instance
-    private final Map<String, Instance> mosRunningList = new ConcurrentHashMap<>();
 
     // failed mos instances or instance needs to clean
     private final Map<String, Instance> mosCleanupList = new ConcurrentHashMap<>();
@@ -63,34 +66,31 @@ public class MosInstanceManager implements InstanceManager {
 
     @Override
     public Instance find(String name) {
-        return mosRunningList.get(name);
+        return mosClient.find(name, true);
     }
 
     @Override
     public Instance find(AgentPath agentPath) {
-        String instanceName = String.format(INSTANCE_NAME_PATTERN, agentPath.getName());
+        String instanceName = String.format(agentNamePattern, agentPath.getName());
         return find(instanceName);
     }
 
     @Override
-    public Collection<Instance> runningInstance() {
-        return mosRunningList.values();
-    }
-
-    @Override
-    public Collection<Instance> failureInstance() {
-        return mosCleanupList.values();
+    public Collection<Instance> instances() {
+        List<MosInstance> instances = mosClient.listInstance();
+        instances.removeIf(instance -> !instance.getName().startsWith(instanceNameStartWith));
+        return Lists.newArrayList(instances);
     }
 
     @Override
     public List<String> batchStartInstance(final Zone zone) {
         // check total num of instance
-        int totalInstance = mosCleanupList.size() + mosRunningList.size();
+        int totalInstance = instances().size();
         int numOfInstanceToStart = zone.getNumOfStart();
 
         // ensure num of instance not over the max
-        if (totalInstance + numOfInstanceToStart > zone.getMaxInstanceNum()) {
-            numOfInstanceToStart = zone.getMaxInstanceNum() - totalInstance;
+        if (totalInstance + numOfInstanceToStart > instanceMaxNum) {
+            numOfInstanceToStart = instanceMaxNum - totalInstance;
         }
 
         LOGGER.traceMarker(
@@ -98,9 +98,12 @@ public class MosInstanceManager implements InstanceManager {
 
         List<String> expectNameList = new ArrayList<>(numOfInstanceToStart);
         for (int i = 0; i < numOfInstanceToStart; i++) {
+            String instanceName = instanceName();
+
             taskExecutor.execute(
-                new StartMosInstanceWorker(mosClient, zone.getImageName(), instanceName()));
-            expectNameList.add(instanceName());
+                new StartMosInstanceWorker(mosClient, zone.getImageName(), instanceName));
+
+            expectNameList.add(instanceName);
         }
 
         return expectNameList;
@@ -108,20 +111,12 @@ public class MosInstanceManager implements InstanceManager {
 
     @Override
     public void addToCleanList(Instance instance) {
-        mosRunningList.remove(instance.getName());
         mosCleanupList.putIfAbsent(instance.getName(), instance);
     }
 
     @Override
     public void cleanFromProvider(long maxAliveDuration, String status) {
-        List<MosInstance> instances = mosClient.listInstance();
-
-        for (MosInstance instance : instances) {
-
-            // check instance is controlled by platform
-            if (!instance.getName().startsWith(instanceNameStartWith)) {
-                continue;
-            }
+        for (Instance instance : instances()) {
 
             // find alive duration
             Date createdAt = instance.getCreatedAt();
@@ -142,8 +137,7 @@ public class MosInstanceManager implements InstanceManager {
      */
     @Override
     public void cleanAll() {
-        cleanInstance(mosCleanupList);
-        cleanInstance(mosRunningList);
+        cleanInstance(instances());
     }
 
     /**
@@ -158,21 +152,21 @@ public class MosInstanceManager implements InstanceManager {
         }
 
         LOGGER.traceMarker("cleanInstanceTask", "start");
-        cleanInstance(mosCleanupList);
+        cleanInstance(mosCleanupList.values());
 
         // clean up mos instance when status is shutdown
-        cleanFromProvider(INSTANCE_MAX_ALIVE_DURATION, MosInstance.STATUS_READY);
+        cleanFromProvider(instanceMaxAlive, MosInstance.STATUS_READY);
         LOGGER.traceMarker("cleanInstanceTask", "end");
     }
 
-    private void cleanInstance(Map<String, Instance> instanceMap) {
-        Iterator<Map.Entry<String, Instance>> iterator = instanceMap.entrySet().iterator();
+    private void cleanInstance(Collection<Instance> instances) {
+        Iterator<Instance> iterator = instances.iterator();
         while (iterator.hasNext()) {
-            Map.Entry<String, Instance> entry = iterator.next();
-            Instance mosInstance = entry.getValue();
+            Instance mosInstance = iterator.next();
 
             mosClient.deleteInstance(mosInstance.getId());
             iterator.remove();
+
             LOGGER.trace("Clean instance from cleanup list: %s", mosInstance);
         }
     }
@@ -203,7 +197,6 @@ public class MosInstanceManager implements InstanceManager {
                 if (mosClient.instanceStatusSync(
                     instance.getId(), MosInstance.STATUS_RUNNING, timeToWait * 1000)) {
                     LOGGER.trace("Instance status is running %s", instance);
-                    mosRunningList.put(instanceName, instance);
                 } else {
                     LOGGER.trace(
                         "Instance status not correct after %s seconds %s", timeToWait, instance);

@@ -77,7 +77,8 @@ public class MosClient {
     private final List<Zone> zones = new LinkedList<>();
 
     public MosClient(String key, String secret) throws Throwable {
-        client = new Client(key, secret, DEFAULT_API_URL, DEFAULT_REGION, null, DEFAULT_TIMEOUT, false);
+        client = new Client(key, secret, DEFAULT_API_URL, DEFAULT_REGION, null, DEFAULT_TIMEOUT,
+            false);
 
         // init image templates
         initImageTemplate();
@@ -103,14 +104,23 @@ public class MosClient {
         return zones;
     }
 
-    public MosInstance find(String instanceId) {
+    /**
+     * Find mos instance by name or id
+     *
+     * @param isNameOrId true for find by name, false for find by id
+     */
+    public MosInstance find(String pattern, boolean isNameOrId) {
         JSONObject response = null;
         try {
-            response = client.DescribeInstances(new String[]{instanceId}, null, 100, 0, null);
+            if (isNameOrId) {
+                response = client.DescribeInstances(null, new String[]{pattern}, 100, 0, null);
+            } else {
+                response = client.DescribeInstances(new String[]{pattern}, null, 100, 0, null);
+            }
 
             Object jsonInstanceSet = response
-                    .getJSONObject("DescribeInstancesResponse")
-                    .get("InstanceSet");
+                .getJSONObject("DescribeInstancesResponse")
+                .get("InstanceSet");
 
             // empty instance will return empty string for in instance set
             if (jsonInstanceSet instanceof String) {
@@ -126,7 +136,8 @@ public class MosClient {
             return null;
 
         } catch (JSONException e) {
-            MosException mosException = new MosException("DescribeInstances: Wrong response data", e);
+            MosException mosException = new MosException("DescribeInstances: Wrong response data",
+                e);
             mosException.setError(response);
             throw mosException;
         } catch (Throwable e) {
@@ -147,8 +158,8 @@ public class MosClient {
         try {
             response = client.DescribeInstances(null, null, 100, 0, null);
             Object jsonInstanceSet = response
-                    .getJSONObject("DescribeInstancesResponse")
-                    .get("InstanceSet");
+                .getJSONObject("DescribeInstancesResponse")
+                .get("InstanceSet");
 
             // empty instance will return empty string for in instance set
             if (jsonInstanceSet instanceof String) {
@@ -162,7 +173,8 @@ public class MosClient {
                     rawInstances = jsonSet.get("Instance");
                 } catch (JSONException e) {
                     // cannot find instance data since data is out of range
-                    MosSizeInfo sizeInfo = GSON.fromJson(jsonInstanceSet.toString(), MosSizeInfo.class);
+                    MosSizeInfo sizeInfo = GSON
+                        .fromJson(jsonInstanceSet.toString(), MosSizeInfo.class);
                     return new ArrayList<>(0);
                 }
 
@@ -193,7 +205,8 @@ public class MosClient {
             throw new IllegalStateException("Data cannot be convert to Instance object");
 
         } catch (JSONException e) {
-            MosException mosException = new MosException("DescribeInstances: Wrong response data", e);
+            MosException mosException = new MosException("DescribeInstances: Wrong response data",
+                e);
             mosException.setError(response);
             throw mosException;
         } catch (Throwable e) {
@@ -208,22 +221,24 @@ public class MosClient {
         JSONObject result = null;
         try {
             result = client.CreateInstance(
-                    template.getTemplateId(),
-                    DEFAULT_INSTANCE_TYPE,
-                    DEFAULT_SSH_KEY_NAME,
-                    0,
-                    0,
-                    null,
-                    DEFAULT_DURATION,
-                    instanceName,
-                    DEFAULT_ZONE_ID,
-                    DEFAULT_GROUP_ID
+                template.getTemplateId(),
+                DEFAULT_INSTANCE_TYPE,
+                DEFAULT_SSH_KEY_NAME,
+                0,
+                0,
+                null,
+                DEFAULT_DURATION,
+                instanceName,
+                DEFAULT_ZONE_ID,
+                DEFAULT_GROUP_ID
             );
 
-            JSONObject jsonObject = result.getJSONObject("CreateInstanceResponse").getJSONObject("Instance");
+            JSONObject jsonObject = result.getJSONObject("CreateInstanceResponse")
+                .getJSONObject("Instance");
             instance = GSON.fromJson(jsonObject.toString(), MosInstance.class);
             if (instance == null || instance.getId() == null) {
-                throw new IllegalStateException("Missing instance id, maybe duplicate instance name");
+                throw new IllegalStateException(
+                    "Missing instance id, maybe duplicate instance name");
             }
         } catch (JSONException e) {
             MosException mosException = new MosException("CreateInstance: wrong response data", e);
@@ -236,14 +251,15 @@ public class MosClient {
         // bind nat gateway if instance created
         try {
             if (!bindNatGateway(instance.getId())) {
-                String msg = String.format("Fail to bind nat gateway for instance: %s, return false",
+                String msg = String
+                    .format("Fail to bind nat gateway for instance: %s, return false",
                         instance.getId());
 
                 throw new MosException(msg, null, instance);
             }
 
             // reload instance with ip address
-            return find(instance.getId());
+            return find(instance.getId(), false);
 
         } catch (Throwable e) {
             throw new MosException(e.getMessage(), e, instance);
@@ -253,7 +269,8 @@ public class MosClient {
     public boolean bindNatGateway(String instanceId) {
         JSONObject result = null;
         try {
-            this.instanceStatusSync(instanceId, MosInstance.STATUS_RUNNING, DEFAULT_GATWAY_TIMEOUT); // wait mos instance running
+            this.instanceStatusSync(instanceId, MosInstance.STATUS_RUNNING,
+                DEFAULT_GATWAY_TIMEOUT); // wait mos instance running
             result = client.AssociateNatGateway(DEFAULT_NET_ID, instanceId, DEFAULT_ZONE_ID);
             return result.getJSONObject("AssociateNatGatewayResponse").getBoolean("return");
         } catch (JSONException e) {
@@ -261,7 +278,8 @@ public class MosClient {
             mosException.setError(result);
             throw mosException;
         } catch (Throwable e) {
-            throw new MosException("BindNatGateWay: Fail to bind nat gateway for instance: " + instanceId, e);
+            throw new MosException(
+                "BindNatGateWay: Fail to bind nat gateway for instance: " + instanceId, e);
         }
     }
 
@@ -271,9 +289,9 @@ public class MosClient {
             jsonObject = client.DescribeNatGateway(100, 0);
 
             Object rawData = jsonObject
-                    .getJSONObject("DescribeNatGatewayResponse")
-                    .getJSONObject("NatGatewaySet")
-                    .get("NatGateway");
+                .getJSONObject("DescribeNatGatewayResponse")
+                .getJSONObject("NatGatewaySet")
+                .get("NatGateway");
 
             List<NatGateway> gateways = new ArrayList<>(10);
 
@@ -323,10 +341,11 @@ public class MosClient {
         try {
             JSONObject response = client.DescribeInstanceStatus(instanceId);
             return response.getJSONObject("DescribeInstanceStatusResponse")
-                    .getJSONObject("InstanceStatus")
-                    .getString("status");
+                .getJSONObject("InstanceStatus")
+                .getString("status");
         } catch (JSONException e) {
-            throw new MosException("InstanceStatus: Wrong response data, maybe instance doesn't exist.", e);
+            throw new MosException(
+                "InstanceStatus: Wrong response data, maybe instance doesn't exist.", e);
         } catch (Throwable e) {
             throw new MosException("InstanceStatus: Exception from request", e);
         }
@@ -335,12 +354,11 @@ public class MosClient {
     /**
      * Periodically retrive instance status, exit until got expect stauts or timeout
      *
-     * @param instanceId
-     * @param expectStatus
-     * @param timeout      in millseconds
+     * @param timeout in millseconds
      * @return boolean is status loaded or not
      */
-    public boolean instanceStatusSync(final String instanceId, final String expectStatus, final long timeout) {
+    public boolean instanceStatusSync(final String instanceId, final String expectStatus,
+        final long timeout) {
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicBoolean canExit = new AtomicBoolean(false);
         final AtomicBoolean canLoadInstance = new AtomicBoolean(true);
@@ -386,9 +404,9 @@ public class MosClient {
             raw = client.DescribeAvailabilityZones(100, 0);
 
             JSONArray zoneList = raw
-                    .getJSONObject("DescribeAvailabilityZonesResponse")
-                    .getJSONObject("AvailabilityZoneSet")
-                    .getJSONArray("AvailabilityZone");
+                .getJSONObject("DescribeAvailabilityZonesResponse")
+                .getJSONObject("AvailabilityZoneSet")
+                .getJSONArray("AvailabilityZone");
 
             for (int i = 0; i < zoneList.length(); i++) {
                 JSONObject element = zoneList.getJSONObject(i);
@@ -409,16 +427,17 @@ public class MosClient {
             raw = client.DescribeTemplates();
 
             JSONArray imageList = raw
-                    .getJSONObject("DescribeTemplatesResponse")
-                    .getJSONObject("TemplateSet")
-                    .getJSONArray("Template");
+                .getJSONObject("DescribeTemplatesResponse")
+                .getJSONObject("TemplateSet")
+                .getJSONArray("Template");
 
             for (int i = 0; i < imageList.length(); i++) {
                 JSONObject element = imageList.getJSONObject(i);
                 imageTemplates.add(GSON.fromJson(element.toString(), ImageTemplate.class));
             }
         } catch (JSONException jsonException) {
-            MosException mosException = new MosException("ImageTemplate: Wrong response data", jsonException);
+            MosException mosException = new MosException("ImageTemplate: Wrong response data",
+                jsonException);
             mosException.setError(raw);
             throw mosException;
         } catch (Exception e) {
