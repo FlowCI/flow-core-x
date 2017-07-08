@@ -168,6 +168,8 @@ public class MosInstanceManager implements InstanceManager {
 
             try {
                 mosClient.deleteInstance(mosInstance.getId());
+            } catch (MosException ignore) {
+                LOGGER.warnMarker("cleanInstance", "Delete instance exception: %s", ignore.getMessage());
             } finally {
                 iterator.remove();
             }
@@ -195,24 +197,25 @@ public class MosInstanceManager implements InstanceManager {
         public void run() {
             final int timeToWait = 60; // seconds
 
+            MosInstance shouldDeleteInstance = null;
+
             try {
                 MosInstance instance = mosClient.createInstance(imageName, instanceName);
 
                 boolean hasRunningStatus = mosClient.instanceStatusSync(
                     instance.getId(), MosInstance.STATUS_RUNNING, timeToWait * 1000);
 
-                boolean hasIpBound = !Strings.isNullOrEmpty(instance.getIp());
-
-                if (hasRunningStatus && hasIpBound) {
+                if (hasRunningStatus) {
                     LOGGER.trace("Instance status is running %s", instance);
-                } else {
-                    LOGGER.trace(
-                        "Delete instance since status not correct after %s seconds %s",
-                        timeToWait, instance);
-
-                    addToCleanList(instance);
-                    mosClient.deleteInstance(instance.getId());
+                    return;
                 }
+
+                // set delete instance since status incorrect
+                LOGGER.trace(
+                    "Delete instance since status incorrect after %s seconds %s",
+                    timeToWait, instance);
+                shouldDeleteInstance = instance;
+
             } catch (Throwable e) {
                 LOGGER.error("Unable to create mos instance", e);
 
@@ -222,10 +225,19 @@ public class MosInstanceManager implements InstanceManager {
                     // should deal with failed created instance
                     MosInstance mosInstance = mosException.getInstance();
                     if (mosInstance != null) {
-                        addToCleanList(mosInstance);
-                        mosClient.deleteInstance(mosInstance.getId());
                         LOGGER.trace("Delete instance %s since error", mosInstance);
+                        shouldDeleteInstance = mosInstance;
                     }
+                }
+            }
+
+            // delete mos instance immediately
+            if (shouldDeleteInstance != null) {
+                addToCleanList(shouldDeleteInstance);
+                try {
+                    mosClient.deleteInstance(shouldDeleteInstance.getId());
+                } catch (MosException ignore) {
+                    LOGGER.warnMarker("run", "Delete instance exception: %s", ignore.getMessage());
                 }
             }
         }
