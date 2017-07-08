@@ -68,7 +68,7 @@ public class MosClient {
 
     private final static long DEFAULT_GATWAY_TIMEOUT = MosConfig.DEFAULT_TIMEOUT_BIND_GATWAY_CHECK;
 
-    private final static int DEFAULT_TIMEOUT = 10; // request timeout in seconds
+    private final static int DEFAULT_TIMEOUT = MosConfig.DEFAULT_HTTP_TIMEOUT; // request timeout in seconds
 
     private final Client client;
 

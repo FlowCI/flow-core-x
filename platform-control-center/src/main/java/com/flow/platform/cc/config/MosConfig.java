@@ -45,6 +45,9 @@ public class MosConfig {
     @Value("${mos.group_id}")
     private String groupId;
 
+    @Value("${mos.http_timeout}")
+    private Integer httpTimeout;
+
     @PostConstruct
     public void init() {
         LOGGER.trace("NetId: %s", netId);
@@ -53,6 +56,7 @@ public class MosConfig {
         LOGGER.trace("InstanceType: %s", instanceType);
         LOGGER.trace("Duration: %s", duration);
         LOGGER.trace("GroupId: %s", groupId);
+        LOGGER.trace("Http timeout: %s", httpTimeout);
     }
 
     @Bean
@@ -63,6 +67,7 @@ public class MosConfig {
         DEFAULT_INSTANCE_TYPE = instanceType;
         DEFAULT_DURATION = duration;
         DEFAULT_GROUP_ID = groupId;
+        DEFAULT_HTTP_TIMEOUT = httpTimeout;
 
         return new MosClient(apiKey, apiSecret);
     }

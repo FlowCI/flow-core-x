@@ -17,4 +17,6 @@ public class MosConfig {
     public static String DEFAULT_GROUP_ID = "0907776e-5784-4d25-8ce1-81689084fcbb";
 
     public static long DEFAULT_TIMEOUT_BIND_GATWAY_CHECK = 40 * 1000;
+
+    public static Integer DEFAULT_HTTP_TIMEOUT = 30; // http request timeout in seconds
 }
