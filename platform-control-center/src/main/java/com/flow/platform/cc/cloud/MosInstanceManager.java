@@ -189,7 +189,7 @@ public class MosInstanceManager implements InstanceManager {
 
         @Override
         public void run() {
-            final int timeToWait = 30; // seconds
+            final int timeToWait = 60; // seconds
 
             try {
                 MosInstance instance = mosClient.createInstance(imageName, instanceName);
@@ -203,8 +203,9 @@ public class MosInstanceManager implements InstanceManager {
                     LOGGER.trace("Instance status is running %s", instance);
                 } else {
                     LOGGER.trace(
-                        "Instance status not correct after %s seconds %s", timeToWait, instance);
-                    mosCleanupList.put(instanceName, instance);
+                        "Delete instance since status not correct after %s seconds %s",
+                        timeToWait, instance);
+                    mosClient.deleteInstance(instance.getId());
                 }
             } catch (Throwable e) {
                 LOGGER.error("Unable to create mos instance", e);
@@ -214,8 +215,8 @@ public class MosInstanceManager implements InstanceManager {
 
                     // should deal with failed created instance
                     if (mosException.getInstance() != null) {
-                        mosCleanupList.put(instanceName, mosException.getInstance());
-                        LOGGER.trace("Put instance %s to cleanup list", mosException.getInstance());
+                        mosClient.deleteInstance(mosException.getInstance().getId());
+                        LOGGER.trace("Delete instance %s since error", mosException.getInstance());
                     }
                 }
             }
