@@ -86,14 +86,11 @@ public class MosInstanceManager implements InstanceManager {
     @Override
     public List<String> batchStartInstance(final Zone zone) {
         // check total num of instance
-        int totalInstance = instances().size();
+        int totalInstance = instances().size() - mosCleanupList.size();
         int numOfInstanceToStart = zone.getNumOfStart();
 
-        LOGGER.trace("batchStartInstance",
-            "Total: %s, clean list: %s", totalInstance, mosCleanupList.size());
-
         // ensure num of instance not over the max
-        if (totalInstance + numOfInstanceToStart> instanceMaxNum) {
+        if (totalInstance + numOfInstanceToStart > instanceMaxNum) {
             numOfInstanceToStart = instanceMaxNum - totalInstance;
         }
 
@@ -218,6 +215,7 @@ public class MosInstanceManager implements InstanceManager {
                     // should deal with failed created instance
                     if (mosException.getInstance() != null) {
                         mosCleanupList.put(instanceName, mosException.getInstance());
+                        LOGGER.trace("Put instance %s to cleanup list", mosException.getInstance());
                     }
                 }
             }
