@@ -168,8 +168,8 @@ public class MosInstanceManager implements InstanceManager {
             try {
                 mosClient.deleteInstance(mosInstance.getId());
             } catch (MosException ignore) {
-                LOGGER.warnMarker("cleanInstance", "Delete instance exception: %s",
-                    ignore.getMessage());
+                LOGGER.warnMarker("cleanInstance", "Delete instance exception: %s", ignore.getMessage());
+                addToCleanList(mosInstance);
             } finally {
                 iterator.remove();
             }
@@ -233,11 +233,11 @@ public class MosInstanceManager implements InstanceManager {
 
             // delete mos instance immediately
             if (shouldDeleteInstance != null) {
-                addToCleanList(shouldDeleteInstance);
                 try {
                     mosClient.deleteInstance(shouldDeleteInstance.getId());
                 } catch (MosException ignore) {
                     LOGGER.warnMarker("run", "Delete instance exception: %s", ignore.getMessage());
+                    addToCleanList(shouldDeleteInstance);
                 }
             }
         }
