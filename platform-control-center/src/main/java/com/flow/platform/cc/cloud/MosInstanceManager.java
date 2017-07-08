@@ -99,10 +99,7 @@ public class MosInstanceManager implements InstanceManager {
         List<String> expectNameList = new ArrayList<>(numOfInstanceToStart);
         for (int i = 0; i < numOfInstanceToStart; i++) {
             String instanceName = instanceName();
-
-            taskExecutor.execute(
-                new StartMosInstanceWorker(mosClient, zone.getImageName(), instanceName));
-
+            taskExecutor.execute(new StartMosInstanceWorker(mosClient, zone.getImageName(), instanceName));
             expectNameList.add(instanceName);
         }
 
@@ -152,6 +149,8 @@ public class MosInstanceManager implements InstanceManager {
         }
 
         LOGGER.traceMarker("cleanInstanceTask", "start");
+        LOGGER.traceMarker("cleanInstanceTask", "Size of clean up list: %s", mosCleanupList.size());
+
         cleanInstance(mosCleanupList.values());
         mosCleanupList.clear();
 
@@ -167,6 +166,7 @@ public class MosInstanceManager implements InstanceManager {
 
             try {
                 mosClient.deleteInstance(mosInstance.getId());
+                LOGGER.traceMarker("cleanInstance", "Instance been deleted : %s", mosInstance.getName());
             } catch (MosException ignore) {
                 LOGGER.warnMarker("cleanInstance", "Delete instance exception: %s", ignore.getMessage());
                 addToCleanList(mosInstance);
