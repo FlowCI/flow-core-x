@@ -205,6 +205,8 @@ public class MosInstanceManager implements InstanceManager {
                     LOGGER.trace(
                         "Delete instance since status not correct after %s seconds %s",
                         timeToWait, instance);
+
+                    addToCleanList(instance);
                     mosClient.deleteInstance(instance.getId());
                 }
             } catch (Throwable e) {
@@ -214,9 +216,11 @@ public class MosInstanceManager implements InstanceManager {
                     MosException mosException = (MosException) e;
 
                     // should deal with failed created instance
-                    if (mosException.getInstance() != null) {
-                        mosClient.deleteInstance(mosException.getInstance().getId());
-                        LOGGER.trace("Delete instance %s since error", mosException.getInstance());
+                    MosInstance mosInstance = mosException.getInstance();
+                    if (mosInstance != null) {
+                        addToCleanList(mosInstance);
+                        mosClient.deleteInstance(mosInstance.getId());
+                        LOGGER.trace("Delete instance %s since error", mosInstance);
                     }
                 }
             }
