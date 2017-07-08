@@ -9,6 +9,7 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.mos.MosInstance;
 import com.flow.platform.util.mos.MosClient;
 import com.flow.platform.util.mos.MosException;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -88,8 +89,11 @@ public class MosInstanceManager implements InstanceManager {
         int totalInstance = instances().size();
         int numOfInstanceToStart = zone.getNumOfStart();
 
+        LOGGER.trace("batchStartInstance",
+            "Total: %s, clean list: %s", totalInstance, mosCleanupList.size());
+
         // ensure num of instance not over the max
-        if (totalInstance + numOfInstanceToStart > instanceMaxNum) {
+        if (totalInstance + numOfInstanceToStart> instanceMaxNum) {
             numOfInstanceToStart = instanceMaxNum - totalInstance;
         }
 
@@ -188,14 +192,17 @@ public class MosInstanceManager implements InstanceManager {
 
         @Override
         public void run() {
-            MosInstance instance = null;
             final int timeToWait = 30; // seconds
 
             try {
-                instance = mosClient.createInstance(imageName, instanceName);
-                // wait instance status to running with 30 seconds timeout
-                if (mosClient.instanceStatusSync(
-                    instance.getId(), MosInstance.STATUS_RUNNING, timeToWait * 1000)) {
+                MosInstance instance = mosClient.createInstance(imageName, instanceName);
+
+                boolean hasRunningStatus = mosClient.instanceStatusSync(
+                    instance.getId(), MosInstance.STATUS_RUNNING, timeToWait * 1000);
+
+                boolean hasIpBound = !Strings.isNullOrEmpty(instance.getIp());
+
+                if (hasRunningStatus && hasIpBound) {
                     LOGGER.trace("Instance status is running %s", instance);
                 } else {
                     LOGGER.trace(
