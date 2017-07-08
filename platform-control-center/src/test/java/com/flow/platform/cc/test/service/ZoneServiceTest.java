@@ -65,6 +65,7 @@ public class ZoneServiceTest extends TestBase {
         Assert.assertTrue(zoneService.findInstanceManager(found) instanceof MosInstanceManager);
     }
 
+    @Ignore
     @Test
     public void should_start_instance_when_pool_size_less_than_min() throws Throwable {
         // given:
@@ -73,8 +74,7 @@ public class ZoneServiceTest extends TestBase {
         Zone zone = new Zone(zoneName, "mos");
         zone.setMinPoolSize(1);
         zone.setImageName("flow-osx-83-109-bj4-zk-agent");
-        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil
-            .getBean("mosInstanceManager");
+        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
 
         // when: check and start instance to make sure min idle pool size
         zoneService.keepIdleAgentMinSize(zone, instanceManager);
@@ -93,12 +93,10 @@ public class ZoneServiceTest extends TestBase {
         Zone zone = new Zone(zoneName, "mos");
         zone.setMinPoolSize(1);
         zone.setMaxPoolSize(2);
-        MosInstanceManager instanceManager =
-            (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
+        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
 
         for (int i = 0; i < zone.getMaxPoolSize() + 1; i++) {
-            String path = zkHelper
-                .buildZkPath(zone.getName(), String.format(mockAgentNamePattern, i)).path();
+            String path = zkHelper.buildZkPath(zone.getName(), String.format(mockAgentNamePattern, i)).path();
             ZkNodeHelper.createEphemeralNode(zkClient, path, "");
             Thread.sleep(1000); // wait for agent start and make them in time sequence
         }
@@ -107,30 +105,23 @@ public class ZoneServiceTest extends TestBase {
         zoneService.keepIdleAgentMaxSize(zone, instanceManager);
 
         // then: check shutdown cmd should be sent
-        ZkPathBuilder mockAgent0Path = zkHelper
-            .buildZkPath(zoneName, String.format(mockAgentNamePattern, 0));
+        ZkPathBuilder mockAgent0Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 0));
         byte[] shutdownCmdRaw = ZkNodeHelper.getNodeData(zkClient, mockAgent0Path.path(), null);
         Cmd shutdownCmd = Cmd.parse(shutdownCmdRaw, Cmd.class);
         Assert.assertNotNull(shutdownCmd);
         Assert.assertEquals(CmdType.SHUTDOWN, shutdownCmd.getType());
-        Assert.assertEquals(AgentStatus.OFFLINE,
-            agentService.find(shutdownCmd.getAgentPath()).getStatus());
+        Assert.assertEquals(AgentStatus.OFFLINE, agentService.find(shutdownCmd.getAgentPath()).getStatus());
 
-        ZkPathBuilder mockAgent1Path = zkHelper
-            .buildZkPath(zoneName, String.format(mockAgentNamePattern, 1));
-        Assert.assertEquals(0,
-            ZkNodeHelper.getNodeData(zkClient, mockAgent1Path.path(), null).length);
+        ZkPathBuilder mockAgent1Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 1));
+        Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent1Path.path(), null).length);
 
-        ZkPathBuilder mockAgent2Path = zkHelper
-            .buildZkPath(zoneName, String.format(mockAgentNamePattern, 2));
-        Assert.assertEquals(0,
-            ZkNodeHelper.getNodeData(zkClient, mockAgent2Path.path(), null).length);
+        ZkPathBuilder mockAgent2Path = zkHelper.buildZkPath(zoneName, String.format(mockAgentNamePattern, 2));
+        Assert.assertEquals(0, ZkNodeHelper.getNodeData(zkClient, mockAgent2Path.path(), null).length);
     }
 
     @After
     public void after() {
-        MosInstanceManager instanceManager =
-            (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
+        MosInstanceManager instanceManager = (MosInstanceManager) springContextUtil.getBean("mosInstanceManager");
         instanceManager.cleanAll();
     }
 }
