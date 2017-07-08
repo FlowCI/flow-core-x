@@ -154,6 +154,7 @@ public class MosInstanceManager implements InstanceManager {
 
         LOGGER.traceMarker("cleanInstanceTask", "start");
         cleanInstance(mosCleanupList.values());
+        mosCleanupList.clear();
 
         // clean up mos instance when status is shutdown
         cleanFromProvider(instanceMaxAlive, MosInstance.STATUS_READY);
