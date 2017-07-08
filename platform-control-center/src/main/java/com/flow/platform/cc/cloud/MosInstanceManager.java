@@ -86,7 +86,7 @@ public class MosInstanceManager implements InstanceManager {
     @Override
     public List<String> batchStartInstance(final Zone zone) {
         // check total num of instance
-        int totalInstance = instances().size() - mosCleanupList.size();
+        int totalInstance = instances().size();
         int numOfInstanceToStart = zone.getNumOfStart();
 
         // ensure num of instance not over the max
@@ -94,8 +94,7 @@ public class MosInstanceManager implements InstanceManager {
             numOfInstanceToStart = instanceMaxNum - totalInstance;
         }
 
-        LOGGER.traceMarker(
-            "batchStartInstance", "Num of instance should start %s", numOfInstanceToStart);
+        LOGGER.traceMarker("batchStartInstance", "Num of instance should start %s", numOfInstanceToStart);
 
         List<String> expectNameList = new ArrayList<>(numOfInstanceToStart);
         for (int i = 0; i < numOfInstanceToStart; i++) {
@@ -169,7 +168,8 @@ public class MosInstanceManager implements InstanceManager {
             try {
                 mosClient.deleteInstance(mosInstance.getId());
             } catch (MosException ignore) {
-                LOGGER.warnMarker("cleanInstance", "Delete instance exception: %s", ignore.getMessage());
+                LOGGER.warnMarker("cleanInstance", "Delete instance exception: %s",
+                    ignore.getMessage());
             } finally {
                 iterator.remove();
             }
