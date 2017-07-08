@@ -232,19 +232,17 @@ public class MosClient {
                 throw new IllegalStateException("Missing instance id, maybe duplicate instance name");
             }
         } catch (JSONException e) {
-            MosException mosException = new MosException("CreateInstance: wrong response data", e);
+            MosException mosException = new MosException("CreateInstance: wrong response data", e, instance);
             mosException.setError(result);
             throw mosException;
         } catch (Throwable e) {
-            throw new MosException("CreateInstance: Fail to create instance", e);
+            throw new MosException("CreateInstance: Fail to create instance", e, instance);
         }
 
         // bind nat gateway if instance created
         try {
             if (!bindNatGateway(instance.getId())) {
-                String msg = String
-                    .format("Fail to bind nat gateway for instance: %s, return false", instance.getId());
-
+                String msg = String.format("Fail to bind nat gateway for instance: %s, return false", instance.getId());
                 throw new MosException(msg, null, instance);
             }
 
