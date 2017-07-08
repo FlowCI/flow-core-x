@@ -165,8 +165,11 @@ public class MosInstanceManager implements InstanceManager {
         while (iterator.hasNext()) {
             Instance mosInstance = iterator.next();
 
-            mosClient.deleteInstance(mosInstance.getId());
-            iterator.remove();
+            try {
+                mosClient.deleteInstance(mosInstance.getId());
+            } finally {
+                iterator.remove();
+            }
 
             LOGGER.trace("Clean instance from cleanup list: %s", mosInstance);
         }

@@ -274,7 +274,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Scheduled(fixedDelay = 300 * 1000)
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void checkTimeoutTask() {
         if (!taskConfig.isEnableCmdExecTimeoutTask()) {
             return;
