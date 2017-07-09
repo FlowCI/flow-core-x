@@ -34,8 +34,6 @@ public class AgentManager implements Runnable, Watcher {
     private String zonePath;    // zone path, /flow-agents/{zone}
     private String nodePath;    // zk node path, /flow-agents/{zone}/{name}
 
-    private final ReportManager reportManager = ReportManager.getInstance();
-
     public AgentManager(String zkHost, int zkTimeout, String zone, String name) throws IOException {
         this.zkHost = zkHost;
         this.zkTimeout = zkTimeout;
@@ -153,6 +151,7 @@ public class AgentManager implements Runnable, Watcher {
 
         } catch (Throwable e) {
             LOGGER.error("Invalid cmd from server", e);
+            // TODO: should report agent status directly...
         } finally {
             if (zkEventListener != null) {
                 zkEventListener.afterOnDataChanged(event);
