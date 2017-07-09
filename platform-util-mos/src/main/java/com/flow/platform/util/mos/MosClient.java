@@ -244,8 +244,7 @@ public class MosClient {
                 throw new MosException(msg, null, instance);
             }
 
-            // reload instance with ip address
-            return find(instance.getId(), false);
+            return instance;
 
         } catch (Throwable e) {
             throw new MosException(e.getMessage(), e, instance);
