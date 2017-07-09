@@ -66,8 +66,6 @@ public class MosClient {
     private final static String DEFAULT_DURATION = MosConfig.DEFAULT_DURATION;
     private final static String DEFAULT_GROUP_ID = MosConfig.DEFAULT_GROUP_ID;
 
-    private final static long DEFAULT_GATWAY_TIMEOUT = MosConfig.DEFAULT_TIMEOUT_BIND_GATWAY_CHECK;
-
     private final static int DEFAULT_TIMEOUT = MosConfig.DEFAULT_HTTP_TIMEOUT; // request timeout in seconds
 
     private final Client client;
@@ -207,7 +205,7 @@ public class MosClient {
         }
     }
 
-    public MosInstance createInstance(String imageName, String instanceName) {
+    public MosInstance createInstance(String imageName, String instanceName, int timeout) {
         ImageTemplate template = getImageTemplate(imageName);
 
         MosInstance instance = null;
@@ -241,7 +239,7 @@ public class MosClient {
 
         // bind nat gateway if instance created
         try {
-            if (!bindNatGateway(instance.getId())) {
+            if (!bindNatGateway(instance.getId(), timeout)) {
                 String msg = String.format("Fail to bind nat gateway for instance: %s, return false", instance.getId());
                 throw new MosException(msg, null, instance);
             }
@@ -254,11 +252,18 @@ public class MosClient {
         }
     }
 
-    public boolean bindNatGateway(String instanceId) {
+    /**
+     * Bind nat gateway with mos status checking
+     *
+     * @param instanceId
+     * @param statusWaittingSeconds
+     * @return
+     */
+    public boolean bindNatGateway(String instanceId, int statusWaittingSeconds) {
         JSONObject result = null;
         try {
             // wait mos instance running
-            if (this.instanceStatusSync(instanceId, MosInstance.STATUS_RUNNING, DEFAULT_GATWAY_TIMEOUT)) {
+            if (this.instanceStatusSync(instanceId, MosInstance.STATUS_RUNNING, statusWaittingSeconds * 1000)) {
                 result = client.AssociateNatGateway(DEFAULT_NET_ID, instanceId, DEFAULT_ZONE_ID);
                 return result.getJSONObject("AssociateNatGatewayResponse").getBoolean("return");
             }
@@ -345,8 +350,7 @@ public class MosClient {
      * @param timeout in millseconds
      * @return boolean is status loaded or not
      */
-    public boolean instanceStatusSync(final String instanceId, final String expectStatus,
-        final long timeout) {
+    public boolean instanceStatusSync(final String instanceId, final String expectStatus, final long timeout) {
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicBoolean canExit = new AtomicBoolean(false);
         final AtomicBoolean canLoadInstance = new AtomicBoolean(true);

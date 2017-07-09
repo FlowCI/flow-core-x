@@ -74,7 +74,7 @@ public class MosClientTest {
         MosInstance instance = null;
 
         try {
-            instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-test-01");
+            instance = client.createInstance("flow-osx-83-109-bj4", "flow-platform-test-01", 60);
             Assert.assertNotNull(instance.getId());
             Assert.assertEquals("running", instance.getStatus());
 

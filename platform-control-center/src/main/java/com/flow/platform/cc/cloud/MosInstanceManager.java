@@ -9,7 +9,6 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.mos.MosInstance;
 import com.flow.platform.util.mos.MosClient;
 import com.flow.platform.util.mos.MosException;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +46,9 @@ public class MosInstanceManager implements InstanceManager {
 
     @Value("${mos.agent_name_pattern}")
     private String agentNamePattern;
+
+    @Value("${mos.bind_gateway_timeout}")
+    private Integer bindGatewayTimeout;
 
     @Autowired
     private Executor taskExecutor;
@@ -198,7 +200,7 @@ public class MosInstanceManager implements InstanceManager {
             MosInstance shouldDeleteInstance = null;
 
             try {
-                mosClient.createInstance(imageName, instanceName);
+                mosClient.createInstance(imageName, instanceName, bindGatewayTimeout);
             } catch (Throwable e) {
                 LOGGER.error("Unable to create mos instance", e);
 
