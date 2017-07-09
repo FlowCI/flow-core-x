@@ -258,10 +258,11 @@ public class MosClient {
         JSONObject result = null;
         try {
             // wait mos instance running
-            this.instanceStatusSync(instanceId, MosInstance.STATUS_RUNNING, DEFAULT_GATWAY_TIMEOUT);
-
-            result = client.AssociateNatGateway(DEFAULT_NET_ID, instanceId, DEFAULT_ZONE_ID);
-            return result.getJSONObject("AssociateNatGatewayResponse").getBoolean("return");
+            if (this.instanceStatusSync(instanceId, MosInstance.STATUS_RUNNING, DEFAULT_GATWAY_TIMEOUT)) {
+                result = client.AssociateNatGateway(DEFAULT_NET_ID, instanceId, DEFAULT_ZONE_ID);
+                return result.getJSONObject("AssociateNatGatewayResponse").getBoolean("return");
+            }
+            return false;
         } catch (JSONException e) {
             MosException mosException = new MosException("BindNatGateWay: Wrong response data", e);
             mosException.setError(result);
