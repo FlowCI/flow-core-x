@@ -200,7 +200,8 @@ public class MosInstanceManager implements InstanceManager {
             MosInstance shouldDeleteInstance = null;
 
             try {
-                mosClient.createInstance(imageName, instanceName, bindGatewayTimeout);
+                MosInstance instance = mosClient.createInstance(imageName, instanceName, bindGatewayTimeout);
+                LOGGER.trace("Mos instance been created: %s", instance);
             } catch (Throwable e) {
                 LOGGER.error("Unable to create mos instance", e);
 
