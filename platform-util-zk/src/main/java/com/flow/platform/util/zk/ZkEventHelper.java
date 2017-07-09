@@ -6,7 +6,6 @@ import org.apache.zookeeper.Watcher.Event.EventType;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
- *
  * Copyright fir.im
  */
 public class ZkEventHelper {
@@ -14,8 +13,7 @@ public class ZkEventHelper {
     /**
      * Client connect to server event
      *
-     * @param event
-     * @return
+     * @return is connected to zookeeper server
      */
     public static boolean isConnectToServer(WatchedEvent event) {
         return syncConnectedEvent(event, EventType.None);
@@ -28,8 +26,7 @@ public class ZkEventHelper {
     /**
      * Indicate is zk node created
      *
-     * @param event
-     * @return
+     * @return zookeeper node is created
      */
     public static boolean isCreated(WatchedEvent event) {
         return syncConnectedEvent(event, EventType.NodeCreated);
@@ -38,9 +35,7 @@ public class ZkEventHelper {
     /**
      * Indicate is zk node created for path
      *
-     * @param event
-     * @param path
-     * @return
+     * @return zookeeper node on specific path is created
      */
     public static boolean isCreatedOnPath(WatchedEvent event, String path) {
         if (isCreated(event)) {
@@ -52,8 +47,7 @@ public class ZkEventHelper {
     /**
      * Node deleted event
      *
-     * @param event
-     * @return
+     * @return zookeeper node is deleted
      */
     public static boolean isDeleted(WatchedEvent event) {
         return syncConnectedEvent(event, EventType.NodeDeleted);

@@ -1,14 +1,17 @@
 package com.flow.platform.util.zk;
 
-import org.apache.zookeeper.*;
-import org.apache.zookeeper.data.Stat;
-
 import java.util.List;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
- *
- * @copyright fir.im
+ * Copyright fir.im
  */
 public class ZkNodeHelper {
 

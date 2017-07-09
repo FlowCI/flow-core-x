@@ -14,11 +14,13 @@ import java.nio.file.Paths;
 @Deprecated // mark to deprecated only for test ssh
 public class SSHRun {
 
+    private static final String adr = System.getenv("IP");
+
     public static void main(String[] args) throws Throwable {
         byte[] bytes = Files.readAllBytes(Paths.get("/Users/yang/.ssh/id_rsa"));
         String key = new String(bytes);
 
-        SSH ssh = new SSH("52.80.53.164", 22, "ubuntu", key);
+        SSH ssh = new SSH(adr, 22, "ubuntu", key);
         Shell.Plain shell = new Shell.Plain(ssh);
         System.out.println(shell.exec("whoami"));
 

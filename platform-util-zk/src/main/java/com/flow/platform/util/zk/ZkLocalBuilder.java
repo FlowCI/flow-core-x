@@ -1,8 +1,5 @@
 package com.flow.platform.util.zk;
 
-import org.apache.zookeeper.server.ServerCnxnFactory;
-import org.apache.zookeeper.server.ZooKeeperServer;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
@@ -11,8 +8,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 
+import org.apache.zookeeper.server.ServerCnxnFactory;
+import org.apache.zookeeper.server.ZooKeeperServer;
+
 /**
+ * <p>
  * To create local test zookeeper server
+ * </p>
  *
  * Created by gy@fir.im on 17/05/2017.
  * Copyright fir.im

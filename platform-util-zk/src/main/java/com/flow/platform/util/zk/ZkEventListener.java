@@ -4,7 +4,6 @@ import org.apache.zookeeper.WatchedEvent;
 
 /**
  * Created by gy@fir.im on 03/05/2017.
- *
  * Copyright fir.im
  */
 public interface ZkEventListener {
@@ -28,14 +27,14 @@ public interface ZkEventListener {
     /**
      * On data changed been executed
      *
-     * @param event
+     * @param event zk raw event
      */
     void afterOnDataChanged(WatchedEvent event);
 
     /**
      * On node deleted
      *
-     * @param event
+     * @param event zk raw event
      */
     void onDeleted(WatchedEvent event);
 }

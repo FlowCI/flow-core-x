@@ -6,19 +6,6 @@ package com.flow.platform.util.zk;
  */
 public class ZkException {
 
-    public static abstract class AbstractZkException extends RuntimeException {
-        private Exception raw;
-
-        public AbstractZkException(Exception raw, String message) {
-            super(message);
-            this.raw = raw;
-        }
-
-        public Exception getRaw() {
-            return raw;
-        }
-    }
-
     public static class ZkWatchingException extends AbstractZkException {
         public ZkWatchingException(Exception raw, String path) {
             super(raw, "Cannot watch path: " + path);
