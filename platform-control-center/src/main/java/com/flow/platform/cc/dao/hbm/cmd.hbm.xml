@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.domain">
+  <class name="Cmd" table="cmd">
+    <id name="id" type="string" length="36">
+      <generator class="assigned"/>
+    </id>
+
+    <component name="agentPath" class="AgentPath">
+      <property name="zone" column="agent_zone" length="50"></property>
+      <property name="name" column="agent_name" length="100"></property>
+    </component>
+
+    <property name="type" column="type" length="20">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.domain.CmdType</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
+    <property name="status" column="status" length="20">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.domain.CmdStatus</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
+    <property name="cmd" type="text" column="cmd"/>
+    <property name="timeout" column="timeout"/>
+    <property name="priority" column="priority"/>
+    <property name="workingDir" type="string" column="working_dir"/>
+    <property name="outputEnvFilter" type="string" column="output_env_filter" length="50"/>
+    <property name="logPaths" type="com.flow.platform.cc.dao.adaptor.list.ListAdaptor" column="log_paths"/>
+    <property name="inputs" type="com.flow.platform.cc.dao.adaptor.MapAdaptor" column="inputs"/>
+    <property name="webhook" type="string" column="webhook"/>
+
+    <property name="createdDate"
+      column="created_date"
+      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+    <property name="updatedDate"
+      column="updated_date"
+      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+    <property name="finishedDate"
+      column="finished_date"
+      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+  </class>
+
+  <!--for cmd result definition-->
+  <class name="CmdResult" table="cmd_result">
+    <id name="cmdId" type="string" column="cmd_id" length="36">
+      <generator class="assigned"/>
+    </id>
+
+    <property name="processId" not-null="false" column="process_id"/>
+    <property name="exitValue" not-null="false" column="exit_value"/>
+    <property name="duration" not-null="false" column="duration"/>
+    <property name="totalDuration" not-null="false" column="total_duration"/>
+    <property name="startTime"
+      not-null="false"
+      column="start_time"
+      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+    <property name="executedTime"
+      not-null="false"
+      column="executed_time"
+      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+    <property name="finishTime"
+      not-null="false"
+      column="finish_time"
+      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
+
+    <property name="output" not-null="false" type="com.flow.platform.cc.dao.adaptor.MapAdaptor" column="output"/>
+    <property name="exceptions" not-null="false" type="com.flow.platform.cc.dao.adaptor.list.ListThrowableAdaptor"
+      column="exceptions"/>
+  </class>
+</hibernate-mapping>

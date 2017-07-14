@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.domain">
+  <class name="Agent" table="agent">
+    <composite-id name="path" class="AgentPath">
+      <key-property name="zone" type="string" length="50" column="agent_zone"/>
+      <key-property name="name" type="string" length="100" column="agent_name"/>
+    </composite-id>
+
+    <property name="concurrentProc" column="concurrent_proc"></property>
+    <property name="sessionId" length="50" column="session_id"></property>
+    <property name="sessionDate" column="session_date"></property>
+
+    <property name="status" column="status" length="10">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.domain.AgentStatus</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
+    <property name="createdDate" column="created_date"/>
+    <property name="updatedDate" column="updated_date"/>
+  </class>
+</hibernate-mapping>
