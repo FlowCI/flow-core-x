@@ -1,18 +1,16 @@
 package com.flow.platform.cc;
 
 import com.flow.platform.cc.config.WebConfig;
-import com.flow.platform.cc.util.AppPropertyUtil;
-import com.flow.platform.cc.util.CloudUtil;
+import com.flow.platform.cc.resource.AppResourceLoader;
+import com.flow.platform.cc.resource.CloudJarResourceLoader;
+import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.util.Logger;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Path;
 import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -27,20 +25,25 @@ public class AppInit implements WebApplicationInitializer {
 
     public void onStartup(ServletContext servletContext) throws ServletException {
         LOGGER.trace("Initializing Application for %s", servletContext.getServerInfo());
+
+        // get class loader
         ClassLoader appClassLoader = appClassLoader();
 
-        // Create ApplicationContext
+        // Create ApplicationContext and set class loader
         AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext();
         applicationContext.setClassLoader(appClassLoader);
 
         applicationContext.register(WebConfig.class);
-        Set<Class<?>> cloudClasses = CloudUtil.loadConfigClass(appClassLoader);
+        Set<Class<?>> cloudClasses = CloudJarResourceLoader.configClasses(appClassLoader);
         if (!cloudClasses.isEmpty()) {
             applicationContext.register((cloudClasses.toArray(new Class<?>[cloudClasses.size()])));
         }
 
         applicationContext.setServletContext(servletContext);
-        AppPropertyUtil.register(applicationContext);
+
+        // set app property resource
+        AppResourceLoader propertyLoader = new PropertyResourceLoader();
+        propertyLoader.register(applicationContext);
 
         // Add the servlet mapping manually and make it initialize automatically
         DispatcherServlet dispatcherServlet = new DispatcherServlet(applicationContext);
@@ -54,9 +57,8 @@ public class AppInit implements WebApplicationInitializer {
     private ClassLoader appClassLoader() {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         try {
-            Path path = CloudUtil.findPath();
-            if (path != null) {
-                URL[] urls = new URL[]{path.toUri().toURL()};
+            URL[] urls = CloudJarResourceLoader.findAllJar();
+            if (urls.length > 0) {
                 return new URLClassLoader(urls, loader);
             }
             return loader;

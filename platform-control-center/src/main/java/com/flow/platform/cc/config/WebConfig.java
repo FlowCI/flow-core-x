@@ -1,6 +1,7 @@
 package com.flow.platform.cc.config;
 
-import com.flow.platform.cc.util.AppPropertyUtil;
+import com.flow.platform.cc.resource.AppResourceLoader;
+import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.google.gson.Gson;
@@ -49,9 +50,11 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     public PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() throws IOException {
+        AppResourceLoader propertyLoader = new PropertyResourceLoader();
+
         PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setIgnoreResourceNotFound(Boolean.FALSE);
-        configurer.setLocation(AppPropertyUtil.RESOURCE);
+        configurer.setLocation(propertyLoader.find());
         return configurer;
     }
 

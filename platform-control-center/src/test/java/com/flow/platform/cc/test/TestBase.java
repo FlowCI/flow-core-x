@@ -5,7 +5,7 @@ import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdResultDao;
-import com.flow.platform.cc.util.AppPropertyUtil;
+import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.ZkLocalBuilder;
@@ -56,7 +56,7 @@ public abstract class TestBase {
 
         @Override
         public void initialize(ConfigurableApplicationContext applicationContext) {
-            AppPropertyUtil.register(applicationContext);
+            new PropertyResourceLoader().register(applicationContext);
         }
     }
 

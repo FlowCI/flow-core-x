@@ -40,13 +40,14 @@ import java.util.concurrent.TimeUnit;
 public class ZkHelper {
 
     public static class ZkInfo {
+
         private String host;
         private Integer timeout;
         private String root;
         private List<Zone> zones;
         private ZkStatus status;
 
-        public ZkInfo(String host, Integer timeout, String root, List<Zone> zones, ZkStatus status) {
+        ZkInfo(String host, Integer timeout, String root, List<Zone> zones, ZkStatus status) {
             this.host = host;
             this.timeout = timeout;
             this.root = root;
@@ -116,9 +117,6 @@ public class ZkHelper {
 
     /**
      * Connect to zookeeper server and init root and zone nodes
-     *
-     * @throws IOException
-     * @throws InterruptedException
      */
     @PostConstruct
     public void init() throws IOException, InterruptedException {
@@ -128,8 +126,6 @@ public class ZkHelper {
 
     /**
      * Get predefined zones list
-     *
-     * @return
      */
     public List<Zone> getDefaultZones() {
         return defaultZones;
@@ -137,8 +133,6 @@ public class ZkHelper {
 
     /**
      * Get ZooKeeper client
-     *
-     * @return
      */
     public ZooKeeper getClient() {
         if (zkClient == null) {
@@ -175,9 +169,6 @@ public class ZkHelper {
 
     /**
      * Get zookeeper path from AgentPath object
-     *
-     * @param agentPath
-     * @return
      */
     public String getZkPath(AgentPath agentPath) {
         ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName);
@@ -187,13 +178,11 @@ public class ZkHelper {
 
     /**
      * Record zk event to history
-     *
-     * @param path
-     * @param event
      */
     public void recordEvent(String path, WatchedEvent event) {
         List<String> historyList = eventHistory.computeIfAbsent(path, k -> new LinkedList<>());
-        String history = String.format("[%s] %s", AppConfig.APP_DATE_FORMAT.format(ZonedDateTime.now()), event.toString());
+        String history = String
+            .format("[%s] %s", AppConfig.APP_DATE_FORMAT.format(ZonedDateTime.now()), event.toString());
         historyList.add(history);
 
         if (ZkEventHelper.isConnectToServer(event)) {
@@ -226,7 +215,8 @@ public class ZkHelper {
         zkConnectLatch = new CountDownLatch(1);
         ZooKeeper zk = new ZooKeeper(zkHost, zkTimeout, new RootEventHandler());
         if (!zkConnectLatch.await(10, TimeUnit.SECONDS)) {
-            throw new RuntimeException(String.format("Cannot connect to zookeeper server '%s' within 10 seconds", zkHost));
+            throw new RuntimeException(
+                String.format("Cannot connect to zookeeper server '%s' within 10 seconds", zkHost));
         }
         return zk;
     }
@@ -247,8 +237,6 @@ public class ZkHelper {
 
     /**
      * Dynamic fill zone properties from app.properties to Zone instance
-     *
-     * @param emptyZone
      */
     private void fillZoneProperties(Zone emptyZone) {
         Field[] fields = ObjectUtil.getFields(Zone.class);
@@ -281,7 +269,8 @@ public class ZkHelper {
                 try {
                     zkClient = reconnect();
                 } catch (Throwable e) {
-                    LOGGER.errorMarker("ZookeeperRootEventHandler", "Error on reconnect to zookeeper when session expired", e);
+                    LOGGER.errorMarker("ZookeeperRootEventHandler",
+                        "Error on reconnect to zookeeper when session expired", e);
                     throw new RuntimeException(e.getMessage());
                 }
             }
