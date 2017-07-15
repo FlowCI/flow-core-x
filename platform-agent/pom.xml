@@ -84,7 +84,7 @@
   </dependencies>
 
   <build>
-    <finalName>flow-platform-client-${client.version}</finalName>
+    <finalName>flow-platform-agent-${client.version}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
