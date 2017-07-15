@@ -10,12 +10,12 @@ flow-platform
 
 ## Getting Start
  
-#### Build
+### Build
 
 Using standard maven 'mvn clean install -DskipTests=true' to generate packages
 
 
-#### Installation
+### Installation
 
 In build phase will generate three packages:
 
@@ -25,20 +25,20 @@ In build phase will generate three packages:
 | control-center | platform-control-center.war | tomcat 8.5 |
 | agent | flow-platform-agent-{version}.jar |  |
 
-##### API
+### API
 
 - Mysql 5.6
 - RabbitMQ 3.6.10
 
-##### Control-Center
+#### Control-Center
 
-Dependency
+##### Dependency
 
 - Apache zookeeper 3.4.10
 - Mysql 5.6
 - RabbitMQ 3.6.10
 
-Configuration
+##### Configuration
 
 Configuration file can be loaded by sequence:
 - System envrionment variable: `FLOW_CONFIG_PATH`
@@ -49,7 +49,7 @@ The sample properites file in :
 
 `platform-control-center/app-example.properties`
 
-##### Agent
+### Agent
 
 Start agent by following command:
 
