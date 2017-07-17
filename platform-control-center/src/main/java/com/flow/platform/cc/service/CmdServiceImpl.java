@@ -139,6 +139,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     /**
      * Send cmd in transaction for agent status
+     * Update cmd status if target agent doesn't available
+     *
+     * @throws AgentErr.NotAvailableException when target agent is not available
      */
     @Override
     public Cmd send(CmdInfo cmdInfo) {

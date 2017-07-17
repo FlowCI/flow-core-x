@@ -177,13 +177,10 @@ public class AgentServiceImpl implements AgentService {
         for (Zone zone : zoneService.getZones()) {
             Collection<Agent> agents = onlineList(zone.getName());
             for (Agent agent : agents) {
-                if (agent.getSessionId() != null
-                    && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
-
+                if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
                     CmdInfo cmdInfo = new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null);
                     cmdService.send(cmdInfo);
-                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s",
-                        agent);
+                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
                 }
             }
         }
