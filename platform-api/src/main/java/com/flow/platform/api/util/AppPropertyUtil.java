@@ -32,8 +32,8 @@ public class AppPropertyUtil {
     public static void register(ConfigurableApplicationContext context) {
         try {
             context.getEnvironment()
-                    .getPropertySources();
-//                    .addFirst(new ResourcePropertySource(RESOURCE));
+                    .getPropertySources()
+                    .addFirst(new ResourcePropertySource(RESOURCE));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
