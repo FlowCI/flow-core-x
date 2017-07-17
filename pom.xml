@@ -18,6 +18,7 @@
     <module>platform-util-zk</module>
     <module>platform-exception</module>
     <module>platform-cloud</module>
+    <module>platform-api</module>
   </modules>
 
   <properties>
