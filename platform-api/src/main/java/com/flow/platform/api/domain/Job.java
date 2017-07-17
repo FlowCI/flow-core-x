@@ -15,14 +15,38 @@ import java.util.Map;
 
 public class Job extends Jsonable {
 
-    protected String type;
-    protected Date createdAt;
-    protected Date updatedAt;
-    protected Long duration;
-    protected Date finishedAt;
-    protected Integer exitCode;
-    protected String nodeName;
-    protected Map<Env, String> envs = new HashMap<>();
+    private String id;
+
+    private String type;
+
+    private Date createdAt;
+
+    private Date updatedAt;
+
+    private Long duration;
+
+    private Date finishedAt;
+
+    private Integer exitCode;
+
+    private String nodeName;
+
+    private Map<Env, String> envs = new HashMap<>();
+
+    public Job() {
+    }
+
+    public Job(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getType() {
         return type;
@@ -99,41 +123,12 @@ public class Job extends Jsonable {
 
         Job job = (Job) o;
 
-        if (type != null ? !type.equals(job.type) : job.type != null) {
-            return false;
-        }
-        if (createdAt != null ? !createdAt.equals(job.createdAt) : job.createdAt != null) {
-            return false;
-        }
-        if (updatedAt != null ? !updatedAt.equals(job.updatedAt) : job.updatedAt != null) {
-            return false;
-        }
-        if (duration != null ? !duration.equals(job.duration) : job.duration != null) {
-            return false;
-        }
-        if (finishedAt != null ? !finishedAt.equals(job.finishedAt) : job.finishedAt != null) {
-            return false;
-        }
-        if (exitCode != null ? !exitCode.equals(job.exitCode) : job.exitCode != null) {
-            return false;
-        }
-        if (nodeName != null ? !nodeName.equals(job.nodeName) : job.nodeName != null) {
-            return false;
-        }
-        return envs != null ? envs.equals(job.envs) : job.envs == null;
+        return id.equals(job.id);
     }
 
     @Override
     public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
-        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
-        result = 31 * result + (duration != null ? duration.hashCode() : 0);
-        result = 31 * result + (finishedAt != null ? finishedAt.hashCode() : 0);
-        result = 31 * result + (exitCode != null ? exitCode.hashCode() : 0);
-        result = 31 * result + (nodeName != null ? nodeName.hashCode() : 0);
-        result = 31 * result + (envs != null ? envs.hashCode() : 0);
-        return result;
+        return id.hashCode();
     }
 
     @Override

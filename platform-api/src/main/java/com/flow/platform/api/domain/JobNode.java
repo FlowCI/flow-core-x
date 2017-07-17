@@ -12,10 +12,14 @@ import java.util.*;
 public abstract class JobNode extends Node {
 
     protected Map<String, String> outputs = new HashMap<>();
+
     protected Long duration;
+
     protected Date finishedAt;
+
     protected Integer exitCode;
-    protected List<String> logPathes = new ArrayList<>();
+
+    protected List<String> logPaths = new ArrayList<>();
 
     public Map<String, String> getOutputs() {
         return outputs;
@@ -49,11 +53,11 @@ public abstract class JobNode extends Node {
         this.exitCode = exitCode;
     }
 
-    public List<String> getLogPathes() {
-        return logPathes;
+    public List<String> getLogPaths() {
+        return logPaths;
     }
 
-    public void setLogPathes(List<String> logPathes) {
-        this.logPathes = logPathes;
+    public void setLogPaths(List<String> logPaths) {
+        this.logPaths = logPaths;
     }
 }

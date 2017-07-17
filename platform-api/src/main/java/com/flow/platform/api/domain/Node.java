@@ -13,14 +13,39 @@ import java.util.*;
 
 public abstract class Node extends Jsonable {
 
+    protected String path;
+
     protected String name;
+
     protected Map<Env, String> envs = new HashMap<>();
+
     protected Node Parent;
+
     protected List<Node> children = new LinkedList<>();
+
     protected Node prev;
+
     protected Node next;
+
     protected Date createdAt;
+
     protected Date updatedAt;
+
+    public Node() {
+    }
+
+    public Node(String path, String name) {
+        this.path = path;
+        this.name = name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 
     public String getName() {
         return name;
@@ -97,18 +122,18 @@ public abstract class Node extends Jsonable {
 
         Node node = (Node) o;
 
-        return name.equals(node.name);
+        return path.equals(node.path);
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return path.hashCode();
     }
 
     @Override
     public String toString() {
         return "Node{" +
-            "name='" + name + '\'' +
+            "path='" + path + '\'' +
             '}';
     }
 }

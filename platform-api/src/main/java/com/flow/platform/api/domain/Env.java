@@ -11,9 +11,9 @@ import com.flow.platform.domain.Jsonable;
 
 public class Env extends Jsonable {
 
-    protected String name;
+    private String name;
 
-    protected Boolean isProtected; // 是否是保守字段
+    private Boolean isProtected;
 
     public Env(String name, Boolean isProtected) {
         this.name = name;

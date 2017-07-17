@@ -7,6 +7,6 @@
 
 package com.flow.platform.api.domain;
 
-public class JobFlow extends Flow {
+public class JobFlow extends JobNode {
 
 }
