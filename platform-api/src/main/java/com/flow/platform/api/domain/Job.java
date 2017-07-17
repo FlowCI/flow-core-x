@@ -14,15 +14,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Job extends Jsonable {
+    private String id;
+    private String type;
+    private Date createdAt;
+    private Date updatedAt;
+    private Long duration;
+    private Date finishedAt;
+    private Integer exitCode;
+    private String nodeName;
+    private Map<Env, String> envs = new HashMap<>();
 
-    protected String type;
-    protected Date createdAt;
-    protected Date updatedAt;
-    protected Long duration;
-    protected Date finishedAt;
-    protected Integer exitCode;
-    protected String nodeName;
-    protected Map<Env, String> envs = new HashMap<>();
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getType() {
         return type;

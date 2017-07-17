@@ -13,6 +13,7 @@ import java.util.*;
 
 public abstract class Node extends Jsonable {
 
+    protected String path;
     protected String name;
     protected Map<Env, String> envs = new HashMap<>();
     protected Node Parent;
@@ -21,6 +22,14 @@ public abstract class Node extends Jsonable {
     protected Node next;
     protected Date createdAt;
     protected Date updatedAt;
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 
     public String getName() {
         return name;
