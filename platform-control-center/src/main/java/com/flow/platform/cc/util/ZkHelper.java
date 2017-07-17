@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.cc.util;
 
 import com.flow.platform.cc.config.AppConfig;
@@ -6,7 +22,6 @@ import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.zk.ZkEventHelper;
-import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.base.Strings;
 import org.apache.zookeeper.WatchedEvent;
@@ -33,8 +48,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Zookeeper raw data and root event handler
  * <p>
- * Created by gy@fir.im on 28/05/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
 @Component(value = "zkHelper")
 public class ZkHelper {
