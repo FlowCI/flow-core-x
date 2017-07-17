@@ -9,9 +9,9 @@ package com.flow.platform.api.domain;
 
 public class Step extends Node {
 
-    Boolean isAllowFailure;
+    protected Boolean isAllowFailure;
 
-    String plugin;
+    protected String plugin;
 
     public Boolean getAllowFailure() {
         return isAllowFailure;
