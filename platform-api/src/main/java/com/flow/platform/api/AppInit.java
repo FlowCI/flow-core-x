@@ -1,7 +1,8 @@
 package com.flow.platform.api;
 
 import com.flow.platform.api.config.WebConfig;
-import com.flow.platform.api.util.AppPropertyUtil;
+import com.flow.platform.api.util.AppResourceLoader;
+import com.flow.platform.api.util.PropertyResourceLoader;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -24,7 +25,9 @@ public class AppInit implements WebApplicationInitializer {
         applicationContext.register(WebConfig.class);
         applicationContext.setServletContext(servletContext);
 
-        AppPropertyUtil.register(applicationContext);
+        // set app property resource
+        AppResourceLoader propertyLoader = new PropertyResourceLoader();
+        propertyLoader.register(applicationContext);
 
         // Add the servlet mapping manually and make it initialize automatically
         DispatcherServlet dispatcherServlet = new DispatcherServlet(applicationContext);
