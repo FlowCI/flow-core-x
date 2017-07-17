@@ -12,7 +12,7 @@ flow-platform
  
 ### Build
 
-Using standard maven 'mvn clean install -DskipTests=true' to generate packages
+Using standard maven `mvn clean install -DskipTests=true` to generate packages
 
 
 ### Installation
@@ -21,9 +21,9 @@ In build phase will generate three packages:
 
 | project | package | container |
 |---------|---------|-----------|
-| api | platform-api.war | tomcat 8.5 |
-| control-center | platform-control-center.war | tomcat 8.5 |
-| agent | flow-platform-agent-{version}.jar |  |
+| api | flow-api.war | tomcat 8.5 |
+| control-center | flow-control-center.war | tomcat 8.5 |
+| agent | flow-agent-{version}.jar |  |
 
 ### API
 
@@ -56,15 +56,6 @@ Start agent by following command:
 `java -jar flow-platform-agent-{version}.jar {zookeeper address} {zone name} $HOSTNAME`
 
 
-## Code of Conduct
-
-
 ## License
-
-
-
-
-
-
-
-
+flow-platform is an open source project, sponsored by [fir.im](https://www.fir.im) 
+under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
