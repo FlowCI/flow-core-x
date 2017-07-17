@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.cc.test;
 
 import com.flow.platform.cc.config.AppConfig;
@@ -8,7 +24,7 @@ import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.util.zk.ZkLocalBuilder;
+import com.flow.platform.util.zk.ZkLocalServer;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -31,10 +47,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Created by gy@fir.im on 17/05/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
-
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {WebConfig.class}, initializers = {TestBase.MockContextInitializer.class})
@@ -45,7 +59,7 @@ public abstract class TestBase {
             System.setProperty("flow.cc.env", "local");
             System.setProperty("flow.cc.task.keep_idle_agent", "false");
 
-            ZkLocalBuilder.start();
+            ZkLocalServer.start();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
@@ -8,15 +24,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created by gy@fir.im on 25/05/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
 public interface CmdService {
 
     /**
      * Create command from CmdBase
      *
-     * @param cmd
      * @return Cmd objc with id
      */
     Cmd create(CmdInfo cmd);
@@ -24,53 +38,41 @@ public interface CmdService {
     /**
      * Find cmd obj by id
      *
-     * @param cmdId
      * @return Cmd object
      */
     Cmd find(String cmdId);
 
     /**
      * List cmd by agent path, order by cmd create date
-     *
-     * @param agentPath
-     * @return
      */
     List<Cmd> listByAgentPath(AgentPath agentPath);
 
     /**
      * List cmd by zone, order by cmd create date
-     *
-     * @param zone
-     * @return
      */
     List<Cmd> listByZone(String zone);
 
     /**
      * List cmd result by ids
-     *
-     * @param cmdIds
-     * @return
      */
     List<CmdResult> listResult(Set<String> cmdIds);
 
     /**
      * Send CmdBase with AgentPath which to identify where is cmd destination
-     *  - AgentPath,
-     *   - 'zone' field is required
-     *   - 'name' field is optional
-     *      - which mean system will automatic select idle agent to send
-     *        throw AgentErr.NotAvailableException if no idle agent
+     * - AgentPath,
+     * - 'zone' field is required
+     * - 'name' field is optional
+     * - which mean system will automatic select idle agent to send
+     * throw AgentErr.NotAvailableException if no idle agent
      *
-     * @param cmdInfo
      * @return command objc with id
-     * @exception AgentErr.NotAvailableException if agent busy
+     * @throws AgentErr.NotAvailableException if agent busy
      */
     Cmd send(CmdInfo cmdInfo);
 
     /**
      * Check cmd is timeout
      *
-     * @param cmd
      * @return timeout or not
      */
     boolean isTimeout(Cmd cmd);
@@ -78,7 +80,7 @@ public interface CmdService {
     /**
      * Update cmd status and result
      *
-     * @param cmdId  target cmd id
+     * @param cmdId target cmd id
      * @param status target cmd status should updated
      * @param result CmdResult, nullable
      * @param updateAgentStatus should update agent status according to cmd status
@@ -87,16 +89,11 @@ public interface CmdService {
 
     /**
      * Record full zipped log to store
-     *
-     * @param cmdId
-     * @param file
      */
     void saveLog(String cmdId, MultipartFile file);
 
     /**
      * Invoke webhook url to report Cmd
-     *
-     * @param cmdBase
      */
     void webhookCallback(CmdBase cmdBase);
 

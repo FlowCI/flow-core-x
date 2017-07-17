@@ -12,7 +12,7 @@
   <packaging>war</packaging>
 
   <build>
-    <finalName>platform-control-center</finalName>
+    <finalName>flow-control-center</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
