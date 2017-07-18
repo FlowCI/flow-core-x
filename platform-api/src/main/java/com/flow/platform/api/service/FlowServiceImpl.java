@@ -16,32 +16,45 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 /**
  * @author yh@firim
  */
-@Service(value = "jobService")
-public class JobServiceImpl implements JobService{
+@Service(value = "flowService")
+public class FlowServiceImpl implements FlowService {
+
+    private final Map<String, Flow> mocFlowList = new HashMap<>();
 
     @Override
-    public Boolean handleStatus(JobNode jobNode) {
-        return null;
+    public Flow create(Flow node) {
+        String path = UUID.randomUUID().toString();
+        node.setPath(path);
+        node.setCreatedAt(new Date());
+        node.setUpdatedAt(new Date());
+        mocFlowList.put(path, node);
+        return node;
     }
 
     @Override
-    public Boolean run(Node node) {
-        return null;
+    public Flow find(String path) {
+        return mocFlowList.get(path);
     }
 
     @Override
-    public Boolean createSession(Job job) {
-        return null;
+    public Boolean destroyFlow(String path) {
+        Flow flow = mocFlowList.remove(path);
+        if (flow != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

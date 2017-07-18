@@ -15,17 +15,26 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Job;
-import org.springframework.stereotype.Service;
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.Step;
+import java.util.List;
 
 /**
  * @author yh@firim
  */
-@Service(value = "rabbitmqService")
-public class RabbitmqServiceImpl implements RabbitmqService {
+public interface StepService {
 
-    @Override
-    public boolean enqueue(Job job) {
-        return false;
-    }
+    Step create(Step node, Flow flow);
+
+    List<Step> list(String flowPath);
+
+    List<Step> list(Flow flow);
+
+    Boolean delete(Step step, Flow flow);
+
+    Boolean delete(String name, Flow flow);
+
+    Step find(String stepPath, Flow flow);
+
 }

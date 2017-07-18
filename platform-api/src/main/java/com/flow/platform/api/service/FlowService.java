@@ -15,17 +15,16 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Job;
-import org.springframework.stereotype.Service;
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
 
 /**
  * @author yh@firim
  */
-@Service(value = "rabbitmqService")
-public class RabbitmqServiceImpl implements RabbitmqService {
+public interface FlowService {
+    Flow create(Flow node);
 
-    @Override
-    public boolean enqueue(Job job) {
-        return false;
-    }
+    Flow find(String path);
+
+    Boolean destroyFlow(String path);
 }
