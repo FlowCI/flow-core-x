@@ -22,11 +22,31 @@ import com.flow.platform.api.domain.Node;
  */
 public interface NodeService {
 
+    /**
+     * create node
+     * @param node
+     * @return
+     */
     Node create(Node node);
 
+    /**
+     * delete node
+     * @param node
+     * @return
+     */
     Boolean delete(Node node);
 
+    /**
+     * update node
+     * @param node
+     * @return
+     */
     Node update(Node node);
 
+    /**
+     * find node
+     * @param path
+     * @return
+     */
     Node find(String path);
 }
