@@ -78,7 +78,7 @@ public interface CmdService {
     boolean isTimeout(Cmd cmd);
 
     /**
-     * Update cmd status and result
+     * Update cmd status and result, send cmd webhook if existed
      *
      * @param cmdId target cmd id
      * @param status target cmd status should updated

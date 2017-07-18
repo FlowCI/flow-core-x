@@ -49,11 +49,6 @@ public class Cmd extends CmdBase {
     private String id;
 
     /**
-     * record current status
-     */
-    private CmdStatus status = CmdStatus.PENDING;
-
-    /**
      * Path for full log
      */
     private List<String> logPaths = new ArrayList<>(5);
@@ -87,15 +82,6 @@ public class Cmd extends CmdBase {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    // DO NOT used in programming to set cmd status, using addStatus instead this func
-    public void setStatus(CmdStatus status) {
-        this.status = status;
-    }
-
-    public CmdStatus getStatus() {
-        return status;
     }
 
     /**
@@ -196,6 +182,7 @@ public class Cmd extends CmdBase {
     public static Cmd convert(CmdBase base) {
         Cmd cmd = new Cmd();
         cmd.agentPath = base.getAgentPath();
+        cmd.status = base.getStatus();
         cmd.type = base.getType();
         cmd.cmd = base.getCmd();
         cmd.timeout = base.getTimeout();

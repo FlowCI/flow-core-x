@@ -21,9 +21,9 @@ package com.flow.platform.util.zk;
  */
 public class ZkException {
 
-    public static class ZkWatchingException extends AbstractZkException {
+    public static class WatchingException extends AbstractZkException {
 
-        public ZkWatchingException(Exception raw, String path) {
+        public WatchingException(Exception raw, String path) {
             super(raw, "Cannot watch path: " + path);
         }
     }
@@ -35,16 +35,16 @@ public class ZkException {
         }
     }
 
-    public static class ZkNoNodeException extends AbstractZkException {
+    public static class NotExitException extends AbstractZkException {
 
-        public ZkNoNodeException(Exception raw, String path) {
+        public NotExitException(Exception raw, String path) {
             super(raw, String.format("Node not exist: %s", path));
         }
     }
 
-    public static class ZkBadVersion extends AbstractZkException {
+    public static class BadVersion extends AbstractZkException {
 
-        public ZkBadVersion(Exception raw) {
+        public BadVersion(Exception raw) {
             super(raw, "Bad data version");
         }
     }

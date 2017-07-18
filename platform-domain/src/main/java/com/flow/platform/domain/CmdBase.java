@@ -38,6 +38,11 @@ public abstract class CmdBase extends Jsonable {
     protected CmdType type;
 
     /**
+     * record current status
+     */
+    protected CmdStatus status = CmdStatus.PENDING;
+
+    /**
      * Command content (Required when type = RUN_SHELL)
      */
     protected String cmd;
@@ -119,6 +124,14 @@ public abstract class CmdBase extends Jsonable {
 
     public void setType(CmdType type) {
         this.type = type;
+    }
+
+    public void setStatus(CmdStatus status) {
+        this.status = status;
+    }
+
+    public CmdStatus getStatus() {
+        return status;
     }
 
     public String getCmd() {
@@ -213,12 +226,11 @@ public abstract class CmdBase extends Jsonable {
 
     @Override
     public String toString() {
-        return "CmdBase{" +
+        return getClass().getSimpleName() + "{" +
                 " zone=" + (agentPath == null ? "null" : agentPath.getZone()) +
                 ", agent=" + (agentPath == null ? "null" : agentPath.getName()) +
-                ", type=" + type +
-                ", cmd='" + cmd + '\'' +
-                ", sessionId='" + sessionId + '\'' +
+                ", status=" + status +
+                ", webhook=" + webhook +
                 '}';
     }
 }

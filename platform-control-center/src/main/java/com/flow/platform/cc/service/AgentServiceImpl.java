@@ -80,6 +80,7 @@ public class AgentServiceImpl implements AgentService {
         offlines.removeAll(keys);
 
         // remove offline agents from online list and update status
+        // TODO: replace by batch update
         for (AgentPath key : offlines) {
             Agent offlineAgent = onlineAgentMap.get(key);
             offlineAgent.setStatus(AgentStatus.OFFLINE);
@@ -88,6 +89,7 @@ public class AgentServiceImpl implements AgentService {
         }
 
         // report online
+        // TODO: replace by batch update
         for (AgentPath key : keys) {
             if (onlineAgentKeys.contains(key)) {
                 continue;
@@ -200,7 +202,7 @@ public class AgentServiceImpl implements AgentService {
      * Find from online list and create
      */
     private void reportOnline(AgentPath key) {
-        Agent exist = find(key);
+        Agent exist = agentDao.find(key);
 
         // create new agent with idle status
         if (exist == null) {
