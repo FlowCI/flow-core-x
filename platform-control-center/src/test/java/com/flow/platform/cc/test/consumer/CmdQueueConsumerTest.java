@@ -16,11 +16,18 @@
 
 package com.flow.platform.cc.test.consumer;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+
 import com.flow.platform.cc.service.AgentService;
-import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.*;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.rabbitmq.client.Channel;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -40,6 +47,9 @@ import java.io.IOException;
 public class CmdQueueConsumerTest extends TestBase {
 
     private final static String ZONE = "ut-test-zone-for-queue";
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8088);
 
     @Autowired
     private Channel cmdSendChannel;
@@ -69,10 +79,17 @@ public class CmdQueueConsumerTest extends TestBase {
         Assert.assertNotNull(agent);
         Assert.assertEquals(AgentStatus.IDLE, agent.getStatus());
 
+        // mock callback url
+        stubFor(post(urlEqualTo("/node/callback")).willReturn(aResponse().withStatus(200)));
+
         // when: send cmd by rabbit mq with cmd exchange name
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
+        mockCmd.setWebhook("http://localhost:8088/node/callback");
         cmdSendChannel.basicPublish(cmdExchangeName, "", null, mockCmd.toBytes());
         Thread.sleep(2000);
+
+        // then: webhook been invoked
+        verify(1, postRequestedFor(urlEqualTo("/node/callback")));
 
         // then: cmd should received in zookeeper agent node
         byte[] raw = zkClient.getData(zkHelper.getZkPath(agentPath), false, null);
