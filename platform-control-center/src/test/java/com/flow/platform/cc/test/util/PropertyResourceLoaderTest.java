@@ -42,7 +42,7 @@ public class PropertyResourceLoaderTest {
 
     private PropertyResourceLoader propertyResourceLoader = new PropertyResourceLoader();
 
-    final Map<String, String> mockedEnv = new HashMap<>();
+    private final Map<String, String> mockedEnv = new HashMap<>();
 
     @Before
     public void setUp() {
