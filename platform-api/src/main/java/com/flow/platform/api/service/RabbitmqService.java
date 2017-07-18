@@ -15,18 +15,15 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Job;
-import org.springframework.stereotype.Service;
-
 /**
  * @author yh@firim
  */
 public interface RabbitmqService {
 
     /**
-     * rabbitmq enqueue
-     * @param job
-     * @return
+     * publish message to mq
+     * @param routeKey
+     * @param bytes
      */
-    public boolean enqueue(Job job);
+    void publish(String routeKey, byte[] bytes);
 }

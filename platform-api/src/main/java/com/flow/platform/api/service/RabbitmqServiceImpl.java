@@ -15,7 +15,10 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Job;
+import com.rabbitmq.client.Channel;
+import java.io.IOException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,8 +27,18 @@ import org.springframework.stereotype.Service;
 @Service(value = "rabbitmqService")
 public class RabbitmqServiceImpl implements RabbitmqService {
 
+    @Autowired
+    private Channel jobChannel;
+
+    @Value("rabbitmq.exchange")
+    private String exchange;
+
     @Override
-    public boolean enqueue(Job job) {
-        return false;
+    public void publish(String routeKey, byte[] bytes) {
+        try {
+            jobChannel.basicPublish(exchange, routeKey, null, bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
