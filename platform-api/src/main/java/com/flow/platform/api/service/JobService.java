@@ -29,19 +29,33 @@ public interface JobService {
      * @param node
      * @return
      */
-    public Boolean run(Node node);
+    Boolean run(Node node);
 
     /**
      * create agent session
      * @param job
      * @return
      */
-    public Boolean createSession(Job job);
+    Boolean createSession(Job job);
 
     /**
      * handle node status
      * @param jobNode
      * @return
      */
-    public Boolean handleStatus(JobNode jobNode);
+    Boolean handleStatus(JobNode jobNode);
+
+    /**
+     * create job
+     * @param job
+     * @return
+     */
+    Job create(Job job);
+
+    /**
+     * find job
+     * @param id
+     * @return
+     */
+    Job find(String id);
 }

@@ -15,13 +15,13 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +31,29 @@ import org.springframework.stereotype.Service;
 @Service(value = "jobService")
 public class JobServiceImpl implements JobService{
 
+    private final Map<String, Job> mocJobList = new HashMap<>();
+
     @Autowired
     private NodeService nodeService;
 
     @Override
     public Boolean handleStatus(JobNode jobNode) {
         return null;
+    }
+
+    @Override
+    public Job create(Job job) {
+        String id = UUID.randomUUID().toString();
+        job.setId(id);
+        job.setCreatedAt(new Date());
+        job.setUpdatedAt(new Date());
+        mocJobList.put(id, job);
+        return job;
+    }
+
+    @Override
+    public Job find(String id) {
+        return mocJobList.get(id);
     }
 
     @Override
