@@ -15,26 +15,18 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
-import java.util.List;
 
 /**
  * @author yh@firim
  */
-public interface StepService {
+public interface NodeService {
 
-    Step create(Step node, Flow flow);
+    Node create(Node node);
 
-    List<Step> list(String flowPath);
+    Boolean delete(Node node);
 
-    List<Step> list(Flow flow);
+    Node update(Node node);
 
-    Boolean delete(Step step, Flow flow);
-
-    Boolean delete(String name, Flow flow);
-
-    Step find(String stepPath, Flow flow);
-
+    Node find(String path);
 }
