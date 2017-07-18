@@ -46,6 +46,12 @@ public interface JobService {
     Boolean handleStatus(JobNode jobNode);
 
     /**
+     * handle callback
+     * @param job
+     * @return
+     */
+    Boolean handleCreateSessionCallBack(Job job);
+    /**
      * create job
      * @param job
      * @return
