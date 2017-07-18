@@ -93,6 +93,8 @@ public class CmdQueueConsumer {
                     resend(inputCmd, RETRY_QUEUE_PRIORITY, RETRY_TIMES);
                 } catch (Throwable e) {
                     // unexpected err, throw e
+                    inputCmd.setStatus(CmdStatus.EXCEPTION);
+                    cmdService.webhookCallback(inputCmd);
                     LOGGER.error("Error when consume cmd from queue", e);
                 } finally {
                     long deliveryTag = envelope.getDeliveryTag();
