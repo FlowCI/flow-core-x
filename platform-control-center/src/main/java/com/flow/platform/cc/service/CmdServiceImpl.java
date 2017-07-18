@@ -137,12 +137,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         return runningInSeconds >= cmd.getTimeout();
     }
 
-    /**
-     * Send cmd in transaction for agent status
-     * Update cmd status if target agent doesn't available
-     *
-     * @throws AgentErr.NotAvailableException when target agent is not available
-     */
     @Override
     public Cmd send(CmdInfo cmdInfo) {
         try {
@@ -213,11 +207,15 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                     break;
             }
 
-            agentDao.update(target);
+            // set real cmd to zookeeper node
             ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmd.toJson());
 
-            return cmd;
+            // update agent property
+            agentDao.update(target);
 
+            // update cmd status
+            updateStatus(cmd.getId(), CmdStatus.SENT, null, false);
+            return cmd;
         } catch (AgentErr.NotAvailableException e) {
             // force to check idle agent
             zoneService.keepIdleAgentTask();
@@ -229,8 +227,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateStatus(
-        String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
+    public void updateStatus(String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
         LOGGER.trace("Report cmd %s status %s and result %s", cmdId, status, inputResult);
 
         Cmd cmd = find(cmdId);
@@ -320,8 +317,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      *
      * @return Agent or null
      * @throws AgentErr.NotAvailableException no idle agent in zone
-     * @throws AgentErr.AgentMustBeSpecified name must for operation
-     * cmd type
+     * @throws AgentErr.AgentMustBeSpecified name must for operation cmd type
      * @throws AgentErr.NotFoundException target agent not found
      */
     private Agent selectAgent(CmdBase cmd) {

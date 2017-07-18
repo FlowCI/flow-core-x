@@ -35,7 +35,7 @@ public class Cmd extends CmdBase {
      * Working status set
      */
     public static final Set<CmdStatus> WORKING_STATUS =
-            Sets.newHashSet(CmdStatus.PENDING, CmdStatus.RUNNING, CmdStatus.EXECUTED);
+            Sets.newHashSet(CmdStatus.PENDING, CmdStatus.SENT, CmdStatus.RUNNING, CmdStatus.EXECUTED);
 
     /**
      * Finish status set

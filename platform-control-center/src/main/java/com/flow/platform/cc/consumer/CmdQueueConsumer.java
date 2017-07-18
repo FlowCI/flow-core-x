@@ -18,6 +18,7 @@ package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.CmdService;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.util.Logger;
@@ -43,7 +44,6 @@ public class CmdQueueConsumer {
 
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
 
-    private final static long MAX_CMD_INQUEUE_TIME = 60; // in seconds
     private final static int RETRY_QUEUE_PRIORITY = 5;
     private final static int RETRY_TIMES = 5;
 
@@ -90,8 +90,8 @@ public class CmdQueueConsumer {
 
                 // send cmd and deal exception
                 try {
-                    cmdService.send(inputCmd);
-                    LOGGER.trace("Cmd been sent");
+                    Cmd cmd = cmdService.send(inputCmd);
+                    LOGGER.trace("Cmd been sent: %s", cmd);
                 } catch (AgentErr.NotAvailableException e) {
                     resend(inputCmd, RETRY_QUEUE_PRIORITY, RETRY_TIMES);
                 } catch (Throwable e) {

@@ -17,8 +17,6 @@
 package com.flow.platform.domain;
 
 /**
- * Status for TYPE.RUN_SHELL
- *
  * @author gy@fir.im
  */
 public enum CmdStatus {
@@ -27,7 +25,12 @@ public enum CmdStatus {
      * Init status when cmd prepare send to agent
      * is_current_cmd = true
      */
-    PENDING("PENDING", 0),
+    PENDING("PENDING", -1),
+
+    /**
+     * Cmd been sent to agent
+     */
+    SENT("SENT", 0),
 
     /**
      * Cmd is running, should agent reported

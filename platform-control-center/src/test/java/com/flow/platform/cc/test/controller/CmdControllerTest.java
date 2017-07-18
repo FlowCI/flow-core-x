@@ -91,10 +91,10 @@ public class CmdControllerTest extends TestBase {
     @Test
     public void should_update_cmd_status() throws Throwable {
         // given:
-        AgentPath path = new AgentPath("test-zone-00", "test-001");
-        agentService.reportOnline("test-zone-00", Lists.newArrayList(path));
+        AgentPath path = new AgentPath("test-mos-mac", "test-001");
+        agentService.reportOnline("test-mos-mac", Lists.newArrayList(path));
 
-        CmdInfo base = new CmdInfo("test-zone-00", "test-001", CmdType.STOP, null);
+        CmdInfo base = new CmdInfo("test-mos-mac", "test-001", CmdType.STOP, null);
         Cmd cmd = cmdService.create(base);
 
         // when:
@@ -147,7 +147,7 @@ public class CmdControllerTest extends TestBase {
 
         Cmd cmdInfo = gsonConfig.fromJson(result.getResponse().getContentAsString(), Cmd.class);
         Assert.assertNotNull(cmdInfo);
-        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
+        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.SENT));
         Assert.assertEquals(zoneName, cmdInfo.getZoneName());
         Assert.assertEquals(agentName, cmdInfo.getAgentName());
         Assert.assertEquals(agentName, agentService.find(cmdInfo.getAgentPath()).getName());
