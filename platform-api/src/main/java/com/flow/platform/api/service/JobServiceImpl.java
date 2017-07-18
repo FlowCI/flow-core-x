@@ -34,6 +34,9 @@ public class JobServiceImpl implements JobService{
     private final Map<String, Job> mocJobList = new HashMap<>();
 
     @Autowired
+    private JobNodeService jobNodeService;
+
+    @Autowired
     private NodeService nodeService;
 
     @Override
