@@ -2,7 +2,7 @@ package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.Config;
 import com.flow.platform.domain.AgentConfig;
-import com.flow.platform.util.zk.ZkLocalBuilder;
+import com.flow.platform.util.zk.ZkLocalServer;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
@@ -25,7 +25,7 @@ public class ConfigTest extends TestBase {
 
     @BeforeClass
     public static void init() throws IOException, InterruptedException, KeeperException {
-        zkFactory = ZkLocalBuilder.start();
+        zkFactory = ZkLocalServer.start();
         zkClient = new ZooKeeper("localhost:2181", 20000, null);
         ZkNodeHelper.createNode(zkClient, "/flow-agents", ""); // create root node
     }

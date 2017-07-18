@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.util;
 
 import java.io.*;
@@ -7,8 +23,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * Created by gy@fir.im on 26/06/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
 public class ObjectUtil {
 
@@ -52,7 +67,7 @@ public class ObjectUtil {
         }
 
         throw new IllegalArgumentException(
-                String.format("Type from '%s' to '%s' not supported yet", value.getClass(), field.getType()));
+            String.format("Type from '%s' to '%s' not supported yet", value.getClass(), field.getType()));
     }
 
     public static Field[] getFields(Class<?> clazz) {
@@ -62,17 +77,18 @@ public class ObjectUtil {
     /**
      * Find not null fields
      *
-     * @param clazz         Target class
-     * @param bean          Target java bean instance
-     * @param skipTypes     Type list which not deal
+     * @param clazz Target class
+     * @param bean Target java bean instance
+     * @param skipTypes Type list which not deal
      * @param checkNotEmpty Enable to check not empty fields for collection and map
      * @return field metadata and value of not null field
      */
-    public static Map<Field, Object> findNotNullFieldValue(Class<?> clazz,
-                                                           Object bean,
-                                                           Set<Class<?>> skipTypes,
-                                                           Set<String> skipFields,
-                                                           boolean checkNotEmpty) {
+    public static Map<Field, Object> findNotNullFieldValue(
+        Class<?> clazz,
+        Object bean,
+        Set<Class<?>> skipTypes,
+        Set<String> skipFields,
+        boolean checkNotEmpty) {
         // find not null fields
         Field[] fields = getFields(clazz);
         Map<Field, Object> notNullFields = new HashMap<>(fields.length);
@@ -128,10 +144,6 @@ public class ObjectUtil {
 
     /**
      * Deep copy object by byte array stream
-     *
-     * @param source
-     * @param <T>
-     * @return
      */
     public static <T> T deepCopy(T source) {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {

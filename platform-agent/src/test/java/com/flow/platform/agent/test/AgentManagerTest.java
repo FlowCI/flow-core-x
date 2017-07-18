@@ -5,7 +5,7 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.zk.ZkEventAdaptor;
-import com.flow.platform.util.zk.ZkLocalBuilder;
+import com.flow.platform.util.zk.ZkLocalServer;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.server.ServerCnxnFactory;
@@ -36,7 +36,7 @@ public class AgentManagerTest extends TestBase {
 
     @BeforeClass
     public static void init() throws IOException, InterruptedException, KeeperException {
-        zkFactory = ZkLocalBuilder.start();
+        zkFactory = ZkLocalServer.start();
         zkClient = new ZooKeeper(ZK_HOST, 20000, null);
 
         ZkNodeHelper.createNode(zkClient, "/flow-agents", "");
