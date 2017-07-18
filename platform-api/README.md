@@ -68,3 +68,28 @@
         - envs
         - name
 ```
+
+### 创建session
+```
+  Json:
+    {
+      callbackUrl: "",
+      jobId:
+    }
+```
+
+### 发送命令
+```
+  Method: Post
+  Routes: /cmd/send
+  params:
+      {
+        "callbackUrl": "",
+      	"agentPath": {
+      		"zone": "test-zone",
+      		"name": "test-001"
+      	},
+      	"cmd": "ls",
+      	"type": "RUN_SHELL"
+      }
+```

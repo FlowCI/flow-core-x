@@ -118,7 +118,7 @@ public class JobServiceImpl implements JobService {
     private Node findFirstNode(List<Node> nodes) {
         Node node = nodes.get(0);
         if (node == null) {
-            System.out.println("flow has now childen");
+            System.out.println("flow has no children");
             return null;
         }
         Node first = node;
