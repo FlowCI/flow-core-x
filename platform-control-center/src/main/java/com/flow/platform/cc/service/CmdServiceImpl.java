@@ -239,11 +239,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         // compare exiting cmd result and update
+        CmdResult cmdResult;
         if (inputResult != null) {
             inputResult.setCmdId(cmdId);
             cmd.setFinishedDate(inputResult.getFinishTime());
 
-            CmdResult cmdResult = cmdResultDao.get(cmd.getId());
+            cmdResult = cmdResultDao.get(cmd.getId());
             if (cmdResult != null) {
                 cmdResultDao.updateNotNullOrEmpty(inputResult);
             } else {
@@ -260,6 +261,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 updateAgentStatusWhenUpdateCmd(cmd);
             }
 
+            cmd.setCmdResult(cmdResult);
             webhookCallback(cmd);
         }
     }

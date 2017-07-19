@@ -18,6 +18,7 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
+import com.flow.platform.api.domain.JobStatus;
 import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import java.util.Date;
@@ -79,7 +80,14 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Boolean handleCreateSessionCallBack(Job job) {
-        JobNode node = jobNodeService.find(job.getNodeName());
+
+        //update job status
+        job.setJobStatus(JobStatus.RUNNING);
+        job.setUpdatedAt(new Date());
+        mocJobList.put(job.getId(), job);
+
+        // find jobNode
+        JobNode node = jobNodeService.find(job.getNodePath());
         // start run node
         run(node);
         return null;

@@ -73,8 +73,20 @@ public class Cmd extends CmdBase {
      */
     private ZonedDateTime finishedDate;
 
+    /**
+     * only show not save db
+     */
+    private CmdResult result;
 
     public Cmd() {
+    }
+
+    public CmdResult getResult() {
+        return result;
+    }
+
+    public void setResult(CmdResult result) {
+        this.result = result;
     }
 
     public Cmd(String zone, String agent, CmdType type, String cmd) {

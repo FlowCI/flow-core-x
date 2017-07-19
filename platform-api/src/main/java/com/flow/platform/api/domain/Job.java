@@ -38,7 +38,7 @@ public class Job extends Jsonable {
 
     private Integer exitCode;
 
-    private String nodeName;
+    private String nodePath;
 
     private Map<Env, String> envs = new HashMap<>();
 
@@ -107,12 +107,12 @@ public class Job extends Jsonable {
         this.exitCode = exitCode;
     }
 
-    public String getNodeName() {
-        return nodeName;
+    public String getNodePath() {
+        return nodePath;
     }
 
-    public void setNodeName(String nodeName) {
-        this.nodeName = nodeName;
+    public void setNodePath(String nodePath) {
+        this.nodePath = nodePath;
     }
 
     public Map<Env, String> getEnvs() {
@@ -158,7 +158,7 @@ public class Job extends Jsonable {
             ", duration=" + duration +
             ", finishedAt=" + finishedAt +
             ", exitCode=" + exitCode +
-            ", nodeName='" + nodeName + '\'' +
+            ", nodeName='" + nodePath + '\'' +
             '}';
     }
 }
