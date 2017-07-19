@@ -24,6 +24,8 @@ import com.flow.platform.domain.CmdBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,21 +36,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/callback")
 public class CallbackController {
+
     @Autowired
-    JobService jobService;
+    private JobService jobService;
+
     @Autowired
     JobNodeService jobNodeService;
 
     @PostMapping(path = "/{jobId}/createSession")
-    public String createSession(CmdBase cmdBase, @PathVariable String jobId){
+    public String createSession(@RequestBody CmdBase cmdBase, @PathVariable String jobId) {
         Job job = jobService.find(jobId);
         jobService.handleCreateSessionCallBack(cmdBase, job);
         return "{\"message\": \"ok\"}";
     }
 
-
     @PostMapping(path = "/{nodePath}/message")
-    public String handleMessage(CmdBase cmdBase, @PathVariable String nodePath){
+    public String handleMessage(@RequestBody CmdBase cmdBase, @PathVariable String nodePath) {
         JobNode jobStep = jobNodeService.find(nodePath);
         jobService.handleCmdResult((Cmd) cmdBase, jobStep);
         return "{\"message\": \"ok\"}";

@@ -54,6 +54,7 @@ public interface JobService {
      * @return
      */
     Boolean handleCreateSessionCallBack(CmdBase cmdBase, Job job);
+
     /**
      * create job
      * @param job
