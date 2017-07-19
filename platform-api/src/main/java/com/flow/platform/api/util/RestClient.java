@@ -41,7 +41,7 @@ public final class RestClient implements Runnable {
     private String url;
     private HttpMethod method = HttpMethod.POST;
 
-    enum HttpMethod implements Serializable {
+    public enum HttpMethod implements Serializable {
 
         POST("POST"),
 

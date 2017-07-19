@@ -16,6 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.JobNode;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,8 +32,8 @@ public class JobNodeServiceImpl implements JobNodeService {
     private final Map<String, JobNode> mocJobNodeList = new HashMap<>();
     @Override
     public JobNode create(JobNode jobNode) {
-        jobNode.setUpdatedAt(new Date());
-        jobNode.setCreatedAt(new Date());
+        jobNode.setUpdatedAt(ZonedDateTime.now());
+        jobNode.setCreatedAt(ZonedDateTime.now());
         mocJobNodeList.put(jobNode.getPath(), jobNode);
         return jobNode;
     }
@@ -47,7 +48,7 @@ public class JobNodeServiceImpl implements JobNodeService {
 
     @Override
     public JobNode update(JobNode jobNode) {
-        jobNode.setUpdatedAt(new Date());
+        jobNode.setUpdatedAt(ZonedDateTime.now());
         mocJobNodeList.put(jobNode.getPath(), jobNode);
         return jobNode;
     }

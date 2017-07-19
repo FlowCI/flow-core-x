@@ -41,12 +41,23 @@ public abstract class Node extends Jsonable {
 
     protected ZonedDateTime updatedAt;
 
+
+    protected String script;
+
     public Node() {
     }
 
     public Node(String path, String name) {
         this.path = path;
         this.name = name;
+    }
+
+    public String getScript() {
+        return script;
+    }
+
+    public void setScript(String script) {
+        this.script = script;
     }
 
     public String getPath() {

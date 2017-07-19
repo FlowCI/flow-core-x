@@ -17,6 +17,8 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.domain.Zone;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,8 +36,8 @@ public class NodeServiceImpl implements NodeService {
     public Node create(Node node) {
         String path = UUID.randomUUID().toString();
         node.setPath(path);
-        node.setCreatedAt(new Date());
-        node.setUpdatedAt(new Date());
+        node.setCreatedAt(ZonedDateTime.now());
+        node.setUpdatedAt(ZonedDateTime.now());
         mocNodeList.put(path, node);
         return node;
     }

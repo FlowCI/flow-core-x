@@ -21,6 +21,8 @@ import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.util.RestClient;
+import com.flow.platform.api.util.RestClient.HttpMethod;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
@@ -32,7 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.UUID;
+import org.apache.http.client.methods.HttpPost;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -52,6 +56,15 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private RabbitmqService rabbitmqService;
 
+    @Value(value = "${domain}")
+    private String domain;
+
+    @Value(value = "${rabbitmq.routeKey}")
+    private String routeKey;
+
+    @Value(value = "${platform.api")
+    private String platform_url;
+
     @Override
     public Boolean handleCmdResult(Cmd cmd, JobNode jobNode) {
         JobStep jobStep = (JobStep) jobNode;
@@ -67,6 +80,7 @@ public class JobServiceImpl implements JobService {
         jobStep.setDuration(cmd.getResult().getDuration());
         jobStep.setExitCode(cmd.getResult().getExitValue());
         jobStep.setLogPaths(cmd.getLogPaths());
+        Job job = findJobFlow(jobStep).getJob();
         switch (cmd.getStatus()) {
             case PENDING:
                 nodeStatus = NodeStatus.PENDING;
@@ -89,11 +103,10 @@ public class JobServiceImpl implements JobService {
                 JobStep next = findNextJobStep(jobStep);
                 // end step
                 if(next == null){
-                    updateFlowStatus(jobStep, cmd, false, true);
-                    updateJobStatus(jobStep, cmd, false, true);
+                    updateFinishStatus(jobStep, cmd, job);
+                    return;
                 }
                 JobFlow jobFlow = findJobFlow(jobStep);
-                Job job = jobFlow.getJob();
                 run(next, job);
                 break;
             case REJECTED:
@@ -101,17 +114,31 @@ public class JobServiceImpl implements JobService {
             case EXCEPTION:
                 nodeStatus = NodeStatus.FAIL;
                 jobStep.setNodeStatus(nodeStatus);
-                updateFlowStatus(jobStep, cmd, false, true);
-                updateJobStatus(jobStep, cmd, false, true);
+                next = findNextJobStep(jobStep);
+                // end step
+                if(next == null){
+                    updateFinishStatus(jobStep, cmd, job);
+                    return;
+                }
                 break;
             case TIMEOUT_KILL:
                 nodeStatus = NodeStatus.TIMEOUT;
                 jobStep.setNodeStatus(nodeStatus);
-                updateFlowStatus(jobStep, cmd, false, true);
-                updateJobStatus(jobStep, cmd, false, true);
+                next = findNextJobStep(jobStep);
+                // end step
+                if(next == null){
+                    updateFinishStatus(jobStep, cmd, job);
+                    return;
+                }
                 break;
         }
         jobNodeService.update(jobStep);
+    }
+
+    private void updateFinishStatus(JobStep jobStep, Cmd cmd, Job job){
+        updateFlowStatus(jobStep, cmd, false, true);
+        updateJobStatus(jobStep, cmd, false, true);
+        deleteSession(job);
     }
 
     private void updateFlowStatus(JobStep jobStep, Cmd cmd, Boolean firstStep, Boolean lastStep) {
@@ -267,7 +294,8 @@ public class JobServiceImpl implements JobService {
     @Override
     public Boolean createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo("default", "default", CmdType.CREATE_SESSION, null);
-        cmdInfo.setWebhook();
+        cmdInfo.setWebhook(getJobWebhook(job));
+        rabbitmqService.publish(routeKey, cmdInfo.toBytes());
         return null;
     }
 
@@ -277,7 +305,11 @@ public class JobServiceImpl implements JobService {
             // has run
             run(jobNode.getNext(), job);
         } else {
-            //TODO： notice agent to run shell
+            // POST to Agent to run shell
+            CmdInfo cmdInfo = new CmdInfo("default", "default", CmdType.RUN_SHELL, node.getScript());
+            cmdInfo.setWebhook(getStepWebhook((JobStep) node));
+            cmdInfo.setSessionId(job.getSessionId());
+            new Thread(new RestClient(HttpMethod.POST, cmdInfo.toJson(), platform_url)).start();
         }
     }
 
@@ -329,5 +361,19 @@ public class JobServiceImpl implements JobService {
             last = tmp;
         }
         return last;
+    }
+
+    private String getStepWebhook(JobStep jobStep){
+        return domain + "callback/" + jobStep.getPath() + "/message";
+    }
+
+    private String getJobWebhook(Job job){
+        return domain + "callback/" + job.getId() + "/createSession";
+    }
+
+    private void deleteSession(Job job){
+        CmdInfo cmdInfo = new CmdInfo("default", "default", CmdType.DELETE_SESSION, null);
+        cmdInfo.setSessionId(job.getSessionId());
+        new Thread(new RestClient(HttpMethod.POST, cmdInfo.toJson(), platform_url)).start();
     }
 }
