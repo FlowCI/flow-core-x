@@ -22,6 +22,7 @@ import java.util.Map;
 /**
  * Only include basic properties of command
  * <p>
+ *
  * @author gy@fir.im
  */
 public abstract class CmdBase extends Jsonable {
@@ -36,6 +37,11 @@ public abstract class CmdBase extends Jsonable {
      * Command type (Required)
      */
     protected CmdType type;
+
+    /**
+     * record current status
+     */
+    protected CmdStatus status = CmdStatus.PENDING;
 
     /**
      * Command content (Required when type = RUN_SHELL)
@@ -78,6 +84,11 @@ public abstract class CmdBase extends Jsonable {
      */
     protected String webhook;
 
+    /**
+     * Extra info used for webhook callback
+     */
+    protected String extra;
+
     public CmdBase() {
     }
 
@@ -119,6 +130,14 @@ public abstract class CmdBase extends Jsonable {
 
     public void setType(CmdType type) {
         this.type = type;
+    }
+
+    public void setStatus(CmdStatus status) {
+        this.status = status;
+    }
+
+    public CmdStatus getStatus() {
+        return status;
     }
 
     public String getCmd() {
@@ -188,37 +207,41 @@ public abstract class CmdBase extends Jsonable {
     public void setWebhook(String webhook) {
         this.webhook = webhook;
     }
+
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         CmdBase cmdBase = (CmdBase) o;
 
-        if (!agentPath.equals(cmdBase.agentPath)) return false;
-        if (type != cmdBase.type) return false;
-        if(cmd == null){
-            return cmd == cmdBase.cmd;
-        }
-        return cmd.equals(cmdBase.cmd);
+        return agentPath.equals(cmdBase.agentPath);
     }
 
     @Override
     public int hashCode() {
-        int result = agentPath.hashCode();
-        result = 31 * result + type.hashCode();
-        result = 31 * result + cmd.hashCode();
-        return result;
+        return agentPath.hashCode();
     }
 
     @Override
     public String toString() {
-        return "CmdBase{" +
-                " zone=" + (agentPath == null ? "null" : agentPath.getZone()) +
-                ", agent=" + (agentPath == null ? "null" : agentPath.getName()) +
-                ", type=" + type +
-                ", cmd='" + cmd + '\'' +
-                ", sessionId='" + sessionId + '\'' +
-                '}';
+        return getClass().getSimpleName() + "{" +
+            " zone=" + (agentPath == null ? "null" : agentPath.getZone()) +
+            ", agent=" + (agentPath == null ? "null" : agentPath.getName()) +
+            ", status=" + status +
+            ", webhook=" + webhook +
+            '}';
     }
 }

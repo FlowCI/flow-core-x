@@ -16,6 +16,9 @@
 
 package com.flow.platform.util.zk;
 
+import com.flow.platform.util.zk.ZkException.BadVersion;
+import com.flow.platform.util.zk.ZkException.NotExitException;
+import com.flow.platform.util.zk.ZkException.WatchingException;
 import java.util.List;
 
 import org.apache.zookeeper.CreateMode;
@@ -74,7 +77,7 @@ public class ZkNodeHelper {
             return zk.exists(path, watcher);
         } catch (KeeperException | InterruptedException e) {
             if (retry <= 0) {
-                throw new ZkException.ZkWatchingException(e, path);
+                throw new WatchingException(e, path);
             }
 
             try {
@@ -91,7 +94,7 @@ public class ZkNodeHelper {
             zk.getChildren(parentPath, watcher);
         } catch (KeeperException | InterruptedException e) {
             if (retry <= 0) {
-                throw new ZkException.ZkWatchingException(e, parentPath);
+                throw new WatchingException(e, parentPath);
             }
 
             try {
@@ -103,6 +106,9 @@ public class ZkNodeHelper {
         }
     }
 
+    /**
+     * @return Stat or null if not exited
+     */
     public static Stat exist(ZooKeeper zk, String path) {
         try {
             return zk.exists(path, false);
@@ -141,11 +147,11 @@ public class ZkNodeHelper {
             KeeperException zkException = (KeeperException) e;
 
             if (zkException.code() == KeeperException.Code.NONODE) {
-                return new ZkException.ZkNoNodeException(e, zkException.getPath());
+                return new NotExitException(e, zkException.getPath());
             }
 
             if (zkException.code() == KeeperException.Code.BADVERSION) {
-                return new ZkException.ZkBadVersion(e);
+                return new BadVersion(e);
             }
         }
 

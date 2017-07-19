@@ -54,6 +54,7 @@ public class CmdDaoTest extends TestBase {
         cmd.getInputs().put("VAR_2", "2");
         cmd.setWorkingDir("/");
         cmd.setSessionId("session-id");
+        cmd.setExtra("test");
 
         // when:
         cmdDao.save(cmd);
@@ -70,6 +71,7 @@ public class CmdDaoTest extends TestBase {
         Assert.assertEquals(cmd.getCreatedDate(), loaded.getCreatedDate());
         Assert.assertEquals(cmd.getUpdatedDate(), loaded.getUpdatedDate());
         Assert.assertEquals(cmd.getFinishedDate(), loaded.getFinishedDate());
+        Assert.assertEquals(cmd.getExtra(), loaded.getExtra());
     }
 
     @Test
@@ -105,7 +107,7 @@ public class CmdDaoTest extends TestBase {
 
         // when: get cmd for agent by type and status
         result = cmdDao.list(new AgentPath(zoneName, "agent-2"),
-                Sets.newHashSet(CmdType.SHUTDOWN), Sets.newHashSet(CmdStatus.RUNNING));
+            Sets.newHashSet(CmdType.SHUTDOWN), Sets.newHashSet(CmdStatus.RUNNING));
         Assert.assertNotNull(result);
         Assert.assertEquals(1, result.size());
         Assert.assertEquals(cmd1, result.get(0));

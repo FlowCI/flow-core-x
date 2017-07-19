@@ -16,22 +16,34 @@
 
 package com.flow.platform.cc.test.consumer;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+
 import com.flow.platform.cc.service.AgentService;
-import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.domain.*;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Zone;
+import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.rabbitmq.client.Channel;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
-import java.io.IOException;
 
 /**
  * @author gy@fir.im
@@ -40,6 +52,9 @@ import java.io.IOException;
 public class CmdQueueConsumerTest extends TestBase {
 
     private final static String ZONE = "ut-test-zone-for-queue";
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8088);
 
     @Autowired
     private Channel cmdSendChannel;
@@ -55,13 +70,14 @@ public class CmdQueueConsumerTest extends TestBase {
 
     @Before
     public void before() {
+        cleanZookeeperChilderenNode(zkHelper.buildZkPath(ZONE, null).path());
         zoneService.createZone(new Zone(ZONE, "mock-cloud-provider"));
     }
 
     @Test
     public void should_receive_cmd_from_queue() throws Throwable {
         // given:
-        String agentName = "mock-agent-for-queue-test";
+        String agentName = "agent-for-queue-test";
         AgentPath agentPath = createMockAgent(ZONE, agentName);
         Thread.sleep(2000);
 
@@ -69,10 +85,17 @@ public class CmdQueueConsumerTest extends TestBase {
         Assert.assertNotNull(agent);
         Assert.assertEquals(AgentStatus.IDLE, agent.getStatus());
 
+        // mock callback url
+        stubFor(post(urlEqualTo("/node/callback")).willReturn(aResponse().withStatus(200)));
+
         // when: send cmd by rabbit mq with cmd exchange name
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
+        mockCmd.setWebhook("http://localhost:8088/node/callback");
         cmdSendChannel.basicPublish(cmdExchangeName, "", null, mockCmd.toBytes());
-        Thread.sleep(2000);
+        Thread.sleep(1000);
+
+        // then: webhook been invoked
+        verify(1, postRequestedFor(urlEqualTo("/node/callback")));
 
         // then: cmd should received in zookeeper agent node
         byte[] raw = zkClient.getData(zkHelper.getZkPath(agentPath), false, null);
@@ -82,18 +105,27 @@ public class CmdQueueConsumerTest extends TestBase {
         Assert.assertEquals(mockCmd.getAgentPath(), received.getAgentPath());
     }
 
-    @Ignore("this ut not finished yet")
     @Test
     public void should_re_enqueue_if_no_agent() throws Throwable {
+        // given:
+        String testUrl = "/node/path-of-node/callback";
+        stubFor(post(urlEqualTo(testUrl)).willReturn(aResponse().withStatus(200)));
+
         // when: send cmd without available agent
         CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
+        mockCmd.setWebhook("http://localhost:8088" + testUrl);
         cmdSendChannel.basicPublish(cmdExchangeName, "", null, mockCmd.toBytes());
-        Thread.sleep(30000); // wait for re_enqueue
-    }
+        Thread.sleep(1000); // wait for send webhook
 
-    private static HttpResponse httpSend(final HttpUriRequest request) throws IOException {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            return client.execute(request);
-        }
+        // then: should invoke cmd webhook for status REJECT
+        verify(1, postRequestedFor(urlEqualTo(testUrl)));
+
+        // when:
+        createMockAgent(ZONE, "agent-for-retry-queue-test");
+        Thread.sleep(5000); // wait for enqueue again
+
+        // then:
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
+        verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
     }
 }

@@ -18,22 +18,30 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
-import com.flow.platform.domain.*;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.collect.Sets;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author gy@fir.im
@@ -72,6 +80,7 @@ public class AgentServiceImpl implements AgentService {
         offlines.removeAll(keys);
 
         // remove offline agents from online list and update status
+        // TODO: replace by batch update
         for (AgentPath key : offlines) {
             Agent offlineAgent = onlineAgentMap.get(key);
             offlineAgent.setStatus(AgentStatus.OFFLINE);
@@ -80,6 +89,7 @@ public class AgentServiceImpl implements AgentService {
         }
 
         // report online
+        // TODO: replace by batch update
         for (AgentPath key : keys) {
             if (onlineAgentKeys.contains(key)) {
                 continue;
@@ -192,7 +202,7 @@ public class AgentServiceImpl implements AgentService {
      * Find from online list and create
      */
     private void reportOnline(AgentPath key) {
-        Agent exist = find(key);
+        Agent exist = agentDao.find(key);
 
         // create new agent with idle status
         if (exist == null) {

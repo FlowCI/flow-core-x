@@ -58,12 +58,12 @@ public interface CmdService {
     List<CmdResult> listResult(Set<String> cmdIds);
 
     /**
-     * Send CmdBase with AgentPath which to identify where is cmd destination
+     * Send CmdInfo with AgentPath which to identify where is cmd destination
      * - AgentPath,
      * - 'zone' field is required
      * - 'name' field is optional
      * - which mean system will automatic select idle agent to send
-     * throw AgentErr.NotAvailableException if no idle agent
+     * throw AgentErr.NotAvailableException if no idle agent and update cmd status to CmdStatus.Reject
      *
      * @return command objc with id
      * @throws AgentErr.NotAvailableException if agent busy
@@ -78,7 +78,7 @@ public interface CmdService {
     boolean isTimeout(Cmd cmd);
 
     /**
-     * Update cmd status and result
+     * Update cmd status and result, send cmd webhook if existed
      *
      * @param cmdId target cmd id
      * @param status target cmd status should updated
