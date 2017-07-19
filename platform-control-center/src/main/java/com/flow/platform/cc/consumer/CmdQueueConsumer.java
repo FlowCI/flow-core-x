@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.consumer;
 
+import com.flow.platform.cc.context.ContextEvent;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.Cmd;
@@ -38,7 +39,7 @@ import org.springframework.stereotype.Component;
  * @author gy@fir.im
  */
 @Component(value = "cmdQueueConsumer")
-public class CmdQueueConsumer implements QueueConsumer {
+public class CmdQueueConsumer implements ContextEvent {
 
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
 
@@ -59,11 +60,6 @@ public class CmdQueueConsumer implements QueueConsumer {
 
     @Autowired
     private CmdService cmdService;
-
-    @Override
-    public String getName() {
-        return "CmdQueueConsumer";
-    }
 
     @Override
     public void start() {

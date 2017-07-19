@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.consumer;
+package com.flow.platform.cc.context;
 
 /**
+ * Event interface when spring context refreshed and closed
+ *
  * @author yang
  */
-public interface QueueConsumer {
-
-    String getName();
+public interface ContextEvent {
 
     void start();
 

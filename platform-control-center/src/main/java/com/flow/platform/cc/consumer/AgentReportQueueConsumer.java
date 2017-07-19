@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.consumer;
 
+import com.flow.platform.cc.context.ContextEvent;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -36,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author yang
  */
 @Component
-public class AgentReportQueueConsumer implements QueueConsumer {
+public class AgentReportQueueConsumer implements ContextEvent {
 
     private final static Logger LOGGER = new Logger(AgentReportQueueConsumer.class);
 
@@ -50,11 +51,6 @@ public class AgentReportQueueConsumer implements QueueConsumer {
     private ThreadPoolTaskExecutor taskExecutor;
 
     private volatile boolean shouldStop = false;
-
-    @Override
-    public String getName() {
-        return "AgentReportQueueConsumer";
-    }
 
     @Override
     public void start() {

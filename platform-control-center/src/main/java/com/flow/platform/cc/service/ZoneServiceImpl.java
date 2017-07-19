@@ -17,6 +17,7 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
+import com.flow.platform.cc.context.ContextEvent;
 import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.cloud.InstanceManager;
 import com.flow.platform.domain.Agent;
@@ -51,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service(value = "zoneService")
 @Transactional(isolation = Isolation.REPEATABLE_READ)
-public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
+public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, ContextEvent {
 
     private final static Logger LOGGER = new Logger(ZoneService.class);
 
@@ -74,6 +75,24 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
     private TaskConfig taskConfig;
 
     private final Map<Zone, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
+
+    @Override
+    public void start() {
+        // init root node
+        String path = createRoot();
+        LOGGER.trace("Root zookeeper node initialized: %s", path);
+
+        // init zone nodes
+        for (Zone zone : zkHelper.getDefaultZones()) {
+            path = createZone(zone);
+            LOGGER.trace("Zone zookeeper node initialized: %s", path);
+        }
+    }
+
+    @Override
+    public void stop() {
+        // ignore
+    }
 
     @Override
     public String createRoot() {

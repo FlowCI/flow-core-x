@@ -16,7 +16,6 @@
 
 package com.flow.platform.cc.context;
 
-import com.flow.platform.cc.consumer.QueueConsumer;
 import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,10 +44,10 @@ public class ContextCloseHandler implements ApplicationListener<ContextClosedEve
     public void onApplicationEvent(ContextClosedEvent event) {
         LOGGER.trace("Received app context closed event");
 
-        for (String queueConsumeName : springContextUtil.getBeanNameByType(QueueConsumer.class)) {
-            QueueConsumer queueConsumer = (QueueConsumer) springContextUtil.getBean(queueConsumeName);
-            queueConsumer.stop();
-            LOGGER.trace("Stop queue consumer : %s", queueConsumer.getName());
+        for (String eventClassName : springContextUtil.getBeanNameByType(ContextEvent.class)) {
+            ContextEvent eventClass = (ContextEvent) springContextUtil.getBean(eventClassName);
+            eventClass.stop();
+            LOGGER.trace("Stop context event : %s", eventClassName);
         }
 
         taskExecutor.setWaitForTasksToCompleteOnShutdown(true);
