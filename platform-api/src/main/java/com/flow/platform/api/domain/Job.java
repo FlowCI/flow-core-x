@@ -42,6 +42,8 @@ public class Job extends Jsonable {
 
     private Map<Env, String> envs = new HashMap<>();
 
+    private JobStatus jobStatus = JobStatus.PENDING;
+
     public Job() {
     }
 
@@ -119,6 +121,14 @@ public class Job extends Jsonable {
 
     public void setEnvs(Map<Env, String> envs) {
         this.envs = envs;
+    }
+
+    public JobStatus getJobStatus() {
+        return jobStatus;
+    }
+
+    public void setJobStatus(JobStatus jobStatus) {
+        this.jobStatus = jobStatus;
     }
 
     @Override
