@@ -18,7 +18,7 @@ package com.flow.platform.api.domain;
 /**
  * @author yh@fir.im
  */
-public enum JobStatus {
+public enum NodeStatus {
 
     PENDING("PENDING", 0),
 
@@ -38,7 +38,7 @@ public enum JobStatus {
 
     private Integer level;
 
-    JobStatus(String name, Integer level) {
+    NodeStatus(String name, Integer level) {
         this.name = name;
         this.level = level;
     }

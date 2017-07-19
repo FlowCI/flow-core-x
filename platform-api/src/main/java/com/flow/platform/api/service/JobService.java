@@ -18,6 +18,8 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
 
 /**
  * @author yh@firim
@@ -29,7 +31,7 @@ public interface JobService {
      * @param node
      * @return
      */
-    Boolean run(Node node);
+    Boolean run(Node node, Job job);
 
     /**
      * create agent session
@@ -43,14 +45,15 @@ public interface JobService {
      * @param jobNode
      * @return
      */
-    Boolean handleStatus(JobNode jobNode);
+    Boolean handleCmdResult(Cmd cmd, JobNode jobNode);
 
     /**
-     * handle callback
+     * create session success
+     * @param cmdBase
      * @param job
      * @return
      */
-    Boolean handleCreateSessionCallBack(Job job);
+    Boolean handleCreateSessionCallBack(CmdBase cmdBase, Job job);
     /**
      * create job
      * @param job

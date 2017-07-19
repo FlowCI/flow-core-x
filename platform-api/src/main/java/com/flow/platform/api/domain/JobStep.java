@@ -22,6 +22,16 @@ public class JobStep extends JobNode {
 
     private String plugin;
 
+    private String cmdId;
+
+    public String getCmdId() {
+        return cmdId;
+    }
+
+    public void setCmdId(String cmdId) {
+        this.cmdId = cmdId;
+    }
+
     public Boolean getAllowFailure() {
         return isAllowFailure;
     }

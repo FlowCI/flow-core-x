@@ -18,6 +18,7 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,9 +43,19 @@ public class Job extends Jsonable {
 
     private Map<Env, String> envs = new HashMap<>();
 
-    private JobStatus jobStatus = JobStatus.PENDING;
+    private NodeStatus nodeStatus = NodeStatus.PENDING;
+
+    private String sessionId = null;
 
     public Job() {
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public Job(String id) {
@@ -95,7 +106,7 @@ public class Job extends Jsonable {
         return finishedAt;
     }
 
-    public void setFinishedAt(Date finishedAt) {
+    public void setFinishedAt(ZonedDateTime finishedAt) {
         this.finishedAt = finishedAt;
     }
 
@@ -123,12 +134,12 @@ public class Job extends Jsonable {
         this.envs = envs;
     }
 
-    public JobStatus getJobStatus() {
-        return jobStatus;
+    public NodeStatus getNodeStatus() {
+        return nodeStatus;
     }
 
-    public void setJobStatus(JobStatus jobStatus) {
-        this.jobStatus = jobStatus;
+    public void setNodeStatus(NodeStatus nodeStatus) {
+        this.nodeStatus = nodeStatus;
     }
 
     @Override

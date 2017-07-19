@@ -74,7 +74,7 @@ public class Cmd extends CmdBase {
     private ZonedDateTime finishedDate;
 
     /**
-     * only show not save db
+     * only show do
      */
     private CmdResult result;
 
