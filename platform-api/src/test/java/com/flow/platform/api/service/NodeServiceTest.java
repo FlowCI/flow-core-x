@@ -16,6 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.test.TestBase;
@@ -109,5 +110,12 @@ public class NodeServiceTest extends TestBase{
         Node node = step1;
         Step step2 = (Step) node;
         Assert.assertEquals(true, node instanceof Step);
+
+        JobStep jobstep = new JobStep();
+        jobstep.setCmdId("00000000000000000");
+        jobstep = (JobStep) nodeService.create(jobstep);
+        Assert.assertEquals("00000000000000000", ((JobStep)nodeService.find(jobstep.getPath())).getCmdId());
+        Node node1 = nodeService.find(jobstep.getPath());
+        Assert.assertEquals(true, node1 instanceof JobStep);
     }
 }
