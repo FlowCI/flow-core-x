@@ -27,7 +27,7 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.zk.ZkException;
+import com.flow.platform.util.zk.ZkException.NotExitException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -137,100 +137,54 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         return runningInSeconds >= cmd.getTimeout();
     }
 
-    /**
-     * Send cmd in transaction for agent status
-     * Update cmd status if target agent doesn't available
-     *
-     * @throws AgentErr.NotAvailableException when target agent is not available
-     */
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Cmd send(CmdInfo cmdInfo) {
+        Cmd cmd = null;
+
         try {
             Agent target = selectAgent(cmdInfo); // find agent by cmd
             cmdInfo.setAgentPath(target.getPath()); // reset cmd path since some of cmd missing agent name
 
             // double check agent in zk node
             String agentNodePath = zkHelper.getZkPath(target.getPath());
-
             if (ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
                 throw new AgentErr.NotFoundException(target.getPath().toString());
             }
 
-            Cmd cmd = create(cmdInfo); // create cmd info
+            cmd = create(cmdInfo);
+            updateAgentStatusByCmdType(cmdInfo, cmd, target);
 
-            // set agent status before cmd sent
-            switch (cmdInfo.getType()) {
-                case RUN_SHELL:
-                    if (cmd.hasSession()) {
-                        break;
-                    }
-
-                    // add reject status since busy
-                    if (!target.isAvailable()) {
-                        updateStatus(cmd.getId(), CmdStatus.REJECTED, null, true);
-                        throw new AgentErr.NotAvailableException(target.getName());
-                    }
-
-                    target.setStatus(AgentStatus.BUSY);
-                    break;
-
-                case CREATE_SESSION:
-                    // add reject status since unable to create session for agent
-                    String sessionId = agentService.createSession(target);
-                    if (sessionId == null) {
-                        updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false);
-                        throw new AgentErr.NotAvailableException(target.getName());
-                    }
-
-                    // set session id to cmd and save
-                    cmd.setSessionId(sessionId);
-                    cmdDao.update(cmd);
-
-                    break;
-
-                case DELETE_SESSION:
-                    agentService.deleteSession(target);
-                    break;
-
-                case KILL:
-                    // DO NOT handle it, agent status from cmd update
-                    break;
-
-                case STOP:
-                    agentService.deleteSession(target);
-                    target.setStatus(AgentStatus.OFFLINE);
-                    break;
-
-                case SHUTDOWN:
-                    // in shutdown action, cmd content is sudo password
-                    if (Strings.isNullOrEmpty(cmd.getCmd())) {
-                        throw new IllegalParameterException(
-                            "For SHUTDOWN action, password of 'sudo' must be provided");
-                    }
-
-                    agentService.deleteSession(target);
-                    target.setStatus(AgentStatus.OFFLINE);
-                    break;
-            }
-
-            agentDao.update(target);
+            // set real cmd to zookeeper node
             ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmd.toJson());
 
-            return cmd;
+            // update agent property
+            agentDao.update(target);
 
+            updateStatus(cmd.getId(), CmdStatus.SENT, null, false);
+            return cmd;
         } catch (AgentErr.NotAvailableException e) {
+
+            // update status and send webhook
+            if (cmd != null) {
+                updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false);
+            } else {
+                cmdInfo.setStatus(CmdStatus.REJECTED);
+                webhookCallback(cmdInfo);
+            }
+
             // force to check idle agent
             zoneService.keepIdleAgentTask();
             throw e;
-        } catch (ZkException.ZkNoNodeException e) {
+
+        } catch (NotExitException e) {
             throw new AgentErr.NotFoundException(cmdInfo.getAgentName());
         }
     }
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateStatus(
-        String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
+    public void updateStatus(String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
         LOGGER.trace("Report cmd %s status %s and result %s", cmdId, status, inputResult);
 
         Cmd cmd = find(cmdId);
@@ -320,8 +274,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
      *
      * @return Agent or null
      * @throws AgentErr.NotAvailableException no idle agent in zone
-     * @throws AgentErr.AgentMustBeSpecified name must for operation
-     * cmd type
+     * @throws AgentErr.AgentMustBeSpecified name must for operation cmd type
      * @throws AgentErr.NotFoundException target agent not found
      */
     private Agent selectAgent(CmdBase cmd) {
@@ -359,6 +312,67 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         return target;
+    }
+
+    /**
+     * Update agent status by cmd type
+     *
+     * @param cmdInfo origin cmd info
+     * @param cmd cmd instance created by cmdInfo
+     * @param target target agent that needs to set status
+     */
+    private void updateAgentStatusByCmdType(final CmdInfo cmdInfo, final Cmd cmd, final Agent target) {
+        switch (cmdInfo.getType()) {
+            case RUN_SHELL:
+                if (cmd.hasSession()) {
+                    break;
+                }
+
+                // add reject status since busy
+                if (!target.isAvailable()) {
+                    throw new AgentErr.NotAvailableException(target.getName());
+                }
+
+                target.setStatus(AgentStatus.BUSY);
+                break;
+
+            case CREATE_SESSION:
+                // add reject status since unable to create session for agent
+                String sessionId = agentService.createSession(target);
+                if (sessionId == null) {
+                    throw new AgentErr.NotAvailableException(target.getName());
+                }
+
+                // set session id to cmd and save
+                cmd.setSessionId(sessionId);
+                cmdDao.update(cmd);
+
+                break;
+
+            case DELETE_SESSION:
+                agentService.deleteSession(target);
+                break;
+
+            case KILL:
+                // DO NOT handle it, agent status from cmd update
+                break;
+
+            case STOP:
+                agentService.deleteSession(target);
+                target.setStatus(AgentStatus.OFFLINE);
+                break;
+
+            case SHUTDOWN:
+                // in shutdown action, cmd content is sudo password
+                if (Strings.isNullOrEmpty(cmd.getCmd())) {
+                    throw new IllegalParameterException(
+                        "For SHUTDOWN action, password of 'sudo' must be provided");
+                }
+
+                agentService.deleteSession(target);
+                target.setStatus(AgentStatus.OFFLINE);
+                break;
+        }
     }
 
     private boolean isAgentPathFail(CmdBase cmd, AgentPath agentPath) {

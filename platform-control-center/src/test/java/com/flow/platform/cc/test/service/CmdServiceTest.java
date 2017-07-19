@@ -282,7 +282,7 @@ public class CmdServiceTest extends TestBase {
 
         // check cmd status
         Assert.assertNotNull(cmdInfo.getId());
-        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
+        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.SENT));
         Assert.assertEquals(zoneName, cmdInfo.getZoneName());
         Assert.assertEquals(agentName, cmdInfo.getAgentName());
 

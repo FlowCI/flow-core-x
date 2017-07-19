@@ -27,6 +27,7 @@ import java.util.Set;
 /**
  * Command object to communicate between c/s
  * <p>
+ *
  * @author gy@fir.im
  */
 public class Cmd extends CmdBase {
@@ -35,23 +36,19 @@ public class Cmd extends CmdBase {
      * Working status set
      */
     public static final Set<CmdStatus> WORKING_STATUS =
-            Sets.newHashSet(CmdStatus.PENDING, CmdStatus.RUNNING, CmdStatus.EXECUTED);
+        Sets.newHashSet(CmdStatus.PENDING, CmdStatus.SENT, CmdStatus.RUNNING, CmdStatus.EXECUTED);
 
     /**
      * Finish status set
      */
     public static final Set<CmdStatus> FINISH_STATUS =
-            Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED, CmdStatus.TIMEOUT_KILL);
+        Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED,
+            CmdStatus.TIMEOUT_KILL);
 
     /**
      * Server generated command id
      */
     private String id;
-
-    /**
-     * record current status
-     */
-    private CmdStatus status = CmdStatus.PENDING;
 
     /**
      * Path for full log
@@ -89,15 +86,6 @@ public class Cmd extends CmdBase {
         this.id = id;
     }
 
-    // DO NOT used in programming to set cmd status, using addStatus instead this func
-    public void setStatus(CmdStatus status) {
-        this.status = status;
-    }
-
-    public CmdStatus getStatus() {
-        return status;
-    }
-
     /**
      * only level gt current level
      *
@@ -113,7 +101,7 @@ public class Cmd extends CmdBase {
         if (this.status.getLevel() < status.getLevel()) {
             this.status = status;
 
-            if(!isCurrent()) {
+            if (!isCurrent()) {
                 this.finishedDate = DateUtil.utcNow();
             }
 
@@ -161,9 +149,15 @@ public class Cmd extends CmdBase {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
 
         Cmd cmd = (Cmd) o;
 
@@ -180,22 +174,20 @@ public class Cmd extends CmdBase {
     @Override
     public String toString() {
         return "Cmd{" +
-                "id='" + id + '\'' +
-                ", info=" + super.toString() +
-                ", createdDate=" + createdDate +
-                ", updatedDate=" + updatedDate +
-                '}';
+            "id='" + id + '\'' +
+            ", info=" + super.toString() +
+            ", createdDate=" + createdDate +
+            ", updatedDate=" + updatedDate +
+            '}';
     }
 
     /**
      * Convert CmdBase to Cmd
-     *
-     * @param base
-     * @return
      */
     public static Cmd convert(CmdBase base) {
         Cmd cmd = new Cmd();
         cmd.agentPath = base.getAgentPath();
+        cmd.status = base.getStatus();
         cmd.type = base.getType();
         cmd.cmd = base.getCmd();
         cmd.timeout = base.getTimeout();
@@ -205,6 +197,7 @@ public class Cmd extends CmdBase {
         cmd.priority = base.getPriority();
         cmd.outputEnvFilter = base.getOutputEnvFilter();
         cmd.webhook = base.getWebhook();
+        cmd.extra = base.getExtra();
         return cmd;
     }
 }

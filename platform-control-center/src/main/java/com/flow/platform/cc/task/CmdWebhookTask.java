@@ -74,7 +74,8 @@ public final class CmdWebhookTask implements Runnable {
                 return;
             }
 
-            LOGGER.trace("Cmd webhook response %s, retry %s after %s seconds", statusCode, nextRetry, nextRetryWaitTime);
+            LOGGER.trace("Cmd webhook response %s, retry %s after %s seconds",
+                statusCode, nextRetry, nextRetryWaitTime / 1000);
             shouldRetry = true;
         } catch (UnsupportedEncodingException | ClientProtocolException e) {
             // JSON data or http protocol exception, exit directly

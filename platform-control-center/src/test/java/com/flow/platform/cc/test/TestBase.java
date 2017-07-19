@@ -30,6 +30,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Stream;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.After;
@@ -126,5 +127,16 @@ public abstract class TestBase {
         AgentPath agentPath = new AgentPath(zone, agent);
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentPath), "");
         return agentPath;
+    }
+
+    protected void cleanZookeeperChilderenNode(String node) {
+        if (ZkNodeHelper.exist(zkClient, node) == null) {
+            return;
+        }
+
+        List<String> children = ZkNodeHelper.getChildrenNodes(zkClient, node);
+        for (String child : children) {
+            ZkNodeHelper.deleteNode(zkClient, node + "/" + child);
+        }
     }
 }
