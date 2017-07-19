@@ -16,7 +16,9 @@
 
 package com.flow.platform.cc.context;
 
+import com.flow.platform.cc.consumer.QueueConsumer;
 import com.flow.platform.cc.service.ZoneService;
+import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
@@ -41,6 +43,9 @@ public class ContextInitHandler implements ApplicationListener<ContextRefreshedE
     @Autowired
     private ZoneService zoneService;
 
+    @Autowired
+    private SpringContextUtil springContextUtil;
+
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         // init root node
@@ -51,6 +56,13 @@ public class ContextInitHandler implements ApplicationListener<ContextRefreshedE
         for (Zone zone : zkHelper.getDefaultZones()) {
             path = zoneService.createZone(zone);
             LOGGER.trace("Zone zookeeper node initialized: %s", path);
+        }
+
+        // init queue consumer
+        for (String queueConsumeName : springContextUtil.getBeanNameByType(QueueConsumer.class)) {
+            QueueConsumer queueConsumer = (QueueConsumer) springContextUtil.getBean(queueConsumeName);
+            queueConsumer.start();
+            LOGGER.trace("Start queue consumer : %s", queueConsumer.getName());
         }
     }
 }

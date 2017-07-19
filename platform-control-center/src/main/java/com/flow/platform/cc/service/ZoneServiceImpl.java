@@ -30,6 +30,7 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -90,7 +91,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         } else {
             ZkNodeHelper.setNodeData(zkClient, zonePath, agentConfig.toJson());
             List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
-            agentService.reportOnline(zone.getName(), buildKeys(zone.getName(), agents));
+            agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
         }
 
         ZoneEventWatcher zoneEventWatcher =
@@ -202,14 +203,6 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
         LOGGER.traceMarker("keepIdleAgentTask", "end");
     }
 
-    private Collection<AgentPath> buildKeys(String zone, Collection<String> agents) {
-        ArrayList<AgentPath> keys = new ArrayList<>(agents.size());
-        for (String agentName : agents) {
-            keys.add(new AgentPath(zone, agentName));
-        }
-        return keys;
-    }
-
     /**
      * To handle zk events on zone level
      */
@@ -233,7 +226,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService {
             if (ZkEventHelper.isChildrenChanged(event)) {
                 taskExecutor.execute(() -> {
                     List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
-                    agentService.reportOnline(zone.getName(), buildKeys(zone.getName(), agents));
+                    agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
                 });
             }
         }

@@ -138,7 +138,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE, noRollbackFor = AgentErr.NotAvailableException.class)
     public Cmd send(CmdInfo cmdInfo) {
         Cmd cmd = null;
 
@@ -165,7 +165,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             return cmd;
         } catch (AgentErr.NotAvailableException e) {
 
-            // update status and send webhook
+            // update cmd status and send webhook
             if (cmd != null) {
                 updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false);
             } else {

@@ -47,9 +47,6 @@ public class CmdController {
 
     /**
      * Send command to agent
-     *
-     * @param cmd
-     * @return
      */
     @PostMapping(path = "/send", consumes = "application/json")
     public Cmd sendCommand(@RequestBody CmdInfo cmd) {
@@ -71,8 +68,6 @@ public class CmdController {
 
     /**
      * List commands by agent path
-     *
-     * @param agentPath
      */
     @PostMapping(path = "/list", consumes = "application/json")
     public Collection<Cmd> list(@RequestBody AgentPath agentPath) {
@@ -83,7 +78,7 @@ public class CmdController {
      * Upload zipped cmd log with multipart
      *
      * @param cmdId cmd id with text/plain
-     * @param file  zipped cmd log with application/zip
+     * @param file zipped cmd log with application/zip
      */
     @PostMapping(path = "/log/upload")
     public void uploadFullLog(@RequestPart String cmdId, @RequestPart MultipartFile file) {
@@ -95,14 +90,11 @@ public class CmdController {
 
     /**
      * Get zipped log file by cmd id
-     *
-     * @param cmdId
-     * @return
      */
     @GetMapping(path = "/log/download", produces = "application/zip")
     public Resource downloadFullLog(@RequestParam String cmdId,
-                                    @RequestParam Integer index,
-                                    HttpServletResponse httpResponse) {
+        @RequestParam Integer index,
+        HttpServletResponse httpResponse) {
 
         Cmd cmd = cmdService.find(cmdId);
         if (cmd == null) {
@@ -113,7 +105,7 @@ public class CmdController {
             Path filePath = Paths.get(cmd.getLogPaths().get(index));
             FileSystemResource resource = new FileSystemResource(filePath.toFile());
             httpResponse.setHeader("Content-Disposition",
-                    String.format("attachment; filename=%s", filePath.getFileName().toString()));
+                String.format("attachment; filename=%s", filePath.getFileName().toString()));
             return resource;
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new RuntimeException("Log not found");

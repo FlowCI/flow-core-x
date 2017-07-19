@@ -27,24 +27,22 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-
 /**
- * Cmd queue consumer to handle cmd from queue
+ * Cmd queue consumer to handle cmd from RabbitMQ
  *
  * @author gy@fir.im
  */
 @Component(value = "cmdQueueConsumer")
-public class CmdQueueConsumer {
+public class CmdQueueConsumer implements QueueConsumer {
 
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
 
-    private final static int RETRY_QUEUE_PRIORITY = 5;
+    private final static int RETRY_QUEUE_PRIORITY = 255;
     private final static int RETRY_TIMES = 5;
 
     @Value("${mq.exchange.name}")
@@ -62,9 +60,29 @@ public class CmdQueueConsumer {
     @Autowired
     private CmdService cmdService;
 
-    @PostConstruct
-    public void init() throws IOException {
-        createConsume();
+    @Override
+    public String getName() {
+        return "CmdQueueConsumer";
+    }
+
+    @Override
+    public void start() {
+        try {
+            createConsume();
+        } catch (IOException e) {
+            LOGGER.error("Error when create consume of cmd queue", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void stop() {
+        if (cmdConsumeChannel.isOpen()) {
+            try {
+                cmdConsumeChannel.close();
+            } catch (Throwable ignore) {
+            }
+        }
     }
 
     private void createConsume() throws IOException {

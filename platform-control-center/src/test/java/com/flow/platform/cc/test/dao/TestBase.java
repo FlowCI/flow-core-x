@@ -19,10 +19,9 @@ package com.flow.platform.cc.test.dao;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdResultDao;
-
+import org.junit.After;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -41,4 +40,11 @@ public abstract class TestBase {
 
     @Autowired
     protected CmdResultDao cmdResultDao;
+
+    @After
+    public void afterEach() {
+        agentDao.deleteAll();
+        cmdDao.deleteAll();
+        cmdResultDao.deleteAll();
+    }
 }
