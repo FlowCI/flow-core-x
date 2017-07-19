@@ -35,7 +35,7 @@ public class Job extends Jsonable {
 
     private Long duration;
 
-    private Date finishedAt;
+    private ZonedDateTime finishedAt;
 
     private Integer exitCode;
 
@@ -102,7 +102,7 @@ public class Job extends Jsonable {
         this.duration = duration;
     }
 
-    public Date getFinishedAt() {
+    public ZonedDateTime getFinishedAt() {
         return finishedAt;
     }
 
