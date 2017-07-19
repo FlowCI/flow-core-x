@@ -27,6 +27,7 @@ import java.util.Set;
 /**
  * Command object to communicate between c/s
  * <p>
+ *
  * @author gy@fir.im
  */
 public class Cmd extends CmdBase {
@@ -35,13 +36,14 @@ public class Cmd extends CmdBase {
      * Working status set
      */
     public static final Set<CmdStatus> WORKING_STATUS =
-            Sets.newHashSet(CmdStatus.PENDING, CmdStatus.SENT, CmdStatus.RUNNING, CmdStatus.EXECUTED);
+        Sets.newHashSet(CmdStatus.PENDING, CmdStatus.SENT, CmdStatus.RUNNING, CmdStatus.EXECUTED);
 
     /**
      * Finish status set
      */
     public static final Set<CmdStatus> FINISH_STATUS =
-            Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED, CmdStatus.TIMEOUT_KILL);
+        Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED,
+            CmdStatus.TIMEOUT_KILL);
 
     /**
      * Server generated command id
@@ -99,7 +101,7 @@ public class Cmd extends CmdBase {
         if (this.status.getLevel() < status.getLevel()) {
             this.status = status;
 
-            if(!isCurrent()) {
+            if (!isCurrent()) {
                 this.finishedDate = DateUtil.utcNow();
             }
 
@@ -147,9 +149,15 @@ public class Cmd extends CmdBase {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
 
         Cmd cmd = (Cmd) o;
 
@@ -166,18 +174,15 @@ public class Cmd extends CmdBase {
     @Override
     public String toString() {
         return "Cmd{" +
-                "id='" + id + '\'' +
-                ", info=" + super.toString() +
-                ", createdDate=" + createdDate +
-                ", updatedDate=" + updatedDate +
-                '}';
+            "id='" + id + '\'' +
+            ", info=" + super.toString() +
+            ", createdDate=" + createdDate +
+            ", updatedDate=" + updatedDate +
+            '}';
     }
 
     /**
      * Convert CmdBase to Cmd
-     *
-     * @param base
-     * @return
      */
     public static Cmd convert(CmdBase base) {
         Cmd cmd = new Cmd();
@@ -192,6 +197,7 @@ public class Cmd extends CmdBase {
         cmd.priority = base.getPriority();
         cmd.outputEnvFilter = base.getOutputEnvFilter();
         cmd.webhook = base.getWebhook();
+        cmd.extra = base.getExtra();
         return cmd;
     }
 }
