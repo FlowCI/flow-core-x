@@ -16,10 +16,12 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.util.NodeUtil;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -28,7 +30,10 @@ import org.springframework.stereotype.Service;
 @Service(value = "nodeService")
 public class NodeServiceImpl implements NodeService {
     private final Map<String, Node> mocNodeList = new HashMap<>();
-    
+
+    @Autowired
+    NodeUtil nodeUtil;
+
     @Override
     public Node create(Node node) {
         String path = UUID.randomUUID().toString();
