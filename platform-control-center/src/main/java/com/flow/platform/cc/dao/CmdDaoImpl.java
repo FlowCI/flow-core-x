@@ -39,6 +39,11 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
     }
 
     @Override
+    String getKeyName() {
+        return "id";
+    }
+
+    @Override
     public void update(Cmd obj) {
         execute(session -> {
             obj.setUpdatedDate(DateUtil.now());

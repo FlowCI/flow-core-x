@@ -49,6 +49,11 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
+    String getKeyName() {
+        return "path";
+    }
+
+    @Override
     public void update(final Agent obj) {
         execute(session -> {
             obj.setUpdatedDate(DateUtil.now());

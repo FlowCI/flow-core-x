@@ -16,6 +16,11 @@
 
 package com.flow.platform.cc.dao;
 
+import java.util.List;
+import java.util.Set;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +59,21 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
     }
 
     abstract Class<T> getEntityClass();
+
+    abstract String getKeyName();
+
+    @Override
+    public List<T> list(final Set<K> keySet) {
+        return execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+
+            CriteriaQuery<T> select = builder.createQuery(getEntityClass());
+            Root<T> from = select.from(getEntityClass());
+            select.where(from.get(getKeyName()).in(keySet));
+
+            return session.createQuery(select).list();
+        });
+    }
 
     /**
      * Get object by key
