@@ -13,7 +13,7 @@
   <packaging>war</packaging>
 
   <build>
-    <finalName>flow-platform-api</finalName>
+    <finalName>flow-api</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
