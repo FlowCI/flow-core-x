@@ -129,7 +129,7 @@ public class NodeUtil {
     /**
      * get parent flow
      */
-    private Node parentFlowNode(Node node) {
+    public Node parentFlowNode(Node node) {
         if (detectFlowNode(node)) {
             return node;
         }

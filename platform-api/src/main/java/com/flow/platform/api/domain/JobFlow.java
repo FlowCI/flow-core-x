@@ -17,13 +17,4 @@
 package com.flow.platform.api.domain;
 
 public class JobFlow extends JobNode {
-    private Job job;
-
-    public Job getJob() {
-        return job;
-    }
-
-    public void setJob(Job job) {
-        this.job = job;
-    }
 }

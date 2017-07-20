@@ -45,15 +45,13 @@ public class CallbackController {
 
     @PostMapping(path = "/{jobId}/createSession")
     public String createSession(@RequestBody CmdBase cmdBase, @PathVariable String jobId) {
-        Job job = jobService.find(jobId);
-        jobService.handleCreateSessionCallBack(cmdBase, job);
+        jobService.handleCreateSessionCallBack(cmdBase, jobId);
         return "{\"message\": \"ok\"}";
     }
 
     @PostMapping(path = "/{nodePath}/message")
     public String handleMessage(@RequestBody CmdBase cmdBase, @PathVariable String nodePath) {
-        JobNode jobStep = jobNodeService.find(nodePath);
-        jobService.handleCmdResult((Cmd) cmdBase, jobStep);
+        jobService.handleCmdResult((Cmd) cmdBase, nodePath);
         return "{\"message\": \"ok\"}";
     }
 

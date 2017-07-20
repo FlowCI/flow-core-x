@@ -31,7 +31,7 @@ public interface JobService {
      * @param node
      * @return
      */
-    Boolean run(Node node, Job job);
+    Boolean run(Node node);
 
     /**
      * create agent session
@@ -42,25 +42,25 @@ public interface JobService {
 
     /**
      * handle node status
-     * @param jobNode
+     * @param nodePath
      * @return
      */
-    Boolean handleCmdResult(Cmd cmd, JobNode jobNode);
+    Boolean handleCmdResult(Cmd cmd, String nodePath);
 
     /**
      * create session success
      * @param cmdBase
-     * @param job
+     * @param jobId
      * @return
      */
-    Boolean handleCreateSessionCallBack(CmdBase cmdBase, Job job);
+    Boolean handleCreateSessionCallBack(CmdBase cmdBase, String jobId);
 
     /**
-     * create job
-     * @param job
+     * create job by flow name
+     * @param flowName
      * @return
      */
-    Job create(Job job);
+    Job create(String flowName);
 
     /**
      * find job

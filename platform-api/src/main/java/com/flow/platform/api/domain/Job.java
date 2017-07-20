@@ -29,9 +29,9 @@ public class Job extends Jsonable {
 
     private String type;
 
-    private Date createdAt;
+    private ZonedDateTime createdAt;
 
-    private Date updatedAt;
+    private ZonedDateTime updatedAt;
 
     private Long duration;
 
@@ -39,7 +39,7 @@ public class Job extends Jsonable {
 
     private Integer exitCode;
 
-    private String nodePath;
+    private String nodeName;
 
     private Map<Env, String> envs = new HashMap<>();
 
@@ -78,19 +78,19 @@ public class Job extends Jsonable {
         this.type = type;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -119,11 +119,11 @@ public class Job extends Jsonable {
     }
 
     public String getNodePath() {
-        return nodePath;
+        return nodeName;
     }
 
     public void setNodePath(String nodePath) {
-        this.nodePath = nodePath;
+        this.nodeName = nodePath;
     }
 
     public Map<Env, String> getEnvs() {
@@ -169,7 +169,7 @@ public class Job extends Jsonable {
             ", duration=" + duration +
             ", finishedAt=" + finishedAt +
             ", exitCode=" + exitCode +
-            ", nodeName='" + nodePath + '\'' +
+            ", nodeName='" + nodeName + '\'' +
             '}';
     }
 }

@@ -37,6 +37,16 @@ public abstract class JobNode extends Node {
 
     protected NodeStatus nodeStatus;
 
+    protected Job job;
+
+    public Job getJob() {
+        return job;
+    }
+
+    public void setJob(Job job) {
+        this.job = job;
+    }
+
     public NodeStatus getNodeStatus() {
         return nodeStatus;
     }

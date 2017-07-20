@@ -15,18 +15,22 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.RestClient;
 import com.flow.platform.api.util.RestClient.HttpMethod;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.util.ObjectUtil;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
@@ -52,6 +56,9 @@ public class JobServiceImpl implements JobService {
     private NodeService nodeService;
 
     @Autowired
+    private NodeUtil nodeUtil;
+
+    @Autowired
     private RabbitmqService rabbitmqService;
 
     @Value(value = "${domain}")
@@ -64,7 +71,8 @@ public class JobServiceImpl implements JobService {
     private String platform_url;
 
     @Override
-    public Boolean handleCmdResult(Cmd cmd, JobNode jobNode) {
+    public Boolean handleCmdResult(Cmd cmd, String nodePath) {
+        JobNode jobNode = jobNodeService.find(nodePath);
         JobStep jobStep = (JobStep) jobNode;
         handleStatus(cmd, jobStep);
         return true;
@@ -78,7 +86,7 @@ public class JobServiceImpl implements JobService {
         jobStep.setDuration(cmd.getResult().getDuration());
         jobStep.setExitCode(cmd.getResult().getExitValue());
         jobStep.setLogPaths(cmd.getLogPaths());
-        Job job = findJobFlow(jobStep).getJob();
+        Job job = jobStep.getJob();
         switch (cmd.getStatus()) {
             case PENDING:
                 nodeStatus = NodeStatus.PENDING;
@@ -88,7 +96,7 @@ public class JobServiceImpl implements JobService {
                 nodeStatus = NodeStatus.RUNNING;
                 jobStep.setNodeStatus(nodeStatus);
                 //first step
-                if(findPrevJobStep(jobStep) == null){
+                if(nodeUtil.prevNodeFromAllChildren(jobStep) == null){
                     updateFlowStatus(jobStep, cmd, true, false);
                     updateJobStatus(jobStep, cmd, true, false);
                 }
@@ -98,21 +106,20 @@ public class JobServiceImpl implements JobService {
             case LOGGED:
                 nodeStatus = NodeStatus.SUCCESS;
                 jobStep.setNodeStatus(nodeStatus);
-                JobStep next = findNextJobStep(jobStep);
+                JobStep next = (JobStep) nodeUtil.nextNodeFromAllChildren(jobStep);
                 // end step
                 if(next == null){
                     updateFinishStatus(jobStep, cmd, job);
                     return;
                 }
-                JobFlow jobFlow = findJobFlow(jobStep);
-                run(next, job);
+                run(next);
                 break;
             case REJECTED:
             case KILLED:
             case EXCEPTION:
                 nodeStatus = NodeStatus.FAIL;
                 jobStep.setNodeStatus(nodeStatus);
-                next = findNextJobStep(jobStep);
+                next = (JobStep) nodeUtil.nextNodeFromAllChildren(jobStep);
                 // end step
                 if(next == null){
                     updateFinishStatus(jobStep, cmd, job);
@@ -122,7 +129,7 @@ public class JobServiceImpl implements JobService {
             case TIMEOUT_KILL:
                 nodeStatus = NodeStatus.TIMEOUT;
                 jobStep.setNodeStatus(nodeStatus);
-                next = findNextJobStep(jobStep);
+                next = (JobStep) nodeUtil.nextNodeFromAllChildren(jobStep);
                 // end step
                 if(next == null){
                     updateFinishStatus(jobStep, cmd, job);
@@ -140,7 +147,7 @@ public class JobServiceImpl implements JobService {
     }
 
     private void updateFlowStatus(JobStep jobStep, Cmd cmd, Boolean firstStep, Boolean lastStep) {
-        JobFlow jobFlow = findJobFlow(jobStep);
+        JobFlow jobFlow = (JobFlow) nodeUtil.parentFlowNode(jobStep);
         jobFlow.setUpdatedAt(ZonedDateTime.now());
         jobFlow.setNodeStatus(jobStep.getNodeStatus());
         if(firstStep){
@@ -155,10 +162,10 @@ public class JobServiceImpl implements JobService {
     }
 
     private void updateJobStatus(JobStep jobStep, Cmd cmd,  Boolean firstStep, Boolean lastStep) {
-        JobFlow jobFlow = findJobFlow(jobStep);
-        Job job = jobFlow.getJob();
+        Job job = jobStep.getJob();
         job.setNodeStatus(jobStep.getNodeStatus());
 
+        JobFlow jobFlow = (JobFlow) nodeUtil.parentFlowNode(jobStep);
         if(firstStep){
             jobFlow.setStartedTime(cmd.getCreatedDate());
         }
@@ -170,88 +177,49 @@ public class JobServiceImpl implements JobService {
         mocJobList.put(job.getId(), job);
     }
 
-    private JobFlow findJobFlow(JobStep jobStep) {
-        JobFlow jobFlow;
-        Node tmp = jobStep;
-        Node node;
-        while (true) {
-            if (tmp == null) {
-                throw new RuntimeException("no parent node");
-            }
-            node = tmp.getParent();
-            if (node instanceof JobFlow) {
-                jobFlow = (JobFlow) node;
-                break;
-            }
-            tmp = node;
-        }
-        return jobFlow;
-    }
-
-    private JobStep findNextJobStep(JobStep jobStep) {
-        Node tmp = jobStep;
-        if (tmp.getNext() != null) {
-            return findChildrenFirstJobStep((JobStep) tmp.getNext());
-        }
-
-        if (tmp.getParent() instanceof JobStep) {
-            return (JobStep) tmp.getParent();
-        }
-
-        // has no next jobStep
-        return null;
-    }
-
-    private JobStep findPrevJobStep(JobStep jobStep) {
-        Node tmp = jobStep;
-        if (tmp.getPrev() != null) {
-            return (JobStep) tmp.getPrev();
-        }
-
-        if (!tmp.getChildren().isEmpty()) {
-            return (JobStep) findChildrenLastJobStep((JobStep) tmp);
-        }
-
-        // has no prev jobStep
-        if(tmp.getParent() instanceof JobFlow){
-            System.out.println("has no parent prev node");
-            return null;
-        }
-
-        findPrevJobStep((JobStep) jobStep.getParent());
-        // has no next jobStep
-        return null;
-    }
-
-
-    private JobStep findChildrenFirstJobStep(JobStep jobStep) {
-        Node tmp = jobStep;
-        Node firstNode = findFirstNode(tmp.getChildren());
-        if (firstNode == null) {
-            return jobStep;
-        } else {
-            return (JobStep) firstNode;
-        }
-    }
-
-    private JobStep findChildrenLastJobStep(JobStep jobStep) {
-        Node tmp = jobStep;
-        Node lastNode = findLastNode(jobStep.getChildren());
-        if (lastNode == null) {
-            return jobStep;
-        }else{
-            return (JobStep)lastNode;
-        }
-    }
 
     @Override
-    public Job create(Job job) {
-        String id = UUID.randomUUID().toString();
-        job.setId(id);
-        job.setCreatedAt(new Date());
-        job.setUpdatedAt(new Date());
-        mocJobList.put(id, job);
+    public Job create(String flowName) {
+
+        /**
+         * TODO: copy JobFlow
+         * TODO: copy jobStep
+         * TODO: create job
+         * TODO: create session
+         */
+
+        Job job = createJob(flowName);
+        JobFlow jobFlow = copyJobFlow(flowName, job);
+        copyJobStep(nodeUtil.allChildren(jobFlow), job);
+        createSession(job);
+        return null;
+    }
+
+    private Job createJob(String flowName){
+        Job job = new Job();
+        job.setCreatedAt(ZonedDateTime.now());
+        job.setNodeStatus(NodeStatus.PENDING);
+        job.setId(UUID.randomUUID().toString());
+        mocJobList.put(job.getId(), job);
         return job;
+    }
+
+    private void copyJobStep(List<Node> nodes, Job job){
+        nodes.forEach(item ->{
+            Node newNode = ObjectUtil.deepCopy(item);
+            JobStep jobStep = (JobStep)newNode;
+            jobStep.setJob(job);
+            jobNodeService.create(jobStep);
+        });
+    }
+
+    private JobFlow copyJobFlow(String flowName, Job job){
+        Node node = nodeService.find(flowName);
+        Node newNode = ObjectUtil.deepCopy(node);
+        JobFlow jobFlow = (JobFlow) newNode;
+        jobFlow.setJob(job);
+        jobNodeService.create(jobFlow);
+        return jobFlow;
     }
 
     @Override
@@ -260,11 +228,11 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Boolean run(Node node, Job job) {
+    public Boolean run(Node node) {
         if (node instanceof JobFlow) {
-            runFlow(node, job);
+            runFlow(node);
         } else if (node instanceof JobStep) {
-            runStep(node, job);
+            runStep(node);
         } else {
             System.out.println("node is error");
         }
@@ -272,11 +240,16 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Boolean handleCreateSessionCallBack(CmdBase cmdBase, Job job) {
-
+    public Boolean handleCreateSessionCallBack(CmdBase cmdBase, String jobId) {
+        if (cmdBase.getStatus() != CmdStatus.SENT){
+            return null;
+        }
+        Job job = mocJobList.get(jobId);
+        if(job == null)
+            throw new RuntimeException("Not found job");
         //update job status
         job.setNodeStatus(NodeStatus.RUNNING);
-        job.setUpdatedAt(new Date());
+        job.setUpdatedAt(ZonedDateTime.now());
         job.setSessionId(cmdBase.getSessionId());
         // save job status
         mocJobList.put(job.getId(), job);
@@ -285,7 +258,7 @@ public class JobServiceImpl implements JobService {
         JobNode node = jobNodeService.find(job.getNodePath());
         node.setSessionId(job.getSessionId());
         // start run node
-        run(node, job);
+        run(node);
         return null;
     }
 
@@ -297,69 +270,34 @@ public class JobServiceImpl implements JobService {
         return null;
     }
 
-    private void runStep(Node node, Job job) {
+    private void runStep(Node node) {
         JobNode jobNode = (JobNode) node;
         if (jobNode.getFinishedAt() != null) {
-            // has run
-            run(jobNode.getNext(), job);
+            // run next node
+            run(nodeUtil.nextNodeFromAllChildren(node));
         } else {
             // POST to Agent to run shell
             CmdInfo cmdInfo = new CmdInfo("default", "default", CmdType.RUN_SHELL, node.getScript());
             cmdInfo.setWebhook(getStepWebhook((JobStep) node));
-            cmdInfo.setSessionId(job.getSessionId());
+            cmdInfo.setSessionId(jobNode.getJob().getSessionId());
             new Thread(new RestClient(HttpMethod.POST, cmdInfo.toJson(), platform_url)).start();
         }
     }
 
-    private void runFlow(Node node, Job job) {
+    private void runFlow(Node node) {
         JobNode jobNode = (JobNode) node;
 
         //detect this node has run or not
         if (jobNode.getFinishedAt() != null) {
-            // has run
-            run(jobNode.getNext(), job);
+            // run next flow
+            run(jobNode.getNext());
         } else {
             // not run
-            List<Node> nodes = node.getChildren();
-            run(findFirstNode(nodes), job);
+            List<Node> nodes = nodeUtil.allChildren(node);
+            run(nodes.get(0));
         }
     }
 
-    private Node findFirstNode(List<Node> nodes) {
-        Node node = nodes.get(0);
-        if (node == null) {
-            System.out.println("flow has no children");
-            return null;
-        }
-        Node first = node;
-        Node tmp = null;
-        while (true) {
-            tmp = first.getPrev();
-            if (tmp == null) {
-                break;
-            }
-            first = tmp;
-        }
-        return first;
-    }
-
-    private Node findLastNode(List<Node> nodes) {
-        Node node = nodes.get(0);
-        if (node == null) {
-            System.out.println("flow has no children");
-            return null;
-        }
-        Node last = node;
-        Node tmp;
-        while (true) {
-            tmp = last.getNext();
-            if (tmp == null) {
-                break;
-            }
-            last = tmp;
-        }
-        return last;
-    }
 
     private String getStepWebhook(JobStep jobStep){
         return domain + "callback/" + jobStep.getPath() + "/message";
