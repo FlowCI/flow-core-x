@@ -159,6 +159,9 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: set cmd to stop status
         cmdService.updateStatus(mockCmdInstance.getId(), CmdStatus.STOPPED, null, false, true);
 
+        // wait for send webhook
+        Thread.sleep(1000);
+
         // then:
         CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
         verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
