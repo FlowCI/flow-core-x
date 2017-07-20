@@ -65,7 +65,7 @@ public class CmdController {
      */
     @PostMapping("/cmd/stop/{cmdId}")
     public void stopCommand(@PathVariable String cmdId) {
-        cmdService.updateStatus(cmdId, CmdStatus.STOPPED, null, true);
+        cmdService.updateStatus(cmdId, CmdStatus.STOPPED, null, true, true);
     }
 
     /**
@@ -78,7 +78,7 @@ public class CmdController {
         if (reportData.getId() == null || reportData.getStatus() == null || reportData.getResult() == null) {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
         }
-        cmdService.updateStatus(reportData.getId(), reportData.getStatus(), reportData.getResult(), true);
+        cmdService.updateStatus(reportData.getId(), reportData.getStatus(), reportData.getResult(), true, true);
     }
 
     /**

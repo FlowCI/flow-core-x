@@ -101,8 +101,9 @@ public interface CmdService {
      * @param status target cmd status should updated
      * @param result CmdResult, nullable
      * @param updateAgentStatus should update agent status according to cmd status
+     * @param callWebhook should invoke webhook
      */
-    void updateStatus(String cmdId, CmdStatus status, CmdResult result, boolean updateAgentStatus);
+    void updateStatus(String cmdId, CmdStatus status, CmdResult result, boolean updateAgentStatus, boolean callWebhook);
 
     /**
      * Reset cmd status to init status PENDING

@@ -32,6 +32,7 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
@@ -129,6 +130,34 @@ public class CmdQueueConsumerTest extends TestBase {
         // when:
         createMockAgent(ZONE, "agent-for-retry-queue-test");
         Thread.sleep(5000); // wait for enqueue again
+
+        // then:
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
+        verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
+    }
+
+    @Test
+    public void should_stop_queued_cmd() throws Throwable {
+        // given:
+        String testUrl = "/node/path-of-node-for-stop/callback";
+        stubFor(post(urlEqualTo(testUrl)).willReturn(aResponse().withStatus(200)));
+
+        // when: send cmd without available agent
+        CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
+        mockCmd.setWebhook("http://localhost:8088" + testUrl);
+        Cmd mockCmdInstance = cmdService.queue(mockCmd);
+
+        Assert.assertNotNull(mockCmdInstance.getId());
+        Assert.assertNotNull(cmdDao.get(mockCmdInstance.getId()));
+
+        // wait for send webhook
+        Thread.sleep(1000);
+
+        // then: verify has webhook callback if no available agent found
+        verify(1, postRequestedFor(urlEqualTo(testUrl)));
+
+        // when: set cmd to stop status
+        cmdService.updateStatus(mockCmdInstance.getId(), CmdStatus.STOPPED, null, false, true);
 
         // then:
         CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);

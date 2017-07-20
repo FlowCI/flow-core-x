@@ -156,7 +156,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     public Cmd send(String cmdId, boolean shouldResetStatus) {
         Cmd cmd = find(cmdId);
         if (cmd == null) {
-            throw new IllegalParameterException("Cmd does not found");
+            throw new IllegalParameterException(String.format("Cmd '%s' does not exist", cmdId));
         }
 
         // verify input cmd status is in finished status
@@ -192,22 +192,22 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             }
 
             // update cmd status to SENT
-            updateStatus(cmd.getId(), CmdStatus.SENT, null, false);
+            updateStatus(cmd.getId(), CmdStatus.SENT, null, false, true);
             return cmd;
 
         } catch (AgentErr.NotAvailableException e) {
-            updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false);
+            updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false, true);
             zoneService.keepIdleAgentTask();
             throw e;
 
         } catch (NotExitException e) {
-            updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false);
+            updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false, true);
             throw new AgentErr.NotFoundException(cmd.getAgentName());
 
         } catch (Throwable e) {
             CmdResult result = new CmdResult();
             result.getExceptions().add(e);
-            updateStatus(cmd.getId(), CmdStatus.EXCEPTION, result, false);
+            updateStatus(cmd.getId(), CmdStatus.EXCEPTION, result, false, true);
             throw e;
         }
     }
@@ -240,7 +240,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateStatus(String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus) {
+    public void updateStatus(
+        String cmdId, CmdStatus status, CmdResult inputResult, boolean updateAgentStatus, boolean callWebhook) {
+
         LOGGER.trace("Report cmd %s status %s and result %s", cmdId, status, inputResult);
 
         Cmd cmd = find(cmdId);
@@ -270,7 +272,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 updateAgentStatusWhenUpdateCmd(cmd);
             }
 
-            webhookCallback(cmd);
+            if (callWebhook) {
+                webhookCallback(cmd);
+            }
         }
     }
 
@@ -327,7 +331,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 // kill current running cmd and report status
                 send(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
                 LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
-                updateStatus(cmd.getId(), CmdStatus.TIMEOUT_KILL, null, true);
+                updateStatus(cmd.getId(), CmdStatus.TIMEOUT_KILL, null, true, true);
             }
         }
 

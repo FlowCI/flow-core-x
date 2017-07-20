@@ -19,11 +19,8 @@ package com.flow.platform.cc.consumer;
 import com.flow.platform.cc.context.ContextEvent;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.CmdService;
-import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
-import com.flow.platform.domain.CmdInfo;
-import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
 import com.rabbitmq.client.AMQP;
@@ -98,9 +95,9 @@ public class CmdQueueConsumer implements ContextEvent {
                 try {
                     cmdService.send(cmdId, false);
                 } catch (IllegalParameterException e) {
-                    LOGGER.error("Illegal cmd id", e);
-                } catch (IllegalStateException e) {
-                    LOGGER.error("Illegal cmd status", e);
+                    LOGGER.warn("Illegal cmd id: %s", e.getMessage());
+                } catch (IllegalStatusException e) {
+                    LOGGER.warn("Illegal cmd status: %s", e.getMessage());
                 } catch (AgentErr.NotAvailableException | ZkException.NotExitException e) {
                     cmdService.resetStatus(cmdId);
                     resend(cmdId, RETRY_QUEUE_PRIORITY, RETRY_TIMES);
@@ -117,7 +114,7 @@ public class CmdQueueConsumer implements ContextEvent {
     private void resend(final String cmdId, final int priority, final int retry) {
         try {
             Thread.sleep(1000); // wait 1 seconds and enqueue again with priority
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignore) {
             // do nothing
         }
 
