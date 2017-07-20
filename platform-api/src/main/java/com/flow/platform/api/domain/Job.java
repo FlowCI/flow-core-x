@@ -18,6 +18,7 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,13 +29,13 @@ public class Job extends Jsonable {
 
     private String type;
 
-    private Date createdAt;
+    private ZonedDateTime createdAt;
 
-    private Date updatedAt;
+    private ZonedDateTime updatedAt;
 
     private Long duration;
 
-    private Date finishedAt;
+    private ZonedDateTime finishedAt;
 
     private Integer exitCode;
 
@@ -42,7 +43,19 @@ public class Job extends Jsonable {
 
     private Map<Env, String> envs = new HashMap<>();
 
+    private NodeStatus nodeStatus = NodeStatus.PENDING;
+
+    private String sessionId = null;
+
     public Job() {
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public Job(String id) {
@@ -65,19 +78,19 @@ public class Job extends Jsonable {
         this.type = type;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -89,11 +102,11 @@ public class Job extends Jsonable {
         this.duration = duration;
     }
 
-    public Date getFinishedAt() {
+    public ZonedDateTime getFinishedAt() {
         return finishedAt;
     }
 
-    public void setFinishedAt(Date finishedAt) {
+    public void setFinishedAt(ZonedDateTime finishedAt) {
         this.finishedAt = finishedAt;
     }
 
@@ -105,12 +118,12 @@ public class Job extends Jsonable {
         this.exitCode = exitCode;
     }
 
-    public String getNodeName() {
+    public String getNodePath() {
         return nodeName;
     }
 
-    public void setNodeName(String nodeName) {
-        this.nodeName = nodeName;
+    public void setNodePath(String nodePath) {
+        this.nodeName = nodePath;
     }
 
     public Map<Env, String> getEnvs() {
@@ -119,6 +132,14 @@ public class Job extends Jsonable {
 
     public void setEnvs(Map<Env, String> envs) {
         this.envs = envs;
+    }
+
+    public NodeStatus getNodeStatus() {
+        return nodeStatus;
+    }
+
+    public void setNodeStatus(NodeStatus nodeStatus) {
+        this.nodeStatus = nodeStatus;
     }
 
     @Override

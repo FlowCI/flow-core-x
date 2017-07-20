@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.service;
 
-package com.flow.platform.api.domain;
+/**
+ * @author yh@firim
+ */
+public interface JobNodeService extends NodeService {
 
-public class JobFlow extends JobNode {
 }

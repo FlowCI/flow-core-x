@@ -13,8 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.flow.platform.api.domain;
 
-public class JobFlow extends JobNode {
+/**
+ * @author yh@fir.im
+ */
+public enum NodeStatus {
+
+    PENDING("PENDING", 0),
+
+    RUNNING("RUNNING", 1),
+
+    SUCCESS("SUCCESS", 2),
+
+    FAIL("FAIL", 3),
+
+    TIMEOUT("TIMEOUT", 4);
+
+    private String name;
+
+    public Integer getLevel() {
+        return level;
+    }
+
+    private Integer level;
+
+    NodeStatus(String name, Integer level) {
+        this.name = name;
+        this.level = level;
+    }
+
+    public String getName() {
+        return name;
+    }
 }
+

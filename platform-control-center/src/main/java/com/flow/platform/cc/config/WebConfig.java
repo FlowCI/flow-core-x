@@ -29,6 +29,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -87,13 +88,12 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        for (HttpMessageConverter converter : converters) {
-            // customize gson http message converter
-            if (converter instanceof GsonHttpMessageConverter) {
-                GsonHttpMessageConverter gsonConverter = (GsonHttpMessageConverter) converter;
-                gsonConverter.setGson(gsonConfig());
-            }
-        }
+        converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
+
+        // add default json converter
+        GsonHttpMessageConverter jsonConverter = new GsonHttpMessageConverter();
+        jsonConverter.setGson(gsonConfig());
+        converters.add(jsonConverter);
     }
 
     @Override

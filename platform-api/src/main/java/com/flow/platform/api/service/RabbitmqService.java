@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.service;
 
-package com.flow.platform.api.domain;
+/**
+ * @author yh@firim
+ */
+public interface RabbitmqService {
 
-public class JobFlow extends JobNode {
+    /**
+     * publish message to mq
+     * @param routeKey
+     * @param bytes
+     */
+    void publish(String routeKey, byte[] bytes);
 }

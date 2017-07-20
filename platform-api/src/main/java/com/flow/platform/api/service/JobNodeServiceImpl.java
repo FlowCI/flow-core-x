@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.service;
 
-package com.flow.platform.api.domain;
+import org.springframework.stereotype.Service;
 
-public class JobFlow extends JobNode {
+/**
+ * @author yh@firim
+ */
+@Service(value = "jobNodeService")
+public class JobNodeServiceImpl extends NodeServiceImpl implements JobNodeService {
+
 }

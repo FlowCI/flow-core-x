@@ -68,3 +68,44 @@
         - envs
         - name
 ```
+
+### 创建session
+```
+  Json:
+    {
+      callbackUrl: "/jobs/:id/createSessionCb",
+      jobId:
+    }
+```
+
+### createSessionCallback
+``` 
+  params:
+    idCreated: success
+```
+
+### 发送命令
+```
+  Method: Post
+  Routes: /cmd/send
+  params:
+      {
+        "callbackUrl": "/jobSteps/:id/callback",
+      	"agentPath": {
+      		"zone": "test-zone",
+      		"name": "test-001"
+      	},
+      	"cmd": "ls",
+      	"type": "RUN_SHELL",
+      	"inputs": Map<String, String>
+      }
+```
+
+### 返回的数据格式
+``` 
+  params:
+     status: pending running success fail timeout
+     logPaths:,
+     outputs:,
+     exitCode
+```

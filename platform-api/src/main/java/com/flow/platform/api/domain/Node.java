@@ -18,6 +18,7 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public abstract class Node extends Jsonable {
@@ -30,15 +31,23 @@ public abstract class Node extends Jsonable {
 
     protected Node Parent;
 
+    protected String parentId;
+
     protected List<Node> children = new LinkedList<>();
 
     protected Node prev;
 
+    protected String prevId;
+
     protected Node next;
 
-    protected Date createdAt;
+    protected String nextId;
 
-    protected Date updatedAt;
+    protected ZonedDateTime createdAt;
+
+    protected ZonedDateTime updatedAt;
+
+    protected String script;
 
     public Node() {
     }
@@ -46,6 +55,38 @@ public abstract class Node extends Jsonable {
     public Node(String path, String name) {
         this.path = path;
         this.name = name;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
+    public String getPrevId() {
+        return prevId;
+    }
+
+    public void setPrevId(String prevId) {
+        this.prevId = prevId;
+    }
+
+    public String getNextId() {
+        return nextId;
+    }
+
+    public void setNextId(String nextId) {
+        this.nextId = nextId;
+    }
+
+    public String getScript() {
+        return script;
+    }
+
+    public void setScript(String script) {
+        this.script = script;
     }
 
     public String getPath() {
@@ -104,19 +145,19 @@ public abstract class Node extends Jsonable {
         this.next = next;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 

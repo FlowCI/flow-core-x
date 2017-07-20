@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.cc.test;
 
-public class JobFlow extends JobNode {
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * @author yang
+ */
+@Configuration
+public class EmptyConfig {
+
 }
