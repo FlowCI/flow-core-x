@@ -60,7 +60,7 @@ public interface CmdService {
     List<CmdResult> listResult(Set<String> cmdIds);
 
     /**
-     * Send CmdInfo with AgentPath which to identify where is cmd destination
+     * Send cmd id to agent and update cmd target agent path
      * - AgentPath,
      * - 'zone' field is required
      * - 'name' field is optional
