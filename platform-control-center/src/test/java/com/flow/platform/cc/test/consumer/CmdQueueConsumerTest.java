@@ -71,9 +71,27 @@ public class CmdQueueConsumerTest extends TestBase {
     private String cmdExchangeName;
 
     @Before
-    public void before() {
+    public void before() throws Throwable {
         cleanZookeeperChilderenNode(zkHelper.buildZkPath(ZONE, null).path());
         zoneService.createZone(new Zone(ZONE, "mock-cloud-provider"));
+    }
+
+    @Test
+    public void should_retry_cmd_in_queue() throws Throwable {
+        // given:
+        String url = "/node/test-for-retry/callback";
+        CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
+        mockCmd.setWebhook("http://localhost:8088" + url);
+        stubFor(post(urlEqualTo(url)).willReturn(aResponse().withStatus(200)));
+
+        // when: send to queue and waiting for retry 3 times
+        Cmd cmd = cmdService.queue(mockCmd, 1, 3);
+        Assert.assertNotNull(cmdService.find(cmd.getId()));
+
+        Thread.sleep(6000);
+
+        // then: check num of request
+        verify(3, postRequestedFor(urlEqualTo(url)));
     }
 
     @Test

@@ -167,8 +167,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         if (shouldResetStatus) {
-            cmd.setStatus(CmdStatus.PENDING);
-            cmdDao.update(cmd);
+            resetStatus(cmdId);
         }
 
         try {

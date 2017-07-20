@@ -127,14 +127,18 @@ public class CmdQueueConsumer implements ContextEvent {
     }
 
     private void resend(final CmdQueueItem item) {
+        item.setPriority(RETRY_QUEUE_PRIORITY);
+        item.setRetry(item.getRetry() - 1);
+
+        if (item.getRetry() <= 0) {
+            return;
+        }
+
         try {
             Thread.sleep(1000); // wait 1 seconds and enqueue again with priority
         } catch (InterruptedException ignore) {
             // do nothing
         }
-
-        item.setPriority(RETRY_QUEUE_PRIORITY);
-        item.setRetry(item.getRetry() - 1);
 
         try {
             AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
@@ -145,7 +149,7 @@ public class CmdQueueConsumer implements ContextEvent {
             cmdSendChannel.basicPublish(cmdExchangeName, "", properties, item.toBytes());
             LOGGER.trace("Re-enqueue item %s", item);
         } catch (IOException e) {
-            LOGGER.warn(String.format("Cmd %s re-enqueue fail, retry %s", item));
+            LOGGER.warn("Cmd %s re-enqueue fail", item);
             if (item.getRetry() > 0) {
                 resend(item);
             }
