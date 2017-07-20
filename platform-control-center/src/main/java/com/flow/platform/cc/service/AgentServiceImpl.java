@@ -18,22 +18,28 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
-import com.flow.platform.domain.*;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
-import com.google.common.collect.Sets;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author gy@fir.im
@@ -56,35 +62,23 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private TaskConfig taskConfig;
 
+    @Autowired
+    private BlockingQueue<AgentPath> agentReportQueue;
+
     @Override
-    public void reportOnline(String zone, Collection<AgentPath> keys) {
-        List<Agent> agents = onlineList(zone);
+    public void reportOnline(String zone, Set<String> agents) {
+        // set offline agents
+        agentDao.batchUpdateStatus(zone, AgentStatus.OFFLINE, agents, true);
 
-        // convert to map for performance
-        Map<AgentPath, Agent> onlineAgentMap = new HashMap<>(agents.size());
-        for (Agent agent : agents) {
-            onlineAgentMap.put(agent.getPath(), agent);
-        }
+        // send to report queue
+        for (String agent : agents) {
+            AgentPath key = new AgentPath(zone, agent);
+            try {
 
-        // find offline agents
-        Set<AgentPath> onlineAgentKeys = onlineAgentMap.keySet();
-        Set<AgentPath> offlines = Sets.newHashSet(onlineAgentKeys);
-        offlines.removeAll(keys);
-
-        // remove offline agents from online list and update status
-        for (AgentPath key : offlines) {
-            Agent offlineAgent = onlineAgentMap.get(key);
-            offlineAgent.setStatus(AgentStatus.OFFLINE);
-            agentDao.update(offlineAgent);
-            onlineAgentMap.remove(key);
-        }
-
-        // report online
-        for (AgentPath key : keys) {
-            if (onlineAgentKeys.contains(key)) {
-                continue;
+                agentReportQueue.put(key);
+            } catch (InterruptedException ignore) {
+                LOGGER.warn("InterruptedException when agent report online");
             }
-            reportOnline(key);
         }
     }
 
@@ -170,45 +164,20 @@ public class AgentServiceImpl implements AgentService {
             return;
         }
 
-        // TODO: should be replaced by db query
         LOGGER.traceMarker("sessionTimeoutTask", "start");
         ZonedDateTime now = DateUtil.utcNow();
 
         for (Zone zone : zoneService.getZones()) {
             Collection<Agent> agents = onlineList(zone.getName());
             for (Agent agent : agents) {
-                if (agent.getSessionId() != null
-                    && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
-
+                if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
                     CmdInfo cmdInfo = new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null);
                     cmdService.send(cmdInfo);
-                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s",
-                        agent);
+                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
                 }
             }
         }
 
         LOGGER.traceMarker("sessionTimeoutTask", "end");
-    }
-
-    /**
-     * Find from online list and create
-     */
-    private void reportOnline(AgentPath key) {
-        Agent exist = find(key);
-
-        // create new agent with idle status
-        if (exist == null) {
-            Agent agent = new Agent(key);
-            agent.setStatus(AgentStatus.IDLE);
-            agentDao.save(agent);
-            return;
-        }
-
-        // update exist offline agent to idle status
-        if (exist.getStatus() == AgentStatus.OFFLINE) {
-            exist.setStatus(AgentStatus.IDLE);
-            agentDao.update(exist);
-        }
     }
 }

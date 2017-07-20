@@ -16,15 +16,34 @@
 
 package com.flow.platform.cc.test.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.domain.*;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdReport;
+import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Queue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -37,18 +56,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
-
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Queue;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author gy@fir.im
@@ -77,9 +84,9 @@ public class CmdControllerTest extends TestBase {
     public void should_list_cmd_types() throws Throwable {
         // when:
         MvcResult result = this.mockMvc.perform(get("/cmd/types"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
 
         // then:
         String raw = result.getResponse().getContentAsString();
@@ -91,22 +98,25 @@ public class CmdControllerTest extends TestBase {
     @Test
     public void should_update_cmd_status() throws Throwable {
         // given:
-        AgentPath path = new AgentPath("test-zone-00", "test-001");
-        agentService.reportOnline("test-zone-00", Lists.newArrayList(path));
+        String zone = "test-mos-mac";
+        String agent = "test-001";
 
-        CmdInfo base = new CmdInfo("test-zone-00", "test-001", CmdType.STOP, null);
+        AgentPath path = new AgentPath(zone, agent);
+        agentService.reportOnline(zone, Sets.newHashSet(agent));
+
+        CmdInfo base = new CmdInfo(zone, agent, CmdType.STOP, null);
         Cmd cmd = cmdService.create(base);
 
         // when:
         CmdReport postData = new CmdReport(cmd.getId(), CmdStatus.EXECUTED, new CmdResult());
 
         MockHttpServletRequestBuilder content = post("/cmd/report")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(postData.toJson());
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(postData.toJson());
 
         this.mockMvc.perform(content)
-                .andDo(print())
-                .andExpect(status().isOk());
+            .andDo(print())
+            .andExpect(status().isOk());
 
         // then:
         Cmd loaded = cmdService.find(cmd.getId());
@@ -136,18 +146,18 @@ public class CmdControllerTest extends TestBase {
         gsonConfig.toJson(cmd);
 
         MockHttpServletRequestBuilder content = post("/cmd/send")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(gsonConfig.toJson(cmd));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(gsonConfig.toJson(cmd));
 
         // then: check response data
         MvcResult result = this.mockMvc.perform(content)
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
 
         Cmd cmdInfo = gsonConfig.fromJson(result.getResponse().getContentAsString(), Cmd.class);
         Assert.assertNotNull(cmdInfo);
-        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
+        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.SENT));
         Assert.assertEquals(zoneName, cmdInfo.getZoneName());
         Assert.assertEquals(agentName, cmdInfo.getAgentName());
         Assert.assertEquals(agentName, agentService.find(cmdInfo.getAgentPath()).getName());
@@ -185,12 +195,12 @@ public class CmdControllerTest extends TestBase {
 
         // when: upload zipped cmd log
         MockMultipartHttpServletRequestBuilder content = fileUpload("/cmd/log/upload")
-                .file(zippedCmdLogPart)
-                .file(cmdIdPart);
+            .file(zippedCmdLogPart)
+            .file(cmdIdPart);
 
         this.mockMvc.perform(content)
-                .andDo(print())
-                .andExpect(status().isOk());
+            .andDo(print())
+            .andExpect(status().isOk());
 
         // then: check upload file path and logging queue
         Path zippedLogPath = Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename);
@@ -202,10 +212,10 @@ public class CmdControllerTest extends TestBase {
 
         // when: download uploaded zipped cmd log
         MvcResult result = this.mockMvc.perform(get("/cmd/log/download")
-                .param("cmdId", cmd.getId()).param("index", Integer.toString(0)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+            .param("cmdId", cmd.getId()).param("index", Integer.toString(0)))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
 
         // then:
         MockHttpServletResponse response = result.getResponse();

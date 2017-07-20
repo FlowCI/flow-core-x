@@ -17,8 +17,6 @@
 package com.flow.platform.domain;
 
 /**
- * Status for TYPE.RUN_SHELL
- *
  * @author gy@fir.im
  */
 public enum CmdStatus {
@@ -27,7 +25,13 @@ public enum CmdStatus {
      * Init status when cmd prepare send to agent
      * is_current_cmd = true
      */
-    PENDING("PENDING", 0),
+    PENDING("PENDING", -1),
+
+    /**
+     * Cmd been sent to agent
+     * is_current_cmd = true if cmd type = RUN_SHELL
+     */
+    SENT("SENT", 0),
 
     /**
      * Cmd is running, should agent reported
@@ -58,6 +62,12 @@ public enum CmdStatus {
      * is_current_cmd = false
      */
     KILLED("KILLED", 3),
+
+    /**
+     * Cmd stopped, set from api
+     * is_current_cmd = false
+     */
+    STOPPED("STOPPED", 3),
 
     /**
      * Cannot execute since over agent limit

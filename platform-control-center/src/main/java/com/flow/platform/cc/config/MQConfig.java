@@ -74,7 +74,7 @@ public class MQConfig {
             args.put("x-max-priority", MAX_PRIORITY);
 
             cmdConsumeChannel = rabbitMqConn.createChannel();
-            cmdConsumeQueue = cmdConsumeChannel.queueDeclare("", false, true, true, args).getQueue();
+            cmdConsumeQueue = cmdConsumeChannel.queueDeclare("", false, false, false, args).getQueue();
             cmdConsumeChannel.queueBind(cmdConsumeQueue, cmdExchangeName, "");
             LOGGER.trace("RabbitMQ cmd consume channel created : %s", cmdConsumeQueue);
 

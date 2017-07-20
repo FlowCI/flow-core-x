@@ -18,14 +18,15 @@ package com.flow.platform.cc.test.dao;
 
 import com.flow.platform.domain.CmdResult;
 import com.google.common.collect.Lists;
-import org.junit.*;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author gy@fir.im
@@ -55,7 +56,6 @@ public class CmdResultDaoTest extends TestBase {
     }
 
     @Test
-    @Transactional
     public void should_list_cmd_result_by_ids() throws Throwable {
         // given: save
         cmdResultDao.save(cmdResult);
@@ -70,7 +70,6 @@ public class CmdResultDaoTest extends TestBase {
     }
 
     @Test
-    @Transactional
     public void should_save_cmd_result_with_jsonable_type() throws Throwable {
         // when: save
         cmdResultDao.save(cmdResult);

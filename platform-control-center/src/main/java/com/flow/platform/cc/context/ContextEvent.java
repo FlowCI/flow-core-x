@@ -14,33 +14,16 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.dao;
-
-import java.util.List;
-import java.util.Set;
-import org.hibernate.Session;
-
-import java.io.Serializable;
+package com.flow.platform.cc.context;
 
 /**
- * @author gy@fir.im
+ * Event interface when spring context refreshed and closed
+ *
+ * @author yang
  */
-public interface BaseDao<K extends Serializable, T> {
+public interface ContextEvent {
 
-    Session getSession();
+    void start();
 
-    List<T> list(final Set<K> keySet);
-
-    T get(final K key);
-
-    T save(final T obj);
-
-    void update(final T obj);
-
-    void delete(final T obj);
-
-    /**
-     * Delete all data of table. should only used for test
-     */
-    int deleteAll();
+    void stop();
 }

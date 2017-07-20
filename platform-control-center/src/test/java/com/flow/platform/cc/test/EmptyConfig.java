@@ -14,33 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.dao;
+package com.flow.platform.cc.test;
 
-import java.util.List;
-import java.util.Set;
-import org.hibernate.Session;
-
-import java.io.Serializable;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author gy@fir.im
+ * @author yang
  */
-public interface BaseDao<K extends Serializable, T> {
+@Configuration
+public class EmptyConfig {
 
-    Session getSession();
-
-    List<T> list(final Set<K> keySet);
-
-    T get(final K key);
-
-    T save(final T obj);
-
-    void update(final T obj);
-
-    void delete(final T obj);
-
-    /**
-     * Delete all data of table. should only used for test
-     */
-    int deleteAll();
 }

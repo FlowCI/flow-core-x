@@ -47,13 +47,25 @@ public class CmdController {
 
     /**
      * Send command to agent
-     *
-     * @param cmd
-     * @return
      */
     @PostMapping(path = "/send", consumes = "application/json")
     public Cmd sendCommand(@RequestBody CmdInfo cmd) {
         return cmdService.send(cmd);
+    }
+
+    @PostMapping(path = "/queue/send", consumes = "application/json")
+    public Cmd sendCommandToQueue(@RequestBody CmdInfo cmd) {
+        return cmdService.send(cmd);
+    }
+
+    /**
+     * Set cmd status to STOPPED
+     *
+     * @param cmdId
+     */
+    @PostMapping("/cmd/stop/{cmdId}")
+    public void stopCommand(@PathVariable String cmdId) {
+        cmdService.updateStatus(cmdId, CmdStatus.STOPPED, null, true, true);
     }
 
     /**
@@ -66,13 +78,11 @@ public class CmdController {
         if (reportData.getId() == null || reportData.getStatus() == null || reportData.getResult() == null) {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
         }
-        cmdService.updateStatus(reportData.getId(), reportData.getStatus(), reportData.getResult(), true);
+        cmdService.updateStatus(reportData.getId(), reportData.getStatus(), reportData.getResult(), true, true);
     }
 
     /**
      * List commands by agent path
-     *
-     * @param agentPath
      */
     @PostMapping(path = "/list", consumes = "application/json")
     public Collection<Cmd> list(@RequestBody AgentPath agentPath) {
@@ -83,7 +93,7 @@ public class CmdController {
      * Upload zipped cmd log with multipart
      *
      * @param cmdId cmd id with text/plain
-     * @param file  zipped cmd log with application/zip
+     * @param file zipped cmd log with application/zip
      */
     @PostMapping(path = "/log/upload")
     public void uploadFullLog(@RequestPart String cmdId, @RequestPart MultipartFile file) {
@@ -95,14 +105,11 @@ public class CmdController {
 
     /**
      * Get zipped log file by cmd id
-     *
-     * @param cmdId
-     * @return
      */
     @GetMapping(path = "/log/download", produces = "application/zip")
     public Resource downloadFullLog(@RequestParam String cmdId,
-                                    @RequestParam Integer index,
-                                    HttpServletResponse httpResponse) {
+        @RequestParam Integer index,
+        HttpServletResponse httpResponse) {
 
         Cmd cmd = cmdService.find(cmdId);
         if (cmd == null) {
@@ -113,7 +120,7 @@ public class CmdController {
             Path filePath = Paths.get(cmd.getLogPaths().get(index));
             FileSystemResource resource = new FileSystemResource(filePath.toFile());
             httpResponse.setHeader("Content-Disposition",
-                    String.format("attachment; filename=%s", filePath.getFileName().toString()));
+                String.format("attachment; filename=%s", filePath.getFileName().toString()));
             return resource;
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new RuntimeException("Log not found");

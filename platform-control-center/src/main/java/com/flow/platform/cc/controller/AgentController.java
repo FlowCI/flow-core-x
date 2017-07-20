@@ -47,19 +47,18 @@ public class AgentController {
     }
 
     @GetMapping(path = "/find")
-    public Agent find(@RequestParam(name = "zone") String zoneName,
-                      @RequestParam(name = "name") String agentName) {
+    public Agent find(@RequestParam(name = "zone") String zoneName, @RequestParam(name = "name") String agentName) {
         return agentService.find(new AgentPath(zoneName, agentName));
     }
 
     /**
      * Update agent status, required attributes are
-     *  - path
-     *  - status
+     * - path
+     * - status
      *
      * @param agent agent objc
      */
-    @PostMapping(path= "/report", consumes = "application/json")
+    @PostMapping(path = "/report", consumes = "application/json")
     public void reportStatus(@RequestBody Agent agent) {
         if (agent.getPath() == null || agent.getStatus() == null) {
             throw new IllegalArgumentException("Agent path and status are required");

@@ -16,27 +16,28 @@
 
 package com.flow.platform.cc.test.service;
 
+import static junit.framework.TestCase.fail;
+
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.domain.*;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -45,14 +46,18 @@ import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Queue;
-
-import static junit.framework.TestCase.fail;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 
 /**
  * @author gy@fir.im
  */
 @FixMethodOrder(MethodSorters.JVM)
-@Transactional
 public class CmdServiceTest extends TestBase {
 
     @Autowired
@@ -130,18 +135,22 @@ public class CmdServiceTest extends TestBase {
     }
 
     @Test
-    public void should_report_cmd_status() {
+    public void should_report_cmd_status() throws Throwable {
         // given:
         String zoneName = zkHelper.getDefaultZones().get(0).getName();
-        AgentPath agentPath = new AgentPath(zoneName, "test-agent");
-        agentService.reportOnline("test-zone", Lists.newArrayList(agentPath));
+        AgentPath agentPath = new AgentPath(zoneName, "test-agent-for-report-cmd");
+        agentService.reportOnline(zoneName, Sets.newHashSet("test-agent-for-report-cmd"));
+        Thread.sleep(5000);
+
+        Agent agent = agentService.find(agentPath);
+        Assert.assertNotNull(agent);
 
         CmdInfo base = new CmdInfo(agentPath, CmdType.RUN_SHELL, null);
         Cmd cmd = cmdService.create(base);
         Assert.assertNotNull(cmd);
         Assert.assertNotNull(cmd.getId());
 
-        // when:
+        // when: create a mock result and update cmd status
         CmdResult result = new CmdResult();
         result.setStartTime(ZonedDateTime.now());
         result.setProcess(mockProcess);
@@ -153,7 +162,7 @@ public class CmdServiceTest extends TestBase {
         result.getExceptions().add(new RuntimeException("Dummy exception 1"));
         result.getExceptions().add(new RuntimeException("Dummy exception 2"));
 
-        cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
+        cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true, true);
 
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
@@ -171,7 +180,7 @@ public class CmdServiceTest extends TestBase {
         result = new CmdResult();
         result.setProcessId(null);
         result.getOutput().clear();
-        cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true);
+        cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true, true);
 
         // then:
         loadedResults = cmdService.listResult(Sets.newHashSet(cmd.getId()));
@@ -229,7 +238,7 @@ public class CmdServiceTest extends TestBase {
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
-            cmdService.updateStatus(current.getId(), reportStatus, new CmdResult(), true);
+            cmdService.updateStatus(current.getId(), reportStatus, new CmdResult(), true, true);
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
@@ -249,7 +258,7 @@ public class CmdServiceTest extends TestBase {
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
-            cmdService.updateStatus(current.getId(), status, new CmdResult(), true);
+            cmdService.updateStatus(current.getId(), status, new CmdResult(), true, true);
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
@@ -282,7 +291,7 @@ public class CmdServiceTest extends TestBase {
 
         // check cmd status
         Assert.assertNotNull(cmdInfo.getId());
-        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.PENDING));
+        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.SENT));
         Assert.assertEquals(zoneName, cmdInfo.getZoneName());
         Assert.assertEquals(agentName, cmdInfo.getAgentName());
 
@@ -463,7 +472,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(sessionAgent.getSessionDate());
 
         // then: mock cmd been executed
-        cmdService.updateStatus(cmd.getId(), CmdStatus.LOGGED, new CmdResult(), true);
+        cmdService.updateStatus(cmd.getId(), CmdStatus.LOGGED, new CmdResult(), true, true);
 
         // when: delete session
         CmdInfo cmdToDelSession = new CmdInfo(zoneName, null, CmdType.DELETE_SESSION, null);

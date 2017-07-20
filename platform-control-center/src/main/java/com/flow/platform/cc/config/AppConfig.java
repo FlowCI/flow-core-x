@@ -17,22 +17,22 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author gy@fir.im
@@ -93,7 +93,15 @@ public class AppConfig {
      * @return BlockingQueue with file path
      */
     @Bean
-    public Queue<Path> cmdLoggingQueue() {
-        return new ConcurrentLinkedQueue<>();
+    public BlockingQueue<Path> cmdLoggingQueue() {
+        return new LinkedBlockingQueue<>(50);
+    }
+
+    /**
+     * Queue to set
+     */
+    @Bean
+    public BlockingQueue<AgentPath> agentReportQueue() {
+        return new LinkedBlockingQueue<>(50);
     }
 }
