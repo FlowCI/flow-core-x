@@ -94,7 +94,7 @@ public class CmdQueueConsumerTest extends TestBase {
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088/node/callback");
 
-        Cmd mockCmdInstance = cmdService.queue(mockCmd);
+        Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 0);
         Assert.assertNotNull(mockCmdInstance.getId());
 
         Thread.sleep(1000);
@@ -119,7 +119,7 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: send cmd without available agent
         CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088" + testUrl);
-        Cmd mockCmdInstance = cmdService.queue(mockCmd);
+        Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 5);
         Assert.assertNotNull(mockCmdInstance.getId());
 
         // wait for send webhook
@@ -146,7 +146,7 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: send cmd without available agent
         CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088" + testUrl);
-        Cmd mockCmdInstance = cmdService.queue(mockCmd);
+        Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 5);
 
         Assert.assertNotNull(mockCmdInstance.getId());
         Assert.assertNotNull(cmdDao.get(mockCmdInstance.getId()));

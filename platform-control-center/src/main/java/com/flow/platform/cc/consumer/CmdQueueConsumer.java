@@ -17,6 +17,7 @@
 package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.context.ContextEvent;
+import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.exception.IllegalParameterException;
@@ -43,7 +44,6 @@ public class CmdQueueConsumer implements ContextEvent {
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
 
     private final static int RETRY_QUEUE_PRIORITY = 255;
-    private final static int RETRY_TIMES = 5;
 
     @Value("${mq.exchange.name}")
     private String cmdExchangeName;
@@ -88,19 +88,34 @@ public class CmdQueueConsumer implements ContextEvent {
                 AMQP.BasicProperties properties,
                 byte[] body) throws IOException {
 
-                // convert byte to cmd id
-                String cmdId = new String(body);
-                LOGGER.trace("Receive cmd id '%s' from queue", cmdId);
+                CmdQueueItem item = null;
+                try {
+                    item = CmdQueueItem.parse(body, CmdQueueItem.class);
+                    if (item == null) {
+                        throw new IllegalParameterException("");
+                    }
+
+                    if (item.getCmdId() == null) {
+                        throw new IllegalParameterException("");
+                    }
+
+                    LOGGER.trace("Receive cmd id '%s' from queue", item);
+                } catch (Throwable e) {
+                    LOGGER.error("Illegal data format in cmd queue", null);
+                    return;
+                }
 
                 try {
-                    cmdService.send(cmdId, false);
+                    cmdService.send(item.getCmdId(), false);
                 } catch (IllegalParameterException e) {
                     LOGGER.warn("Illegal cmd id: %s", e.getMessage());
                 } catch (IllegalStatusException e) {
                     LOGGER.warn("Illegal cmd status: %s", e.getMessage());
                 } catch (AgentErr.NotAvailableException | ZkException.NotExitException e) {
-                    cmdService.resetStatus(cmdId);
-                    resend(cmdId, RETRY_QUEUE_PRIORITY, RETRY_TIMES);
+                    if (item.getRetry() > 0) {
+                        cmdService.resetStatus(item.getCmdId());
+                        resend(item);
+                    }
                 } catch (Throwable e) {
                     LOGGER.error("Unexpected exception", e);
                 } finally {
@@ -111,25 +126,28 @@ public class CmdQueueConsumer implements ContextEvent {
         });
     }
 
-    private void resend(final String cmdId, final int priority, final int retry) {
+    private void resend(final CmdQueueItem item) {
         try {
             Thread.sleep(1000); // wait 1 seconds and enqueue again with priority
         } catch (InterruptedException ignore) {
             // do nothing
         }
 
+        item.setPriority(RETRY_QUEUE_PRIORITY);
+        item.setRetry(item.getRetry() - 1);
+
         try {
             AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
-                .priority(priority)
+                .priority(item.getPriority())
                 .build();
 
             // reset cmd status
-            cmdSendChannel.basicPublish(cmdExchangeName, "", properties, cmdId.getBytes());
-            LOGGER.trace("Re-enqueue for cmd %s with mq priority %s", cmdId, priority);
+            cmdSendChannel.basicPublish(cmdExchangeName, "", properties, item.toBytes());
+            LOGGER.trace("Re-enqueue item %s", item);
         } catch (IOException e) {
-            LOGGER.warn(String.format("Cmd %s re-enqueue fail, retry %s", cmdId, retry));
-            if (retry > 0) {
-                resend(cmdId, priority, retry - 1);
+            LOGGER.warn(String.format("Cmd %s re-enqueue fail, retry %s", item));
+            if (item.getRetry() > 0) {
+                resend(item);
             }
         }
     }

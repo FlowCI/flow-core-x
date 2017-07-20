@@ -18,6 +18,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.TaskConfig;
+import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.task.CmdWebhookTask;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
@@ -222,15 +223,16 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    public Cmd queue(CmdInfo cmdInfo) {
+    public Cmd queue(CmdInfo cmdInfo, int priority, int retry) {
         Cmd cmd = create(cmdInfo);
 
         AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
-            .priority(cmd.getPriority())
+            .priority(priority)
             .build();
 
         try {
-            cmdSendChannel.basicPublish(cmdExchangeName, "", properties, cmd.getId().getBytes());
+            CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
+            cmdSendChannel.basicPublish(cmdExchangeName, "", properties, item.toBytes());
             return cmd;
         } catch (IOException e) {
             LOGGER.error("Cmd send channel error : ", e);
