@@ -36,7 +36,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @ComponentScan({
         "com.flow.platform.api.controller",
         "com.flow.platform.api.service",
-        "com.flow.platform.api.dao"})
+        "com.flow.platform.api.dao",
+        "com.flow.platform.api.util"})
 @Import({MQConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
