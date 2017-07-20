@@ -16,9 +16,7 @@
 
 package com.flow.platform.cc.context;
 
-import com.flow.platform.cc.service.ZoneService;
-import com.flow.platform.cc.util.ZkHelper;
-import com.flow.platform.domain.Zone;
+import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -36,21 +34,15 @@ public class ContextInitHandler implements ApplicationListener<ContextRefreshedE
     private final static Logger LOGGER = new Logger(ContextInitHandler.class);
 
     @Autowired
-    protected ZkHelper zkHelper;
-
-    @Autowired
-    private ZoneService zoneService;
+    private SpringContextUtil springContextUtil;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        // init root node
-        String path = zoneService.createRoot();
-        LOGGER.trace("Root zookeeper node initialized: %s", path);
-
-        // init zone nodes
-        for (Zone zone : zkHelper.getDefaultZones()) {
-            path = zoneService.createZone(zone);
-            LOGGER.trace("Zone zookeeper node initialized: %s", path);
+        // init queue consumer
+        for (String eventClassName : springContextUtil.getBeanNameByType(ContextEvent.class)) {
+            ContextEvent eventClass = (ContextEvent) springContextUtil.getBean(eventClassName);
+            eventClass.start();
+            LOGGER.trace("Start context : %s", eventClassName);
         }
     }
 }

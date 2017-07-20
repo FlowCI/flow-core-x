@@ -21,6 +21,8 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
+import java.util.HashSet;
+import javax.persistence.criteria.CriteriaUpdate;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
@@ -56,7 +58,7 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
-    public List<Agent> list(String zone, String orderByField, AgentStatus... status) {
+    public List<Agent> list(final String zone, final String orderByField, final AgentStatus... status) {
         if (zone == null) {
             throw new IllegalArgumentException("Zone name is required");
         }
@@ -95,7 +97,7 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
-    public Agent find(AgentPath agentPath) {
+    public Agent find(final AgentPath agentPath) {
         Agent agent = (Agent) execute(session -> (Agent) session
             .createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
             .setParameter("zone", agentPath.getZone())
@@ -105,11 +107,41 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
-    public Agent find(String sessionId) {
+    public Agent find(final String sessionId) {
         Agent agent = (Agent) execute(
             session -> (Agent) session.createQuery("from Agent where sessionId = :sessionId")
                 .setParameter("sessionId", sessionId)
                 .uniqueResult());
         return agent;
+    }
+
+    @Override
+    public int batchUpdateStatus(final String zone, final AgentStatus status, final Set<String> agents,
+        final boolean isNot) {
+
+        return execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaUpdate<Agent> criteria = builder.createCriteriaUpdate(Agent.class);
+
+            Root<Agent> from = criteria.from(Agent.class);
+            criteria.set(from.get("status"), status);
+
+            Predicate whereClause = builder.equal(from.get("path").get("zone"), zone);
+
+            if (agents == null || agents.size() == 0) {
+                return session.createQuery(criteria).executeUpdate();
+            }
+
+            // set agents to where clause
+            Predicate inAgents;
+            if (isNot) {
+                inAgents = builder.not(from.get("path").get("name").in(agents));
+            } else {
+                inAgents = from.get("path").get("name").in(agents);
+            }
+
+            criteria.where(builder.and(whereClause, inAgents));
+            return session.createQuery(criteria).executeUpdate();
+        });
     }
 }

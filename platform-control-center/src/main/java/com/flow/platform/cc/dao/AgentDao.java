@@ -21,6 +21,7 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Will
@@ -52,4 +53,15 @@ public interface AgentDao extends BaseDao<AgentPath, Agent> {
      * @return Agent instance
      */
     Agent find(String sessionId);
+
+    /**
+     * Batch update agent status by zone
+     *
+     * @param zone target zone name
+     * @param status target status to be updated
+     * @param agents target agent name
+     * @param isNot indicate NOT in (true) or In(false) agent set
+     * @return number of agent updated
+     */
+    int batchUpdateStatus(String zone, AgentStatus status, Set<String> agents, boolean isNot);
 }
