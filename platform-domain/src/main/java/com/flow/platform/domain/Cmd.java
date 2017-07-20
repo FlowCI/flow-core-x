@@ -18,7 +18,6 @@ package com.flow.platform.domain;
 
 import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
-
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +42,13 @@ public class Cmd extends CmdBase {
      */
     public static final Set<CmdStatus> FINISH_STATUS =
         Sets.newHashSet(CmdStatus.LOGGED, CmdStatus.EXCEPTION, CmdStatus.KILLED, CmdStatus.REJECTED,
-            CmdStatus.TIMEOUT_KILL);
+            CmdStatus.TIMEOUT_KILL, CmdStatus.STOPPED);
+
+    /**
+     * The cmd type should handle in agent
+     */
+    public static final Set<CmdType> AGENT_CMD_TYPE =
+        Sets.newHashSet(CmdType.RUN_SHELL, CmdType.SHUTDOWN, CmdType.KILL, CmdType.STOP);
 
     /**
      * Server generated command id
@@ -145,6 +150,10 @@ public class Cmd extends CmdBase {
 
     public Boolean isCurrent() {
         return WORKING_STATUS.contains(status);
+    }
+
+    public Boolean isAgentCmd() {
+        return AGENT_CMD_TYPE.contains(type);
     }
 
     @Override

@@ -24,14 +24,20 @@ import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.domain.*;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.exception.FlowException;
 import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.zk.AbstractZkException;
 import com.flow.platform.util.zk.ZkException.NotExitException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -82,6 +88,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Autowired
     private Executor taskExecutor;
+
+    @Autowired
+    private Channel cmdSendChannel;
+
+    @Value("${mq.exchange.name}")
+    private String cmdExchangeName;
 
     @Override
     public Cmd create(CmdInfo info) {
@@ -138,13 +150,33 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE, noRollbackFor = AgentErr.NotAvailableException.class)
-    public Cmd send(CmdInfo cmdInfo) {
-        Cmd cmd = null;
+    @Transactional(
+        isolation = Isolation.SERIALIZABLE,
+        noRollbackFor = {FlowException.class, AbstractZkException.class})
+    public Cmd send(String cmdId, boolean shouldResetStatus) {
+        Cmd cmd = find(cmdId);
+        if (cmd == null) {
+            throw new IllegalParameterException("Cmd does not found");
+        }
+
+        // verify input cmd status is in finished status
+        if (!shouldResetStatus && !cmd.isCurrent()) {
+            throw new IllegalStatusException(
+                String.format("Cmd cannot be proceeded since status is: %s", cmd.getStatus()));
+        }
+
+        if (shouldResetStatus) {
+            cmd.setStatus(CmdStatus.PENDING);
+            cmdDao.update(cmd);
+        }
 
         try {
-            Agent target = selectAgent(cmdInfo); // find agent by cmd
-            cmdInfo.setAgentPath(target.getPath()); // reset cmd path since some of cmd missing agent name
+            // find agent
+            Agent target = selectAgent(cmd);
+
+            // set cmd path and save since some of cmd not defined agent name
+            cmd.setAgentPath(target.getPath());
+            cmdDao.update(cmd);
 
             // double check agent in zk node
             String agentNodePath = zkHelper.getZkPath(target.getPath());
@@ -152,33 +184,57 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 throw new AgentErr.NotFoundException(target.getPath().toString());
             }
 
-            cmd = create(cmdInfo);
-            updateAgentStatusByCmdType(cmdInfo, cmd, target);
+            updateAgentStatusByCmdType(cmd, target);
 
             // set real cmd to zookeeper node
-            ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmd.toJson());
-
-            // update agent property
-            agentDao.update(target);
-
-            updateStatus(cmd.getId(), CmdStatus.SENT, null, false);
-            return cmd;
-        } catch (AgentErr.NotAvailableException e) {
-
-            // update cmd status and send webhook
-            if (cmd != null) {
-                updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false);
-            } else {
-                cmdInfo.setStatus(CmdStatus.REJECTED);
-                webhookCallback(cmdInfo);
+            if (cmd.isAgentCmd()) {
+                ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmd.toJson());
             }
 
-            // force to check idle agent
+            // update cmd status to SENT
+            updateStatus(cmd.getId(), CmdStatus.SENT, null, false);
+            return cmd;
+
+        } catch (AgentErr.NotAvailableException e) {
+            updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false);
             zoneService.keepIdleAgentTask();
             throw e;
 
         } catch (NotExitException e) {
-            throw new AgentErr.NotFoundException(cmdInfo.getAgentName());
+            updateStatus(cmd.getId(), CmdStatus.REJECTED, null, false);
+            throw new AgentErr.NotFoundException(cmd.getAgentName());
+
+        } catch (Throwable e) {
+            CmdResult result = new CmdResult();
+            result.getExceptions().add(e);
+            updateStatus(cmd.getId(), CmdStatus.EXCEPTION, result, false);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional(
+        isolation = Isolation.SERIALIZABLE,
+        noRollbackFor = {FlowException.class, AbstractZkException.class})
+    public Cmd send(CmdInfo cmdInfo) {
+        Cmd cmd = create(cmdInfo);
+        return send(cmd.getId(), false);
+    }
+
+    @Override
+    public Cmd queue(CmdInfo cmdInfo) {
+        Cmd cmd = create(cmdInfo);
+
+        AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
+            .priority(cmd.getPriority())
+            .build();
+
+        try {
+            cmdSendChannel.basicPublish(cmdExchangeName, "", properties, cmd.getId().getBytes());
+            return cmd;
+        } catch (IOException e) {
+            LOGGER.error("Cmd send channel error : ", e);
+            throw new RuntimeException("Cmd send channel error");
         }
     }
 
@@ -189,7 +245,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         Cmd cmd = find(cmdId);
         if (cmd == null) {
-            throw new IllegalArgumentException("Cmd not exist");
+            throw new IllegalArgumentException("Cmd does not exist");
         }
 
         // compare exiting cmd result and update
@@ -216,6 +272,17 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
             webhookCallback(cmd);
         }
+    }
+
+    @Override
+    public void resetStatus(String cmdId) {
+        Cmd cmd = find(cmdId);
+        if (cmd == null) {
+            throw new IllegalArgumentException("Cmd does not exist");
+        }
+
+        cmd.setStatus(CmdStatus.PENDING);
+        cmdDao.save(cmd);
     }
 
     @Override
@@ -316,12 +383,11 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     /**
      * Update agent status by cmd type
      *
-     * @param cmdInfo origin cmd info
      * @param cmd cmd instance created by cmdInfo
      * @param target target agent that needs to set status
      */
-    private void updateAgentStatusByCmdType(final CmdInfo cmdInfo, final Cmd cmd, final Agent target) {
-        switch (cmdInfo.getType()) {
+    private void updateAgentStatusByCmdType(final Cmd cmd, final Agent target) {
+        switch (cmd.getType()) {
             case RUN_SHELL:
                 if (cmd.hasSession()) {
                     break;
@@ -372,6 +438,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
                 target.setStatus(AgentStatus.OFFLINE);
                 break;
         }
+
+        // update agent property
+        agentDao.update(target);
     }
 
     private boolean isAgentPathFail(CmdBase cmd, AgentPath agentPath) {

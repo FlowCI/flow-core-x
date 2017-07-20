@@ -53,6 +53,21 @@ public class CmdController {
         return cmdService.send(cmd);
     }
 
+    @PostMapping(path = "/queue/send", consumes = "application/json")
+    public Cmd sendCommandToQueue(@RequestBody CmdInfo cmd) {
+        return cmdService.send(cmd);
+    }
+
+    /**
+     * Set cmd status to STOPPED
+     *
+     * @param cmdId
+     */
+    @PostMapping("/cmd/stop/{cmdId}")
+    public void stopCommand(@PathVariable String cmdId) {
+        cmdService.updateStatus(cmdId, CmdStatus.STOPPED, null, true);
+    }
+
     /**
      * For agent report cmd status
      *

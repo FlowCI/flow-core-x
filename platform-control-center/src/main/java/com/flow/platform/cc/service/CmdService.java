@@ -18,6 +18,8 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.*;
+import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.exception.IllegalStatusException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -29,7 +31,7 @@ import java.util.Set;
 public interface CmdService {
 
     /**
-     * Create command from CmdBase
+     * Create command from CmdInfo
      *
      * @return Cmd objc with id
      */
@@ -65,10 +67,25 @@ public interface CmdService {
      * - which mean system will automatic select idle agent to send
      * throw AgentErr.NotAvailableException if no idle agent and update cmd status to CmdStatus.Reject
      *
+     * @param cmdId cmd id it will load from dao
+     * @param shouldResetStatus should reset cmd status to PENDING
      * @return command objc with id
      * @throws AgentErr.NotAvailableException if agent busy
+     * @throws com.flow.platform.util.zk.ZkException.NotExitException if no zk node exist
+     * @throws IllegalParameterException if cmd not found
+     * @throws IllegalStatusException if cmd status is in finished status
+     */
+    Cmd send(String cmdId, boolean shouldResetStatus);
+
+    /**
+     * Wrapper of send(cmdId), it includes create cmd by CmdInfo
      */
     Cmd send(CmdInfo cmdInfo);
+
+    /**
+     * Send cmd info to queue
+     */
+    Cmd queue(CmdInfo cmdInfo);
 
     /**
      * Check cmd is timeout
@@ -86,6 +103,11 @@ public interface CmdService {
      * @param updateAgentStatus should update agent status according to cmd status
      */
     void updateStatus(String cmdId, CmdStatus status, CmdResult result, boolean updateAgentStatus);
+
+    /**
+     * Reset cmd status to init status PENDING
+     */
+    void resetStatus(String cmdId);
 
     /**
      * Record full zipped log to store

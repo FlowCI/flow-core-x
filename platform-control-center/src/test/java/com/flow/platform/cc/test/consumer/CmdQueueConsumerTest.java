@@ -24,6 +24,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.flow.platform.cc.service.AgentService;
+import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.Agent;
@@ -35,7 +36,6 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.rabbitmq.client.Channel;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -57,13 +57,13 @@ public class CmdQueueConsumerTest extends TestBase {
     public WireMockRule wireMockRule = new WireMockRule(8088);
 
     @Autowired
-    private Channel cmdSendChannel;
-
-    @Autowired
     private AgentService agentService;
 
     @Autowired
     private ZoneService zoneService;
+
+    @Autowired
+    private CmdService cmdService;
 
     @Value("${mq.exchange.name}")
     private String cmdExchangeName;
@@ -91,7 +91,10 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: send cmd by rabbit mq with cmd exchange name
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088/node/callback");
-        cmdSendChannel.basicPublish(cmdExchangeName, "", null, mockCmd.toBytes());
+
+        Cmd mockCmdInstance = cmdService.queue(mockCmd);
+        Assert.assertNotNull(mockCmdInstance.getId());
+
         Thread.sleep(1000);
 
         // then: webhook been invoked
@@ -114,8 +117,11 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: send cmd without available agent
         CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088" + testUrl);
-        cmdSendChannel.basicPublish(cmdExchangeName, "", null, mockCmd.toBytes());
-        Thread.sleep(1000); // wait for send webhook
+        Cmd mockCmdInstance = cmdService.queue(mockCmd);
+        Assert.assertNotNull(mockCmdInstance.getId());
+
+        // wait for send webhook
+        Thread.sleep(1000);
 
         // then: should invoke cmd webhook for status REJECT
         verify(1, postRequestedFor(urlEqualTo(testUrl)));

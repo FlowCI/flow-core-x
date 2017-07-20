@@ -56,7 +56,7 @@ public abstract class CmdBase extends Jsonable {
     /**
      * Reserved field for cmd queue
      */
-    protected Integer priority;
+    protected Integer priority = 1;
 
     /**
      * Platform will reserve a machine for session
