@@ -18,8 +18,10 @@ package com.flow.platform.api.util;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import java.util.List;
+import javax.annotation.PostConstruct;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,43 +32,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class NodeUtilTest extends TestBase {
 
     @Autowired
-    private NodeUtil nodeUtil;
-    @Test
-    public void should_get_allChildren_first(){
-        Step step1 = new Step();
-        step1.setName("step1");
-        Step step2 = new Step();
-        step2.setName("step2");
-        Step step3 = new Step();
-        step3.setName("step3");
-        Step step4 = new Step();
-        step4.setName("step4");
-        Step step5 = new Step();
-        step5.setName("step5");
-        Step step6 = new Step();
-        step6.setName("step6");
-        Step step7 = new Step();
-        step7.setName("step7");
-        step1.setNext(step2);
-        step2.setNext(step3);
-        step3.setNext(step4);
-        step4.setNext(step5);
-        step5.setNext(step6);
-        step6.setNext(step7);
-        Flow flow = new Flow();
-        flow.setName("flow1");
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-        flow.getChildren().add(step3);
-        flow.getChildren().add(step4);
-        flow.getChildren().add(step5);
-        flow.getChildren().add(step6);
-        flow.getChildren().add(step7);
-        try{
-            List<Node> nodeList = nodeUtil.allChildren(flow);
-            Assert.assertEquals(7, nodeList.size());
-        }catch (RuntimeException e){
-        }
+    NodeService nodeService;
+
+    @Autowired
+    NodeService jobNodeService;
+
+    NodeUtil nodeUtil;
+    NodeUtil jobNodeUtil;
+
+    @PostConstruct
+    public void init(){
+        nodeUtil = new NodeUtil(nodeService);
+        jobNodeUtil = new NodeUtil(jobNodeService);
     }
 
 
@@ -86,32 +63,33 @@ public class NodeUtilTest extends TestBase {
         step6.setName("step6");
         Step step7 = new Step();
         step7.setName("step7");
+        nodeService.create(step1);
+        nodeService.create(step2);
+        nodeService.create(step3);
+        nodeService.create(step4);
+        nodeService.create(step5);
+        nodeService.create(step6);
+        nodeService.create(step7);
 
-        step1.getChildren().add(step4);
-        step1.getChildren().add(step5);
-        step4.setParent(step1);
-        step5.setParent(step1);
-        step4.setNext(step5);
-        step5.setPrev(step4);
+        step4.setParentId(step1.getPath());
+        step5.setParentId(step1.getPath());
+        step4.setNextId(step5.getPath());
+        step5.setPrevId(step4.getPath());
 
-        step2.getChildren().add(step6);
-        step6.setParent(step2);
-        step6.getChildren().add(step7);
-        step7.setParent(step6);
+        step6.setParentId(step2.getPath());
+        step7.setParentId(step6.getPath());
 
-        step1.setNext(step2);
-        step2.setPrev(step1);
-        step2.setNext(step3);
-        step3.setPrev(step2);
+        step1.setNextId(step2.getPath());
+        step2.setPrevId(step1.getPath());
+        step2.setNextId(step3.getPath());
+        step3.setPrevId(step2.getPath());
 
         Flow flow = new Flow();
         flow.setName("flow1");
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-        flow.getChildren().add(step3);
-        step1.setParent(flow);
-        step2.setParent(flow);
-        step3.setParent(flow);
+        nodeService.create(flow);
+        step1.setParentId(flow.getPath());
+        step2.setParentId(flow.getPath());
+        step3.setParentId(flow.getPath());
 
         List<Node> nodeList = nodeUtil.allChildren(flow);
         Assert.assertEquals(7, nodeList.size());

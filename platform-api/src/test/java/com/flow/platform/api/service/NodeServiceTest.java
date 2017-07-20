@@ -20,6 +20,8 @@ import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.NodeUtil;
+import javax.annotation.PostConstruct;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -39,6 +41,18 @@ public class NodeServiceTest extends TestBase{
 
     @Autowired
     NodeService nodeService;
+
+    @Autowired
+    JobNodeService jobNodeService;
+
+    NodeUtil nodeUtil;
+    NodeUtil jobNodeUtil;
+
+    @PostConstruct
+    public void init(){
+        nodeUtil = new NodeUtil(nodeService);
+        jobNodeUtil = new NodeUtil(jobNodeService);
+    }
 
     @Test
     public void should_node_initialized(){
@@ -117,5 +131,25 @@ public class NodeServiceTest extends TestBase{
         Assert.assertEquals("00000000000000000", ((JobStep)nodeService.find(jobstep.getPath())).getCmdId());
         Node node1 = nodeService.find(jobstep.getPath());
         Assert.assertEquals(true, node1 instanceof JobStep);
+    }
+
+    @Test
+    public void should_list_children(){
+        Step step1 = new Step();
+        step1.setName("step1");
+        Step step2 = new Step();
+        step2.setName("step2");
+        step1 = (Step) nodeService.create(step1);
+        step2 = (Step) nodeService.create(step2);
+        Flow flow = new Flow();
+        flow = (Flow) nodeService.create(flow);
+        step1.setNextId(step2.getPath());
+        step2.setPrevId(step1.getPath());
+        step1.setParentId(flow.getPath());
+        step2.setParentId(flow.getPath());
+        Assert.assertEquals("step1", nodeService.prevNode(step2).getName());
+        Assert.assertEquals("step2", nodeService.nextNode(step1).getName());
+        Assert.assertEquals(2, nodeService.listChildrenByNode(flow).size());
+        Assert.assertEquals(2, nodeUtil.allChildren(flow).size());
     }
 }

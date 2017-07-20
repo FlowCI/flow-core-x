@@ -37,8 +37,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 /**
@@ -49,14 +52,16 @@ public class JobServiceImpl implements JobService {
 
     private final Map<String, Job> mocJobList = new HashMap<>();
 
-    @Autowired
-    private JobNodeService jobNodeService;
 
     @Autowired
-    private NodeService nodeService;
+    private  NodeService nodeService;
 
     @Autowired
-    private NodeUtil nodeUtil;
+    private  JobNodeService jobNodeService;
+
+    private NodeUtil nodeUtil ;
+
+    private NodeUtil jobNodeUtil ;
 
     @Autowired
     private RabbitmqService rabbitmqService;
@@ -70,9 +75,15 @@ public class JobServiceImpl implements JobService {
     @Value(value = "${platform.api")
     private String platform_url;
 
+    @PostConstruct
+    public void init(){
+        nodeUtil = new NodeUtil(nodeService);
+        jobNodeUtil = new NodeUtil(jobNodeService);
+    }
+
     @Override
     public Boolean handleCmdResult(Cmd cmd, String nodePath) {
-        JobNode jobNode = jobNodeService.find(nodePath);
+        JobNode jobNode = (JobNode) jobNodeService.find(nodePath);
         JobStep jobStep = (JobStep) jobNode;
         handleStatus(cmd, jobStep);
         return true;
@@ -96,7 +107,7 @@ public class JobServiceImpl implements JobService {
                 nodeStatus = NodeStatus.RUNNING;
                 jobStep.setNodeStatus(nodeStatus);
                 //first step
-                if(nodeUtil.prevNodeFromAllChildren(jobStep) == null){
+                if(jobNodeUtil.prevNodeFromAllChildren(jobStep) == null){
                     updateFlowStatus(jobStep, cmd, true, false);
                     updateJobStatus(jobStep, cmd, true, false);
                 }
@@ -106,7 +117,7 @@ public class JobServiceImpl implements JobService {
             case LOGGED:
                 nodeStatus = NodeStatus.SUCCESS;
                 jobStep.setNodeStatus(nodeStatus);
-                JobStep next = (JobStep) nodeUtil.nextNodeFromAllChildren(jobStep);
+                JobStep next = (JobStep) jobNodeUtil.nextNodeFromAllChildren(jobStep);
                 // end step
                 if(next == null){
                     updateFinishStatus(jobStep, cmd, job);
@@ -119,7 +130,7 @@ public class JobServiceImpl implements JobService {
             case EXCEPTION:
                 nodeStatus = NodeStatus.FAIL;
                 jobStep.setNodeStatus(nodeStatus);
-                next = (JobStep) nodeUtil.nextNodeFromAllChildren(jobStep);
+                next = (JobStep) jobNodeUtil.nextNodeFromAllChildren(jobStep);
                 // end step
                 if(next == null){
                     updateFinishStatus(jobStep, cmd, job);
@@ -129,7 +140,7 @@ public class JobServiceImpl implements JobService {
             case TIMEOUT_KILL:
                 nodeStatus = NodeStatus.TIMEOUT;
                 jobStep.setNodeStatus(nodeStatus);
-                next = (JobStep) nodeUtil.nextNodeFromAllChildren(jobStep);
+                next = (JobStep) jobNodeUtil.nextNodeFromAllChildren(jobStep);
                 // end step
                 if(next == null){
                     updateFinishStatus(jobStep, cmd, job);
@@ -147,7 +158,7 @@ public class JobServiceImpl implements JobService {
     }
 
     private void updateFlowStatus(JobStep jobStep, Cmd cmd, Boolean firstStep, Boolean lastStep) {
-        JobFlow jobFlow = (JobFlow) nodeUtil.parentFlowNode(jobStep);
+        JobFlow jobFlow = (JobFlow) jobNodeUtil.parentFlowNode(jobStep);
         jobFlow.setUpdatedAt(ZonedDateTime.now());
         jobFlow.setNodeStatus(jobStep.getNodeStatus());
         if(firstStep){
@@ -165,7 +176,7 @@ public class JobServiceImpl implements JobService {
         Job job = jobStep.getJob();
         job.setNodeStatus(jobStep.getNodeStatus());
 
-        JobFlow jobFlow = (JobFlow) nodeUtil.parentFlowNode(jobStep);
+        JobFlow jobFlow = (JobFlow) jobNodeUtil.parentFlowNode(jobStep);
         if(firstStep){
             jobFlow.setStartedTime(cmd.getCreatedDate());
         }
@@ -255,7 +266,7 @@ public class JobServiceImpl implements JobService {
         mocJobList.put(job.getId(), job);
 
         // find jobNode
-        JobNode node = jobNodeService.find(job.getNodePath());
+        JobNode node = (JobNode) jobNodeService.find(job.getNodePath());
         node.setSessionId(job.getSessionId());
         // start run node
         run(node);
@@ -293,7 +304,7 @@ public class JobServiceImpl implements JobService {
             run(jobNode.getNext());
         } else {
             // not run
-            List<Node> nodes = nodeUtil.allChildren(node);
+            List<Node> nodes = jobNodeUtil.allChildren(node);
             run(nodes.get(0));
         }
     }

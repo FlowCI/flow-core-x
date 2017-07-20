@@ -15,16 +15,12 @@
  */
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,9 +35,6 @@ public class CallbackController {
 
     @Autowired
     private JobService jobService;
-
-    @Autowired
-    JobNodeService jobNodeService;
 
     @PostMapping(path = "/{jobId}/createSession")
     public String createSession(@RequestBody CmdBase cmdBase, @PathVariable String jobId) {

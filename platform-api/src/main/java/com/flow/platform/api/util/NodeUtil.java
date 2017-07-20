@@ -18,18 +18,30 @@ package com.flow.platform.api.util;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.service.NodeService;
 import java.util.LinkedList;
 import java.util.List;
 import org.springframework.stereotype.Component;
-import sun.rmi.server.InactiveGroupException;
 
 /**
  * @author yh@firim
  */
 
-@Component(value = "nodeUtil")
 public class NodeUtil {
 
+    public NodeUtil(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
+
+    public NodeService getNodeService() {
+        return nodeService;
+    }
+
+    public void setNodeService(NodeService nodeService) {
+        this.nodeService = nodeService;
+    }
+
+    private NodeService nodeService;
     /**
      * get all children elements from node
      */
@@ -71,8 +83,8 @@ public class NodeUtil {
         List<Node> nodeList = new LinkedList<>();
         final Node[] first = new Node[1];
 
-        node.getChildren().forEach((Node item) -> {
-            if (item.getPrev() == null) {
+        nodeService.listChildrenByNode(node).forEach((Node item) -> {
+            if (nodeService.prevNode(item) == null) {
                 first[0] = item;
             }
         });
@@ -82,7 +94,7 @@ public class NodeUtil {
             if (firstNode != null) {
                 nodeList.add(firstNode);
                 while (true) {
-                    firstNode = firstNode.getNext();
+                    firstNode = nodeService.nextNode(firstNode);
                     if (firstNode == null) {
                         break;
                     }
@@ -91,7 +103,7 @@ public class NodeUtil {
             }
         }
 
-        if (node.getChildren().size() != nodeList.size()) {
+        if (nodeService.listChildrenByNode(node).size() != nodeList.size()) {
             throw new RuntimeException("this node illegal");
         }
         return nodeList;
@@ -102,7 +114,7 @@ public class NodeUtil {
      * detect children element legal
      */
     public Boolean detectChildrenNodeLegal(Node node) {
-        return node.getChildren().size() == childrenOrdered(node).size();
+        return nodeService.listChildrenByNode(node).size() == childrenOrdered(node).size();
     }
 
     /**
@@ -133,7 +145,7 @@ public class NodeUtil {
         if (detectFlowNode(node)) {
             return node;
         }
-        return parentFlowNode(node.getParent());
+        return parentFlowNode(nodeService.parent(node));
     }
 
     /**

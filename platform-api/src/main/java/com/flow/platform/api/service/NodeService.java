@@ -16,6 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Node;
+import java.util.List;
 
 /**
  * @author yh@firim
@@ -49,4 +50,12 @@ public interface NodeService {
      * @return
      */
     Node find(String path);
+
+    List<Node> listChildrenByNode(Node node);
+
+    Node prevNode(Node node);
+
+    Node nextNode(Node node);
+
+    Node parent(Node node);
 }

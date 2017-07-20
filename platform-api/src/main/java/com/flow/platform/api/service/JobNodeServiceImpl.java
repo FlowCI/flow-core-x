@@ -15,44 +15,12 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.JobNode;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.stereotype.Service;
 
 /**
  * @author yh@firim
  */
 @Service(value = "jobNodeService")
-public class JobNodeServiceImpl implements JobNodeService {
+public class JobNodeServiceImpl extends NodeServiceImpl implements JobNodeService {
 
-    private final Map<String, JobNode> mocJobNodeList = new HashMap<>();
-    @Override
-    public JobNode create(JobNode jobNode) {
-        jobNode.setUpdatedAt(ZonedDateTime.now());
-        jobNode.setCreatedAt(ZonedDateTime.now());
-        mocJobNodeList.put(jobNode.getPath(), jobNode);
-        return jobNode;
-    }
-
-    @Override
-    public Boolean delete(String path) {
-        if(mocJobNodeList.remove(path) == null){
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public JobNode update(JobNode jobNode) {
-        jobNode.setUpdatedAt(ZonedDateTime.now());
-        mocJobNodeList.put(jobNode.getPath(), jobNode);
-        return jobNode;
-    }
-
-    @Override
-    public JobNode find(String path) {
-        return mocJobNodeList.get(path);
-    }
 }

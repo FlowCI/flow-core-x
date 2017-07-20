@@ -15,40 +15,9 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.domain.Node;
-
 /**
  * @author yh@firim
  */
-public interface JobNodeService {
+public interface JobNodeService extends NodeService {
 
-    /**
-     * create job node
-     * @param jobNode
-     * @return
-     */
-    JobNode create(JobNode jobNode);
-
-    /**
-     * delete job node
-     * @param path
-     * @return
-     */
-    Boolean delete(String path);
-
-    /**
-     * update job node
-     * @param jobNode
-     * @return
-     */
-    JobNode update(JobNode jobNode);
-
-    /**
-     * find job node
-     * @param path
-     * @return
-     */
-    JobNode find(String path);
 }
