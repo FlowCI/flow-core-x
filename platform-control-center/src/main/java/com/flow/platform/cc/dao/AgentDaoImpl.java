@@ -49,6 +49,40 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
+    String getKeyName() {
+        return "path";
+    }
+
+    @Override
+    public List<Agent> list(Set<AgentPath> keySet) {
+        return execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+
+            CriteriaQuery<Agent> select = builder.createQuery(Agent.class);
+            Root<Agent> from = select.from(Agent.class);
+
+            Set<String> zones = new HashSet<>(keySet.size());
+            Set<String> agents = new HashSet<>(keySet.size());
+
+            for (AgentPath path : keySet) {
+                if (path.getZone() != null) {
+                    zones.add(path.getZone());
+                }
+
+                if (path.getName() != null) {
+                    agents.add(path.getName());
+                }
+            }
+
+            Predicate zoneInClause = from.get(getKeyName()).get("zone").in(zones);
+            Predicate nameInClause = from.get(getKeyName()).get("name").in(agents);
+            select.where(builder.and(zoneInClause, nameInClause));
+
+            return session.createQuery(select).list();
+        });
+    }
+
+    @Override
     public void update(final Agent obj) {
         execute(session -> {
             obj.setUpdatedDate(DateUtil.now());

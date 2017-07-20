@@ -164,7 +164,6 @@ public class AgentServiceImpl implements AgentService {
             return;
         }
 
-        // TODO: should be replaced by db query
         LOGGER.traceMarker("sessionTimeoutTask", "start");
         ZonedDateTime now = DateUtil.utcNow();
 

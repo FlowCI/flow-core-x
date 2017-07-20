@@ -89,6 +89,9 @@ public class CmdDaoTest extends TestBase {
         cmd1.setId(UUID.randomUUID().toString());
         cmdDao.save(cmd1);
 
+        List<Cmd> list = cmdDao.list(Sets.newHashSet(cmd0.getId(), cmd1.getId()));
+        Assert.assertTrue(list.size() == 2);
+
         // when: get all cmd for zone
         List<Cmd> result = cmdDao.list(null, null, null);
         Assert.assertNotNull(result);

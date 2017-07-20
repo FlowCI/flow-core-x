@@ -64,6 +64,9 @@ public class AgentDaoTest extends TestBase {
         agent3.setStatus(AgentStatus.IDLE);
         agentDao.save(agent3);
 
+        List<Agent> list = agentDao.list(Sets.newHashSet(agent1.getPath(), agent2.getPath(), agent3.getPath()));
+        Assert.assertTrue(list.size() == 3);
+
         // when: find agents of zone 1 without status
         List<Agent> agents = agentDao.list(zone1, null);
         Assert.assertNotNull(agents);

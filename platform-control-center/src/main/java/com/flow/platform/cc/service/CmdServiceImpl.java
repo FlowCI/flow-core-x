@@ -264,7 +264,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             }
         }
 
-        // // TODO: should batch save cmd status
         LOGGER.traceMarker("checkTimeoutTask", "end");
     }
 

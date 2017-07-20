@@ -41,6 +41,11 @@ public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> impleme
     }
 
     @Override
+    String getKeyName() {
+        return "cmdId";
+    }
+
+    @Override
     public List<CmdResult> list(Collection<String> cmdIds) {
         if (cmdIds == null || cmdIds.size() == 0) {
             return new ArrayList<>(0);
@@ -51,7 +56,7 @@ public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> impleme
 
             CriteriaQuery select = builder.createQuery(getEntityClass());
             Root from = select.from(getEntityClass());
-            select.where(from.get("cmdId").in(cmdIds));
+            select.where(from.get(getKeyName()).in(cmdIds));
 
             return session.createQuery(select).getResultList();
         });
@@ -88,7 +93,7 @@ public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> impleme
                 update.set(field.getName(), value);
             }
 
-            update.where(builder.equal(from.get("cmdId"), obj.getCmdId()));
+            update.where(builder.equal(from.get(getKeyName()), obj.getCmdId()));
             return session.createQuery(update).executeUpdate();
         });
     }
