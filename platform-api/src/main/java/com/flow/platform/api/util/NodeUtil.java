@@ -24,6 +24,7 @@ import java.util.function.Consumer;
  * @author yh@firim
  */
 public class NodeUtil {
+
     public static void recurse(final Node root, final Consumer<Node> onNode) {
         for (Node child : root.getChildren()) {
             recurse(child, onNode);
@@ -44,5 +45,54 @@ public class NodeUtil {
         final List<Node> flatted = new LinkedList<>();
         recurse(node, flatted::add);
         return flatted;
+    }
+
+    /**
+     * get prev node from flow
+     * @param node
+     * @return
+     */
+    public static Node prev(Node node) {
+        Node root = findRootNode(node);
+        List<Node> nodes = flat(root);
+        Integer index = -1;
+        Node target = null;
+        for (int i = 0; i < nodes.size(); i++) {
+            Node item = nodes.get(i);
+            if(item.getPath() == node.getPath()){
+                index = i;
+            }
+        }
+        if(index >= 1 && index != -1 && index < nodes.size() - 1){
+            target = nodes.get(index - 1);
+        }
+
+        return target;
+    }
+
+    /**
+     * get next node from flow
+     * @param node
+     * @return
+     */
+    public static Node next(Node node) {
+        Node root = findRootNode(node);
+        List<Node> nodes = flat(root);
+        Integer index = -1;
+        Node target = null;
+        for (int i = 0; i < nodes.size(); i++) {
+            Node item = nodes.get(i);
+            if(item.getPath() == node.getPath()){
+                index = i;
+            }
+        }
+        if(index <= nodes.size() - 3 && index != -1){
+            target = nodes.get(index + 1);
+        }
+
+        if(index == nodes.size() - 1 && nodes.size() != 1){
+            target = nodes.get(0);
+        }
+        return target;
     }
 }
