@@ -13,49 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
+package com.flow.platform.api.util;
 
 import com.flow.platform.api.domain.Node;
+import java.util.LinkedList;
 import java.util.List;
 
-/**
- * @author yh@firim
- */
-public interface NodeService {
 
-    /**
-     * create node
-     * @param node
-     * @return
-     */
-    Node create(Node node);
+public class NdUtil {
 
-    /**
-     * delete node
-     * @param node
-     * @return
-     */
-    Boolean delete(Node node);
-
-    /**
-     * update node
-     * @param node
-     * @return
-     */
-    Node update(Node node);
-
-    /**
-     * find node
-     * @param path
-     * @return
-     */
-    Node find(String path);
-
-    List<Node> listChildrenByNode(Node node);
-
-    Node prevNode(Node node);
-
-    Node nextNode(Node current);
-
-    Node parent(Node node);
+    public static List<Node> deptNodes(Node node){
+        List<Node> nodes = new LinkedList<>();
+        List<Node> children = node.getChildren();
+        for (Node child : children) {
+            List<Node> nodeList = deptNodes(child);
+            nodes.addAll(nodeList);
+        }
+        nodes.add(node);
+        return nodes;
+    }
 }

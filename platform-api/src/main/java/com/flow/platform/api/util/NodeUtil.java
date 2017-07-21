@@ -21,7 +21,7 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.NodeService;
 import java.util.LinkedList;
 import java.util.List;
-import org.springframework.stereotype.Component;
+import java.util.function.Consumer;
 
 /**
  * @author yh@firim
@@ -63,6 +63,28 @@ public class NodeUtil {
         }
 
         return allNodes;
+    }
+
+    public static void recurse(final Node root, final Consumer<Node> onNode) {
+        for (Node child : root.getChildren()) {
+            recurse(child, onNode);
+        }
+        onNode.accept(root);
+    }
+
+
+    public static Node findRootNode(Node node) {
+        if (node.getParent() == null) {
+            return node;
+        }
+
+        return findRootNode(node.getParent());
+    }
+
+    public static List<Node> flat(final Node node) {
+        final List<Node> flatted = new LinkedList<>();
+        recurse(node, flatted::add);
+        return flatted;
     }
 
     /**

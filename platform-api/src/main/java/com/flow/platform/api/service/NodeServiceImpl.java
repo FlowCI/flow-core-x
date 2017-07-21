@@ -81,7 +81,9 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public Node nextNode(Node node) {
-        return mocNodeList.get(node.getNextId());
+
+
+
     }
 
     @Override
