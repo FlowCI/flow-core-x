@@ -24,16 +24,22 @@ public interface NodeService {
 
     /**
      * create node and children
+     * @param node
+     * @return
      */
     Node create(Node node);
 
     /**
      * find node by node path
+     * @param nodePath
+     * @return
      */
     Node find(String nodePath);
 
     /**
      * save node
+     * @param node
+     * @return
      */
     Node save(Node node);
 }
