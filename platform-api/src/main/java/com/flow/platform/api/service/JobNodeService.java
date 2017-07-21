@@ -18,6 +18,6 @@ package com.flow.platform.api.service;
 /**
  * @author yh@firim
  */
-public interface JobNodeService extends NodeService{
+public interface JobNodeService extends NodeService {
 
 }

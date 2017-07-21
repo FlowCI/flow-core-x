@@ -28,8 +28,9 @@ import org.junit.Test;
 /**
  * @author yh@firim
  */
-public class NodeUtilTest extends TestBase{
-    public Node initNodes(){
+public class NodeUtilTest extends TestBase {
+
+    public Node initNodes() {
         Step step1 = new Step();
         step1.setName("step1");
         Step step2 = new Step();
@@ -79,7 +80,7 @@ public class NodeUtilTest extends TestBase{
     }
 
     @Test
-    public void should_flat(){
+    public void should_flat() {
         List<Node> nodes = NodeUtil.flat(initNodes());
         String out = "";
         for (Node node : nodes) {
@@ -92,7 +93,7 @@ public class NodeUtilTest extends TestBase{
     }
 
     @Test
-    public void should_recurse(){
+    public void should_recurse() {
         Node node = initNodes();
         List<Node> nodeList = new LinkedList<>();
         NodeUtil.recurse(node, item -> {
@@ -108,7 +109,7 @@ public class NodeUtilTest extends TestBase{
     }
 
     @Test
-    public void should_find_root_simple(){
+    public void should_find_root_simple() {
         Flow flow = new Flow();
         flow.setName("flow");
         Step step1 = new Step();
@@ -131,8 +132,8 @@ public class NodeUtilTest extends TestBase{
 
 
     @Test
-    public void should_find_root_complex(){
-        Node node =  initNodes();
+    public void should_find_root_complex() {
+        Node node = initNodes();
 
         Assert.assertEquals("flow", NodeUtil.findRootNode(node).getName());
         NodeUtil.recurse(node, item -> {
@@ -141,7 +142,7 @@ public class NodeUtilTest extends TestBase{
     }
 
     @Test
-    public void should_equal_prev_node(){
+    public void should_equal_prev_node() {
         Step step1 = new Step();
         step1.setName("step1");
         step1.setPath("/step1");
@@ -205,7 +206,7 @@ public class NodeUtilTest extends TestBase{
     }
 
     @Test
-    public void should_equal_next_node(){
+    public void should_equal_next_node() {
         Flow flow = new Flow();
         flow.setName("flow");
         flow.setPath("/flow");
@@ -231,7 +232,7 @@ public class NodeUtilTest extends TestBase{
     }
 
     @Test
-    public void should_equal_next_one_node(){
+    public void should_equal_next_one_node() {
         Flow flow = new Flow();
         flow.setName("flow");
         flow.setPath("/flow");

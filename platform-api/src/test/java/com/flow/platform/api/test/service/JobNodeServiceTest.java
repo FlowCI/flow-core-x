@@ -15,13 +15,10 @@
  */
 package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
@@ -33,20 +30,22 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author yh@firim
  */
 public class JobNodeServiceTest extends TestBase {
+
     @Autowired
     JobNodeService jobNodeService;
+
     @Test
-    public void should_save_node(){
+    public void should_save_node() {
         JobFlow flow = new JobFlow();
         flow.setPath("/flow");
         flow.setName("flow");
         flow.setExitCode(1);
         jobNodeService.save(flow);
-        Assert.assertEquals(flow.getExitCode(), ((JobNode)jobNodeService.find(flow.getPath())).getExitCode());
+        Assert.assertEquals(flow.getExitCode(), ((JobNode) jobNodeService.find(flow.getPath())).getExitCode());
     }
 
     @Test
-    public void should_create_and_get_node(){
+    public void should_create_and_get_node() {
         JobFlow flow = new JobFlow();
         flow.setName("flow");
         flow.setPath("/flow");
@@ -58,8 +57,9 @@ public class JobNodeServiceTest extends TestBase {
         step1.setDuration((long) 10);
         flow.getChildren().add(step1);
         Node node = jobNodeService.create(flow);
-        NodeUtil.recurse(flow, item->{
-            Assert.assertEquals(((JobNode)item).getDuration(), ((JobNode)jobNodeService.find(flow.getPath())).getDuration());
+        NodeUtil.recurse(flow, item -> {
+            Assert.assertEquals(((JobNode) item).getDuration(),
+                ((JobNode) jobNodeService.find(flow.getPath())).getDuration());
         });
     }
 }

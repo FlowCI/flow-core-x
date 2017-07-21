@@ -28,12 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author yh@firim
  */
-public class NodeServiceTest extends TestBase{
+public class NodeServiceTest extends TestBase {
+
     @Autowired
     NodeService nodeService;
 
     @Test
-    public void should_save_node(){
+    public void should_save_node() {
         Flow flow = new Flow();
         flow.setPath("/flow");
         flow.setName("flow");
@@ -42,7 +43,7 @@ public class NodeServiceTest extends TestBase{
     }
 
     @Test
-    public void should_create_and_get_node(){
+    public void should_create_and_get_node() {
         Flow flow = new Flow();
         flow.setName("flow");
         flow.setPath("/flow");
@@ -52,7 +53,7 @@ public class NodeServiceTest extends TestBase{
         step1.setPath("/flow/step1");
         flow.getChildren().add(step1);
         Node node = nodeService.create(flow);
-        NodeUtil.recurse(flow, item->{
+        NodeUtil.recurse(flow, item -> {
             Assert.assertEquals(item.getName(), nodeService.find(item.getPath()).getName());
         });
     }

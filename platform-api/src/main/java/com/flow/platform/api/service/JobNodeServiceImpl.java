@@ -21,6 +21,6 @@ import org.springframework.stereotype.Service;
  * @author yh@firim
  */
 @Service(value = "jobNodeService")
-public class JobNodeServiceImpl extends NodeServiceImpl implements JobNodeService{
+public class JobNodeServiceImpl extends NodeServiceImpl implements JobNodeService {
 
 }
