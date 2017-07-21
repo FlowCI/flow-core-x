@@ -67,9 +67,6 @@ public class CmdQueueConsumerTest extends TestBase {
     @Autowired
     private CmdService cmdService;
 
-    @Value("${mq.exchange.name}")
-    private String cmdExchangeName;
-
     @Before
     public void before() throws Throwable {
         cleanZookeeperChilderenNode(zkHelper.buildZkPath(ZONE, null).path());
@@ -183,7 +180,8 @@ public class CmdQueueConsumerTest extends TestBase {
             Thread.sleep(1000);
 
             // then:
-            CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
+            CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL,
+                2);
             verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
         } catch (CannotAcquireLockException acquireLockException) {
             // may raise the exception when this cmd is processing, in api level should return stop cmd failure
