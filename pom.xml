@@ -44,7 +44,7 @@
     <amqp-client.version>4.1.0</amqp-client.version>
     <HikariCP.version>2.6.2</HikariCP.version>
     <jcabi-ssh.version>1.5.2</jcabi-ssh.version>
-    <jmockit.version>1.33</jmockit.version>
+    <powermock.version>1.7.0</powermock.version>
   </properties>
 
   <repositories>
@@ -222,9 +222,16 @@
       </dependency>
 
       <dependency>
-        <groupId>org.jmockit</groupId>
-        <artifactId>jmockit</artifactId>
-        <version>${jmockit.version}</version>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-module-junit4</artifactId>
+        <version>${powermock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-api-mockito2</artifactId>
+        <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
 

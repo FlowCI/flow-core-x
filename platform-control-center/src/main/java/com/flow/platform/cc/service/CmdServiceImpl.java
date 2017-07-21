@@ -254,8 +254,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         // compare exiting cmd result and update
         if (inputResult != null) {
             inputResult.setCmdId(cmdId);
-            cmd.setFinishedDate(inputResult.getFinishTime());
-
             CmdResult cmdResult = cmdResultDao.get(cmd.getId());
             if (cmdResult != null) {
                 cmdResultDao.updateNotNullOrEmpty(inputResult);

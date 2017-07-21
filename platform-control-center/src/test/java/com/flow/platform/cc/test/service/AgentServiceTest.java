@@ -81,14 +81,18 @@ public class AgentServiceTest extends TestBase {
         AgentPath agent11 = new AgentPath(zone_1, "agent-1");
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent11), "");
 
-        Thread.sleep(100); // mock network delay
+        Thread.sleep(1000); // mock network delay
 
         AgentPath agent12 = new AgentPath(zone_1, "agent-2");
         ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent12), "");
 
+        Thread.sleep(1000); // mock network delay
+
         /* mock agent13 with exit offline status */
         AgentPath agent13 = new AgentPath(zone_1, "agent-3");
         Agent agentWithOffline = new Agent(agent13);
+        agentWithOffline.setCreatedDate(DateUtil.now());
+        agentWithOffline.setUpdatedDate(DateUtil.now());
         agentWithOffline.setStatus(AgentStatus.OFFLINE);
         agentDao.save(agentWithOffline);
         Assert.assertNotNull(agentService.find(agent13));
