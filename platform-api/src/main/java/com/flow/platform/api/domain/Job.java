@@ -41,6 +41,8 @@ public class Job extends Jsonable {
 
     private String nodePath;
 
+    private String sessionId;
+
     private Map<Env, String> envs = new HashMap<>();
 
     public Job() {
@@ -48,6 +50,15 @@ public class Job extends Jsonable {
 
     public Job(String id) {
         this.id = id;
+    }
+
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public String getId() {
