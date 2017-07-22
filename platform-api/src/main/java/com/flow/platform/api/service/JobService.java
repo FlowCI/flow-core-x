@@ -52,4 +52,25 @@ public interface JobService {
      * @return
      */
     JobFlow createJobNode(String flowPath);
+
+    /**
+     * save job
+     * @param job
+     * @return
+     */
+    Job save(Job job);
+
+    /**
+     * find job by id
+     * @param id
+     * @return
+     */
+    Job find(String id);
+
+    /**
+     * update job
+     * @param job
+     * @return
+     */
+    Job update(Job job);
 }

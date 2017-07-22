@@ -27,8 +27,8 @@ import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.ObjectUtil;
 import com.rabbitmq.client.Channel;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +39,7 @@ import org.springframework.util.ReflectionUtils;
  */
 @Service(value = "jobService")
 public class JobServiceImpl implements JobService {
+
     @Autowired
     NodeService nodeService;
 
@@ -48,6 +49,8 @@ public class JobServiceImpl implements JobService {
     @Autowired
     Channel createSessionChannel;
 
+    private final Map<String, Job> mocJobList = new HashMap<>();
+
     @Override
     public Job createJob(String flowPath) {
         /**
@@ -56,22 +59,25 @@ public class JobServiceImpl implements JobService {
          * TODO: createSession
          */
         Job job = new Job();
+        JobFlow jobFlow = createJobNode(flowPath);
         job.setId(UUID.randomUUID().toString());
         job.setCreatedAt(ZonedDateTime.now());
-        JobFlow jobFlow = createJobNode(flowPath);
+        job.setUpdatedAt(ZonedDateTime.now());
+        job.setNodePath(jobFlow.getPath());
 
         return null;
     }
 
     @Override
-    public JobFlow createJobNode(String flowPath){
+    public JobFlow createJobNode(String flowPath) {
         Node flow = nodeService.find(flowPath);
         NodeUtil.recurse(flow, node -> {
             JobNode jobNode;
-            if(node instanceof Flow){
+            if (node instanceof Flow) {
                 jobNode = copyNode(node, Flow.class, JobFlow.class);
-            }else{
-                jobNode = copyNode(node, Step.class, JobStep.class);;
+            } else {
+                jobNode = copyNode(node, Step.class, JobStep.class);
+                ;
             }
             jobNodeService.save(jobNode);
             for (Node child : node.getChildren()) {
@@ -92,7 +98,7 @@ public class JobServiceImpl implements JobService {
      * @param targetClass
      * @return
      */
-    private JobNode copyNode(Node node, Class<?> sourceClass, Class<?> targetClass){
+    private JobNode copyNode(Node node, Class<?> sourceClass, Class<?> targetClass) {
         Object k = null;
         try {
             k = targetClass.newInstance();
@@ -118,5 +124,22 @@ public class JobServiceImpl implements JobService {
     @Override
     public void run(Node node) {
 
+    }
+
+    @Override
+    public Job save(Job job) {
+        mocJobList.put(job.getId(), job);
+        return job;
+    }
+
+    @Override
+    public Job find(String id) {
+        return mocJobList.get(id);
+    }
+
+    @Override
+    public Job update(Job job) {
+        mocJobList.put(job.getId(), job);
+        return job;
     }
 }
