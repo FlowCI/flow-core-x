@@ -18,6 +18,7 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public abstract class Node extends Jsonable {
@@ -36,9 +37,9 @@ public abstract class Node extends Jsonable {
 
     protected Node next;
 
-    protected Date createdAt;
+    protected ZonedDateTime createdAt;
 
-    protected Date updatedAt;
+    protected ZonedDateTime updatedAt;
 
     public Node() {
     }
@@ -104,19 +105,19 @@ public abstract class Node extends Jsonable {
         this.next = next;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 

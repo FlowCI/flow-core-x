@@ -18,16 +18,16 @@ package com.flow.platform.api.domain;
 
 public class Step extends Node {
 
-    private Boolean isAllowFailure;
+    public Boolean allowFailure;
 
-    private String plugin;
+    public String plugin;
 
     public Boolean getAllowFailure() {
-        return isAllowFailure;
+        return allowFailure;
     }
 
     public void setAllowFailure(Boolean allowFailure) {
-        isAllowFailure = allowFailure;
+        this.allowFailure = allowFailure;
     }
 
     public String getPlugin() {

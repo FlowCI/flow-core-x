@@ -16,6 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.domain.CmdBase;
 
@@ -43,4 +44,12 @@ public interface JobService {
      * @param node
      */
     void run(Node node);
+
+
+    /**
+     * deep copy node
+     * @param flowPath
+     * @return
+     */
+    JobFlow createJobNode(String flowPath);
 }

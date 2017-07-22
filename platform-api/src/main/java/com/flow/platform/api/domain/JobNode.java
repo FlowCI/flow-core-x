@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.domain;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public abstract class JobNode extends Node {
@@ -24,11 +25,20 @@ public abstract class JobNode extends Node {
 
     protected Long duration;
 
-    protected Date finishedAt;
+    protected ZonedDateTime finishedAt;
 
     protected Integer exitCode;
 
     protected List<String> logPaths = new ArrayList<>();
+
+    public ZonedDateTime getFinishedAt() {
+        return finishedAt;
+    }
+
+    public void setFinishedAt(ZonedDateTime finishedAt) {
+        this.finishedAt = finishedAt;
+    }
+
 
     public Map<String, String> getOutputs() {
         return outputs;
@@ -44,14 +54,6 @@ public abstract class JobNode extends Node {
 
     public void setDuration(Long duration) {
         this.duration = duration;
-    }
-
-    public Date getFinishedAt() {
-        return finishedAt;
-    }
-
-    public void setFinishedAt(Date finishedAt) {
-        this.finishedAt = finishedAt;
     }
 
     public Integer getExitCode() {

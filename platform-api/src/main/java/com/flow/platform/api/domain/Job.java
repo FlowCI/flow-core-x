@@ -18,6 +18,7 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,13 +29,13 @@ public class Job extends Jsonable {
 
     private String type;
 
-    private Date createdAt;
+    private ZonedDateTime createdAt;
 
-    private Date updatedAt;
+    private ZonedDateTime updatedAt;
 
     private Long duration;
 
-    private Date finishedAt;
+    private ZonedDateTime finishedAt;
 
     private Integer exitCode;
 
@@ -65,19 +66,19 @@ public class Job extends Jsonable {
         this.type = type;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -89,11 +90,11 @@ public class Job extends Jsonable {
         this.duration = duration;
     }
 
-    public Date getFinishedAt() {
+    public ZonedDateTime getFinishedAt() {
         return finishedAt;
     }
 
-    public void setFinishedAt(Date finishedAt) {
+    public void setFinishedAt(ZonedDateTime finishedAt) {
         this.finishedAt = finishedAt;
     }
 

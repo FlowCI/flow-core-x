@@ -29,7 +29,6 @@ import javax.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 /**
  * @author yh@firim
@@ -46,7 +45,7 @@ public class MQConfig {
     private Connection connection;
     private Channel channel;
 
-    private Connection createConnection(){
+    private Connection createConnection() {
         ConnectionFactory factory = new ConnectionFactory();
         Connection conn = null;
         try {
@@ -73,7 +72,7 @@ public class MQConfig {
     }
 
     @PostConstruct
-    public void init(){
+    public void init() {
         try {
             connection = createConnection();
             channel = createChannel();
@@ -82,8 +81,8 @@ public class MQConfig {
         }
     }
 
-    @Bean(name = "jobChannel")
-    public Channel jobChannel(){
+    @Bean(name = "sessionCreateChannel")
+    public Channel sessionCreateChannel() {
         return channel;
     }
 
