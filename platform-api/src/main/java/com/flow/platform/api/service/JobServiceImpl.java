@@ -288,6 +288,7 @@ public class JobServiceImpl implements JobService {
                 JobStep nextStep = (JobStep) NodeUtil.next(jobStep);
                 if(nextStep == null){
                     updateJobAndFlowStatus(jobFlow, jobStep, job);
+                    deleteSession(job);
                 }else{
                     run(nextStep);
                 }
@@ -296,6 +297,7 @@ public class JobServiceImpl implements JobService {
             case TIMEOUT:
             case FAIL:
                 updateJobAndFlowStatus(jobFlow, jobStep, job);
+                deleteSession(job);
                 break;
         }
     }
