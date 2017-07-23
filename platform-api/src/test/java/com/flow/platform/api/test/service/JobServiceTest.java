@@ -20,11 +20,16 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobStep;
+import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ObjectUtil;
 import com.sun.org.apache.regexp.internal.RE;
 import java.lang.reflect.Field;
@@ -146,6 +151,28 @@ public class JobServiceTest extends TestBase{
 
         nodeService.create(flow);
         Job job = jobService.createJob(flow.getPath());
+        Assert.assertNotNull(job.getId());
+        Assert.assertEquals(NodeStatus.PENDING, job.getStatus());
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setSessionId("11111111");
+        cmd.setStatus(CmdStatus.SENT);
+        jobService.callback(job.getId(), cmd);
+        Assert.assertEquals("11111111", job.getSessionId());
+
+        cmd.setStatus(CmdStatus.RUNNING);
+        cmd.setType(CmdType.RUN_SHELL);
+        jobService.callback(step3.getPath(), cmd);
+        Assert.assertEquals(NodeStatus.RUNNING, job.getStatus());
+        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
+
+        cmd.setStatus(CmdStatus.LOGGED);
+        cmd.setType(CmdType.RUN_SHELL);
+        jobService.callback(step2.getPath(), cmd);
+        Assert.assertEquals(NodeStatus.SUCCESS, ((JobStep)jobNodeService.find(step2.getPath())).getStatus());
+        Assert.assertEquals(NodeStatus.SUCCESS, job.getStatus());
+        jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        Assert.assertEquals(NodeStatus.SUCCESS, jobFlow.getStatus());
 
     }
 
