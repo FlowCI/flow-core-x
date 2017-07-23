@@ -27,6 +27,8 @@ public abstract class Node extends Jsonable {
 
     protected String name;
 
+    protected String script;
+
     protected Map<Env, String> envs = new HashMap<>();
 
     protected Node Parent;
@@ -119,6 +121,14 @@ public abstract class Node extends Jsonable {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getScript() {
+        return script;
+    }
+
+    public void setScript(String script) {
+        this.script = script;
     }
 
     @Override

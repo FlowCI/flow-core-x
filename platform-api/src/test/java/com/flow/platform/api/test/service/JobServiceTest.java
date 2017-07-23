@@ -74,26 +74,4 @@ public class JobServiceTest extends TestBase{
         });
     }
 
-
-
-    @Test
-    public void copyNode(){
-        JobStep step1 = new JobStep();
-        step1.setAllowFailure(true);
-        step1.setDuration(100L);
-
-        Step jobStep = new Step();
-        ReflectionUtils.doWithFields(JobStep.class, field -> {
-            System.out.println(field);
-            field.setAccessible(true);
-
-            Object ob = ReflectionUtils.getField(field, step1);
-            System.out.println(ob);
-
-//            ReflectionUtils.setField(field, jobStep, ob);
-            ObjectUtil.assignValueToField(field, jobStep, ob);
-        });
-
-        System.out.println("============");
-    }
 }

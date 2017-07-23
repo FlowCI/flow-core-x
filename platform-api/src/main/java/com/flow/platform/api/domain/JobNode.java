@@ -31,6 +31,12 @@ public abstract class JobNode extends Node {
 
     protected List<String> logPaths = new ArrayList<>();
 
+    protected NodeStatus status;
+
+    protected Job job;
+
+    protected ZonedDateTime startTime;
+
     public ZonedDateTime getFinishedAt() {
         return finishedAt;
     }
@@ -70,5 +76,29 @@ public abstract class JobNode extends Node {
 
     public void setLogPaths(List<String> logPaths) {
         this.logPaths = logPaths;
+    }
+
+    public NodeStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NodeStatus status) {
+        this.status = status;
+    }
+
+    public Job getJob() {
+        return job;
+    }
+
+    public void setJob(Job job) {
+        this.job = job;
+    }
+
+    public ZonedDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(ZonedDateTime startTime) {
+        this.startTime = startTime;
     }
 }

@@ -75,6 +75,7 @@ public class Cmd extends CmdBase {
      */
     private ZonedDateTime finishedDate;
 
+    private CmdResult cmdResult;
 
     public Cmd() {
     }
@@ -154,6 +155,14 @@ public class Cmd extends CmdBase {
 
     public Boolean isAgentCmd() {
         return AGENT_CMD_TYPE.contains(type);
+    }
+
+    public CmdResult getCmdResult() {
+        return cmdResult;
+    }
+
+    public void setCmdResult(CmdResult cmdResult) {
+        this.cmdResult = cmdResult;
     }
 
     @Override

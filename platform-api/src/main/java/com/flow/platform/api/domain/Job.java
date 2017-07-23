@@ -43,6 +43,8 @@ public class Job extends Jsonable {
 
     private String sessionId;
 
+    private NodeStatus status;
+
     private Map<Env, String> envs = new HashMap<>();
 
     public Job() {
@@ -131,6 +133,14 @@ public class Job extends Jsonable {
 
     public void setNodePath(String nodePath) {
         this.nodePath = nodePath;
+    }
+
+    public NodeStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NodeStatus status) {
+        this.status = status;
     }
 
     @Override
