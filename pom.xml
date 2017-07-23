@@ -47,14 +47,6 @@
     <spring-rabbit.version>1.7.2.RELEASE</spring-rabbit.version>
   </properties>
 
-  <repositories>
-    <repository>
-      <id>project.local</id>
-      <name>project</name>
-      <url>file://${project.basedir}/../lib</url>
-    </repository>
-  </repositories>
-
   <build>
     <plugins>
       <plugin>
