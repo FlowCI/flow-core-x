@@ -19,9 +19,11 @@ package com.flow.platform.cc.controller;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.*;
 import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.exception.IllegalStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,7 +74,12 @@ public class CmdController {
      */
     @PostMapping("/cmd/stop/{cmdId}")
     public void stopCommand(@PathVariable String cmdId) {
-        cmdService.updateStatus(cmdId, CmdStatus.STOPPED, null, true, true);
+        try {
+            cmdService.updateStatus(cmdId, CmdStatus.STOPPED, null, true, true);
+        } catch (CannotAcquireLockException e) {
+            // since cmd been locked, cannot change its status
+            throw new IllegalStatusException("Cmd been processed, cannot stop it");
+        }
     }
 
     /**
