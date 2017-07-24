@@ -21,13 +21,11 @@ import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -41,7 +39,7 @@ public class WebhookController {
     private JobService jobService;
 
     @PostMapping(path = "/hooks/{identifier}")
-    public Response createSession(@RequestBody Cmd cmd,
+    public Response execute(@RequestBody Cmd cmd,
         @PathVariable String identifier) throws UnsupportedEncodingException {
         identifier = UrlUtil.urlDecoder(identifier);
         jobService.callback(identifier, cmd);
