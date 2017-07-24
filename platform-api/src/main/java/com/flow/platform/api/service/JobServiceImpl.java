@@ -105,15 +105,15 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public void callback(String id, CmdBase cmdBase) {
-        if(cmdBase.getType() == CmdType.CREATE_SESSION){
+        if (cmdBase.getType() == CmdType.CREATE_SESSION) {
             Job job = find(id);
-            if(job == null){
+            if (job == null) {
                 throw new RuntimeException("job not found");
             }
             sessionCallback(job, cmdBase);
-        }else if(cmdBase.getType() == CmdType.RUN_SHELL){
+        } else if (cmdBase.getType() == CmdType.RUN_SHELL) {
             nodeCallback(id, cmdBase);
-        }else{
+        } else {
             throw new RuntimeException("not found cmdType");
         }
     }
@@ -144,27 +144,22 @@ public class JobServiceImpl implements JobService {
 
     /**
      * get job callback
-     * @param job
-     * @return
      */
-    private String getJobHook(Job job){
+    private String getJobHook(Job job) {
         return domain + "/hooks/" + UrlUtil.urlEncoder(job.getId());
     }
 
     /**
      * get node callback
-     * @param node
-     * @return
      */
-    private String getNodeHook(Node node){
+    private String getNodeHook(Node node) {
         return domain + "/hooks/" + UrlUtil.urlEncoder(node.getPath());
     }
 
     /**
      * create session
-     * @param job
      */
-    private void createSession(Job job){
+    private void createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
         cmdInfo.setWebhook(getJobHook(job));
         mqPublish(cmdInfo.toBytes());
@@ -172,7 +167,6 @@ public class JobServiceImpl implements JobService {
 
     /**
      * delete sessionId
-     * @param job
      */
     private void deleteSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.DELETE_SESSION, null);
@@ -182,9 +176,8 @@ public class JobServiceImpl implements JobService {
 
     /**
      * publish msg to rabbitmq
-     * @param bytes
      */
-    private void mqPublish(byte[] bytes){
+    private void mqPublish(byte[] bytes) {
         try {
             createSessionChannel.basicPublish(exchange, routeKey, null, bytes);
         } catch (IOException e) {
@@ -194,8 +187,6 @@ public class JobServiceImpl implements JobService {
 
     /**
      * copy node to job node and save
-     * @param flowPath
-     * @return
      */
     @Override
     public JobFlow createJobNode(String flowPath) {
@@ -221,10 +212,6 @@ public class JobServiceImpl implements JobService {
 
     /**
      * copy node data to job node
-     * @param node
-     * @param sourceClass
-     * @param targetClass
-     * @return
      */
     private JobNode copyNode(Node node, Class<?> sourceClass, Class<?> targetClass) {
         Object k = null;
@@ -246,33 +233,29 @@ public class JobServiceImpl implements JobService {
 
     /**
      * session success callback
-     * @param job
-     * @param cmdBase
      */
-    private void sessionCallback(Job job, CmdBase cmdBase){
-        if(cmdBase.getStatus() == CmdStatus.SENT){
+    private void sessionCallback(Job job, CmdBase cmdBase) {
+        if (cmdBase.getStatus() == CmdStatus.SENT) {
             job.setUpdatedAt(ZonedDateTime.now());
             job.setSessionId(cmdBase.getSessionId());
             update(job);
             // run step
             JobFlow jobFlow = (JobFlow) jobNodeService.find(job.getNodePath());
-            if(jobFlow == null){
+            if (jobFlow == null) {
                 throw new RuntimeException("not found job flow " + job.getNodePath());
             }
 
             // start run flow
             run((JobNode) NodeUtil.next(jobFlow));
-        }else{
+        } else {
             throw new RuntimeException("create session error");
         }
     }
 
     /**
      * step success callback
-     * @param nodePath
-     * @param cmdBase
      */
-    private void nodeCallback(String nodePath, CmdBase cmdBase){
+    private void nodeCallback(String nodePath, CmdBase cmdBase) {
         JobStep jobStep = (JobStep) jobNodeService.find(nodePath);
         JobStep prevStep = (JobStep) NodeUtil.prev(jobStep);
         JobFlow jobFlow = (JobFlow) NodeUtil.findRootNode(jobStep);
@@ -280,20 +263,20 @@ public class JobServiceImpl implements JobService {
         //update job step status
         jobStep = updateJobStepStatus(jobStep, cmdBase);
 
-        switch (jobStep.getStatus()){
+        switch (jobStep.getStatus()) {
             case PENDING:
             case RUNNING:
                 // first step
-                if(prevStep == null){
+                if (prevStep == null) {
                     updateJobAndFlowStatus(jobFlow, jobStep, job);
                 }
                 break;
             case SUCCESS:
                 JobStep nextStep = (JobStep) NodeUtil.next(jobStep);
-                if(nextStep == null){
+                if (nextStep == null) {
                     updateJobAndFlowStatus(jobFlow, jobStep, job);
                     deleteSession(job);
-                }else{
+                } else {
                     run(nextStep);
                 }
                 break;
@@ -308,12 +291,8 @@ public class JobServiceImpl implements JobService {
 
     /**
      * update job flow status
-     * @param jobFlow
-     * @param jobStep
-     * @param job
-     * @return
      */
-    private JobFlow updateJobAndFlowStatus(JobFlow jobFlow, JobStep jobStep, Job job){
+    private JobFlow updateJobAndFlowStatus(JobFlow jobFlow, JobStep jobStep, Job job) {
         job.setUpdatedAt(ZonedDateTime.now());
         job.setStatus(jobStep.getStatus());
         job.setExitCode(jobStep.getExitCode());
@@ -327,16 +306,13 @@ public class JobServiceImpl implements JobService {
 
     /**
      * update job step status
-     * @param jobStep
-     * @param cmdBase
-     * @return
      */
-    private JobStep updateJobStepStatus(JobStep jobStep, CmdBase cmdBase){
+    private JobStep updateJobStepStatus(JobStep jobStep, CmdBase cmdBase) {
         //update jobStep
         jobStep.setUpdatedAt(ZonedDateTime.now());
         jobStep.setStatus(handleStatus(cmdBase));
-        CmdResult cmdResult = ((Cmd)cmdBase).getCmdResult();
-        if(cmdResult != null){
+        CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
+        if (cmdResult != null) {
             jobStep.setExitCode(cmdResult.getExitValue());
             jobStep.setDuration(cmdResult.getDuration());
             jobStep.setOutputs(cmdResult.getOutput());
@@ -352,12 +328,10 @@ public class JobServiceImpl implements JobService {
 
     /**
      * transfer cmdStatus to Job status
-     * @param cmdBase
-     * @return
      */
-    private NodeStatus handleStatus(CmdBase cmdBase){
+    private NodeStatus handleStatus(CmdBase cmdBase) {
         NodeStatus nodeStatus = null;
-        switch (cmdBase.getStatus()){
+        switch (cmdBase.getStatus()) {
             case PENDING:
                 nodeStatus = NodeStatus.PENDING;
                 break;
