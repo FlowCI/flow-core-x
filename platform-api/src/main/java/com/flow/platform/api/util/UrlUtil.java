@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.util;
 
+import com.flow.platform.util.Logger;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -24,20 +25,37 @@ import java.net.URLEncoder;
  * @author yh@firim
  */
 public class UrlUtil {
-    public static String urlEncoder(String s){
+
+    private final static Logger LOGGER = new Logger(UrlUtil.class);
+
+    /**
+     * url encode
+     */
+    public static String urlEncoder(String s) {
         try {
             s = URLEncoder.encode(s, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            LOGGER.error("url encode UnsupportedEncodingException", e);
+            s = null;
+        } catch (NullPointerException e) {
+            LOGGER.error("url encode NullPointerException", e);
+            s = null;
         }
         return s;
     }
 
-    public static String urlDecoder(String s){
+    /**
+     * url decode
+     */
+    public static String urlDecoder(String s) {
         try {
             s = URLDecoder.decode(s, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            LOGGER.error("url decode UnsupportedEncodingException", e);
+            s = null;
+        } catch (NullPointerException e) {
+            LOGGER.error("url decode NullPointerException", e);
+            s = null;
         }
         return s;
     }
