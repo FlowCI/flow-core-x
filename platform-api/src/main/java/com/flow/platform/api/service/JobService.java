@@ -35,10 +35,10 @@ public interface JobService {
 
     /**
      * handle callback
-     * @param jobId
+     * @param identifier
      * @param cmdBase
      */
-    void callback(String jobId, CmdBase cmdBase);
+    void callback(String identifier, CmdBase cmdBase);
 
     /**
      * run node

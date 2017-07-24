@@ -26,6 +26,7 @@ import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.RestClient;
 import com.flow.platform.api.util.RestClient.HttpMethod;
+import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
@@ -35,6 +36,9 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ObjectUtil;
 import com.rabbitmq.client.Channel;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -144,7 +148,7 @@ public class JobServiceImpl implements JobService {
      * @return
      */
     private String getJobHook(Job job){
-        return domain + "/callback/job/" + job.getId();
+        return domain + "/hooks/" + UrlUtil.urlEncoder(job.getId());
     }
 
     /**
@@ -153,7 +157,7 @@ public class JobServiceImpl implements JobService {
      * @return
      */
     private String getNodeHook(Node node){
-        return domain + "/callback/node/" + node.getPath();
+        return domain + "/hooks/" + UrlUtil.urlEncoder(node.getPath());
     }
 
     /**
