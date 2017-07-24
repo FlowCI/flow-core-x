@@ -261,7 +261,7 @@ public class JobServiceImpl implements JobService {
                 break;
 
             case TIMEOUT:
-            case FAIL:
+            case FAILURE:
                 updateJobAndFlowStatus(jobFlow, jobStep, job);
                 deleteSession(job);
                 break;
@@ -325,7 +325,7 @@ public class JobServiceImpl implements JobService {
             case EXCEPTION:
             case REJECTED:
             case STOPPED:
-                nodeStatus = NodeStatus.FAIL;
+                nodeStatus = NodeStatus.FAILURE;
                 break;
             case TIMEOUT_KILL:
                 nodeStatus = NodeStatus.TIMEOUT;

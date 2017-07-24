@@ -27,7 +27,7 @@ public enum NodeStatus {
 
     SUCCESS("SUCCESS", 2),
 
-    FAIL("FAIL", 3),
+    FAILURE("FAILURE", 3),
 
     TIMEOUT("TIMEOUT", 4);
 
