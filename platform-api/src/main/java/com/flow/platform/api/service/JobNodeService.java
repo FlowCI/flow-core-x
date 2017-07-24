@@ -15,9 +15,26 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.JobNode;
+import com.flow.platform.api.domain.Node;
+
 /**
  * @author yh@firim
  */
-public interface JobNodeService extends NodeService {
+public interface JobNodeService {
 
+    /**
+     * create node and children
+     */
+    JobNode create(JobNode jobNode);
+
+    /**
+     * find node by node path
+     */
+    JobNode find(String nodePath);
+
+    /**
+     * save node
+     */
+    JobNode save(JobNode jobNode);
 }

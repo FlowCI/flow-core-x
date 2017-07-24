@@ -15,12 +15,36 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.JobNode;
+import com.flow.platform.api.util.NodeUtil;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 
 /**
  * @author yh@firim
  */
 @Service(value = "jobNodeService")
-public class JobNodeServiceImpl extends NodeServiceImpl implements JobNodeService {
+public class JobNodeServiceImpl implements JobNodeService {
 
+    private final Map<String, JobNode> mocNodeList = new HashMap<>();
+
+    @Override
+    public JobNode create(JobNode jobNode) {
+        NodeUtil.recurse(jobNode, item -> {
+            save((JobNode) item);
+        });
+        return jobNode;
+    }
+
+    @Override
+    public JobNode save(JobNode jobNode) {
+        mocNodeList.put(jobNode.getPath(), jobNode);
+        return jobNode;
+    }
+
+    @Override
+    public JobNode find(String nodePath) {
+        return mocNodeList.get(nodePath);
+    }
 }

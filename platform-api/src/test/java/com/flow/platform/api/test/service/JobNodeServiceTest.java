@@ -56,10 +56,10 @@ public class JobNodeServiceTest extends TestBase {
         step1.setPath("/flow/step1");
         step1.setDuration((long) 10);
         flow.getChildren().add(step1);
-        Node node = jobNodeService.create(flow);
+        JobNode jobNode = jobNodeService.create(flow);
         NodeUtil.recurse(flow, item -> {
             Assert.assertEquals(((JobNode) item).getDuration(),
-                ((JobNode) jobNodeService.find(flow.getPath())).getDuration());
+                jobNodeService.find(flow.getPath()).getDuration());
         });
     }
 }
