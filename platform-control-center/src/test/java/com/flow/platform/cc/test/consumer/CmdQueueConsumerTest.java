@@ -137,17 +137,18 @@ public class CmdQueueConsumerTest extends TestBase {
         Assert.assertNotNull(mockCmdInstance.getId());
 
         // wait for send webhook
-        Thread.sleep(1000);
+        Thread.sleep(500);
 
         // then: should invoke cmd webhook for status REJECT
-        verify(1, postRequestedFor(urlEqualTo(testUrl)));
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 1);
+        verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
 
         // when:
         createMockAgent(ZONE, "agent-for-retry-queue-test");
         Thread.sleep(5000); // wait for enqueue again
 
         // then:
-        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
+        countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
         verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
     }
 
