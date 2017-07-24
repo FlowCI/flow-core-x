@@ -85,10 +85,10 @@ public class JobServiceImpl implements JobService {
     private final Map<String, Job> mocJobList = new HashMap<>();
 
     @Override
-    public Job createJob(String flowPath) {
+    public Job createJob(String nodePath) {
         Job job = new Job();
         //create job node
-        JobFlow jobFlow = createJobNode(flowPath);
+        JobFlow jobFlow = createJobNode(nodePath);
         //update job status
         job.setId(UUID.randomUUID().toString());
         job.setCreatedAt(ZonedDateTime.now());
@@ -189,8 +189,8 @@ public class JobServiceImpl implements JobService {
      * copy node to job node and save
      */
     @Override
-    public JobFlow createJobNode(String flowPath) {
-        Node flow = nodeService.find(flowPath);
+    public JobFlow createJobNode(String nodePath) {
+        Node flow = nodeService.find(nodePath);
         NodeUtil.recurse(flow, node -> {
             JobNode jobNode;
             if (node instanceof Flow) {

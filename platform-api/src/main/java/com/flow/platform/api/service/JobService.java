@@ -28,50 +28,44 @@ public interface JobService {
 
     /**
      * create job
-     * @param flowPath
-     * @return
+     *
+     * @param nodePath node path
+     * @return job
      */
-    Job createJob(String flowPath);
+    Job createJob(String nodePath);
 
     /**
      * handle callback
-     * @param identifier
-     * @param cmdBase
+     *
+     * @param identifier if node callback identifier is nodePath, if session callback identifier is jobId
      */
     void callback(String identifier, CmdBase cmdBase);
 
     /**
      * run node
-     * @param node
      */
     void run(JobNode node);
 
 
     /**
      * deep copy node
-     * @param flowPath
-     * @return
+     *
+     * @param nodePath can copy every node
      */
-    JobFlow createJobNode(String flowPath);
+    JobFlow createJobNode(String nodePath);
 
     /**
      * save job
-     * @param job
-     * @return
      */
     Job save(Job job);
 
     /**
      * find job by id
-     * @param id
-     * @return
      */
     Job find(String id);
 
     /**
      * update job
-     * @param job
-     * @return
      */
     Job update(Job job);
 }
