@@ -168,10 +168,11 @@ public class CmdQueueConsumerTest extends TestBase {
         Assert.assertNotNull(cmdDao.get(mockCmdInstance.getId()));
 
         // wait for send webhook
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // then: verify has webhook callback if no available agent found
-        verify(1, postRequestedFor(urlEqualTo(testUrl)));
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 1);
+        verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
 
         // when: set cmd to stop status
         try {
@@ -181,8 +182,7 @@ public class CmdQueueConsumerTest extends TestBase {
             Thread.sleep(1000);
 
             // then:
-            CountMatchingStrategy countStrategy =
-                new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
+            countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
             verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
         } catch (CannotAcquireLockException acquireLockException) {
             // may raise the exception when this cmd is processing, in api level should return stop cmd failure
