@@ -44,15 +44,6 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
     }
 
     @Override
-    public void update(Cmd obj) {
-        execute(session -> {
-            obj.setUpdatedDate(DateUtil.now());
-            session.update(obj);
-            return null;
-        });
-    }
-
-    @Override
     public List<Cmd> list(AgentPath agentPath, Set<CmdType> types, Set<CmdStatus> status) {
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();

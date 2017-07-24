@@ -68,8 +68,6 @@ public class Agent extends Jsonable {
 
     public Agent(AgentPath path) {
         this.path = path;
-        this.createdDate = DateUtil.now();
-        this.updatedDate = DateUtil.now();
     }
 
     public AgentPath getPath() {

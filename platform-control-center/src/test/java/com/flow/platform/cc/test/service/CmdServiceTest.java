@@ -213,6 +213,7 @@ public class CmdServiceTest extends TestBase {
         cmd.setCreatedDate(timeoutDate);
         cmd.setStatus(CmdStatus.RUNNING);
         cmdDao.update(cmd);
+
         // then: should timeout and status should be TIMEOUT_KILL
         Assert.assertEquals(true, cmdService.isTimeout(cmd));
         cmdService.checkTimeoutTask();

@@ -41,19 +41,11 @@
     <hibernate.version>5.2.10.Final</hibernate.version>
     <hibernate-common-annotation.version>5.0.1.Final</hibernate-common-annotation.version>
     <mysql_connect.version>5.1.42</mysql_connect.version>
-    <amqp-client.version>4.1.0</amqp-client.version>
     <HikariCP.version>2.6.2</HikariCP.version>
     <jcabi-ssh.version>1.5.2</jcabi-ssh.version>
-    <jmockit.version>1.33</jmockit.version>
+    <powermock.version>1.7.0</powermock.version>
+    <spring-rabbit.version>1.7.2.RELEASE</spring-rabbit.version>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>project.local</id>
-      <name>project</name>
-      <url>file://${project.basedir}/../lib</url>
-    </repository>
-  </repositories>
 
   <build>
     <plugins>
@@ -108,9 +100,16 @@
       </dependency>
 
       <dependency>
+        <groupId>org.springframework.amqp</groupId>
+        <artifactId>spring-rabbit</artifactId>
+        <version>${spring-rabbit.version}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
         <version>${spring-framework.version}</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -168,12 +167,6 @@
       </dependency>
 
       <dependency>
-        <groupId>com.rabbitmq</groupId>
-        <artifactId>amqp-client</artifactId>
-        <version>${amqp-client.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>mos_java_sdk</groupId>
         <artifactId>mos_java_sdk</artifactId>
         <version>${mos_java_sdk.version}</version>
@@ -222,9 +215,16 @@
       </dependency>
 
       <dependency>
-        <groupId>org.jmockit</groupId>
-        <artifactId>jmockit</artifactId>
-        <version>${jmockit.version}</version>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-module-junit4</artifactId>
+        <version>${powermock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-api-mockito2</artifactId>
+        <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
 
