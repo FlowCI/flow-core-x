@@ -87,7 +87,8 @@ public class CmdQueueConsumerTest extends TestBase {
         Thread.sleep(6000);
 
         // then: check num of request
-        verify(3, postRequestedFor(urlEqualTo(url)));
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 3);
+        verify(countStrategy, postRequestedFor(urlEqualTo(url)));
     }
 
     @Test
@@ -180,8 +181,8 @@ public class CmdQueueConsumerTest extends TestBase {
             Thread.sleep(1000);
 
             // then:
-            CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL,
-                2);
+            CountMatchingStrategy countStrategy =
+                new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
             verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
         } catch (CannotAcquireLockException acquireLockException) {
             // may raise the exception when this cmd is processing, in api level should return stop cmd failure
