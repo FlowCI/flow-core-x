@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobStep;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobNodeService;
@@ -76,9 +77,9 @@ public class JobServiceTest extends TestBase{
         nodeService.create(flow);
 
         JobFlow jobFlow = jobService.createJobNode(flow.getPath());
-        jobFlow.getChildren().forEach(item -> {
+        for (Node item : jobFlow.getChildren()) {
             Assert.assertEquals(item.getPath(), jobNodeService.find(item.getPath()).getPath());
-        });
+        }
     }
 
     @Test
@@ -94,9 +95,9 @@ public class JobServiceTest extends TestBase{
         JobFlow jobFlow = jobService.createJobNode(flow.getPath());
 
         jobFlow = (JobFlow) jobNodeService.find(jobFlow.getPath());
-        jobFlow.getChildren().forEach(item -> {
+        for (Node item : jobFlow.getChildren()) {
             Assert.assertEquals(item.getPath(), jobNodeService.find(item.getPath()).getPath());
-        });
+        }
     }
 
     @Test

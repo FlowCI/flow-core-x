@@ -34,11 +34,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ObjectUtil;
-import com.rabbitmq.client.Channel;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,9 +58,6 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private JobNodeService jobNodeService;
-
-    @Autowired
-    private Channel createSessionChannel;
 
     @Value(value = "${rabbitmq.routeKey}")
     private String routeKey;
@@ -162,7 +154,6 @@ public class JobServiceImpl implements JobService {
     private void createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
         cmdInfo.setWebhook(getJobHook(job));
-        mqPublish(cmdInfo.toBytes());
     }
 
     /**
@@ -171,18 +162,6 @@ public class JobServiceImpl implements JobService {
     private void deleteSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.DELETE_SESSION, null);
         cmdInfo.setSessionId(job.getSessionId());
-        mqPublish(cmdInfo.toBytes());
-    }
-
-    /**
-     * publish msg to rabbitmq
-     */
-    private void mqPublish(byte[] bytes) {
-        try {
-            createSessionChannel.basicPublish(exchange, routeKey, null, bytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**

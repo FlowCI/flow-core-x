@@ -82,13 +82,13 @@ public class NodeUtilTest extends TestBase {
     @Test
     public void should_flat() {
         List<Node> nodes = NodeUtil.flat(initNodes());
-        String out = "";
+        StringBuffer out = new StringBuffer("");
+
         for (Node node : nodes) {
             System.out.println(node.getName());
-            out = out + node.getName() + ";";
+            out.append(node.getName()).append(";");
         }
-        System.out.println(out);
-        Assert.assertEquals("step3;step7;step8;step4;step1;step5;step6;step2;flow;", out);
+        Assert.assertEquals("step3;step7;step8;step4;step1;step5;step6;step2;flow;", out.toString());
 
     }
 
@@ -99,13 +99,13 @@ public class NodeUtilTest extends TestBase {
         NodeUtil.recurse(node, item -> {
             nodeList.add(item);
         });
-        String out = "";
+        StringBuffer out = new StringBuffer("");
         for (Node iNode : nodeList) {
             System.out.println(iNode.getName());
-            out = out + iNode.getName() + ";";
+            out.append(iNode.getName()).append(";");
         }
         System.out.println(out);
-        Assert.assertEquals("step3;step7;step8;step4;step1;step5;step6;step2;flow;", out);
+        Assert.assertEquals("step3;step7;step8;step4;step1;step5;step6;step2;flow;", out.toString());
     }
 
     @Test

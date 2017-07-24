@@ -41,7 +41,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
         "com.flow.platform.api.dao",
         "com.flow.platform.api.util"})
 @PropertySource("classpath:app-default.properties")
-@Import({MQConfig.class})
+@Import({})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private final static int ASYNC_POOL_SIZE = 100;
