@@ -38,51 +38,69 @@ import org.apache.http.impl.client.HttpClients;
  */
 public class HttpUtil {
 
+    public static Integer TRY_TIMES = 5;
+
     public static Logger LOGGER = new Logger(HttpUtil.class);
 
     public static String post(String url, String body) throws UnsupportedEncodingException {
         HttpPost httpPost = new HttpPost(url);
         HttpEntity entity = new StringEntity(body);
         httpPost.setEntity(entity);
-        String res = exec(httpPost);
-        return res;
+        final String[] res = {null};
+        exec(httpPost, 1, (String item) -> {
+            res[0] = item;
+        });
+        return res[0];
     }
 
     public static String get(String url) {
         HttpGet httpGet = new HttpGet(url);
-        String res = exec(httpGet);
-        return res;
+        final String[] res = {null};
+        exec(httpGet, 1, (String item) -> {
+            res[0] = item;
+        });
+        return res[0];
     }
 
     public static String put(String url, String body) throws UnsupportedEncodingException {
         HttpPut httpPut = new HttpPut(url);
         HttpEntity entity = new StringEntity(body);
         httpPut.setEntity(entity);
-        String res = exec(httpPut);
-        return res;
+        final String[] res = {null};
+        exec(httpPut, 1, (String item) -> {
+            res[0] = item;
+        });
+        return res[0];
     }
 
-    private static String exec(HttpUriRequest httpUriRequest) {
-        String res = null;
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            CloseableHttpResponse response = httpClient.execute(httpUriRequest);
-            int statusCode = response.getStatusLine().getStatusCode();
-            ResponseHandler<String> handler = new BasicResponseHandler();
-            if (statusCode == 200) {
-                res = handler.handleResponse(response);
+    private static void exec(HttpUriRequest httpUriRequest, Integer tryTimes, Consumer<String> consumer) {
+        if (tryTimes > 5) {
+            consumer.accept(null);
+        } else {
+            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+                CloseableHttpResponse response = httpClient.execute(httpUriRequest);
+                int statusCode = response.getStatusLine().getStatusCode();
+                ResponseHandler<String> handler = new BasicResponseHandler();
+                if (statusCode == 200) {
+                    consumer.accept(handler.handleResponse(response));
+                } else {
+                    tryTimes += 1;
+                    exec(httpUriRequest, tryTimes, consumer);
+                }
+            } catch (UnsupportedEncodingException | ClientProtocolException e) {
+                // JSON data or http protocol exception, exit directly
+                LOGGER.error(String
+                    .format("url: %s, method: %s, UnsupportedEncodingException | ClientProtocolException e: %s",
+                        httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
+                tryTimes += 1;
+                exec(httpUriRequest, tryTimes, consumer);
+            } catch (IOException e) {
+                LOGGER.error(String
+                    .format("url: %s, method: %s, IOException e: %s",
+                        httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
+                tryTimes += 1;
+                exec(httpUriRequest, tryTimes, consumer);
             }
-        } catch (UnsupportedEncodingException | ClientProtocolException e) {
-            // JSON data or http protocol exception, exit directly
-            LOGGER.error(String
-                .format("url: %s, method: %s, UnsupportedEncodingException | ClientProtocolException e: %s",
-                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
-            res = null;
-        } catch (IOException e) {
-            LOGGER.error(String
-                .format("url: %s, method: %s, IOException e: %s",
-                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
-            res = null;
         }
-        return res;
     }
 }
