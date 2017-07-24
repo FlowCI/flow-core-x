@@ -36,10 +36,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @EnableWebMvc
 @EnableScheduling
 @ComponentScan({
-        "com.flow.platform.api.controller",
-        "com.flow.platform.api.service",
-        "com.flow.platform.api.dao",
-        "com.flow.platform.api.util"})
+    "com.flow.platform.api.controller",
+    "com.flow.platform.api.service",
+    "com.flow.platform.api.dao",
+    "com.flow.platform.api.util"})
 @PropertySource("classpath:app-default.properties")
 @Import({})
 public class WebConfig extends WebMvcConfigurerAdapter {
@@ -49,10 +49,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedMethods("GET", "POST")
-                .allowCredentials(true)
-                .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate");
+            .allowedOrigins("*")
+            .allowedMethods("GET", "POST")
+            .allowCredentials(true)
+            .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate");
     }
 
     @Bean

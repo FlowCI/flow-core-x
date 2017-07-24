@@ -24,7 +24,6 @@ import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.gson.Gson;
 import java.io.UnsupportedEncodingException;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
