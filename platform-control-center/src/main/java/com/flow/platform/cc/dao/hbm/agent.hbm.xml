@@ -14,14 +14,19 @@
     <property name="sessionId" length="50" column="session_id"></property>
     <property name="sessionDate" column="session_date"></property>
 
-    <property name="status" column="status" length="10">
+    <property name="status" column="status" length="10" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">com.flow.platform.domain.AgentStatus</param>
         <param name="useNamed">true</param>
       </type>
     </property>
 
-    <property name="createdDate" column="created_date"/>
-    <property name="updatedDate" column="updated_date"/>
+    <property name="createdDate" type="java.time.ZonedDateTime">
+      <column name="created_date" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+
+    <property name="updatedDate" type="java.time.ZonedDateTime" update="false">
+      <column name="updated_date" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    </property>
   </class>
 </hibernate-mapping>

@@ -85,7 +85,7 @@ public interface CmdService {
     /**
      * Send cmd info to queue
      */
-    Cmd queue(CmdInfo cmdInfo);
+    Cmd queue(CmdInfo cmdInfo, int priority, int retry);
 
     /**
      * Check cmd is timeout

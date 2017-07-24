@@ -21,11 +21,11 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.DateUtil;
+import com.flow.platform.util.ObjectUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +33,6 @@ import java.util.UUID;
 /**
  * @author gy@fir.im
  */
-@Transactional
 public class CmdDaoTest extends TestBase {
 
     @Test
@@ -43,11 +42,7 @@ public class CmdDaoTest extends TestBase {
         cmd.setId(UUID.randomUUID().toString());
         cmd.setStatus(CmdStatus.KILLED);
         cmd.setOutputEnvFilter("FLOW_VAR");
-        cmd.setCreatedDate(DateUtil.utcNow());
-        cmd.setUpdatedDate(DateUtil.utcNow());
-        cmd.setFinishedDate(null);
         cmd.setLogPaths(Lists.newArrayList("/test/log/path"));
-        cmd.setPriority(1);
         cmd.setTimeout(10);
         cmd.setWebhook("http://webhook.com");
         cmd.getInputs().put("VAR_1", "1");
@@ -68,10 +63,20 @@ public class CmdDaoTest extends TestBase {
         Assert.assertEquals(cmd.getStatus(), loaded.getStatus());
         Assert.assertEquals(cmd.getOutputEnvFilter(), loaded.getOutputEnvFilter());
         Assert.assertEquals(cmd.getWebhook(), loaded.getWebhook());
-        Assert.assertEquals(cmd.getCreatedDate(), loaded.getCreatedDate());
-        Assert.assertEquals(cmd.getUpdatedDate(), loaded.getUpdatedDate());
-        Assert.assertEquals(cmd.getFinishedDate(), loaded.getFinishedDate());
+        Assert.assertNotNull(loaded.getCreatedDate());
+        Assert.assertNotNull(loaded.getUpdatedDate());
         Assert.assertEquals(cmd.getExtra(), loaded.getExtra());
+
+        // when:
+        Cmd copy = ObjectUtil.deepCopy(loaded);
+        Thread.sleep(1000);
+
+        loaded.setCmd("update something, otherwise mysql will not affected");
+        cmdDao.update(loaded);
+
+        // then:
+        loaded = cmdDao.get(cmd.getId());
+        Assert.assertTrue(copy.getUpdatedDate().isBefore(loaded.getUpdatedDate()));
     }
 
     @Test

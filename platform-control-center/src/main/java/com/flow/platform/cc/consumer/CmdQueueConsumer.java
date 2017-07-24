@@ -16,18 +16,17 @@
 
 package com.flow.platform.cc.consumer;
 
-import com.flow.platform.cc.context.ContextEvent;
+import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
-import java.io.IOException;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -37,100 +36,62 @@ import org.springframework.stereotype.Component;
  *
  * @author gy@fir.im
  */
-@Component(value = "cmdQueueConsumer")
-public class CmdQueueConsumer implements ContextEvent {
+@Component("cmdQueueConsumer")
+public class CmdQueueConsumer {
 
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
 
-    private final static int RETRY_QUEUE_PRIORITY = 255;
-    private final static int RETRY_TIMES = 5;
+    private final static int RETRY_QUEUE_PRIORITY = 10;
 
-    @Value("${mq.exchange.name}")
-    private String cmdExchangeName;
-
-    @Autowired
-    private Channel cmdSendChannel;
-
-    @Autowired
-    private Channel cmdConsumeChannel;
-
-    @Autowired
-    private String cmdConsumeQueue;
+    @Value("${mq.queue.name}")
+    private String cmdQueueName;
 
     @Autowired
     private CmdService cmdService;
 
-    @Override
-    public void start() {
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @RabbitListener(queues = {"${mq.queue.name}"})
+    public void onMessage(Message message) {
+        CmdQueueItem item = CmdQueueItem.parse(message.getBody(), CmdQueueItem.class);
+        LOGGER.trace("Receive a cmd queue item: %s", item);
+
         try {
-            createConsume();
-        } catch (IOException e) {
-            LOGGER.error("Error when create consume of cmd queue", e);
-            throw new RuntimeException(e);
+            cmdService.send(item.getCmdId(), false);
+        } catch (IllegalParameterException e) {
+            LOGGER.warn("Illegal cmd id: %s", e.getMessage());
+        } catch (IllegalStatusException e) {
+            LOGGER.warn("Illegal cmd status: %s", e.getMessage());
+        } catch (AgentErr.NotAvailableException | ZkException.NotExitException e) {
+            if (item.getRetry() > 0) {
+                cmdService.resetStatus(item.getCmdId());
+                resend(item);
+            }
+        } catch (Throwable e) {
+            LOGGER.error("Unexpected exception", e);
         }
     }
 
-    @Override
-    public void stop() {
-        if (cmdConsumeChannel.isOpen()) {
-            try {
-                cmdConsumeChannel.close();
-            } catch (Throwable ignore) {
-            }
+    private void resend(final CmdQueueItem item) {
+        item.setPriority(RETRY_QUEUE_PRIORITY);
+        item.setRetry(item.getRetry() - 1);
+
+        if (item.getRetry() <= 0) {
+            return;
         }
-    }
 
-    private void createConsume() throws IOException {
-        cmdConsumeChannel.basicConsume(cmdConsumeQueue, false, new DefaultConsumer(cmdConsumeChannel) {
-            @Override
-            public void handleDelivery(String consumerTag,
-                Envelope envelope,
-                AMQP.BasicProperties properties,
-                byte[] body) throws IOException {
-
-                // convert byte to cmd id
-                String cmdId = new String(body);
-                LOGGER.trace("Receive cmd id '%s' from queue", cmdId);
-
-                try {
-                    cmdService.send(cmdId, false);
-                } catch (IllegalParameterException e) {
-                    LOGGER.warn("Illegal cmd id: %s", e.getMessage());
-                } catch (IllegalStatusException e) {
-                    LOGGER.warn("Illegal cmd status: %s", e.getMessage());
-                } catch (AgentErr.NotAvailableException | ZkException.NotExitException e) {
-                    cmdService.resetStatus(cmdId);
-                    resend(cmdId, RETRY_QUEUE_PRIORITY, RETRY_TIMES);
-                } catch (Throwable e) {
-                    LOGGER.error("Unexpected exception", e);
-                } finally {
-                    long deliveryTag = envelope.getDeliveryTag();
-                    cmdConsumeChannel.basicAck(deliveryTag, false);
-                }
-            }
-        });
-    }
-
-    private void resend(final String cmdId, final int priority, final int retry) {
         try {
             Thread.sleep(1000); // wait 1 seconds and enqueue again with priority
         } catch (InterruptedException ignore) {
             // do nothing
         }
 
-        try {
-            AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
-                .priority(priority)
-                .build();
-
-            // reset cmd status
-            cmdSendChannel.basicPublish(cmdExchangeName, "", properties, cmdId.getBytes());
-            LOGGER.trace("Re-enqueue for cmd %s with mq priority %s", cmdId, priority);
-        } catch (IOException e) {
-            LOGGER.warn(String.format("Cmd %s re-enqueue fail, retry %s", cmdId, retry));
-            if (retry > 0) {
-                resend(cmdId, priority, retry - 1);
-            }
-        }
+        // reset cmd status
+        MessageProperties properties = new MessageProperties();
+        properties.setPriority(item.getPriority());
+        Message message = new Message(item.toBytes(), properties);
+        rabbitTemplate.send("", cmdQueueName, message);
+        LOGGER.trace("Re-enqueue item %s", item);
     }
 }
