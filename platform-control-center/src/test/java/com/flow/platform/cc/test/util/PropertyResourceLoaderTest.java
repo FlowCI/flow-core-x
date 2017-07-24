@@ -16,43 +16,33 @@
 
 package com.flow.platform.cc.test.util;
 
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
+
 import com.flow.platform.cc.resource.PropertyResourceLoader;
-import com.flow.platform.cc.test.EmptyConfig;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import mockit.Mock;
-import mockit.MockUp;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author yang
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = EmptyConfig.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({PropertyResourceLoader.class})
 public class PropertyResourceLoaderTest {
 
     private PropertyResourceLoader propertyResourceLoader = new PropertyResourceLoader();
 
-    private final Map<String, String> mockedEnv = new HashMap<>();
-
     @Before
     public void setUp() {
-        new MockUp<System>() {
-            @Mock
-            public String getenv(final String key) {
-                mockedEnv.putAll(System.getenv());
-                return mockedEnv.get(key);
-            }
-        };
+        mockStatic(System.class);
     }
 
     @Test
@@ -62,13 +52,15 @@ public class PropertyResourceLoaderTest {
         Assert.assertEquals(ClassPathResource.class, resource.getClass());
 
         // should find property from system property
-        System.setProperty("config.path", "/");
+        when(System.getProperty("config.path")).thenReturn("/");
+
         resource = propertyResourceLoader.find();
         Assert.assertEquals(FileSystemResource.class, resource.getClass());
         Assert.assertEquals(Paths.get("/").toString(), ((FileSystemResource) resource).getPath());
 
         // should find property from env
-        mockedEnv.put("FLOW_CONFIG_PATH", "/bin");
+        when(System.getenv("FLOW_CONFIG_PATH")).thenReturn("/bin");
+
         resource = propertyResourceLoader.find();
         Assert.assertEquals(FileSystemResource.class, resource.getClass());
         Assert.assertEquals(Paths.get("/bin").toString(), ((FileSystemResource) resource).getPath());
