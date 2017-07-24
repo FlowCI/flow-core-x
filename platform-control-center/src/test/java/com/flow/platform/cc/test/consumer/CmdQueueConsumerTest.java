@@ -84,7 +84,7 @@ public class CmdQueueConsumerTest extends TestBase {
         Cmd cmd = cmdService.queue(mockCmd, 1, 3);
         Assert.assertNotNull(cmdService.find(cmd.getId()));
 
-        Thread.sleep(6000);
+        Thread.sleep(10000); // wait for retrying.
 
         // then: check num of request
         CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 3);
