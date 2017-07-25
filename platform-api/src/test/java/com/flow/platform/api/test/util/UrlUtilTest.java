@@ -24,10 +24,10 @@ import org.junit.Test;
 /**
  * @author yh@firim
  */
-public class UrlUtilTest extends TestBase{
+public class UrlUtilTest extends TestBase {
 
     @Test
-    public void should_encode_success(){
+    public void should_encode_success() {
         String rawData = "123";
         Assert.assertEquals(rawData, UrlUtil.urlEncoder(rawData));
         rawData = "/a/a";
@@ -37,7 +37,7 @@ public class UrlUtilTest extends TestBase{
     }
 
     @Test
-    public void should_decode_success(){
+    public void should_decode_success() {
         String rawData = "123";
         Assert.assertEquals(rawData, UrlUtil.urlDecoder(rawData));
         rawData = "%2Fa%2Fa";

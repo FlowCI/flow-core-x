@@ -17,7 +17,6 @@
 package com.flow.platform.api.test.controller;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -32,19 +31,14 @@ import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.JobServiceImpl;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.LinkedList;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
@@ -298,8 +292,6 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertNotNull(job.getCmdId());
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(job.getStatus(), NodeStatus.ENQUEUE);
-
-
 
         // run first step timeout
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());

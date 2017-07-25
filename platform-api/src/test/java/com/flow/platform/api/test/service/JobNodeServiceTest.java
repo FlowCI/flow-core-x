@@ -18,7 +18,6 @@ package com.flow.platform.api.test.service;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.JobStep;
-import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;

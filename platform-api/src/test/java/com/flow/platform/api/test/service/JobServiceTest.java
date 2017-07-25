@@ -32,19 +32,13 @@ import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.ObjectUtil;
-import com.sun.org.apache.regexp.internal.RE;
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * @author yh@firim
@@ -199,7 +193,7 @@ public class JobServiceTest extends TestBase {
     }
 
     @Test
-    public void should_show_list_success(){
+    public void should_show_list_success() {
         stubDemo();
         Flow flow = new Flow();
         flow.setPath("/flow");

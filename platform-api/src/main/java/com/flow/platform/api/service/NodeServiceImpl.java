@@ -33,6 +33,9 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public Node create(Node node) {
         NodeUtil.recurse(node, item -> {
+            if(item.getScript() == null || item.getScript().isEmpty()){
+                throw new RuntimeException("create node error script is error");
+            }
             save(item);
         });
         return node;

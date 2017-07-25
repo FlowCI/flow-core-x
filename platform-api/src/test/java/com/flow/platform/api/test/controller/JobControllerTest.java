@@ -25,19 +25,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.Jsonable;
-import java.util.List;
 import java.util.UUID;
-import org.eclipse.jetty.server.Response;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -49,7 +43,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 /**
  * @author yh@firim
  */
-public class JobControllerTest extends TestBase{
+public class JobControllerTest extends TestBase {
 
     @Autowired
     NodeService nodeService;
@@ -100,7 +94,7 @@ public class JobControllerTest extends TestBase{
 
         MockHttpServletRequestBuilder content = get(new StringBuffer("/jobs/").append(job.getId()).toString())
             .contentType(MediaType.APPLICATION_JSON);
-        ResultHandler resultHandler ;
+        ResultHandler resultHandler;
         MvcResult mvcResult = this.mockMvc.perform(content)
             .andDo(print())
             .andExpect(status().isOk())
