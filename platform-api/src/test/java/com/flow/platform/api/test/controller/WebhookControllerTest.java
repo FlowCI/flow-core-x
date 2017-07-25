@@ -249,8 +249,8 @@ public class WebhookControllerTest extends TestBase {
         JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath());
         Assert.assertNotNull(jobStep1.getCmdId());
         JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
-//        Assert.assertEquals(job.getStatus(), NodeStatus.FAIL);
+        Assert.assertEquals(job.getStatus(), NodeStatus.FAILURE);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
-//        Assert.assertEquals(jobFlow.getStatus(), NodeStatus.FAIL);
+        Assert.assertEquals(jobFlow.getStatus(), NodeStatus.FAILURE);
     }
 }

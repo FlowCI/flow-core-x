@@ -321,11 +321,15 @@ public class JobServiceImpl implements JobService {
      */
     private JobFlow updateJobAndFlowStatus(JobFlow jobFlow, JobStep jobStep, Job job) {
         job.setUpdatedAt(ZonedDateTime.now());
-        job.setStatus(jobStep.getStatus());
         job.setExitCode(jobStep.getExitCode());
-
         jobFlow.setUpdatedAt(ZonedDateTime.now());
-        jobFlow.setStatus(jobStep.getStatus());
+        NodeStatus nodeStatus = jobStep.getStatus();
+        //timeout set failure
+        if(nodeStatus == NodeStatus.TIMEOUT){
+            nodeStatus = NodeStatus.FAILURE;
+        }
+        job.setStatus(nodeStatus);
+        jobFlow.setStatus(nodeStatus);
         jobNodeService.save(jobFlow);
         save(job);
         return jobFlow;
