@@ -37,6 +37,7 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
 import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -414,11 +415,17 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<JobStep> listJobStep(String jobId) {
         Job job = find(jobId);
+        if(job == null){
+            throw new RuntimeException("not found job");
+        }
         JobNode jobFlow = jobNodeService.find(job.getNodePath());
         List<JobStep> jobSteps = new LinkedList<>();
         NodeUtil.recurse(jobFlow, node -> {
             if(node instanceof JobStep){
-                jobSteps.add((JobStep) node);
+                JobStep jobStep = ObjectUtil.deepCopy((JobStep) node);
+                jobStep.setParent(null);
+                jobStep.setChildren(new ArrayList<>());
+                jobSteps.add(jobStep);
             }
         });
         return jobSteps;

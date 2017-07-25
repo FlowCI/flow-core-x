@@ -16,6 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.util.NodeUtil;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,8 +34,10 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public Node create(Node node) {
         NodeUtil.recurse(node, item -> {
-            if(item.getScript() == null || item.getScript().isEmpty()){
-                throw new RuntimeException("create node error script is error");
+            if (item instanceof Step) {
+                if (item.getScript() == null || item.getScript().isEmpty()) {
+                    throw new RuntimeException("create node error script is error");
+                }
             }
             save(item);
         });

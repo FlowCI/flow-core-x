@@ -16,14 +16,21 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobStep;
+import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.NodeService;
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -31,19 +38,39 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@RequestMapping("/jobs")
+//@RequestMapping("/jobs")
 public class JobController {
 
     @Autowired
     JobService jobService;
 
-    @GetMapping(path = "/{id}")
-    public Job show(@PathVariable String id){
-        return jobService.find(id);
+    @Autowired
+    NodeService nodeService;
+
+    @PostMapping(path = "/jobs")
+    public Job create(@RequestBody List<Step> steps) {
+        Flow flow = new Flow();
+        flow.setName(UUID.randomUUID().toString());
+        flow.setPath(UUID.randomUUID().toString());
+        for (Step step : steps) {
+            step.setParent(flow);
+            step.setPath(new StringBuffer(step.getName()).append("/").append(step.getName()).toString());
+        }
+        flow.getChildren().addAll(steps);
+        nodeService.create(flow);
+
+        Job job = jobService.createJob(flow.getPath());
+        return job;
     }
 
-    @GetMapping(path = "/{id}/steps")
-    public List<JobStep> showSteps(@PathVariable String id){
-        return jobService.listJobStep(id);
+
+    @GetMapping(path = "/steps")
+    public Collection<JobStep> showSteps(@RequestParam String jobId) {
+        return jobService.listJobStep(jobId);
+    }
+
+    @GetMapping(path = "/jobs/{id}")
+    public Job show(@PathVariable String id) {
+        return jobService.find(id);
     }
 }

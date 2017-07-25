@@ -38,4 +38,22 @@ public class JobStep extends JobNode {
     public void setPlugin(String plugin) {
         this.plugin = plugin;
     }
+
+    @Override
+    public String toString() {
+        return "JobStep{" +
+            "plugin='" + plugin + '\'' +
+            ", outputs=" + outputs +
+            ", duration=" + duration +
+            ", finishedAt=" + finishedAt +
+            ", exitCode=" + exitCode +
+            ", logPaths=" + logPaths +
+            ", status=" + status +
+            ", job=" + job +
+            ", cmdId='" + cmdId + '\'' +
+            ", startTime=" + startTime +
+            '}';
+    }
+
+
 }

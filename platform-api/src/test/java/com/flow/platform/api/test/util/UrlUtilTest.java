@@ -18,6 +18,7 @@ package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.UrlUtil;
+import com.flow.platform.domain.Jsonable;
 import org.junit.Assert;
 import org.junit.Test;
 
