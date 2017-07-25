@@ -23,13 +23,16 @@ public enum NodeStatus {
 
     PENDING("PENDING", 0),
 
-    RUNNING("RUNNING", 1),
+    //enter queue
+    ENQUEUE("ENQUEUE", 1),
 
-    SUCCESS("SUCCESS", 2),
+    RUNNING("RUNNING", 2),
 
-    FAILURE("FAILURE", 3),
+    SUCCESS("SUCCESS", 3),
 
-    TIMEOUT("TIMEOUT", 4);
+    FAILURE("FAILURE", 4),
+
+    TIMEOUT("TIMEOUT", 5);
 
     private String name;
 

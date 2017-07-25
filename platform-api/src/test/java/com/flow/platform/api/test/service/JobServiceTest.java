@@ -173,7 +173,7 @@ public class JobServiceTest extends TestBase {
         nodeService.create(flow);
         Job job = jobService.createJob(flow.getPath());
         Assert.assertNotNull(job.getId());
-        Assert.assertEquals(NodeStatus.PENDING, job.getStatus());
+        Assert.assertEquals(NodeStatus.ENQUEUE, job.getStatus());
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId("11111111");
         cmd.setStatus(CmdStatus.SENT);

@@ -119,7 +119,7 @@ public class WebhookControllerTest extends TestBase {
             .andReturn();
         Assert.assertNotNull(job.getSessionId());
         Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(job.getStatus(), NodeStatus.PENDING);
+        Assert.assertEquals(job.getStatus(), NodeStatus.ENQUEUE);
 
         // run first step running
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
@@ -231,7 +231,7 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getCmdId());
         Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(job.getStatus(), NodeStatus.PENDING);
+        Assert.assertEquals(job.getStatus(), NodeStatus.ENQUEUE);
 
         // run first step timeout
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());

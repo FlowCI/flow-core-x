@@ -176,6 +176,8 @@ public class JobServiceImpl implements JobService {
         cmdInfo.setWebhook(getJobHook(job));
         // create session
         Cmd cmd = sendToQueue(cmdInfo);
+        //enter queue
+        job.setStatus(NodeStatus.ENQUEUE);
         job.setCmdId(cmd.getId());
         save(job);
     }
