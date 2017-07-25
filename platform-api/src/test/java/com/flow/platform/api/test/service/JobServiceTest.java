@@ -38,6 +38,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ObjectUtil;
 import com.sun.org.apache.regexp.internal.RE;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
@@ -195,6 +196,34 @@ public class JobServiceTest extends TestBase {
         jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
         Assert.assertEquals(NodeStatus.SUCCESS, jobFlow.getStatus());
 
+    }
+
+    @Test
+    public void should_show_list_success(){
+        stubDemo();
+        Flow flow = new Flow();
+        flow.setPath("/flow");
+        flow.setName("flow");
+        Step step1 = new Step();
+        step1.setName("step1");
+        step1.setPath("/flow/step1");
+        step1.setPlugin("step1");
+        step1.setAllowFailure(true);
+        Step step2 = new Step();
+        step2.setName("step2");
+        step2.setPath("/flow/step2");
+        step2.setPlugin("step2");
+        step2.setAllowFailure(true);
+        flow.getChildren().add(step1);
+        flow.getChildren().add(step2);
+        step1.setParent(flow);
+        step2.setParent(flow);
+        step1.setNext(step2);
+        step2.setParent(step1);
+        nodeService.create(flow);
+        Job job = jobService.createJob(flow.getPath());
+        List<JobStep> jobSteps = jobService.listJobStep(job.getId());
+        Assert.assertEquals(2, jobSteps.size());
     }
 
 }

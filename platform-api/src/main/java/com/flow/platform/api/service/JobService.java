@@ -18,7 +18,9 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
+import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.domain.CmdBase;
+import java.util.List;
 
 /**
  * @author yh@firim
@@ -67,4 +69,9 @@ public interface JobService {
      * update job
      */
     Job update(Job job);
+
+    /**
+     * show job's job step
+     */
+    List<JobStep> listJobStep(String jobId);
 }

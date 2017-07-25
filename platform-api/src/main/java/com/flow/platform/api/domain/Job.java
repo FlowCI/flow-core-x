@@ -174,15 +174,14 @@ public class Job extends Jsonable {
     @Override
     public String toString() {
         return "Job{" +
-            "createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
+            "id='" + id + '\'' +
+            ", type='" + type + '\'' +
             ", duration=" + duration +
-            ", finishedAt=" + finishedAt +
             ", exitCode=" + exitCode +
-            ", nodeName='" + nodePath + '\'' +
+            ", nodePath='" + nodePath + '\'' +
+            ", sessionId='" + sessionId + '\'' +
+            ", cmdId='" + cmdId + '\'' +
+            ", status=" + status +
             '}';
     }
-
-
-
 }

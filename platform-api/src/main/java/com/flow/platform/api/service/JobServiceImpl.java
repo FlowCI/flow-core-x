@@ -38,6 +38,8 @@ import com.flow.platform.util.ObjectUtil;
 import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -409,4 +411,16 @@ public class JobServiceImpl implements JobService {
         return nodeStatus;
     }
 
+    @Override
+    public List<JobStep> listJobStep(String jobId) {
+        Job job = find(jobId);
+        JobNode jobFlow = jobNodeService.find(job.getNodePath());
+        List<JobStep> jobSteps = new LinkedList<>();
+        NodeUtil.recurse(jobFlow, node -> {
+            if(node instanceof JobStep){
+                jobSteps.add((JobStep) node);
+            }
+        });
+        return jobSteps;
+    }
 }
