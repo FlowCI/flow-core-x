@@ -38,10 +38,17 @@ import org.apache.http.impl.client.HttpClients;
  */
 public class HttpUtil {
 
-    public static Integer TRY_TIMES = 5;
+    private static Integer TRY_TIMES = 5;
 
-    public static Logger LOGGER = new Logger(HttpUtil.class);
+    private static Logger LOGGER = new Logger(HttpUtil.class);
 
+    /**
+     * http post
+     *
+     * @param url url
+     * @param body body
+     * @return String null or other
+     */
     public static String post(String url, String body) throws UnsupportedEncodingException {
         HttpPost httpPost = new HttpPost(url);
         HttpEntity entity = new StringEntity(body);
@@ -53,6 +60,11 @@ public class HttpUtil {
         return res[0];
     }
 
+    /**
+     * http get
+     *
+     * @return string null or other
+     */
     public static String get(String url) {
         HttpGet httpGet = new HttpGet(url);
         final String[] res = {null};
@@ -62,6 +74,11 @@ public class HttpUtil {
         return res[0];
     }
 
+    /**
+     * http put
+     *
+     * @return string null or other
+     */
     public static String put(String url, String body) throws UnsupportedEncodingException {
         HttpPut httpPut = new HttpPut(url);
         HttpEntity entity = new StringEntity(body);
@@ -74,7 +91,7 @@ public class HttpUtil {
     }
 
     private static void exec(HttpUriRequest httpUriRequest, Integer tryTimes, Consumer<String> consumer) {
-        if (tryTimes > 5) {
+        if (tryTimes > TRY_TIMES) {
             consumer.accept(null);
         } else {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -89,13 +106,13 @@ public class HttpUtil {
                 }
             } catch (UnsupportedEncodingException | ClientProtocolException e) {
                 // JSON data or http protocol exception, exit directly
-                LOGGER.error(String
+                LOGGER.warn(String
                     .format("url: %s, method: %s, UnsupportedEncodingException | ClientProtocolException e: %s",
                         httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
                 tryTimes += 1;
                 exec(httpUriRequest, tryTimes, consumer);
             } catch (IOException e) {
-                LOGGER.error(String
+                LOGGER.warn(String
                     .format("url: %s, method: %s, IOException e: %s",
                         httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
                 tryTimes += 1;

@@ -35,10 +35,10 @@ public class UrlUtil {
         try {
             s = URLEncoder.encode(s, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            LOGGER.error("url encode UnsupportedEncodingException", e);
+            LOGGER.error("url encode UnsupportedEncodingException %s", e);
             s = null;
         } catch (NullPointerException e) {
-            LOGGER.error("url encode NullPointerException", e);
+            LOGGER.error("url encode NullPointerException %s", e);
             s = null;
         }
         return s;
@@ -51,10 +51,10 @@ public class UrlUtil {
         try {
             s = URLDecoder.decode(s, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            LOGGER.error("url decode UnsupportedEncodingException", e);
+            LOGGER.warn("url decode UnsupportedEncodingException %s", e);
             s = null;
         } catch (NullPointerException e) {
-            LOGGER.error("url decode NullPointerException", e);
+            LOGGER.warn("url decode NullPointerException %s", e);
             s = null;
         }
         return s;

@@ -85,7 +85,6 @@ public class NodeUtilTest extends TestBase {
         StringBuffer out = new StringBuffer("");
 
         for (Node node : nodes) {
-            System.out.println(node.getName());
             out.append(node.getName()).append(";");
         }
         Assert.assertEquals("step3;step7;step8;step4;step1;step5;step6;step2;flow;", out.toString());
@@ -101,10 +100,8 @@ public class NodeUtilTest extends TestBase {
         });
         StringBuffer out = new StringBuffer("");
         for (Node iNode : nodeList) {
-            System.out.println(iNode.getName());
             out.append(iNode.getName()).append(";");
         }
-        System.out.println(out);
         Assert.assertEquals("step3;step7;step8;step4;step1;step5;step6;step2;flow;", out.toString());
     }
 

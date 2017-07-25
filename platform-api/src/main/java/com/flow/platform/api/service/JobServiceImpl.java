@@ -25,8 +25,6 @@ import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
-import com.flow.platform.api.util.RestClient;
-import com.flow.platform.api.util.RestClient.HttpMethod;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
@@ -57,19 +55,10 @@ public class JobServiceImpl implements JobService {
     private static Logger LOGGER = new Logger(JobService.class);
 
     @Autowired
-    private TaskExecutor taskExecutor;
-
-    @Autowired
     private NodeService nodeService;
 
     @Autowired
     private JobNodeService jobNodeService;
-
-    @Value(value = "${rabbitmq.routeKey}")
-    private String routeKey;
-
-    @Value(value = "${rabbitmq.exchange}")
-    private String exchange;
 
     @Value(value = "${domain}")
     private String domain;
@@ -109,12 +98,14 @@ public class JobServiceImpl implements JobService {
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
             Job job = find(id);
             if (job == null) {
+                LOGGER.warn(String.format("job not found, jobId: %s", id));
                 throw new RuntimeException("job not found");
             }
             sessionCallback(job, cmdBase);
         } else if (cmdBase.getType() == CmdType.RUN_SHELL) {
             nodeCallback(id, cmdBase);
         } else {
+            LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
             throw new RuntimeException("not found cmdType");
         }
     }
@@ -133,7 +124,7 @@ public class JobServiceImpl implements JobService {
             String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
 
             if (res == null) {
-                LOGGER.trace(String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
+                LOGGER.warn(String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
                 throw new RuntimeException(
                     String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
             }
@@ -143,7 +134,7 @@ public class JobServiceImpl implements JobService {
             node.setCmdId(cmd.getId());
             jobNodeService.save(node);
         } catch (UnsupportedEncodingException e) {
-            LOGGER.error("run step UnsupportedEncodingException", e);
+            LOGGER.warn("run step UnsupportedEncodingException", e);
         }
     }
 
@@ -217,7 +208,7 @@ public class JobServiceImpl implements JobService {
 
             cmd = Jsonable.parse(res, Cmd.class);
         } catch (UnsupportedEncodingException e) {
-            LOGGER.error("run step UnsupportedEncodingException", e);
+            LOGGER.warn("run step UnsupportedEncodingException", e);
         }
         return cmd;
     }
@@ -234,11 +225,10 @@ public class JobServiceImpl implements JobService {
                 jobNode = copyNode(node, Flow.class, JobFlow.class);
             } else {
                 jobNode = copyNode(node, Step.class, JobStep.class);
-                ;
             }
             jobNodeService.save(jobNode);
             for (Node child : node.getChildren()) {
-                JobNode jobChild = (JobNode) jobNodeService.find(child.getPath());
+                JobNode jobChild = jobNodeService.find(child.getPath());
                 jobNode.getChildren().add(jobChild);
                 jobChild.setParent(jobNode);
                 jobNodeService.save(jobChild);
@@ -261,9 +251,9 @@ public class JobServiceImpl implements JobService {
                 ObjectUtil.assignValueToField(field, finalK, ob);
             });
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            LOGGER.warn("copy node InstantiationException %s", e);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            LOGGER.warn("copy node IllegalAccessException %s", e);
         }
         return (JobNode) k;
     }

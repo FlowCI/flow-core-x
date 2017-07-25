@@ -16,7 +16,6 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.domain.Node;
 
 /**
  * @author yh@firim
