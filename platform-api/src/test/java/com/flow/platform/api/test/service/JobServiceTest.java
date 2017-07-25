@@ -16,6 +16,10 @@
 
 package com.flow.platform.api.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
@@ -34,6 +38,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ObjectUtil;
 import com.sun.org.apache.regexp.internal.RE;
 import java.lang.reflect.Field;
+import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +48,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 /**
  * @author yh@firim
  */
-public class JobServiceTest extends TestBase{
+public class JobServiceTest extends TestBase {
+
     @Autowired
     JobService jobService;
 
@@ -54,7 +60,7 @@ public class JobServiceTest extends TestBase{
     JobNodeService jobNodeService;
 
     @Test
-    public void should_copy_node(){
+    public void should_copy_node() {
         Flow flow = new Flow();
         flow.setPath("/flow");
         flow.setName("flow");
@@ -83,7 +89,7 @@ public class JobServiceTest extends TestBase{
     }
 
     @Test
-    public void should_copy_node_simple(){
+    public void should_copy_node_simple() {
         // zero node
 
         Flow flow = new Flow();
@@ -100,8 +106,22 @@ public class JobServiceTest extends TestBase{
         }
     }
 
+    private void stubDemo() {
+        Cmd cmdRes = new Cmd();
+        cmdRes.setId(UUID.randomUUID().toString());
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send"))
+            .willReturn(aResponse()
+                .withBody(cmdRes.toJson())));
+
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
+            .willReturn(aResponse()
+                .withBody(cmdRes.toJson())));
+    }
+
     @Test
-    public void should_create_node_success(){
+    public void should_create_node_success() {
+        stubDemo();
+
         Flow flow = new Flow();
         flow.setName("flow");
         flow.setPath("/flow");
@@ -170,7 +190,7 @@ public class JobServiceTest extends TestBase{
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setType(CmdType.RUN_SHELL);
         jobService.callback(step2.getPath(), cmd);
-        Assert.assertEquals(NodeStatus.SUCCESS, ((JobStep)jobNodeService.find(step2.getPath())).getStatus());
+        Assert.assertEquals(NodeStatus.SUCCESS, ((JobStep) jobNodeService.find(step2.getPath())).getStatus());
         Assert.assertEquals(NodeStatus.SUCCESS, job.getStatus());
         jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
         Assert.assertEquals(NodeStatus.SUCCESS, jobFlow.getStatus());

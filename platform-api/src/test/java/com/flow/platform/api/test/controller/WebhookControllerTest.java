@@ -16,6 +16,10 @@
 
 package com.flow.platform.api.test.controller;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,6 +35,7 @@ import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.JobServiceImpl;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
@@ -40,6 +45,7 @@ import com.flow.platform.domain.CmdType;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.LinkedList;
+import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,8 +66,22 @@ public class WebhookControllerTest extends TestBase {
     @Autowired
     JobService jobService;
 
+    private void stubDemo() {
+        Cmd cmdRes = new Cmd();
+        cmdRes.setId(UUID.randomUUID().toString());
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send"))
+            .willReturn(aResponse()
+                .withBody(cmdRes.toJson())));
+
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
+            .willReturn(aResponse()
+                .withBody(cmdRes.toJson())));
+    }
+
     @Test
     public void should_callback_session_success() throws Exception {
+
+        stubDemo();
 
         Flow flow = new Flow();
         flow.setPath("/flow");
@@ -171,6 +191,9 @@ public class WebhookControllerTest extends TestBase {
 
     @Test
     public void should_callback_failure() throws Exception {
+
+        stubDemo();
+
         Flow flow = new Flow();
         flow.setPath("/flow");
         flow.setName("flow");
@@ -206,6 +229,7 @@ public class WebhookControllerTest extends TestBase {
             .andExpect(status().isOk())
             .andReturn();
         Assert.assertNotNull(job.getSessionId());
+        Assert.assertNotNull(job.getCmdId());
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(job.getStatus(), NodeStatus.PENDING);
 
@@ -223,6 +247,7 @@ public class WebhookControllerTest extends TestBase {
             .andReturn();
 
         JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath());
+        Assert.assertNotNull(jobStep1.getCmdId());
         JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
 //        Assert.assertEquals(job.getStatus(), NodeStatus.FAIL);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);

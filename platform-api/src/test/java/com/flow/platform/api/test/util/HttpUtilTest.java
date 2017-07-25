@@ -23,11 +23,9 @@ import com.flow.platform.api.domain.Response;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.domain.Jsonable;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.UnsupportedEncodingException;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
@@ -37,9 +35,6 @@ import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(value = MethodSorters.NAME_ASCENDING)
 public class HttpUtilTest extends TestBase {
-
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(8080);
 
     @Test
     public void should_get_success() {

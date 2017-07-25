@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.RestClient;
 import com.flow.platform.api.util.RestClient.HttpMethod;
@@ -33,7 +34,10 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
+import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +53,8 @@ import org.springframework.util.ReflectionUtils;
  */
 @Service(value = "jobService")
 public class JobServiceImpl implements JobService {
+
+    private static Logger LOGGER = new Logger(JobService.class);
 
     @Autowired
     private TaskExecutor taskExecutor;
@@ -73,6 +79,9 @@ public class JobServiceImpl implements JobService {
 
     @Value(value = "${platform.cmd.url}")
     private String cmdUrl;
+
+    @Value(value = "${platform.queue.url}")
+    private String queueUrl;
 
     private final Map<String, Job> mocJobList = new HashMap<>();
 
@@ -110,11 +119,32 @@ public class JobServiceImpl implements JobService {
         }
     }
 
+    /**
+     * run node
+     *
+     * @param node job node's script and record cmdId and sync send http
+     */
     @Override
     public void run(JobNode node) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setWebhook(getNodeHook(node));
-        taskExecutor.execute(new RestClient(HttpMethod.POST, cmdUrl, cmdInfo.toJson()));
+
+        try {
+            String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
+
+            if (res == null) {
+                LOGGER.trace(String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
+                throw new RuntimeException(
+                    String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
+            }
+
+            Cmd cmd = Jsonable.parse(res, Cmd.class);
+            // record cmd id
+            node.setCmdId(cmd.getId());
+            jobNodeService.save(node);
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error("run step UnsupportedEncodingException", e);
+        }
     }
 
     @Override
@@ -154,6 +184,10 @@ public class JobServiceImpl implements JobService {
     private void createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
         cmdInfo.setWebhook(getJobHook(job));
+        // create session
+        Cmd cmd = sendToQueue(cmdInfo);
+        job.setCmdId(cmd.getId());
+        save(job);
     }
 
     /**
@@ -162,6 +196,30 @@ public class JobServiceImpl implements JobService {
     private void deleteSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.DELETE_SESSION, null);
         cmdInfo.setSessionId(job.getSessionId());
+        // delete session
+        sendToQueue(cmdInfo);
+    }
+
+    /**
+     * send cmd by queue
+     */
+    private Cmd sendToQueue(CmdInfo cmdInfo) {
+        Cmd cmd = null;
+        try {
+            String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
+
+            if (res == null) {
+                LOGGER.warn(
+                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
+                throw new RuntimeException(
+                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
+            }
+
+            cmd = Jsonable.parse(res, Cmd.class);
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error("run step UnsupportedEncodingException", e);
+        }
+        return cmd;
     }
 
     /**

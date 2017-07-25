@@ -15,12 +15,14 @@ package com.flow.platform.api.test;/*
  */
 
 import com.flow.platform.api.config.WebConfig;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.gson.Gson;
 import java.io.IOException;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextInitializer;
@@ -69,6 +71,9 @@ public abstract class TestBase {
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
     }
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8080);
 
     @After
     public void afterEach() {
