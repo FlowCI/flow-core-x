@@ -27,8 +27,6 @@ public class NodeUtil {
 
     /**
      * find all node
-     * @param root
-     * @param onNode
      */
     public static void recurse(final Node root, final Consumer<Node> onNode) {
         for (Node child : root.getChildren()) {
@@ -36,12 +34,10 @@ public class NodeUtil {
         }
         onNode.accept(root);
     }
-    
+
 
     /**
      * find flow node
-     * @param node
-     * @return
      */
     public static Node findRootNode(Node node) {
         if (node.getParent() == null) {
@@ -53,8 +49,6 @@ public class NodeUtil {
 
     /**
      * return List nodes
-     * @param node
-     * @return
      */
     public static List<Node> flat(final Node node) {
         final List<Node> flatted = new LinkedList<>();

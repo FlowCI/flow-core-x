@@ -35,6 +35,8 @@ public abstract class JobNode extends Node {
 
     protected Job job;
 
+    protected String cmdId;
+
     protected ZonedDateTime startTime;
 
     public ZonedDateTime getFinishedAt() {
@@ -100,5 +102,13 @@ public abstract class JobNode extends Node {
 
     public void setStartTime(ZonedDateTime startTime) {
         this.startTime = startTime;
+    }
+
+    public String getCmdId() {
+        return cmdId;
+    }
+
+    public void setCmdId(String cmdId) {
+        this.cmdId = cmdId;
     }
 }
