@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
@@ -196,14 +195,16 @@ public class JobServiceImpl implements JobService {
      */
     private Cmd sendToQueue(CmdInfo cmdInfo) {
         Cmd cmd = null;
+        StringBuffer stringBuffer = new StringBuffer(queueUrl);
+        stringBuffer.append("?priority=1&retry=5");
         try {
-            String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
+            String res = HttpUtil.post(stringBuffer.toString(), cmdInfo.toJson());
 
             if (res == null) {
                 LOGGER.warn(
-                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
+                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(), cmdInfo.toJson()));
                 throw new RuntimeException(
-                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
+                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(), cmdInfo.toJson()));
             }
 
             cmd = Jsonable.parse(res, Cmd.class);

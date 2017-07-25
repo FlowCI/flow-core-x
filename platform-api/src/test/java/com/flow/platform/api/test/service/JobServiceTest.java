@@ -109,7 +109,7 @@ public class JobServiceTest extends TestBase {
     private void stubDemo() {
         Cmd cmdRes = new Cmd();
         cmdRes.setId(UUID.randomUUID().toString());
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send"))
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
                 .withBody(cmdRes.toJson())));
 
