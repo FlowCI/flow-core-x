@@ -204,9 +204,11 @@ public class JobServiceImpl implements JobService {
 
             if (res == null) {
                 LOGGER.warn(
-                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(), cmdInfo.toJson()));
+                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(),
+                        cmdInfo.toJson()));
                 throw new RuntimeException(
-                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(), cmdInfo.toJson()));
+                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(),
+                        cmdInfo.toJson()));
             }
 
             cmd = Jsonable.parse(res, Cmd.class);
@@ -298,13 +300,13 @@ public class JobServiceImpl implements JobService {
             case RUNNING:
                 // first step
                 if (prevStep == null) {
-                    updateJobAndFlowStatus(jobFlow, jobStep, job);
+                    updateJobAndFlowStatus(jobFlow, jobStep, job, null, null);
                 }
                 break;
             case SUCCESS:
                 JobStep nextStep = (JobStep) NodeUtil.next(jobStep);
                 if (nextStep == null) {
-                    updateJobAndFlowStatus(jobFlow, jobStep, job);
+                    updateJobAndFlowStatus(jobFlow, jobStep, job, null, null);
                     deleteSession(job);
                 } else {
                     run(nextStep);
@@ -313,8 +315,19 @@ public class JobServiceImpl implements JobService {
 
             case TIMEOUT:
             case FAILURE:
-                updateJobAndFlowStatus(jobFlow, jobStep, job);
-                deleteSession(job);
+                // is allow failure run next
+                if (jobStep.getAllowFailure()) {
+                    JobStep next = (JobStep) NodeUtil.next(jobStep);
+                    if (next == null) {
+                        updateJobAndFlowStatus(jobFlow, jobStep, job, prevStep, next);
+                        deleteSession(job);
+                    } else {
+                        run(next);
+                    }
+                } else {
+                    updateJobAndFlowStatus(jobFlow, jobStep, job, null, null);
+                    deleteSession(job);
+                }
                 break;
         }
     }
@@ -322,15 +335,22 @@ public class JobServiceImpl implements JobService {
     /**
      * update job flow status
      */
-    private JobFlow updateJobAndFlowStatus(JobFlow jobFlow, JobStep jobStep, Job job) {
+    private JobFlow updateJobAndFlowStatus(JobFlow jobFlow, JobStep jobStep, Job job, JobStep prev, JobStep next) {
         job.setUpdatedAt(ZonedDateTime.now());
         job.setExitCode(jobStep.getExitCode());
         jobFlow.setUpdatedAt(ZonedDateTime.now());
         NodeStatus nodeStatus = jobStep.getStatus();
-        //timeout set failure
-        if(nodeStatus == NodeStatus.TIMEOUT){
-            nodeStatus = NodeStatus.FAILURE;
+
+        if(nodeStatus == NodeStatus.TIMEOUT || nodeStatus == NodeStatus.FAILURE){
+            if(jobStep.getAllowFailure()) {
+                if (next == null) {
+                    nodeStatus = NodeStatus.SUCCESS;
+                }
+            }else{
+                nodeStatus = NodeStatus.FAILURE;
+            }
         }
+
         job.setStatus(nodeStatus);
         jobFlow.setStatus(nodeStatus);
         jobNodeService.save(jobFlow);

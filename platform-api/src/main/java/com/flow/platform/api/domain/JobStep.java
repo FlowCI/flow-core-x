@@ -19,7 +19,7 @@ package com.flow.platform.api.domain;
 public class JobStep extends JobNode {
 
 
-    private Boolean allowFailure;
+    private Boolean allowFailure = false;
 
     private String plugin;
 

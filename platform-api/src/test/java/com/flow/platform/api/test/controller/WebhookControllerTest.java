@@ -253,4 +253,84 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.FAILURE);
     }
+
+    @Test
+    public void should_callback_timeout_allow_failure() throws Exception {
+
+        stubDemo();
+
+        Flow flow = new Flow();
+        flow.setPath("/flow");
+        flow.setName("flow");
+        Step step1 = new Step();
+        step1.setPath("/flow/step1");
+        step1.setName("step1");
+        step1.setAllowFailure(true);
+        Step step2 = new Step();
+        step2.setPath("/flow/step2");
+        step2.setName("step2");
+
+        flow.getChildren().add(step1);
+        flow.getChildren().add(step2);
+
+        step1.setParent(flow);
+        step2.setParent(flow);
+
+        nodeService.create(flow);
+
+        Job job = jobService.createJob(flow.getPath());
+
+        // create session
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setStatus(CmdStatus.SENT);
+        String sessionId = "1111111";
+        cmd.setSessionId(sessionId);
+
+        CmdBase cmdBase = cmd;
+        MockHttpServletRequestBuilder content = post("/hooks/" + UrlUtil.urlEncoder(job.getId()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(cmdBase.toJson());
+        this.mockMvc.perform(content)
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+        Assert.assertNotNull(job.getSessionId());
+        Assert.assertNotNull(job.getCmdId());
+        Assert.assertEquals(sessionId, job.getSessionId());
+        Assert.assertEquals(job.getStatus(), NodeStatus.ENQUEUE);
+
+
+
+        // run first step timeout
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd.setStatus(CmdStatus.RUNNING);
+
+        cmdBase = cmd;
+        content = post("/hooks/" + UrlUtil.urlEncoder(step1.getPath()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(cmdBase.toJson());
+        this.mockMvc.perform(content)
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd.setStatus(CmdStatus.TIMEOUT_KILL);
+
+        cmdBase = cmd;
+        content = post("/hooks/" + UrlUtil.urlEncoder(step1.getPath()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(cmdBase.toJson());
+        this.mockMvc.perform(content)
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath());
+        Assert.assertNotNull(jobStep1.getCmdId());
+        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
+        Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
+        Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
+    }
 }
