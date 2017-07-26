@@ -26,9 +26,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 /**
- *Gson解析yml文件时，SerializedName直接找
- * 父类，因为abstract不能被实例，所以现在
- * 修改为class
+ * Gson parse the yml file, @SerializedName("xxx")
+ * find the super class, but abstract class cannot be instant,
+ * so now modified to class
  */
 public class Node<T extends Node> extends Jsonable {
 
