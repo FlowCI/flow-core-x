@@ -22,7 +22,6 @@ import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
-import com.google.gson.Gson;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -51,34 +50,6 @@ public class AgentControllerTest extends TestBase {
 
     @Autowired
     private ZoneService zoneService;
-
-    @Value("${agent.config.socket_io_url}")
-    private String socketIoUrl;
-
-    @Value("${agent.config.cmd_report_url}")
-    private String cmdReportUrl;
-
-    @Value("${agent.config.cmd_log_url}")
-    private String cmdLogUrl;
-
-    @Test
-    public void should_has_agent_config_in_zone_data() throws Throwable {
-        // given:
-        String zoneName = "test-zone-00";
-        zoneService.createZone(new Zone(zoneName, MOCK_CLOUD_PROVIDER_NAME));
-        Thread.sleep(1000);
-
-        // when:
-        String zonePath = zkHelper.buildZkPath(zoneName, null).path();
-        byte[] raw = ZkNodeHelper.getNodeData(zkClient, zonePath, null);
-
-        // then:
-        AgentConfig config = Jsonable.parse(raw, AgentConfig.class);
-        Assert.assertNotNull(config);
-        Assert.assertEquals(socketIoUrl, config.getLoggingUrl());
-        Assert.assertEquals(cmdReportUrl, config.getCmdStatusUrl());
-        Assert.assertEquals(cmdLogUrl, config.getCmdLogUrl());
-    }
 
     @Test
     public void should_list_all_online_agent() throws Throwable {

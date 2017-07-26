@@ -1,7 +1,7 @@
 package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.Config;
-import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.domain.AgentSettings;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -31,8 +31,9 @@ public abstract class TestBase {
 
     @BeforeClass
     public static void beforeClassBase() {
-        Config.AGENT_CONFIG = new AgentConfig(
-                "http://localhost:3000/agent",
+        Config.AGENT_SETTINGS = new AgentSettings(
+                "amqp://127.0.0.1:5672",
+                "flow-logging-queue-ut",
                 "http://localhost:8080/cmd/status",
                 "http://localhost:8080/cmd/log/upload");
     }

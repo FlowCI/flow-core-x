@@ -45,6 +45,7 @@
     <HikariCP.version>2.6.2</HikariCP.version>
     <jcabi-ssh.version>1.5.2</jcabi-ssh.version>
     <powermock.version>1.7.0</powermock.version>
+    <amqp-client.version>4.2.0</amqp-client.version>
   </properties>
 
   <build>
@@ -146,6 +147,12 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.rabbitmq</groupId>
+        <artifactId>amqp-client</artifactId>
+        <version>${amqp-client.version}</version>
       </dependency>
 
       <dependency>

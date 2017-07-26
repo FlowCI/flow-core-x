@@ -21,12 +21,17 @@ package com.flow.platform.domain;
  *
  * @author gy@fir.im
  */
-public class AgentConfig extends Jsonable {
+public class AgentSettings extends Jsonable {
 
     /**
-     * Url for socket io realtime logging
+     * Host name of rabbitmq for real time logging
      */
-    private String loggingUrl;
+    private String loggingQueueHost;
+
+    /**
+     * Queue name of rabbitmq for real time logging
+     */
+    private String loggingQueueName;
 
     /**
      * Url for report cmd status
@@ -38,21 +43,30 @@ public class AgentConfig extends Jsonable {
      */
     private String cmdLogUrl;
 
-    public AgentConfig() {
+    public AgentSettings() {
     }
 
-    public AgentConfig(String loggingUrl, String cmdStatusUrl, String cmdLogUrl) {
-        this.loggingUrl = loggingUrl;
+    public AgentSettings(String loggingQueueHost, String loggingQueueName, String cmdStatusUrl, String cmdLogUrl) {
+        this.loggingQueueHost = loggingQueueHost;
+        this.loggingQueueName = loggingQueueName;
         this.cmdStatusUrl = cmdStatusUrl;
         this.cmdLogUrl = cmdLogUrl;
     }
 
-    public String getLoggingUrl() {
-        return loggingUrl;
+    public String getLoggingQueueHost() {
+        return loggingQueueHost;
     }
 
-    public void setLoggingUrl(String loggingUrl) {
-        this.loggingUrl = loggingUrl;
+    public void setLoggingQueueHost(String loggingQueueHost) {
+        this.loggingQueueHost = loggingQueueHost;
+    }
+
+    public String getLoggingQueueName() {
+        return loggingQueueName;
+    }
+
+    public void setLoggingQueueName(String loggingQueueName) {
+        this.loggingQueueName = loggingQueueName;
     }
 
     public String getCmdStatusUrl() {
@@ -73,10 +87,11 @@ public class AgentConfig extends Jsonable {
 
     @Override
     public String toString() {
-        return "AgentConfig{" +
-                "loggingUrl='" + loggingUrl + '\'' +
-                ", cmdStatusUrl='" + cmdStatusUrl + '\'' +
-                ", cmdLogUrl='" + cmdLogUrl + '\'' +
-                "} " + super.toString();
+        return "AgentSettings{" +
+            "loggingQueueHost='" + loggingQueueHost + '\'' +
+            ", loggingQueueName='" + loggingQueueName + '\'' +
+            ", cmdStatusUrl='" + cmdStatusUrl + '\'' +
+            ", cmdLogUrl='" + cmdLogUrl + '\'' +
+            "} ";
     }
 }

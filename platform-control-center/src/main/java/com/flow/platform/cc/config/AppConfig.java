@@ -16,7 +16,6 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.domain.AgentConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
@@ -28,7 +27,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,7 +36,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author gy@fir.im
  */
 @Configuration
-@Import({TaskConfig.class, MQConfig.class, DatabaseConfig.class, WebSocketConfig.class})
+@Import({TaskConfig.class, MQConfig.class, DatabaseConfig.class, WebSocketConfig.class, AgentConfig.class})
 public class AppConfig {
 
     public final static DateTimeFormatter APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
@@ -49,31 +47,14 @@ public class AppConfig {
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
-    @Value("${agent.config.socket_io_url}")
-    private String socketIoUrl;
-
-    @Value("${agent.config.cmd_report_url}")
-    private String cmdReportUrl;
-
-    @Value("${agent.config.cmd_log_url}")
-    private String cmdLogUrl;
 
     @PostConstruct
     public void init() {
-        LOGGER.traceMarker("AgentReportUrl", "SocketIoUrl: %s", socketIoUrl);
-        LOGGER.traceMarker("AgentReportUrl", "CmdReportUrl: %s", cmdReportUrl);
-        LOGGER.traceMarker("AgentReportUrl", "CmdLogUrl: %s", cmdLogUrl);
-
         try {
             Files.createDirectories(CMD_LOG_DIR);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Bean
-    public AgentConfig agentConfig() {
-        return new AgentConfig(socketIoUrl, cmdReportUrl, cmdLogUrl);
     }
 
     // TODO: should separate task and scheduler
