@@ -70,9 +70,6 @@ public class CmdServiceTest extends TestBase {
     @Autowired
     private ZoneService zoneService;
 
-    @Autowired
-    private Queue<Path> cmdLoggingQueue;
-
     private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
 
     private Process mockProcess = new Process() {
@@ -106,11 +103,6 @@ public class CmdServiceTest extends TestBase {
 
         }
     };
-
-    @Before
-    public void before() {
-        cmdLoggingQueue.clear();
-    }
 
     @Test
     public void should_create_cmd() {
@@ -437,7 +429,6 @@ public class CmdServiceTest extends TestBase {
 
         // then:
         Assert.assertTrue(Files.exists(Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename)));
-        Assert.assertEquals(1, cmdLoggingQueue.size());
     }
 
     @Test

@@ -90,9 +90,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     private TaskConfig taskConfig;
 
     @Autowired
-    private Queue<Path> cmdLoggingQueue;
-
-    @Autowired
     private BlockingQueue<CmdStatusItem> cmdStatusQueue;
 
     @Autowired
@@ -319,7 +316,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             Files.write(target, file.getBytes());
             cmd.getLogPaths().add(target.toString());
             cmdDao.update(cmd);
-            cmdLoggingQueue.add(target);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

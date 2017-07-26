@@ -75,14 +75,6 @@ public class CmdControllerTest extends TestBase {
     @Autowired
     private ZoneService zoneService;
 
-    @Autowired
-    private Queue<Path> cmdLoggingQueue;
-
-    @Before
-    public void before() {
-        cmdLoggingQueue.clear();
-    }
-
     @Test
     public void should_list_cmd_types() throws Throwable {
         // when:
@@ -204,9 +196,6 @@ public class CmdControllerTest extends TestBase {
         // then: check upload file path and logging queue
         Path zippedLogPath = Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename);
         Assert.assertTrue(Files.exists(zippedLogPath));
-
-        Assert.assertEquals(1, cmdLoggingQueue.size());
-        Assert.assertEquals(zippedLogPath, cmdLoggingQueue.peek());
         Assert.assertEquals(data.length, Files.size(zippedLogPath));
 
         // when: download uploaded zipped cmd log

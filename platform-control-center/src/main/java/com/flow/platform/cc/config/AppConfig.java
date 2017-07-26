@@ -70,16 +70,6 @@ public class AppConfig {
     }
 
     /**
-     * Add cmd log file path to queue for processing such as upload log to cloud
-     *
-     * @return BlockingQueue with file path
-     */
-    @Bean
-    public BlockingQueue<Path> cmdLoggingQueue() {
-        return new LinkedBlockingQueue<>(50);
-    }
-
-    /**
      * Queue to handle agent report online in sync
      */
     @Bean
