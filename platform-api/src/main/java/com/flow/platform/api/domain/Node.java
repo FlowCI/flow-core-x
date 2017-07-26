@@ -17,11 +17,18 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
-
-import java.util.*;
-
-public abstract class Node extends Jsonable {
-
+import com.google.gson.annotations.SerializedName;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+/**
+ *Gson解析yml文件时，SerializedName直接找
+ * 父类，因为abstract不能被实例，所以现在
+ * 修改为class
+ */
+public class Node<T extends Node> extends Jsonable {
     protected String path;
 
     protected String name;
@@ -30,7 +37,8 @@ public abstract class Node extends Jsonable {
 
     protected Node Parent;
 
-    protected List<Node> children = new LinkedList<>();
+    @SerializedName("steps")
+    protected List<T> children = new LinkedList<>();
 
     protected Node prev;
 
@@ -80,11 +88,11 @@ public abstract class Node extends Jsonable {
         Parent = parent;
     }
 
-    public List<Node> getChildren() {
+    public List<T> getChildren() {
         return children;
     }
 
-    public void setChildren(List<Node> children) {
+    public void setChildren(List<T> children) {
         this.children = children;
     }
 

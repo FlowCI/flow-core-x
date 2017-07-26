@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.domain;
 
-public class Step extends Node {
+public class Step extends Node<Step> {
 
     private Boolean isAllowFailure;
 

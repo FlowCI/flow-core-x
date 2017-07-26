@@ -45,6 +45,8 @@
     <HikariCP.version>2.6.2</HikariCP.version>
     <jcabi-ssh.version>1.5.2</jcabi-ssh.version>
     <jmockit.version>1.33</jmockit.version>
+    <snakeyaml.version>1.18</snakeyaml.version>
+    <json-lib.version>2.4</json-lib.version>
   </properties>
 
   <repositories>
@@ -219,6 +221,18 @@
         <groupId>com.jcabi</groupId>
         <artifactId>jcabi-ssh</artifactId>
         <version>${jcabi-ssh.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>${snakeyaml.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.hynnet</groupId>
+        <artifactId>json-lib</artifactId>
+        <version>${json-lib.version}</version>
       </dependency>
 
       <dependency>
