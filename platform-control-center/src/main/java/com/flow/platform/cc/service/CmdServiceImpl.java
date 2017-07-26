@@ -75,7 +75,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
 
-    @Value("${mq.queue.name}")
+    @Value("${mq.queue.cmd.name}")
     private String cmdQueueName;
 
     @Autowired
@@ -103,7 +103,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     private Executor taskExecutor;
 
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private RabbitTemplate cmdQueueTemplate;
 
     @Override
     public Cmd create(CmdInfo info) {
@@ -237,7 +237,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
         MessageProperties properties = new MessageProperties();
         properties.setPriority(item.getPriority());
-        rabbitTemplate.send("", cmdQueueName, new Message(item.toBytes(), properties));
+        cmdQueueTemplate.send("", cmdQueueName, new Message(item.toBytes(), properties));
 
         return cmd;
     }

@@ -42,14 +42,20 @@ public class MQConfig {
 
     private final static Logger LOGGER = new Logger(MQConfig.class);
 
-    private final static int MAX_PRIORITY = 10;
-    private final static int MAX_LENGTH = 100;
+    private final static int CMD_QUEUE_MAX_PRIORITY = 10;
+    private final static int CMD_QUEUE_MAX_LENGTH = 100;
+
+    private final static int LOGGING_QUEUE_MAX_PRIORITY = 10;
+    private final static int LOGGING_QUEUE_MAX_LENGTH = 10000;
 
     @Value("${mq.host}")
     private String host;
 
-    @Value("${mq.queue.name}")
-    private String cmdQueueName;
+    @Value("${mq.queue.cmd.name}")
+    private String cmdQueueName; // receive cmd from upstream
+
+    @Value("${mq.queue.logging.name}")
+    private String loggingQueueName; // receive logging from agent
 
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory() {
@@ -61,21 +67,35 @@ public class MQConfig {
     }
 
     @Bean
-    public RabbitTemplate rabbitTemplate() {
+    public RabbitTemplate cmdQueueTemplate() {
         RabbitTemplate template = new RabbitTemplate(connectionFactory());
         template.setQueue(cmdQueueName);
         return template;
     }
 
     @Bean
+    public RabbitTemplate loggingQueueTemplate() {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory());
+        template.setQueue(loggingQueueName);
+        return template;
+    }
+
+    @Bean
     public AmqpAdmin amqpAdmin() {
-        Map<String, Object> args = new HashMap<>();
-        args.put("x-max-length", MAX_LENGTH);
-        args.put("x-max-priority", MAX_PRIORITY);
-        Queue cmdQueue = new Queue(cmdQueueName, true, false, false, args);
+        Map<String, Object> cmdQueueArgs = new HashMap<>();
+        cmdQueueArgs.put("x-max-length", CMD_QUEUE_MAX_LENGTH);
+        cmdQueueArgs.put("x-max-priority", CMD_QUEUE_MAX_PRIORITY);
+        Queue cmdQueue = new Queue(cmdQueueName, true, false, false, cmdQueueArgs);
+
+        Map<String, Object> loggingQueueArgs = new HashMap<>();
+        loggingQueueArgs.put("x-max-length", LOGGING_QUEUE_MAX_LENGTH);
+        loggingQueueArgs.put("x-max-priority", LOGGING_QUEUE_MAX_PRIORITY);
+        Queue loggingQueue = new Queue(loggingQueueName, true, false, false, loggingQueueArgs);
+
 
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory());
         rabbitAdmin.declareQueue(cmdQueue);
+        rabbitAdmin.declareQueue(loggingQueue);
         return rabbitAdmin;
     }
 

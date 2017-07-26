@@ -43,16 +43,16 @@ public class CmdQueueConsumer {
 
     private final static int RETRY_QUEUE_PRIORITY = 10;
 
-    @Value("${mq.queue.name}")
+    @Value("${mq.queue.cmd.name}")
     private String cmdQueueName;
 
     @Autowired
     private CmdService cmdService;
 
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private RabbitTemplate cmdQueueTemplate;
 
-    @RabbitListener(queues = {"${mq.queue.name}"})
+    @RabbitListener(queues = {"${mq.queue.cmd.name}"})
     public void onMessage(Message message) {
         CmdQueueItem item = CmdQueueItem.parse(message.getBody(), CmdQueueItem.class);
         LOGGER.trace("Receive a cmd queue item: %s", item);
@@ -91,7 +91,7 @@ public class CmdQueueConsumer {
         MessageProperties properties = new MessageProperties();
         properties.setPriority(item.getPriority());
         Message message = new Message(item.toBytes(), properties);
-        rabbitTemplate.send("", cmdQueueName, message);
+        cmdQueueTemplate.send("", cmdQueueName, message);
         LOGGER.trace("Re-enqueue item %s", item);
     }
 }
