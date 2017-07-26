@@ -17,7 +17,6 @@
 package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.context.ContextEvent;
-import com.flow.platform.domain.AgentPath;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
