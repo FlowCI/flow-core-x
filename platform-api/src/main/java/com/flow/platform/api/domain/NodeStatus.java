@@ -16,25 +16,38 @@
 
 package com.flow.platform.api.domain;
 
-public class Step extends Node<Step> {
+/**
+ * @author yh@firim
+ */
+public enum NodeStatus {
 
-    private Boolean allowFailure = false;
+    PENDING("PENDING", 0),
 
-    private String plugin;
+    //enter queue
+    ENQUEUE("ENQUEUE", 1),
 
-    public Boolean getAllowFailure() {
-        return allowFailure;
+    RUNNING("RUNNING", 2),
+
+    SUCCESS("SUCCESS", 3),
+
+    FAILURE("FAILURE", 4),
+
+    TIMEOUT("TIMEOUT", 5);
+
+    private String name;
+
+    public Integer getLevel() {
+        return level;
     }
 
-    public void setAllowFailure(Boolean allowFailure) {
-        this.allowFailure = allowFailure;
+    private Integer level;
+
+    NodeStatus(String name, Integer level) {
+        this.name = name;
+        this.level = level;
     }
 
-    public String getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
+    public String getName() {
+        return name;
     }
 }

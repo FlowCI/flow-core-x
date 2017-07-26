@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import org.apache.logging.log4j.util.ReflectionUtil;
 
 /**
  * @author gy@fir.im
@@ -49,13 +50,29 @@ public class ObjectUtil {
         Class<?> aClass = bean.getClass();
         try {
             String setterMethodName = "set" + fieldNameForSetterGetter(field.getName());
-            Method method = aClass.getDeclaredMethod(setterMethodName, field.getType());
+            Method method = getDeclaredMethod(aClass, setterMethodName, field);
             method.invoke(bean, convertType(field, value));
             return true;
         } catch (Throwable e) {
             return false;
         }
     }
+
+    public static Method getDeclaredMethod(Class clazz, String name, Field field) throws NoSuchFieldException {
+        Method method;
+        try {
+            method = clazz.getDeclaredMethod(name, field.getType());
+        } catch (NoSuchMethodException e) {
+            clazz = clazz.getSuperclass();
+            if(clazz == null){
+                throw new NoSuchFieldException(name);
+            }
+            method = getDeclaredMethod(clazz, name, field);
+        }
+        return method;
+    }
+
+
 
     private static Object convertType(Field field, Object value) {
         if (field.getType().equals(value.getClass())) {

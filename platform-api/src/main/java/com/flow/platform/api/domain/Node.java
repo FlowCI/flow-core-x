@@ -18,27 +18,40 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 
-import java.util.*;
+import com.google.gson.annotations.SerializedName;
+import java.time.ZonedDateTime;
 
-public abstract class Node extends Jsonable {
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+/**
+ * Gson parse the yml file, @SerializedName("xxx")
+ * find the super class, but abstract class cannot be instant,
+ * so now modified to class
+ */
+public class Node<T extends Node> extends Jsonable {
 
     protected String path;
 
     protected String name;
 
-    protected Map<Env, String> envs = new HashMap<>();
+    protected String script;
+
+    protected Map<String, String> envs = new HashMap<>();
 
     protected Node Parent;
 
-    protected List<Node> children = new LinkedList<>();
+    @SerializedName("steps")
+    protected List<T> children = new LinkedList<>();
 
     protected Node prev;
 
     protected Node next;
 
-    protected Date createdAt;
+    protected ZonedDateTime createdAt;
 
-    protected Date updatedAt;
+    protected ZonedDateTime updatedAt;
 
     public Node() {
     }
@@ -64,11 +77,11 @@ public abstract class Node extends Jsonable {
         this.name = name;
     }
 
-    public Map<Env, String> getEnvs() {
+    public Map<String, String> getEnvs() {
         return envs;
     }
 
-    public void setEnvs(Map<Env, String> envs) {
+    public void setEnvs(Map<String, String> envs) {
         this.envs = envs;
     }
 
@@ -80,11 +93,11 @@ public abstract class Node extends Jsonable {
         Parent = parent;
     }
 
-    public List<Node> getChildren() {
+    public List<T> getChildren() {
         return children;
     }
 
-    public void setChildren(List<Node> children) {
+    public void setChildren(List<T> children) {
         this.children = children;
     }
 
@@ -104,20 +117,28 @@ public abstract class Node extends Jsonable {
         this.next = next;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getScript() {
+        return script;
+    }
+
+    public void setScript(String script) {
+        this.script = script;
     }
 
     @Override

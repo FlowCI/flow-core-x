@@ -16,25 +16,30 @@
 
 package com.flow.platform.api.domain;
 
-public class Step extends Node<Step> {
+import com.flow.platform.domain.Jsonable;
 
-    private Boolean allowFailure = false;
+/**
+ * @author yh@firim
+ */
+public class Response extends Jsonable {
+    private String message;
 
-    private String plugin;
-
-    public Boolean getAllowFailure() {
-        return allowFailure;
+    public String getMessage() {
+        return message;
     }
 
-    public void setAllowFailure(Boolean allowFailure) {
-        this.allowFailure = allowFailure;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public String getPlugin() {
-        return plugin;
+    public Response(String message) {
+        this.message = message;
     }
 
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
+    @Override
+    public String toString() {
+        return "Response{" +
+            "message='" + message + '\'' +
+            '}';
     }
 }

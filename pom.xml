@@ -46,6 +46,7 @@
     <jcabi-ssh.version>1.5.2</jcabi-ssh.version>
     <powermock.version>1.7.0</powermock.version>
     <amqp-client.version>4.2.0</amqp-client.version>
+    <snakeyaml.version>1.18</snakeyaml.version>
   </properties>
 
   <build>
@@ -244,6 +245,18 @@
         <groupId>org.powermock</groupId>
         <artifactId>powermock-api-mockito2</artifactId>
         <version>${powermock.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>${snakeyaml.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jmockit</groupId>
+        <artifactId>jmockit</artifactId>
+        <version>${jmockit.version}</version>
         <scope>test</scope>
       </dependency>
 

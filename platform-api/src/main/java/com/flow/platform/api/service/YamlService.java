@@ -13,28 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.service;
 
-package com.flow.platform.api.domain;
+import com.flow.platform.api.domain.Node;
+import java.io.IOException;
 
-public class Step extends Node<Step> {
+/**
+ * @author lhl
+ */
+public interface YamlService {
+    Node createNodeByYamlFile(String path);
 
-    private Boolean allowFailure = false;
+    Node createNodeByYamlString(String yamlString);
 
-    private String plugin;
+    String preLoad(String path) throws IOException;
 
-    public Boolean getAllowFailure() {
-        return allowFailure;
-    }
 
-    public void setAllowFailure(Boolean allowFailure) {
-        this.allowFailure = allowFailure;
-    }
-
-    public String getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
-    }
 }

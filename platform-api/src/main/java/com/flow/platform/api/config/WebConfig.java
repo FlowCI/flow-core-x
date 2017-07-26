@@ -22,9 +22,12 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -33,19 +36,23 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @EnableWebMvc
 @EnableScheduling
 @ComponentScan({
-        "com.flow.platform.api.controller",
-        "com.flow.platform.api.service",
-        "com.flow.platform.api.dao",
-        "com.flow.platform.api.util"})
+    "com.flow.platform.api.controller",
+    "com.flow.platform.api.service",
+    "com.flow.platform.api.dao",
+    "com.flow.platform.api.util"})
+@PropertySource("classpath:app-default.properties")
+@Import({})
 public class WebConfig extends WebMvcConfigurerAdapter {
+
+    private final static int ASYNC_POOL_SIZE = 100;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedMethods("GET", "POST")
-                .allowCredentials(true)
-                .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate");
+            .allowedOrigins("*")
+            .allowedMethods("GET", "POST")
+            .allowCredentials(true)
+            .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate");
     }
 
     @Bean
@@ -62,5 +69,15 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 gsonConverter.setGson(gsonConfig());
             }
         }
+    }
+
+    @Bean
+    public ThreadPoolTaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
+        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
+        taskExecutor.setQueueCapacity(100);
+        taskExecutor.setThreadNamePrefix("async-task-");
+        return taskExecutor;
     }
 }

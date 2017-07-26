@@ -13,28 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.service;
 
-package com.flow.platform.api.domain;
+import com.flow.platform.api.domain.Node;
 
-public class Step extends Node<Step> {
+/**
+ * @author yh@firim
+ */
+public interface NodeService {
 
-    private Boolean allowFailure = false;
+    /**
+     * create node and children
+     */
+    Node create(Node node);
 
-    private String plugin;
+    /**
+     * find node by node path
+     */
+    Node find(String nodePath);
 
-    public Boolean getAllowFailure() {
-        return allowFailure;
-    }
-
-    public void setAllowFailure(Boolean allowFailure) {
-        this.allowFailure = allowFailure;
-    }
-
-    public String getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
-    }
+    /**
+     * save node
+     */
+    Node save(Node node);
 }

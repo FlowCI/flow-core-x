@@ -266,18 +266,19 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw new IllegalArgumentException("Cmd does not exist");
         }
 
+        CmdResult cmdResult = cmdResultDao.get(cmd.getId());
         // compare exiting cmd result and update
         CmdResult inputResult = statusItem.getCmdResult();
         if (inputResult != null) {
             inputResult.setCmdId(cmdId);
-            CmdResult cmdResult = cmdResultDao.get(cmd.getId());
+            cmd.setFinishedDate(inputResult.getFinishTime());
             if (cmdResult != null) {
                 cmdResultDao.updateNotNullOrEmpty(inputResult);
             } else {
                 cmdResultDao.save(inputResult);
             }
         }
-
+        cmd.setCmdResult(cmdResult);
         // update cmd status
         if (cmd.addStatus(statusItem.getStatus())) {
             cmdDao.update(cmd);

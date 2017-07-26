@@ -18,16 +18,17 @@ package com.flow.platform.api.domain;
 
 public class JobStep extends JobNode {
 
-    private Boolean isAllowFailure;
+
+    private Boolean allowFailure = false;
 
     private String plugin;
 
     public Boolean getAllowFailure() {
-        return isAllowFailure;
+        return allowFailure;
     }
 
     public void setAllowFailure(Boolean allowFailure) {
-        isAllowFailure = allowFailure;
+        this.allowFailure = allowFailure;
     }
 
     public String getPlugin() {
@@ -37,4 +38,21 @@ public class JobStep extends JobNode {
     public void setPlugin(String plugin) {
         this.plugin = plugin;
     }
+
+    @Override
+    public String toString() {
+        return "JobStep{" +
+            "plugin='" + plugin + '\'' +
+            ", outputs=" + outputs +
+            ", duration=" + duration +
+            ", exitCode=" + exitCode +
+            ", logPaths=" + logPaths +
+            ", status=" + status +
+            ", job=" + job +
+            ", cmdId='" + cmdId + '\'' +
+            ", startTime=" + startTime +
+            '}';
+    }
+
+
 }

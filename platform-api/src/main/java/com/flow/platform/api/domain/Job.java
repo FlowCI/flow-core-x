@@ -17,8 +17,7 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
-
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,25 +27,39 @@ public class Job extends Jsonable {
 
     private String type;
 
-    private Date createdAt;
+    private ZonedDateTime createdAt;
 
-    private Date updatedAt;
+    private ZonedDateTime updatedAt;
 
     private Long duration;
 
-    private Date finishedAt;
+    private ZonedDateTime finishedAt;
 
     private Integer exitCode;
 
-    private String nodeName;
+    private String nodePath;
 
-    private Map<Env, String> envs = new HashMap<>();
+    private String sessionId;
+
+    private String cmdId;
+
+    private NodeStatus status;
+
+    private Map<String, String> envs = new HashMap<>();
 
     public Job() {
     }
 
     public Job(String id) {
         this.id = id;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public String getId() {
@@ -65,19 +78,19 @@ public class Job extends Jsonable {
         this.type = type;
     }
 
-    public Date getCreatedAt() {
+    public ZonedDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public ZonedDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -89,11 +102,11 @@ public class Job extends Jsonable {
         this.duration = duration;
     }
 
-    public Date getFinishedAt() {
+    public ZonedDateTime getFinishedAt() {
         return finishedAt;
     }
 
-    public void setFinishedAt(Date finishedAt) {
+    public void setFinishedAt(ZonedDateTime finishedAt) {
         this.finishedAt = finishedAt;
     }
 
@@ -105,20 +118,36 @@ public class Job extends Jsonable {
         this.exitCode = exitCode;
     }
 
-    public String getNodeName() {
-        return nodeName;
-    }
-
-    public void setNodeName(String nodeName) {
-        this.nodeName = nodeName;
-    }
-
-    public Map<Env, String> getEnvs() {
+    public Map<String, String> getEnvs() {
         return envs;
     }
 
-    public void setEnvs(Map<Env, String> envs) {
+    public void setEnvs(Map<String, String> envs) {
         this.envs = envs;
+    }
+
+    public String getNodePath() {
+        return nodePath;
+    }
+
+    public void setNodePath(String nodePath) {
+        this.nodePath = nodePath;
+    }
+
+    public NodeStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NodeStatus status) {
+        this.status = status;
+    }
+
+    public String getCmdId() {
+        return cmdId;
+    }
+
+    public void setCmdId(String cmdId) {
+        this.cmdId = cmdId;
     }
 
     @Override
@@ -143,12 +172,14 @@ public class Job extends Jsonable {
     @Override
     public String toString() {
         return "Job{" +
-            "createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
+            "id='" + id + '\'' +
+            ", type='" + type + '\'' +
             ", duration=" + duration +
-            ", finishedAt=" + finishedAt +
             ", exitCode=" + exitCode +
-            ", nodeName='" + nodeName + '\'' +
+            ", nodePath='" + nodePath + '\'' +
+            ", sessionId='" + sessionId + '\'' +
+            ", cmdId='" + cmdId + '\'' +
+            ", status=" + status +
             '}';
     }
 }
