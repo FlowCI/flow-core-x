@@ -47,7 +47,6 @@ public abstract class JobNode extends Node {
         this.finishedAt = finishedAt;
     }
 
-
     public Map<String, String> getOutputs() {
         return outputs;
     }

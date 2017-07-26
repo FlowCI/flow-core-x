@@ -29,7 +29,7 @@ public abstract class Node extends Jsonable {
 
     protected String script;
 
-    protected Map<Env, String> envs = new HashMap<>();
+    protected Map<String, String> envs = new HashMap<>();
 
     protected Node Parent;
 
@@ -67,11 +67,11 @@ public abstract class Node extends Jsonable {
         this.name = name;
     }
 
-    public Map<Env, String> getEnvs() {
+    public Map<String, String> getEnvs() {
         return envs;
     }
 
-    public void setEnvs(Map<Env, String> envs) {
+    public void setEnvs(Map<String, String> envs) {
         this.envs = envs;
     }
 

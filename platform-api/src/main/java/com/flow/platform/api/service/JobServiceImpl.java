@@ -120,6 +120,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public void run(JobNode node) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
+        cmdInfo.setInputs(node.getEnvs());
         cmdInfo.setWebhook(getNodeHook(node));
         JobFlow jobFlow = (JobFlow) NodeUtil.findRootNode(node);
         cmdInfo.setSessionId(jobFlow.getJob().getSessionId());

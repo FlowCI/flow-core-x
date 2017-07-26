@@ -47,7 +47,7 @@ public class Job extends Jsonable {
 
     private NodeStatus status;
 
-    private Map<Env, String> envs = new HashMap<>();
+    private Map<String, String> envs = new HashMap<>();
 
     public Job() {
     }
@@ -120,11 +120,11 @@ public class Job extends Jsonable {
         this.exitCode = exitCode;
     }
 
-    public Map<Env, String> getEnvs() {
+    public Map<String, String> getEnvs() {
         return envs;
     }
 
-    public void setEnvs(Map<Env, String> envs) {
+    public void setEnvs(Map<String, String> envs) {
         this.envs = envs;
     }
 
