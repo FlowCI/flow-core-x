@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
+import com.flow.platform.util.Logger;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -38,8 +39,9 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-//@RequestMapping("/jobs")
 public class JobController {
+
+    private static Logger LOGGER = new Logger(JobController.class);
 
     @Autowired
     JobService jobService;

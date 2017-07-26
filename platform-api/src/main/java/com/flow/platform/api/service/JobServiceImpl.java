@@ -121,7 +121,9 @@ public class JobServiceImpl implements JobService {
     public void run(JobNode node) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setWebhook(getNodeHook(node));
-
+        JobFlow jobFlow = (JobFlow) NodeUtil.findRootNode(node);
+        cmdInfo.setSessionId(jobFlow.getJob().getSessionId());
+        LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
         try {
             String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
 
@@ -161,14 +163,14 @@ public class JobServiceImpl implements JobService {
      * get job callback
      */
     private String getJobHook(Job job) {
-        return domain + "/hooks/" + UrlUtil.urlEncoder(job.getId());
+        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(job.getId());
     }
 
     /**
      * get node callback
      */
     private String getNodeHook(Node node) {
-        return domain + "/hooks/" + UrlUtil.urlEncoder(node.getPath());
+        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(node.getPath());
     }
 
     /**
@@ -176,6 +178,7 @@ public class JobServiceImpl implements JobService {
      */
     private void createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
+        LOGGER.traceMarker("createSession", String.format("jobId - %s", job.getId()));
         cmdInfo.setWebhook(getJobHook(job));
         // create session
         Cmd cmd = sendToQueue(cmdInfo);
@@ -191,6 +194,8 @@ public class JobServiceImpl implements JobService {
     private void deleteSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.DELETE_SESSION, null);
         cmdInfo.setSessionId(job.getSessionId());
+
+        LOGGER.traceMarker("deleteSession", String.format("sessionId - %s", job.getSessionId()));
         // delete session
         sendToQueue(cmdInfo);
     }
@@ -389,6 +394,7 @@ public class JobServiceImpl implements JobService {
     private NodeStatus handleStatus(CmdBase cmdBase) {
         NodeStatus nodeStatus = null;
         switch (cmdBase.getStatus()) {
+            case SENT:
             case PENDING:
                 nodeStatus = NodeStatus.PENDING;
                 break;
@@ -396,7 +402,7 @@ public class JobServiceImpl implements JobService {
                 nodeStatus = NodeStatus.RUNNING;
                 break;
             case LOGGED:
-            case EXECUTED:
+//            case EXECUTED:
                 nodeStatus = NodeStatus.SUCCESS;
                 break;
             case KILLED:
@@ -422,8 +428,10 @@ public class JobServiceImpl implements JobService {
         List<JobStep> jobSteps = new LinkedList<>();
         NodeUtil.recurse(jobFlow, node -> {
             if(node instanceof JobStep){
-                JobStep jobStep = ObjectUtil.deepCopy((JobStep) node);
+                JobStep js = (JobStep) node;
+                JobStep jobStep = ObjectUtil.deepCopy(js);
                 jobStep.setParent(null);
+                jobStep.setStatus(js.getStatus());
                 jobStep.setChildren(new ArrayList<>());
                 jobSteps.add(jobStep);
             }

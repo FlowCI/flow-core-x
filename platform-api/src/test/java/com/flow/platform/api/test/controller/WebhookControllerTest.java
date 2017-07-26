@@ -33,12 +33,14 @@ import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.util.Logger;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
@@ -104,7 +106,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks/" + UrlUtil.urlEncoder(job.getId()))
+        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -120,7 +122,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.RUNNING);
 
         cmdBase = cmd;
-        content = post("/hooks/" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -143,7 +145,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setCmdResult(cmdResult);
 
         cmdBase = cmd;
-        content = post("/hooks/" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -167,7 +169,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setCmdResult(cmdResult);
 
         cmdBase = cmd;
-        content = post("/hooks/" + UrlUtil.urlEncoder(step2.getPath()))
+        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step2.getPath()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -181,6 +183,10 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertEquals((Integer) 1, jobStep2.getExitCode());
         Assert.assertEquals(job.getStatus(), NodeStatus.SUCCESS);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.SUCCESS);
+
+        NodeUtil.recurse(jobFlow, node ->{
+            JobStep jobStep = (JobStep) node;
+        });
     }
 
     @Test
@@ -324,5 +330,12 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
+    }
+
+    @Test
+    public void should_print_log(){
+        Logger logger = new Logger(WebhookControllerTest.class);
+        logger.trace("1111111111111111");
+
     }
 }
