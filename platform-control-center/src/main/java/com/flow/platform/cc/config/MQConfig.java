@@ -66,12 +66,13 @@ public class MQConfig {
     }
 
     @Bean
-    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory() {
-        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory());
-        factory.setConcurrentConsumers(1);
-        factory.setMaxConcurrentConsumers(1);
-        return factory;
+    public SimpleRabbitListenerContainerFactory cmdQueueContainerFactory() {
+        return createContainerFactory(1, 1);
+    }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory loggingQueueContainerFactory() {
+        return createContainerFactory(10, 10);
     }
 
     @Bean
@@ -100,7 +101,6 @@ public class MQConfig {
         loggingQueueArgs.put("x-max-priority", LOGGING_QUEUE_MAX_PRIORITY);
         Queue loggingQueue = new Queue(loggingQueueName, true, false, false, loggingQueueArgs);
 
-
         RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory());
         rabbitAdmin.declareQueue(cmdQueue);
         rabbitAdmin.declareQueue(loggingQueue);
@@ -110,5 +110,13 @@ public class MQConfig {
     @Bean
     public ConnectionFactory connectionFactory() {
         return new CachingConnectionFactory(host);
+    }
+
+    private SimpleRabbitListenerContainerFactory createContainerFactory(final int consumer, final int maxConsumer) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory());
+        factory.setConcurrentConsumers(consumer);
+        factory.setMaxConcurrentConsumers(maxConsumer);
+        return factory;
     }
 }

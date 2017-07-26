@@ -52,7 +52,7 @@ public class CmdQueueConsumer {
     @Autowired
     private RabbitTemplate cmdQueueTemplate;
 
-    @RabbitListener(queues = {"${mq.queue.cmd.name}"})
+    @RabbitListener(queues = {"${mq.queue.cmd.name}"}, containerFactory = "cmdQueueContainerFactory")
     public void onMessage(Message message) {
         CmdQueueItem item = CmdQueueItem.parse(message.getBody(), CmdQueueItem.class);
         LOGGER.trace("Receive a cmd queue item: %s", item);
