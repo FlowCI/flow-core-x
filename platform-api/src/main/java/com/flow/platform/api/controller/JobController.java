@@ -73,7 +73,7 @@ public class JobController {
 
     @PostMapping(path = "/jobs")
     public Job create(@RequestBody String body) {
-        Node node  = yamlService.loadYaml(body);
+        Node node  = yamlService.createNodeByYamlString(body);
         nodeService.create(node);
 
         Job job = jobService.createJob(node.getPath());

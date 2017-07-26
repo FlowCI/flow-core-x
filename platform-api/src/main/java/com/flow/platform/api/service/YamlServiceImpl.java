@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 
@@ -33,42 +34,50 @@ import org.yaml.snakeyaml.Yaml;
  * @author lhl
  */
 @Service(value = "yamlService")
-public class YamlServiceImpl implements YamlService{
-//    @Autowired
-//    private NodeService nodeService;
+public class YamlServiceImpl implements YamlService {
 
-    public Node loadYaml(String yamlString) {
+    @Autowired
+    NodeServiceImpl nodeService;
+
+    public Node createNodeByYamlFile(String path) {
         try {
-//            String yamlString = preLoad(path);
+            String yamlString = preLoad(path);
             Yaml yaml = new Yaml();
             Map result = (Map) yaml.load(yamlString);
-            if (result.get("flow") != null) {
-                String rawJson = Jsonable.GSON_CONFIG.toJson(result.get("flow"));
-                Flow[] flows = Jsonable.GSON_CONFIG.fromJson(rawJson, Flow[].class);
-                for (int i = 0; i < flows.length; i ++){
-                    flows[i].setPath("/"+flows[i].getName());
-                    if (i > 0){
-                        flows[i].setPrev(flows[i-1]);
-                        flows[i-1].setNext(flows[i]);
-                    }
-                    if (flows[i].getChildren() != null){
-                        String stepJson = Jsonable.GSON_CONFIG.toJson(flows[i].getChildren());
-                        flows[i].setChildren(new ArrayList<>());
-                        Node node = recursion(stepJson, flows[i]);
-                   System.out.println(node);
-                   return node;
-
-                    }
-                }
-            }
-
+            return createNode(result);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public Node createNodeByYamlString(String yamlString) {
+        Yaml yaml = new Yaml();
+        Map result = (Map) yaml.load(yamlString);
+        return createNode(result);
+    }
+
+    private Node createNode(Map result) {
+        if (result.get("flow") != null) {
+            String rawJson = Jsonable.GSON_CONFIG.toJson(result.get("flow"));
+            Flow[] flows = Jsonable.GSON_CONFIG.fromJson(rawJson, Flow[].class);
+            for (int i = 0; i < flows.length; i++) {
+                flows[i].setPath("/" + flows[i].getName());
+                if (i > 0) {
+                    flows[i].setPrev(flows[i - 1]);
+                    flows[i - 1].setNext(flows[i]);
+                }
+                if (flows[i].getChildren() != null) {
+                    String stepJson = Jsonable.GSON_CONFIG.toJson(flows[i].getChildren());
+                    flows[i].setChildren(new ArrayList<>());
+                    Node node = recursion(stepJson, flows[i]);
+                    return nodeService.create(node);
+                }
+            }
         }
         return null;
     }
 
-    private String preLoad(String path) throws IOException {
+    public String preLoad(String path) throws IOException {
         File yamlFile = new File(path);
         BufferedReader fileReader = new BufferedReader(new FileReader(yamlFile));
         String temp;
@@ -80,36 +89,27 @@ public class YamlServiceImpl implements YamlService{
             stringBuilder.append(temp + "\n");
         }
         String result = stringBuilder.toString();
+
         return result;
     }
 
-    private  Node recursion (String nodes, Node node){
-//        Step step = new Step();
-//        step.setName("aaa");
+    private Node recursion(String nodes, Node node) {
         Step[] steps = Jsonable.GSON_CONFIG.fromJson(nodes, Step[].class);
-        for(int j = 0; j < steps.length; j++){
-            node.getChildren().add(steps[j]) ;
+        for (int j = 0; j < steps.length; j++) {
+            node.getChildren().add(steps[j]);
             steps[j].setParent(node);
-            steps[j].setPath(node.getPath()+ "/" + steps[j].getName());
-            if (j > 0){
-                steps[j].setPrev(steps[j-1]);
-                steps[j-1].setNext(steps[j]);
+            steps[j].setPath(node.getPath() + "/" + steps[j].getName());
+            if (j > 0) {
+                steps[j].setPrev(steps[j - 1]);
+                steps[j - 1].setNext(steps[j]);
             }
 
-             if ( steps[j].getChildren() != null) {
+            if (steps[j].getChildren() != null) {
                 String stepJson1 = Jsonable.GSON_CONFIG.toJson(steps[j].getChildren());
                 steps[j].setChildren(new ArrayList<>());
                 recursion(stepJson1, steps[j]);
             }
         }
-       return node;
+        return node;
     }
-
-    public static void main(String[] args) throws IOException {
-        String path = "aaa.yaml";
-        YamlServiceImpl yaml_service = new YamlServiceImpl();
-        System.out.println(yaml_service.loadYaml(path).getClass());
-
-    }
-
 }

@@ -16,10 +16,17 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Node;
+import java.io.IOException;
 
 /**
  * @author lhl
  */
 public interface YamlService {
-    Node loadYaml(String path);
+    Node createNodeByYamlFile(String path);
+
+    Node createNodeByYamlString(String yamlString);
+
+    String preLoad(String path) throws IOException;
+
+
 }
