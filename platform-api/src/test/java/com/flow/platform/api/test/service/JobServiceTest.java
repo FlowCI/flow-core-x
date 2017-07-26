@@ -185,10 +185,10 @@ public class JobServiceTest extends TestBase {
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setType(CmdType.RUN_SHELL);
         jobService.callback(step2.getPath(), cmd);
-        Assert.assertEquals(NodeStatus.SUCCESS, ((JobStep) jobNodeService.find(step2.getPath())).getStatus());
-        Assert.assertEquals(NodeStatus.SUCCESS, job.getStatus());
+        Assert.assertEquals(NodeStatus.FAILURE, ((JobStep) jobNodeService.find(step2.getPath())).getStatus());
+        Assert.assertEquals(NodeStatus.FAILURE, job.getStatus());
         jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
-        Assert.assertEquals(NodeStatus.SUCCESS, jobFlow.getStatus());
+        Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
 
     }
 

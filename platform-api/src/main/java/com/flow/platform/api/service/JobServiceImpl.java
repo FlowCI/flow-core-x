@@ -409,7 +409,7 @@ public class JobServiceImpl implements JobService {
             case LOGGED:
 //            case EXECUTED:
                 CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
-                if (cmdResult.getExitValue() == 0) {
+                if (cmdResult != null && cmdResult.getExitValue() == 0) {
                     nodeStatus = NodeStatus.SUCCESS;
                 } else {
                     nodeStatus = NodeStatus.FAILURE;
