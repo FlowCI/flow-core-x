@@ -31,7 +31,7 @@ public abstract class JobNode extends Node {
 
     protected List<String> logPaths = new ArrayList<>();
 
-    protected NodeStatus status;
+    protected NodeStatus status = NodeStatus.PENDING;
 
     protected Job job;
 

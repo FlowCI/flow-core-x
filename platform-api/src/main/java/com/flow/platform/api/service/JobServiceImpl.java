@@ -403,7 +403,12 @@ public class JobServiceImpl implements JobService {
                 break;
             case LOGGED:
 //            case EXECUTED:
-                nodeStatus = NodeStatus.SUCCESS;
+                CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
+                if(cmdResult.getExitValue() == 0){
+                    nodeStatus = NodeStatus.SUCCESS;
+                }else{
+                    nodeStatus = NodeStatus.FAILURE;
+                }
                 break;
             case KILLED:
             case EXCEPTION:
