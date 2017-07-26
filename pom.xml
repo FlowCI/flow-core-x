@@ -30,7 +30,8 @@
     <gson.version>2.8.0</gson.version>
 
     <spring-framework.version>4.3.9.RELEASE</spring-framework.version>
-    <spring-test.version>4.3.8.RELEASE</spring-test.version>
+    <spring-test.version>4.3.9.RELEASE</spring-test.version>
+    <spring-rabbit.version>1.7.3.RELEASE</spring-rabbit.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
     <socket.io-client.version>0.8.3</socket.io-client.version>
     <httpclient.version>4.5.3</httpclient.version>
@@ -44,7 +45,6 @@
     <HikariCP.version>2.6.2</HikariCP.version>
     <jcabi-ssh.version>1.5.2</jcabi-ssh.version>
     <powermock.version>1.7.0</powermock.version>
-    <spring-rabbit.version>1.7.2.RELEASE</spring-rabbit.version>
   </properties>
 
   <build>
