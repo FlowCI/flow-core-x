@@ -1,19 +1,36 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.agent;
 
 import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
-import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.Logger;
-import io.socket.client.IO;
-import io.socket.client.Socket;
-
+import com.google.common.base.Strings;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -21,23 +38,19 @@ import java.util.zip.ZipOutputStream;
  * Record log to $HOME/agent-log/{cmd id}.out.zip
  * Send log via socket io if socket.io url provided
  * <p>
- * Created by gy@fir.im on 29/05/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
 public class LogEventHandler implements LogListener {
 
     private final static Logger LOGGER = new Logger(LogEventHandler.class);
 
-    private final static String SOCKET_EVENT_TYPE = "agent-logging";
-    private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
-
     private final static Path DEFAULT_LOG_PATH = Config.logDir();
 
     private final Cmd cmd;
-    private final CountDownLatch initLatch = new CountDownLatch(1);
 
-    private Socket socket;
-    private boolean socketEnabled = false;
+    private Connection loggingQueueConn;
+    private Channel loggingQueueChannel;
+    private String loggingQueueName;
 
     private Path stdoutLogPath;
     private FileOutputStream stdoutLogStream;
@@ -57,27 +70,23 @@ public class LogEventHandler implements LogListener {
             LOGGER.error("Fail to init cmd log file", e);
         }
 
-        AgentConfig config = Config.agentConfig();
+        AgentSettings config = Config.agentSettings();
 
-        if (config == null || config.getLoggingUrl() == null) {
+        if (config == null
+            || Strings.isNullOrEmpty(config.getLoggingQueueHost())
+            || Strings.isNullOrEmpty(config.getLoggingQueueName())) {
             return;
         }
 
-        // init socket io logging server
+        // init rabbit queue
         try {
-            socket = IO.socket(config.getLoggingUrl());
-            socket.on(Socket.EVENT_CONNECT, objects -> initLatch.countDown());
-            socket.connect();
-
-            // wait socket connection and set socket enable to true
-            initLatch.await(SOCKET_CONN_TIMEOUT, TimeUnit.SECONDS);
-            if (initLatch.getCount() <= 0 && socket.connected()) {
-                socketEnabled = true;
-                LOGGER.trace("Init socket io successfully : %s", config.getLoggingUrl());
-            }
-
-        } catch (URISyntaxException | InterruptedException e) {
-            LOGGER.error("Fail to connect socket io server: " + config.getLoggingUrl(), e);
+            ConnectionFactory factory = new ConnectionFactory();
+            factory.setUri(config.getLoggingQueueHost());
+            loggingQueueConn = factory.newConnection();
+            loggingQueueChannel = loggingQueueConn.createChannel();
+            loggingQueueName = config.getLoggingQueueName();
+        } catch (Throwable e) {
+            LOGGER.error("Fail to connect rabbitmq: " + config.getLoggingQueueHost(), e);
         }
     }
 
@@ -85,7 +94,7 @@ public class LogEventHandler implements LogListener {
     public void onLog(Log log) {
         LOGGER.debug(log.toString());
 
-        writeSocketIo(log);
+        sendRealtimeLog(log);
 
         // write stdout & stderr
         writeZipStream(stdoutLogZipStream, log.getContent());
@@ -96,11 +105,17 @@ public class LogEventHandler implements LogListener {
         }
     }
 
-    private void writeSocketIo(Log log) {
-        if (socketEnabled) {
-            String format = socketIoLogFormat(log);
-            socket.emit(SOCKET_EVENT_TYPE, format);
-            LOGGER.debugMarker("SocketIO", "Message sent : %s", format);
+    private void sendRealtimeLog(Log log) {
+        if (loggingQueueChannel == null || !loggingQueueChannel.isOpen()) {
+            return;
+        }
+
+        try {
+            String format = websocketLogFormat(log);
+            loggingQueueChannel.basicPublish("", loggingQueueName, null, format.getBytes());
+            LOGGER.debugMarker("Logging", "Message sent : %s", format);
+        } catch (Throwable e) {
+            LOGGER.warn("Fail to send real time log to queue");
         }
     }
 
@@ -118,7 +133,7 @@ public class LogEventHandler implements LogListener {
         }
     }
 
-    public String socketIoLogFormat(Log log) {
+    public String websocketLogFormat(Log log) {
         return String.format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
             log.getContent());
     }
@@ -166,14 +181,20 @@ public class LogEventHandler implements LogListener {
     }
 
     private void closeSocketIo() {
-        if (socket == null) {
-            return;
+        if (loggingQueueChannel != null) {
+            try {
+                loggingQueueChannel.close();
+            } catch (Throwable e) {
+                LOGGER.error("Exception while close logging queue channel", e);
+            }
         }
 
-        try {
-            socket.close();
-        } catch (Throwable e) {
-            LOGGER.error("Exception while close socket io", e);
+        if (loggingQueueConn != null) {
+            try {
+                loggingQueueConn.close();
+            } catch (Throwable e) {
+                LOGGER.error("Exception while close logging queue connection", e);
+            }
         }
     }
 

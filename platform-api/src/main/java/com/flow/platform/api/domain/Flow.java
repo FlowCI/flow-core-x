@@ -16,10 +16,6 @@
 
 package com.flow.platform.api.domain;
 
-import com.google.gson.annotations.SerializedName;
-import java.util.LinkedList;
-import java.util.List;
-
 public class Flow extends Node<Step> {
 
 }

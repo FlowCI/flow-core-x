@@ -16,10 +16,12 @@
 
 package com.flow.platform.cc.controller;
 
+import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.*;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.exception.IllegalStatusException;
+import com.google.common.collect.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -58,11 +60,11 @@ public class CmdController {
 
     @PostMapping(path = "/queue/send", consumes = "application/json")
     public Cmd sendCommandToQueue(@RequestBody CmdInfo cmd, @RequestParam int priority, @RequestParam int retry) {
-        if (priority < 1 || priority > 255) {
+        if (!Range.closed(1, 255).contains(priority)) {
             throw new IllegalParameterException("Illegal priority value should between (1 - 255)");
         }
 
-        if (retry < 0 || retry > 100) {
+        if (!Range.closed(0, 100).contains(retry)) {
             throw new IllegalParameterException("Illegal retry value should between (0 - 100)");
         }
 
@@ -75,7 +77,8 @@ public class CmdController {
     @PostMapping("/cmd/stop/{cmdId}")
     public void stopCommand(@PathVariable String cmdId) {
         try {
-            cmdService.updateStatus(cmdId, CmdStatus.STOPPED, null, true, true);
+            CmdStatusItem statusItem = new CmdStatusItem(cmdId, CmdStatus.STOPPED, null, true, true);
+            cmdService.updateStatus(statusItem, false);
         } catch (CannotAcquireLockException e) {
             // since cmd been locked, cannot change its status
             throw new IllegalStatusException("Cmd been processed, cannot stop it");
@@ -83,7 +86,7 @@ public class CmdController {
     }
 
     /**
-     * For agent report cmd status
+     * For agent report cmd status send to queue
      *
      * @param reportData only need id, status and result
      */
@@ -92,7 +95,10 @@ public class CmdController {
         if (reportData.getId() == null || reportData.getStatus() == null || reportData.getResult() == null) {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
         }
-        cmdService.updateStatus(reportData.getId(), reportData.getStatus(), reportData.getResult(), true, true);
+
+        CmdStatusItem statusItem =
+            new CmdStatusItem(reportData.getId(), reportData.getStatus(), reportData.getResult(), true, true);
+        cmdService.updateStatus(statusItem, true);
     }
 
     /**

@@ -1,6 +1,22 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.agent;
 
-import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkException;
@@ -15,8 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by gy@fir.im on 16/05/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
 public class Config {
 
@@ -34,7 +49,7 @@ public class Config {
     public final static String PROP_ZK_TIMEOUT = "flow.agent.zk.timeout";
     public final static String PROP_SUDO_PASSWORD = "flow.agent.sudo.pwd";
 
-    public static AgentConfig AGENT_CONFIG;
+    public static AgentSettings AGENT_SETTINGS;
     public static String ZK_URL;
     public static String ZONE;
     public static String NAME;
@@ -87,8 +102,8 @@ public class Config {
         return System.getProperty(PROP_SUDO_PASSWORD, "");
     }
 
-    public static AgentConfig agentConfig() {
-        return AGENT_CONFIG;
+    public static AgentSettings agentSettings() {
+        return AGENT_SETTINGS;
     }
 
     /**
@@ -109,8 +124,9 @@ public class Config {
         return ZK_URL;
     }
 
-    public static AgentConfig loadAgentConfig(String zkHost, int zkTimeout, String zoneName,
-        int retry) throws IOException, InterruptedException {
+    public static AgentSettings loadAgentConfig(
+        String zkHost, int zkTimeout, String zoneName, int retry) throws IOException, InterruptedException {
+
         final CountDownLatch connectLatch = new CountDownLatch(1);
 
         try {
@@ -128,7 +144,7 @@ public class Config {
 
             String zonePath = ZkPathBuilder.create(ZK_ROOT).append(zoneName).path();
             byte[] raw = ZkNodeHelper.getNodeData(zkClient, zonePath, null);
-            return Jsonable.parse(raw, AgentConfig.class);
+            return Jsonable.parse(raw, AgentSettings.class);
 
         } catch (Throwable e) {
             if (retry > 0) {

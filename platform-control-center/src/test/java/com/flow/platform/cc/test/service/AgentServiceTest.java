@@ -23,7 +23,9 @@ import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.zk.ZkNodeHelper;
@@ -35,6 +37,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author gy@fir.im
@@ -49,6 +52,38 @@ public class AgentServiceTest extends TestBase {
 
     @Autowired
     private ZoneService zoneService;
+
+    @Value("${agent.config.queue.host}")
+    private String cmdQueueHost;
+
+    @Value("${agent.config.queue.name}")
+    private String cmdQueueName;
+
+    @Value("${agent.config.cmd_report_url}")
+    private String cmdReportUrl;
+
+    @Value("${agent.config.cmd_log_url}")
+    private String cmdLogUrl;
+
+    @Test
+    public void should_has_agent_config_in_zone_data() throws Throwable {
+        // given:
+        String zoneName = "test-zone-00";
+        zoneService.createZone(new Zone(zoneName, "test"));
+        Thread.sleep(1000);
+
+        // when:
+        String zonePath = zkHelper.buildZkPath(zoneName, null).path();
+        byte[] raw = ZkNodeHelper.getNodeData(zkClient, zonePath, null);
+
+        // then:
+        AgentSettings config = Jsonable.parse(raw, AgentSettings.class);
+        Assert.assertNotNull(config);
+        Assert.assertEquals(cmdQueueHost, config.getLoggingQueueHost());
+        Assert.assertEquals(cmdQueueName, config.getLoggingQueueName());
+        Assert.assertEquals(cmdReportUrl, config.getCmdStatusUrl());
+        Assert.assertEquals(cmdLogUrl, config.getCmdLogUrl());
+    }
 
     @Test
     public void should_agent_initialized() throws InterruptedException, KeeperException {

@@ -17,9 +17,7 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
-
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 

@@ -21,8 +21,7 @@ import com.flow.platform.cc.context.ContextEvent;
 import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.cloud.InstanceManager;
 import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentConfig;
-import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Instance;
@@ -32,8 +31,6 @@ import com.flow.platform.util.zk.ZkEventHelper;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +60,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, Conte
     private CmdService cmdService;
 
     @Autowired
-    private AgentConfig agentConfig;
+    private AgentSettings agentSettings;
 
     @Autowired
     private Executor taskExecutor;
@@ -106,9 +103,9 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, Conte
 
         // zone node not exited
         if (ZkNodeHelper.exist(zkClient, zonePath) == null) {
-            ZkNodeHelper.createNode(zkClient, zonePath, agentConfig.toJson());
+            ZkNodeHelper.createNode(zkClient, zonePath, agentSettings.toJson());
         } else {
-            ZkNodeHelper.setNodeData(zkClient, zonePath, agentConfig.toJson());
+            ZkNodeHelper.setNodeData(zkClient, zonePath, agentSettings.toJson());
             List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
             agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
         }

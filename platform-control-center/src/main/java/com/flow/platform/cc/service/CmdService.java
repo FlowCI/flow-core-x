@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.*;
 import com.flow.platform.exception.IllegalParameterException;
@@ -96,14 +97,8 @@ public interface CmdService {
 
     /**
      * Update cmd status and result, send cmd webhook if existed
-     *
-     * @param cmdId target cmd id
-     * @param status target cmd status should updated
-     * @param result CmdResult, nullable
-     * @param updateAgentStatus should update agent status according to cmd status
-     * @param callWebhook should invoke webhook
      */
-    void updateStatus(String cmdId, CmdStatus status, CmdResult result, boolean updateAgentStatus, boolean callWebhook);
+    void updateStatus(CmdStatusItem statusItem, boolean inQueue);
 
     /**
      * Reset cmd status to init status PENDING

@@ -16,7 +16,7 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
@@ -28,7 +28,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,7 +37,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author gy@fir.im
  */
 @Configuration
-@Import({TaskConfig.class, MQConfig.class, DatabaseConfig.class})
+@Import({TaskConfig.class, MQConfig.class, DatabaseConfig.class, WebSocketConfig.class, AgentConfig.class})
 public class AppConfig {
 
     public final static DateTimeFormatter APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
@@ -49,31 +48,14 @@ public class AppConfig {
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
-    @Value("${agent.config.socket_io_url}")
-    private String socketIoUrl;
-
-    @Value("${agent.config.cmd_report_url}")
-    private String cmdReportUrl;
-
-    @Value("${agent.config.cmd_log_url}")
-    private String cmdLogUrl;
 
     @PostConstruct
     public void init() {
-        LOGGER.traceMarker("AgentReportUrl", "SocketIoUrl: %s", socketIoUrl);
-        LOGGER.traceMarker("AgentReportUrl", "CmdReportUrl: %s", cmdReportUrl);
-        LOGGER.traceMarker("AgentReportUrl", "CmdLogUrl: %s", cmdLogUrl);
-
         try {
             Files.createDirectories(CMD_LOG_DIR);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Bean
-    public AgentConfig agentConfig() {
-        return new AgentConfig(socketIoUrl, cmdReportUrl, cmdLogUrl);
     }
 
     // TODO: should separate task and scheduler
@@ -88,20 +70,18 @@ public class AppConfig {
     }
 
     /**
-     * Add cmd log file path to queue for processing
-     *
-     * @return BlockingQueue with file path
+     * Queue to handle agent report online in sync
      */
     @Bean
-    public BlockingQueue<Path> cmdLoggingQueue() {
+    public BlockingQueue<AgentPath> agentReportQueue() {
         return new LinkedBlockingQueue<>(50);
     }
 
     /**
-     * Queue to set
+     * Queue to handle cmd status update
      */
     @Bean
-    public BlockingQueue<AgentPath> agentReportQueue() {
+    public BlockingQueue<CmdStatusItem> cmdStatusQueue() {
         return new LinkedBlockingQueue<>(50);
     }
 }
