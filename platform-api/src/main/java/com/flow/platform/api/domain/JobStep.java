@@ -45,7 +45,6 @@ public class JobStep extends JobNode {
             "plugin='" + plugin + '\'' +
             ", outputs=" + outputs +
             ", duration=" + duration +
-            ", finishedAt=" + finishedAt +
             ", exitCode=" + exitCode +
             ", logPaths=" + logPaths +
             ", status=" + status +

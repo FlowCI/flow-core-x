@@ -242,7 +242,7 @@ public class JobServiceImpl implements JobService {
             }
             jobNodeService.save(jobNode);
             for (Object child : node.getChildren()) {
-                JobNode jobChild = jobNodeService.find(((Node)child).getPath());
+                JobNode jobChild = jobNodeService.find(((Node) child).getPath());
                 jobNode.getChildren().add(jobChild);
                 jobChild.setParent(jobNode);
                 jobNodeService.save(jobChild);
@@ -302,7 +302,8 @@ public class JobServiceImpl implements JobService {
         JobFlow jobFlow = (JobFlow) NodeUtil.findRootNode(jobStep);
         Job job = jobFlow.getJob();
         NodeStatus nodeStatus = handleStatus(cmdBase);
-        if(jobStep.getStatus().getLevel() > nodeStatus.getLevel()){
+        LOGGER.traceMarker("nodeCallback", "job status - %s", jobStep.getStatus().getName());
+        if (jobStep.getStatus().getLevel() > nodeStatus.getLevel()) {
             return;
         }
         //update job step status
@@ -384,8 +385,8 @@ public class JobServiceImpl implements JobService {
             jobStep.setDuration(cmdResult.getDuration());
             jobStep.setOutputs(cmdResult.getOutput());
             jobStep.setLogPaths(((Cmd) cmdBase).getLogPaths());
-            jobStep.setFinishedAt(((Cmd) cmdBase).getFinishedDate());
             jobStep.setStartTime(cmdResult.getStartTime());
+            jobStep.setFinishTime(((Cmd) cmdBase).getFinishedDate());
         }
 
         //save
@@ -404,10 +405,10 @@ public class JobServiceImpl implements JobService {
                 nodeStatus = NodeStatus.PENDING;
                 break;
             case RUNNING:
+            case EXECUTED:
                 nodeStatus = NodeStatus.RUNNING;
                 break;
             case LOGGED:
-//            case EXECUTED:
                 CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
                 if (cmdResult != null && cmdResult.getExitValue() == 0) {
                     nodeStatus = NodeStatus.SUCCESS;

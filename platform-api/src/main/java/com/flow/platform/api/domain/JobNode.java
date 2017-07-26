@@ -25,8 +25,6 @@ public abstract class JobNode extends Node {
 
     protected Long duration;
 
-    protected ZonedDateTime finishedAt;
-
     protected Integer exitCode;
 
     protected List<String> logPaths = new ArrayList<>();
@@ -39,12 +37,14 @@ public abstract class JobNode extends Node {
 
     protected ZonedDateTime startTime;
 
-    public ZonedDateTime getFinishedAt() {
-        return finishedAt;
+    protected ZonedDateTime finishTime;
+
+    public ZonedDateTime getFinishTime() {
+        return finishTime;
     }
 
-    public void setFinishedAt(ZonedDateTime finishedAt) {
-        this.finishedAt = finishedAt;
+    public void setFinishTime(ZonedDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 
     public Map<String, String> getOutputs() {
