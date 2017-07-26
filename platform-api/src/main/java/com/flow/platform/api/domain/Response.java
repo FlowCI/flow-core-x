@@ -16,10 +16,30 @@
 
 package com.flow.platform.api.domain;
 
-import com.google.gson.annotations.SerializedName;
-import java.util.LinkedList;
-import java.util.List;
+import com.flow.platform.domain.Jsonable;
 
-public class Flow extends Node<Step> {
+/**
+ * @author yh@firim
+ */
+public class Response extends Jsonable {
+    private String message;
 
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Response(String message) {
+        this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return "Response{" +
+            "message='" + message + '\'' +
+            '}';
+    }
 }

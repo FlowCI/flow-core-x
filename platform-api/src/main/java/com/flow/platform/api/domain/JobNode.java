@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.domain;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public abstract class JobNode extends Node {
@@ -24,11 +25,27 @@ public abstract class JobNode extends Node {
 
     protected Long duration;
 
-    protected Date finishedAt;
-
     protected Integer exitCode;
 
     protected List<String> logPaths = new ArrayList<>();
+
+    protected NodeStatus status = NodeStatus.PENDING;
+
+    protected Job job;
+
+    protected String cmdId;
+
+    protected ZonedDateTime startTime;
+
+    protected ZonedDateTime finishTime;
+
+    public ZonedDateTime getFinishTime() {
+        return finishTime;
+    }
+
+    public void setFinishTime(ZonedDateTime finishTime) {
+        this.finishTime = finishTime;
+    }
 
     public Map<String, String> getOutputs() {
         return outputs;
@@ -46,14 +63,6 @@ public abstract class JobNode extends Node {
         this.duration = duration;
     }
 
-    public Date getFinishedAt() {
-        return finishedAt;
-    }
-
-    public void setFinishedAt(Date finishedAt) {
-        this.finishedAt = finishedAt;
-    }
-
     public Integer getExitCode() {
         return exitCode;
     }
@@ -68,5 +77,37 @@ public abstract class JobNode extends Node {
 
     public void setLogPaths(List<String> logPaths) {
         this.logPaths = logPaths;
+    }
+
+    public NodeStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NodeStatus status) {
+        this.status = status;
+    }
+
+    public Job getJob() {
+        return job;
+    }
+
+    public void setJob(Job job) {
+        this.job = job;
+    }
+
+    public ZonedDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(ZonedDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getCmdId() {
+        return cmdId;
+    }
+
+    public void setCmdId(String cmdId) {
+        this.cmdId = cmdId;
     }
 }

@@ -13,13 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.service;
 
-package com.flow.platform.api.domain;
+import com.flow.platform.api.domain.JobNode;
 
-import com.google.gson.annotations.SerializedName;
-import java.util.LinkedList;
-import java.util.List;
+/**
+ * @author yh@firim
+ */
+public interface JobNodeService {
 
-public class Flow extends Node<Step> {
+    /**
+     * create node and children
+     */
+    JobNode create(JobNode jobNode);
 
+    /**
+     * find node by node path
+     */
+    JobNode find(String nodePath);
+
+    /**
+     * save node
+     */
+    JobNode save(JobNode jobNode);
 }

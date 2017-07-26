@@ -69,6 +69,13 @@ public class Cmd extends CmdBase {
      */
     private ZonedDateTime updatedDate;
 
+    /**
+     * finish time
+     */
+    private ZonedDateTime finishedDate;
+
+    private CmdResult cmdResult;
+
     public Cmd() {
     }
 
@@ -136,6 +143,14 @@ public class Cmd extends CmdBase {
         return AGENT_CMD_TYPE.contains(type);
     }
 
+    public CmdResult getCmdResult() {
+        return cmdResult;
+    }
+
+    public void setCmdResult(CmdResult cmdResult) {
+        this.cmdResult = cmdResult;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -168,6 +183,14 @@ public class Cmd extends CmdBase {
             ", createdDate=" + createdDate +
             ", updatedDate=" + updatedDate +
             '}';
+    }
+
+    public ZonedDateTime getFinishedDate() {
+        return finishedDate;
+    }
+
+    public void setFinishedDate(ZonedDateTime finishedDate) {
+        this.finishedDate = finishedDate;
     }
 
     /**

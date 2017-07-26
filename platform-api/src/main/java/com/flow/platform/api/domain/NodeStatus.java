@@ -16,10 +16,38 @@
 
 package com.flow.platform.api.domain;
 
-import com.google.gson.annotations.SerializedName;
-import java.util.LinkedList;
-import java.util.List;
+/**
+ * @author yh@firim
+ */
+public enum NodeStatus {
 
-public class Flow extends Node<Step> {
+    PENDING("PENDING", 0),
 
+    //enter queue
+    ENQUEUE("ENQUEUE", 1),
+
+    RUNNING("RUNNING", 2),
+
+    SUCCESS("SUCCESS", 3),
+
+    FAILURE("FAILURE", 4),
+
+    TIMEOUT("TIMEOUT", 5);
+
+    private String name;
+
+    public Integer getLevel() {
+        return level;
+    }
+
+    private Integer level;
+
+    NodeStatus(String name, Integer level) {
+        this.name = name;
+        this.level = level;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/")
 public class HelloController {
+
     @GetMapping(path = "/")
-    public String hello(){
+    public String hello() {
         return "{\"flow-platform\": \"api\"}";
     }
 }
