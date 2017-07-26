@@ -19,6 +19,7 @@ package com.flow.platform.cc.config;
 import com.flow.platform.util.Logger;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.PostConstruct;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
@@ -56,6 +57,13 @@ public class MQConfig {
 
     @Value("${mq.queue.logging.name}")
     private String loggingQueueName; // receive logging from agent
+
+    @PostConstruct
+    public void init() {
+        LOGGER.trace("Host: %s", host);
+        LOGGER.trace("Cmd queue name: %s", cmdQueueName);
+        LOGGER.trace("Logging queue name: %s", loggingQueueName);
+    }
 
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory() {
