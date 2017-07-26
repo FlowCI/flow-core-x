@@ -165,9 +165,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    @Transactional(
-        isolation = Isolation.SERIALIZABLE,
-        noRollbackFor = {FlowException.class, AbstractZkException.class})
+    @Transactional(noRollbackFor = {FlowException.class, AbstractZkException.class})
     public Cmd send(String cmdId, boolean shouldResetStatus) {
         Cmd cmd = find(cmdId);
         if (cmd == null) {
@@ -253,11 +251,10 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateStatus(CmdStatusItem statusItem, boolean inQueue) {
         if (inQueue) {
             try {
-                LOGGER.trace("Report cmd status from queue: %s", statusItem);
+                LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
                 cmdStatusQueue.put(statusItem);
             } catch (InterruptedException ignore) {
                 LOGGER.warn("Cmd status update queue warning");
@@ -265,7 +262,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             return;
         }
 
-        LOGGER.trace("Report cmd status: %s", statusItem);
+        LOGGER.trace("Report cmd %s to status %s", statusItem.getCmdId(), statusItem.getStatus());
         String cmdId = statusItem.getCmdId();
         Cmd cmd = find(cmdId);
         if (cmd == null) {
