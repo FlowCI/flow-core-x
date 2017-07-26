@@ -111,9 +111,9 @@ public class LogEventHandler implements LogListener {
         }
 
         try {
-            String format = socketIoLogFormat(log);
+            String format = websocketLogFormat(log);
             loggingQueueChannel.basicPublish("", loggingQueueName, null, format.getBytes());
-            LOGGER.debugMarker("SocketIO", "Message sent : %s", format);
+            LOGGER.debugMarker("Logging", "Message sent : %s", format);
         } catch (Throwable e) {
             LOGGER.warn("Fail to send real time log to queue");
         }
@@ -133,7 +133,7 @@ public class LogEventHandler implements LogListener {
         }
     }
 
-    public String socketIoLogFormat(Log log) {
+    public String websocketLogFormat(Log log) {
         return String.format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
             log.getContent());
     }
