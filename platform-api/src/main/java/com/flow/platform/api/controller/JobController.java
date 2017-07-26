@@ -56,7 +56,7 @@ public class JobController {
         flow.setPath(UUID.randomUUID().toString());
         for (Step step : steps) {
             step.setParent(flow);
-            step.setPath(new StringBuffer(step.getName()).append("/").append(step.getName()).toString());
+            step.setPath(new StringBuffer(flow.getName()).append("/").append(step.getName()).toString());
         }
         flow.getChildren().addAll(steps);
         nodeService.create(flow);

@@ -301,6 +301,10 @@ public class JobServiceImpl implements JobService {
         JobStep prevStep = (JobStep) NodeUtil.prev(jobStep);
         JobFlow jobFlow = (JobFlow) NodeUtil.findRootNode(jobStep);
         Job job = jobFlow.getJob();
+        NodeStatus nodeStatus = handleStatus(cmdBase);
+        if(jobStep.getStatus().getLevel() > nodeStatus.getLevel()){
+            return;
+        }
         //update job step status
         jobStep = updateJobStepStatus(jobStep, cmdBase);
 
@@ -350,12 +354,12 @@ public class JobServiceImpl implements JobService {
         jobFlow.setUpdatedAt(ZonedDateTime.now());
         NodeStatus nodeStatus = jobStep.getStatus();
 
-        if(nodeStatus == NodeStatus.TIMEOUT || nodeStatus == NodeStatus.FAILURE){
-            if(jobStep.getAllowFailure()) {
+        if (nodeStatus == NodeStatus.TIMEOUT || nodeStatus == NodeStatus.FAILURE) {
+            if (jobStep.getAllowFailure()) {
                 if (next == null) {
                     nodeStatus = NodeStatus.SUCCESS;
                 }
-            }else{
+            } else {
                 nodeStatus = NodeStatus.FAILURE;
             }
         }
@@ -405,9 +409,9 @@ public class JobServiceImpl implements JobService {
             case LOGGED:
 //            case EXECUTED:
                 CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
-                if(cmdResult.getExitValue() == 0){
+                if (cmdResult.getExitValue() == 0) {
                     nodeStatus = NodeStatus.SUCCESS;
-                }else{
+                } else {
                     nodeStatus = NodeStatus.FAILURE;
                 }
                 break;
@@ -427,13 +431,13 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<JobStep> listJobStep(String jobId) {
         Job job = find(jobId);
-        if(job == null){
+        if (job == null) {
             throw new RuntimeException("not found job");
         }
         JobNode jobFlow = jobNodeService.find(job.getNodePath());
         List<JobStep> jobSteps = new LinkedList<>();
         NodeUtil.recurse(jobFlow, node -> {
-            if(node instanceof JobStep){
+            if (node instanceof JobStep) {
                 JobStep js = (JobStep) node;
                 JobStep jobStep = ObjectUtil.deepCopy(js);
                 jobStep.setParent(null);
