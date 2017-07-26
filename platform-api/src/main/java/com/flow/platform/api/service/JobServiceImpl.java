@@ -241,8 +241,8 @@ public class JobServiceImpl implements JobService {
                 jobNode = copyNode(node, Step.class, JobStep.class);
             }
             jobNodeService.save(jobNode);
-            for (Node child : node.getChildren()) {
-                JobNode jobChild = jobNodeService.find(child.getPath());
+            for (Object child : node.getChildren()) {
+                JobNode jobChild = jobNodeService.find(((Node)child).getPath());
                 jobNode.getChildren().add(jobChild);
                 jobChild.setParent(jobNode);
                 jobNodeService.save(jobChild);

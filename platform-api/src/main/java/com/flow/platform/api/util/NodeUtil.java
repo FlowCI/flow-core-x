@@ -16,6 +16,7 @@
 package com.flow.platform.api.util;
 
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.Step;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -29,8 +30,8 @@ public class NodeUtil {
      * find all node
      */
     public static void recurse(final Node root, final Consumer<Node> onNode) {
-        for (Node child : root.getChildren()) {
-            recurse(child, onNode);
+        for (Object child : root.getChildren()) {
+            recurse((Node) child, onNode);
         }
         onNode.accept(root);
     }

@@ -19,9 +19,11 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobStep;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.YamlService;
 import com.flow.platform.util.Logger;
 import java.util.Collection;
 import java.util.List;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author yh@firim
@@ -49,19 +52,31 @@ public class JobController {
     @Autowired
     NodeService nodeService;
 
-    @PostMapping(path = "/jobs")
-    public Job create(@RequestBody List<Step> steps) {
-        Flow flow = new Flow();
-        flow.setName(UUID.randomUUID().toString());
-        flow.setPath(UUID.randomUUID().toString());
-        for (Step step : steps) {
-            step.setParent(flow);
-            step.setPath(new StringBuffer(flow.getName()).append("/").append(step.getName()).toString());
-        }
-        flow.getChildren().addAll(steps);
-        nodeService.create(flow);
+    @Autowired
+    YamlService yamlService;
 
-        Job job = jobService.createJob(flow.getPath());
+//    @PostMapping(path = "/jobs")
+//    public Job create(@RequestBody List<Step> steps) {
+//        Flow flow = new Flow();
+//        flow.setName(UUID.randomUUID().toString());
+//        flow.setPath(UUID.randomUUID().toString());
+//        for (Step step : steps) {
+//            step.setParent(flow);
+//            step.setPath(new StringBuffer(flow.getName()).append("/").append(step.getName()).toString());
+//        }
+//        flow.getChildren().addAll(steps);
+//        nodeService.create(flow);
+//
+//        Job job = jobService.createJob(flow.getPath());
+//        return job;
+//    }
+
+    @PostMapping(path = "/jobs")
+    public Job create(@RequestBody String body) {
+        Node node  = yamlService.loadYaml(body);
+        nodeService.create(node);
+
+        Job job = jobService.createJob(node.getPath());
         return job;
     }
 
