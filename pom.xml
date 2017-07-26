@@ -29,7 +29,7 @@
     <junit.version>4.12</junit.version>
     <gson.version>2.8.0</gson.version>
 
-    <spring-framework.version>4.3.8.RELEASE</spring-framework.version>
+    <spring-framework.version>4.3.9.RELEASE</spring-framework.version>
     <spring-test.version>4.3.8.RELEASE</spring-test.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
     <socket.io-client.version>0.8.3</socket.io-client.version>
@@ -90,6 +90,18 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-context</artifactId>
+        <version>${spring-framework.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-messaging</artifactId>
+        <version>${spring-framework.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-websocket</artifactId>
         <version>${spring-framework.version}</version>
       </dependency>
 
