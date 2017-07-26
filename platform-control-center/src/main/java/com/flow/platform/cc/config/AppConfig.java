@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.config;
 
+import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
@@ -83,6 +84,14 @@ public class AppConfig {
      */
     @Bean
     public BlockingQueue<AgentPath> agentReportQueue() {
+        return new LinkedBlockingQueue<>(50);
+    }
+
+    /**
+     * Queue to handle cmd status update
+     */
+    @Bean
+    public BlockingQueue<CmdStatusItem> cmdStatusQueue() {
         return new LinkedBlockingQueue<>(50);
     }
 }

@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
+import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
@@ -176,7 +177,8 @@ public class CmdQueueConsumerTest extends TestBase {
 
         // when: set cmd to stop status
         try {
-            cmdService.updateStatus(mockCmdInstance.getId(), CmdStatus.STOPPED, null, false, true);
+            CmdStatusItem statusItem = new CmdStatusItem(mockCmdInstance.getId(), CmdStatus.STOPPED, null, false, true);
+            cmdService.updateStatus(statusItem, false);
 
             // wait for send webhook
             Thread.sleep(1000);

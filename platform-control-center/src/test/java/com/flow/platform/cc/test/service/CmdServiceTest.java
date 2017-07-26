@@ -19,6 +19,7 @@ package com.flow.platform.cc.test.service;
 import static junit.framework.TestCase.fail;
 
 import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
@@ -162,7 +163,8 @@ public class CmdServiceTest extends TestBase {
         result.getExceptions().add(new RuntimeException("Dummy exception 1"));
         result.getExceptions().add(new RuntimeException("Dummy exception 2"));
 
-        cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true, true);
+        CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.RUNNING, result, true, true);
+        cmdService.updateStatus(statusItem, false);
 
         // then: check cmd status should be running and agent status should be busy
         Cmd loaded = cmdService.find(cmd.getId());
@@ -180,7 +182,9 @@ public class CmdServiceTest extends TestBase {
         result = new CmdResult();
         result.setProcessId(null);
         result.getOutput().clear();
-        cmdService.updateStatus(cmd.getId(), CmdStatus.RUNNING, result, true, true);
+
+        statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.RUNNING, result, true, true);
+        cmdService.updateStatus(statusItem, false);
 
         // then:
         loadedResults = cmdService.listResult(Sets.newHashSet(cmd.getId()));
@@ -239,7 +243,8 @@ public class CmdServiceTest extends TestBase {
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
-            cmdService.updateStatus(current.getId(), reportStatus, new CmdResult(), true, true);
+            CmdStatusItem statusItem = new CmdStatusItem(current.getId(), reportStatus, new CmdResult(), true, true);
+            cmdService.updateStatus(statusItem, false);
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
@@ -259,7 +264,8 @@ public class CmdServiceTest extends TestBase {
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
 
-            cmdService.updateStatus(current.getId(), status, new CmdResult(), true, true);
+            CmdStatusItem statusItem = new CmdStatusItem(current.getId(), status, new CmdResult(), true, true);
+            cmdService.updateStatus(statusItem, false);
 
             // then:
             Cmd loaded = cmdService.find(current.getId());
@@ -473,7 +479,8 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(sessionAgent.getSessionDate());
 
         // then: mock cmd been executed
-        cmdService.updateStatus(cmd.getId(), CmdStatus.LOGGED, new CmdResult(), true, true);
+        CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.LOGGED, new CmdResult(), true, true);
+        cmdService.updateStatus(statusItem, false);
 
         // when: delete session
         CmdInfo cmdToDelSession = new CmdInfo(zoneName, null, CmdType.DELETE_SESSION, null);

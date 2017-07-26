@@ -117,11 +117,10 @@ public class CmdControllerTest extends TestBase {
             .contentType(MediaType.APPLICATION_JSON)
             .content(postData.toJson());
 
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk());
+        this.mockMvc.perform(content).andDo(print()).andExpect(status().isOk());
 
-        // then:
+        // then: wait queue processing and check status
+        Thread.sleep(2000);
         Cmd loaded = cmdService.find(cmd.getId());
         Assert.assertNotNull(loaded);
         Assert.assertTrue(loaded.getStatus().equals(CmdStatus.EXECUTED));
