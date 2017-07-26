@@ -20,6 +20,7 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.*;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.exception.IllegalStatusException;
+import com.google.common.collect.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -58,11 +59,11 @@ public class CmdController {
 
     @PostMapping(path = "/queue/send", consumes = "application/json")
     public Cmd sendCommandToQueue(@RequestBody CmdInfo cmd, @RequestParam int priority, @RequestParam int retry) {
-        if (priority < 1 || priority > 255) {
+        if (!Range.closed(1, 255).contains(priority)) {
             throw new IllegalParameterException("Illegal priority value should between (1 - 255)");
         }
 
-        if (retry < 0 || retry > 100) {
+        if (!Range.closed(0, 100).contains(retry)) {
             throw new IllegalParameterException("Illegal retry value should between (0 - 100)");
         }
 

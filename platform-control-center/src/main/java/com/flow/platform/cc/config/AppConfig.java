@@ -38,7 +38,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author gy@fir.im
  */
 @Configuration
-@Import({TaskConfig.class, MQConfig.class, DatabaseConfig.class})
+@Import({TaskConfig.class, MQConfig.class, DatabaseConfig.class, WebSocketConfig.class})
 public class AppConfig {
 
     public final static DateTimeFormatter APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;

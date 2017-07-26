@@ -23,6 +23,10 @@ package com.flow.platform.domain;
  */
 public class CmdInfo extends CmdBase {
 
+    public CmdInfo() {
+        this.status = CmdStatus.PENDING;
+    }
+
     public CmdInfo(String zone, String agent, CmdType type, String cmd) {
         super(zone, agent, type, cmd);
     }

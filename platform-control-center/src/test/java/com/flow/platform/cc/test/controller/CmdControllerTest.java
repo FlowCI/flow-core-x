@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.test.controller;
 
+import static junit.framework.TestCase.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,6 +37,7 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
+import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Sets;
@@ -56,6 +58,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+import org.springframework.web.util.NestedServletException;
 
 /**
  * @author gy@fir.im
@@ -219,5 +222,44 @@ public class CmdControllerTest extends TestBase {
         Assert.assertEquals("application/zip", response.getContentType());
         Assert.assertEquals(data.length, response.getContentLength());
         Assert.assertTrue(response.getHeader("Content-Disposition").contains(originalFilename));
+    }
+
+    @Test
+    public void should_raise_exception_if_illegal_parameter_for_queue() {
+        // given:
+        CmdInfo cmdBase = new CmdInfo("test-zone-1", "test-agent-1", CmdType.RUN_SHELL, "~/hello.sh");
+        Assert.assertNotNull(cmdBase.getStatus());
+
+        // when: request api of send cmd via queue with illegal priority
+        MockHttpServletRequestBuilder content = post("/cmd/queue/send")
+            .param("priority", "0")
+            .param("retry", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(cmdBase.toJson());
+
+        // then: return 500 for illegal priority range
+        try {
+            this.mockMvc.perform(content).andExpect(status().is5xxServerError());
+            fail();
+        } catch (Throwable e) {
+            Assert.assertEquals(NestedServletException.class, e.getClass());
+            Assert.assertEquals(IllegalParameterException.class, e.getCause().getClass());
+        }
+
+        // when: request api of send cmd via queue with illegal retry
+        content = post("/cmd/queue/send")
+            .param("priority", "1")
+            .param("retry", "101")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(cmdBase.toJson());
+
+        // then: return 500 for illegal retry range
+        try {
+            this.mockMvc.perform(content).andExpect(status().is5xxServerError());
+            fail();
+        } catch (Throwable e) {
+            Assert.assertEquals(NestedServletException.class, e.getClass());
+            Assert.assertEquals(IllegalParameterException.class, e.getCause().getClass());
+        }
     }
 }
