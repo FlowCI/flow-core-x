@@ -21,6 +21,7 @@ import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -85,6 +86,8 @@ public class AgentReportQueueConsumer implements ContextEvent {
         if (exist == null) {
             try {
                 Agent agent = new Agent(key);
+                agent.setCreatedDate(DateUtil.now());
+                agent.setUpdatedDate(DateUtil.now());
                 agent.setStatus(AgentStatus.IDLE);
                 agentDao.save(agent);
             } catch (DataIntegrityViolationException ignore) {

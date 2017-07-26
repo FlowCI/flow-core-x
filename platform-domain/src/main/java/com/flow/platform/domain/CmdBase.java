@@ -54,11 +54,6 @@ public abstract class CmdBase extends Jsonable {
     protected Integer timeout;
 
     /**
-     * Reserved field for cmd queue
-     */
-    protected Integer priority = 1;
-
-    /**
      * Platform will reserve a machine for session
      */
     protected String sessionId;
@@ -154,14 +149,6 @@ public abstract class CmdBase extends Jsonable {
 
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
-    }
-
-    public Integer getPriority() {
-        return priority;
-    }
-
-    public void setPriority(Integer priority) {
-        this.priority = priority;
     }
 
     public String getSessionId() {

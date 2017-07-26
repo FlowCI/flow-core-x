@@ -16,7 +16,6 @@
 
 package com.flow.platform.domain;
 
-import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -75,6 +74,7 @@ public class Cmd extends CmdBase {
      */
     private ZonedDateTime finishedDate;
 
+    private CmdResult cmdResult;
 
     public Cmd() {
     }
@@ -105,11 +105,6 @@ public class Cmd extends CmdBase {
 
         if (this.status.getLevel() < status.getLevel()) {
             this.status = status;
-
-            if (!isCurrent()) {
-                this.finishedDate = DateUtil.utcNow();
-            }
-
             return true;
         }
 
@@ -140,20 +135,20 @@ public class Cmd extends CmdBase {
         this.updatedDate = updatedDate;
     }
 
-    public ZonedDateTime getFinishedDate() {
-        return finishedDate;
-    }
-
-    public void setFinishedDate(ZonedDateTime finishedDate) {
-        this.finishedDate = finishedDate;
-    }
-
     public Boolean isCurrent() {
         return WORKING_STATUS.contains(status);
     }
 
     public Boolean isAgentCmd() {
         return AGENT_CMD_TYPE.contains(type);
+    }
+
+    public CmdResult getCmdResult() {
+        return cmdResult;
+    }
+
+    public void setCmdResult(CmdResult cmdResult) {
+        this.cmdResult = cmdResult;
     }
 
     @Override
@@ -190,6 +185,14 @@ public class Cmd extends CmdBase {
             '}';
     }
 
+    public ZonedDateTime getFinishedDate() {
+        return finishedDate;
+    }
+
+    public void setFinishedDate(ZonedDateTime finishedDate) {
+        this.finishedDate = finishedDate;
+    }
+
     /**
      * Convert CmdBase to Cmd
      */
@@ -203,7 +206,6 @@ public class Cmd extends CmdBase {
         cmd.inputs = base.getInputs();
         cmd.workingDir = base.getWorkingDir();
         cmd.sessionId = base.getSessionId();
-        cmd.priority = base.getPriority();
         cmd.outputEnvFilter = base.getOutputEnvFilter();
         cmd.webhook = base.getWebhook();
         cmd.extra = base.getExtra();

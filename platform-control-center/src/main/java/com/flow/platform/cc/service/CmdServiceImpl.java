@@ -18,12 +18,22 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.TaskConfig;
-import com.flow.platform.cc.task.CmdWebhookTask;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdResultDao;
-import com.flow.platform.domain.*;
+import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.task.CmdWebhookTask;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Zone;
 import com.flow.platform.exception.FlowException;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.exception.IllegalStatusException;
@@ -34,16 +44,6 @@ import com.flow.platform.util.zk.ZkException.NotExitException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,6 +55,16 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executor;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author gy@fir.im
@@ -64,6 +74,9 @@ import java.util.concurrent.Executor;
 public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
+
+    @Value("${mq.queue.name}")
+    private String cmdQueueName;
 
     @Autowired
     private AgentService agentService;
@@ -90,10 +103,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     private Executor taskExecutor;
 
     @Autowired
-    private Channel cmdSendChannel;
-
-    @Value("${mq.exchange.name}")
-    private String cmdExchangeName;
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public Cmd create(CmdInfo info) {
@@ -166,8 +176,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
         }
 
         if (shouldResetStatus) {
-            cmd.setStatus(CmdStatus.PENDING);
-            cmdDao.update(cmd);
+            resetStatus(cmdId);
         }
 
         try {
@@ -222,20 +231,15 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    public Cmd queue(CmdInfo cmdInfo) {
+    public Cmd queue(CmdInfo cmdInfo, int priority, int retry) {
         Cmd cmd = create(cmdInfo);
 
-        AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
-            .priority(cmd.getPriority())
-            .build();
+        CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
+        MessageProperties properties = new MessageProperties();
+        properties.setPriority(item.getPriority());
+        rabbitTemplate.send("", cmdQueueName, new Message(item.toBytes(), properties));
 
-        try {
-            cmdSendChannel.basicPublish(cmdExchangeName, "", properties, cmd.getId().getBytes());
-            return cmd;
-        } catch (IOException e) {
-            LOGGER.error("Cmd send channel error : ", e);
-            throw new RuntimeException("Cmd send channel error");
-        }
+        return cmd;
     }
 
     @Override
@@ -250,19 +254,18 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             throw new IllegalArgumentException("Cmd does not exist");
         }
 
+        CmdResult cmdResult = cmdResultDao.get(cmd.getId());
         // compare exiting cmd result and update
         if (inputResult != null) {
             inputResult.setCmdId(cmdId);
             cmd.setFinishedDate(inputResult.getFinishTime());
-
-            CmdResult cmdResult = cmdResultDao.get(cmd.getId());
             if (cmdResult != null) {
                 cmdResultDao.updateNotNullOrEmpty(inputResult);
             } else {
                 cmdResultDao.save(inputResult);
             }
         }
-
+        cmd.setCmdResult(cmdResult);
         // update cmd status
         if (cmd.addStatus(status)) {
             cmdDao.update(cmd);
