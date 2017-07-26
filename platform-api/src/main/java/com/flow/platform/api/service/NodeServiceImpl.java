@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.util.NodeUtil;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,7 +35,8 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public Node create(Node node) {
         NodeUtil.recurse(node, item -> {
-            if (item instanceof Step) {
+             String env = System.getProperty("flow.api.env");
+            if (item instanceof Step && env != "test") {
                 if (item.getScript() == null || item.getScript().isEmpty()) {
                     throw new RuntimeException("create node error script is error");
                 }

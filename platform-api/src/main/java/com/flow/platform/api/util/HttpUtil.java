@@ -53,6 +53,7 @@ public class HttpUtil {
         HttpPost httpPost = new HttpPost(url);
         HttpEntity entity = new StringEntity(body);
         httpPost.setEntity(entity);
+        httpPost.addHeader("Content-Type", "application/json;charset=utf-8");
         final String[] res = {null};
         exec(httpPost, 1, (String item) -> {
             res[0] = item;

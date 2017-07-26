@@ -46,8 +46,8 @@ import org.springframework.web.context.WebApplicationContext;
 public abstract class TestBase {
 
     static {
-        System.setProperty("flow.cc.env", "local");
-        System.setProperty("flow.cc.task.keep_idle_agent", "false");
+        System.setProperty("flow.api.env", "test");
+        System.setProperty("flow.api.task.keep_idle_agent", "false");
     }
 
     public static class MockContextInitializer
