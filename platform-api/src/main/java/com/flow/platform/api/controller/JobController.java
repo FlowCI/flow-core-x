@@ -50,25 +50,9 @@ public class JobController {
     @Autowired
     YamlService yamlService;
 
-//    @PostMapping(path = "/jobs")
-//    public Job create(@RequestBody List<Step> steps) {
-//        Flow flow = new Flow();
-//        flow.setName(UUID.randomUUID().toString());
-//        flow.setPath(UUID.randomUUID().toString());
-//        for (Step step : steps) {
-//            step.setParent(flow);
-//            step.setPath(new StringBuffer(flow.getName()).append("/").append(step.getName()).toString());
-//        }
-//        flow.getChildren().addAll(steps);
-//        nodeService.create(flow);
-//
-//        Job job = jobService.createJob(flow.getPath());
-//        return job;
-//    }
-
     @PostMapping(path = "/jobs")
     public Job create(@RequestBody String body) {
-        Node node  = yamlService.createNodeByYamlString(body);
+        Node node = yamlService.createNodeByYamlString(body);
         nodeService.create(node);
 
         Job job = jobService.createJob(node.getPath());
