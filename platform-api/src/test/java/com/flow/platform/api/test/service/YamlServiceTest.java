@@ -15,11 +15,18 @@
  */
 package com.flow.platform.api.test.service;
 
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.YamlService;
 import com.flow.platform.api.test.TestBase;
-import java.io.IOException;
+import com.google.common.io.Files;
+import java.io.File;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.List;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -27,38 +34,53 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author lhl
  */
 public class YamlServiceTest extends TestBase {
+
     @Autowired
-    YamlService yamlService;
+    private YamlService yamlService;
+
+    private File ymlSampleFile;
+
+    @Before
+    public void before() {
+        String path = "/Users/fir/Projects/Flow/flow-platform/flow.yaml";
+        ClassLoader classLoader = YamlServiceTest.class.getClassLoader();
+        URL resource = classLoader.getResource("flow.yaml");
+        ymlSampleFile = new File(resource.getFile());
+    }
 
     @Test
-    public void should_create_node_by_file(){
-        String path = "/Users/fir/Projects/Flow/flow-platform/flow.yaml";
-        Node node = yamlService.createNodeByYamlFile(path);
+    public void should_create_node_by_file() {
+        Node node = yamlService.createNode(ymlSampleFile);
+
+        // verify flow
+        Assert.assertTrue(node instanceof Flow);
         Assert.assertEquals("flow1", node.getName());
+        Assert.assertEquals("/flow1", node.getPath());
 
+        // verify steps
+        Flow root = (Flow) node;
+        List<Step> steps = root.getChildren();
+        Assert.assertEquals(2, steps.size());
+
+        Assert.assertEquals("step1", steps.get(0).getName());
+        Assert.assertEquals("/flow1/step1", steps.get(0).getPath());
+
+        Assert.assertEquals("step2", steps.get(1).getName());
+        Assert.assertEquals("/flow1/step2", steps.get(1).getPath());
+
+        // verify parent node relationship
+        Assert.assertEquals(root, steps.get(0).getParent());
+        Assert.assertEquals(root, steps.get(1).getParent());
+
+        // verify prev next node relationship
+        Assert.assertEquals(steps.get(1), steps.get(0).getNext());
+        Assert.assertEquals(steps.get(0), steps.get(1).getPrev());
     }
 
     @Test
-    public void should_create_node_by_string(){
-        String path = "/Users/fir/Projects/Flow/flow-platform/flow.yaml";
-        try {
-            String yamlString = yamlService.preLoad(path);
-            Node node = yamlService.createNodeByYamlString(yamlString);
-            Assert.assertEquals("flow1", node.getName());
-        } catch (IOException e){
-
-        }
+    public void should_create_node_by_string() throws Throwable {
+        String yamlRaw = Files.toString(ymlSampleFile, Charset.forName("UTF-8"));
+        Node node = yamlService.createNode(yamlRaw);
+        Assert.assertEquals("flow1", node.getName());
     }
-
-    @Test
-    public void parse_yaml_by_file(){
-        String path = "/Users/fir/Projects/Flow/flow-platform/flow.yaml";
-        try {
-            String yamlString = yamlService.preLoad(path);
-            Assert.assertEquals(true, yamlString.contains("step1"));
-        } catch (IOException e){
-
-        }
-    }
-
 }

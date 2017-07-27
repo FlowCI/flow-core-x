@@ -19,10 +19,12 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.domain.Jsonable;
+import com.google.common.io.Files;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,20 +39,22 @@ import org.yaml.snakeyaml.Yaml;
 public class YamlServiceImpl implements YamlService {
 
     @Autowired
-    NodeServiceImpl nodeService;
+    private NodeServiceImpl nodeService;
 
-    public Node createNodeByYamlFile(String path) {
+    @Override
+    public Node createNode(File path) {
         try {
-            String yamlString = preLoad(path);
+            String yamlString = Files.toString(path, Charset.forName("UTF-8"));
             Yaml yaml = new Yaml();
             Map result = (Map) yaml.load(yamlString);
             return createNode(result);
-        } catch (Exception e) {
+        } catch (Throwable ignore) {
             return null;
         }
     }
 
-    public Node createNodeByYamlString(String yamlString) {
+    @Override
+    public Node createNode(String yamlString) {
         Yaml yaml = new Yaml();
         Map result = (Map) yaml.load(yamlString);
         return createNode(result);
@@ -60,6 +64,8 @@ public class YamlServiceImpl implements YamlService {
         if (result.get("flow") != null) {
             String rawJson = Jsonable.GSON_CONFIG.toJson(result.get("flow"));
             Flow[] flows = Jsonable.GSON_CONFIG.fromJson(rawJson, Flow[].class);
+
+
             for (int i = 0; i < flows.length; i++) {
                 flows[i].setPath("/" + flows[i].getName());
                 if (i > 0) {
@@ -75,22 +81,6 @@ public class YamlServiceImpl implements YamlService {
             }
         }
         return null;
-    }
-
-    public String preLoad(String path) throws IOException {
-        File yamlFile = new File(path);
-        BufferedReader fileReader = new BufferedReader(new FileReader(yamlFile));
-        String temp;
-        StringBuilder stringBuilder = new StringBuilder();
-        while ((temp = fileReader.readLine()) != null) {
-            if (temp.trim().startsWith("!!")) {
-                continue;
-            }
-            stringBuilder.append(temp + "\n");
-        }
-        String result = stringBuilder.toString();
-
-        return result;
     }
 
     private Node recursion(String nodes, Node node) {
