@@ -128,8 +128,8 @@ public class CmdController {
      */
     @GetMapping(path = "/log/download", produces = "application/zip")
     public Resource downloadFullLog(@RequestParam String cmdId,
-        @RequestParam Integer index,
-        HttpServletResponse httpResponse) {
+                                    @RequestParam Integer index,
+                                    HttpServletResponse httpResponse) {
 
         Cmd cmd = cmdService.find(cmdId);
         if (cmd == null) {

@@ -35,6 +35,7 @@ import java.util.Map;
 public class WelcomeController {
 
     public static class AppStatus implements Serializable {
+
         private String status;
         private Date startTime;
         private ZkHelper.ZkInfo zkInfo;
@@ -80,8 +81,8 @@ public class WelcomeController {
     @RequestMapping("/index")
     public AppStatus heartbeat() {
         return new AppStatus("OK",
-                startTime,
-                zkHelper.getInfo(),
-                zkHelper.getZkHistory());
+            startTime,
+            zkHelper.getInfo(),
+            zkHelper.getZkHistory());
     }
 }
