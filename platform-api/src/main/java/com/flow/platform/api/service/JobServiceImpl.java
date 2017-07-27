@@ -80,7 +80,7 @@ public class JobServiceImpl implements JobService {
     public Job createJob(String nodePath) {
         Job job = new Job();
         //create job node
-        JobFlow jobFlow =  jobNodeService.createJobNode(nodePath);
+        JobFlow jobFlow = jobNodeService.createJobNode(nodePath);
         //update job status
         job.setId(UUID.randomUUID().toString());
         job.setCreatedAt(ZonedDateTime.now());
