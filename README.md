@@ -2,12 +2,6 @@ flow-platform
 ============
 ![](https://img.shields.io/badge/language-java-orange.svg)
 
-![](https://img.shields.io/badge/language-swift-red.svg)
-https://img.shields.io/cocoapods/p/a.svg?style=flat
-
-
-
-
 'flow-platform' is a backend project for flow.ci, it consist three main sub projects:
 
 - api: 
