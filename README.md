@@ -3,7 +3,7 @@ flow-platform
 ![](https://img.shields.io/badge/language-java-orange.svg)
 ![](https://img.shields.io/badge/build-failure-orange.svg)
 
-![](/node/build_status?nodePath=flow)
+![Build Status](/node/build_status?nodePath=flow)
 
 'flow-platform' is a backend project for flow.ci, it consist three main sub projects:
 
