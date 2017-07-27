@@ -17,15 +17,11 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
 import com.flow.platform.domain.Jsonable;
 import com.google.common.io.Files;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -65,41 +61,33 @@ public class YamlServiceImpl implements YamlService {
             String rawJson = Jsonable.GSON_CONFIG.toJson(result.get("flow"));
             Flow[] flows = Jsonable.GSON_CONFIG.fromJson(rawJson, Flow[].class);
 
-
+            // build flow path and relation
             for (int i = 0; i < flows.length; i++) {
                 flows[i].setPath("/" + flows[i].getName());
                 if (i > 0) {
                     flows[i].setPrev(flows[i - 1]);
                     flows[i - 1].setNext(flows[i]);
                 }
-                if (flows[i].getChildren() != null) {
-                    String stepJson = Jsonable.GSON_CONFIG.toJson(flows[i].getChildren());
-                    flows[i].setChildren(new ArrayList<>());
-                    Node node = recursion(stepJson, flows[i]);
-                    return nodeService.create(node);
-                }
+                buildNodeRelation(flows[i]);
             }
+
+            return flows[0];
         }
+
         return null;
     }
 
-    private Node recursion(String nodes, Node node) {
-        Step[] steps = Jsonable.GSON_CONFIG.fromJson(nodes, Step[].class);
-        for (int j = 0; j < steps.length; j++) {
-            node.getChildren().add(steps[j]);
-            steps[j].setParent(node);
-            steps[j].setPath(node.getPath() + "/" + steps[j].getName());
-            if (j > 0) {
-                steps[j].setPrev(steps[j - 1]);
-                steps[j - 1].setNext(steps[j]);
+    private <T extends Node> void buildNodeRelation(Node<T> root) {
+        List<T> children = root.getChildren();
+        for (int i = 0; i < children.size(); i++) {
+            T childNode = children.get(i);
+            childNode.setPath(String.format("%s/%s", root.getPath(), childNode.getName()));
+            childNode.setParent(root);
+            if (i > 0) {
+                childNode.setPrev(children.get(i - 1));
+                children.get(i - 1).setNext(childNode);
             }
-
-            if (steps[j].getChildren() != null) {
-                String stepJson1 = Jsonable.GSON_CONFIG.toJson(steps[j].getChildren());
-                steps[j].setChildren(new ArrayList<>());
-                recursion(stepJson1, steps[j]);
-            }
+            buildNodeRelation(childNode);
         }
-        return node;
     }
 }
