@@ -18,7 +18,6 @@ package com.flow.platform.api.domain;
 
 public class JobStep extends JobNode {
 
-
     private Boolean allowFailure = false;
 
     private String plugin;
@@ -53,6 +52,4 @@ public class JobStep extends JobNode {
             ", startTime=" + startTime +
             '}';
     }
-
-
 }

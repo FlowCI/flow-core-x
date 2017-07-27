@@ -15,16 +15,74 @@
  */
 package com.flow.platform.api.util;
 
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.domain.Jsonable;
+import com.google.common.io.Files;
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author yh@firim
  */
 public class NodeUtil {
+
+    /**
+     * Build node tree structure from yml file
+     *
+     * @param path file path
+     * @return node tree
+     */
+    public static Node buildFromYml(File path) {
+        try {
+            String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+            return buildFromYml(ymlString);
+        } catch (YmlException e) {
+            throw e;
+        } catch (Throwable ignore) {
+            return null;
+        }
+    }
+
+    /**
+     * Build node tree structure from yml string
+     *
+     * @param yml raw yml string
+     * @return
+     */
+    public static Node buildFromYml(String yml) {
+        Yaml yaml = new Yaml();
+        Map result = null;
+
+        try {
+            result = (Map) yaml.load(yml);
+        } catch (Throwable e) {
+            throw new YmlException("Illegal yml definition");
+        }
+
+        Object content = result.get("flow");
+
+        if (content == null || !(content instanceof List)) {
+            throw new YmlException("Illegal yml definition");
+        }
+
+        String rawJson = Jsonable.GSON_CONFIG.toJson(content);
+        Flow[] flows = Jsonable.GSON_CONFIG.fromJson(rawJson, Flow[].class);
+
+        // current version only support single flow
+        if (flows.length > 1) {
+            throw new YmlException("Unsupported multiple flows definition");
+        }
+
+        buildNodeRelation(flows[0]);
+        return flows[0];
+    }
 
     /**
      * find all node
@@ -100,5 +158,32 @@ public class NodeUtil {
             target = nodes.get(0);
         }
         return target;
+    }
+
+    /**
+     * Build node path, parent, next, prev relation
+     */
+    private static void buildNodeRelation(Node<? extends Node> root) {
+        setNodePath(root);
+
+        List<? extends Node> children = root.getChildren();
+        for (int i = 0; i < children.size(); i++) {
+            Node childNode = children.get(i);
+            childNode.setParent(root);
+            if (i > 0) {
+                childNode.setPrev(children.get(i - 1));
+                children.get(i - 1).setNext(childNode);
+            }
+
+            buildNodeRelation(childNode);
+        }
+    }
+
+    private static void setNodePath(Node node) {
+        if (node.getParent() == null) {
+            node.setPath("/" + node.getName());
+            return;
+        }
+        node.setPath(String.format("%s/%s", node.getParent().getPath(), node.getName()));
     }
 }

@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Node;
-import java.io.File;
+package com.flow.platform.api.exception;
+
+import com.flow.platform.exception.FlowException;
 
 /**
- * @author lhl
+ * @author yang
  */
-public interface YamlService {
+public class YmlException extends FlowException {
 
-    Node createNode(File path);
+    public YmlException(String description) {
+        super(description, null);
+    }
 
-    Node createNode(String yamlString);
+    public YmlException(String description, Throwable e) {
+        super(description, e);
+    }
 }

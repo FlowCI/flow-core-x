@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.test.service;
+
+package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
-import com.flow.platform.api.service.YamlService;
-import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.util.NodeUtil;
 import com.google.common.io.Files;
 import java.io.File;
 import java.net.URL;
@@ -28,28 +29,29 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author lhl
+ * @author yang
  */
-public class YamlServiceTest extends TestBase {
-
-    @Autowired
-    private YamlService yamlService;
+public class NodeUtilYmlTest {
 
     private File ymlSampleFile;
 
     @Before
     public void before() {
-        ClassLoader classLoader = YamlServiceTest.class.getClassLoader();
+        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         ymlSampleFile = new File(resource.getFile());
     }
 
+    @Test(expected = YmlException.class)
+    public void should_raise_yml_exception_if_incorrect_format() {
+        NodeUtil.buildFromYml("hello test");
+    }
+
     @Test
     public void should_create_node_by_file() {
-        Node node = yamlService.createNode(ymlSampleFile);
+        Node node = NodeUtil.buildFromYml(ymlSampleFile);
 
         // verify flow
         Assert.assertTrue(node instanceof Flow);
@@ -88,7 +90,7 @@ public class YamlServiceTest extends TestBase {
     @Test
     public void should_create_node_by_string() throws Throwable {
         String yamlRaw = Files.toString(ymlSampleFile, Charset.forName("UTF-8"));
-        Node node = yamlService.createNode(yamlRaw);
+        Node node = NodeUtil.buildFromYml(yamlRaw);
         Assert.assertEquals("flow1", node.getName());
     }
 }
