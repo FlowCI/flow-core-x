@@ -46,60 +46,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class JobServiceTest extends TestBase {
 
     @Autowired
-    JobService jobService;
+    private JobService jobService;
 
     @Autowired
-    NodeService nodeService;
+    private NodeService nodeService;
 
     @Autowired
-    JobNodeService jobNodeService;
-
-    @Test
-    public void should_copy_node() {
-        Flow flow = new Flow();
-        flow.setPath("/flow");
-        flow.setName("flow");
-        Step step1 = new Step();
-        step1.setName("step1");
-        step1.setPath("/flow/step1");
-        step1.setPlugin("step1");
-        step1.setAllowFailure(true);
-        Step step2 = new Step();
-        step2.setName("step2");
-        step2.setPath("/flow/step2");
-        step2.setPlugin("step2");
-        step2.setAllowFailure(true);
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-        step1.setParent(flow);
-        step2.setParent(flow);
-        step1.setNext(step2);
-        step2.setParent(step1);
-        nodeService.create(flow);
-
-        JobFlow jobFlow = jobService.createJobNode(flow.getPath());
-        for (Object item : jobFlow.getChildren()) {
-            Assert.assertEquals(((Node)item).getPath(), jobNodeService.find(((Node)item).getPath()).getPath());
-        }
-    }
-
-    @Test
-    public void should_copy_node_simple() {
-        // zero node
-
-        Flow flow = new Flow();
-        flow.setPath("/flow");
-        flow.setName("flow");
-
-        nodeService.create(flow);
-
-        JobFlow jobFlow = jobService.createJobNode(flow.getPath());
-
-        jobFlow = (JobFlow) jobNodeService.find(jobFlow.getPath());
-        for (Object item : jobFlow.getChildren()) {
-            Assert.assertEquals(((Node)item).getPath(), jobNodeService.find(((Node)item).getPath()).getPath());
-        }
-    }
+    private JobNodeService jobNodeService;
 
     private void stubDemo() {
         Cmd cmdRes = new Cmd();

@@ -19,7 +19,7 @@ package com.flow.platform.api.domain;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-public abstract class JobNode extends Node {
+public abstract class JobNode<T extends JobNode> extends Node<T> {
 
     protected Map<String, String> outputs = new HashMap<>();
 

@@ -224,7 +224,7 @@ public class NodeUtilTest extends TestBase {
         step2.setParent(flow);
 
         Assert.assertEquals(null, NodeUtil.next(step2));
-        Assert.assertEquals(step1, NodeUtil.next(flow));
+        Assert.assertEquals(step1, NodeUtil.first(flow));
         Assert.assertEquals(step2, NodeUtil.next(step1));
     }
 
@@ -244,7 +244,7 @@ public class NodeUtilTest extends TestBase {
         flow.getChildren().add(step1);
         step1.setParent(flow);
 
-        Assert.assertEquals(step1, NodeUtil.next(flow));
+        Assert.assertEquals(step1, NodeUtil.first(flow));
         Assert.assertEquals(null, NodeUtil.prev(flow));
         Assert.assertEquals(null, NodeUtil.next(step1));
         Assert.assertEquals(null, NodeUtil.prev(step1));

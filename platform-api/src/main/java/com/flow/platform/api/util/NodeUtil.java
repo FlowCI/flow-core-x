@@ -54,7 +54,6 @@ public class NodeUtil {
      * Build node tree structure from yml string
      *
      * @param yml raw yml string
-     * @return
      */
     public static Node buildFromYml(String yml) {
         Yaml yaml = new Yaml();
@@ -96,6 +95,18 @@ public class NodeUtil {
 
 
     /**
+     * get all nodes includes flow and steps
+     *
+     * @param node the parent node
+     * @return List<Node> include parent node
+     */
+    public static List<Node> flat(final Node node) {
+        final List<Node> flatted = new LinkedList<>();
+        recurse(node, flatted::add);
+        return flatted;
+    }
+
+    /**
      * find flow node
      */
     public static Node findRootNode(Node node) {
@@ -104,15 +115,6 @@ public class NodeUtil {
         }
 
         return findRootNode(node.getParent());
-    }
-
-    /**
-     * return List nodes
-     */
-    public static List<Node> flat(final Node node) {
-        final List<Node> flatted = new LinkedList<>();
-        recurse(node, flatted::add);
-        return flatted;
     }
 
     /**
@@ -125,7 +127,7 @@ public class NodeUtil {
         Node target = null;
         for (int i = 0; i < nodes.size(); i++) {
             Node item = nodes.get(i);
-            if (item.getPath() == node.getPath()) {
+            if (item.equals(node)) {
                 index = i;
             }
         }
@@ -137,27 +139,54 @@ public class NodeUtil {
     }
 
     /**
-     * get next node from flow
+     * get next node from node
      */
     public static Node next(Node node) {
         Node root = findRootNode(node);
         List<Node> nodes = flat(root);
         Integer index = -1;
         Node target = null;
-        for (int i = 0; i < nodes.size(); i++) {
-            Node item = nodes.get(i);
-            if (item.getPath() == node.getPath()) {
-                index = i;
-            }
-        }
-        if (index <= nodes.size() - 3 && index != -1) {
-            target = nodes.get(index + 1);
+
+        // last node is flow node
+        if (nodes.size() > 0) {
+            nodes.remove(nodes.size() - 1);
         }
 
-        if (index == nodes.size() - 1 && nodes.size() != 1) {
-            target = nodes.get(0);
+        //find node
+        for (int i = 0; i < nodes.size(); i++) {
+            Node item = nodes.get(i);
+            if (item.equals(node)) {
+                index = i;
+                break;
+            }
         }
+
+        // find node
+        if (index != -1) {
+            try {
+                target = nodes.get(index + 1);
+            } catch (Throwable ignore) {
+                //not found ignore
+                target = null;
+            }
+        }
+
         return target;
+    }
+
+    /**
+     * find first node of flow
+     */
+    public static Node first(Node node) {
+        Node root = findRootNode(node);
+        List<Node> nodes = flat(root);
+
+        // last node is flow node
+        if (nodes.size() > 0) {
+            nodes.remove(nodes.size() - 1);
+        }
+
+        return nodes.get(0);
     }
 
     /**

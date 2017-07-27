@@ -80,7 +80,7 @@ public class JobServiceImpl implements JobService {
     public Job createJob(String nodePath) {
         Job job = new Job();
         //create job node
-        JobFlow jobFlow = createJobNode(nodePath);
+        JobFlow jobFlow =  jobNodeService.createJobNode(nodePath);
         //update job status
         job.setId(UUID.randomUUID().toString());
         job.setCreatedAt(ZonedDateTime.now());
@@ -228,51 +228,6 @@ public class JobServiceImpl implements JobService {
     }
 
     /**
-     * copy node to job node and save
-     */
-    @Override
-    public JobFlow createJobNode(String nodePath) {
-        Node flow = nodeService.find(nodePath);
-        NodeUtil.recurse(flow, node -> {
-            JobNode jobNode;
-            if (node instanceof Flow) {
-                jobNode = copyNode(node, Flow.class, JobFlow.class);
-            } else {
-                jobNode = copyNode(node, Step.class, JobStep.class);
-            }
-            jobNodeService.save(jobNode);
-            for (Object child : node.getChildren()) {
-                JobNode jobChild = jobNodeService.find(((Node) child).getPath());
-                jobNode.getChildren().add(jobChild);
-                jobChild.setParent(jobNode);
-                jobNodeService.save(jobChild);
-            }
-        });
-        return (JobFlow) jobNodeService.find(flow.getPath());
-    }
-
-    /**
-     * copy node data to job node
-     */
-    private JobNode copyNode(Node node, Class<?> sourceClass, Class<?> targetClass) {
-        Object k = null;
-        try {
-            k = targetClass.newInstance();
-            Object finalK = k;
-            ReflectionUtils.doWithFields(sourceClass, field -> {
-                field.setAccessible(true);
-                Object ob = ReflectionUtils.getField(field, node);
-                ObjectUtil.assignValueToField(field, finalK, ob);
-            });
-        } catch (InstantiationException e) {
-            LOGGER.warn("copy node InstantiationException %s", e);
-        } catch (IllegalAccessException e) {
-            LOGGER.warn("copy node IllegalAccessException %s", e);
-        }
-        return (JobNode) k;
-    }
-
-    /**
      * session success callback
      */
     private void sessionCallback(Job job, CmdBase cmdBase) {
@@ -287,7 +242,7 @@ public class JobServiceImpl implements JobService {
             }
 
             // start run flow
-            run((JobNode) NodeUtil.next(jobFlow));
+            run((JobNode) NodeUtil.first(jobFlow));
         } else {
             throw new RuntimeException("create session error");
         }
@@ -302,7 +257,6 @@ public class JobServiceImpl implements JobService {
         JobFlow jobFlow = (JobFlow) NodeUtil.findRootNode(jobStep);
         Job job = jobFlow.getJob();
         NodeStatus nodeStatus = handleStatus(cmdBase);
-        LOGGER.traceMarker("nodeCallback", "job status - %s", jobStep.getStatus().getName());
         if (jobStep.getStatus().getLevel() > nodeStatus.getLevel()) {
             return;
         }

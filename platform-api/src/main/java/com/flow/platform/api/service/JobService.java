@@ -47,14 +47,6 @@ public interface JobService {
      */
     void run(JobNode node);
 
-
-    /**
-     * deep copy node
-     *
-     * @param nodePath can copy every node
-     */
-    JobFlow createJobNode(String nodePath);
-
     /**
      * save job
      */
