@@ -21,7 +21,7 @@ import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
-import com.flow.platform.api.service.YamlService;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,21 +42,16 @@ public class JobController {
     private static Logger LOGGER = new Logger(JobController.class);
 
     @Autowired
-    JobService jobService;
+    private JobService jobService;
 
     @Autowired
-    NodeService nodeService;
-
-    @Autowired
-    YamlService yamlService;
+    private NodeService nodeService;
 
     @PostMapping(path = "/jobs")
     public Job create(@RequestBody String body) {
-        Node node = yamlService.createNodeByYamlString(body);
+        Node node = NodeUtil.buildFromYml(body);
         nodeService.create(node);
-
-        Job job = jobService.createJob(node.getPath());
-        return job;
+        return jobService.createJob(node.getPath());
     }
 
     @GetMapping(path = "/steps")

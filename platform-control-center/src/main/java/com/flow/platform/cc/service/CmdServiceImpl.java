@@ -65,6 +65,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -227,15 +228,14 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    @Transactional(
-        isolation = Isolation.SERIALIZABLE,
-        noRollbackFor = {FlowException.class, AbstractZkException.class})
+    @Transactional(noRollbackFor = {FlowException.class, AbstractZkException.class})
     public Cmd send(CmdInfo cmdInfo) {
         Cmd cmd = create(cmdInfo);
         return send(cmd.getId(), false);
     }
 
     @Override
+    @Transactional(propagation = Propagation.NEVER)
     public Cmd queue(CmdInfo cmdInfo, int priority, int retry) {
         Cmd cmd = create(cmdInfo);
 

@@ -1,8 +1,0 @@
-flow:
-  - name: flow1
-    script: "echo 'hello world'"
-    steps:
-     - name: step1
-       isAllowFailure: true
-     - name: step2
-       isAllowFailure: false

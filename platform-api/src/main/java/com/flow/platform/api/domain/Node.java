@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 /**
  * Gson parse the yml file, @SerializedName("xxx")
  * find the super class, but abstract class cannot be instant,
