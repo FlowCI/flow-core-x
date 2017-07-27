@@ -125,7 +125,11 @@ public class AgentManager implements Runnable, Watcher {
         } catch (Throwable e) {
             LOGGER.error("Unexpected error", e);
 
-            // TODO: to handle zookeeper exception for reconnection, delete only temp solution
+            if (e instanceof AbstractZkException) {
+                register();
+                return;
+            }
+
             onDeleted(event);
         }
     }
