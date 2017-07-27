@@ -1,6 +1,6 @@
 flow-platform
 ============
-https://img.shields.io/github/release/
+![](https://img.shields.io/release/)
 
 
 'flow-platform' is a backend project for flow.ci, it consist three main sub projects:
