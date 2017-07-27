@@ -31,12 +31,33 @@ public class LoggingQueueConsumer {
 
     private final static Logger LOGGER = new Logger(LoggingQueueConsumer.class);
 
+    private final static int MIN_LENGTH_LOG = 6;
+
     @Autowired
     private SimpMessagingTemplate template;
 
     @RabbitListener(queues = {"${mq.queue.logging.name}"}, containerFactory = "loggingQueueContainerFactory")
     public void onLogging(Message message) {
-        String log = new String(message.getBody());
-        LOGGER.debug("Receive log: " + log);
+        String logItem = new String(message.getBody());
+        LOGGER.debug("Receive logItem %s : %s", Thread.currentThread().getName(), logItem);
+
+        if (logItem.length() < MIN_LENGTH_LOG) {
+            return;
+        }
+
+        // parse log item "zone#agent#cmdId#content" and send to event "zone:agent"
+        int zoneIndex = logItem.indexOf('#', 0);
+        String zone = logItem.substring(0, zoneIndex);
+
+        int agentIndex = logItem.indexOf('#', zoneIndex + 1);
+        String agent = logItem.substring(zoneIndex + 1, agentIndex);
+
+        int cmdIdIndex = logItem.indexOf('#', agentIndex + 1);
+        String cmdId = logItem.substring(agentIndex + 1, cmdIdIndex);
+
+        String content = logItem.substring(cmdIdIndex + 1);
+
+        String event = String.format("/topic/%s:%s", zone, agent);
+        template.convertAndSend(event, content);
     }
 }

@@ -28,9 +28,11 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * RabbitMQ configuration file
@@ -57,6 +59,9 @@ public class MQConfig {
 
     @Value("${mq.queue.logging.name}")
     private String loggingQueueName; // receive logging from agent
+
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor; // from AppConfig
 
     @PostConstruct
     public void init() {
@@ -117,6 +122,7 @@ public class MQConfig {
         factory.setConnectionFactory(connectionFactory());
         factory.setConcurrentConsumers(consumer);
         factory.setMaxConcurrentConsumers(maxConsumer);
+        factory.setTaskExecutor(taskExecutor);
         return factory;
     }
 }
