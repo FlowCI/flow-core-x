@@ -42,7 +42,6 @@ public class YamlServiceTest extends TestBase {
 
     @Before
     public void before() {
-        String path = "/Users/fir/Projects/Flow/flow-platform/flow.yaml";
         ClassLoader classLoader = YamlServiceTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         ymlSampleFile = new File(resource.getFile());
@@ -57,6 +56,11 @@ public class YamlServiceTest extends TestBase {
         Assert.assertEquals("flow1", node.getName());
         Assert.assertEquals("/flow1", node.getPath());
 
+        // verify flow envs
+        Assert.assertEquals(2, node.getEnvs().size());
+        Assert.assertEquals("echo hello", node.getEnvs().get("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo version", node.getEnvs().get("FLOW_VERSION"));
+
         // verify steps
         Flow root = (Flow) node;
         List<Step> steps = root.getChildren();
@@ -64,6 +68,10 @@ public class YamlServiceTest extends TestBase {
 
         Assert.assertEquals("step1", steps.get(0).getName());
         Assert.assertEquals("/flow1/step1", steps.get(0).getPath());
+
+        Step step1 = steps.get(0);
+        Assert.assertEquals("echo step", step1.getEnvs().get("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo step version", step1.getEnvs().get("FLOW_VERSION"));
 
         Assert.assertEquals("step2", steps.get(1).getName());
         Assert.assertEquals("/flow1/step2", steps.get(1).getPath());

@@ -41,22 +41,13 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {WebConfig.class}, initializers = {TestBase.MockContextInitializer.class})
+@ContextConfiguration(classes = {WebConfig.class})
 @PropertySource("classpath:app-default.properties")
 public abstract class TestBase {
 
     static {
         System.setProperty("flow.api.env", "test");
         System.setProperty("flow.api.task.keep_idle_agent", "false");
-    }
-
-    public static class MockContextInitializer
-        implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-        @Override
-        public void initialize(ConfigurableApplicationContext applicationContext) {
-
-        }
     }
 
     @Autowired

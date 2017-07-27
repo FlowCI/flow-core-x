@@ -42,13 +42,13 @@ public class JobController {
     private static Logger LOGGER = new Logger(JobController.class);
 
     @Autowired
-    JobService jobService;
+    private JobService jobService;
 
     @Autowired
-    NodeService nodeService;
+    private NodeService nodeService;
 
     @Autowired
-    YamlService yamlService;
+    private YamlService yamlService;
 
 //    @PostMapping(path = "/jobs")
 //    public Job create(@RequestBody List<Step> steps) {
