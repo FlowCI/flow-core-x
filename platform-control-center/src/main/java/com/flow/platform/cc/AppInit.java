@@ -21,12 +21,15 @@ import com.flow.platform.cc.resource.AppResourceLoader;
 import com.flow.platform.cc.resource.CloudJarResourceLoader;
 import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.util.Logger;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -57,8 +60,15 @@ public class AppInit implements WebApplicationInitializer {
         applicationContext.setServletContext(servletContext);
 
         // set app property resource
-        AppResourceLoader propertyLoader = new PropertyResourceLoader();
-        propertyLoader.register(applicationContext);
+        try {
+            AppResourceLoader propertyLoader = new PropertyResourceLoader();
+            applicationContext
+                .getEnvironment()
+                .getPropertySources()
+                .addFirst(new ResourcePropertySource(propertyLoader.find()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // Add the servlet mapping manually and make it initialize automatically
         DispatcherServlet dispatcherServlet = new DispatcherServlet(applicationContext);

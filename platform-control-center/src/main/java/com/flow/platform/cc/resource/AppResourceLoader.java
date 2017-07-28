@@ -46,8 +46,6 @@ public abstract class AppResourceLoader {
 
     public abstract String getDefault();
 
-    public abstract void register(ConfigurableApplicationContext context);
-
     public Resource find() {
         // find property file path from system env
         String envName = getEnvName();

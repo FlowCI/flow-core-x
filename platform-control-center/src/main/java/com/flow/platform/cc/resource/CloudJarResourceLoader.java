@@ -67,11 +67,6 @@ public class CloudJarResourceLoader extends AppResourceLoader {
         return null;
     }
 
-    @Override
-    public void register(ConfigurableApplicationContext context) {
-        // ignore
-    }
-
     public static URL[] findAllJar() {
         Resource resource = new CloudJarResourceLoader().find();
         if (resource == null) {
