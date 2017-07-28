@@ -118,8 +118,8 @@ public class ReportManager {
         StringEntity entity = new StringEntity(postCmd.toJson(), ContentType.APPLICATION_JSON);
         post.setEntity(entity);
 
-        String successMsg = String.format("Fail to report cmd status to : %s", url);
-        String failMsg = String.format("Cmd %s report status %s", cmdId, status);
+        String successMsg = String.format("Cmd %s report status %s", cmdId, status);
+        String failMsg = String.format("Fail to report cmd status to : %s", url);
         httpSend(post, retry, successMsg, failMsg);
     }
 
@@ -140,8 +140,8 @@ public class ReportManager {
         HttpPost post = new HttpPost(url);
         post.setEntity(entity);
 
-        String successMsg = String.format("Fail to upload zipped cmd log to : %s ", url);
-        String failMsg = String.format("Zipped cmd log uploaded %s", logPath);
+        String successMsg = String.format("Zipped cmd log uploaded %s", logPath);
+        String failMsg = String.format("Fail to upload zipped cmd log to : %s ", url);
         httpSend(post, retry, successMsg, failMsg);
     }
 
