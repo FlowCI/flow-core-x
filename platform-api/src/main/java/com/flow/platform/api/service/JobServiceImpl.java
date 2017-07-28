@@ -121,9 +121,10 @@ public class JobServiceImpl implements JobService {
         }
 
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
-        cmdInfo.setInputs(node.getEnvs());
-        cmdInfo.setWebhook(getNodeHook(node));
         JobFlow jobFlow = (JobFlow) NodeUtil.findRootNode(node);
+        cmdInfo.setInputs(mergeEnvs(jobFlow.getEnvs(), node.getEnvs()));
+        cmdInfo.setWebhook(getNodeHook(node));
+
         cmdInfo.setSessionId(jobFlow.getJob().getSessionId());
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
         try {
@@ -142,6 +143,26 @@ public class JobServiceImpl implements JobService {
         } catch (Throwable ignore) {
             LOGGER.warn("run step UnsupportedEncodingException", ignore);
         }
+    }
+
+    /**
+     * merge two env
+     */
+    private Map<String, String> mergeEnvs(Map<String, String> flowEnv, Map<String, String> stepEnv) {
+        Map<String, String> hash = new HashMap<>();
+        if (flowEnv != null) {
+            flowEnv.forEach((k, v) -> {
+                hash.put(k, v);
+            });
+        }
+
+        if (stepEnv != null) {
+            stepEnv.forEach((k, v) -> {
+                hash.put(k, v);
+            });
+        }
+
+        return hash;
     }
 
     @Override
