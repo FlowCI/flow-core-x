@@ -17,10 +17,10 @@
 package com.flow.platform.cc;
 
 import com.flow.platform.cc.config.WebConfig;
-import com.flow.platform.cc.resource.AppResourceLoader;
 import com.flow.platform.cc.resource.CloudJarResourceLoader;
 import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -28,7 +28,6 @@ import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;

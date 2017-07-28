@@ -16,9 +16,7 @@
 
 package com.flow.platform.cc.resource;
 
-import java.io.IOException;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.io.support.ResourcePropertySource;
+import com.flow.platform.util.resource.AppResourceLoader;
 
 /**
  * @author gy@fir.im

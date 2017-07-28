@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.resource;
+package com.flow.platform.util.resource;
 
 import com.google.common.base.Strings;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;

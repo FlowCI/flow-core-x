@@ -17,6 +17,7 @@
 package com.flow.platform.cc.resource;
 
 import com.flow.platform.util.ClassUtil;
+import com.flow.platform.util.resource.AppResourceLoader;
 import com.google.common.collect.Sets;
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 

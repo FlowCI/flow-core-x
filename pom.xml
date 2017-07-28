@@ -14,11 +14,12 @@
     <module>platform-agent</module>
     <module>platform-cmd-runner</module>
     <module>platform-control-center</module>
-    <module>platform-util</module>
-    <module>platform-util-zk</module>
     <module>platform-exception</module>
     <module>platform-cloud</module>
     <module>platform-api</module>
+    <module>platform-util</module>
+    <module>platform-util-resource</module>
+    <module>platform-util-zk</module>
   </modules>
 
   <properties>

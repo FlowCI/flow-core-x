@@ -40,6 +40,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -71,7 +72,14 @@ public abstract class TestBase {
 
         @Override
         public void initialize(ConfigurableApplicationContext applicationContext) {
-            new PropertyResourceLoader().register(applicationContext);
+            try {
+                applicationContext
+                    .getEnvironment()
+                    .getPropertySources()
+                    .addFirst(new ResourcePropertySource(new PropertyResourceLoader().find()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
