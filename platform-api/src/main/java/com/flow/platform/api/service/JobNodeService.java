@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
 
 /**
@@ -36,4 +37,13 @@ public interface JobNodeService {
      * save node
      */
     JobNode save(JobNode jobNode);
+
+
+    /**
+     * create job node by node path
+     *
+     * @param nodePath can copy every node
+     */
+    JobNode createJobNode(String nodePath);
+
 }

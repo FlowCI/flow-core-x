@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.exception;
 
-public class JobFlow extends JobNode<JobStep> {
-    public JobFlow(String name, String path){
-        super(name, path);
-    }
+import com.flow.platform.exception.FlowException;
 
-    public JobFlow() {
+/**
+ * @author yh@firim
+ */
+public class HttpException extends FlowException{
+
+    public HttpException(String description) {
+        super(description, null);
     }
 }

@@ -16,7 +16,6 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
@@ -31,28 +30,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class NodeServiceTest extends TestBase {
 
     @Autowired
-    NodeService nodeService;
+    private NodeService nodeService;
 
     @Test
     public void should_save_node() {
-        Flow flow = new Flow();
-        flow.setPath("/flow");
-        flow.setName("flow");
+        Flow flow = new Flow("flow", "/flow");
         nodeService.save(flow);
         Assert.assertEquals(flow.getPath(), nodeService.find(flow.getPath()).getPath());
     }
 
     @Test
     public void should_create_and_get_node() {
-        Flow flow = new Flow();
-        flow.setName("flow");
-        flow.setPath("/flow");
-        Step step1 = new Step();
-        step1.setParent(flow);
-        step1.setName("step1");
-        step1.setPath("/flow/step1");
+        Flow flow = new Flow("flow", "/flow");
+        Step step1 = new Step("step1", "/flow/step1");
+
         flow.getChildren().add(step1);
-        Node node = nodeService.create(flow);
+        step1.setParent(flow);
+
+        nodeService.create(flow);
         NodeUtil.recurse(flow, item -> {
             Assert.assertEquals(item.getName(), nodeService.find(item.getPath()).getName());
         });

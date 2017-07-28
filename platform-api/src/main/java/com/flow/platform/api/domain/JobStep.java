@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.domain;
 
-public class JobStep extends JobNode {
+public class JobStep extends JobNode<JobStep> {
 
     private Boolean allowFailure = false;
 
@@ -38,6 +38,13 @@ public class JobStep extends JobNode {
         this.plugin = plugin;
     }
 
+    public JobStep(String name, String path) {
+        super(name, path);
+    }
+
+    public JobStep() {
+    }
+
     @Override
     public String toString() {
         return "JobStep{" +
@@ -52,4 +59,6 @@ public class JobStep extends JobNode {
             ", startTime=" + startTime +
             '}';
     }
+
+
 }
