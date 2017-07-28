@@ -16,7 +16,7 @@
       <PatternLayout pattern="${defaultPattern}"/>
     </Console>
 
-    <RollingFile name="RollingFileInfo" fileName="${baseDir}/app-info.log"
+    <RollingFile name="RollingFileInfo" fileName="${baseDir}/app-cc-info.log"
       filePattern="${baseDir}/$${date:yyyy-MM}/app-info-%d{MM-dd-yyyy}-%i.log.gz">
       <PatternLayout pattern="${defaultPatternForFile}"/>
       <Policies>
@@ -37,7 +37,7 @@
       </DefaultRolloverStrategy>
     </RollingFile>
 
-    <RollingFile name="RollingFileError" fileName="${baseDir}/app-error.log"
+    <RollingFile name="RollingFileError" fileName="${baseDir}/app-cc-error.log"
       filePattern="${baseDir}/$${date:yyyy-MM}/app-err-%d{MM-dd-yyyy}-%i.log.gz">
       <PatternLayout pattern="${defaultPatternForFile}"/>
       <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
