@@ -25,6 +25,7 @@ import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
+import com.google.gson.internal.LinkedTreeMap;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,6 +128,15 @@ public class JobNodeServiceImpl implements JobNodeService {
                 field.setAccessible(true);
                 Object ob = ReflectionUtils.getField(field, node);
                 ObjectUtil.assignValueToField(field, finalK, ob);
+            }, field -> {
+                String[] filerWords = {"children", "prev", "next", "parent"};
+                // this word not copy
+                for (String arr : filerWords) {
+                    if (arr == field.getName()) {
+                        return false;
+                    }
+                }
+                return true;
             });
         } catch (InstantiationException | IllegalAccessException e) {
             LOGGER.warn("copy node exception  %s - %s", e.getClass().toString(), e);

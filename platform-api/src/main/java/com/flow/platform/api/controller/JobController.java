@@ -54,9 +54,9 @@ public class JobController {
         return jobService.createJob(node.getPath());
     }
 
-    @GetMapping(path = "/steps")
-    public Collection<JobStep> showSteps(@RequestParam String jobId) {
-        return jobService.listJobStep(jobId);
+    @GetMapping(path = "/jobs/{id}/steps")
+    public Collection<JobStep> showSteps(@PathVariable String id) {
+        return jobService.listJobStep(id);
     }
 
     @GetMapping(path = "/jobs/{id}")
