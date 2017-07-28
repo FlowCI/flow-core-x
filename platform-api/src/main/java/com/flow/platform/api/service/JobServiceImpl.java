@@ -21,6 +21,8 @@ import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.api.exception.HttpException;
+import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.UrlUtil;
@@ -130,16 +132,16 @@ public class JobServiceImpl implements JobService {
 
             if (res == null) {
                 LOGGER.warn(String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
-                throw new RuntimeException(
-                    String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
+                throw new HttpException(
+                    String.format("Post Cmd Error, Node Name - %s, CmdInfo - %s", node.getName(), cmdInfo.toJson()));
             }
 
             Cmd cmd = Jsonable.parse(res, Cmd.class);
             // record cmd id
             node.setCmdId(cmd.getId());
             jobNodeService.save(node);
-        } catch (UnsupportedEncodingException e) {
-            LOGGER.warn("run step UnsupportedEncodingException", e);
+        } catch (Throwable ignore) {
+            LOGGER.warn("run step UnsupportedEncodingException", ignore);
         }
     }
 
@@ -215,14 +217,14 @@ public class JobServiceImpl implements JobService {
                 LOGGER.warn(
                     String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(),
                         cmdInfo.toJson()));
-                throw new RuntimeException(
-                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(),
+                throw new HttpException(
+                    String.format("Post Session To Queue Error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(),
                         cmdInfo.toJson()));
             }
 
             cmd = Jsonable.parse(res, Cmd.class);
-        } catch (UnsupportedEncodingException e) {
-            LOGGER.warn("run step UnsupportedEncodingException", e);
+        } catch (Throwable ignore) {
+            LOGGER.warn("run step UnsupportedEncodingException", ignore);
         }
         return cmd;
     }
@@ -238,13 +240,13 @@ public class JobServiceImpl implements JobService {
             // run step
             JobFlow jobFlow = (JobFlow) jobNodeService.find(job.getNodePath());
             if (jobFlow == null) {
-                throw new RuntimeException("not found job flow " + job.getNodePath());
+                throw new NotFoundException(String.format("Not Found Job Flow - %s", jobFlow.getName()));
             }
 
             // start run flow
             run((JobNode) NodeUtil.first(jobFlow));
         } else {
-            throw new RuntimeException("create session error");
+            LOGGER.warn(String.format("Create Session Error Session Status - %s", cmdBase.getStatus().getName()));
         }
     }
 
@@ -413,7 +415,7 @@ public class JobServiceImpl implements JobService {
     public List<JobStep> listJobStep(String jobId) {
         Job job = find(jobId);
         if (job == null) {
-            throw new RuntimeException("not found job");
+            throw new NotFoundException(String.format("Not Found Job - %s", job.getId()));
         }
         JobNode jobFlow = jobNodeService.find(job.getNodePath());
         List<JobStep> jobSteps = new LinkedList<>();

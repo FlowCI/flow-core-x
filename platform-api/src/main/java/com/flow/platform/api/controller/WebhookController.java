@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.Response;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import java.io.UnsupportedEncodingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +45,13 @@ public class WebhookController {
 
     @PostMapping(path = "/hooks")
     public Response execute(@RequestBody Cmd cmd,
-        @RequestParam String identifier) throws UnsupportedEncodingException {
+        @RequestParam String identifier) {
         identifier = UrlUtil.urlDecoder(identifier);
+        if (identifier == null || cmd == null) {
+            throw new IllegalParameterException(
+                String.format("Mission Param Identifier - %s Or Cmd - %s", identifier, cmd.toJson()));
+        }
+
         LOGGER.trace(String
             .format("Webhook Comming Url: %s CmdType: %s CmdStatus: %s", cmd.getWebhook(), cmd.getType().toString(),
                 cmd.getStatus().toString()));
