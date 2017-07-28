@@ -1,12 +1,7 @@
 flow-platform
 ============
 ![](https://img.shields.io/badge/language-java-orange.svg)
-[![B](http://api-lyon.flow.ci/projects/597aa1c0f2652213cd6aab63/jobs/build_state)](https://wwww.baidu.com)
-
-<a href="https://npmjs.org/package/gh-badges">
-    <img src="http://api-lyon.flow.ci/projects/597aa1c0f2652213cd6aab63/jobs/build_state"
-         alt="npm version">
-</a>
+[![B](http://api-lyon.flow.ci/projects/597aa1c0f2652213cd6aab63/jobs/build_state)](https://api-lyon.flow.ci/projects/597aa1c0f2652213cd6aab63)
 
 'flow-platform' is a backend project for flow.ci, it consist three main sub projects:
 
