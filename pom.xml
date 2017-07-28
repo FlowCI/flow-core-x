@@ -182,12 +182,6 @@
       </dependency>
 
       <dependency>
-        <groupId>io.socket</groupId>
-        <artifactId>socket.io-client</artifactId>
-        <version>${socket.io-client.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>mos_java_sdk</groupId>
         <artifactId>mos_java_sdk</artifactId>
         <version>${mos_java_sdk.version}</version>
