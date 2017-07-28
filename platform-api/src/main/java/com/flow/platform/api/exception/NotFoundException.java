@@ -19,7 +19,7 @@ package com.flow.platform.api.exception;
 import com.flow.platform.exception.FlowException;
 
 /**
- * @author gyfirim
+ * @author yh@firim
  */
 public class NotFoundException extends FlowException {
 
