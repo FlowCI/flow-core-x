@@ -41,6 +41,7 @@ import java.util.concurrent.Executors;
 /**
  * For reporting status
  * <p>
+ *
  * @author gy@fir.im
  */
 public class ReportManager {
@@ -72,9 +73,7 @@ public class ReportManager {
     /**
      * Report cmd status in sync
      */
-    public boolean cmdReportSync(final String cmdId,
-        final CmdStatus status,
-        final CmdResult result) {
+    public boolean cmdReportSync(final String cmdId, final CmdStatus status, final CmdResult result) {
         try {
             cmdReportSync(cmdId, status, result, 5);
             return true;
@@ -101,9 +100,9 @@ public class ReportManager {
     }
 
     private void cmdReportSync(final String cmdId,
-        final CmdStatus status,
-        final CmdResult result,
-        final int retry) throws IOException {
+                               final CmdStatus status,
+                               final CmdResult result,
+                               final int retry) throws IOException {
 
         if (!Config.isReportCmdStatus()) {
             LOGGER.trace("Cmd report toggle is disabled");
@@ -147,9 +146,9 @@ public class ReportManager {
     }
 
     private static HttpResponse httpSend(final HttpUriRequest request,
-        final int retry,
-        final String successMsg,
-        final String failMsg) {
+                                         final int retry,
+                                         final String successMsg,
+                                         final String failMsg) {
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpResponse response = client.execute(request);
@@ -157,6 +156,8 @@ public class ReportManager {
             if (code != HttpStatus.SC_OK) {
                 throw new RuntimeException(failMsg);
             }
+
+            LOGGER.trace(successMsg);
             return response;
         } catch (Throwable e) {
             if (retry > 0) {
