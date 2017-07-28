@@ -83,6 +83,10 @@ public class ObjectUtil {
             return Integer.parseInt(value.toString());
         }
 
+        if(field.getType().isAssignableFrom(value.getClass())){
+            return value;
+        }
+
         throw new IllegalArgumentException(
             String.format("Type from '%s' to '%s' not supported yet", value.getClass(), field.getType()));
     }

@@ -41,7 +41,7 @@ public class Node<T extends Node> extends Jsonable {
 
     protected Map<String, String> envs = new HashMap<>();
 
-    protected Node Parent;
+    protected Node parent;
 
     @SerializedName("steps")
     protected List<T> children = new LinkedList<>();
@@ -87,11 +87,11 @@ public class Node<T extends Node> extends Jsonable {
     }
 
     public Node getParent() {
-        return Parent;
+        return parent;
     }
 
     public void setParent(Node parent) {
-        Parent = parent;
+        this.parent = parent;
     }
 
     public List<T> getChildren() {
