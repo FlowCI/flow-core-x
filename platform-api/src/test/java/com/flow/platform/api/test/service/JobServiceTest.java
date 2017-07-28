@@ -70,33 +70,16 @@ public class JobServiceTest extends TestBase {
     public void should_create_node_success() {
         stubDemo();
 
-        Flow flow = new Flow();
-        flow.setName("flow");
-        flow.setPath("/flow");
-        Step step1 = new Step();
-        step1.setName("step1");
-        step1.setPath("/flow/step1");
-        Step step2 = new Step();
-        step2.setName("step2");
-        step2.setPath("/flow/step2");
-        Step step3 = new Step();
-        step3.setName("step3");
-        step3.setPath("/flow/step3");
-        Step step4 = new Step();
-        step4.setName("step4");
-        step4.setPath("/flow/step4");
-        Step step5 = new Step();
-        step5.setName("step5");
-        step5.setPath("/flow/step5");
-        Step step6 = new Step();
-        step6.setName("step6");
-        step6.setPath("/flow/step6");
-        Step step7 = new Step();
-        step7.setName("step7");
-        step7.setPath("/flow/step7");
-        Step step8 = new Step();
-        step8.setName("step8");
-        step8.setPath("/flow/step8");
+        Flow flow = new Flow("flow", "/flow");
+
+        Step step1 = new Step("step1", "/flow/step1");
+        Step step2 = new Step("step2", "/flow/step2");
+        Step step3 = new Step("step3", "/flow/step3");
+        Step step4 = new Step("step4", "/flow/step4");
+        Step step5 = new Step("step5", "/flow/step5");
+        Step step6 = new Step("step6", "/flow/step6");
+        Step step7 = new Step("step7", "/flow/step7");
+        Step step8 = new Step("step8", "/flow/step8");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -148,25 +131,25 @@ public class JobServiceTest extends TestBase {
     @Test
     public void should_show_list_success() {
         stubDemo();
-        Flow flow = new Flow();
-        flow.setPath("/flow");
-        flow.setName("flow");
-        Step step1 = new Step();
-        step1.setName("step1");
-        step1.setPath("/flow/step1");
+
+        Flow flow = new Flow("flow", "/flow");
+
+        Step step1 = new Step("step1", "/flow/step1");
+        Step step2 = new Step("step2", "/flow/step2");
+
         step1.setPlugin("step1");
         step1.setAllowFailure(true);
-        Step step2 = new Step();
-        step2.setName("step2");
-        step2.setPath("/flow/step2");
         step2.setPlugin("step2");
         step2.setAllowFailure(true);
+
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
+
         step1.setParent(flow);
         step2.setParent(flow);
         step1.setNext(step2);
         step2.setParent(step1);
+
         nodeService.create(flow);
         Job job = jobService.createJob(flow.getPath());
         List<JobStep> jobSteps = jobService.listJobStep(job.getId());

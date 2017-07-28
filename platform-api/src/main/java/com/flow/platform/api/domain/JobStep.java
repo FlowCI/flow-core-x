@@ -38,6 +38,13 @@ public class JobStep extends JobNode<JobStep> {
         this.plugin = plugin;
     }
 
+    public JobStep(String name, String path) {
+        super(name, path);
+    }
+
+    public JobStep() {
+    }
+
     @Override
     public String toString() {
         return "JobStep{" +

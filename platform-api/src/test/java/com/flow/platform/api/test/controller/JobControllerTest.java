@@ -46,13 +46,10 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 public class JobControllerTest extends TestBase {
 
     @Autowired
-    NodeService nodeService;
+    private NodeService nodeService;
 
     @Autowired
-    JobNodeService jobNodeService;
-
-    @Autowired
-    JobService jobService;
+    private JobService jobService;
 
 
     private void stubDemo() {

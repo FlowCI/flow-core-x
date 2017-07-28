@@ -54,13 +54,13 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 public class WebhookControllerTest extends TestBase {
 
     @Autowired
-    NodeService nodeService;
+    private NodeService nodeService;
 
     @Autowired
-    JobNodeService jobNodeService;
+    private JobNodeService jobNodeService;
 
     @Autowired
-    JobService jobService;
+    private JobService jobService;
 
     private void stubDemo() {
         Cmd cmdRes = new Cmd();
@@ -79,15 +79,10 @@ public class WebhookControllerTest extends TestBase {
 
         stubDemo();
 
-        Flow flow = new Flow();
-        flow.setPath("/flow");
-        flow.setName("flow");
-        Step step1 = new Step();
-        step1.setPath("/flow/step1");
-        step1.setName("step1");
-        Step step2 = new Step();
-        step2.setPath("/flow/step2");
-        step2.setName("step2");
+        Flow flow = new Flow("flow", "/flow");
+
+        Step step1 = new Step("step1", "/flow/step1");
+        Step step2 = new Step("step2", "/flow/step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -190,15 +185,10 @@ public class WebhookControllerTest extends TestBase {
 
         stubDemo();
 
-        Flow flow = new Flow();
-        flow.setPath("/flow");
-        flow.setName("flow");
-        Step step1 = new Step();
-        step1.setPath("/flow/step1");
-        step1.setName("step1");
-        Step step2 = new Step();
-        step2.setPath("/flow/step2");
-        step2.setName("step2");
+        Flow flow = new Flow("flow", "/flow");
+
+        Step step1 = new Step("step1", "/flow/step1");
+        Step step2 = new Step("step2", "/flow/step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -255,16 +245,12 @@ public class WebhookControllerTest extends TestBase {
 
         stubDemo();
 
-        Flow flow = new Flow();
-        flow.setPath("/flow");
-        flow.setName("flow");
-        Step step1 = new Step();
-        step1.setPath("/flow/step1");
-        step1.setName("step1");
+        Flow flow = new Flow("flow", "/flow");
+
+        Step step1 = new Step("step1", "/flow/step1");
+        Step step2 = new Step("step2", "/flow/step2");
+
         step1.setAllowFailure(true);
-        Step step2 = new Step();
-        step2.setPath("/flow/step2");
-        step2.setName("step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -326,12 +312,5 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
-    }
-
-    @Test
-    public void should_print_log(){
-        Logger logger = new Logger(WebhookControllerTest.class);
-        logger.trace("1111111111111111");
-
     }
 }

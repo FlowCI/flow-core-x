@@ -31,24 +31,17 @@ import org.junit.Test;
 public class NodeUtilTest extends TestBase {
 
     public Node initNodes() {
-        Step step1 = new Step();
-        step1.setName("step1");
-        Step step2 = new Step();
-        step2.setName("step2");
-        Step step3 = new Step();
-        step3.setName("step3");
-        Step step4 = new Step();
-        step4.setName("step4");
-        Step step5 = new Step();
-        step5.setName("step5");
-        Step step6 = new Step();
-        step6.setName("step6");
-        Step step7 = new Step();
-        step7.setName("step7");
-        Step step8 = new Step();
-        step8.setName("step8");
-        Flow flow = new Flow();
-        flow.setName("flow");
+        Flow flow = new Flow("flow", "flow");
+
+        Step step1 = new Step("step1", "step1");
+        Step step2 = new Step("step2", "step2");
+        Step step3 = new Step("step3", "step3");
+        Step step4 = new Step("step4", "step4");
+        Step step5 = new Step("step5", "step5");
+        Step step6 = new Step("step6", "step6");
+        Step step7 = new Step("step7", "step7");
+        Step step8 = new Step("step8", "step8");
+
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
         step1.setParent(flow);
@@ -107,12 +100,10 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_find_root_simple() {
-        Flow flow = new Flow();
-        flow.setName("flow");
-        Step step1 = new Step();
-        step1.setName("step1");
-        Step step2 = new Step();
-        step2.setName("step2");
+        Flow flow = new Flow("flow", "/flow");
+
+        Step step1 = new Step("step1", "/flow/step1");
+        Step step2 = new Step("step2", "/flow/step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -123,8 +114,8 @@ public class NodeUtilTest extends TestBase {
         step1.setParent(flow);
         step2.setParent(flow);
 
-        Assert.assertEquals("flow", NodeUtil.findRootNode(step1).getName());
-        Assert.assertEquals("flow", NodeUtil.findRootNode(step2).getName());
+        Assert.assertEquals("/flow", NodeUtil.findRootNode(step1).getName());
+        Assert.assertEquals("/flow", NodeUtil.findRootNode(step2).getName());
     }
 
 
@@ -140,33 +131,17 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_equal_prev_node() {
-        Step step1 = new Step();
-        step1.setName("step1");
-        step1.setPath("/step1");
-        Step step2 = new Step();
-        step2.setName("step2");
-        step2.setPath("/step2");
-        Step step3 = new Step();
-        step3.setName("step3");
-        step3.setPath("/step3");
-        Step step4 = new Step();
-        step4.setName("step4");
-        step4.setPath("/step4");
-        Step step5 = new Step();
-        step5.setName("step5");
-        step5.setPath("/step5");
-        Step step6 = new Step();
-        step6.setName("step6");
-        step6.setPath("/step6");
-        Step step7 = new Step();
-        step7.setName("step7");
-        step7.setPath("/step7");
-        Step step8 = new Step();
-        step8.setName("step8");
-        step8.setPath("/step8");
-        Flow flow = new Flow();
-        flow.setName("flow");
-        flow.setPath("/flow");
+        Flow flow = new Flow("flow", "/flow");
+
+        Step step1 = new Step("step1", "/flow/step1");
+        Step step2 = new Step("step2", "/flow/step2");
+        Step step3 = new Step("step3", "/flow/step3");
+        Step step4 = new Step("step4", "/flow/step4");
+        Step step5 = new Step("step5", "/flow/step5");
+        Step step6 = new Step("step6", "/flow/step6");
+        Step step7 = new Step("step7", "/flow/step7");
+        Step step8 = new Step("step8", "/flow/step8");
+
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
         step1.setParent(flow);
@@ -204,15 +179,10 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_equal_next_node() {
-        Flow flow = new Flow();
-        flow.setName("flow");
-        flow.setPath("/flow");
-        Step step1 = new Step();
-        step1.setName("step1");
-        step1.setPath("/step1");
-        Step step2 = new Step();
-        step2.setName("step2");
-        step2.setPath("/step2");
+        Flow flow = new Flow("flow", "/flow");
+
+        Step step1 = new Step("step1", "/flow/step1");
+        Step step2 = new Step("step2", "/flow/step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -230,16 +200,12 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_equal_next_one_node() {
-        Flow flow = new Flow();
-        flow.setName("flow");
-        flow.setPath("/flow");
+        Flow flow = new Flow("flow", "/flow");
 
         Assert.assertEquals(null, NodeUtil.next(flow));
         Assert.assertEquals(null, NodeUtil.prev(flow));
 
-        Step step1 = new Step();
-        step1.setName("step1");
-        step1.setPath("/step1");
+        Step step1 = new Step("step1", "/flow/step1");
 
         flow.getChildren().add(step1);
         step1.setParent(flow);
