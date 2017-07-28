@@ -35,7 +35,6 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
-import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,7 +75,7 @@ public class JobServiceImpl implements JobService {
     public Job createJob(String nodePath) {
         Job job = new Job();
         //create job node
-        JobFlow jobFlow = jobNodeService.createJobNode(nodePath);
+        JobFlow jobFlow = (JobFlow) jobNodeService.createJobNode(nodePath);
         //update job status
         job.setId(UUID.randomUUID().toString());
         job.setCreatedAt(ZonedDateTime.now());
@@ -272,11 +271,14 @@ public class JobServiceImpl implements JobService {
     /**
      * update job flow status
      */
-    private void updateJobStatus(JobFlow jobFlow) {
-        Job job = jobFlow.getJob();
+    private void updateJobStatus(JobNode jobNode) {
+        Job job = jobNode.getJob();
+        if (job == null) {
+            return;
+        }
         job.setUpdatedAt(ZonedDateTime.now());
-        job.setExitCode(jobFlow.getExitCode());
-        NodeStatus nodeStatus = jobFlow.getStatus();
+        job.setExitCode(jobNode.getExitCode());
+        NodeStatus nodeStatus = jobNode.getStatus();
 
         if (nodeStatus == NodeStatus.TIMEOUT || nodeStatus == NodeStatus.FAILURE) {
             nodeStatus = NodeStatus.FAILURE;
@@ -369,9 +371,9 @@ public class JobServiceImpl implements JobService {
                 break;
         }
 
-        if (jobNode instanceof JobFlow) {
-            updateJobStatus((JobFlow) jobNode);
-        }
+        //update job status
+        updateJobStatus(jobNode);
+
         //save
         jobNodeService.save(jobNode);
     }

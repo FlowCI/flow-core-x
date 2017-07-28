@@ -89,7 +89,7 @@ public class JobNodeServiceTest extends TestBase {
 
         nodeService.create(flow);
 
-        JobFlow jobFlow = jobNodeService.createJobNode(flow.getPath());
+        JobFlow jobFlow = (JobFlow) jobNodeService.createJobNode(flow.getPath());
         for (Object item : jobFlow.getChildren()) {
             Assert.assertEquals(((Node) item).getPath(), jobNodeService.find(((Node) item).getPath()).getPath());
         }
@@ -103,7 +103,7 @@ public class JobNodeServiceTest extends TestBase {
 
         nodeService.create(flow);
 
-        JobFlow jobFlow = jobNodeService.createJobNode(flow.getPath());
+        JobFlow jobFlow = (JobFlow) jobNodeService.createJobNode(flow.getPath());
 
         jobFlow = (JobFlow) jobNodeService.find(jobFlow.getPath());
         for (Object item : jobFlow.getChildren()) {

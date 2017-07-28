@@ -40,10 +40,10 @@ public interface JobNodeService {
 
 
     /**
-     * deep copy node
+     * create job node by node path
      *
      * @param nodePath can copy every node
      */
-    JobFlow createJobNode(String nodePath);
+    JobNode createJobNode(String nodePath);
 
 }

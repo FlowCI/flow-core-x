@@ -16,7 +16,6 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.JobStep;
@@ -68,7 +67,7 @@ public class JobNodeServiceImpl implements JobNodeService {
      * copy node to job node and save
      */
     @Override
-    public JobFlow createJobNode(String nodePath) {
+    public JobNode createJobNode(String nodePath) {
         Node flow = nodeService.find(nodePath);
         NodeUtil.recurse(flow, node -> {
             JobNode jobNode;
