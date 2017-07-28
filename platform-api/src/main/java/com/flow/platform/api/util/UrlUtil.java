@@ -35,7 +35,7 @@ public class UrlUtil {
         try {
             s = URLEncoder.encode(s, "UTF-8");
         } catch (Throwable ignore) {
-            LOGGER.error("url encode UnsupportedEncodingException %s", ignore);
+            LOGGER.error("Url Encode Exception %s", ignore);
             s = null;
         }
         return s;
@@ -48,7 +48,7 @@ public class UrlUtil {
         try {
             s = URLDecoder.decode(s, "UTF-8");
         } catch (Throwable ignore) {
-            LOGGER.warn("url decode UnsupportedEncodingException %s", ignore);
+            LOGGER.warn("Url Decode Exception %s", ignore);
             s = null;
         }
         return s;

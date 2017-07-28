@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
 import java.util.HashMap;
@@ -87,24 +88,24 @@ public class JobNodeServiceImpl implements JobNodeService {
                 save(jobChild);
             }
 
-            // build node relation
+            // build node prev next relation
             for (int i = 0; i < jobNode.getChildren().size(); i++) {
                 JobNode jobChild = (JobNode) jobNode.getChildren().get(i);
-                if(i == 0){
+                if (i == 0) {
                     // first node
                     jobChild.setPrev(null);
                     try {
                         jobChild.setNext((Node) jobNode.getChildren().get(i + 1));
-                    }catch (Throwable ignore){
+                    } catch (Throwable ignore) {
                     }
-                }else if(i == jobNode.getChildren().size() - 1){
+                } else if (i == jobNode.getChildren().size() - 1) {
                     // last node
                     try {
                         jobChild.setPrev((Node) jobNode.getChildren().get(i - 1));
-                    }catch (Throwable ignore){
+                    } catch (Throwable ignore) {
                     }
                     jobChild.setNext(null);
-                }else{
+                } else {
                     // build node prev next relation
                     jobChild.setNext((Node) jobNode.getChildren().get(i + 1));
                     jobChild.setPrev((Node) jobNode.getChildren().get(i - 1));
@@ -128,10 +129,10 @@ public class JobNodeServiceImpl implements JobNodeService {
                 Object ob = ReflectionUtils.getField(field, node);
                 ObjectUtil.assignValueToField(field, finalK, ob);
             });
-        } catch (InstantiationException e) {
-            LOGGER.warn("copy node InstantiationException %s", e);
-        } catch (IllegalAccessException e) {
-            LOGGER.warn("copy node IllegalAccessException %s", e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            LOGGER.warn("copy node exception  %s - %s", e.getClass().toString(), e);
+            throw new IllegalParameterException(
+                String.format("Copy Node Exception Node - %s - %s", node.toJson(), e.toString()));
         }
         return (JobNode) k;
     }
