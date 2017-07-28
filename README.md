@@ -40,7 +40,7 @@ In build phase will generate three packages:
 - Apache zookeeper 3.4.10
 - Mysql 5.6
 - RabbitMQ 3.6.10
-
+- tt
 ##### Configuration
 
 Configuration file can be loaded by sequence:
