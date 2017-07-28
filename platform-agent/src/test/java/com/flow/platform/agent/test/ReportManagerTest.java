@@ -46,7 +46,7 @@ public class ReportManagerTest extends TestBase {
     @Test
     public void should_report_cmd_status() {
         // when:
-        stubFor(post(urlEqualTo("/cmd/status"))
+        stubFor(post(urlEqualTo("/cmd/report"))
                 .withRequestBody(matchingJsonPath("$.id"))
                 .withRequestBody(matchingJsonPath("$.status"))
                 .withRequestBody(matchingJsonPath("$.result"))

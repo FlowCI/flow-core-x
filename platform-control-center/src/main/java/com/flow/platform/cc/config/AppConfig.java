@@ -48,7 +48,6 @@ public class AppConfig {
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
-
     @PostConstruct
     public void init() {
         try {

@@ -110,6 +110,12 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Override
     public Cmd create(CmdInfo info) {
+        // verify zone name
+        Zone zone = zoneService.getZone(info.getZoneName());
+        if (zone == null) {
+            throw new IllegalParameterException("Illegal zone name : " + info.getZoneName());
+        }
+
         String cmdId = UUID.randomUUID().toString();
         Cmd cmd = Cmd.convert(info);
         cmd.setId(cmdId);
@@ -118,7 +124,6 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
         // set default cmd timeout from zone setting if not defined
         if (info.getTimeout() == null) {
-            Zone zone = zoneService.getZone(info.getZoneName());
             cmd.setTimeout(zone.getDefaultCmdTimeout());
         }
 

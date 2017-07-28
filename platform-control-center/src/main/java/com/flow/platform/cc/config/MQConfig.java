@@ -17,6 +17,8 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.util.Logger;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
@@ -28,9 +30,11 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * RabbitMQ configuration file
@@ -50,13 +54,16 @@ public class MQConfig {
     private final static int LOGGING_QUEUE_MAX_LENGTH = 10000;
 
     @Value("${mq.host}")
-    private String host;
+    private String host; // amqp://guest:guest@localhost:5672
 
     @Value("${mq.queue.cmd.name}")
     private String cmdQueueName; // receive cmd from upstream
 
     @Value("${mq.queue.logging.name}")
     private String loggingQueueName; // receive logging from agent
+
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor; // from AppConfig
 
     @PostConstruct
     public void init() {
@@ -109,7 +116,11 @@ public class MQConfig {
 
     @Bean
     public ConnectionFactory connectionFactory() {
-        return new CachingConnectionFactory(host);
+        try {
+            return new CachingConnectionFactory(new URI(host));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private SimpleRabbitListenerContainerFactory createContainerFactory(final int consumer, final int maxConsumer) {
@@ -117,6 +128,7 @@ public class MQConfig {
         factory.setConnectionFactory(connectionFactory());
         factory.setConcurrentConsumers(consumer);
         factory.setMaxConcurrentConsumers(maxConsumer);
+        factory.setTaskExecutor(taskExecutor);
         return factory;
     }
 }
