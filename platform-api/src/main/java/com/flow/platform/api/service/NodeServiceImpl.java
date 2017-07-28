@@ -37,7 +37,7 @@ public class NodeServiceImpl implements NodeService {
         NodeUtil.recurse(node, item -> {
              String env = System.getProperty("flow.api.env");
             if (item instanceof Step && env != "test") {
-                if (item.getScript() == null || item.getScript().isEmpty()) {
+                if (NodeUtil.canRun(item) && (item.getScript() == null || item.getScript().isEmpty())) {
                     throw new RuntimeException("create node error script is error");
                 }
             }

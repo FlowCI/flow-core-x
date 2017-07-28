@@ -16,6 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.JobStep;
@@ -76,10 +77,38 @@ public class JobNodeServiceImpl implements JobNodeService {
                 jobNode = copyNode(node, Step.class, JobStep.class);
             }
             save(jobNode);
-            for (Object child : node.getChildren()) {
-                JobNode jobChild = find(((Node) child).getPath());
+
+            // create job node
+            for (int i = 0; i < node.getChildren().size(); i++) {
+                Node child = (Node) node.getChildren().get(i);
+                JobNode jobChild = find(child.getPath());
                 jobNode.getChildren().add(jobChild);
                 jobChild.setParent(jobNode);
+                save(jobChild);
+            }
+
+            // build node relation
+            for (int i = 0; i < jobNode.getChildren().size(); i++) {
+                JobNode jobChild = (JobNode) jobNode.getChildren().get(i);
+                if(i == 0){
+                    // first node
+                    jobChild.setPrev(null);
+                    try {
+                        jobChild.setNext((Node) jobNode.getChildren().get(i + 1));
+                    }catch (Throwable ignore){
+                    }
+                }else if(i == jobNode.getChildren().size() - 1){
+                    // last node
+                    try {
+                        jobChild.setPrev((Node) jobNode.getChildren().get(i - 1));
+                    }catch (Throwable ignore){
+                    }
+                    jobChild.setNext(null);
+                }else{
+                    // build node prev next relation
+                    jobChild.setNext((Node) jobNode.getChildren().get(i + 1));
+                    jobChild.setPrev((Node) jobNode.getChildren().get(i - 1));
+                }
                 save(jobChild);
             }
         });

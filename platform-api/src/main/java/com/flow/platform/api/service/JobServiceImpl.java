@@ -15,14 +15,12 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeStatus;
-import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.UrlUtil;
@@ -46,7 +44,6 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * @author yh@firim
@@ -55,9 +52,6 @@ import org.springframework.util.ReflectionUtils;
 public class JobServiceImpl implements JobService {
 
     private static Logger LOGGER = new Logger(JobService.class);
-
-    @Autowired
-    private NodeService nodeService;
 
     @Autowired
     private JobNodeService jobNodeService;
@@ -119,6 +113,12 @@ public class JobServiceImpl implements JobService {
      */
     @Override
     public void run(JobNode node) {
+        if (!NodeUtil.canRun(node)) {
+            // run next node
+            run((JobNode) NodeUtil.next(node));
+            return;
+        }
+
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setInputs(node.getEnvs());
         cmdInfo.setWebhook(getNodeHook(node));
@@ -253,99 +253,125 @@ public class JobServiceImpl implements JobService {
      */
     private void nodeCallback(String nodePath, CmdBase cmdBase) {
         JobStep jobStep = (JobStep) jobNodeService.find(nodePath);
-        JobStep prevStep = (JobStep) NodeUtil.prev(jobStep);
-        JobFlow jobFlow = (JobFlow) NodeUtil.findRootNode(jobStep);
-        Job job = jobFlow.getJob();
         NodeStatus nodeStatus = handleStatus(cmdBase);
+
+        // keep job step status sorted
         if (jobStep.getStatus().getLevel() > nodeStatus.getLevel()) {
             return;
         }
+
         //update job step status
-        jobStep = updateJobStepStatus(jobStep, cmdBase);
+        jobStep.setStatus(nodeStatus);
 
-        switch (jobStep.getStatus()) {
-            case PENDING:
-            case RUNNING:
-                // first step
-                if (prevStep == null) {
-                    updateJobAndFlowStatus(jobFlow, jobStep, job, null, null);
-                }
-                break;
-            case SUCCESS:
-                JobStep nextStep = (JobStep) NodeUtil.next(jobStep);
-                if (nextStep == null) {
-                    updateJobAndFlowStatus(jobFlow, jobStep, job, null, null);
-                    deleteSession(job);
-                } else {
-                    run(nextStep);
-                }
-                break;
-
-            case TIMEOUT:
-            case FAILURE:
-                // is allow failure run next
-                if (jobStep.getAllowFailure()) {
-                    JobStep next = (JobStep) NodeUtil.next(jobStep);
-                    if (next == null) {
-                        updateJobAndFlowStatus(jobFlow, jobStep, job, prevStep, next);
-                        deleteSession(job);
-                    } else {
-                        run(next);
-                    }
-                } else {
-                    updateJobAndFlowStatus(jobFlow, jobStep, job, null, null);
-                    deleteSession(job);
-                }
-                break;
-        }
+        //update node status
+        updateNodeStatus(jobStep, cmdBase);
     }
 
     /**
      * update job flow status
      */
-    private JobFlow updateJobAndFlowStatus(JobFlow jobFlow, JobStep jobStep, Job job, JobStep prev, JobStep next) {
+    private void updateJobStatus(JobFlow jobFlow) {
+        Job job = jobFlow.getJob();
         job.setUpdatedAt(ZonedDateTime.now());
-        job.setExitCode(jobStep.getExitCode());
-        jobFlow.setUpdatedAt(ZonedDateTime.now());
-        NodeStatus nodeStatus = jobStep.getStatus();
+        job.setExitCode(jobFlow.getExitCode());
+        NodeStatus nodeStatus = jobFlow.getStatus();
 
         if (nodeStatus == NodeStatus.TIMEOUT || nodeStatus == NodeStatus.FAILURE) {
-            if (jobStep.getAllowFailure()) {
-                if (next == null) {
-                    nodeStatus = NodeStatus.SUCCESS;
-                }
-            } else {
-                nodeStatus = NodeStatus.FAILURE;
-            }
+            nodeStatus = NodeStatus.FAILURE;
         }
 
         job.setStatus(nodeStatus);
-        jobFlow.setStatus(nodeStatus);
-        jobNodeService.save(jobFlow);
         save(job);
-        return jobFlow;
+
+        //delete session
+        if (nodeStatus == NodeStatus.FAILURE || nodeStatus == NodeStatus.SUCCESS) {
+            deleteSession(job);
+        }
     }
 
     /**
-     * update job step status
+     * update node status
+     *
+     * @param jobNode node
      */
-    private JobStep updateJobStepStatus(JobStep jobStep, CmdBase cmdBase) {
-        //update jobStep
-        jobStep.setUpdatedAt(ZonedDateTime.now());
-        jobStep.setStatus(handleStatus(cmdBase));
+    private void updateNodeStatus(JobNode jobNode, CmdBase cmdBase) {
+        //update jobNode
+        jobNode.setUpdatedAt(ZonedDateTime.now());
+        jobNode.setStatus(handleStatus(cmdBase));
         CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
+
         if (cmdResult != null) {
-            jobStep.setExitCode(cmdResult.getExitValue());
-            jobStep.setDuration(cmdResult.getDuration());
-            jobStep.setOutputs(cmdResult.getOutput());
-            jobStep.setLogPaths(((Cmd) cmdBase).getLogPaths());
-            jobStep.setStartTime(cmdResult.getStartTime());
-            jobStep.setFinishTime(((Cmd) cmdBase).getFinishedDate());
+            jobNode.setExitCode(cmdResult.getExitValue());
+            if (NodeUtil.canRun(jobNode)) {
+                jobNode.setDuration(cmdResult.getDuration());
+                jobNode.setOutputs(cmdResult.getOutput());
+                jobNode.setLogPaths(((Cmd) cmdBase).getLogPaths());
+                jobNode.setStartTime(cmdResult.getStartTime());
+                jobNode.setFinishTime(((Cmd) cmdBase).getFinishedDate());
+            }
         }
 
+        Node parent = jobNode.getParent();
+        Node prev = jobNode.getPrev();
+        Node next = jobNode.getNext();
+        switch (jobNode.getStatus()) {
+            case PENDING:
+            case RUNNING:
+                if (cmdResult != null) {
+                    jobNode.setStartTime(cmdResult.getStartTime());
+                }
+
+                if (parent != null) {
+                    // first node running update parent node running
+                    if (prev == null) {
+                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase);
+                    }
+                }
+                break;
+            case SUCCESS:
+                if (cmdResult != null) {
+                    jobNode.setFinishTime(cmdResult.getFinishTime());
+                }
+
+                if (parent != null) {
+                    // last node running update parent node running
+                    if (next == null) {
+                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase);
+                    } else {
+                        run((JobNode) NodeUtil.next(jobNode));
+                    }
+                }
+                break;
+            case TIMEOUT:
+            case FAILURE:
+                if (cmdResult != null) {
+                    jobNode.setFinishTime(cmdResult.getFinishTime());
+                }
+
+                //update parent node if next is not null, if allow failure is false
+                if (parent != null && ((JobStep) jobNode).getAllowFailure()) {
+                    if (next == null) {
+                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase);
+                    }
+                }
+
+                //update parent node if next is not null, if allow failure is false
+                if (parent != null && !((JobStep) jobNode).getAllowFailure()) {
+                    updateNodeStatus((JobNode) jobNode.getParent(), cmdBase);
+                }
+
+                //next node not null, run next node
+                if (next != null && ((JobStep) jobNode).getAllowFailure()) {
+                    run((JobNode) NodeUtil.next(jobNode));
+                }
+                break;
+        }
+
+        if (jobNode instanceof JobFlow) {
+            updateJobStatus((JobFlow) jobNode);
+        }
         //save
-        jobNodeService.save(jobStep);
-        return jobStep;
+        jobNodeService.save(jobNode);
     }
 
     /**
@@ -391,16 +417,18 @@ public class JobServiceImpl implements JobService {
         }
         JobNode jobFlow = jobNodeService.find(job.getNodePath());
         List<JobStep> jobSteps = new LinkedList<>();
-        NodeUtil.recurse(jobFlow, node -> {
+        for (Object node : jobFlow.getChildren()) {
             if (node instanceof JobStep) {
                 JobStep js = (JobStep) node;
                 JobStep jobStep = ObjectUtil.deepCopy(js);
                 jobStep.setParent(null);
+                jobStep.setPrev(null);
+                jobStep.setNext(null);
                 jobStep.setStatus(js.getStatus());
                 jobStep.setChildren(new ArrayList<>());
                 jobSteps.add(jobStep);
             }
-        });
+        }
         return jobSteps;
     }
 }

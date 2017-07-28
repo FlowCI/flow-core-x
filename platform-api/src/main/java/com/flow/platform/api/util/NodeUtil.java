@@ -139,7 +139,10 @@ public class NodeUtil {
     }
 
     /**
-     * get next node from node
+     * get next node compare root
+     *
+     * @param node current node
+     * @return target node
      */
     public static Node next(Node node) {
         Node root = findRootNode(node);
@@ -175,10 +178,21 @@ public class NodeUtil {
     }
 
     /**
+     * node can run or not
+     *
+     * @return true or false
+     */
+    public static Boolean canRun(Node node) {
+        if (node.getChildren().size() == 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * find first node of flow
      */
-    public static Node first(Node node) {
-        Node root = findRootNode(node);
+    public static Node first(Node root) {
         List<Node> nodes = flat(root);
 
         // last node is flow node
