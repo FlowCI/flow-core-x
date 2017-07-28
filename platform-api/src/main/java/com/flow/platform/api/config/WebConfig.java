@@ -16,14 +16,18 @@
 
 package com.flow.platform.api.config;
 
+import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.resource.AppResourceLoader;
 import com.google.gson.Gson;
+import java.io.IOException;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -40,7 +44,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.service",
     "com.flow.platform.api.dao",
     "com.flow.platform.api.util"})
-@PropertySource("classpath:app-default.properties")
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private final static int ASYNC_POOL_SIZE = 100;
@@ -52,6 +55,15 @@ public class WebConfig extends WebMvcConfigurerAdapter {
             .allowedMethods("GET", "POST")
             .allowCredentials(true)
             .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate");
+    }
+
+    @Bean
+    public PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() throws IOException {
+        AppResourceLoader propertyLoader = new PropertyResourceLoader();
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+        configurer.setIgnoreResourceNotFound(Boolean.FALSE);
+        configurer.setLocation(propertyLoader.find());
+        return configurer;
     }
 
     @Bean

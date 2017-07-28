@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.resource;
+package com.flow.platform.api.resource;
 
 import com.flow.platform.util.resource.AppResourceLoader;
 
 /**
- * @author gy@fir.im
+ * @author yang
  */
 public class PropertyResourceLoader extends AppResourceLoader {
 
-    private final static String ENV_FLOW_CONFIG_PATH = "FLOW_CC_CONFIG_PATH";
+    private final static String ENV_FLOW_CONFIG_PATH = "FLOW_API_CONFIG_PATH";
 
-    private final static String PROP_FLOW_CONFIG_PATH = "flow.cc.config.path";
+    private final static String PROP_FLOW_CONFIG_PATH = "flow.api.config.path";
 
-    private final static String DEFAULT_CONFIG_PATH = "/etc/flow.ci/config/app-cc.properties";
+    private final static String DEFAULT_CONFIG_PATH = "/etc/flow.ci/config/app-api.properties";
 
     private final static String CLASSPATH = "app-test.properties";
 

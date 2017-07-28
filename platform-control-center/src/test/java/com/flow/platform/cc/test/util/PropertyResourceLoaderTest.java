@@ -52,14 +52,14 @@ public class PropertyResourceLoaderTest {
         Assert.assertEquals(ClassPathResource.class, resource.getClass());
 
         // should find property from system property
-        when(System.getProperty("config.path")).thenReturn("/");
+        when(System.getProperty("flow.cc.config.path")).thenReturn("/");
 
         resource = propertyResourceLoader.find();
         Assert.assertEquals(FileSystemResource.class, resource.getClass());
         Assert.assertEquals(Paths.get("/").toString(), ((FileSystemResource) resource).getPath());
 
         // should find property from env
-        when(System.getenv("FLOW_CONFIG_PATH")).thenReturn("/bin");
+        when(System.getenv("FLOW_CC_CONFIG_PATH")).thenReturn("/bin");
 
         resource = propertyResourceLoader.find();
         Assert.assertEquals(FileSystemResource.class, resource.getClass());
