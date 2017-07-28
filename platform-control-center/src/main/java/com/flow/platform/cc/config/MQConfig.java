@@ -17,6 +17,8 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.util.Logger;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
@@ -52,7 +54,7 @@ public class MQConfig {
     private final static int LOGGING_QUEUE_MAX_LENGTH = 10000;
 
     @Value("${mq.host}")
-    private String host;
+    private String host; // amqp://guest:guest@localhost:5672
 
     @Value("${mq.queue.cmd.name}")
     private String cmdQueueName; // receive cmd from upstream
@@ -114,7 +116,11 @@ public class MQConfig {
 
     @Bean
     public ConnectionFactory connectionFactory() {
-        return new CachingConnectionFactory(host);
+        try {
+            return new CachingConnectionFactory(new URI(host));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private SimpleRabbitListenerContainerFactory createContainerFactory(final int consumer, final int maxConsumer) {
