@@ -1,7 +1,7 @@
 flow-platform
 ============
 ![](https://img.shields.io/badge/language-java-orange.svg)
-![](http://api-lyon.flow.ci/projects/597aa1c0f2652213cd6aab63/jobs/build_state)
+[![B](http://api-lyon.flow.ci/projects/597aa1c0f2652213cd6aab63/jobs/build_state)](https://wwww.baidu.com)
 
 <a href="https://npmjs.org/package/gh-badges">
     <img src="http://api-lyon.flow.ci/projects/597aa1c0f2652213cd6aab63/jobs/build_state"
