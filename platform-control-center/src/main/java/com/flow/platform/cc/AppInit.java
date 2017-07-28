@@ -41,7 +41,7 @@ public class AppInit implements WebApplicationInitializer {
     private final static Logger LOGGER = new Logger(AppInit.class);
 
     public void onStartup(ServletContext servletContext) throws ServletException {
-        LOGGER.trace("Initializing Application for %s", servletContext.getServerInfo());
+        LOGGER.trace("Initializing Flow Control Center for %s", servletContext.getServerInfo());
 
         // get class loader
         ClassLoader appClassLoader = appClassLoader();
