@@ -18,6 +18,7 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.exception.IllegalParameterException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -37,8 +38,8 @@ public class NodeServiceImpl implements NodeService {
         NodeUtil.recurse(node, item -> {
              String env = System.getProperty("flow.api.env");
             if (item instanceof Step && env != "test") {
-                if (item.getScript() == null || item.getScript().isEmpty()) {
-                    throw new RuntimeException("create node error script is error");
+                if (NodeUtil.canRun(item) && (item.getScript() == null || item.getScript().isEmpty())) {
+                    throw new IllegalParameterException(String.format("Missing Param Script, NodeName: %s", item.getName()));
                 }
             }
             save(item);
