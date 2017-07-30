@@ -77,7 +77,7 @@ public class ZkNodeHelper {
             return zk.exists(path, watcher);
         } catch (KeeperException | InterruptedException e) {
             if (retry <= 0) {
-                throw new WatchingException(e, path);
+                throw new WatchingException(path, e);
             }
 
             try {
@@ -94,7 +94,7 @@ public class ZkNodeHelper {
             zk.getChildren(parentPath, watcher);
         } catch (KeeperException | InterruptedException e) {
             if (retry <= 0) {
-                throw new WatchingException(e, parentPath);
+                throw new WatchingException(parentPath, e);
             }
 
             try {
@@ -142,12 +142,12 @@ public class ZkNodeHelper {
         }
     }
 
-    private static RuntimeException checkException(Exception e) {
+    private static RuntimeException checkException(Throwable e) {
         if (e instanceof KeeperException) {
             KeeperException zkException = (KeeperException) e;
 
             if (zkException.code() == KeeperException.Code.NONODE) {
-                return new NotExitException(e, zkException.getPath());
+                return new NotExitException(zkException.getPath(), e);
             }
 
             if (zkException.code() == KeeperException.Code.BADVERSION) {

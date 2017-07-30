@@ -125,7 +125,7 @@ public class AgentManager implements Runnable, Watcher {
         } catch (Throwable e) {
             LOGGER.error("Unexpected error", e);
 
-            if (e instanceof AbstractZkException) {
+            if (e instanceof ZkException) {
                 register();
                 return;
             }

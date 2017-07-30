@@ -1,0 +1,263 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.flow.platform.util.zk;
+
+import com.flow.platform.util.zk.ZkException.BadVersion;
+import com.flow.platform.util.zk.ZkException.NotExitException;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.ACLBackgroundPathAndBytesable;
+import org.apache.curator.framework.api.CreateBuilder;
+import org.apache.curator.framework.api.DeleteBuilder;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.curator.framework.recipes.cache.NodeCache;
+import org.apache.curator.framework.recipes.cache.NodeCacheListener;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
+
+/**
+ * @author yang
+ */
+public class ZkClient implements Closeable {
+
+    private CuratorFramework client;
+
+    // async executor
+    private Executor executor;
+
+    private Map<String, NodeCache> nodeCaches = new ConcurrentHashMap<>();
+
+    private Map<String, PathChildrenCache> nodeChildrenCache = new ConcurrentHashMap<>();
+
+    public ZkClient(String host) {
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(5000, 10);
+        client = CuratorFrameworkFactory.newClient(host, retryPolicy);
+    }
+
+    public void setTaskExecutor(Executor executor) {
+        this.executor = executor;
+    }
+
+    public void start() {
+        try {
+            client.start();
+            client.blockUntilConnected();
+        } catch (InterruptedException ignore) {
+
+        }
+    }
+
+    public boolean exist(String path) {
+        try {
+            return client.checkExists().forPath(path) != null;
+        } catch (Throwable e) {
+            throw new ZkException(String.format("Cannot check existing for path: %s", path), e);
+        }
+    }
+
+    /**
+     * Create zookeeper node if not exist
+     */
+    public String create(String path, byte[] data) {
+        try {
+            if (!exist(path)) {
+                CreateBuilder builder = client.create();
+
+                if (data != null) {
+                    return builder.forPath(path, data);
+                } else {
+                    return builder.forPath(path);
+                }
+            }
+            return path;
+        } catch (Throwable e) {
+            throw checkException(String.format("Fail to create node: %s", path), e);
+        }
+    }
+
+    /**
+     * Create zookeeper ephemeral node if not exist
+     */
+    public String createEphemeral(String path, byte[] data) {
+        try {
+            if (!exist(path)) {
+                CreateBuilder builder = client.create();
+
+                if (data != null) {
+                    return builder.withMode(CreateMode.EPHEMERAL).forPath(path, data);
+                } else {
+                    return builder.withMode(CreateMode.EPHEMERAL).forPath(path);
+                }
+            }
+            return path;
+        } catch (Throwable e) {
+            throw checkException(String.format("Fail to create node: %s", path), e);
+        }
+    }
+
+    public List<String> getChildren(String rootPath) {
+        try {
+            return client.getChildren().forPath(rootPath);
+        } catch (Throwable e) {
+            throw checkException(String.format("Fail to get children of node: %s", rootPath), e);
+        }
+    }
+
+    public void setData(String path, byte[] data) {
+        try {
+            Stat stat = client.checkExists().forPath(path);
+            client.setData().forPath(path, data);
+        } catch (Throwable e) {
+            throw checkException(String.format("Fail to set data for node: %s", path), e);
+        }
+    }
+
+    public byte[] getData(String path) {
+        try {
+            return client.getData().forPath(path);
+        } catch (Throwable e) {
+            throw checkException(String.format("Fail to get data for node: %s", path), e);
+        }
+    }
+
+    public void delete(String path, boolean isDeleteChildren) {
+        try {
+            if (!exist(path)) {
+                return;
+            }
+
+            DeleteBuilder builder = client.delete();
+
+            if (isDeleteChildren) {
+                builder.deletingChildrenIfNeeded().forPath(path);
+            } else {
+                builder.guaranteed().forPath(path);
+            }
+        } catch (Throwable e) {
+            throw checkException(String.format("Fail to delete node of path: %s", path), e);
+        }
+    }
+
+    public boolean watchNode(String path, NodeCacheListener listener) {
+
+        if (!exist(path)) {
+            return false; // node doesn't exist
+        }
+
+        NodeCache nc = (NodeCache) nodeCaches.get(path);
+        if (nc != null) {
+            return false; // node been listenered
+        }
+
+        try {
+            nc = new NodeCache(client, path);
+            nc.start();
+
+            if (executor != null) {
+                nc.getListenable().addListener(listener, executor);
+            } else {
+                nc.getListenable().addListener(listener);
+            }
+
+            nodeCaches.put(path, nc);
+            return true;
+        } catch (Throwable e) {
+            throw checkException(String.format("Unable to watch node: %s", path), e);
+        }
+    }
+
+    public boolean watchChildren(String rootPath, PathChildrenCacheListener listener) {
+        if (!exist(rootPath)) {
+            return false;
+        }
+
+        PathChildrenCache pcc = nodeChildrenCache.get(rootPath);
+        if (pcc != null) {
+            return false;
+        }
+
+        try {
+            pcc = new PathChildrenCache(client, rootPath, false);
+            pcc.start();
+
+            if (executor != null) {
+                pcc.getListenable().addListener(listener, executor);
+            } else {
+                pcc.getListenable().addListener(listener);
+            }
+
+            nodeChildrenCache.put(rootPath, pcc);
+            return true;
+        } catch (Throwable e) {
+            throw checkException(String.format("Unable to watch children for root: %s", rootPath), e);
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (client == null) {
+            return;
+        }
+
+        // close all node cache
+        for (Map.Entry<String, NodeCache> entry : nodeCaches.entrySet()) {
+            NodeCache value = entry.getValue();
+            value.close();
+            value.getListenable().clear();
+        }
+
+        // close all children cache
+        for (Map.Entry<String, PathChildrenCache> entry : nodeChildrenCache.entrySet()) {
+            PathChildrenCache value = entry.getValue();
+            value.close();
+            value.getListenable().clear();
+        }
+
+        if (client.getState() == CuratorFrameworkState.STARTED) {
+            client.close();
+        }
+    }
+
+    private static ZkException checkException(String defaultMessage, Throwable e) {
+        if (e instanceof KeeperException) {
+            KeeperException zkException = (KeeperException) e;
+
+            if (zkException.code() == KeeperException.Code.NONODE) {
+                return new NotExitException(defaultMessage, e);
+            }
+
+            if (zkException.code() == KeeperException.Code.BADVERSION) {
+                return new BadVersion(e);
+            }
+        }
+
+        return new ZkException(defaultMessage, e);
+    }
+}

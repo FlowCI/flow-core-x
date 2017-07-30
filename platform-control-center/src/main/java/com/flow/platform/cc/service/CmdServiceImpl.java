@@ -40,7 +40,7 @@ import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.zk.AbstractZkException;
+import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkException.NotExitException;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.base.Strings;
@@ -52,7 +52,6 @@ import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -168,7 +167,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    @Transactional(noRollbackFor = {FlowException.class, AbstractZkException.class})
+    @Transactional(noRollbackFor = {FlowException.class, ZkException.class})
     public Cmd send(String cmdId, boolean shouldResetStatus) {
         Cmd cmd = find(cmdId);
         if (cmd == null) {
@@ -233,7 +232,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
     }
 
     @Override
-    @Transactional(noRollbackFor = {FlowException.class, AbstractZkException.class})
+    @Transactional(noRollbackFor = {FlowException.class, ZkException.class})
     public Cmd send(CmdInfo cmdInfo) {
         Cmd cmd = create(cmdInfo);
         return send(cmd.getId(), false);
