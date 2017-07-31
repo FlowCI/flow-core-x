@@ -54,7 +54,7 @@ public class App {
         try {
             LOGGER.trace("========= Init config =========");
 
-            Config.AGENT_SETTINGS = Config.loadAgentConfig(zkHome, Config.zkTimeout(), zone, 5);
+            Config.AGENT_SETTINGS = Config.loadAgentConfig(zkHome, zone, 5);
             LOGGER.trace(" -- Agent Settings: %s", Config.agentSettings());
 
             Config.ZK_URL = zkHome;

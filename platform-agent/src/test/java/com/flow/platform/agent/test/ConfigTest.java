@@ -18,13 +18,15 @@ package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.Config;
 import com.flow.platform.domain.AgentSettings;
+import com.flow.platform.util.zk.ZkClient;
 import com.flow.platform.util.zk.ZkLocalServer;
 import com.flow.platform.util.zk.ZkNodeHelper;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.server.ServerCnxnFactory;
+import org.apache.curator.test.TestingServer;
+import org.apache.curator.utils.ZKPaths;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -35,14 +37,26 @@ import java.io.IOException;
  */
 public class ConfigTest extends TestBase {
 
-    private static ZooKeeper zkClient;
-    private static ServerCnxnFactory zkFactory;
+    private final static String ROOT_PATH = "/flow-agents";
+
+    private static TestingServer server;
+
+    private ZkClient zkClient;
 
     @BeforeClass
-    public static void init() throws IOException, InterruptedException, KeeperException {
-        zkFactory = ZkLocalServer.start();
-        zkClient = new ZooKeeper("localhost:2181", 20000, null);
-        ZkNodeHelper.createNode(zkClient, "/flow-agents", ""); // create root node
+    public static void init() throws Throwable {
+        server = new TestingServer();
+        server.start();
+    }
+
+    @Before
+    public void before() throws Throwable {
+        zkClient = new ZkClient(server.getConnectString());
+        zkClient.start();
+
+        String path = zkClient.create(ROOT_PATH, null);
+        Assert.assertEquals(ROOT_PATH, path);
+        Assert.assertEquals(true, zkClient.exist(path));
     }
 
     @Test
@@ -55,12 +69,11 @@ public class ConfigTest extends TestBase {
         AgentSettings config = new AgentSettings(loggingQueueHost, loggingQueueName, cmdStatusUrl, cmdLogUrl);
 
         // when: create zone with agent config
-        String zonePath = "/flow-agents/ali";
-        ZkNodeHelper.createNode(zkClient, zonePath, config.toJson().getBytes()); // create zone node
-        Thread.sleep(500);
+        String zonePath = ZKPaths.makePath(ROOT_PATH, "ali");
+        zkClient.createEphemeral(zonePath, config.toBytes());
 
         // then:
-        Config.AGENT_SETTINGS = Config.loadAgentConfig("localhost:2181", 20000, "ali", 5);
+        Config.AGENT_SETTINGS = Config.loadAgentConfig(server.getConnectString(), "ali", 5);
         Assert.assertNotNull(Config.agentSettings());
         Assert.assertEquals(loggingQueueHost, Config.agentSettings().getLoggingQueueHost());
         Assert.assertEquals(loggingQueueName, Config.agentSettings().getLoggingQueueName());
@@ -68,9 +81,13 @@ public class ConfigTest extends TestBase {
         Assert.assertEquals(cmdLogUrl, Config.agentSettings().getCmdLogUrl());
     }
 
+    @After
+    public void after() throws Throwable {
+        zkClient.close();
+    }
+
     @AfterClass
-    public static void done() throws KeeperException, InterruptedException {
-        zkFactory.closeAll();
-        zkFactory.shutdown();
+    public static void done() throws Throwable {
+        server.stop();
     }
 }

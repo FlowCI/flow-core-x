@@ -24,9 +24,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.ZKPaths;
 import org.junit.After;
@@ -192,6 +194,46 @@ public class ZkClientTest {
 
         Assert.assertEquals(2, counterForChildAdded.get());
         Assert.assertEquals(1, counterForChildRemoved.get());
+    }
+
+    @Test
+    public void should_listen_tree_event() throws Throwable {
+        // init:
+        String path = ZKPaths.makePath("/", "flow-tree-test");
+
+        final AtomicBoolean isTriggerNodeAddedEvent = new AtomicBoolean(false);
+        final AtomicBoolean isTriggerNodeRemovedEvent = new AtomicBoolean(false);
+        final AtomicBoolean isTriggerNodeUpdatedEvent = new AtomicBoolean(false);
+
+        zkClient.watchTree(path, (client, event) -> {
+            if (event.getType() == TreeCacheEvent.Type.NODE_ADDED) {
+                isTriggerNodeAddedEvent.set(true);
+            }
+
+            if (event.getType() == TreeCacheEvent.Type.NODE_REMOVED) {
+                isTriggerNodeRemovedEvent.set(true);
+            }
+
+            if (event.getType() == TreeCacheEvent.Type.NODE_UPDATED) {
+                isTriggerNodeUpdatedEvent.set(true);
+            }
+        });
+
+        // when: create, update and delete node
+        zkClient.create(path, null);
+        Assert.assertEquals(true, zkClient.exist(path));
+
+        zkClient.setData(path, "hello".getBytes());
+        Assert.assertEquals("hello", new String(zkClient.getData(path)));
+
+        zkClient.delete(path, false);
+        Assert.assertEquals(false, zkClient.exist(path));
+
+
+        // then: check listener been triggered
+        Assert.assertEquals(true, isTriggerNodeAddedEvent.get());
+        Assert.assertEquals(true, isTriggerNodeRemovedEvent.get());
+        Assert.assertEquals(true, isTriggerNodeUpdatedEvent.get());
     }
 
     @After

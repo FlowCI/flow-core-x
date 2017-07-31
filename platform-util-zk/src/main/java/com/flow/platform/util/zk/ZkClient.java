@@ -37,6 +37,9 @@ import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -56,8 +59,19 @@ public class ZkClient implements Closeable {
 
     private Map<String, PathChildrenCache> nodeChildrenCache = new ConcurrentHashMap<>();
 
+    private Map<String, TreeCache> nodeTreeCache = new ConcurrentHashMap<>();
+
     public ZkClient(String host) {
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(5000, 10);
+        this(host, 5000, 10);
+    }
+
+    /**
+     * @param host zookeeper host url
+     * @param retryPeriod period between retry in millis
+     * @param retryTimes num of retry
+     */
+    public ZkClient(String host, int retryPeriod, int retryTimes) {
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(retryPeriod, retryTimes);
         client = CuratorFrameworkFactory.newClient(host, retryPolicy);
     }
 
@@ -84,6 +98,10 @@ public class ZkClient implements Closeable {
 
     /**
      * Create zookeeper node if not exist
+     *
+     * @param path target zookeeper node path
+     * @param data node data, it can be set to null
+     * @return zookeeper node path just created
      */
     public String create(String path, byte[] data) {
         try {
@@ -104,6 +122,10 @@ public class ZkClient implements Closeable {
 
     /**
      * Create zookeeper ephemeral node if not exist
+     *
+     * @param path target zookeeper node path
+     * @param data node data, it can be set to null
+     * @return zookeeper node path just created
      */
     public String createEphemeral(String path, byte[] data) {
         try {
@@ -166,7 +188,6 @@ public class ZkClient implements Closeable {
     }
 
     public boolean watchNode(String path, NodeCacheListener listener) {
-
         if (!exist(path)) {
             return false; // node doesn't exist
         }
@@ -190,6 +211,29 @@ public class ZkClient implements Closeable {
             return true;
         } catch (Throwable e) {
             throw checkException(String.format("Unable to watch node: %s", path), e);
+        }
+    }
+
+    public boolean watchTree(String path, TreeCacheListener listener) {
+        TreeCache tc = (TreeCache) nodeTreeCache.get(path);
+        if (tc != null) {
+            return false; // node been listenered
+        }
+
+        try {
+            tc = TreeCache.newBuilder(client, path).build();
+            tc.start();
+
+            if (executor != null) {
+                tc.getListenable().addListener(listener, executor);
+            } else {
+                tc.getListenable().addListener(listener);
+            }
+
+            nodeTreeCache.put(path, tc);
+            return true;
+        } catch (Throwable e) {
+            throw checkException(String.format("Unable to watch tree for path: %s", path), e);
         }
     }
 
@@ -230,14 +274,18 @@ public class ZkClient implements Closeable {
         for (Map.Entry<String, NodeCache> entry : nodeCaches.entrySet()) {
             NodeCache value = entry.getValue();
             value.close();
-            value.getListenable().clear();
         }
 
         // close all children cache
         for (Map.Entry<String, PathChildrenCache> entry : nodeChildrenCache.entrySet()) {
             PathChildrenCache value = entry.getValue();
             value.close();
-            value.getListenable().clear();
+        }
+
+        // close all tree cache
+        for (Map.Entry<String, TreeCache> entry : nodeTreeCache.entrySet()) {
+            TreeCache value = entry.getValue();
+            value.close();
         }
 
         if (client.getState() == CuratorFrameworkState.STARTED) {

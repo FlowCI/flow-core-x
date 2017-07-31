@@ -41,7 +41,6 @@ public abstract class TestBase {
         }
 
         System.setProperty(Config.PROP_LOG_DIR, TEMP_LOG_DIR.toString());
-        System.out.println("Setting flow-agent-log in path: " + TEMP_LOG_DIR.toString());
     }
 
     @BeforeClass
