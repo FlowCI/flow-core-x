@@ -47,7 +47,7 @@
     <powermock.version>1.7.0</powermock.version>
     <amqp-client.version>4.2.0</amqp-client.version>
     <snakeyaml.version>1.18</snakeyaml.version>
-    <curator-recipes.version>3.3.0</curator-recipes.version>
+    <curator.version>2.12.0</curator.version>
   </properties>
 
   <build>
@@ -129,13 +129,13 @@
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-recipes</artifactId>
-        <version>${curator-recipes.version}</version>
+        <version>${curator.version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-test</artifactId>
-        <version>${curator-recipes.version}</version>
+        <version>${curator.version}</version>
         <scope>test</scope>
       </dependency>
 
