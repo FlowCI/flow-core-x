@@ -20,7 +20,6 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
@@ -29,7 +28,6 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.zk.ZkNodeHelper;
-import com.flow.platform.util.zk.ZkPathBuilder;
 import java.time.ZonedDateTime;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
@@ -73,7 +71,7 @@ public class AgentServiceTest extends TestBase {
         Thread.sleep(1000);
 
         // when:
-        String zonePath = zkHelper.buildZkPath(zoneName, null).path();
+        String zonePath = zkHelper.buildZkPath(zoneName, null);
         byte[] raw = ZkNodeHelper.getNodeData(zkClient, zonePath, null);
 
         // then:
@@ -93,10 +91,10 @@ public class AgentServiceTest extends TestBase {
         Assert.assertEquals(0, agentService.onlineList(zoneName).size());
 
         String agentName = "test-agent-001";
-        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
+        String path = zkHelper.buildZkPath(zoneName, agentName);
 
         // when: simulate to create agent
-        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+        ZkNodeHelper.createEphemeralNode(zkClient, path, "");
 
         // then:
         Thread.sleep(1000);
@@ -166,7 +164,7 @@ public class AgentServiceTest extends TestBase {
         // given: init zk agent
         String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-for-status";
-        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(500);
 

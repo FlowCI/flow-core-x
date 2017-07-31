@@ -22,8 +22,8 @@ import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.zk.ZkEventHelper;
-import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.base.Strings;
+import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -168,26 +168,17 @@ public class ZkHelper {
      *
      * @param zone zone name (nullable)
      * @param name agent name (nullable)
-     * @return zone path builder
+     * @return zone path as string
      */
-    public ZkPathBuilder buildZkPath(String zone, String name) {
-        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName);
-        if (zone != null) {
-            pathBuilder.append(zone);
-            if (name != null) {
-                pathBuilder.append(name);
-            }
-        }
-        return pathBuilder;
+    public String buildZkPath(String zone, String name) {
+        return ZKPaths.makePath(zkRootName, zone, name);
     }
 
     /**
      * Get zookeeper path from AgentPath object
      */
     public String getZkPath(AgentPath agentPath) {
-        ZkPathBuilder pathBuilder = ZkPathBuilder.create(zkRootName);
-        pathBuilder.append(agentPath.getZone()).append(agentPath.getName());
-        return pathBuilder.path();
+        return buildZkPath(agentPath.getZone(), agentPath.getName());
     }
 
     /**

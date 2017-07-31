@@ -19,8 +19,6 @@ package com.flow.platform.agent.test;
 import com.flow.platform.agent.Config;
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.util.zk.ZkClient;
-import com.flow.platform.util.zk.ZkLocalServer;
-import com.flow.platform.util.zk.ZkNodeHelper;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.ZKPaths;
 import org.junit.After;

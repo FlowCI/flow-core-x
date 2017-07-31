@@ -20,14 +20,10 @@ import com.flow.platform.agent.AgentManager;
 import com.flow.platform.agent.Config;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.zk.ZkClient;
-import com.flow.platform.util.zk.ZkEventAdaptor;
-import com.flow.platform.util.zk.ZkLocalServer;
-import com.flow.platform.util.zk.ZkNodeHelper;
-import com.jcraft.jsch.MAC;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.ZKPaths;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,10 +31,6 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import sun.jvm.hotspot.opto.MachIfNode;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -97,7 +89,7 @@ public class AgentManagerTest extends TestBase {
         Thread.sleep(5000); // waitting for node created
 
         // when: send command to agent
-        Cmd cmd = new Cmd(ZONE, MACHINE, CmdType.RUN_SHELL, "~/test.sh");
+        Cmd cmd = new Cmd(ZONE, MACHINE, CmdType.RUN_SHELL, "echo hello");
         cmd.setId("mock-cmd-id");
         zkClient.setData(agent.getNodePath(), cmd.toBytes());
         Thread.sleep(2000); // waitting for cmd recieved
@@ -106,6 +98,11 @@ public class AgentManagerTest extends TestBase {
         Assert.assertEquals(1, agent.getCmdHistory().size());
         Assert.assertEquals(cmd, agent.getCmdHistory().get(0));
         agent.stop();
+    }
+
+    @After
+    public void after() throws Throwable {
+        zkClient.close();
     }
 
     @AfterClass

@@ -21,13 +21,11 @@ import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.domain.*;
 import com.flow.platform.util.zk.ZkNodeHelper;
-import com.flow.platform.util.zk.ZkPathBuilder;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -59,8 +57,8 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-001";
-        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
-        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+        String path = zkHelper.buildZkPath(zoneName, agentName);
+        ZkNodeHelper.createEphemeralNode(zkClient, path, "");
 
         Thread.sleep(1000);
         // when: send get request
@@ -86,8 +84,8 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-003";
-        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
-        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+        String path = zkHelper.buildZkPath(zoneName, agentName);
+        ZkNodeHelper.createEphemeralNode(zkClient, path, "");
 
         Thread.sleep(1000);
         // when: send agent info

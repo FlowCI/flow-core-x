@@ -24,7 +24,6 @@ import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.cc.util.ZkHelper;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.util.zk.ZkLocalServer;
 import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -32,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
+import org.apache.curator.test.TestingServer;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -61,8 +61,9 @@ public abstract class TestBase {
             System.setProperty("flow.cc.env", "local");
             System.setProperty("flow.cc.task.keep_idle_agent", "false");
 
-            ZkLocalServer.start();
-        } catch (IOException | InterruptedException e) {
+            TestingServer server = new TestingServer(2181);
+            server.start();
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }

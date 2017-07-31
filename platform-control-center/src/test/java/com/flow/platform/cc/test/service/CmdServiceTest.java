@@ -37,7 +37,6 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.zk.ZkNodeHelper;
-import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Sets;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -189,7 +188,7 @@ public class CmdServiceTest extends TestBase {
         String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-for-timeout";
 
-        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(500);
 
@@ -218,7 +217,7 @@ public class CmdServiceTest extends TestBase {
         // given
         String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-001";
-        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
 
@@ -275,7 +274,7 @@ public class CmdServiceTest extends TestBase {
         String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-002";
 
-        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
 
@@ -323,7 +322,7 @@ public class CmdServiceTest extends TestBase {
         // given:
         String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-for-shutdown";
-        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
+        String agentPath = zkHelper.buildZkPath(zoneName, agentName);
         ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
         Thread.sleep(1000);
 
@@ -397,8 +396,7 @@ public class CmdServiceTest extends TestBase {
         String agentName = "test-agent-004";
 
         // when: create node and send command to agent
-        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
-        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.buildZkPath(zoneName, agentName), "");
         Thread.sleep(1000);
 
         CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
@@ -433,7 +431,7 @@ public class CmdServiceTest extends TestBase {
         // given:
         String zoneName = zkHelper.getDefaultZones().get(0).getName();
         String agentName = "test-agent-006";
-        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.buildZkPath(zoneName, agentName).path(), "");
+        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.buildZkPath(zoneName, agentName), "");
         Thread.sleep(1000);
 
         // when: send cmd for create agent session

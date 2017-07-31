@@ -35,6 +35,7 @@ import java.util.concurrent.*;
 /**
  * Singleton class to handle command
  * <p>
+ *
  * @author gy@fir.im
  */
 public class CmdManager {
@@ -141,7 +142,7 @@ public class CmdManager {
      *
      * @param cmd Cmd object
      */
-    public synchronized void execute(final Cmd cmd) {
+    public void execute(final Cmd cmd) {
         if (cmd.getType() == CmdType.RUN_SHELL) {
             // check max concurrent proc
             int max = cmdExecutor.getMaximumPoolSize();
@@ -157,9 +158,12 @@ public class CmdManager {
             cmdExecutor.execute(new TaskRunner(cmd) {
                 @Override
                 public void run() {
+                    LOGGER.debug("start cmd ...");
+
                     LogEventHandler logListener = new LogEventHandler(getCmd());
-                    ProcEventHandler procEventHandler = new ProcEventHandler(getCmd(),
-                        extraProcEventListeners, running, finished);
+
+                    ProcEventHandler procEventHandler =
+                        new ProcEventHandler(getCmd(), extraProcEventListeners, running, finished);
 
                     CmdExecutor executor;
                     try {

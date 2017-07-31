@@ -93,13 +93,13 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, Conte
 
     @Override
     public String createRoot() {
-        String rootPath = zkHelper.buildZkPath(null, null).path();
+        String rootPath = zkHelper.buildZkPath(null, null);
         return ZkNodeHelper.createNode(zkClient, rootPath, "");
     }
 
     @Override
     public String createZone(Zone zone) {
-        final String zonePath = zkHelper.buildZkPath(zone.getName(), null).path();
+        final String zonePath = zkHelper.buildZkPath(zone.getName(), null);
 
         // zone node not exited
         if (ZkNodeHelper.exist(zkClient, zonePath) == null) {
