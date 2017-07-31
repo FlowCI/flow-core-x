@@ -63,6 +63,7 @@ public class CmdManagerTest extends TestBase {
         cmdManager.getRunning().clear();
         cmdManager.getFinished().clear();
         cmdManager.getRejected().clear();
+        cmdManager.kill();
     }
 
     @Test
@@ -198,7 +199,7 @@ public class CmdManagerTest extends TestBase {
 
         // when: start and kill task immediately
         cmdManager.execute(cmd);
-        startLatch.await();
+        startLatch.await(30, TimeUnit.SECONDS);
 
         cmdManager.kill();
 

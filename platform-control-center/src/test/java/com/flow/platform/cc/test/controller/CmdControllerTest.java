@@ -28,6 +28,7 @@ import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
@@ -38,16 +39,12 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.exception.IllegalParameterException;
-import com.flow.platform.util.zk.ZkNodeHelper;
-import com.flow.platform.util.zk.ZkPathBuilder;
 import com.google.common.collect.Sets;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Queue;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -126,8 +123,8 @@ public class CmdControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-002";
-        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
-        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+        String path = ZKHelper.buildPath(zoneName, agentName);
+        zkClient.createEphemeral(path, null);
         Thread.sleep(1000);
 
         // when: send post request
@@ -158,7 +155,7 @@ public class CmdControllerTest extends TestBase {
         Assert.assertEquals("/user/flow", cmdInfo.getWorkingDir());
 
         // then: check node data
-        byte[] raw = ZkNodeHelper.getNodeData(zkClient, builder.path(), null);
+        byte[] raw = zkClient.getData(path);
         Assert.assertNotNull(raw);
 
         Cmd received = Jsonable.parse(raw, Cmd.class);

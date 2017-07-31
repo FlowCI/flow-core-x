@@ -40,6 +40,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -50,6 +51,14 @@ public class LogEventHandlerTest extends TestBase {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
+
+    @Before
+    public void init() {
+        System.setProperty(Config.PROP_ENABLE_REALTIME_AGENT_LOG, "true");
+        Assert.assertEquals(true, Config.enableRealtimeLog());
+
+        CmdManager.getInstance().kill();
+    }
 
     @Test
     public void should_get_correct_format_websocket() throws Throwable {

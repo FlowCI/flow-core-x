@@ -21,6 +21,7 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 
+import com.flow.platform.util.Logger;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +30,8 @@ import java.util.Map;
  */
 public class ProcEventHandler implements ProcListener {
 
+    private final static Logger LOGGER = new Logger(ProcEventHandler.class);
+
     private final Cmd cmd;
     private final Map<Cmd, CmdResult> running;
     private final Map<Cmd, CmdResult> finished;
@@ -36,9 +39,9 @@ public class ProcEventHandler implements ProcListener {
     private final ReportManager reportManager = ReportManager.getInstance();
 
     public ProcEventHandler(Cmd cmd,
-        List<ProcListener> extraProcEventListeners,
-        Map<Cmd, CmdResult> running,
-        Map<Cmd, CmdResult> finished) {
+                            List<ProcListener> extraProcEventListeners,
+                            Map<Cmd, CmdResult> running,
+                            Map<Cmd, CmdResult> finished) {
         this.cmd = cmd;
         this.extraProcEventListeners = extraProcEventListeners;
         this.running = running;
@@ -69,6 +72,8 @@ public class ProcEventHandler implements ProcListener {
 
     @Override
     public void onLogged(CmdResult result) {
+        LOGGER.debug("got result...");
+
         running.remove(cmd);
         finished.put(cmd, result);
 

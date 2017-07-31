@@ -80,7 +80,7 @@ public class CmdQueueConsumer {
             LOGGER.warn("Illegal cmd id: %s", e.getMessage());
         } catch (IllegalStatusException e) {
             LOGGER.warn("Illegal cmd status: %s", e.getMessage());
-        } catch (AgentErr.NotAvailableException | ZkException.NotExitException e) {
+        } catch (AgentErr.NotAvailableException | AgentErr.NotFoundException | ZkException.NotExitException e) {
             if (item.getRetry() > 0) {
                 boolean isTimeout = waitForIdleAgent(cmdId, idleAgentPeriod, idleAgentTimeout);
                 if (isTimeout) {

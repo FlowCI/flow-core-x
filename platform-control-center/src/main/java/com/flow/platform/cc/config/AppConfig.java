@@ -28,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
+import org.apache.zookeeper.ZooKeeper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -37,7 +38,14 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author gy@fir.im
  */
 @Configuration
-@Import({TaskConfig.class, MQConfig.class, DatabaseConfig.class, WebSocketConfig.class, AgentConfig.class})
+@Import({
+    DatabaseConfig.class,
+    ZooKeeperConfig.class,
+    MQConfig.class,
+    TaskConfig.class,
+    WebSocketConfig.class,
+    AgentConfig.class
+})
 public class AppConfig {
 
     public final static DateTimeFormatter APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;

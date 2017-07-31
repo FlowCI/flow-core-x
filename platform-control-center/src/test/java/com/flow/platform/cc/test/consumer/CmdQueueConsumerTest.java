@@ -28,6 +28,7 @@ import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -69,7 +70,7 @@ public class CmdQueueConsumerTest extends TestBase {
 
     @Before
     public void before() throws Throwable {
-        cleanZookeeperChilderenNode(zkHelper.buildZkPath(ZONE, null).path());
+        cleanZookeeperChildrenNode(ZKHelper.buildPath(ZONE, null));
         zoneService.createZone(new Zone(ZONE, "mock-cloud-provider"));
     }
 
@@ -119,7 +120,7 @@ public class CmdQueueConsumerTest extends TestBase {
         verify(1, postRequestedFor(urlEqualTo("/node/callback")));
 
         // then: cmd should received in zookeeper agent node
-        byte[] raw = zkClient.getData(zkHelper.getZkPath(agentPath), false, null);
+        byte[] raw = zkClient.getData(ZKHelper.buildPath(agentPath));
         Cmd received = Cmd.parse(raw, Cmd.class);
         Assert.assertNotNull(received);
         Assert.assertNotNull(received.getId());
@@ -130,10 +131,11 @@ public class CmdQueueConsumerTest extends TestBase {
     public void should_re_enqueue_if_no_agent() throws Throwable {
         // given:
         String testUrl = "/node/path-of-node/callback";
+        String agentName = "agent-for-retry-queue-test";
         stubFor(post(urlEqualTo(testUrl)).willReturn(aResponse().withStatus(200)));
 
         // when: send cmd without available agent
-        CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
+        CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088" + testUrl);
         Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 5);
         Assert.assertNotNull(mockCmdInstance.getId());
@@ -146,7 +148,7 @@ public class CmdQueueConsumerTest extends TestBase {
         verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
 
         // when:
-        createMockAgent(ZONE, "agent-for-retry-queue-test");
+        createMockAgent(ZONE, agentName);
         Thread.sleep(5000); // wait for enqueue again
 
         // then:

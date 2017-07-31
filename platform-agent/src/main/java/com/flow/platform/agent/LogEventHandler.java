@@ -73,6 +73,7 @@ public class LogEventHandler implements LogListener {
         AgentSettings config = Config.agentSettings();
 
         if (config == null
+            || !Config.enableRealtimeLog()
             || Strings.isNullOrEmpty(config.getLoggingQueueHost())
             || Strings.isNullOrEmpty(config.getLoggingQueueName())) {
             return;

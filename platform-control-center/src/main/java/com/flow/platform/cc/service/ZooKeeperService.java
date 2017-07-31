@@ -14,32 +14,13 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.zk;
+package com.flow.platform.cc.service;
 
-import org.apache.zookeeper.WatchedEvent;
+import com.flow.platform.cc.context.ContextEvent;
 
 /**
- * @author gy@fir.im
+ * @author yang
  */
-public class ZkEventAdaptor implements ZkEventListener {
+public interface ZooKeeperService extends ContextEvent {
 
-    @Override
-    public void onConnected(WatchedEvent event, String path) {
-
-    }
-
-    @Override
-    public void onDataChanged(WatchedEvent event, byte[] raw) {
-
-    }
-
-    @Override
-    public void onDeleted(WatchedEvent event) {
-
-    }
-
-    @Override
-    public void afterOnDataChanged(WatchedEvent event) {
-
-    }
 }

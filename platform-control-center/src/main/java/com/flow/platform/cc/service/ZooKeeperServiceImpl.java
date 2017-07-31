@@ -16,24 +16,34 @@
 
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.util.ZkHelper;
-import org.apache.zookeeper.ZooKeeper;
+import com.flow.platform.util.Logger;
+import com.flow.platform.util.zk.ZKClient;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
+import org.springframework.stereotype.Service;
 
 /**
- * @author gy@fir.im
+ * @author yang
  */
-public abstract class ZkServiceBase {
+@Service("zooKeeperService")
+public class ZooKeeperServiceImpl implements ZooKeeperService {
+
+    private final static Logger LOGGER = new Logger(ZooKeeperService.class);
 
     @Autowired
-    protected ZkHelper zkHelper;
+    private ZKClient client;
 
-    protected ZooKeeper zkClient;
+    @Override
+    public void start() {
+        // not start since ZKClient been started in zookeeper config
+    }
 
-    @PostConstruct
-    private void init() {
-        zkClient = zkHelper.getClient();
+    @Override
+    public void stop() {
+        try {
+            client.close();
+        } catch (IOException e) {
+            LOGGER.warn("Fail to close zk client connection: %s", e.getMessage());
+        }
     }
 }

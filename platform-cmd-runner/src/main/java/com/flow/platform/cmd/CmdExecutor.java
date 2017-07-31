@@ -25,7 +25,10 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -76,8 +79,7 @@ public final class CmdExecutor {
     private final static File DEFAULT_WORKING_DIR = new File(System.getProperty("user.home"));
 
     private final CountDownLatch logLath = new CountDownLatch(1);
-    private final Queue<Log> loggingQueue = new LinkedList<>();
-    private final AtomicInteger loggingQueueSize = new AtomicInteger(0);
+    private final ConcurrentLinkedQueue<Log> loggingQueue = new ConcurrentLinkedQueue<>();
 
     private final AtomicInteger stdCounter = new AtomicInteger(2); // std, stderr
     private final String endTerm = String.format("=====EOF-%s=====", UUID.randomUUID());
@@ -263,7 +265,7 @@ public final class CmdExecutor {
             public void run() {
                 try {
                     while (true) {
-                        if (stdCounter.get() == 0 && loggingQueueSize.get() <= 0) {
+                        if (stdCounter.get() == 0 && loggingQueue.size() == 0) {
                             break;
                         }
 
@@ -275,7 +277,6 @@ public final class CmdExecutor {
                             }
                         } else {
                             logListener.onLog(log);
-                            loggingQueueSize.getAndDecrement();
                         }
                     }
                 } finally {
@@ -302,12 +303,11 @@ public final class CmdExecutor {
                         }
 
                         loggingQueue.add(new Log(type, line));
-                        loggingQueueSize.getAndIncrement();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (IOException ignore) {
+                    ignore.printStackTrace();
                 } finally {
-                    stdCounter.decrementAndGet();
+                    stdCounter.getAndDecrement();
                     System.out.println(String.format(" ===== %s Stream Reader Thread Finish =====", type));
                 }
             }
