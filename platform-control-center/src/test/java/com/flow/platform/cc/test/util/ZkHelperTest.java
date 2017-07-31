@@ -22,15 +22,19 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author gy@fir.im
  */
 public class ZkHelperTest extends TestBase {
 
+    @Autowired
+    private List<Zone> defaultZones;
+
     @Test
     public void should_load_default_zone_definition_from_config() throws Throwable {
-        List<Zone> zones = zkHelper.getDefaultZones();
+        List<Zone> zones = defaultZones;
         Assert.assertEquals(3, zones.size());
 
         Zone mosTestZone = zones.get(2);

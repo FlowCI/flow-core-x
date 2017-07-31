@@ -25,6 +25,7 @@ import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.task.CmdWebhookTask;
+import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -40,9 +41,9 @@ import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.zk.ZKClient;
 import com.flow.platform.util.zk.ZkException;
 import com.flow.platform.util.zk.ZkException.NotExitException;
-import com.flow.platform.util.zk.ZkNodeHelper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -73,7 +74,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service(value = "cmdService")
 @Transactional(isolation = Isolation.REPEATABLE_READ)
-public class CmdServiceImpl extends ZkServiceBase implements CmdService {
+public class CmdServiceImpl implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
 
@@ -106,6 +107,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
     @Autowired
     private RabbitTemplate cmdQueueTemplate;
+
+    @Autowired
+    protected ZKClient zkClient;
 
     @Override
     public Cmd create(CmdInfo info) {
@@ -193,8 +197,9 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
             cmdDao.update(cmd);
 
             // double check agent in zk node
-            String agentNodePath = zkHelper.getZkPath(target.getPath());
-            if (ZkNodeHelper.exist(zkClient, agentNodePath) == null) {
+            String agentNodePath = ZKHelper.buildPath(target.getPath());
+
+            if (!zkClient.exist(agentNodePath)) {
                 throw new AgentErr.NotFoundException(target.getPath().toString());
             }
 
@@ -202,7 +207,7 @@ public class CmdServiceImpl extends ZkServiceBase implements CmdService {
 
             // set real cmd to zookeeper node
             if (cmd.isAgentCmd()) {
-                ZkNodeHelper.setNodeData(zkClient, agentNodePath, cmd.toJson());
+                zkClient.setData(agentNodePath, cmd.toBytes());
             }
 
             // update cmd status to SENT

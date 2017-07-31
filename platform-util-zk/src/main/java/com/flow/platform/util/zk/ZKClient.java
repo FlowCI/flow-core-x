@@ -24,21 +24,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.api.ACLBackgroundPathAndBytesable;
 import org.apache.curator.framework.api.CreateBuilder;
 import org.apache.curator.framework.api.DeleteBuilder;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.cache.TreeCache;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
@@ -48,7 +44,10 @@ import org.apache.zookeeper.data.Stat;
 /**
  * @author yang
  */
-public class ZkClient implements Closeable {
+public class ZKClient implements Closeable {
+
+    private final static int DEFAULT_RETRY_PERIOD = 5000;
+    private final static int DEFAULT_RETRY_TIMES = 10;
 
     private CuratorFramework client;
 
@@ -61,8 +60,8 @@ public class ZkClient implements Closeable {
 
     private Map<String, TreeCache> nodeTreeCache = new ConcurrentHashMap<>();
 
-    public ZkClient(String host) {
-        this(host, 5000, 10);
+    public ZKClient(String host) {
+        this(host, DEFAULT_RETRY_PERIOD, DEFAULT_RETRY_TIMES);
     }
 
     /**
@@ -70,7 +69,7 @@ public class ZkClient implements Closeable {
      * @param retryPeriod period between retry in millis
      * @param retryTimes num of retry
      */
-    public ZkClient(String host, int retryPeriod, int retryTimes) {
+    public ZKClient(String host, int retryPeriod, int retryTimes) {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(retryPeriod, retryTimes);
         client = CuratorFrameworkFactory.newClient(host, retryPolicy);
     }
@@ -97,7 +96,7 @@ public class ZkClient implements Closeable {
     }
 
     /**
-     * Create zookeeper node if not exist
+     * Create zookeeper node if not exist, or update node data
      *
      * @param path target zookeeper node path
      * @param data node data, it can be set to null
@@ -113,6 +112,8 @@ public class ZkClient implements Closeable {
                 } else {
                     return builder.forPath(path);
                 }
+            } else {
+                setData(path, data);
             }
             return path;
         } catch (Throwable e) {
@@ -121,7 +122,7 @@ public class ZkClient implements Closeable {
     }
 
     /**
-     * Create zookeeper ephemeral node if not exist
+     * Create zookeeper ephemeral node if not exist, or update node data
      *
      * @param path target zookeeper node path
      * @param data node data, it can be set to null
@@ -137,6 +138,8 @@ public class ZkClient implements Closeable {
                 } else {
                     return builder.withMode(CreateMode.EPHEMERAL).forPath(path);
                 }
+            } else {
+                setData(path, data);
             }
             return path;
         } catch (Throwable e) {

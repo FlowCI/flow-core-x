@@ -16,7 +16,7 @@
 
 package com.flow.platform.util.zk.test;
 
-import com.flow.platform.util.zk.ZkClient;
+import com.flow.platform.util.zk.ZKClient;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -45,7 +45,7 @@ public class ZkClientTest {
 
     private static TestingServer server;
 
-    private ZkClient zkClient;
+    private ZKClient zkClient;
 
     // Make thread to Daemon thread, those threads exit while JVM exist
     private final ThreadFactory defaultFactory = r -> {
@@ -66,7 +66,7 @@ public class ZkClientTest {
 
     @Before
     public void init() {
-        zkClient = new ZkClient(server.getConnectString());
+        zkClient = new ZKClient(server.getConnectString());
         zkClient.setTaskExecutor(executor);
         zkClient.start();
     }

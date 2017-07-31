@@ -20,7 +20,7 @@ import com.flow.platform.agent.AgentManager;
 import com.flow.platform.agent.Config;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.zk.ZkClient;
+import com.flow.platform.util.zk.ZKClient;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.ZKPaths;
 import org.junit.After;
@@ -48,7 +48,7 @@ public class AgentManagerTest extends TestBase {
 
     private static TestingServer server;
 
-    private ZkClient zkClient;
+    private ZKClient zkClient;
 
     @BeforeClass
     public static void init() throws Throwable {
@@ -62,7 +62,7 @@ public class AgentManagerTest extends TestBase {
 
     @Before
     public void beforeEach() {
-        zkClient = new ZkClient(server.getConnectString(), 1000, 1);
+        zkClient = new ZKClient(server.getConnectString(), 1000, 1);
         zkClient.start();
 
         zkClient.create(ZK_ROOT, null);

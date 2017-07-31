@@ -18,7 +18,7 @@ package com.flow.platform.cc.test.controller;
 
 import com.flow.platform.cc.controller.WelcomeController;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.cc.util.ZkHelper;
+import com.flow.platform.cc.util.ZKHelper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.web.servlet.MvcResult;
@@ -46,8 +46,5 @@ public class WelcomeControllerTest extends TestBase {
 
         Assert.assertNotNull(appStatus);
         Assert.assertEquals("OK", appStatus.getStatus());
-        Assert.assertEquals(ZkHelper.ZkStatus.OK, appStatus.getZkInfo().getStatus());
-        Assert.assertEquals(1, appStatus.getZkHistory().get("flow-agents").size());
     }
-
 }

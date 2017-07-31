@@ -19,8 +19,8 @@ package com.flow.platform.cc.test.controller;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.*;
-import com.flow.platform.util.zk.ZkNodeHelper;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -57,8 +57,8 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-001";
-        String path = zkHelper.buildZkPath(zoneName, agentName);
-        ZkNodeHelper.createEphemeralNode(zkClient, path, "");
+        String path = ZKHelper.buildPath(zoneName, agentName);
+        zkClient.createEphemeral(path, null);
 
         Thread.sleep(1000);
         // when: send get request
@@ -84,8 +84,8 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
 
         String agentName = "act-003";
-        String path = zkHelper.buildZkPath(zoneName, agentName);
-        ZkNodeHelper.createEphemeralNode(zkClient, path, "");
+        String path = ZKHelper.buildPath(zoneName, agentName);
+        zkClient.createEphemeral(path, null);
 
         Thread.sleep(1000);
         // when: send agent info

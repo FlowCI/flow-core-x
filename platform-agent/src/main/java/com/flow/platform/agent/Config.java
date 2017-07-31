@@ -18,7 +18,7 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.zk.ZkClient;
+import com.flow.platform.util.zk.ZKClient;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.curator.utils.ZKPaths;
@@ -136,7 +136,7 @@ public class Config {
      * connect to zk server to load config from zone data
      */
     public static AgentSettings loadAgentConfig(String zkHost, String zoneName, int retry) {
-        try (ZkClient zkClient = new ZkClient(zkHost, 1000, retry)) {
+        try (ZKClient zkClient = new ZKClient(zkHost, 1000, retry)) {
             zkClient.start();
 
             String zonePath = ZKPaths.makePath(ZK_ROOT, zoneName);

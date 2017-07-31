@@ -26,7 +26,6 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
@@ -45,7 +44,7 @@ public class AgentManager implements Runnable, TreeCacheListener {
 
     private String zkHost;
     private int zkTimeout;
-    private ZkClient zkClient;
+    private ZKClient zkClient;
 
     private String zone; // agent running zone
     private String name; // agent name, can be machine name
@@ -59,7 +58,7 @@ public class AgentManager implements Runnable, TreeCacheListener {
         this.zkHost = zkHost;
         this.zkTimeout = zkTimeout;
 
-        this.zkClient = new ZkClient(zkHost);
+        this.zkClient = new ZKClient(zkHost);
         this.zone = zone;
         this.name = name;
         this.zonePath = ZKPaths.makePath(Config.ZK_ROOT, this.zone);

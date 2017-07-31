@@ -16,16 +16,13 @@
 
 package com.flow.platform.cc.controller;
 
-import com.flow.platform.cc.util.ZkHelper;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.flow.platform.util.DateUtil;
+import java.io.Serializable;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import javax.annotation.PostConstruct;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.annotation.PostConstruct;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author gy@fir.im
@@ -37,52 +34,31 @@ public class WelcomeController {
     public static class AppStatus implements Serializable {
 
         private String status;
-        private Date startTime;
-        private ZkHelper.ZkInfo zkInfo;
-        private Map<String, List<String>> zkHistory;
+        private ZonedDateTime startTime;
 
-        AppStatus(String status,
-                  Date startTime,
-                  ZkHelper.ZkInfo zkInfo,
-                  Map<String, List<String>> zkHistory) {
+        AppStatus(String status, ZonedDateTime startTime) {
             this.status = status;
             this.startTime = startTime;
-            this.zkInfo = zkInfo;
-            this.zkHistory = zkHistory;
         }
 
         public String getStatus() {
             return status;
         }
 
-        public Date getStartTime() {
+        public ZonedDateTime getStartTime() {
             return startTime;
-        }
-
-        public ZkHelper.ZkInfo getZkInfo() {
-            return zkInfo;
-        }
-
-        public Map<String, List<String>> getZkHistory() {
-            return zkHistory;
         }
     }
 
-    @Autowired
-    private ZkHelper zkHelper;
-
-    private Date startTime;
+    private ZonedDateTime startTime;
 
     @PostConstruct
     private void init() {
-        startTime = new Date();
+        startTime = DateUtil.now();
     }
 
     @RequestMapping("/index")
     public AppStatus heartbeat() {
-        return new AppStatus("OK",
-            startTime,
-            zkHelper.getInfo(),
-            zkHelper.getZkHistory());
+        return new AppStatus("OK", startTime);
     }
 }

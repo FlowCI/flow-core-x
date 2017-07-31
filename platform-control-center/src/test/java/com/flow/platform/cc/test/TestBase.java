@@ -22,17 +22,15 @@ import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.resource.PropertyResourceLoader;
-import com.flow.platform.cc.util.ZkHelper;
+import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.util.zk.ZkNodeHelper;
+import com.flow.platform.util.zk.ZKClient;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.stream.Stream;
 import org.apache.curator.test.TestingServer;
-import org.apache.zookeeper.ZooKeeper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -85,9 +83,6 @@ public abstract class TestBase {
     }
 
     @Autowired
-    protected ZkHelper zkHelper;
-
-    @Autowired
     private WebApplicationContext webAppContext;
 
     @Autowired
@@ -102,14 +97,14 @@ public abstract class TestBase {
     @Autowired
     protected CmdResultDao cmdResultDao;
 
-    protected ZooKeeper zkClient;
+    @Autowired
+    protected ZKClient zkClient;
 
     protected MockMvc mockMvc;
 
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
-        zkClient = zkHelper.getClient();
     }
 
     @After
@@ -134,18 +129,14 @@ public abstract class TestBase {
 
     protected AgentPath createMockAgent(String zone, String agent) {
         AgentPath agentPath = new AgentPath(zone, agent);
-        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentPath), "");
+        zkClient.create(ZKHelper.buildPath(agentPath), null);
         return agentPath;
     }
 
-    protected void cleanZookeeperChilderenNode(String node) {
-        if (ZkNodeHelper.exist(zkClient, node) == null) {
+    protected void cleanZookeeperChildrenNode(String node) {
+        if (zkClient.exist(node)) {
             return;
         }
-
-        List<String> children = ZkNodeHelper.getChildrenNodes(zkClient, node);
-        for (String child : children) {
-            ZkNodeHelper.deleteNode(zkClient, node + "/" + child);
-        }
+        zkClient.delete(node, true);
     }
 }
