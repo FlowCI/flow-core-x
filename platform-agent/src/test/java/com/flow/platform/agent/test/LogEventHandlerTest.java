@@ -16,29 +16,14 @@
 
 package com.flow.platform.agent.test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-
 import com.flow.platform.agent.CmdManager;
 import com.flow.platform.agent.Config;
 import com.flow.platform.agent.LogEventHandler;
 import com.flow.platform.cmd.Log;
-import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdType;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
-import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,8 +39,8 @@ public class LogEventHandlerTest extends TestBase {
 
     @Before
     public void init() {
-        System.setProperty(Config.PROP_ENABLE_REALTIME_AGENT_LOG, "true");
-        Assert.assertEquals(true, Config.enableRealtimeLog());
+        System.setProperty(Config.PROP_ENABLE_REALTIME_AGENT_LOG, "false");
+        Assert.assertEquals(false, Config.enableRealtimeLog());
 
         CmdManager.getInstance().kill();
     }
@@ -75,54 +60,5 @@ public class LogEventHandlerTest extends TestBase {
         String expect = String
             .format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(), mockLogContent);
         Assert.assertEquals(expect, socketIoData);
-    }
-
-    @Test
-    public void should_send_log_to_mq() throws Throwable {
-        // given: init rabbitmq
-        String url = "amqp://localhost:5672";
-        String queueName = "flow-logging-queue-test-for-logging";
-        CmdManager.getInstance().kill();
-
-        Config.AGENT_SETTINGS = new AgentSettings(
-            url,
-            queueName,
-            "http://localhost:8080/cmd/report",
-            "http://localhost:8080/cmd/log/upload");
-
-        stubFor(post(urlEqualTo("/cmd/report")).willReturn(aResponse().withStatus(200)));
-        stubFor(post(urlEqualTo("/cmd/log/upload")).willReturn(aResponse().withStatus(200)));
-
-        // create queue
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setUri(url);
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
-        channel.queueDeclare(queueName, false, false, true, null);
-
-        // check queue size and content
-        final CountDownLatch latch = new CountDownLatch(2);
-        channel.basicConsume(queueName, new DefaultConsumer(channel) {
-            @Override
-            public void handleDelivery(
-                String consumerTag, Envelope envelope, AMQP.BasicProperties prop, byte[] body) throws IOException {
-                String log = new String(body);
-                System.out.println("========: " + log);
-                Assert.assertNotNull(log);
-                latch.countDown();
-            }
-        });
-
-        // create test cmd which will send two lines of log
-        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, "echo hello && echo hello again");
-        cmd.setId(UUID.randomUUID().toString());
-
-        // when: execute
-        CmdManager.getInstance().execute(cmd);
-
-        // then: check count size should be 0
-        latch.await(30, TimeUnit.SECONDS);
-        Assert.assertEquals(0, latch.getCount());
-        channel.queueDelete(queueName);
     }
 }
