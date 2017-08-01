@@ -41,6 +41,6 @@
   <class name="JobYmlStorage" table="job_yml_storage">
     <id name="jobId" type="string" column="job_id"></id>
 
-    <property name="binary" type="binary"></property>
+    <property name="file" type="org.hibernate.type.BlobType"></property>
   </class>
 </hibernate-mapping>

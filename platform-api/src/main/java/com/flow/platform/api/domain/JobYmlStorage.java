@@ -22,7 +22,7 @@ package com.flow.platform.api.domain;
 public class JobYmlStorage {
     private String jobId;
 
-    private byte[] binary;
+    private byte[] file;
 
     public String getJobId() {
         return jobId;
@@ -32,11 +32,11 @@ public class JobYmlStorage {
         this.jobId = jobId;
     }
 
-    public byte[] getBinary() {
-        return binary;
+    public byte[] getFile() {
+        return file;
     }
 
-    public void setBinary(byte[] binary) {
-        this.binary = binary;
+    public void setFile(byte[] file) {
+        this.file = file;
     }
 }

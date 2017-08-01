@@ -5,9 +5,7 @@
 
 <hibernate-mapping package="com.flow.platform.api.domain">
   <class name="Flow" table="flow">
-    <composite-id name="path" >
-      <key-property name="path" type="string" length="100" column="path"/>
-    </composite-id>
+    <id name="path" type="string" column="path"></id>
 
     <property name="name" length="50" column="name"></property>
 
@@ -23,6 +21,7 @@
   <class name="YmlStorage" table="yml_storage">
     <id name="nodePath" type="string" column="node_path"></id>
 
-    <property name="binary" type="binary"></property>
+    <property name="file" type="org.hibernate.type.BlobType">
+    </property>
   </class>
 </hibernate-mapping>

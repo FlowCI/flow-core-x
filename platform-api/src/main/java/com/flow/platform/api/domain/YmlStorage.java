@@ -22,7 +22,7 @@ package com.flow.platform.api.domain;
 public class YmlStorage {
     private String nodePath;
 
-    private byte[] binary;
+    private byte[] file;
 
     public String getNodePath() {
         return nodePath;
@@ -32,11 +32,11 @@ public class YmlStorage {
         this.nodePath = nodePath;
     }
 
-    public byte[] getBinary() {
-        return binary;
+    public byte[] getFile() {
+        return file;
     }
 
-    public void setBinary(byte[] binary) {
-        this.binary = binary;
+    public void setFile(byte[] file) {
+        this.file = file;
     }
 }
