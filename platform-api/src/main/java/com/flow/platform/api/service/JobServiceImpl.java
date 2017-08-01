@@ -151,15 +151,11 @@ public class JobServiceImpl implements JobService {
     private Map<String, String> mergeEnvs(Map<String, String> flowEnv, Map<String, String> stepEnv) {
         Map<String, String> hash = new HashMap<>();
         if (flowEnv != null) {
-            flowEnv.forEach((k, v) -> {
-                hash.put(k, v);
-            });
+            hash.putAll(flowEnv);
         }
 
         if (stepEnv != null) {
-            stepEnv.forEach((k, v) -> {
-                hash.put(k, v);
-            });
+            hash.putAll(stepEnv);
         }
 
         return hash;
@@ -228,17 +224,17 @@ public class JobServiceImpl implements JobService {
      */
     private Cmd sendToQueue(CmdInfo cmdInfo) {
         Cmd cmd = null;
-        StringBuffer stringBuffer = new StringBuffer(queueUrl);
-        stringBuffer.append("?priority=1&retry=5");
+        StringBuilder stringBuilder = new StringBuilder(queueUrl);
+        stringBuilder.append("?priority=1&retry=5");
         try {
-            String res = HttpUtil.post(stringBuffer.toString(), cmdInfo.toJson());
+            String res = HttpUtil.post(stringBuilder.toString(), cmdInfo.toJson());
 
             if (res == null) {
                 LOGGER.warn(
-                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(),
+                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuilder.toString(),
                         cmdInfo.toJson()));
                 throw new HttpException(
-                    String.format("Post Session To Queue Error, cmdUrl: %s, cmdInfo: %s", stringBuffer.toString(),
+                    String.format("Post Session To Queue Error, cmdUrl: %s, cmdInfo: %s", stringBuilder.toString(),
                         cmdInfo.toJson()));
             }
 
