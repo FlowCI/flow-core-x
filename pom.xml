@@ -33,11 +33,9 @@
     <spring-test.version>4.3.9.RELEASE</spring-test.version>
     <spring-rabbit.version>1.7.3.RELEASE</spring-rabbit.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-    <socket.io-client.version>0.8.3</socket.io-client.version>
     <httpclient.version>4.5.3</httpclient.version>
     <wiremock.version>2.6.0</wiremock.version>
     <commons-fileupload.version>1.3.1</commons-fileupload.version>
-    <mos_java_sdk.version>0.0.3</mos_java_sdk.version>
     <log4j.version>2.8.2</log4j.version>
     <hibernate.version>5.2.10.Final</hibernate.version>
     <hibernate-common-annotation.version>5.0.1.Final</hibernate-common-annotation.version>
@@ -45,7 +43,6 @@
     <HikariCP.version>2.6.2</HikariCP.version>
     <jcabi-ssh.version>1.5.2</jcabi-ssh.version>
     <powermock.version>1.7.0</powermock.version>
-    <amqp-client.version>4.2.0</amqp-client.version>
     <snakeyaml.version>1.18</snakeyaml.version>
     <curator.version>2.12.0</curator.version>
   </properties>
@@ -157,12 +154,6 @@
       </dependency>
 
       <dependency>
-        <groupId>com.rabbitmq</groupId>
-        <artifactId>amqp-client</artifactId>
-        <version>${amqp-client.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
         <version>${httpclient.version}</version>
@@ -184,12 +175,6 @@
         <groupId>redis.clients</groupId>
         <artifactId>jedis</artifactId>
         <version>${jedis.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>mos_java_sdk</groupId>
-        <artifactId>mos_java_sdk</artifactId>
-        <version>${mos_java_sdk.version}</version>
       </dependency>
 
       <dependency>
@@ -280,6 +265,13 @@
         <groupId>com.github.tomakehurst</groupId>
         <artifactId>wiremock</artifactId>
         <version>${wiremock.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>8.5.14</version>
         <scope>test</scope>
       </dependency>
 

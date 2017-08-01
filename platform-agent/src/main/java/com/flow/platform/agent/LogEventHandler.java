@@ -42,7 +42,7 @@ import org.glassfish.tyrus.client.ClientManager;
 
 /**
  * Record log to $HOME/agent-log/{cmd id}.out.zip
- * Send log via socket io if socket.io url provided
+ * Send log via web socket if real time log enabled and ws url provided
  * <p>
  *
  * @author gy@fir.im
