@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.api.domain">
+  <class name="Job" table="job">
+    <id name="id" column="id"></id>
+
+    <property name="nodePath" length="50" column="name_path"></property>
+
+    <property name="createdAt" type="java.time.ZonedDateTime">
+      <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+
+    <property name="updatedAt" type="java.time.ZonedDateTime" update="false">
+      <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    </property>
+
+    <property name="duration" type="long" column="duration"></property>
+    <property name="exitCode" type="integer"></property>
+    <property name="cmdId" type="string" column="cmd_id"></property>
+    <property name="finishedAt" type="java.time.ZonedDateTime">
+       <column name="finished_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+    <property name="startedAt" type="java.time.ZonedDateTime">
+      <column name="started_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+
+    <property name="type" type="string"></property>
+
+    <property name="status" column="status" length="10" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.api.domain.NodeStatus</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
+  </class>
+
+
+  <class name="JobYmlStorage" table="job_yml_storage">
+    <id name="jobId" type="string" column="job_id"></id>
+
+    <property name="binary" type="binary"></property>
+  </class>
+</hibernate-mapping>

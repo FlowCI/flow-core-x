@@ -20,5 +20,10 @@
     </property>
   </class>
 
-  
+
+  <class name="YmlStorage" table="yml_storage">
+    <id name="nodePath" type="string" column="node_path"></id>
+
+    <property name="binary" type="binary"></property>
+  </class>
 </hibernate-mapping>

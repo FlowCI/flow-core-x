@@ -33,6 +33,8 @@ public class Job extends Jsonable {
 
     private Long duration;
 
+    private ZonedDateTime startedAt;
+
     private ZonedDateTime finishedAt;
 
     private Integer exitCode;
@@ -108,6 +110,14 @@ public class Job extends Jsonable {
 
     public void setFinishedAt(ZonedDateTime finishedAt) {
         this.finishedAt = finishedAt;
+    }
+
+    public ZonedDateTime getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(ZonedDateTime startedAt) {
+        this.startedAt = startedAt;
     }
 
     public Integer getExitCode() {
