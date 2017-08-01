@@ -17,10 +17,15 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
+import java.util.List;
 
 /**
  * @author yh@firim
  */
 public interface JobDao extends BaseDao<Long, Job> {
 
+    /**
+     * list Jobs
+     */
+    List<Job> list();
 }

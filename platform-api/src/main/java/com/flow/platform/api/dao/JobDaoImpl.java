@@ -17,6 +17,7 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
+import java.util.List;
 
 /**
  * @author yh@firim
@@ -31,5 +32,10 @@ public class JobDaoImpl extends AbstractBaseDao<Long, Job> implements JobDao {
     @Override
     String getKeyName() {
         return "id";
+    }
+
+    @Override
+    public List<Job> list() {
+        return null;
     }
 }
