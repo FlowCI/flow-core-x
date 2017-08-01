@@ -20,7 +20,6 @@
     </property>
   </class>
 
-
   <class name="YmlStorage" table="yml_storage">
     <id name="nodePath" type="string" column="node_path"></id>
 
