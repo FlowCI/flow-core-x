@@ -24,14 +24,9 @@ package com.flow.platform.domain;
 public class AgentSettings extends Jsonable {
 
     /**
-     * Host name of rabbitmq for real time logging
+     * web socket url for upload real time logging
      */
-    private String loggingQueueHost;
-
-    /**
-     * Queue name of rabbitmq for real time logging
-     */
-    private String loggingQueueName;
+    private String webSocketUrl;
 
     /**
      * Url for report cmd status
@@ -46,27 +41,18 @@ public class AgentSettings extends Jsonable {
     public AgentSettings() {
     }
 
-    public AgentSettings(String loggingQueueHost, String loggingQueueName, String cmdStatusUrl, String cmdLogUrl) {
-        this.loggingQueueHost = loggingQueueHost;
-        this.loggingQueueName = loggingQueueName;
+    public AgentSettings(String webSocketUrl, String cmdStatusUrl, String cmdLogUrl) {
+        this.webSocketUrl = webSocketUrl;
         this.cmdStatusUrl = cmdStatusUrl;
         this.cmdLogUrl = cmdLogUrl;
     }
 
-    public String getLoggingQueueHost() {
-        return loggingQueueHost;
+    public String getWebSocketUrl() {
+        return webSocketUrl;
     }
 
-    public void setLoggingQueueHost(String loggingQueueHost) {
-        this.loggingQueueHost = loggingQueueHost;
-    }
-
-    public String getLoggingQueueName() {
-        return loggingQueueName;
-    }
-
-    public void setLoggingQueueName(String loggingQueueName) {
-        this.loggingQueueName = loggingQueueName;
+    public void setWebSocketUrl(String webSocketUrl) {
+        this.webSocketUrl = webSocketUrl;
     }
 
     public String getCmdStatusUrl() {
@@ -88,8 +74,7 @@ public class AgentSettings extends Jsonable {
     @Override
     public String toString() {
         return "AgentSettings{" +
-            "loggingQueueHost='" + loggingQueueHost + '\'' +
-            ", loggingQueueName='" + loggingQueueName + '\'' +
+            ", webSocketUrl='" + webSocketUrl + '\'' +
             ", cmdStatusUrl='" + cmdStatusUrl + '\'' +
             ", cmdLogUrl='" + cmdLogUrl + '\'' +
             "} ";

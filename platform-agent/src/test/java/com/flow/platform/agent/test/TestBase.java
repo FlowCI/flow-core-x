@@ -46,8 +46,7 @@ public abstract class TestBase {
     @BeforeClass
     public static void beforeClassBase() {
         Config.AGENT_SETTINGS = new AgentSettings(
-                "amqp://127.0.0.1:5672",
-                "flow-logging-queue-ut",
+                "ws://localhost:8080/logging",
                 "http://localhost:8080/cmd/report",
                 "http://localhost:8080/cmd/log/upload");
     }
