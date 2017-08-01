@@ -18,6 +18,11 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Flow;
 import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -38,6 +43,13 @@ public class FlowDaoImpl extends AbstractBaseDao<String, Flow> implements FlowDa
 
     @Override
     public List<Flow> list() {
-        return null;
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Flow> select = builder.createQuery(Flow.class);
+            Root<Flow> flow = select.from(Flow.class);
+            Predicate condition = builder.not(flow.get("path").isNull());
+            select.where(condition);
+            return session.createQuery(select).list();
+        });
     }
 }
