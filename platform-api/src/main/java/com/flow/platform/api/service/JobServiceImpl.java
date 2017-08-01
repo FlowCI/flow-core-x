@@ -230,12 +230,12 @@ public class JobServiceImpl implements JobService {
             String res = HttpUtil.post(stringBuilder.toString(), cmdInfo.toJson());
 
             if (res == null) {
-                LOGGER.warn(
-                    String.format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuilder.toString(),
-                        cmdInfo.toJson()));
-                throw new HttpException(
-                    String.format("Post Session To Queue Error, cmdUrl: %s, cmdInfo: %s", stringBuilder.toString(),
-                        cmdInfo.toJson()));
+                String message = String
+                    .format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuilder.toString(),
+                        cmdInfo.toJson());
+
+                LOGGER.warn(message);
+                throw new HttpException(message);
             }
 
             cmd = Jsonable.parse(res, Cmd.class);
