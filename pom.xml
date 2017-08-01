@@ -45,6 +45,7 @@
     <powermock.version>1.7.0</powermock.version>
     <snakeyaml.version>1.18</snakeyaml.version>
     <curator.version>2.12.0</curator.version>
+    <tyrus-server.version>1.13.1</tyrus-server.version>
   </properties>
 
   <build>
@@ -120,13 +121,13 @@
       <dependency>
         <groupId>org.glassfish.tyrus</groupId>
         <artifactId>tyrus-server</artifactId>
-        <version>1.13.1</version>
+        <version>${tyrus-server.version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.glassfish.tyrus</groupId>
         <artifactId>tyrus-container-grizzly-server</artifactId>
-        <version>1.12</version>
+        <version>${tyrus-server.version}</version>
       </dependency>
 
       <dependency>
