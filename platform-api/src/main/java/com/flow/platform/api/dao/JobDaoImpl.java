@@ -18,10 +18,12 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
 import java.util.List;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author yh@firim
  */
+@Repository(value = "jobDao")
 public class JobDaoImpl extends AbstractBaseDao<Long, Job> implements JobDao {
 
     @Override

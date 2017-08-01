@@ -18,10 +18,12 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Flow;
 import java.util.List;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author yh@firim
  */
+@Repository(value = "flowDao")
 public class FlowDaoImpl extends AbstractBaseDao<String, Flow> implements FlowDao {
 
     @Override

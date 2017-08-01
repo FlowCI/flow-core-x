@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+    <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+    <property name="jdbcUrl" value="${jdbc.url}"/>
+    <property name="username" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+    <property name="poolName" value="springHikariCP"/>
+    <property name="maximumPoolSize" value="${jdbc.pool.size}"/>
+    <property name="autoCommit" value="${jdbc.commit.auto}"/>
+    <property name="connectionTimeout" value="${jdbc.connection.timeout}"/>
+    <property name="dataSourceProperties">
+      <props>
+        <prop key="cachePrepStmts">true</prop>
+        <prop key="prepStmtCacheSize">250</prop>
+        <prop key="prepStmtCacheSqlLimit">2048</prop>
+        <prop key="useServerPrepStmts">true</prop>
+      </props>
+    </property>
+  </bean>
+
+  <bean id="hikariCpDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+    <constructor-arg ref="hikariConfig"/>
+  </bean>
+
+  <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+    <property name="dataSource" ref="hikariCpDataSource"/>
+    <property name="mappingResources">
+      <list>
+        <value>com/flow/platform/api/dao/hbm/flow.hbm.xml</value>
+        <value>com/flow/platform/api/dao/hbm/job.hbm.xml</value>
+      </list>
+    </property>
+    <property name="hibernateProperties">
+      <props>
+        <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+        <prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+        <prop key="hibernate.format_sql">true</prop>
+        <prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</prop>
+      </props>
+    </property>
+  </bean>
+
+  <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+    <property name="sessionFactory" ref="sessionFactory"/>
+  </bean>
+
+  <bean id="persistenceExceptionTranslationPostProcessor"
+    class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
+
+</beans>

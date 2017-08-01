@@ -15,6 +15,9 @@ package com.flow.platform.api.test;/*
  */
 
 import com.flow.platform.api.config.WebConfig;
+import com.flow.platform.api.dao.FlowDao;
+import com.flow.platform.api.dao.JobDao;
+import com.flow.platform.api.dao.YmlStorageDao;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -51,6 +54,15 @@ public abstract class TestBase {
     }
 
     @Autowired
+    private FlowDao flowDao;
+
+    @Autowired
+    private JobDao jobDao;
+
+    @Autowired
+    private YmlStorageDao ymlStorageDao;
+
+    @Autowired
     private WebApplicationContext webAppContext;
 
     @Autowired
@@ -63,11 +75,18 @@ public abstract class TestBase {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
     }
 
+    private void cleanDatabase(){
+        flowDao.deleteAll();
+        jobDao.deleteAll();
+        ymlStorageDao.deleteAll();
+    }
+
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
     @After
     public void afterEach() {
+        cleanDatabase();
     }
 
     @AfterClass

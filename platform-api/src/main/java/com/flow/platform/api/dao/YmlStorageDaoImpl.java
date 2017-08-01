@@ -17,10 +17,12 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.YmlStorage;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author yh@firim
  */
+@Repository(value = "ymlStorageDao")
 public class YmlStorageDaoImpl extends AbstractBaseDao<String, YmlStorage> implements YmlStorageDao {
 
     @Override
