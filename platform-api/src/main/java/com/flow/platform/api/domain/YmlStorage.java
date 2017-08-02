@@ -39,4 +39,36 @@ public class YmlStorage {
     public void setFile(String file) {
         this.file = file;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        YmlStorage that = (YmlStorage) o;
+
+        if (nodePath != null ? !nodePath.equals(that.nodePath) : that.nodePath != null) {
+            return false;
+        }
+        return file != null ? file.equals(that.file) : that.file == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = nodePath != null ? nodePath.hashCode() : 0;
+        result = 31 * result + (file != null ? file.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "YmlStorage{" +
+            "nodePath='" + nodePath + '\'' +
+            ", file='" + file + '\'' +
+            '}';
+    }
 }
