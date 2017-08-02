@@ -42,5 +42,15 @@ public class YmlStorageDaoTest extends TestBase{
         YmlStorage ymlStorage1 = ymlStorageDao.get(ymlStorage.getNodePath());
         Assert.assertNotNull(ymlStorage1);
         Assert.assertEquals("sssss", ymlStorage1.getFile());
+
+        ymlStorage.setFile(null);
+        ymlStorageDao.update(ymlStorage);
+        ymlStorage1 = ymlStorageDao.get(ymlStorage.getNodePath());
+        Assert.assertEquals(null, ymlStorage1.getFile());
+
+        ymlStorage.setFile("");
+        ymlStorageDao.update(ymlStorage);
+        ymlStorage1 = ymlStorageDao.get(ymlStorage.getNodePath());
+        Assert.assertEquals("", ymlStorage1.getFile());
     }
 }
