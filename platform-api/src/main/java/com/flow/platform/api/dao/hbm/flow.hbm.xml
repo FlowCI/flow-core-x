@@ -21,7 +21,7 @@
   <class name="YmlStorage" table="yml_storage">
     <id name="nodePath" type="string" column="node_path"></id>
 
-    <property name="file" type="org.hibernate.type.BlobType">
+    <property name="file" type="com.flow.platform.api.dao.adaptor.ByteAdaptor">
     </property>
   </class>
 </hibernate-mapping>

@@ -16,8 +16,14 @@
 
 package com.flow.platform.api.dao;
 
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -38,6 +44,13 @@ public class JobDaoImpl extends AbstractBaseDao<Long, Job> implements JobDao {
 
     @Override
     public List<Job> list() {
-        return null;
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> job = select.from(Job.class);
+            Predicate condition = builder.not(job.get("id").isNull());
+            select.where(condition);
+            return session.createQuery(select).list();
+        });
     }
 }
