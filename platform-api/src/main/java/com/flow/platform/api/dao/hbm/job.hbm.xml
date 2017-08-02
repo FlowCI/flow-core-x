@@ -20,7 +20,7 @@
     </property>
 
     <property name="finishedAt" type="java.time.ZonedDateTime">
-       <column name="finished_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+      <column name="finished_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
     </property>
     <property name="startedAt" type="java.time.ZonedDateTime">
       <column name="started_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>

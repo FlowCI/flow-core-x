@@ -35,13 +35,13 @@ public class YmlStorageDaoTest extends TestBase{
     @Test
     public void should_save_and_get_success(){
         YmlStorage ymlStorage = new YmlStorage();
-        ymlStorage.setFile("sssss");
+        ymlStorage.setFile("YML config");
         ymlStorage.setNodePath("/flow");
         ymlStorageDao.save(ymlStorage);
 
         YmlStorage ymlStorage1 = ymlStorageDao.get(ymlStorage.getNodePath());
         Assert.assertNotNull(ymlStorage1);
-        Assert.assertEquals("sssss", ymlStorage1.getFile());
+        Assert.assertEquals("YML config", ymlStorage1.getFile());
 
         ymlStorage.setFile(null);
         ymlStorageDao.update(ymlStorage);
