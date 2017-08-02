@@ -22,7 +22,7 @@ package com.flow.platform.api.domain;
 public class JobYmlStorage {
     private String jobId;
 
-    private byte[] file;
+    private String file;
 
     public String getJobId() {
         return jobId;
@@ -32,11 +32,32 @@ public class JobYmlStorage {
         this.jobId = jobId;
     }
 
-    public byte[] getFile() {
+    public String getFile() {
         return file;
     }
 
-    public void setFile(byte[] file) {
+    public void setFile(String file) {
         this.file = file;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        JobYmlStorage that = (JobYmlStorage) o;
+
+        return jobId != null ? jobId.equals(that.jobId) : that.jobId == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = jobId != null ? jobId.hashCode() : 0;
+        result = 31 * result + (file != null ? file.hashCode() : 0);
+        return result;
     }
 }

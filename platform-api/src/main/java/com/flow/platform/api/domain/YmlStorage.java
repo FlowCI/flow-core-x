@@ -51,10 +51,7 @@ public class YmlStorage {
 
         YmlStorage that = (YmlStorage) o;
 
-        if (nodePath != null ? !nodePath.equals(that.nodePath) : that.nodePath != null) {
-            return false;
-        }
-        return file != null ? file.equals(that.file) : that.file == null;
+        return nodePath != null ? nodePath.equals(that.nodePath) : that.nodePath == null;
     }
 
     @Override
