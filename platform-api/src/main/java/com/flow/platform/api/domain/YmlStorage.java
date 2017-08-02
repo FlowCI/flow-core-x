@@ -40,6 +40,14 @@ public class YmlStorage {
         this.file = file;
     }
 
+    public YmlStorage(String nodePath, String file) {
+        this.nodePath = nodePath;
+        this.file = file;
+    }
+
+    public YmlStorage() {
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
