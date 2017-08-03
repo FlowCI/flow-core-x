@@ -65,7 +65,10 @@ public class NodeServiceImpl implements NodeService {
         mocNodeList.put(node.getPath(), node);
 
         if(node instanceof  Flow){
-            flowDao.save((Flow) node);
+            Flow flow = flowDao.get(node.getPath());
+            if(flow == null){
+                flowDao.save((Flow) node);
+            }
         }
 
         return node;
