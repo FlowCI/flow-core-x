@@ -47,9 +47,9 @@ public abstract class GitClient {
     /**
      * Git clone from remote url
      *
-     * @param destDir git dest dir
+     * @param destDir dest folder include .git
      * @param noCheckout git clone xxxx --no-checkout, only clone .git dir
-     * @return .git folder
+     * @return .git folder path
      */
     public File clone(String destDir, boolean noCheckout) {
         try (Git git = cloneCommand(destDir, noCheckout).call()) {
@@ -59,6 +59,13 @@ public abstract class GitClient {
         }
     }
 
+    /**
+     * Git clone from remote url with specific checkout files
+     *
+     * @param destDir dest folder include .git
+     * @param checkoutFiles specific checkout file
+     * @return .git folder path
+     */
     public File clone(String destDir, Set<String> checkoutFiles) {
         File gitDir = clone(destDir, true);
         String branch;
