@@ -71,11 +71,6 @@
     </dependency>
 
     <dependency>
-      <groupId>com.jcabi</groupId>
-      <artifactId>jcabi-ssh</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
