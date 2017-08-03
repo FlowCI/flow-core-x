@@ -23,6 +23,7 @@ import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;
+import java.math.BigInteger;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,12 +56,12 @@ public class JobController {
     }
 
     @GetMapping(path = "/jobs/{id}/steps")
-    public Collection<JobStep> showSteps(@PathVariable String id) {
+    public Collection<JobStep> showSteps(@PathVariable BigInteger id) {
         return jobService.listJobStep(id);
     }
 
     @GetMapping(path = "/jobs/{id}")
-    public Job show(@PathVariable String id) {
+    public Job show(@PathVariable BigInteger id) {
         return jobService.find(id);
     }
 }

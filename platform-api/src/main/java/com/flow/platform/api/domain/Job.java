@@ -17,13 +17,14 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
+import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Job extends Jsonable {
 
-    private String id;
+    private BigInteger id;
 
     private String type;
 
@@ -52,7 +53,7 @@ public class Job extends Jsonable {
     public Job() {
     }
 
-    public Job(String id) {
+    public Job(BigInteger id) {
         this.id = id;
     }
 
@@ -64,11 +65,11 @@ public class Job extends Jsonable {
         this.sessionId = sessionId;
     }
 
-    public String getId() {
+    public BigInteger getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(BigInteger id) {
         this.id = id;
     }
 

@@ -16,7 +16,6 @@
 
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;

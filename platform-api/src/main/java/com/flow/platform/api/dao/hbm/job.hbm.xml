@@ -5,7 +5,7 @@
 
 <hibernate-mapping package="com.flow.platform.api.domain">
   <class name="Job" table="job">
-    <id name="id" column="id"></id>
+    <id name="id" column="id" type="big_integer"></id>
 
     <property name="nodePath" length="50" column="name_path"></property>
     <property name="duration" type="long" column="duration"></property>

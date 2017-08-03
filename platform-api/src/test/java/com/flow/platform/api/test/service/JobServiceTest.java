@@ -108,7 +108,7 @@ public class JobServiceTest extends TestBase {
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId("11111111");
         cmd.setStatus(CmdStatus.SENT);
-        jobService.callback(job.getId(), cmd);
+        jobService.callback(job.getId().toString(), cmd);
         Assert.assertEquals("11111111", job.getSessionId());
 
         cmd.setStatus(CmdStatus.RUNNING);

@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.exception.HttpException;
 import com.flow.platform.api.exception.NotFoundException;
+import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.UrlUtil;
@@ -35,6 +36,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
+import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,7 +71,7 @@ public class JobServiceImpl implements JobService {
     @Value(value = "${platform.queue.url}")
     private String queueUrl;
 
-    private final Map<String, Job> mocJobList = new HashMap<>();
+    private final Map<BigInteger, Job> mocJobList = new HashMap<>();
 
     @Override
     public Job createJob(String nodePath) {
@@ -77,7 +79,7 @@ public class JobServiceImpl implements JobService {
         //create job node
         JobFlow jobFlow = (JobFlow) jobNodeService.createJobNode(nodePath);
         //update job status
-        job.setId(UUID.randomUUID().toString());
+        job.setId(CommonUtil.randomId());
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
         job.setNodePath(jobFlow.getPath());
@@ -93,7 +95,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public void callback(String id, CmdBase cmdBase) {
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
-            Job job = find(id);
+            Job job = find(new BigInteger(id));
             if (job == null) {
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
                 throw new RuntimeException("job not found");
@@ -172,7 +174,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job find(String id) {
+    public Job find(BigInteger id) {
         return mocJobList.get(id);
     }
 
@@ -186,7 +188,7 @@ public class JobServiceImpl implements JobService {
      * get job callback
      */
     private String getJobHook(Job job) {
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(job.getId());
+        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString());
     }
 
     /**
@@ -435,7 +437,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<JobStep> listJobStep(String jobId) {
+    public List<JobStep> listJobStep(BigInteger jobId) {
         Job job = find(jobId);
         if (job == null) {
             throw new NotFoundException(String.format("Not Found Job - %s", job.getId()));

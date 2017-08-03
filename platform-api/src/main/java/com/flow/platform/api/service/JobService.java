@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.domain.CmdBase;
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -55,7 +56,7 @@ public interface JobService {
     /**
      * find job by id
      */
-    Job find(String id);
+    Job find(BigInteger id);
 
     /**
      * update job
@@ -65,5 +66,5 @@ public interface JobService {
     /**
      * show job's job step
      */
-    List<JobStep> listJobStep(String jobId);
+    List<JobStep> listJobStep(BigInteger jobId);
 }
