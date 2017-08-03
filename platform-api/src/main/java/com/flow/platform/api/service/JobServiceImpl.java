@@ -129,7 +129,8 @@ public class JobServiceImpl implements JobService {
         cmdInfo.setInputs(mergeEnvs(jobFlow.getEnvs(), node.getEnvs()));
         cmdInfo.setWebhook(getNodeHook(node));
 
-        cmdInfo.setSessionId(jobFlow.getJob().getSessionId());
+        Job job = find(jobFlow.getJob().getId());
+        cmdInfo.setSessionId(job.getSessionId());
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
         try {
             String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
@@ -297,7 +298,10 @@ public class JobServiceImpl implements JobService {
      * update job flow status
      */
     private void updateJobStatus(JobNode jobNode) {
-        Job job = jobNode.getJob();
+        Job job = null;
+        if(jobNode.getJob() != null){
+            job = find(jobNode.getJob().getId());
+        }
         if (job == null) {
             return;
         }
