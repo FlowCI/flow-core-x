@@ -15,13 +15,18 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.dao.FlowDao;
+import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.exception.IllegalParameterException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,15 +38,23 @@ public class NodeServiceImpl implements NodeService {
 
     private final Map<String, Node> mocNodeList = new HashMap<>();
 
+    @Autowired
+    private YmlStorageService ymlStorageService;
+
+    @Autowired
+    private FlowDao flowDao;
+
     @Override
     public Node create(Node node) {
         NodeUtil.recurse(node, item -> {
-             String env = System.getProperty("flow.api.env");
+            String env = System.getProperty("flow.api.env");
             if (item instanceof Step && env != "test") {
                 if (NodeUtil.canRun(item) && (item.getScript() == null || item.getScript().isEmpty())) {
-                    throw new IllegalParameterException(String.format("Missing Param Script, NodeName: %s", item.getName()));
+                    throw new IllegalParameterException(
+                        String.format("Missing Param Script, NodeName: %s", item.getName()));
                 }
             }
+
             save(item);
         });
         return node;
@@ -50,11 +63,24 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public Node save(Node node) {
         mocNodeList.put(node.getPath(), node);
+
+        if(node instanceof  Flow){
+            flowDao.save((Flow) node);
+        }
+
         return node;
     }
 
+
+
     @Override
     public Node find(String nodePath) {
-        return mocNodeList.get(nodePath);
+        Node node = mocNodeList.get(nodePath);
+        if (node == null) {
+            create(NodeUtil.buildFromYml(ymlStorageService.get(nodePath).getFile()));
+            return find(nodePath);
+        }else{
+            return node;
+        }
     }
 }

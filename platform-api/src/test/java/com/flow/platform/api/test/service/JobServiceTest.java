@@ -109,18 +109,23 @@ public class JobServiceTest extends TestBase {
         cmd.setSessionId("11111111");
         cmd.setStatus(CmdStatus.SENT);
         jobService.callback(job.getId().toString(), cmd);
+
+        job = jobService.find(job.getId());
         Assert.assertEquals("11111111", job.getSessionId());
 
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setType(CmdType.RUN_SHELL);
         jobService.callback(step3.getPath(), cmd);
+        job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, job.getStatus());
+        job = jobService.find(job.getId());
         JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
         Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
 
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setType(CmdType.RUN_SHELL);
         jobService.callback(step2.getPath(), cmd);
+        job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, ((JobStep) jobNodeService.find(step2.getPath())).getStatus());
         Assert.assertEquals(NodeStatus.FAILURE, job.getStatus());
         jobFlow = (JobFlow) jobNodeService.find(flow.getPath());

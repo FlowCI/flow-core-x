@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.YmlStorageService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
@@ -48,10 +49,14 @@ public class JobController {
     @Autowired
     private NodeService nodeService;
 
+    @Autowired
+    private YmlStorageService ymlStorageService;
+
     @PostMapping(path = "/jobs")
     public Job create(@RequestBody String body) {
         Node node = NodeUtil.buildFromYml(body);
         nodeService.create(node);
+        ymlStorageService.save(node.getPath(), body);
         return jobService.createJob(node.getPath());
     }
 

@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
@@ -59,6 +60,9 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private JobNodeService jobNodeService;
 
+    @Autowired
+    private JobDao jobDao;
+
     @Value(value = "${domain}")
     private String domain;
 
@@ -71,11 +75,9 @@ public class JobServiceImpl implements JobService {
     @Value(value = "${platform.queue.url}")
     private String queueUrl;
 
-    private final Map<BigInteger, Job> mocJobList = new HashMap<>();
-
     @Override
     public Job createJob(String nodePath) {
-        Job job = new Job();
+        Job job = new Job(CommonUtil.randomId());
         //create job node
         JobFlow jobFlow = (JobFlow) jobNodeService.createJobNode(nodePath);
         //update job status
@@ -169,18 +171,18 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job save(Job job) {
-        mocJobList.put(job.getId(), job);
+        jobDao.save(job);
         return job;
     }
 
     @Override
     public Job find(BigInteger id) {
-        return mocJobList.get(id);
+        return jobDao.get(id);
     }
 
     @Override
     public Job update(Job job) {
-        mocJobList.put(job.getId(), job);
+        jobDao.update(job);
         return job;
     }
 
@@ -210,7 +212,7 @@ public class JobServiceImpl implements JobService {
         //enter queue
         job.setStatus(NodeStatus.ENQUEUE);
         job.setCmdId(cmd.getId());
-        save(job);
+        update(job);
     }
 
     /**
@@ -308,7 +310,7 @@ public class JobServiceImpl implements JobService {
         }
 
         job.setStatus(nodeStatus);
-        save(job);
+        update(job);
 
         //delete session
         if (nodeStatus == NodeStatus.FAILURE || nodeStatus == NodeStatus.SUCCESS) {
