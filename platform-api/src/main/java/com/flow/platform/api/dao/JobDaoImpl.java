@@ -17,6 +17,7 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
+import java.math.BigInteger;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Repository;
  * @author yh@firim
  */
 @Repository(value = "jobDao")
-public class JobDaoImpl extends AbstractBaseDao<Long, Job> implements JobDao {
+public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobDao {
 
     @Override
     Class<Job> getEntityClass() {

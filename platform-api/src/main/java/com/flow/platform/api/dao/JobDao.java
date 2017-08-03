@@ -17,12 +17,13 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
+import java.math.BigInteger;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
-public interface JobDao extends BaseDao<Long, Job> {
+public interface JobDao extends BaseDao<BigInteger, Job> {
 
     /**
      * list Jobs

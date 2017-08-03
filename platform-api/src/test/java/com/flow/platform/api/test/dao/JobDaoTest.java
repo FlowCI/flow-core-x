@@ -20,35 +20,85 @@ import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.test.TestBase;
-import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Random;
-import java.util.UUID;
+import com.flow.platform.api.util.CommonUtil;
+import java.time.ZonedDateTime;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author yh@firim
  */
-public class JobDaoTest extends TestBase{
+public class JobDaoTest extends TestBase {
 
     @Autowired
     private JobDao jobDao;
 
     @Test
-    public void should_save_success(){
-        Job job = new Job();
-        job.setStatus(NodeStatus.PENDING);
-        String simpleDateFormat ;
-        for (int i = 0; i < 100; i++) {
-            Date date = new Date();
-            simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmssSS").format(date);
-            UUID uuid = UUID.randomUUID();
-            String res = simpleDateFormat ;//+ Math.abs(uuid.hashCode());
-            Long dou = Long.valueOf(res);
-//            System.out.println(dou);
-            System.out.println(uuid.hashCode());
-        }
+    public void should_save_and_get_success() {
+        Job job = new Job(CommonUtil.randomId());
+        job.setStatus(NodeStatus.SUCCESS);
+        job.setExitCode(0);
+        job.setCmdId("1111");
+        job.setNodePath("/flow/test");
+        job.setStartedAt(ZonedDateTime.now());
+        job.setFinishedAt(ZonedDateTime.now());
+        jobDao.save(job);
+
+        Job job1 = jobDao.get(job.getId());
+        Assert.assertNotNull(job1);
+        Assert.assertEquals(job.getNodePath(), job1.getNodePath());
     }
+
+    @Test
+    public void should_update_success() {
+        Job job = new Job(CommonUtil.randomId());
+        job.setStatus(NodeStatus.SUCCESS);
+        job.setExitCode(0);
+        job.setCmdId("1111");
+        job.setNodePath("/flow/test");
+        job.setStartedAt(ZonedDateTime.now());
+        job.setFinishedAt(ZonedDateTime.now());
+        jobDao.save(job);
+
+        Job job1 = jobDao.get(job.getId());
+        job.setNodePath("/flow/sss");
+        jobDao.update(job);
+
+        Job job2 = jobDao.get(job.getId());
+        Assert.assertEquals(job1.getId(), job2.getId());
+        Assert.assertNotEquals(job1.getNodePath(), job2.getNodePath());
+    }
+
+    @Test
+    public void should_list_success() {
+        Job job = new Job(CommonUtil.randomId());
+        job.setStatus(NodeStatus.SUCCESS);
+        job.setExitCode(0);
+        job.setCmdId("1111");
+        job.setNodePath("/flow/test");
+        job.setStartedAt(ZonedDateTime.now());
+        job.setFinishedAt(ZonedDateTime.now());
+        jobDao.save(job);
+
+        Assert.assertEquals(1, jobDao.list().size());
+    }
+
+
+    @Test
+    public void should_delete_success() {
+        Job job = new Job(CommonUtil.randomId());
+        job.setStatus(NodeStatus.SUCCESS);
+        job.setExitCode(0);
+        job.setCmdId("1111");
+        job.setNodePath("/flow/test");
+        job.setStartedAt(ZonedDateTime.now());
+        job.setFinishedAt(ZonedDateTime.now());
+        jobDao.save(job);
+        Assert.assertEquals(1, jobDao.list().size());
+        jobDao.delete(job);
+        Assert.assertEquals(0, jobDao.list().size());
+    }
+
+
 }
