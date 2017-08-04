@@ -51,6 +51,10 @@ public class Job extends Jsonable {
 
     private Map<String, String> envs = new HashMap<>();
 
+    private String nodeName;
+
+    private String branch;
+
     public Job() {
     }
 
@@ -160,6 +164,22 @@ public class Job extends Jsonable {
 
     public void setCmdId(String cmdId) {
         this.cmdId = cmdId;
+    }
+
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     @Override

@@ -17,13 +17,18 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.NodeStatus;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
+import org.hibernate.criterion.Order;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -52,5 +57,59 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             select.where(condition);
             return session.createQuery(select).list();
         });
+    }
+
+    @Override
+    public List<Job> list(NodeStatus... statuses) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> job = select.from(Job.class);
+            Set<NodeStatus> nodeStatuses = new HashSet<>();
+            for (NodeStatus status : statuses) {
+                nodeStatuses.add(status);
+            }
+            Predicate condition = job.get("status").in(nodeStatuses);
+            select.where(condition);
+            return session.createQuery(select).list();
+        });
+    }
+
+
+    @Override
+    public List<Job> listLatest(List<String> names) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> job = select.from(Job.class);
+            Set<String> strings = new HashSet<>();
+            for (String name : names) {
+                strings.add(name);
+            }
+            Predicate condition = job.get("nodeName").in(names);
+            select.where(condition);
+            select.orderBy(builder.asc(job.get("createdAt")));
+            List<Job> originJobs = session.createQuery(select)
+                .list();
+            List<Job> jobs = new ArrayList<>();
+            for (String name : names){
+                Job j = findByNodeName(name, originJobs);
+                if(j != null){
+                    jobs.add(j);
+                }
+            }
+            return jobs;
+        });
+    }
+
+    private Job findByNodeName(String nodeName, List<Job> jobs){
+        Job j = null;
+        for (Job job : jobs) {
+            if(job.getNodeName().equals(nodeName)){
+                j = job;
+                break;
+            }
+        }
+        return j;
     }
 }

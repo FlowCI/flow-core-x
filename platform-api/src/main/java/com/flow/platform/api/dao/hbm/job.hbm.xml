@@ -9,7 +9,8 @@
       <column name="id" sql-type="decimal(25, 2)"></column>
     </id>
 
-    <property name="nodePath" length="50" column="name_path"></property>
+    <property name="nodeName" column="node_name"></property>
+    <property name="nodePath" column="name_path"></property>
     <property name="duration" type="long" column="duration"></property>
     <property name="exitCode" type="integer"></property>
     <property name="cmdId" type="string" column="cmd_id"></property>

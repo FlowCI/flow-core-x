@@ -39,10 +39,15 @@
         Route: /agents
         Response:
            [
-            {
-              status: "RUNNING"
-              name: "AGENT_1",
-              flowName: "flow1"
-            }
+             {
+               "path": {
+                 "zone": "default",
+                 "name": "testd"
+               },
+               "flowName": "flow6",
+               "agentStatus": "BUSY",
+               "number": 10,
+               "branch": "master"
+             }
            ]
     ```

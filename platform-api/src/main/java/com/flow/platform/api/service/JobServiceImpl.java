@@ -85,6 +85,7 @@ public class JobServiceImpl implements JobService {
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
         job.setNodePath(jobFlow.getPath());
+        job.setNodeName(jobFlow.getName());
         job.setStatus(NodeStatus.PENDING);
         save(job);
         jobFlow.setJob(job);
@@ -459,5 +460,11 @@ public class JobServiceImpl implements JobService {
             }
         }
         return jobSteps;
+    }
+
+
+    @Override
+    public List<Job> listLatestJobs(List<String> names) {
+        return jobDao.listLatest(names);
     }
 }

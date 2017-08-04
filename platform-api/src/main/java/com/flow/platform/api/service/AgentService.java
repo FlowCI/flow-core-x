@@ -14,27 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.adaptor;
+package com.flow.platform.api.service;
 
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import java.io.IOException;
-import java.time.ZonedDateTime;
+import com.flow.platform.api.domain.AgentWithFlow;
+import java.util.List;
 
 /**
  * @author yh@firim
  */
-public class ZonedDateTimeAdaptor extends TypeAdapter<ZonedDateTime> {
-
-    @Override
-    public void write(JsonWriter out, ZonedDateTime value) throws IOException {
-        out.value(value.toEpochSecond());
-    }
-
-    @Override
-    public ZonedDateTime read(JsonReader in) throws IOException {
-
-        return null;
-    }
+public interface AgentService {
+    List<AgentWithFlow> list();
 }

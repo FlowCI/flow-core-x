@@ -16,10 +16,8 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.dao.FlowDao;
-import com.flow.platform.api.domain.Flow;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.service.AgentService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,20 +27,15 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author yh@firim
  */
-
 @RestController
-@RequestMapping(path = "/flows")
-public class FlowController {
+@RequestMapping(path = "/agents")
+public class AgentsController {
 
     @Autowired
-    private FlowDao flowDao;
+    private AgentService agentService;
 
     @GetMapping
-    public String index() {
-        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        return gson.toJson(flowDao.list());
+    public List<AgentWithFlow> index(){
+        return agentService.list();
     }
-//    public List<Flow> index() {
-//        return flowDao.list();
-//    }
 }
