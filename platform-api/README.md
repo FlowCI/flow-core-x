@@ -23,7 +23,7 @@
   ### GET latest job status
     ```
         Method: Post
-        Route: /job/lastest_status
+        Route: /job/status/lastest
         Body: ['/flow-1', '/flow-2']
         Response:
             [
