@@ -16,32 +16,34 @@
 
 package com.flow.platform.util.git;
 
-import java.util.Collection;
-import org.eclipse.jgit.lib.Ref;
+import java.io.Serializable;
 
 /**
  * @author yang
  */
-public interface GitClient {
+public class Commit implements Serializable {
 
-    /**
-     * Git pull with depth
-     * @param depth git pull depth, can be set to null
-     */
-    void pull(Integer depth);
+    private String id;
 
-    /**
-     * Load all branches from git
-     */
-    Collection<Ref> branches();
+    private String message;
 
-    /**
-     * Load all tags from git
-     */
-    Collection<Ref> tags();
+    private String author;
 
-    /**
-     * Git latest commit from ref
-     */
-    Commit commit(String refName);
+    public Commit(String id, String message, String author) {
+        this.id = id;
+        this.message = message;
+        this.author = author;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
 }

@@ -16,14 +16,15 @@
 
 package com.flow.platform.util.git.test;
 
-import com.flow.platform.util.git.GitClient;
-import com.flow.platform.util.git.SshGitClient;
+import com.flow.platform.util.git.GitLocalClient;
+import com.flow.platform.util.git.GitSshClient;
 import com.google.common.collect.Sets;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Set;
 import org.eclipse.jgit.lib.Ref;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +33,7 @@ import org.junit.rules.TemporaryFolder;
 /**
  * @author yang
  */
-public class GitClientTest {
+public class GitSshClientTest {
 
     private final static String TEST_GIT_SSH_URL = "git@github.com:flow-ci-plugin/for-testing.git";
 
@@ -41,7 +42,7 @@ public class GitClientTest {
 
     @Test
     public void should_load_all_branch_and_tags() throws Throwable {
-        GitClient client = new SshGitClient(TEST_GIT_SSH_URL);
+        GitSshClient client = new GitSshClient(TEST_GIT_SSH_URL, null);
 
         // load all branches
         Collection<Ref> branches = client.branches();
@@ -57,10 +58,10 @@ public class GitClientTest {
     @Test
     public void should_clone_repo() throws Throwable {
         // when: clone only for plugin config file
-        SshGitClient gitClient = new SshGitClient(TEST_GIT_SSH_URL);
-
         String tmpPath = folder.getRoot().getAbsolutePath();
-        gitClient.clone(tmpPath, 1, Sets.newHashSet(".flow.yml"));
+
+        GitSshClient gitClient = new GitSshClient(TEST_GIT_SSH_URL, Paths.get(tmpPath));
+        gitClient.clone(1, Sets.newHashSet(".flow.yml"));
 
         final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml");
 
@@ -70,5 +71,10 @@ public class GitClientTest {
         for (File file : files) {
             Assert.assertTrue(acceptedFiles.contains(file.getName()));
         }
+    }
+
+    @After
+    public void after() {
+        folder.delete();
     }
 }
