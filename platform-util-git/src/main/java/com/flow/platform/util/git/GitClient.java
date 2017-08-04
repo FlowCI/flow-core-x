@@ -29,6 +29,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 
 /**
@@ -66,23 +67,33 @@ public abstract class GitClient {
      * @param checkoutFiles specific checkout file
      * @return .git folder path
      */
-    public File clone(String destDir, Set<String> checkoutFiles) {
-        File gitDir = clone(destDir, true);
-        String branch;
+    public File clone(String destDir, int depth, Set<String> checkoutFiles) {
+        File gitDir;
+        try (Git git = Git.init().setDirectory(new File(destDir)).call()) {
+            Repository repository = git.getRepository();
 
-        // setup sparse checkout
-        try (Git git = Git.open(gitDir)) {
-            StoredConfig config = git.getRepository().getConfig();
-            configSparseCheckout(config, true);
-            addSparseCheckoutFile(gitDir, checkoutFiles);
-            branch = git.getRepository().getBranch();
-        } catch (Throwable e) {
-            throw new GitException("Fail to set sparse checkout config", e);
+            gitDir = repository.getDirectory();
+            setSparseCheckout(checkoutFiles, gitDir);
+            configRemote(repository.getConfig(), "origin", gitUrl);
+
+        } catch (GitAPIException e) {
+            throw new GitException("Fail to clone git repo", e);
+        } catch (GitException e) {
+            throw e;
         }
 
+        pull(destDir, depth);
+        return gitDir;
+    }
+
+    public void pull(String destDir, int depth) {
+        File gitDir = Paths.get(destDir, ".git").toFile();
+
         // exec git linux command since jGit doesn't support sparse checkout
-        try {
-            String pullCmd = "git pull origin " + branch;
+        try (Git git = Git.open(gitDir)) {
+            String branch = git.getRepository().getBranch();
+
+            String pullCmd = String.format("git pull --depth %d origin %s", depth, branch);
             ProcessBuilder pBuilder = new ProcessBuilder("/bin/bash", "-c", pullCmd);
             pBuilder.directory(new File(destDir));
 
@@ -91,8 +102,6 @@ public abstract class GitClient {
         } catch (Throwable e) {
             throw new GitException("Fail to pull with specific files", e);
         }
-
-        return gitDir;
     }
 
     public Collection<Ref> branches() {
@@ -132,27 +141,30 @@ public abstract class GitClient {
             .setRemote(gitUrl);
     }
 
-    /**
-     * @param gitPath .git folder path
-     * @param files files to be added to sparse-checkout
-     */
-    private void addSparseCheckoutFile(File gitPath, Set<String> files) throws IOException {
-        Path sparseCheckoutPath = Paths.get(gitPath.getAbsolutePath(), "info", "sparse-checkout");
-        Files.createParentDirs(sparseCheckoutPath.toFile());
+    private void setSparseCheckout(Set<String> checkoutFiles, File gitDir) throws GitException {
+        try (Git git = Git.open(gitDir)) {
+            StoredConfig config = git.getRepository().getConfig();
+            config.setBoolean("core", null, "sparseCheckout", true);
+            config.save();
 
-        for (String checkoutFile : files) {
-            Files.append(checkoutFile, sparseCheckoutPath.toFile(), Charset.forName("UTF-8"));
+            Path sparseCheckoutPath = Paths.get(gitDir.getAbsolutePath(), "info", "sparse-checkout");
+            Files.createParentDirs(sparseCheckoutPath.toFile());
+            for (String checkoutFile : checkoutFiles) {
+                Files.append(checkoutFile, sparseCheckoutPath.toFile(), Charset.forName("UTF-8"));
+            }
+
+        } catch (Throwable e) {
+            throw new GitException("Fail to set sparse checkout config", e);
         }
     }
 
-    private void configSparseCheckout(StoredConfig config, boolean value) throws IOException {
-        config.setBoolean("core", null, "sparseCheckout", value);
-        config.save();
-    }
-
-    private void configRemote(StoredConfig config, String name, String url) throws IOException {
-        config.setString("remote", name, "url", url);
-        config.setString("remote", name, "fetch", "+refs/heads/*:refs/remotes/origin/*");
-        config.save();
+    private void configRemote(StoredConfig config, String name, String url) throws GitException {
+        try {
+            config.setString("remote", name, "url", url);
+            config.setString("remote", name, "fetch", "+refs/heads/*:refs/remotes/origin/*");
+            config.save();
+        } catch (IOException e) {
+            throw new GitException("Fail to config remote git url", e);
+        }
     }
 }

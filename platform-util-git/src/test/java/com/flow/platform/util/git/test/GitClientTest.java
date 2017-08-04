@@ -59,7 +59,7 @@ public class GitClientTest {
         // when: clone only for plugin config file
         GitClient gitClient = new SshGitClient(TEST_GIT_SSH_URL);
         String tmpPath = folder.getRoot().getAbsolutePath();
-        gitClient.clone(tmpPath, Sets.newHashSet(".flow-plugin.yml"));
+        gitClient.clone(tmpPath, 1, Sets.newHashSet(".flow-plugin.yml"));
 
         final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow-plugin.yml");
 
