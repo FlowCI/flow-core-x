@@ -14,37 +14,27 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.dao;
+package com.flow.platform.api.domain.adaptor;
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeStatus;
-import java.math.BigInteger;
-import java.util.List;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import java.io.IOException;
+import java.time.ZonedDateTime;
 
 /**
  * @author yh@firim
  */
-public interface JobDao extends BaseDao<BigInteger, Job> {
+public class ZonedDateTimeAdaptor extends TypeAdapter<ZonedDateTime> {
 
-    /**
-     * list Jobs
-     */
-    List<Job> list();
+    @Override
+    public void write(JsonWriter out, ZonedDateTime value) throws IOException {
+        out.value(value.toEpochSecond());
+    }
 
+    @Override
+    public ZonedDateTime read(JsonReader in) throws IOException {
 
-    /**
-     * list jobs by statuses
-     *
-     * @param statuses RUNNING
-     */
-    List<Job> list(NodeStatus... statuses);
-
-
-    /**
-     * get latest job by flow names
-     *
-     * @param names flow names
-     * @return List<Job>
-     */
-    List<Job> listLatest(List<String> names);
+        return null;
+    }
 }

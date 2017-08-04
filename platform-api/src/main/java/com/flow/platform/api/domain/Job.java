@@ -17,6 +17,7 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
+import com.google.gson.annotations.Expose;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -49,6 +50,10 @@ public class Job extends Jsonable {
     private NodeStatus status;
 
     private Map<String, String> envs = new HashMap<>();
+
+    private String nodeName;
+
+    private String branch;
 
     public Job() {
     }
@@ -159,6 +164,22 @@ public class Job extends Jsonable {
 
     public void setCmdId(String cmdId) {
         this.cmdId = cmdId;
+    }
+
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     @Override

@@ -25,12 +25,15 @@ import com.flow.platform.api.service.YmlStorageService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
+@RequestMapping(path = "/jobs")
 public class JobController {
 
     private static Logger LOGGER = new Logger(JobController.class);
@@ -52,7 +56,7 @@ public class JobController {
     @Autowired
     private YmlStorageService ymlStorageService;
 
-    @PostMapping(path = "/jobs")
+    @PostMapping
     public Job create(@RequestBody String body) {
         Node node = NodeUtil.buildFromYml(body);
         nodeService.create(node);
@@ -60,13 +64,18 @@ public class JobController {
         return jobService.createJob(node.getPath());
     }
 
-    @GetMapping(path = "/jobs/{id}/steps")
+    @GetMapping(path = "/{id}/steps")
     public Collection<JobStep> showSteps(@PathVariable BigInteger id) {
         return jobService.listJobStep(id);
     }
 
-    @GetMapping(path = "/jobs/{id}")
+    @GetMapping(path = "/{id}")
     public Job show(@PathVariable BigInteger id) {
         return jobService.find(id);
+    }
+
+    @PostMapping(path = "/status/latest")
+    public List<Job> listLatestJobStatus(@RequestBody List<String> flowNames){
+        return jobService.listLatestJobs(flowNames);
     }
 }

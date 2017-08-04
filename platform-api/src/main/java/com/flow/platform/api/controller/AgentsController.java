@@ -14,37 +14,28 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.dao;
+package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeStatus;
-import java.math.BigInteger;
+import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.service.AgentService;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author yh@firim
  */
-public interface JobDao extends BaseDao<BigInteger, Job> {
+@RestController
+@RequestMapping(path = "/agents")
+public class AgentsController {
 
-    /**
-     * list Jobs
-     */
-    List<Job> list();
+    @Autowired
+    private AgentService agentService;
 
-
-    /**
-     * list jobs by statuses
-     *
-     * @param statuses RUNNING
-     */
-    List<Job> list(NodeStatus... statuses);
-
-
-    /**
-     * get latest job by flow names
-     *
-     * @param names flow names
-     * @return List<Job>
-     */
-    List<Job> listLatest(List<String> names);
+    @GetMapping
+    public List<AgentWithFlow> index(){
+        return agentService.list();
+    }
 }

@@ -14,37 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.dao;
+package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeStatus;
-import java.math.BigInteger;
+import com.flow.platform.api.domain.AgentWithFlow;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
-public interface JobDao extends BaseDao<BigInteger, Job> {
-
-    /**
-     * list Jobs
-     */
-    List<Job> list();
-
-
-    /**
-     * list jobs by statuses
-     *
-     * @param statuses RUNNING
-     */
-    List<Job> list(NodeStatus... statuses);
-
-
-    /**
-     * get latest job by flow names
-     *
-     * @param names flow names
-     * @return List<Job>
-     */
-    List<Job> listLatest(List<String> names);
+public interface AgentService {
+    List<AgentWithFlow> list();
 }
