@@ -60,11 +60,10 @@ public class ConfigTest extends TestBase {
     @Test
     public void should_load_agent_config() throws IOException, InterruptedException {
         // given:
-        String loggingQueueHost = "amqp://127.0.0.1:5672";
-        String loggingQueueName = "flow-logging-queue-test";
+        String wsUrl = "ws://localhost:8080/logging";
         String cmdStatusUrl = "http://localhost:8080/cmd/report";
         String cmdLogUrl = "http://localhost:8080/cmd/log/upload";
-        AgentSettings config = new AgentSettings(loggingQueueHost, loggingQueueName, cmdStatusUrl, cmdLogUrl);
+        AgentSettings config = new AgentSettings(wsUrl, cmdStatusUrl, cmdLogUrl);
 
         // when: create zone with agent config
         String zonePath = ZKPaths.makePath(ROOT_PATH, "ali");
@@ -73,8 +72,7 @@ public class ConfigTest extends TestBase {
         // then:
         Config.AGENT_SETTINGS = Config.loadAgentConfig(server.getConnectString(), "ali", 5);
         Assert.assertNotNull(Config.agentSettings());
-        Assert.assertEquals(loggingQueueHost, Config.agentSettings().getLoggingQueueHost());
-        Assert.assertEquals(loggingQueueName, Config.agentSettings().getLoggingQueueName());
+        Assert.assertEquals(wsUrl, Config.agentSettings().getWebSocketUrl());
         Assert.assertEquals(cmdStatusUrl, Config.agentSettings().getCmdStatusUrl());
         Assert.assertEquals(cmdLogUrl, Config.agentSettings().getCmdLogUrl());
     }

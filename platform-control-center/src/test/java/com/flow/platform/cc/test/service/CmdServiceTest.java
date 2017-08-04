@@ -212,6 +212,7 @@ public class CmdServiceTest extends TestBase {
         // then: should timeout and status should be TIMEOUT_KILL
         Assert.assertEquals(true, cmdService.isTimeout(cmd));
         cmdService.checkTimeoutTask();
+        Thread.sleep(500); // wait for cmd status update queue to process
         Assert.assertEquals(CmdStatus.TIMEOUT_KILL, cmdService.find(cmd.getId()).getStatus());
     }
 

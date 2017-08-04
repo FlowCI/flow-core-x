@@ -17,29 +17,30 @@
 package com.flow.platform.cc.consumer;
 
 import com.flow.platform.util.Logger;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 /**
  * @author yang
  */
-@Component("loggingQueueConsumer")
-public class LoggingQueueConsumer {
+@Component
+public class RealTimeLoggingHandler extends TextWebSocketHandler {
 
-    private final static Logger LOGGER = new Logger(LoggingQueueConsumer.class);
+    private final static Logger LOGGER = new Logger(RealTimeLoggingHandler.class);
 
     private final static int MIN_LENGTH_LOG = 6;
 
     @Autowired
     private SimpMessagingTemplate template;
 
-    @RabbitListener(queues = {"${mq.queue.logging.name}"}, containerFactory = "loggingQueueContainerFactory")
-    public void onLogging(Message message) {
-        String logItem = new String(message.getBody());
-        LOGGER.debug("Receive logItem %s : %s", Thread.currentThread().getName(), logItem);
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        String logItem = message.getPayload();
+        LOGGER.debug(logItem);
 
         if (logItem.length() < MIN_LENGTH_LOG) {
             return;

@@ -55,11 +55,8 @@ public class AgentServiceTest extends TestBase {
     @Autowired
     private List<Zone> defaultZones;
 
-    @Value("${agent.config.queue.host}")
-    private String cmdQueueHost;
-
-    @Value("${agent.config.queue.name}")
-    private String cmdQueueName;
+    @Value("${agent.config.cmd_rt_log_url}")
+    private String cmdRtLogUrl; // web socket url
 
     @Value("${agent.config.cmd_report_url}")
     private String cmdReportUrl;
@@ -81,8 +78,7 @@ public class AgentServiceTest extends TestBase {
         // then:
         AgentSettings config = Jsonable.parse(raw, AgentSettings.class);
         Assert.assertNotNull(config);
-        Assert.assertEquals(cmdQueueHost, config.getLoggingQueueHost());
-        Assert.assertEquals(cmdQueueName, config.getLoggingQueueName());
+        Assert.assertEquals(cmdRtLogUrl, config.getWebSocketUrl());
         Assert.assertEquals(cmdReportUrl, config.getCmdStatusUrl());
         Assert.assertEquals(cmdLogUrl, config.getCmdLogUrl());
     }

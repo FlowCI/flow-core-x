@@ -222,13 +222,15 @@ public class ZkClientTest {
         // when: create, update and delete node
         zkClient.create(path, null);
         Assert.assertEquals(true, zkClient.exist(path));
+        Thread.sleep(100);
 
         zkClient.setData(path, "hello".getBytes());
         Assert.assertEquals("hello", new String(zkClient.getData(path)));
+        Thread.sleep(100);
 
         zkClient.delete(path, false);
         Assert.assertEquals(false, zkClient.exist(path));
-
+        Thread.sleep(100);
 
         // then: check listener been triggered
         Assert.assertEquals(true, isTriggerNodeAddedEvent.get());

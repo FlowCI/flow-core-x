@@ -31,11 +31,8 @@ public class AgentConfig {
 
     private final static Logger LOGGER = new Logger(AgentConfig.class);
 
-    @Value("${agent.config.queue.host}")
-    private String cmdQueueHost;
-
-    @Value("${agent.config.queue.name}")
-    private String cmdQueueName;
+    @Value("${agent.config.cmd_rt_log_url}")
+    private String cmdRtLogUrl; // web socket url
 
     @Value("${agent.config.cmd_report_url}")
     private String cmdReportUrl;
@@ -45,14 +42,13 @@ public class AgentConfig {
 
     @PostConstruct
     public void init () {
-        LOGGER.trace("CmdLoggingQueueHost: %s", cmdQueueHost);
-        LOGGER.trace("CmdLoggingQueue: %s", cmdQueueName);
-        LOGGER.trace("CmdReportUrl: %s", cmdReportUrl);
-        LOGGER.trace("CmdLogUrl: %s", cmdLogUrl);
+        LOGGER.trace("Real time log ws url: %s", cmdRtLogUrl);
+        LOGGER.trace("Report cmd status url: %s", cmdReportUrl);
+        LOGGER.trace("Upload cmd zip log url: %s", cmdLogUrl);
     }
 
     @Bean
     public AgentSettings agentSettings() {
-        return new AgentSettings(cmdQueueHost, cmdQueueName, cmdReportUrl, cmdLogUrl);
+        return new AgentSettings(cmdRtLogUrl, cmdReportUrl, cmdLogUrl);
     }
 }

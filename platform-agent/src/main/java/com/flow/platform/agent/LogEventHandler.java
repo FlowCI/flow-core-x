@@ -22,22 +22,29 @@ import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
+import org.glassfish.tyrus.client.ClientManager;
 
 /**
  * Record log to $HOME/agent-log/{cmd id}.out.zip
- * Send log via socket io if socket.io url provided
+ * Send log via web socket if real time log enabled and ws url provided
  * <p>
+ *
  * @author gy@fir.im
  */
 public class LogEventHandler implements LogListener {
@@ -48,10 +55,6 @@ public class LogEventHandler implements LogListener {
 
     private final Cmd cmd;
 
-    private Connection loggingQueueConn;
-    private Channel loggingQueueChannel;
-    private String loggingQueueName;
-
     private Path stdoutLogPath;
     private FileOutputStream stdoutLogStream;
     private ZipOutputStream stdoutLogZipStream;
@@ -59,6 +62,8 @@ public class LogEventHandler implements LogListener {
     private Path stderrLogPath;
     private FileOutputStream stderrLogStream;
     private ZipOutputStream stderrLogZipStream;
+
+    private Session wsSession;
 
     public LogEventHandler(Cmd cmd) {
         this.cmd = cmd;
@@ -72,22 +77,16 @@ public class LogEventHandler implements LogListener {
 
         AgentSettings config = Config.agentSettings();
 
-        if (config == null
-            || !Config.enableRealtimeLog()
-            || Strings.isNullOrEmpty(config.getLoggingQueueHost())
-            || Strings.isNullOrEmpty(config.getLoggingQueueName())) {
+        if (config == null || !Config.enableRealtimeLog() || Strings.isNullOrEmpty(config.getWebSocketUrl())) {
             return;
         }
 
         // init rabbit queue
         try {
-            ConnectionFactory factory = new ConnectionFactory();
-            factory.setUri(config.getLoggingQueueHost());
-            loggingQueueConn = factory.newConnection();
-            loggingQueueChannel = loggingQueueConn.createChannel();
-            loggingQueueName = config.getLoggingQueueName();
+            initWebSocketSession(config.getWebSocketUrl(), 10);
         } catch (Throwable e) {
-            LOGGER.error("Fail to connect rabbitmq: " + config.getLoggingQueueHost(), e);
+            wsSession = null;
+            LOGGER.error("Fail to web socket: " + config.getWebSocketUrl(), e);
         }
     }
 
@@ -95,7 +94,7 @@ public class LogEventHandler implements LogListener {
     public void onLog(Log log) {
         LOGGER.debug(log.toString());
 
-        sendRealtimeLog(log);
+        sendRealTimeLog(log);
 
         // write stdout & stderr
         writeZipStream(stdoutLogZipStream, log.getContent());
@@ -106,14 +105,14 @@ public class LogEventHandler implements LogListener {
         }
     }
 
-    private void sendRealtimeLog(Log log) {
-        if (loggingQueueChannel == null || !loggingQueueChannel.isOpen()) {
+    private void sendRealTimeLog(Log log) {
+        if (wsSession == null) {
             return;
         }
 
         try {
             String format = websocketLogFormat(log);
-            loggingQueueChannel.basicPublish("", loggingQueueName, null, format.getBytes());
+            wsSession.getBasicRemote().sendText(format);
             LOGGER.debugMarker("Logging", "Message sent : %s", format);
         } catch (Throwable e) {
             LOGGER.warn("Fail to send real time log to queue");
@@ -123,7 +122,7 @@ public class LogEventHandler implements LogListener {
     @Override
     public void onFinish() {
         // close socket io
-        closeSocketIo();
+        closeWebSocket();
 
         if (closeZipAndFileStream(stdoutLogZipStream, stdoutLogStream)) {
             renameAndUpload(stdoutLogPath, Log.Type.STDOUT);
@@ -138,6 +137,25 @@ public class LogEventHandler implements LogListener {
         return String.format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
             log.getContent());
     }
+
+    private void initWebSocketSession(String url, int wsConnectionTimeout) throws Exception {
+        CountDownLatch wsLatch = new CountDownLatch(1);
+        ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+        ClientManager client = ClientManager.createClient();
+
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfig endpointConfig) {
+                wsSession = session;
+                wsLatch.countDown();
+            }
+        }, cec, new URI(url));
+
+        if (!wsLatch.await(wsConnectionTimeout, TimeUnit.SECONDS)) {
+            throw new TimeoutException("Web socket connection timeout");
+        }
+    }
+
 
     private void renameAndUpload(Path logPath, Log.Type logType) {
         // rename xxx.out.tmp to xxx.out.zip and renameAndUpload to server
@@ -159,7 +177,7 @@ public class LogEventHandler implements LogListener {
     }
 
     private boolean closeZipAndFileStream(final ZipOutputStream zipStream,
-        final FileOutputStream fileStream) {
+                                          final FileOutputStream fileStream) {
         try {
             if (zipStream != null) {
                 zipStream.flush();
@@ -181,20 +199,12 @@ public class LogEventHandler implements LogListener {
         return false;
     }
 
-    private void closeSocketIo() {
-        if (loggingQueueChannel != null) {
+    private void closeWebSocket() {
+        if (wsSession != null) {
             try {
-                loggingQueueChannel.close();
-            } catch (Throwable e) {
-                LOGGER.error("Exception while close logging queue channel", e);
-            }
-        }
-
-        if (loggingQueueConn != null) {
-            try {
-                loggingQueueConn.close();
-            } catch (Throwable e) {
-                LOGGER.error("Exception while close logging queue connection", e);
+                wsSession.close();
+            } catch (IOException e) {
+                LOGGER.warn("Exception while close web socket session");
             }
         }
     }

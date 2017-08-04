@@ -41,6 +41,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.glassfish.tyrus</groupId>
+      <artifactId>tyrus-server</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-recipes</artifactId>
     </dependency>
@@ -68,11 +73,6 @@
     <dependency>
       <groupId>com.jcabi</groupId>
       <artifactId>jcabi-ssh</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.rabbitmq</groupId>
-      <artifactId>amqp-client</artifactId>
     </dependency>
 
     <dependency>
