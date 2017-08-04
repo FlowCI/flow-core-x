@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.api.domain">
+  <class name="JobNode" table="job_node">
+    <id name="path" type="string">
+      <column name="path"></column>
+    </id>
+
+    <property name="duration" type="long" column="duration"></property>
+    <property name="name" type="string" column="name"></property>
+    <property name="exitCode" type="integer"></property>
+
+    <property name="jobId" type="big_integer">
+      <column name="job_id" sql-type="decimal(25, 2)"></column>
+    </property>
+
+    <property name="cmdId" type="string" column="cmd_id"></property>
+
+    <property name="createdAt" type="java.time.ZonedDateTime">
+      <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+    <property name="updatedAt" type="java.time.ZonedDateTime" update="false">
+      <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    </property>
+
+    <property name="finishTime" type="java.time.ZonedDateTime">
+      <column name="finished_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+    <property name="startTime" type="java.time.ZonedDateTime">
+      <column name="started_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+
+    <property name="nodeTag" column="type" length="10" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.api.domain.NodeTag</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+    <property name="status" column="status" length="10" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.api.domain.NodeStatus</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
+  </class>
+</hibernate-mapping>
