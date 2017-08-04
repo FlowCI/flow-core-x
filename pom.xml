@@ -20,6 +20,7 @@
     <module>platform-util</module>
     <module>platform-util-resource</module>
     <module>platform-util-zk</module>
+    <module>platform-util-git</module>
   </modules>
 
   <properties>
@@ -41,11 +42,11 @@
     <hibernate-common-annotation.version>5.0.1.Final</hibernate-common-annotation.version>
     <mysql_connect.version>5.1.42</mysql_connect.version>
     <HikariCP.version>2.6.2</HikariCP.version>
-    <jcabi-ssh.version>1.5.2</jcabi-ssh.version>
     <powermock.version>1.7.0</powermock.version>
     <snakeyaml.version>1.18</snakeyaml.version>
     <curator.version>2.12.0</curator.version>
     <tyrus-server.version>1.13.1</tyrus-server.version>
+    <org.eclipse.jgit.version>4.8.0.201706111038-r</org.eclipse.jgit.version>
   </properties>
 
   <build>
@@ -215,15 +216,15 @@
       </dependency>
 
       <dependency>
-        <groupId>com.jcabi</groupId>
-        <artifactId>jcabi-ssh</artifactId>
-        <version>${jcabi-ssh.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
         <version>${snakeyaml.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jgit</groupId>
+        <artifactId>org.eclipse.jgit</artifactId>
+        <version>${org.eclipse.jgit.version}</version>
       </dependency>
 
       <!--library for testing-->
