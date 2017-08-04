@@ -34,7 +34,7 @@ import org.junit.rules.TemporaryFolder;
  */
 public class GitClientTest {
 
-    private final static String TEST_GIT_SSH_URL = "git@github.com:flow-ci-plugin/objc_init.git";
+    private final static String TEST_GIT_SSH_URL = "git@github.com:flow-ci-plugin/for-testing.git";
 
     @Rule
     public TemporaryFolder folder= new TemporaryFolder();
@@ -46,22 +46,23 @@ public class GitClientTest {
         // load all branches
         Collection<Ref> branches = client.branches();
         Assert.assertNotNull(branches);
-        Assert.assertTrue(branches.size() > 1);
+        Assert.assertTrue(branches.size() >= 1);
 
         // load all tags
         Collection<Ref> tags = client.tags();
         Assert.assertNotNull(tags);
-        Assert.assertTrue(tags.size() > 1);
+        Assert.assertTrue(tags.size() >= 1);
     }
 
     @Test
     public void should_clone_repo() throws Throwable {
         // when: clone only for plugin config file
-        GitClient gitClient = new SshGitClient(TEST_GIT_SSH_URL);
-        String tmpPath = folder.getRoot().getAbsolutePath();
-        gitClient.clone(tmpPath, 1, Sets.newHashSet(".flow-plugin.yml"));
+        SshGitClient gitClient = new SshGitClient(TEST_GIT_SSH_URL);
 
-        final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow-plugin.yml");
+        String tmpPath = folder.getRoot().getAbsolutePath();
+        gitClient.clone(tmpPath, 1, Sets.newHashSet(".flow.yml"));
+
+        final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml");
 
         // then:
         File[] files = Paths.get(tmpPath).toFile().listFiles();

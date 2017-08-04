@@ -69,6 +69,21 @@ public class SshGitClient extends GitClient {
         return buildSshCommand(super.cloneCommand(destDir, noCheckout));
     }
 
+    @Override
+    protected StringBuilder pullShellCommand(Integer depth, String remote, String branch) {
+        if (privateKeyPath == null) {
+            return super.pullShellCommand(depth, remote, branch);
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("chmod 400 ").append(privateKeyPath).append("\n");
+        builder.append("ssh-agent bash -c '");
+        builder.append("ssh-add ").append(privateKeyPath).append("; ");
+        builder.append(super.pullShellCommand(depth, remote, branch));
+        builder.append("'");
+        return builder;
+    }
+
     private <T extends TransportCommand> T buildSshCommand(T command) {
         command.setTransportConfigCallback(transportConfigCallback);
         return command;

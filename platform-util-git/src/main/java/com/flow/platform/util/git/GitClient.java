@@ -16,13 +16,16 @@
 
 package com.flow.platform.util.git;
 
-import com.google.common.io.Files;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -73,7 +76,7 @@ public abstract class GitClient {
             Repository repository = git.getRepository();
 
             gitDir = repository.getDirectory();
-            setSparseCheckout(checkoutFiles, gitDir);
+            setSparseCheckout(gitDir, checkoutFiles);
             configRemote(repository.getConfig(), "origin", gitUrl);
 
         } catch (GitAPIException e) {
@@ -93,7 +96,7 @@ public abstract class GitClient {
         try (Git git = Git.open(gitDir)) {
             String branch = git.getRepository().getBranch();
 
-            String pullCmd = String.format("git pull --depth %d origin %s", depth, branch);
+            String pullCmd = pullShellCommand(depth, "origin", branch).toString();
             ProcessBuilder pBuilder = new ProcessBuilder("/bin/bash", "-c", pullCmd);
             pBuilder.directory(new File(destDir));
 
@@ -141,16 +144,49 @@ public abstract class GitClient {
             .setRemote(gitUrl);
     }
 
-    private void setSparseCheckout(Set<String> checkoutFiles, File gitDir) throws GitException {
+    protected StringBuilder pullShellCommand(Integer depth, String remote, String branch) {
+        StringBuilder cmdBuilder = new StringBuilder("git pull");
+
+        if (depth != null) {
+            cmdBuilder.append(" --depth ").append(depth);
+        }
+
+        cmdBuilder.append(" ").append(remote);
+        cmdBuilder.append(" ").append(branch);
+
+        return cmdBuilder;
+    }
+
+    private void setSparseCheckout(File gitDir, Set<String> checkoutFiles) throws GitException {
         try (Git git = Git.open(gitDir)) {
             StoredConfig config = git.getRepository().getConfig();
             config.setBoolean("core", null, "sparseCheckout", true);
             config.save();
 
             Path sparseCheckoutPath = Paths.get(gitDir.getAbsolutePath(), "info", "sparse-checkout");
-            Files.createParentDirs(sparseCheckoutPath.toFile());
-            for (String checkoutFile : checkoutFiles) {
-                Files.append(checkoutFile, sparseCheckoutPath.toFile(), Charset.forName("UTF-8"));
+            Files.createDirectory(sparseCheckoutPath.getParent());
+            Files.createFile(sparseCheckoutPath);
+            Charset charset = Charset.forName("UTF-8");
+
+            // load all existing
+            Set<String> exists = new HashSet<>();
+            try (BufferedReader reader = Files.newBufferedReader(sparseCheckoutPath, charset)) {
+                exists.add(reader.readLine());
+            }
+
+            // write
+            try (BufferedWriter writer = Files.newBufferedWriter(sparseCheckoutPath, charset)) {
+                if (!exists.isEmpty()) {
+                    writer.newLine();
+                }
+
+                for (String checkoutFile : checkoutFiles) {
+                    if (exists.contains(checkoutFile)) {
+                        continue;
+                    }
+                    writer.write(checkoutFile);
+                    writer.newLine();
+                }
             }
 
         } catch (Throwable e) {
