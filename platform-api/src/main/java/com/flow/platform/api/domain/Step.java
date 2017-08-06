@@ -18,8 +18,8 @@ package com.flow.platform.api.domain;
 
 public class Step extends Node<Step> {
 
-    public Step(String name, String path) {
-        super(name, path);
+    public Step(String path, String name) {
+        super(path, name);
     }
 
     public Step(){

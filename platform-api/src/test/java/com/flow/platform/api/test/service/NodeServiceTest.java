@@ -34,15 +34,15 @@ public class NodeServiceTest extends TestBase {
 
     @Test
     public void should_save_node() {
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
         nodeService.save(flow);
         Assert.assertEquals(flow.getPath(), nodeService.find(flow.getPath()).getPath());
     }
 
     @Test
     public void should_create_and_get_node() {
-        Flow flow = new Flow("flow", "/flow");
-        Step step1 = new Step("step1", "/flow/step1");
+        Flow flow = new Flow("/flow", "flow");
+        Step step1 = new Step("/flow/step1", "step1");
 
         flow.getChildren().add(step1);
         step1.setParent(flow);

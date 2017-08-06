@@ -42,8 +42,8 @@ public abstract class JobNode<T extends JobNode> extends Node<T> {
     public JobNode() {
     }
 
-    public JobNode(String name, String path) {
-        super(name, path);
+    public JobNode(String path, String name) {
+        super(path, name);
     }
 
     public ZonedDateTime getFinishTime() {

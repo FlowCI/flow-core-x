@@ -38,8 +38,8 @@ public class JobStep extends JobNode<JobStep> {
         this.plugin = plugin;
     }
 
-    public JobStep(String name, String path) {
-        super(name, path);
+    public JobStep(String path, String name) {
+        super(path, name);
     }
 
     public JobStep() {

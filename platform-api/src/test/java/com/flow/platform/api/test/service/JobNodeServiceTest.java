@@ -42,7 +42,7 @@ public class JobNodeServiceTest extends TestBase {
 
     @Test
     public void should_save_node() {
-        JobFlow flow = new JobFlow("flow", "/flow");
+        JobFlow flow = new JobFlow("/flow", "flow");
         flow.setExitCode(1);
 
         jobNodeService.save(flow);
@@ -51,8 +51,8 @@ public class JobNodeServiceTest extends TestBase {
 
     @Test
     public void should_create_and_get_node() {
-        JobFlow flow = new JobFlow("flow", "/flow");
-        JobStep step1 = new JobStep("step1", "/flow/step1");
+        JobFlow flow = new JobFlow("/flow", "flow");
+        JobStep step1 = new JobStep("/flow/step1", "step1");
 
         flow.setDuration((long) 10);
         step1.setParent(flow);
@@ -69,10 +69,10 @@ public class JobNodeServiceTest extends TestBase {
 
     @Test
     public void should_copy_node() {
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
 
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
+        Step step1 = new Step("/flow/step1", "step1");
+        Step step2 = new Step("/flow/step2", "step2");
 
         step1.setPlugin("step1");
         step1.setAllowFailure(true);
@@ -99,7 +99,7 @@ public class JobNodeServiceTest extends TestBase {
     public void should_copy_node_simple() {
         // zero node
 
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
 
         nodeService.create(flow);
 

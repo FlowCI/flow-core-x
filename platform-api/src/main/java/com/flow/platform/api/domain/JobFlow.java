@@ -17,8 +17,8 @@
 package com.flow.platform.api.domain;
 
 public class JobFlow extends JobNode<JobStep> {
-    public JobFlow(String name, String path){
-        super(name, path);
+    public JobFlow(String path, String name){
+        super(path, name);
     }
 
     public JobFlow() {

@@ -33,14 +33,12 @@ import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.Logger;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
@@ -79,10 +77,10 @@ public class WebhookControllerTest extends TestBase {
 
         stubDemo();
 
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
 
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
+        Step step1 = new Step("/flow/step1", "step1");
+        Step step2 = new Step("/flow/step2", "step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -188,10 +186,10 @@ public class WebhookControllerTest extends TestBase {
 
         stubDemo();
 
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
 
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
+        Step step1 = new Step("/flow/step1", "step1");
+        Step step2 = new Step("/flow/step2", "step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -251,10 +249,10 @@ public class WebhookControllerTest extends TestBase {
 
         stubDemo();
 
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
 
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
+        Step step1 = new Step("/flow/step1", "step1");
+        Step step2 = new Step("/flow/step2", "step2");
 
         step1.setAllowFailure(true);
 

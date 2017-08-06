@@ -35,21 +35,19 @@ public class FlowDaoTest extends TestBase {
 
     @Test
     public void should_save_and_get_success(){
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
         flow.setCreatedAt(ZonedDateTime.now());
         flow.setUpdatedAt(ZonedDateTime.now());
         flowDao.save(flow);
         Flow flowCp = flowDao.get(flow.getPath());
 
         Assert.assertEquals(flow, flowCp);
-//        Assert.assertEquals(flow.getCreatedAt().toString(), flowCp.getCreatedAt().toString());
-//        Assert.assertEquals(flow.getUpdatedAt().toString(), flowCp.getUpdatedAt().toString());
         Assert.assertEquals(flow.getName(), flowCp.getName());
     }
 
     @Test
     public void should_update_success(){
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
         flow.setCreatedAt(ZonedDateTime.now());
         flow.setUpdatedAt(ZonedDateTime.now());
         flowDao.save(flow);
@@ -65,7 +63,7 @@ public class FlowDaoTest extends TestBase {
 
     @Test
     public void should_delete_success(){
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
         flow.setCreatedAt(ZonedDateTime.now());
         flow.setUpdatedAt(ZonedDateTime.now());
         flowDao.save(flow);
@@ -78,7 +76,7 @@ public class FlowDaoTest extends TestBase {
 
     @Test
     public void should_list_success(){
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
         flow.setCreatedAt(ZonedDateTime.now());
         flow.setUpdatedAt(ZonedDateTime.now());
         flowDao.save(flow);
