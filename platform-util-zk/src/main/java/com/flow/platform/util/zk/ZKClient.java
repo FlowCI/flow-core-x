@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -46,7 +47,7 @@ import org.apache.zookeeper.data.Stat;
  */
 public class ZKClient implements Closeable {
 
-    private final static int DEFAULT_RETRY_PERIOD = 5000;
+    private final static int DEFAULT_RETRY_PERIOD = 1000;
     private final static int DEFAULT_RETRY_TIMES = 10;
 
     private CuratorFramework client;
@@ -78,13 +79,16 @@ public class ZKClient implements Closeable {
         this.executor = executor;
     }
 
-    public void start() {
+    public boolean start() {
         try {
             client.start();
-            client.blockUntilConnected();
+            if (client.blockUntilConnected(30, TimeUnit.SECONDS)) {
+                return true;
+            }
         } catch (InterruptedException ignore) {
 
         }
+        return false;
     }
 
     public boolean exist(String path) {

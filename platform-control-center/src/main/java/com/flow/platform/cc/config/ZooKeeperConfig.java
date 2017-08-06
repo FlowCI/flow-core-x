@@ -73,7 +73,11 @@ public class ZooKeeperConfig {
     @Bean
     public ZKClient zkClient() {
         ZKClient zkClient = new ZKClient(host);
-        zkClient.start();
+        if (zkClient.start()) {
+            LOGGER.trace("Zookeeper been connected at: %s", host);
+        } else {
+            throw new RuntimeException(String.format("Fail to connect zookeeper server: %s", host));
+        }
         return zkClient;
     }
 

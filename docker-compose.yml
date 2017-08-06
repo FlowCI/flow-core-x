@@ -1,0 +1,39 @@
+version: '3'
+services:
+  db:
+    image: mysql:5.6
+    networks:
+      - backend
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "3306:3306"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    networks:
+      - backend
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  zookeeper:
+    image: zookeeper:3.4
+    networks:
+      - backend
+    ports:
+      - "2181:2181"
+
+  flow.ci:
+    build: ./
+    networks:
+      - backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - rabbitmq
+      - zookeeper
+
+networks:
+  backend:
