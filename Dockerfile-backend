@@ -1,10 +1,11 @@
-# flow.ci base docker includes jre 8 , tomcat and flow.ci api and cc war
+# flow.ci.backend docker includes war of flow.ci api and control center
 # VERSION beta 0.1
 
 # The image provides default settings for flow.ci
 # if you want to customize flow.ci settings file,
 # please mount to /etc/flow.ci to customize  app-api.properties,
 # and app-cc.properties in config folder
+
 
 FROM tomcat:8.5.16-jre8
 

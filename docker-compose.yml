@@ -25,7 +25,7 @@ services:
       - "2181:2181"
 
   flow.ci:
-    build: ./
+    image: flow.ci.backend
     networks:
       - backend
     ports:
