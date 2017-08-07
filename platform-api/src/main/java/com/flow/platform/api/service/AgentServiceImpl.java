@@ -72,10 +72,8 @@ public class AgentServiceImpl implements AgentService {
     private Job findBySessionId(List<Job> jobs, String sessionId) {
         Job j = null;
         for (Job job : jobs) {
-            LOGGER.trace(String.format("==================== SessionId - %s - %s", job.getSessionId(), sessionId));
             if (job.getSessionId().equals(sessionId)) {
                 j = job;
-                LOGGER.trace(String.format("==================== Job %s", job.getNodeName()));
                 break;
             }
         }
