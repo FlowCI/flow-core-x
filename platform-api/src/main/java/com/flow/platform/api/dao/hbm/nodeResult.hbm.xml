@@ -6,11 +6,9 @@
 <hibernate-mapping package="com.flow.platform.api.domain">
   <class name="NodeResult" table="node_result">
 
-    <composite-id>
-      <key-property name="path"></key-property>
-      <key-property name="jobId">
-        <column name="job_id" sql-type="decimal(25, 2)"></column>
-      </key-property>
+    <composite-id name="nodeResultKey" class="NodeResultKey">
+      <key-property name="jobId" type="big_integer"  column="job_id"/>
+      <key-property name="path" type="string"  column="node_result_path"/>
     </composite-id>
 
     <property name="duration" type="long" column="duration"></property>

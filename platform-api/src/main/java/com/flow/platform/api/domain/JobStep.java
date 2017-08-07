@@ -18,7 +18,7 @@ package com.flow.platform.api.domain;
 
 import java.math.BigInteger;
 
-public class JobStep extends JobNode<JobStep> {
+public class JobStep extends NodeResult {
 
     private Boolean allowFailure = false;
 

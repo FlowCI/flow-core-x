@@ -18,7 +18,7 @@ package com.flow.platform.api.domain;
 
 import java.math.BigInteger;
 
-public class JobFlow extends JobNode<JobStep> {
+public class JobFlow extends NodeResult {
     public JobFlow(BigInteger jobId, String path){
         super(jobId, path);
     }

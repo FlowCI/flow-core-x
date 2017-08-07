@@ -21,7 +21,6 @@ import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.NodeUtil;
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.xml.soap.Node;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +31,7 @@ import org.springframework.stereotype.Service;
  */
 
 @Service(value = "jobYmlStorageService")
-public class JobYmlStorageServiceImpl implements JobYmlStorgeService {
+public class JobYmlStorageServiceImpl implements JobYmlStorageService {
 
     @Autowired
     private JobYmlStorageDao jobYmlStorgeDao;

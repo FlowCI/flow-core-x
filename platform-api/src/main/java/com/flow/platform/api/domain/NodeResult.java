@@ -16,16 +16,18 @@
 
 package com.flow.platform.api.domain;
 
+import com.flow.platform.domain.AgentPath;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.*;
-import javax.persistence.Entity;
 
 public class NodeResult {
 
-    protected BigInteger jobId;
+//    protected BigInteger jobId;
+//
+//    protected String path;
 
-    protected String path;
+    private NodeResultKey nodeResultKey;
 
     protected Map<String, String> outputs = new HashMap<>();
 
@@ -51,10 +53,10 @@ public class NodeResult {
 
     private ZonedDateTime updatedAt;
 
-    public NodeResult(BigInteger jobId, String path) {
-        this.jobId = jobId;
-        this.path = path;
-    }
+//    public NodeResult(BigInteger jobId, String path) {
+//        this.jobId = jobId;
+//        this.path = path;
+//    }
 
     public NodeResult() {
     }
@@ -83,20 +85,40 @@ public class NodeResult {
         this.updatedAt = updatedAt;
     }
 
-    public BigInteger getJobId() {
-        return jobId;
+//    public BigInteger getJobId() {
+//        return jobId;
+//    }
+//
+//    public void setJobId(BigInteger jobId) {
+//        this.jobId = jobId;
+//    }
+//
+//    public String getPath() {
+//        return path;
+//    }
+//
+//    public void setPath(String path) {
+//        this.path = path;
+//    }
+
+    public NodeResult(BigInteger jobId, String path){
+        this(new NodeResultKey(jobId, path));
+    }
+//    public NodeResult(BigInteger jobId, String path) {
+//
+//    }
+
+    public NodeResult(NodeResultKey nodeResultKey) {
+        this.nodeResultKey = nodeResultKey;
     }
 
-    public void setJobId(BigInteger jobId) {
-        this.jobId = jobId;
+
+    public NodeResultKey getNodeResultKey() {
+        return nodeResultKey;
     }
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
+    public void setNodeResultKey(NodeResultKey nodeResultKey) {
+        this.nodeResultKey = nodeResultKey;
     }
 
     public Map<String, String> getOutputs() {

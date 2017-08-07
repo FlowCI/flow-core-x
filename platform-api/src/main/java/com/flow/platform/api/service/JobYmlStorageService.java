@@ -22,7 +22,7 @@ import javax.xml.soap.Node;
 /**
  * @author lhl
  */
-public interface JobYmlStorgeService {
+public interface JobYmlStorageService {
 
     void save(BigInteger jobId, String yml);
 

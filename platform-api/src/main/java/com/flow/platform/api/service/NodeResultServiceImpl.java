@@ -17,41 +17,65 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.NodeResultDao;
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeTag;
+import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.util.NodeUtil;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author gyfirim
  */
+@Service(value = "nodeResultService")
 public class NodeResultServiceImpl implements NodeResultService {
 
     @Autowired
     private NodeResultDao nodeResultDao;
 
     @Autowired
-    private JobYmlStorgeService ymlStorgeService;
+    private YmlStorageService ymlStorageService;
+
 
     @Override
     public NodeResult create(Job job) {
-        Node node = (Node) ymlStorgeService.get(job.getId());
-        return null;
+
+        String nodePath = job.getNodePath();
+        YmlStorage storage = ymlStorageService.get(nodePath);
+
+        Node root = NodeUtil.buildFromYml(storage.getFile());
+
+        // save root to db
+        NodeResult jobNodeRoot = save(job.getId(), root);
+
+        // save children nodes to db
+        NodeUtil.recurse(root, item -> {
+            if (root != item){
+                save(job.getId(), item);
+            }
+        });
+        return jobNodeRoot;
     }
 
     @Override
     public NodeResult find(String nodePath, BigInteger jobId) {
-        return null;
+       return null;
     }
 
     @Override
     public NodeResult save(BigInteger jobId, Node node) {
-        return null;
+        NodeResult nodeResult = new NodeResult(jobId, node.getPath());
+        nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+        return nodeResultDao.save(nodeResult);
     }
 
     @Override
     public NodeResult update(NodeResult nodeResult) {
-        return null;
+        nodeResultDao.update(nodeResult);
+        return nodeResult;
     }
 }
