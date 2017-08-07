@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author yang
  */
-public class GitEvent implements Serializable {
+public class GitPushEvent implements Serializable {
 
     /**
      * Git event type
@@ -36,6 +36,7 @@ public class GitEvent implements Serializable {
     /**
      * Commit SHA before event
      */
+    @SerializedName(value = "before")
     private String before;
 
     /**
@@ -50,6 +51,7 @@ public class GitEvent implements Serializable {
      * Branch ref info
      *  - Gitlab: ex: refs/heads/master
      */
+    @SerializedName(value = "ref")
     private String ref;
 
     @SerializedName(value = "user_id")
@@ -64,5 +66,70 @@ public class GitEvent implements Serializable {
     /**
      * Commit info
      */
-    private List<Commit> commits;
+    @SerializedName(value = "commits")
+    private List<GitEventCommit> commits;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getBefore() {
+        return before;
+    }
+
+    public void setBefore(String before) {
+        this.before = before;
+    }
+
+    public String getAfter() {
+        return after;
+    }
+
+    public void setAfter(String after) {
+        this.after = after;
+    }
+
+    public String getRef() {
+        return ref;
+    }
+
+    public void setRef(String ref) {
+        this.ref = ref;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Integer getNumOfCommits() {
+        return numOfCommits;
+    }
+
+    public void setNumOfCommits(Integer numOfCommits) {
+        this.numOfCommits = numOfCommits;
+    }
+
+    public List<GitEventCommit> getCommits() {
+        return commits;
+    }
+
+    public void setCommits(List<GitEventCommit> commits) {
+        this.commits = commits;
+    }
 }
