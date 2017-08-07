@@ -20,6 +20,8 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 /**
@@ -34,7 +36,10 @@ public class ZonedDateTimeAdaptor extends TypeAdapter<ZonedDateTime> {
 
     @Override
     public ZonedDateTime read(JsonReader in) throws IOException {
-
-        return null;
+        Long ts = in.nextLong();
+        Instant i = Instant.ofEpochSecond(ts);
+        ZonedDateTime z;
+        z = ZonedDateTime.ofInstant(i, ZoneId.systemDefault());
+        return z;
     }
 }
