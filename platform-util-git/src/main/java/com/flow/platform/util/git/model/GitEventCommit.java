@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git.events;
+package com.flow.platform.util.git.model;
 
 import java.io.Serializable;
 import java.util.List;
@@ -24,6 +24,9 @@ import java.util.List;
  */
 public class GitEventCommit implements Serializable {
 
+    /**
+     * Commit sha
+     */
     private String id;
 
     private String message;

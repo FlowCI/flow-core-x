@@ -14,36 +14,32 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git;
+package com.flow.platform.util.git.model;
 
 import java.io.Serializable;
 
 /**
  * @author yang
  */
-public class Commit implements Serializable {
+public class GitEventAuthor implements Serializable {
 
-    private String id;
+    private String name;
 
-    private String message;
+    private String email;
 
-    private String author;
-
-    public Commit(String id, String message, String author) {
-        this.id = id;
-        this.message = message;
-        this.author = author;
+    public String getName() {
+        return name;
     }
 
-    public String getId() {
-        return id;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getMessage() {
-        return message;
+    public String getEmail() {
+        return email;
     }
 
-    public String getAuthor() {
-        return author;
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

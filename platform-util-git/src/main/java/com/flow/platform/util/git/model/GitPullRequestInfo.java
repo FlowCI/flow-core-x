@@ -14,32 +14,42 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git.events;
+package com.flow.platform.util.git.model;
 
 import java.io.Serializable;
 
 /**
  * @author yang
  */
-public class GitEventAuthor implements Serializable {
+public class GitPullRequestInfo implements Serializable {
 
-    private String name;
+    private Integer projectId;
 
-    private String email;
+    private String branch;
 
-    public String getName() {
-        return name;
+    private GitEventCommit commit;
+
+    public Integer getProjectId() {
+        return projectId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setProjectId(Integer projectId) {
+        this.projectId = projectId;
     }
 
-    public String getEmail() {
-        return email;
+    public String getBranch() {
+        return branch;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+    public GitEventCommit getCommit() {
+        return commit;
+    }
+
+    public void setCommit(GitEventCommit commit) {
+        this.commit = commit;
     }
 }

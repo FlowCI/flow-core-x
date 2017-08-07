@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git.events;
+package com.flow.platform.util.git.model;
 
-import com.flow.platform.util.git.Commit;
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 import java.util.List;
 
 /**
+ * Event object for git push and create tag event
+ *
  * @author yang
  */
-public class GitPushEvent implements Serializable {
+public class GitPushTagEvent implements Serializable {
 
     /**
      * Git event type

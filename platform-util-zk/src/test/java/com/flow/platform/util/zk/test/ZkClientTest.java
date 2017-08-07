@@ -155,7 +155,7 @@ public class ZkClientTest {
         zkClient.create(path, null);
         Assert.assertEquals(true, zkClient.exist(path));
 
-        final CountDownLatch latch = new CountDownLatch(3); // should receive 3 events
+        final CountDownLatch latch = new CountDownLatch(3); // should receive 3 hooks
         final AtomicInteger counterForChildAdded = new AtomicInteger(0);
         final AtomicInteger counterForChildRemoved = new AtomicInteger(0);
 
