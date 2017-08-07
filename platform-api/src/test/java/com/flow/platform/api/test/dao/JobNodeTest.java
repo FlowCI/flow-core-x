@@ -15,11 +15,12 @@
  */
 package com.flow.platform.api.test.dao;
 
-import com.flow.platform.api.dao.JobNodeDao;
+import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobNode;
+import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.NodeTag;
+import com.flow.platform.api.service.NodeResultService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import java.time.ZonedDateTime;
@@ -33,12 +34,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class JobNodeTest extends TestBase {
 
     @Autowired
-    private JobNodeDao jobNodeDao;
+    private NodeResultService nodeResultService;
+
+    @Autowired
+    private NodeResultDao nodeResultDao;
 
     @Test
     public void should_save_and_get_success() {
         Job job = new Job(CommonUtil.randomId());
-        JobNode jobNode = new JobNode();
+        NodeResult jobNode = new NodeResult();
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
@@ -47,9 +51,9 @@ public class JobNodeTest extends TestBase {
         jobNode.setJobId(job.getId());
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
-        jobNodeDao.save(jobNode);
+        nodeResultDao.save(jobNode);
 
-        JobNode job_node = jobNodeDao.get(jobNode.getPath());
+        NodeResult job_node = nodeResultDao.get(jobNode.getPath());
         Assert.assertNotNull(job_node);
         Assert.assertEquals("/flow", job_node.getPath());
         Assert.assertEquals(NodeTag.FLOW, job_node.getNodeTag());
@@ -58,7 +62,7 @@ public class JobNodeTest extends TestBase {
     @Test
     public void should_update_success() {
         Job job = new Job(CommonUtil.randomId());
-        JobNode jobNode = new JobNode();
+        NodeResult jobNode = new NodeResult();
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
@@ -67,15 +71,15 @@ public class JobNodeTest extends TestBase {
         jobNode.setJobId(job.getId());
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
-        jobNodeDao.save(jobNode);
+        nodeResultDao.save(jobNode);
 
-        JobNode job_node = jobNodeDao.get(jobNode.getPath());
+        NodeResult job_node = nodeResultDao.get(jobNode.getPath());
         job_node.setNodeTag(NodeTag.STEP);
-        jobNodeDao.update(job_node);
+        nodeResultDao.update(job_node);
 
-        JobNode job_node1 = jobNodeDao.get(jobNode.getPath());
+        NodeResult job_node1 = nodeResultDao.get(jobNode.getPath());
         job_node1.setCmdId("22222");
-        jobNodeDao.update(job_node1);
+        nodeResultDao.update(job_node1);
 
         Assert.assertEquals(job_node.getPath(), job_node1.getPath());
 
@@ -84,7 +88,7 @@ public class JobNodeTest extends TestBase {
     @Test
     public void should_delete_job_node() {
         Job job = new Job(CommonUtil.randomId());
-        JobNode jobNode = new JobNode();
+        NodeResult jobNode = new NodeResult();
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
@@ -93,10 +97,10 @@ public class JobNodeTest extends TestBase {
         jobNode.setJobId(job.getId());
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
-        jobNodeDao.save(jobNode);
+        nodeResultDao.save(jobNode);
 
-        jobNodeDao.delete(jobNode);
-        JobNode job_node = jobNodeDao.get(jobNode.getPath());
+        nodeResultDao.delete(jobNode);
+        NodeResult job_node = nodeResultDao.get(jobNode.getPath());
 
         Assert.assertEquals(null, job_node);
     }

@@ -16,9 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobFlow;
-import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.domain.JobStep;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.domain.CmdBase;
 import java.math.BigInteger;
 import java.util.List;
@@ -46,7 +44,7 @@ public interface JobService {
     /**
      * run node
      */
-    void run(JobNode node);
+    void run(Node node, BigInteger jobId);
 
     /**
      * save job
@@ -66,7 +64,7 @@ public interface JobService {
     /**
      * show job's job step
      */
-    List<JobStep> listJobStep(BigInteger jobId);
+//    List<JobStep> listJobStep(BigInteger jobId);
 
     /**
      * get latest jobs by node name

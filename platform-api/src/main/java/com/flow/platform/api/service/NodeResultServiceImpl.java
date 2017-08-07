@@ -22,10 +22,13 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author gyfirim
  */
+
+@Service(value = "nodeResultService")
 public class NodeResultServiceImpl implements NodeResultService {
 
     @Autowired
@@ -46,7 +49,7 @@ public class NodeResultServiceImpl implements NodeResultService {
     }
 
     @Override
-    public NodeResult save(BigInteger jobId, Node node) {
+    public NodeResult save(BigInteger jobId, NodeResult nodeResult) {
         return null;
     }
 

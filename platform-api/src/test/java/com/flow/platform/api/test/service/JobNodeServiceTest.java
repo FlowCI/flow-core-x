@@ -16,11 +16,11 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.dao.JobDao;
-import com.flow.platform.api.dao.JobNodeDao;
+import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobNode;
+import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeResultService;
@@ -46,7 +46,7 @@ public class JobNodeServiceTest extends TestBase {
     private NodeResultService jobNodeService;
 
     @Autowired
-    private JobNodeDao jobNodeDao;
+    private NodeResultDao nodeResultDao;
 
     @Autowired
     private JobService jobService;
@@ -73,9 +73,9 @@ public class JobNodeServiceTest extends TestBase {
     @Test
     public void should_update_job_node() {
         Job job = new Job(CommonUtil.randomId());
-        JobNode jobNode = new JobNode(job.getId(), "/flow_test");
+        NodeResult jobNode = new NodeResult(job.getId(), "/flow_test");
         jobNode.setNodeTag(NodeTag.FLOW);
-        jobNodeDao.save(jobNode);
+        nodeResultDao.save(jobNode);
         Assert.assertEquals("/flow_test", jobNode.getPath());
         jobNode.setNodeTag(NodeTag.STEP);
         JobNode jobNode1 = jobNodeService.update(jobNode);

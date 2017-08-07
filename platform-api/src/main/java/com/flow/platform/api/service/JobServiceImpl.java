@@ -17,10 +17,10 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.exception.HttpException;
 import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
@@ -35,10 +35,8 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.ObjectUtil;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,7 +54,8 @@ public class JobServiceImpl implements JobService {
     private static Logger LOGGER = new Logger(JobService.class);
 
     @Autowired
-    private NodeResultService jobNodeService;
+    private NodeResultService nodeResultService;
+
     @Autowired
     private JobYmlStorgeService jobYmlStorgeService;
 
@@ -85,12 +84,12 @@ public class JobServiceImpl implements JobService {
         job.setId(CommonUtil.randomId());
 
         jobYmlStorgeService.save(job.getId(), ymlStorgeService.get(nodePath).getFile());
-        JobNode jobFlow = jobNodeService.create(job);
+        NodeResult nodeResult = nodeResultService.create(job);
 
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
 
-        job.setNodeName(jobFlow.getName());
+        job.setNodeName(nodeResult.getName());
         job.setStatus(NodeStatus.PENDING);
         save(job);
 
@@ -123,19 +122,19 @@ public class JobServiceImpl implements JobService {
      * @param node job node's script and record cmdId and sync send http
      */
     @Override
-    public void run(JobNode node) {
+    public void run(Node node, BigInteger jobId) {
         if (!NodeUtil.canRun(node)) {
             // run next node
-            run((JobNode) NodeUtil.next(node));
+            run(NodeUtil.next(node), jobId);
             return;
         }
 
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
-        JobNode jobNode = (JobNode) NodeUtil.findRootNode(node);
-        cmdInfo.setInputs(mergeEnvs(jobNode.getEnvs(), node.getEnvs()));
+        Node flow = NodeUtil.findRootNode(node);
+        cmdInfo.setInputs(mergeEnvs(flow.getEnvs(), node.getEnvs()));
         cmdInfo.setWebhook(getNodeHook(node));
 
-        Job job = find(jobNode.getJobId());
+        Job job = find(jobId);
         cmdInfo.setSessionId(job.getSessionId());
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
         try {
@@ -148,9 +147,11 @@ public class JobServiceImpl implements JobService {
             }
 
             Cmd cmd = Jsonable.parse(res, Cmd.class);
+            NodeResult nodeResult = nodeResultService.find(node.getPath(), jobId);
+
             // record cmd id
-            node.setCmdId(cmd.getId());
-            jobNodeService.save(job.getId(), node);
+            nodeResult.setCmdId(cmd.getId());
+            nodeResultService.save(jobId, nodeResult);
         } catch (Throwable ignore) {
             LOGGER.warn("run step UnsupportedEncodingException", ignore);
         }
@@ -265,13 +266,15 @@ public class JobServiceImpl implements JobService {
             job.setSessionId(cmdBase.getSessionId());
             update(job);
             // run step
-            JobNode jobFlow = jobNodeService.find(job.getNodePath(), job.getId());
-            if (jobFlow == null) {
-                throw new NotFoundException(String.format("Not Found Job Flow - %s", jobFlow.getName()));
+            NodeResult nodeResult = nodeResultService.find(job.getNodePath(), job.getId());
+            Node flow = jobYmlStorgeService.get(job.getId(), nodeResult.getPath());
+
+            if (flow == null) {
+                throw new NotFoundException(String.format("Not Found Job Flow - %s", flow.getName()));
             }
 
             // start run flow
-            run((JobNode) NodeUtil.first(jobFlow));
+            run(NodeUtil.first(flow), job.getId());
         } else {
             LOGGER.warn(String.format("Create Session Error Session Status - %s", cmdBase.getStatus().getName()));
         }
@@ -281,35 +284,38 @@ public class JobServiceImpl implements JobService {
      * step success callback
      */
     private void nodeCallback(String nodePath, CmdBase cmdBase, Job job) {
-        JobNode jobStep = jobNodeService.find(nodePath, job.getId());
+        NodeResult nodeResult = nodeResultService.find(nodePath, job.getId());
         NodeStatus nodeStatus = handleStatus(cmdBase);
 
         // keep job step status sorted
-        if (jobStep.getStatus().getLevel() > nodeStatus.getLevel()) {
+        if (nodeResult.getStatus().getLevel() > nodeStatus.getLevel()) {
             return;
         }
 
         //update job step status
-        jobStep.setStatus(nodeStatus);
+        nodeResult.setStatus(nodeStatus);
 
+        nodeResultService.update(nodeResult);
+
+        Node step = jobYmlStorgeService.get(job.getId(), nodeResult.getPath());
         //update node status
-        updateNodeStatus(jobStep, cmdBase, job);
+        updateNodeStatus(step, cmdBase, job);
     }
 
     /**
      * update job flow status
      */
-    private void updateJobStatus(JobNode jobNode) {
+    private void updateJobStatus(NodeResult nodeResult) {
         Job job = null;
-        if(jobNode.getJobId() != null){
-            job = find(jobNode.getJobId());
+        if (nodeResult.getJobId() != null) {
+            job = find(nodeResult.getJobId());
         }
         if (job == null) {
             return;
         }
         job.setUpdatedAt(ZonedDateTime.now());
-        job.setExitCode(jobNode.getExitCode());
-        NodeStatus nodeStatus = jobNode.getStatus();
+        job.setExitCode(nodeResult.getExitCode());
+        NodeStatus nodeStatus = nodeResult.getStatus();
 
         if (nodeStatus == NodeStatus.TIMEOUT || nodeStatus == NodeStatus.FAILURE) {
             nodeStatus = NodeStatus.FAILURE;
@@ -326,87 +332,86 @@ public class JobServiceImpl implements JobService {
 
     /**
      * update node status
-     *
-     * @param jobNode node
      */
-    private void updateNodeStatus(JobNode jobNode, CmdBase cmdBase, Job job) {
+    private void updateNodeStatus(Node node, CmdBase cmdBase, Job job) {
+        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
         //update jobNode
-        jobNode.setUpdatedAt(ZonedDateTime.now());
-        jobNode.setStatus(handleStatus(cmdBase));
+        nodeResult.setUpdatedAt(ZonedDateTime.now());
+        nodeResult.setStatus(handleStatus(cmdBase));
         CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
 
         if (cmdResult != null) {
-            jobNode.setExitCode(cmdResult.getExitValue());
-            if (NodeUtil.canRun(jobNode)) {
-                jobNode.setDuration(cmdResult.getDuration());
-                jobNode.setOutputs(cmdResult.getOutput());
-                jobNode.setLogPaths(((Cmd) cmdBase).getLogPaths());
-                jobNode.setStartTime(cmdResult.getStartTime());
-                jobNode.setFinishTime(((Cmd) cmdBase).getFinishedDate());
+            nodeResult.setExitCode(cmdResult.getExitValue());
+            if (NodeUtil.canRun(node)) {
+                nodeResult.setDuration(cmdResult.getDuration());
+                nodeResult.setOutputs(cmdResult.getOutput());
+                nodeResult.setLogPaths(((Cmd) cmdBase).getLogPaths());
+                nodeResult.setStartTime(cmdResult.getStartTime());
+                nodeResult.setFinishTime(((Cmd) cmdBase).getFinishedDate());
             }
         }
 
-        Node parent = jobNode.getParent();
-        Node prev = jobNode.getPrev();
-        Node next = jobNode.getNext();
-        switch (jobNode.getStatus()) {
+        Node parent = node.getParent();
+        Node prev = node.getPrev();
+        Node next = node.getNext();
+        switch (nodeResult.getStatus()) {
             case PENDING:
             case RUNNING:
                 if (cmdResult != null) {
-                    jobNode.setStartTime(cmdResult.getStartTime());
+                    nodeResult.setStartTime(cmdResult.getStartTime());
                 }
 
                 if (parent != null) {
                     // first node running update parent node running
                     if (prev == null) {
-                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase, job);
+                        updateNodeStatus(node.getParent(), cmdBase, job);
                     }
                 }
                 break;
             case SUCCESS:
                 if (cmdResult != null) {
-                    jobNode.setFinishTime(cmdResult.getFinishTime());
+                    nodeResult.setFinishTime(cmdResult.getFinishTime());
                 }
 
                 if (parent != null) {
                     // last node running update parent node running
                     if (next == null) {
-                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase, job);
+                        updateNodeStatus(node.getParent(), cmdBase, job);
                     } else {
-                        run((JobNode) NodeUtil.next(jobNode));
+                        run(NodeUtil.next(node), job.getId());
                     }
                 }
                 break;
             case TIMEOUT:
             case FAILURE:
                 if (cmdResult != null) {
-                    jobNode.setFinishTime(cmdResult.getFinishTime());
+                    nodeResult.setFinishTime(cmdResult.getFinishTime());
                 }
 
                 //update parent node if next is not null, if allow failure is false
-                if (parent != null && ((JobStep) jobNode).getAllowFailure()) {
+                if (parent != null && (((Step) node).getAllowFailure())) {
                     if (next == null) {
-                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase, job);
+                        updateNodeStatus(node.getParent(), cmdBase, job);
                     }
                 }
 
-                //update parent node if next is not null, if allow failure is false
-                if (parent != null && !((JobStep) jobNode).getAllowFailure()) {
-                    updateNodeStatus((JobNode) jobNode.getParent(), cmdBase, job);
-                }
+            //update parent node if next is not null, if allow failure is false
+            if (parent != null && !((Step) node).getAllowFailure()) {
+                updateNodeStatus(node.getParent(), cmdBase, job);
+            }
 
-                //next node not null, run next node
-                if (next != null && ((JobStep) jobNode).getAllowFailure()) {
-                    run((JobNode) NodeUtil.next(jobNode));
-                }
-                break;
+            //next node not null, run next node
+            if (next != null && ((Step) node).getAllowFailure()) {
+                run(NodeUtil.next(node), job.getId());
+            }
+            break;
         }
 
         //update job status
-        updateJobStatus(jobNode);
+        updateJobStatus(nodeResult);
 
         //save
-        jobNodeService.update(jobNode);
+        nodeResultService.update(nodeResult);
     }
 
     /**
@@ -444,28 +449,28 @@ public class JobServiceImpl implements JobService {
         return nodeStatus;
     }
 
-    @Override
-    public List<JobStep> listJobStep(BigInteger jobId) {
-        Job job = find(jobId);
-        if (job == null) {
-            throw new NotFoundException(String.format("Not Found Job"));
-        }
-        JobNode jobFlow = jobNodeService.find(job.getNodePath(), jobId);
-        List<JobStep> jobSteps = new LinkedList<>();
-        for (Object node : jobFlow.getChildren()) {
-            if (node instanceof JobStep) {
-                JobStep js = (JobStep) node;
-                JobStep jobStep = ObjectUtil.deepCopy(js);
-                jobStep.setParent(null);
-                jobStep.setPrev(null);
-                jobStep.setNext(null);
-                jobStep.setStatus(js.getStatus());
-                jobStep.setChildren(new ArrayList<>());
-                jobSteps.add(jobStep);
-            }
-        }
-        return jobSteps;
-    }
+//    @Override
+//    public List<JobStep> listJobStep(BigInteger jobId) {
+//        Job job = find(jobId);
+//        if (job == null) {
+//            throw new NotFoundException(String.format("Not Found Job"));
+//        }
+////        JobNode jobFlow = jobNodeService.find(job.getNodePath(), jobId);
+//        List<JobStep> jobSteps = new LinkedList<>();
+////        for (Object node : jobFlow.getChildren()) {
+////            if (node instanceof JobStep) {
+////                JobStep js = (JobStep) node;
+////                JobStep jobStep = ObjectUtil.deepCopy(js);
+////                jobStep.setParent(null);
+////                jobStep.setPrev(null);
+////                jobStep.setNext(null);
+////                jobStep.setStatus(js.getStatus());
+////                jobStep.setChildren(new ArrayList<>());
+////                jobSteps.add(jobStep);
+////            }
+////        }
+//        return jobSteps;
+//    }
 
 
     @Override

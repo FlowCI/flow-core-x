@@ -16,7 +16,6 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import java.math.BigInteger;
@@ -39,7 +38,7 @@ public interface NodeResultService {
     /**
      * save node
      */
-    NodeResult save(BigInteger jobId, Node node);
+    NodeResult save(BigInteger jobId, NodeResult nodeResult);
 
     NodeResult update(NodeResult nodeResult);
 

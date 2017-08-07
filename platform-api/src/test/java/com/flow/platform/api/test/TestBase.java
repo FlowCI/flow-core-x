@@ -17,22 +17,17 @@ package com.flow.platform.api.test;/*
 import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
-import com.flow.platform.api.dao.JobNodeDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.dao.YmlStorageDao;
-import com.flow.platform.api.domain.JobYmlStorage;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.gson.Gson;
 import java.io.IOException;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -67,8 +62,6 @@ public abstract class TestBase {
 
     @Autowired
     private JobYmlStorageDao jobYmlStorageDao;
-    @Autowired
-    private JobNodeDao jobNodeDao;
 
     @Autowired
     private WebApplicationContext webAppContext;
@@ -83,12 +76,11 @@ public abstract class TestBase {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
     }
 
-    private void cleanDatabase(){
+    private void cleanDatabase() {
         flowDao.deleteAll();
         jobDao.deleteAll();
         ymlStorageDao.deleteAll();
         jobYmlStorageDao.deleteAll();
-        jobNodeDao.deleteAll();
     }
 
     @Rule

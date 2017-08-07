@@ -17,7 +17,6 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
@@ -25,7 +24,6 @@ import com.flow.platform.api.service.YmlStorageService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +32,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -64,10 +61,10 @@ public class JobController {
         return jobService.createJob(node.getPath());
     }
 
-    @GetMapping(path = "/{id}/steps")
-    public Collection<JobStep> showSteps(@PathVariable BigInteger id) {
-        return jobService.listJobStep(id);
-    }
+//    @GetMapping(path = "/{id}/steps")
+//    public Collection<JobStep> showSteps(@PathVariable BigInteger id) {
+//        return jobService.listJobStep(id);
+//    }
 
     @GetMapping(path = "/{id}")
     public Job show(@PathVariable BigInteger id) {

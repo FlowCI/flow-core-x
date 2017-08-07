@@ -17,13 +17,12 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.domain.JobYmlStorage;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.NodeUtil;
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import javax.xml.soap.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,36 +36,51 @@ public class JobYmlStorageServiceImpl implements JobYmlStorgeService {
     @Autowired
     private JobYmlStorageDao jobYmlStorgeDao;
 
-    private  Map<BigInteger, Map<String, Node>> mocNodes = new HashMap<>();
+    private Map<BigInteger, Map<String, Node>> mocNodes = new HashMap<>();
 
     @Override
-    public void save(BigInteger jobId, String yml){
+    public void save(BigInteger jobId, String yml) {
         JobYmlStorage jobYmlStorage = jobYmlStorgeDao.get(jobId);
-        if (jobYmlStorage == null){
+        if (jobYmlStorage == null) {
             jobYmlStorage = new JobYmlStorage(jobId, yml);
             jobYmlStorgeDao.save(jobYmlStorage);
         } else {
             jobYmlStorage.setFile(yml);
             jobYmlStorgeDao.update(jobYmlStorage);
         }
+
+        addNodeToCache(jobYmlStorage);
     }
 
     @Override
-    public Node get(BigInteger jobId){
+    public Node get(BigInteger jobId) {
         JobYmlStorage jobYmlStorage = jobYmlStorgeDao.get(jobId);
-        if(jobYmlStorage == null) {
+        if (jobYmlStorage == null) {
             throw new NotFoundException("job yml storage not found");
         }
-        Node node = (Node) NodeUtil.buildFromYml(jobYmlStorage.getFile());
-        NodeUtil.recurse((com.flow.platform.api.domain.Node) node, item->{
-            mocNodes.get(jobId).put(item.getPath(), (Node) item);
-        });
+        Node node = addNodeToCache(jobYmlStorage);
         return node;
     }
 
 
     @Override
     public Node get(BigInteger jobId, String path) {
-        return mocNodes.get(jobId).get(path);
+        Map<String, Node> nodeMap = mocNodes.get(jobId);
+        if(nodeMap == null){
+            //load to cache
+            get(jobId);
+            nodeMap = mocNodes.get(jobId);
+        }
+
+
+        return nodeMap.get(path);
+    }
+
+    private Node addNodeToCache(JobYmlStorage jobYmlStorage) {
+        Node root = NodeUtil.buildFromYml(jobYmlStorage.getFile());
+        NodeUtil.recurse(root, item -> {
+            mocNodes.get(jobYmlStorage.getJobId()).put(item.getPath(), item);
+        });
+        return root;
     }
 }
