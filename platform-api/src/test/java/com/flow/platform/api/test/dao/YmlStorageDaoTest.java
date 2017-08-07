@@ -32,13 +32,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author yh@firim
  */
-public class YmlStorageDaoTest extends TestBase{
+public class YmlStorageDaoTest extends TestBase {
 
     @Autowired
     private YmlStorageDao ymlStorageDao;
 
     @Test
-    public void should_save_and_get_success(){
+    public void should_save_and_get_success() {
         YmlStorage ymlStorage = new YmlStorage("/flow", "YML config");
         ymlStorageDao.save(ymlStorage);
 
@@ -72,7 +72,7 @@ public class YmlStorageDaoTest extends TestBase{
     }
 
     @Test
-    public void should_update_success(){
+    public void should_update_success() {
         YmlStorage storage = new YmlStorage("/flow", "Yml Body");
         ymlStorageDao.save(storage);
         YmlStorage ymlStorage = ymlStorageDao.get(storage.getNodePath());
@@ -86,7 +86,7 @@ public class YmlStorageDaoTest extends TestBase{
     }
 
     @Test
-    public void should_delete_success(){
+    public void should_delete_success() {
         YmlStorage storage = new YmlStorage("/flow", "Yml Body");
         ymlStorageDao.save(storage);
         ymlStorageDao.delete(storage);

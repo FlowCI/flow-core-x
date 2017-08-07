@@ -14,35 +14,34 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.util.git;
 
-public class Step extends Node<Step> {
+import java.util.Collection;
+import org.eclipse.jgit.lib.Ref;
 
-    public Step(String path, String name) {
-        super(path, name);
-    }
+/**
+ * @author yang
+ */
+public interface GitClient {
 
-    public Step(){
+    /**
+     * Git pull with depth
+     * @param depth git pull depth, can be set to null
+     */
+    void pull(Integer depth);
 
-    }
+    /**
+     * Load all branches from git
+     */
+    Collection<Ref> branches();
 
-    private Boolean allowFailure = false;
+    /**
+     * Load all tags from git
+     */
+    Collection<Ref> tags();
 
-    private String plugin;
-
-    public Boolean getAllowFailure() {
-        return allowFailure;
-    }
-
-    public void setAllowFailure(Boolean allowFailure) {
-        this.allowFailure = allowFailure;
-    }
-
-    public String getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
-    }
+    /**
+     * Git latest commit from ref
+     */
+    Commit commit(String refName);
 }

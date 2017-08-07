@@ -14,35 +14,36 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.util.git;
 
-public class Step extends Node<Step> {
+import java.io.Serializable;
 
-    public Step(String path, String name) {
-        super(path, name);
+/**
+ * @author yang
+ */
+public class Commit implements Serializable {
+
+    private String id;
+
+    private String message;
+
+    private String author;
+
+    public Commit(String id, String message, String author) {
+        this.id = id;
+        this.message = message;
+        this.author = author;
     }
 
-    public Step(){
-
+    public String getId() {
+        return id;
     }
 
-    private Boolean allowFailure = false;
-
-    private String plugin;
-
-    public Boolean getAllowFailure() {
-        return allowFailure;
+    public String getMessage() {
+        return message;
     }
 
-    public void setAllowFailure(Boolean allowFailure) {
-        this.allowFailure = allowFailure;
-    }
-
-    public String getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
+    public String getAuthor() {
+        return author;
     }
 }

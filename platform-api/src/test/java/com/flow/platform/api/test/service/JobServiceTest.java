@@ -69,16 +69,16 @@ public class JobServiceTest extends TestBase {
     public void should_create_node_success() {
         stubDemo();
 
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
 
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
-        Step step3 = new Step("step3", "/flow/step3");
-        Step step4 = new Step("step4", "/flow/step4");
-        Step step5 = new Step("step5", "/flow/step5");
-        Step step6 = new Step("step6", "/flow/step6");
-        Step step7 = new Step("step7", "/flow/step7");
-        Step step8 = new Step("step8", "/flow/step8");
+        Step step1 = new Step("/flow/step1", "step1");
+        Step step2 = new Step("/flow/step2", "step2");
+        Step step3 = new Step("/flow/step3", "step3");
+        Step step4 = new Step("/flow/step4", "step4");
+        Step step5 = new Step("/flow/step5", "step5");
+        Step step6 = new Step("/flow/step6", "step6");
+        Step step7 = new Step("/flow/step7", "step7");
+        Step step8 = new Step("/flow/step8", "step8");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -136,10 +136,10 @@ public class JobServiceTest extends TestBase {
     public void should_show_list_success() {
         stubDemo();
 
-        Flow flow = new Flow("flow", "/flow");
+        Flow flow = new Flow("/flow", "flow");
 
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
+        Step step1 = new Step("/flow/step1", "step1");
+        Step step2 = new Step("/flow/step2", "step2");
 
         step1.setPlugin("step1");
         step1.setAllowFailure(true);

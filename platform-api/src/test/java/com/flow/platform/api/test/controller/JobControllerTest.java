@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Step;
-import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
@@ -69,15 +68,9 @@ public class JobControllerTest extends TestBase {
     public void should_show_job_success() throws Exception {
         stubDemo();
 
-        Flow flow = new Flow();
-        flow.setPath("/flow");
-        flow.setName("flow");
-        Step step1 = new Step();
-        step1.setPath("/flow/step1");
-        step1.setName("step1");
-        Step step2 = new Step();
-        step2.setPath("/flow/step2");
-        step2.setName("step2");
+        Flow flow = new Flow("/flow", "flow");
+        Step step1 = new Step("/flow/step1", "step1");
+        Step step2 = new Step("/flow/step2", "step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);

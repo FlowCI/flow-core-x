@@ -14,35 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.util.git;
 
-public class Step extends Node<Step> {
+/**
+ * @author yang
+ */
+public class GitException extends RuntimeException {
 
-    public Step(String path, String name) {
-        super(path, name);
-    }
-
-    public Step(){
-
-    }
-
-    private Boolean allowFailure = false;
-
-    private String plugin;
-
-    public Boolean getAllowFailure() {
-        return allowFailure;
-    }
-
-    public void setAllowFailure(Boolean allowFailure) {
-        this.allowFailure = allowFailure;
-    }
-
-    public String getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
+    public GitException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
