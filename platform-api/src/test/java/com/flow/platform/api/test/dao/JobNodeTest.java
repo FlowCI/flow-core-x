@@ -42,65 +42,59 @@ public class JobNodeTest extends TestBase {
     @Test
     public void should_save_and_get_success() {
         Job job = new Job(CommonUtil.randomId());
-        NodeResult jobNode = new NodeResult();
+        NodeResult jobNode = new NodeResult(job.getId(), "/flow");
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
         jobNode.setNodeTag(NodeTag.FLOW);
-        jobNode.setPath("/flow");
-        jobNode.setJobId(job.getId());
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
 
-        NodeResult job_node = nodeResultDao.get(jobNode.getPath());
+        NodeResult job_node = nodeResultDao.get(jobNode.getNodeResultKey().getPath());
         Assert.assertNotNull(job_node);
-        Assert.assertEquals("/flow", job_node.getPath());
+        Assert.assertEquals("/flow", job_node.getNodeResultKey().getPath());
         Assert.assertEquals(NodeTag.FLOW, job_node.getNodeTag());
     }
 
     @Test
     public void should_update_success() {
         Job job = new Job(CommonUtil.randomId());
-        NodeResult jobNode = new NodeResult();
+        NodeResult jobNode = new NodeResult(job.getId(), "/flow");
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
         jobNode.setNodeTag(NodeTag.FLOW);
-        jobNode.setPath("/flow");
-        jobNode.setJobId(job.getId());
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
 
-        NodeResult job_node = nodeResultDao.get(jobNode.getPath());
+        NodeResult job_node = nodeResultDao.get(jobNode.getNodeResultKey().getPath());
         job_node.setNodeTag(NodeTag.STEP);
         nodeResultDao.update(job_node);
 
-        NodeResult job_node1 = nodeResultDao.get(jobNode.getPath());
+        NodeResult job_node1 = nodeResultDao.get(jobNode.getNodeResultKey().getPath());
         job_node1.setCmdId("22222");
         nodeResultDao.update(job_node1);
 
-        Assert.assertEquals(job_node.getPath(), job_node1.getPath());
+        Assert.assertEquals(job_node.getNodeResultKey().getPath(), job_node1.getNodeResultKey().getPath());
 
     }
 
     @Test
     public void should_delete_job_node() {
         Job job = new Job(CommonUtil.randomId());
-        NodeResult jobNode = new NodeResult();
+        NodeResult jobNode = new NodeResult(job.getId(), "/flow");
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
         jobNode.setNodeTag(NodeTag.FLOW);
-        jobNode.setPath("/flow");
-        jobNode.setJobId(job.getId());
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
 
         nodeResultDao.delete(jobNode);
-        NodeResult job_node = nodeResultDao.get(jobNode.getPath());
+        NodeResult job_node = nodeResultDao.get(jobNode.getNodeResultKey().getPath());
 
         Assert.assertEquals(null, job_node);
     }

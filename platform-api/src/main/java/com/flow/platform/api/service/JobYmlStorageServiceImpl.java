@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
  */
 
 @Service(value = "jobYmlStorageService")
-public class JobYmlStorageServiceImpl implements JobYmlStorgeService {
+public class JobYmlStorageServiceImpl implements JobYmlStorageService {
 
     @Autowired
     private JobYmlStorageDao jobYmlStorgeDao;
@@ -79,7 +79,13 @@ public class JobYmlStorageServiceImpl implements JobYmlStorgeService {
     private Node addNodeToCache(JobYmlStorage jobYmlStorage) {
         Node root = NodeUtil.buildFromYml(jobYmlStorage.getFile());
         NodeUtil.recurse(root, item -> {
-            mocNodes.get(jobYmlStorage.getJobId()).put(item.getPath(), item);
+
+            Map<String, Node> nodeMap = mocNodes.get(jobYmlStorage.getJobId());
+            if(nodeMap == null){
+                nodeMap = new HashMap<>();
+            }
+            nodeMap.put(item.getPath(), item);
+            mocNodes.put(jobYmlStorage.getJobId(), nodeMap);
         });
         return root;
     }

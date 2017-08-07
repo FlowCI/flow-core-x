@@ -23,13 +23,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.test.util.NodeUtilYmlTest;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.domain.Cmd;
+import com.google.common.io.Files;
+import java.io.File;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.UUID;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +58,8 @@ public class JobControllerTest extends TestBase {
     @Autowired
     private JobService jobService;
 
+    @Autowired
+    private YmlStorageDao ymlStorageDao;
 
     private void stubDemo() {
         Cmd cmdRes = new Cmd();
@@ -68,17 +78,17 @@ public class JobControllerTest extends TestBase {
     public void should_show_job_success() throws Exception {
         stubDemo();
 
-        Flow flow = new Flow("/flow", "flow");
-        Step step1 = new Step("/flow/step1", "step1");
-        Step step2 = new Step("/flow/step2", "step2");
+        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+        URL resource = classLoader.getResource("flow.yaml");
+        File path = new File(resource.getFile());
+        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+        YmlStorage storage = new YmlStorage("/flow1", ymlString);
+        ymlStorageDao.save(storage);
 
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-
-        step1.setParent(flow);
-        step2.setParent(flow);
+        Flow flow = (Flow) NodeUtil.buildFromYml(path);
 
         nodeService.create(flow);
+
 
         Job job = jobService.createJob(flow.getPath());
 

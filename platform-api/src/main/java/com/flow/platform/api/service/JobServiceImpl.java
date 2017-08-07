@@ -57,7 +57,7 @@ public class JobServiceImpl implements JobService {
     private NodeResultService nodeResultService;
 
     @Autowired
-    private JobYmlStorgeService jobYmlStorgeService;
+    private JobYmlStorageService jobYmlStorageService;
 
     @Autowired
     private YmlStorageService ymlStorgeService;
@@ -82,8 +82,9 @@ public class JobServiceImpl implements JobService {
 
         Job job = new Job(CommonUtil.randomId());
         job.setId(CommonUtil.randomId());
+        job.setNodePath(nodePath);
 
-        jobYmlStorgeService.save(job.getId(), ymlStorgeService.get(nodePath).getFile());
+        jobYmlStorageService.save(job.getId(), ymlStorgeService.get(nodePath).getFile());
         NodeResult nodeResult = nodeResultService.create(job);
 
         job.setCreatedAt(ZonedDateTime.now());
@@ -151,7 +152,7 @@ public class JobServiceImpl implements JobService {
 
             // record cmd id
             nodeResult.setCmdId(cmd.getId());
-            nodeResultService.save(jobId, nodeResult);
+            nodeResultService.update(nodeResult);
         } catch (Throwable ignore) {
             LOGGER.warn("run step UnsupportedEncodingException", ignore);
         }
@@ -267,7 +268,7 @@ public class JobServiceImpl implements JobService {
             update(job);
             // run step
             NodeResult nodeResult = nodeResultService.find(job.getNodePath(), job.getId());
-            Node flow = jobYmlStorgeService.get(job.getId(), nodeResult.getPath());
+            Node flow = jobYmlStorageService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
 
             if (flow == null) {
                 throw new NotFoundException(String.format("Not Found Job Flow - %s", flow.getName()));
@@ -297,7 +298,7 @@ public class JobServiceImpl implements JobService {
 
         nodeResultService.update(nodeResult);
 
-        Node step = jobYmlStorgeService.get(job.getId(), nodeResult.getPath());
+        Node step = jobYmlStorageService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
         //update node status
         updateNodeStatus(step, cmdBase, job);
     }
@@ -307,8 +308,8 @@ public class JobServiceImpl implements JobService {
      */
     private void updateJobStatus(NodeResult nodeResult) {
         Job job = null;
-        if (nodeResult.getJobId() != null) {
-            job = find(nodeResult.getJobId());
+        if (nodeResult.getNodeResultKey().getJobId() != null) {
+            job = find(nodeResult.getNodeResultKey().getJobId());
         }
         if (job == null) {
             return;

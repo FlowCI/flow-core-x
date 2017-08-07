@@ -32,7 +32,7 @@ public class NodeResultDaoImpl extends AbstractBaseDao<String, NodeResult> imple
 
     @Override
     String getKeyName() {
-        return "";
+        return "nodeResultKey";
     }
 
 }

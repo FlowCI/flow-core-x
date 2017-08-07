@@ -38,7 +38,7 @@ public interface NodeResultService {
     /**
      * save node
      */
-    NodeResult save(BigInteger jobId, NodeResult nodeResult);
+    NodeResult save(BigInteger jobId, Node node);
 
     NodeResult update(NodeResult nodeResult);
 

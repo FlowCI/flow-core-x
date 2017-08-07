@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.NodeResultService;
@@ -122,8 +123,8 @@ public class WebhookControllerTest extends TestBase {
             .andExpect(status().isOk())
             .andReturn();
         job = jobService.find(job.getId());
-        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath(), job.getId());
-        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
+        NodeResult jobStep1 = jobNodeService.find(step1.getPath(), job.getId());
+        NodeResult jobFlow = jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
@@ -146,8 +147,8 @@ public class WebhookControllerTest extends TestBase {
             .andReturn();
 
         job = jobService.find(job.getId());
-        jobStep1 = (JobStep) jobNodeService.find(step1.getPath(), job.getId());
-        jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
+        jobStep1 = jobNodeService.find(step1.getPath(), job.getId());
+        jobFlow = jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.SUCCESS);
         Assert.assertEquals((Integer) 0, jobStep1.getExitCode());
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
@@ -171,8 +172,8 @@ public class WebhookControllerTest extends TestBase {
             .andReturn();
 
         job = jobService.find(job.getId());
-        JobStep jobStep2 = (JobStep) jobNodeService.find(step2.getPath(), job.getId());
-        jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
+        NodeResult jobStep2 = jobNodeService.find(step2.getPath(), job.getId());
+        jobFlow = jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(jobStep2.getStatus(), NodeStatus.SUCCESS);
         Assert.assertEquals((Integer) 0, jobStep2.getExitCode());
         Assert.assertEquals(job.getStatus(), NodeStatus.SUCCESS);
@@ -234,9 +235,9 @@ public class WebhookControllerTest extends TestBase {
             .andReturn();
 
         job = jobService.find(job.getId());
-        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath(), job.getId());
+        NodeResult jobStep1 = jobNodeService.find(step1.getPath(), job.getId());
         Assert.assertNotNull(jobStep1.getCmdId());
-        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
+        NodeResult jobFlow = jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(job.getStatus(), NodeStatus.FAILURE);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.TIMEOUT);
@@ -309,9 +310,9 @@ public class WebhookControllerTest extends TestBase {
             .andExpect(status().isOk())
             .andReturn();
 
-        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath(), job.getId());
+        NodeResult jobStep1 = jobNodeService.find(step1.getPath(), job.getId());
         Assert.assertNotNull(jobStep1.getCmdId());
-        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
+        NodeResult jobFlow = jobNodeService.find(flow.getPath(), job.getId());
         job = jobService.find(job.getId());
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
