@@ -18,36 +18,29 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.NodeResult;
 import java.math.BigInteger;
 
 /**
  * @author yh@firim
  */
-public interface JobNodeService {
+public interface NodeResultService {
 
     /**
      * create node and children
      */
-    JobNode create(Job job);
+    NodeResult create(Job job);
 
     /**
      * find node by node path
      */
-    JobNode find(String nodePath, BigInteger jobId);
+    NodeResult find(String nodePath, BigInteger jobId);
 
     /**
      * save node
      */
-    JobNode save(BigInteger jobId, Node node);
+    NodeResult save(BigInteger jobId, Node node);
 
-    JobNode update(JobNode jobNode);
-
-
-    /**
-     * create job node by node path
-     *
-     * @param nodePath can copy every node
-     */
-//    JobNode createJobNode(String nodePath, BigInteger jobId);
+    NodeResult update(NodeResult nodeResult);
 
 }

@@ -18,7 +18,12 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.domain.JobYmlStorage;
 import com.flow.platform.api.exception.NotFoundException;
+import com.flow.platform.api.util.NodeUtil;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.xml.soap.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +36,8 @@ public class JobYmlStorageServiceImpl implements JobYmlStorgeService {
 
     @Autowired
     private JobYmlStorageDao jobYmlStorgeDao;
+
+    private  Map<BigInteger, Map<String, Node>> mocNodes = new HashMap<>();
 
     @Override
     public void save(BigInteger jobId, String yml){
@@ -45,12 +52,21 @@ public class JobYmlStorageServiceImpl implements JobYmlStorgeService {
     }
 
     @Override
-    public JobYmlStorage get(BigInteger jobId){
+    public Node get(BigInteger jobId){
         JobYmlStorage jobYmlStorage = jobYmlStorgeDao.get(jobId);
         if(jobYmlStorage == null) {
             throw new NotFoundException("job yml storage not found");
         }
+        Node node = (Node) NodeUtil.buildFromYml(jobYmlStorage.getFile());
+        NodeUtil.recurse((com.flow.platform.api.domain.Node) node, item->{
+            mocNodes.get(jobId).put(item.getPath(), (Node) item);
+        });
+        return node;
+    }
 
-        return jobYmlStorage;
+
+    @Override
+    public Node get(BigInteger jobId, String path) {
+        return mocNodes.get(jobId).get(path);
     }
 }

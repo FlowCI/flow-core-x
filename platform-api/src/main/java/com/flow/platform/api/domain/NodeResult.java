@@ -21,8 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import javax.persistence.Entity;
 
-@Entity
-public class JobNode<T extends JobNode> extends Node<T> {
+public class NodeResult {
 
     protected BigInteger jobId;
 
@@ -46,22 +45,42 @@ public class JobNode<T extends JobNode> extends Node<T> {
 
     protected ZonedDateTime finishTime;
 
-    public JobNode() {
-    }
+    private String name;
 
-    public JobNode(BigInteger jobId, String path) {
+    private ZonedDateTime createdAt;
+
+    private ZonedDateTime updatedAt;
+
+    public NodeResult(BigInteger jobId, String path) {
         this.jobId = jobId;
         this.path = path;
     }
 
-    @Override
-    public String getPath() {
-        return path;
+    public NodeResult() {
     }
 
-    @Override
-    public void setPath(String path) {
-        this.path = path;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(ZonedDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public ZonedDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public BigInteger getJobId() {
@@ -72,12 +91,12 @@ public class JobNode<T extends JobNode> extends Node<T> {
         this.jobId = jobId;
     }
 
-    public ZonedDateTime getFinishTime() {
-        return finishTime;
+    public String getPath() {
+        return path;
     }
 
-    public void setFinishTime(ZonedDateTime finishTime) {
-        this.finishTime = finishTime;
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public Map<String, String> getOutputs() {
@@ -120,14 +139,6 @@ public class JobNode<T extends JobNode> extends Node<T> {
         this.status = status;
     }
 
-    public ZonedDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(ZonedDateTime startTime) {
-        this.startTime = startTime;
-    }
-
     public String getCmdId() {
         return cmdId;
     }
@@ -142,5 +153,21 @@ public class JobNode<T extends JobNode> extends Node<T> {
 
     public void setNodeTag(NodeTag nodeTag) {
         this.nodeTag = nodeTag;
+    }
+
+    public ZonedDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(ZonedDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public ZonedDateTime getFinishTime() {
+        return finishTime;
+    }
+
+    public void setFinishTime(ZonedDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 }

@@ -26,7 +26,7 @@ import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
-import com.flow.platform.api.service.JobNodeService;
+import com.flow.platform.api.service.NodeResultService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
@@ -51,7 +51,7 @@ public class JobServiceTest extends TestBase {
     private NodeService nodeService;
 
     @Autowired
-    private JobNodeService jobNodeService;
+    private NodeResultService jobNodeService;
 
     private void stubDemo() {
         Cmd cmdRes = new Cmd();

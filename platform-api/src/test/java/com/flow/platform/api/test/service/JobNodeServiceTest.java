@@ -23,7 +23,7 @@ import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.domain.YmlStorage;
-import com.flow.platform.api.service.JobNodeService;
+import com.flow.platform.api.service.NodeResultService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.test.util.NodeUtilYmlTest;
@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class JobNodeServiceTest extends TestBase {
 
     @Autowired
-    private JobNodeService jobNodeService;
+    private NodeResultService jobNodeService;
 
     @Autowired
     private JobNodeDao jobNodeDao;

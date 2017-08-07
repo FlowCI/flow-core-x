@@ -56,7 +56,7 @@ public class JobServiceImpl implements JobService {
     private static Logger LOGGER = new Logger(JobService.class);
 
     @Autowired
-    private JobNodeService jobNodeService;
+    private NodeResultService jobNodeService;
     @Autowired
     private JobYmlStorgeService jobYmlStorgeService;
 

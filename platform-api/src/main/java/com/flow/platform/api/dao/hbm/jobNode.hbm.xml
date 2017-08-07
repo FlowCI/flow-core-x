@@ -4,7 +4,7 @@
   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.api.domain">
-  <class name="JobNode" table="job_node">
+  <class name="NodeResult" table="node_result">
 
     <composite-id>
       <key-property name="path"></key-property>

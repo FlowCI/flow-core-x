@@ -17,6 +17,7 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.JobYmlStorage;
 import java.math.BigInteger;
+import javax.xml.soap.Node;
 
 /**
  * @author lhl
@@ -25,5 +26,8 @@ public interface JobYmlStorgeService {
 
     void save(BigInteger jobId, String yml);
 
-    JobYmlStorage get(BigInteger jobId);
+    Node get(BigInteger jobId);
+
+    Node get(BigInteger jobId, String path);
+
 }

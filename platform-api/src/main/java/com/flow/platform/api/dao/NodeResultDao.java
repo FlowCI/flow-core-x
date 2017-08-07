@@ -15,12 +15,12 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.JobNode;
+import com.flow.platform.api.domain.NodeResult;
 
 /**
  * @author lhl
  */
-public interface JobNodeDao extends BaseDao<String, JobNode>{
+public interface NodeResultDao extends BaseDao<String, NodeResult>{
 
 
 }

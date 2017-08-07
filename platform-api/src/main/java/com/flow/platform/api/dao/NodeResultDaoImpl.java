@@ -15,19 +15,19 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.JobNode;
+import com.flow.platform.api.domain.NodeResult;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author lhl
  */
-@Repository(value = "jobNodeDao")
+@Repository(value = "nodeResultDao")
 
-public class JobNodeDaoImpl extends AbstractBaseDao<String, JobNode> implements JobNodeDao{
+public class NodeResultDaoImpl extends AbstractBaseDao<String, NodeResult> implements NodeResultDao{
 
     @Override
-    Class<JobNode> getEntityClass() {
-        return JobNode.class;
+    Class<NodeResult> getEntityClass() {
+        return NodeResult.class;
     }
 
     @Override
