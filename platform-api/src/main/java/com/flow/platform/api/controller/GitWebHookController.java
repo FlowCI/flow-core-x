@@ -14,33 +14,16 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.controller;
 
-import com.flow.platform.domain.Jsonable;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public class Response extends Jsonable {
+@RestController
+public class GitWebHookController {
 
-    private String message;
 
-    public String getMessage() {
-        return message;
-    }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public Response(String message) {
-        this.message = message;
-    }
-
-    @Override
-    public String toString() {
-        return "Response{" +
-            "message='" + message + '\'' +
-            '}';
-    }
 }

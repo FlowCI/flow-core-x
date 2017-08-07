@@ -22,9 +22,8 @@ import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
-import java.io.UnsupportedEncodingException;
+import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,33 +31,36 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Controller to receive cmd webhook from flow control center
+ *
  * @author yh@firim
  */
 @RestController
-@RequestMapping
-public class WebhookController {
+@RequestMapping("/hooks/cmd")
+public class CmdWebhookController {
 
-    private final Logger LOGGER = new Logger(WebhookController.class);
+    private final Logger LOGGER = new Logger(CmdWebhookController.class);
 
     @Autowired
     private JobService jobService;
 
-    @PostMapping(path = "/hooks")
-    public Response execute(@RequestBody Cmd cmd,
-        @RequestParam String identifier) {
-        identifier = UrlUtil.urlDecoder(identifier);
-        if (identifier == null || cmd == null) {
-            throw new IllegalParameterException(
-                String.format("Mission Param Identifier - %s Or Cmd - %s", identifier, cmd.toJson()));
+    @PostMapping(path = "")
+    public Response execute(@RequestBody Cmd cmd, @RequestParam String identifier) {
+        String decodedIdentifier = UrlUtil.urlDecoder(identifier);
+
+        if (Strings.isNullOrEmpty(identifier)) {
+            throw new IllegalParameterException("Invalid 'identifier' parameter");
+        }
+
+        if (cmd.getType() == null) {
+            throw new IllegalParameterException("Invalid cmd request data");
         }
 
         LOGGER.trace(String
             .format("Webhook Comming Url: %s CmdType: %s CmdStatus: %s", cmd.getWebhook(), cmd.getType().toString(),
                 cmd.getStatus().toString()));
 
-        jobService.callback(identifier, cmd);
+        jobService.callback(decodedIdentifier, cmd);
         return new Response("ok");
     }
-
 }
-

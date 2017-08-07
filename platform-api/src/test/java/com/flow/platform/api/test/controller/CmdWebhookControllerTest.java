@@ -33,14 +33,12 @@ import com.flow.platform.api.service.JobNodeService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.Logger;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,7 +49,9 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 /**
  * @author yh@firim
  */
-public class WebhookControllerTest extends TestBase {
+public class CmdWebhookControllerTest extends TestBase {
+
+    private final static String CMD_HOOKS_URL = "/hooks/cmd?identifier=";
 
     @Autowired
     private NodeService nodeService;
@@ -76,7 +76,6 @@ public class WebhookControllerTest extends TestBase {
 
     @Test
     public void should_callback_session_success() throws Exception {
-
         stubDemo();
 
         Flow flow = new Flow("flow", "/flow");
@@ -101,7 +100,8 @@ public class WebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId()))
+
+        MockHttpServletRequestBuilder content = post(CMD_HOOKS_URL + UrlUtil.urlEncoder(job.getId()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -117,7 +117,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.RUNNING);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post(CMD_HOOKS_URL + UrlUtil.urlEncoder(step1.getPath()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -140,7 +140,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setCmdResult(cmdResult);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post(CMD_HOOKS_URL + UrlUtil.urlEncoder(step1.getPath()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -164,7 +164,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setCmdResult(cmdResult);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step2.getPath()))
+        content = post(CMD_HOOKS_URL + UrlUtil.urlEncoder(step2.getPath()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -207,7 +207,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId()))
+        MockHttpServletRequestBuilder content = post(CMD_HOOKS_URL + UrlUtil.urlEncoder(job.getId()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -224,7 +224,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post(CMD_HOOKS_URL + UrlUtil.urlEncoder(step1.getPath()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -269,7 +269,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId()))
+        MockHttpServletRequestBuilder content = post(CMD_HOOKS_URL + UrlUtil.urlEncoder(job.getId()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -286,7 +286,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.RUNNING);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post(CMD_HOOKS_URL + UrlUtil.urlEncoder(step1.getPath()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -298,7 +298,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post(CMD_HOOKS_URL + UrlUtil.urlEncoder(step1.getPath()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
