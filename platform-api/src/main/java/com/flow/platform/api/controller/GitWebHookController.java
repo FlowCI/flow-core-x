@@ -16,14 +16,19 @@
 
 package com.flow.platform.api.controller;
 
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author yang
  */
 @RestController
+@RequestMapping("/hooks/git")
 public class GitWebHookController {
 
+    @PostMapping(path = "")
+    public void onEventReceived() {
 
-
+    }
 }
