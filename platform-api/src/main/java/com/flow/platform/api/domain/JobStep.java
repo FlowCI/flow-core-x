@@ -54,7 +54,6 @@ public class JobStep extends JobNode<JobStep> {
             ", exitCode=" + exitCode +
             ", logPaths=" + logPaths +
             ", status=" + status +
-            ", job=" + job +
             ", cmdId='" + cmdId + '\'' +
             ", startTime=" + startTime +
             '}';

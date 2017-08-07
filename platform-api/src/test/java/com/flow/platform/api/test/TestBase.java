@@ -17,7 +17,10 @@ package com.flow.platform.api.test;/*
 import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
+import com.flow.platform.api.dao.JobNodeDao;
+import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.domain.JobYmlStorage;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -63,6 +66,11 @@ public abstract class TestBase {
     private YmlStorageDao ymlStorageDao;
 
     @Autowired
+    private JobYmlStorageDao jobYmlStorageDao;
+    @Autowired
+    private JobNodeDao jobNodeDao;
+
+    @Autowired
     private WebApplicationContext webAppContext;
 
     @Autowired
@@ -79,6 +87,8 @@ public abstract class TestBase {
         flowDao.deleteAll();
         jobDao.deleteAll();
         ymlStorageDao.deleteAll();
+        jobYmlStorageDao.deleteAll();
+        jobNodeDao.deleteAll();
     }
 
     @Rule

@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.service;
 
-package com.flow.platform.api.domain;
+import com.flow.platform.api.domain.JobYmlStorage;
+import java.math.BigInteger;
 
-public class JobFlow extends JobNode<JobStep> {
-    public JobFlow(String path, String name){
-        super(path, name);
-    }
+/**
+ * @author lhl
+ */
+public interface JobYmlStorgeService {
 
-    public JobFlow() {
-    }
+    void save(BigInteger jobId, String yml);
+
+    JobYmlStorage get(BigInteger jobId);
 }

@@ -15,22 +15,20 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.dao.JobNodeDao;
 import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.JobFlow;
+import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.NodeTag;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.util.NodeUtil;
-import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.ObjectUtil;
-import com.google.gson.internal.LinkedTreeMap;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * @author yh@firim
@@ -44,106 +42,59 @@ public class JobNodeServiceImpl implements JobNodeService {
     @Autowired
     private NodeService nodeService;
 
+    @Autowired
+    private JobNodeDao jobNodeDao;
+
+    @Autowired
+    private YmlStorageService ymlStorageService;
+
+    @Autowired
+    private JobYmlStorgeService jobYmlStorgeService;
+
+    @Autowired
+    private JobService jobService;
+
     @Override
-    public JobNode create(JobNode jobNode) {
-        NodeUtil.recurse(jobNode, item -> {
-            save((JobNode) item);
+    public JobNode create(Job job) {
+        String nodePath = job.getNodePath();
+        YmlStorage storage = ymlStorageService.get(nodePath);
+
+        //TODO: to be load from cache
+        Node root = NodeUtil.buildFromYml(storage.getFile());
+
+        // save root to db
+        JobNode jobNodeRoot = save(job.getId(), root);
+        mocNodeList.put(root.getPath(), jobNodeRoot);
+        // save children nodes to db
+        NodeUtil.recurse(root, item -> {
+            save(job.getId(), item);
         });
+        return jobNodeRoot;
+    }
+
+
+    @Override
+    public JobNode update(JobNode jobNode) {
+        jobNodeDao.update(jobNode);
         return jobNode;
     }
 
     @Override
-    public JobNode save(JobNode jobNode) {
-        mocNodeList.put(jobNode.getPath(), jobNode);
-        return jobNode;
-    }
-
-    @Override
-    public JobNode find(String nodePath) {
-        return mocNodeList.get(nodePath);
-    }
-
-
-    /**
-     * copy node to job node and save
-     */
-    @Override
-    public JobNode createJobNode(String nodePath) {
-        Node flow = nodeService.find(nodePath);
-        NodeUtil.recurse(flow, node -> {
-            JobNode jobNode;
-            if (node instanceof Flow) {
-                jobNode = copyNode(node, Flow.class, JobFlow.class);
-            } else {
-                jobNode = copyNode(node, Step.class, JobStep.class);
-            }
-            save(jobNode);
-
-            // create job node
-            for (int i = 0; i < node.getChildren().size(); i++) {
-                Node child = (Node) node.getChildren().get(i);
-                JobNode jobChild = find(child.getPath());
-                jobNode.getChildren().add(jobChild);
-                jobChild.setParent(jobNode);
-                save(jobChild);
-            }
-
-            // build node prev next relation
-            for (int i = 0; i < jobNode.getChildren().size(); i++) {
-                JobNode jobChild = (JobNode) jobNode.getChildren().get(i);
-                if (i == 0) {
-                    // first node
-                    jobChild.setPrev(null);
-                    try {
-                        jobChild.setNext((Node) jobNode.getChildren().get(i + 1));
-                    } catch (Throwable ignore) {
-                    }
-                } else if (i == jobNode.getChildren().size() - 1) {
-                    // last node
-                    try {
-                        jobChild.setPrev((Node) jobNode.getChildren().get(i - 1));
-                    } catch (Throwable ignore) {
-                    }
-                    jobChild.setNext(null);
-                } else {
-                    // build node prev next relation
-                    jobChild.setNext((Node) jobNode.getChildren().get(i + 1));
-                    jobChild.setPrev((Node) jobNode.getChildren().get(i - 1));
-                }
-                save(jobChild);
-            }
-        });
-        return (JobFlow) find(flow.getPath());
-    }
-
-    /**
-     * copy node data to job node
-     */
-    private JobNode copyNode(Node node, Class<?> sourceClass, Class<?> targetClass) {
-        Object k = null;
-        try {
-            k = targetClass.newInstance();
-            Object finalK = k;
-            ReflectionUtils.doWithFields(sourceClass, field -> {
-                field.setAccessible(true);
-                Object ob = ReflectionUtils.getField(field, node);
-                ObjectUtil.assignValueToField(field, finalK, ob);
-            }, field -> {
-                String[] filerWords = {"children", "prev", "next", "parent"};
-                // this word not copy
-                for (String arr : filerWords) {
-                    if (arr == field.getName()) {
-                        return false;
-                    }
-                }
-                return true;
-            });
-        } catch (InstantiationException | IllegalAccessException e) {
-            LOGGER.warn("copy node exception  %s - %s", e.getClass().toString(), e);
-            throw new IllegalParameterException(
-                String.format("Copy Node Exception Node - %s - %s", node.toJson(), e.toString()));
+    public JobNode find(String nodePath, BigInteger jobId) {
+        JobNode jobNode = mocNodeList.get(nodePath);
+        if(jobNode == null){
+            Job job  = jobService.find(jobId);
+            create(job);
+            return find(nodePath, jobId);
+        } else {
+          return jobNode;
         }
-        return (JobNode) k;
     }
 
+   @Override
+    public JobNode save(BigInteger id, Node item) {
+        JobNode node = new JobNode(id, item.getPath());
+        node.setNodeTag(item instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+        return jobNodeDao.save(node);
+    }
 }

@@ -13,14 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.dao;
 
-package com.flow.platform.api.domain;
+import com.flow.platform.api.domain.JobYmlStorage;
+import com.flow.platform.api.domain.YmlStorage;
+import java.math.BigInteger;
+import org.springframework.stereotype.Repository;
 
-public class JobFlow extends JobNode<JobStep> {
-    public JobFlow(String path, String name){
-        super(path, name);
+/**
+ * @author lhl
+ */
+
+@Repository(value = "jobYmlStorageDao")
+public class JobYmlStorageDaoImpl extends AbstractBaseDao<BigInteger, JobYmlStorage> implements JobYmlStorageDao {
+
+    @Override
+    Class<JobYmlStorage> getEntityClass() {
+        return JobYmlStorage.class;
     }
 
-    public JobFlow() {
+    @Override
+    String getKeyName() {
+        return "jobId";
     }
 }

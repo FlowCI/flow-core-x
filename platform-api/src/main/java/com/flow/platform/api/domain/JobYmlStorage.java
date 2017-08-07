@@ -16,19 +16,21 @@
 
 package com.flow.platform.api.domain;
 
+import java.math.BigInteger;
+
 /**
  * @author yh@firim
  */
 public class JobYmlStorage {
-    private String jobId;
+    private BigInteger jobId;
 
     private String file;
 
-    public String getJobId() {
+    public BigInteger getJobId() {
         return jobId;
     }
 
-    public void setJobId(String jobId) {
+    public void setJobId(BigInteger jobId) {
         this.jobId = jobId;
     }
 
@@ -38,6 +40,14 @@ public class JobYmlStorage {
 
     public void setFile(String file) {
         this.file = file;
+    }
+
+    public JobYmlStorage(BigInteger jobId, String file) {
+        this.jobId = jobId;
+        this.file = file;
+    }
+
+    public JobYmlStorage() {
     }
 
     @Override

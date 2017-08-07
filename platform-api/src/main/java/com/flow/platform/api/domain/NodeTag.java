@@ -13,14 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.flow.platform.api.domain;
 
-public class JobFlow extends JobNode<JobStep> {
-    public JobFlow(String path, String name){
-        super(path, name);
+/**
+ * @author lhl
+ */
+public enum NodeTag {
+    FLOW("FLOW", 0),
+    STEP("STEP", 1);
+
+    private String name;
+    private int index;
+
+    NodeTag(String name, int index) {
+        this.name = name;
+        this.index = index;
     }
 
-    public JobFlow() {
+    public String getName() {
+        return name;
     }
+
+
+    public int getIndex() {
+        return index;
+    }
+
 }
