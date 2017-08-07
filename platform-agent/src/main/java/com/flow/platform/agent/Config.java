@@ -144,9 +144,6 @@ public class Config {
             return Jsonable.parse(raw, AgentSettings.class);
 
         } catch (Throwable e) {
-            if (retry > 0) {
-                return loadAgentConfig(zkHost, zoneName, retry - 1);
-            }
             throw new RuntimeException(e);
         }
     }
