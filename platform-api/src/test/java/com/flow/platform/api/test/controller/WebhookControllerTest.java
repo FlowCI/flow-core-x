@@ -126,8 +126,8 @@ public class WebhookControllerTest extends TestBase {
             .andExpect(status().isOk())
             .andReturn();
         job = jobService.find(job.getId());
-        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath());
-        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath(), job.getId());
+        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
@@ -150,8 +150,8 @@ public class WebhookControllerTest extends TestBase {
             .andReturn();
 
         job = jobService.find(job.getId());
-        jobStep1 = (JobStep) jobNodeService.find(step1.getPath());
-        jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        jobStep1 = (JobStep) jobNodeService.find(step1.getPath(), job.getId());
+        jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.SUCCESS);
         Assert.assertEquals((Integer) 0, jobStep1.getExitCode());
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
@@ -175,8 +175,8 @@ public class WebhookControllerTest extends TestBase {
             .andReturn();
 
         job = jobService.find(job.getId());
-        JobStep jobStep2 = (JobStep) jobNodeService.find(step2.getPath());
-        jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        JobStep jobStep2 = (JobStep) jobNodeService.find(step2.getPath(), job.getId());
+        jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(jobStep2.getStatus(), NodeStatus.SUCCESS);
         Assert.assertEquals((Integer) 0, jobStep2.getExitCode());
         Assert.assertEquals(job.getStatus(), NodeStatus.SUCCESS);
@@ -238,9 +238,9 @@ public class WebhookControllerTest extends TestBase {
             .andReturn();
 
         job = jobService.find(job.getId());
-        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath());
+        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath(), job.getId());
         Assert.assertNotNull(jobStep1.getCmdId());
-        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(job.getStatus(), NodeStatus.FAILURE);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.TIMEOUT);
@@ -313,9 +313,9 @@ public class WebhookControllerTest extends TestBase {
             .andExpect(status().isOk())
             .andReturn();
 
-        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath());
+        JobStep jobStep1 = (JobStep) jobNodeService.find(step1.getPath(), job.getId());
         Assert.assertNotNull(jobStep1.getCmdId());
-        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
         job = jobService.find(job.getId());
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
