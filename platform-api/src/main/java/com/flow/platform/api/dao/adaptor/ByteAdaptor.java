@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.dao.adaptor;
 
+import com.flow.platform.core.dao.adaptor.BaseAdaptor;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.sql.PreparedStatement;
@@ -28,7 +29,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 /**
  * @author yh@firim
  */
-public class ByteAdaptor extends BaseAdaptor{
+public class ByteAdaptor extends BaseAdaptor {
 
     @Override
     protected Type getTargetType() {
@@ -75,12 +76,12 @@ public class ByteAdaptor extends BaseAdaptor{
 
     }
 
-    private String byteToString(byte[] bytes){
+    private String byteToString(byte[] bytes) {
         String str = new String(bytes, Charset.forName("UTF-8"));
         return str;
     }
 
-    private byte[] stringToByte(String str){
+    private byte[] stringToByte(String str) {
         byte[] bytes = str.getBytes(Charset.forName("UTF-8"));
         return bytes;
     }

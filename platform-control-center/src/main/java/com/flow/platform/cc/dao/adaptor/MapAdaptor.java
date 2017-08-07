@@ -16,8 +16,8 @@
 
 package com.flow.platform.cc.dao.adaptor;
 
+import com.flow.platform.core.dao.adaptor.BaseAdaptor;
 import com.google.gson.reflect.TypeToken;
-
 import java.lang.reflect.Type;
 import java.util.Map;
 

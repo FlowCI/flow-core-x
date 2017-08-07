@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.dao;
+package com.flow.platform.core.dao;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 import org.hibernate.Session;
 
-import java.io.Serializable;
-
 /**
- * @author gy@fir.im
+ * @author yh@firim
  */
 public interface BaseDao<K extends Serializable, T> {
 
@@ -44,3 +43,5 @@ public interface BaseDao<K extends Serializable, T> {
      */
     int deleteAll();
 }
+
+

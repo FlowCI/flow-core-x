@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.dao;
 
+import com.flow.platform.core.dao.BaseDao;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;

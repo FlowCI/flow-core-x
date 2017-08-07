@@ -21,6 +21,7 @@
     <module>platform-util-resource</module>
     <module>platform-util-zk</module>
     <module>platform-util-git</module>
+    <module>platform-core</module>
   </modules>
 
   <properties>

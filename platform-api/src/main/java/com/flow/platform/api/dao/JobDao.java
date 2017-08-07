@@ -18,6 +18,7 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
 import java.util.List;
 

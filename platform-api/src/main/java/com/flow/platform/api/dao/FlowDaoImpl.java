@@ -17,6 +17,7 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.core.dao.AbstractBaseDao;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -32,12 +33,12 @@ import org.springframework.stereotype.Repository;
 public class FlowDaoImpl extends AbstractBaseDao<String, Flow> implements FlowDao {
 
     @Override
-    Class<Flow> getEntityClass() {
+    protected Class<Flow> getEntityClass() {
         return Flow.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "path";
     }
 
