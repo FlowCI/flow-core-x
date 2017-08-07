@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.dao;
 
-package com.flow.platform.api.domain;
+import com.flow.platform.api.domain.JobNode;
+import org.springframework.stereotype.Repository;
 
-import java.math.BigInteger;
+/**
+ * @author lhl
+ */
+@Repository(value = "jobNodeDao")
 
-public class JobFlow extends JobNode<JobStep> {
-    public JobFlow(BigInteger jobId, String path){
-        super(jobId, path);
+public class JobNodeDaoImpl extends AbstractBaseDao<String, JobNode> implements JobNodeDao{
+
+    @Override
+    Class<JobNode> getEntityClass() {
+        return JobNode.class;
     }
 
-    public JobFlow() {
+    @Override
+    String getKeyName() {
+        return "";
     }
+
 }

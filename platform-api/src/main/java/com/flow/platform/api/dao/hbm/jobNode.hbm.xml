@@ -5,17 +5,17 @@
 
 <hibernate-mapping package="com.flow.platform.api.domain">
   <class name="JobNode" table="job_node">
-    <id name="path" type="string">
-      <column name="path"></column>
-    </id>
+
+    <composite-id>
+      <key-property name="path"></key-property>
+      <key-property name="jobId">
+        <column name="job_id" sql-type="decimal(25, 2)"></column>
+      </key-property>
+    </composite-id>
 
     <property name="duration" type="long" column="duration"></property>
     <property name="name" type="string" column="name"></property>
     <property name="exitCode" type="integer"></property>
-
-    <property name="jobId" type="big_integer">
-      <column name="job_id" sql-type="decimal(25, 2)"></column>
-    </property>
 
     <property name="cmdId" type="string" column="cmd_id"></property>
 

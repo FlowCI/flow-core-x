@@ -15,16 +15,24 @@
  */
 package com.flow.platform.api.test.service;
 
+import com.flow.platform.api.dao.JobDao;
+import com.flow.platform.api.dao.JobNodeDao;
+import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.JobFlow;
+import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.domain.JobStep;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.NodeTag;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.JobNodeService;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.test.util.NodeUtilYmlTest;
+import com.flow.platform.api.util.CommonUtil;
+import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,77 +46,42 @@ public class JobNodeServiceTest extends TestBase {
     private JobNodeService jobNodeService;
 
     @Autowired
-    private NodeService nodeService;
+    private JobNodeDao jobNodeDao;
+
+    @Autowired
+    private JobService jobService;
+
+    @Autowired
+    private YmlStorageDao ymlStorageDao;
+
+    @Autowired
+    private JobDao jobDao;
 
     @Test
-    public void should_save_node() {
-        JobFlow flow = new JobFlow("flow", "/flow");
-        flow.setExitCode(1);
-
-        jobNodeService.save(flow);
-        Assert.assertEquals(flow.getExitCode(), ((JobNode) jobNodeService.find(flow.getPath())).getExitCode());
+    public void should_save_job_node_by_job() throws IOException{
+        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+        URL resource = classLoader.getResource("flow.yaml");
+        File path = new File(resource.getFile());
+        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+        YmlStorage storage = new YmlStorage("/flow", ymlString);
+        ymlStorageDao.save(storage);
+        Flow flow = new Flow("/flow", "flow");
+        Job job = jobService.createJob(flow.getPath());
+        Assert.assertEquals(job.getId(), jobNodeService.find(flow.getPath(), job.getId()).getJobId());
     }
 
     @Test
-    public void should_create_and_get_node() {
-        JobFlow flow = new JobFlow("flow", "/flow");
-        JobStep step1 = new JobStep("step1", "/flow/step1");
+    public void should_update_job_node() {
+        Job job = new Job(CommonUtil.randomId());
+        JobNode jobNode = new JobNode(job.getId(), "/flow_test");
+        jobNode.setNodeTag(NodeTag.FLOW);
+        jobNodeDao.save(jobNode);
+        Assert.assertEquals("/flow_test", jobNode.getPath());
+        jobNode.setNodeTag(NodeTag.STEP);
+        JobNode jobNode1 = jobNodeService.update(jobNode);
+        Assert.assertEquals(jobNode1.getNodeTag(), NodeTag.STEP);
 
-        flow.setDuration((long) 10);
-        step1.setParent(flow);
-        step1.setDuration((long) 10);
-        flow.getChildren().add(step1);
-
-        jobNodeService.create(flow);
-        NodeUtil.recurse(flow, item -> {
-            Assert.assertEquals(((JobNode) item).getDuration(),
-                jobNodeService.find(flow.getPath()).getDuration());
-        });
     }
 
-
-    @Test
-    public void should_copy_node() {
-        Flow flow = new Flow("flow", "/flow");
-
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
-
-        step1.setPlugin("step1");
-        step1.setAllowFailure(true);
-        step2.setPlugin("step2");
-        step2.setAllowFailure(true);
-
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-
-        step1.setParent(flow);
-        step2.setParent(flow);
-        step1.setNext(step2);
-        step2.setParent(step1);
-
-        nodeService.create(flow);
-
-        JobFlow jobFlow = (JobFlow) jobNodeService.createJobNode(flow.getPath());
-        for (Object item : jobFlow.getChildren()) {
-            Assert.assertEquals(((Node) item).getPath(), jobNodeService.find(((Node) item).getPath()).getPath());
-        }
-    }
-
-    @Test
-    public void should_copy_node_simple() {
-        // zero node
-
-        Flow flow = new Flow("flow", "/flow");
-
-        nodeService.create(flow);
-
-        JobFlow jobFlow = (JobFlow) jobNodeService.createJobNode(flow.getPath());
-
-        jobFlow = (JobFlow) jobNodeService.find(jobFlow.getPath());
-        for (Object item : jobFlow.getChildren()) {
-            Assert.assertEquals(((Node) item).getPath(), jobNodeService.find(((Node) item).getPath()).getPath());
-        }
-    }
 
 }

@@ -59,15 +59,17 @@ public class JobNodeServiceImpl implements JobNodeService {
         String nodePath = job.getNodePath();
         YmlStorage storage = ymlStorageService.get(nodePath);
 
-        //TODO: to be load from cache
         Node root = NodeUtil.buildFromYml(storage.getFile());
 
         // save root to db
         JobNode jobNodeRoot = save(job.getId(), root);
-        mocNodeList.put(root.getPath(), jobNodeRoot);
+
         // save children nodes to db
         NodeUtil.recurse(root, item -> {
-            save(job.getId(), item);
+            if (root != item){
+                JobNode jobNode = save(job.getId(), item);
+                mocNodeList.put(root.getPath(), jobNode);
+            }
         });
         return jobNodeRoot;
     }
@@ -84,8 +86,14 @@ public class JobNodeServiceImpl implements JobNodeService {
         JobNode jobNode = mocNodeList.get(nodePath);
         if(jobNode == null){
             Job job  = jobService.find(jobId);
-            create(job);
-            return find(nodePath, jobId);
+            if (job == null){
+                Job job1 = jobService.createJob(nodePath);
+                create(job1);
+                return find(nodePath, job1.getId());
+            } else {
+                create(job);
+                return find(nodePath, jobId);
+            }
         } else {
           return jobNode;
         }

@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.dao;
 
-package com.flow.platform.api.domain;
+import com.flow.platform.api.domain.JobNode;
 
-import java.math.BigInteger;
+/**
+ * @author lhl
+ */
+public interface JobNodeDao extends BaseDao<String, JobNode>{
 
-public class JobFlow extends JobNode<JobStep> {
-    public JobFlow(BigInteger jobId, String path){
-        super(jobId, path);
-    }
 
-    public JobFlow() {
-    }
 }

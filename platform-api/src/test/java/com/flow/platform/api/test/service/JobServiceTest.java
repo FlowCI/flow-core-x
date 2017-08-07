@@ -24,7 +24,6 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobStep;
-import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobNodeService;
@@ -119,16 +118,16 @@ public class JobServiceTest extends TestBase {
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, job.getStatus());
         job = jobService.find(job.getId());
-        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        JobFlow jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
 
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setType(CmdType.RUN_SHELL);
         jobService.callback(step2.getPath(), cmd);
         job = jobService.find(job.getId());
-        Assert.assertEquals(NodeStatus.FAILURE, ((JobStep) jobNodeService.find(step2.getPath())).getStatus());
+        Assert.assertEquals(NodeStatus.FAILURE, ( jobNodeService.find(step2.getPath(), job.getId())).getStatus());
         Assert.assertEquals(NodeStatus.FAILURE, job.getStatus());
-        jobFlow = (JobFlow) jobNodeService.find(flow.getPath());
+        jobFlow = (JobFlow) jobNodeService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
 
     }

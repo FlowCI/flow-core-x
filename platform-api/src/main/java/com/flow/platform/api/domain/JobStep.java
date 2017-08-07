@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.domain;
 
+import java.math.BigInteger;
+
 public class JobStep extends JobNode<JobStep> {
 
     private Boolean allowFailure = false;
@@ -38,8 +40,9 @@ public class JobStep extends JobNode<JobStep> {
         this.plugin = plugin;
     }
 
-    public JobStep(String name, String path) {
-        super(name, path);
+    public JobStep(BigInteger jobId, String path) {
+
+        super(jobId, path);
     }
 
     public JobStep() {

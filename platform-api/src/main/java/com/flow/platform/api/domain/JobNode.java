@@ -16,10 +16,17 @@
 
 package com.flow.platform.api.domain;
 
+import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.*;
+import javax.persistence.Entity;
 
-public abstract class JobNode<T extends JobNode> extends Node<T> {
+@Entity
+public class JobNode<T extends JobNode> extends Node<T> {
+
+    protected BigInteger jobId;
+
+    protected String path;
 
     protected Map<String, String> outputs = new HashMap<>();
 
@@ -31,9 +38,9 @@ public abstract class JobNode<T extends JobNode> extends Node<T> {
 
     protected NodeStatus status = NodeStatus.PENDING;
 
-    protected Job job;
-
     protected String cmdId;
+
+    protected NodeTag nodeTag;
 
     protected ZonedDateTime startTime;
 
@@ -42,8 +49,27 @@ public abstract class JobNode<T extends JobNode> extends Node<T> {
     public JobNode() {
     }
 
-    public JobNode(String name, String path) {
-        super(name, path);
+    public JobNode(BigInteger jobId, String path) {
+        this.jobId = jobId;
+        this.path = path;
+    }
+
+    @Override
+    public String getPath() {
+        return path;
+    }
+
+    @Override
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public BigInteger getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(BigInteger jobId) {
+        this.jobId = jobId;
     }
 
     public ZonedDateTime getFinishTime() {
@@ -94,14 +120,6 @@ public abstract class JobNode<T extends JobNode> extends Node<T> {
         this.status = status;
     }
 
-    public Job getJob() {
-        return job;
-    }
-
-    public void setJob(Job job) {
-        this.job = job;
-    }
-
     public ZonedDateTime getStartTime() {
         return startTime;
     }
@@ -116,5 +134,13 @@ public abstract class JobNode<T extends JobNode> extends Node<T> {
 
     public void setCmdId(String cmdId) {
         this.cmdId = cmdId;
+    }
+
+    public NodeTag getNodeTag() {
+        return nodeTag;
+    }
+
+    public void setNodeTag(NodeTag nodeTag) {
+        this.nodeTag = nodeTag;
     }
 }

@@ -17,7 +17,6 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobFlow;
 import com.flow.platform.api.domain.JobNode;
 import com.flow.platform.api.domain.JobStep;
 import com.flow.platform.api.domain.Node;
@@ -44,7 +43,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -59,6 +57,11 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private JobNodeService jobNodeService;
+    @Autowired
+    private JobYmlStorgeService jobYmlStorgeService;
+
+    @Autowired
+    private YmlStorageService ymlStorgeService;
 
     @Autowired
     private JobDao jobDao;
@@ -77,19 +80,20 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job createJob(String nodePath) {
+
         Job job = new Job(CommonUtil.randomId());
-        //create job node
-        JobFlow jobFlow = (JobFlow) jobNodeService.createJobNode(nodePath);
-        //update job status
         job.setId(CommonUtil.randomId());
+
+        jobYmlStorgeService.save(job.getId(), ymlStorgeService.get(nodePath).getFile());
+        JobNode jobFlow = jobNodeService.create(job);
+
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
-        job.setNodePath(jobFlow.getPath());
+
         job.setNodeName(jobFlow.getName());
         job.setStatus(NodeStatus.PENDING);
         save(job);
-        jobFlow.setJob(job);
-        jobNodeService.save(jobFlow);
+
         //create session
         createSession(job);
         return job;
@@ -97,15 +101,16 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public void callback(String id, CmdBase cmdBase) {
+        Job job = find(new BigInteger(id));
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
-            Job job = find(new BigInteger(id));
+
             if (job == null) {
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
                 throw new RuntimeException("job not found");
             }
             sessionCallback(job, cmdBase);
         } else if (cmdBase.getType() == CmdType.RUN_SHELL) {
-            nodeCallback(id, cmdBase);
+            nodeCallback(id, cmdBase, job);
         } else {
             LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
             throw new RuntimeException("not found cmdType");
@@ -126,11 +131,11 @@ public class JobServiceImpl implements JobService {
         }
 
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
-        JobFlow jobFlow = (JobFlow) NodeUtil.findRootNode(node);
-        cmdInfo.setInputs(mergeEnvs(jobFlow.getEnvs(), node.getEnvs()));
+        JobNode jobNode = (JobNode) NodeUtil.findRootNode(node);
+        cmdInfo.setInputs(mergeEnvs(jobNode.getEnvs(), node.getEnvs()));
         cmdInfo.setWebhook(getNodeHook(node));
 
-        Job job = find(jobFlow.getJob().getId());
+        Job job = find(jobNode.getJobId());
         cmdInfo.setSessionId(job.getSessionId());
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
         try {
@@ -145,7 +150,7 @@ public class JobServiceImpl implements JobService {
             Cmd cmd = Jsonable.parse(res, Cmd.class);
             // record cmd id
             node.setCmdId(cmd.getId());
-            jobNodeService.save(node);
+            jobNodeService.save(job.getId(), node);
         } catch (Throwable ignore) {
             LOGGER.warn("run step UnsupportedEncodingException", ignore);
         }
@@ -260,7 +265,7 @@ public class JobServiceImpl implements JobService {
             job.setSessionId(cmdBase.getSessionId());
             update(job);
             // run step
-            JobFlow jobFlow = (JobFlow) jobNodeService.find(job.getNodePath());
+            JobNode jobFlow = jobNodeService.find(job.getNodePath(), job.getId());
             if (jobFlow == null) {
                 throw new NotFoundException(String.format("Not Found Job Flow - %s", jobFlow.getName()));
             }
@@ -275,8 +280,8 @@ public class JobServiceImpl implements JobService {
     /**
      * step success callback
      */
-    private void nodeCallback(String nodePath, CmdBase cmdBase) {
-        JobStep jobStep = (JobStep) jobNodeService.find(nodePath);
+    private void nodeCallback(String nodePath, CmdBase cmdBase, Job job) {
+        JobNode jobStep = jobNodeService.find(nodePath, job.getId());
         NodeStatus nodeStatus = handleStatus(cmdBase);
 
         // keep job step status sorted
@@ -288,7 +293,7 @@ public class JobServiceImpl implements JobService {
         jobStep.setStatus(nodeStatus);
 
         //update node status
-        updateNodeStatus(jobStep, cmdBase);
+        updateNodeStatus(jobStep, cmdBase, job);
     }
 
     /**
@@ -296,8 +301,8 @@ public class JobServiceImpl implements JobService {
      */
     private void updateJobStatus(JobNode jobNode) {
         Job job = null;
-        if(jobNode.getJob() != null){
-            job = find(jobNode.getJob().getId());
+        if(jobNode.getJobId() != null){
+            job = find(jobNode.getJobId());
         }
         if (job == null) {
             return;
@@ -324,7 +329,7 @@ public class JobServiceImpl implements JobService {
      *
      * @param jobNode node
      */
-    private void updateNodeStatus(JobNode jobNode, CmdBase cmdBase) {
+    private void updateNodeStatus(JobNode jobNode, CmdBase cmdBase, Job job) {
         //update jobNode
         jobNode.setUpdatedAt(ZonedDateTime.now());
         jobNode.setStatus(handleStatus(cmdBase));
@@ -354,7 +359,7 @@ public class JobServiceImpl implements JobService {
                 if (parent != null) {
                     // first node running update parent node running
                     if (prev == null) {
-                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase);
+                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase, job);
                     }
                 }
                 break;
@@ -366,7 +371,7 @@ public class JobServiceImpl implements JobService {
                 if (parent != null) {
                     // last node running update parent node running
                     if (next == null) {
-                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase);
+                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase, job);
                     } else {
                         run((JobNode) NodeUtil.next(jobNode));
                     }
@@ -381,13 +386,13 @@ public class JobServiceImpl implements JobService {
                 //update parent node if next is not null, if allow failure is false
                 if (parent != null && ((JobStep) jobNode).getAllowFailure()) {
                     if (next == null) {
-                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase);
+                        updateNodeStatus((JobNode) jobNode.getParent(), cmdBase, job);
                     }
                 }
 
                 //update parent node if next is not null, if allow failure is false
                 if (parent != null && !((JobStep) jobNode).getAllowFailure()) {
-                    updateNodeStatus((JobNode) jobNode.getParent(), cmdBase);
+                    updateNodeStatus((JobNode) jobNode.getParent(), cmdBase, job);
                 }
 
                 //next node not null, run next node
@@ -401,7 +406,7 @@ public class JobServiceImpl implements JobService {
         updateJobStatus(jobNode);
 
         //save
-        jobNodeService.save(jobNode);
+        jobNodeService.update(jobNode);
     }
 
     /**
@@ -443,9 +448,9 @@ public class JobServiceImpl implements JobService {
     public List<JobStep> listJobStep(BigInteger jobId) {
         Job job = find(jobId);
         if (job == null) {
-            throw new NotFoundException(String.format("Not Found Job - %s", job.getId()));
+            throw new NotFoundException(String.format("Not Found Job"));
         }
-        JobNode jobFlow = jobNodeService.find(job.getNodePath());
+        JobNode jobFlow = jobNodeService.find(job.getNodePath(), jobId);
         List<JobStep> jobSteps = new LinkedList<>();
         for (Object node : jobFlow.getChildren()) {
             if (node instanceof JobStep) {
