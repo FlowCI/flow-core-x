@@ -23,21 +23,35 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeResultService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.test.util.NodeUtilYmlTest;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
+import com.google.common.io.Files;
+import com.google.gson.annotations.JsonAdapter;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
@@ -59,6 +73,9 @@ public class WebhookControllerTest extends TestBase {
     @Autowired
     private JobService jobService;
 
+    @Autowired
+    private YmlStorageDao ymlStorageDao;
+
     private void stubDemo() {
         Cmd cmdRes = new Cmd();
         cmdRes.setId(UUID.randomUUID().toString());
@@ -76,18 +93,10 @@ public class WebhookControllerTest extends TestBase {
 
         stubDemo();
 
-        Flow flow = new Flow("/flow", "flow");
-
-        Step step1 = new Step("/flow/step1", "step1");
-        Step step2 = new Step("/flow/step2", "step2");
-
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-
-        step1.setParent(flow);
-        step2.setParent(flow);
+        Flow flow = (Flow) initYaml("demo_flow.yaml");
 
         nodeService.create(flow);
+        ;
 
         Job job = jobService.createJob(flow.getPath());
 
@@ -110,12 +119,19 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(job.getStatus(), NodeStatus.ENQUEUE);
 
+        Step step1 = (Step) nodeService.find("/flow1/step1");
+        Step step2 = (Step) nodeService.find("/flow1/step2");
+
         // run first step running
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        Map<String, String> map = new HashMap<>();
+        map.put("path", step1.getPath());
+        map.put("jobId", job.getId().toString());
+
+        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -138,7 +154,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setCmdResult(cmdResult);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -163,7 +179,8 @@ public class WebhookControllerTest extends TestBase {
         cmd.setCmdResult(cmdResult);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step2.getPath()))
+        map.put("path", step2.getPath());
+        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -185,18 +202,11 @@ public class WebhookControllerTest extends TestBase {
 
         stubDemo();
 
-        Flow flow = new Flow("/flow", "flow");
-
-        Step step1 = new Step("/flow/step1", "step1");
-        Step step2 = new Step("/flow/step2", "step2");
-
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-
-        step1.setParent(flow);
-        step2.setParent(flow);
+        Flow flow = (Flow) initYaml("demo_flow.yaml");
 
         nodeService.create(flow);
+        Step step1 = (Step) nodeService.find("/flow1/step1");
+        Step step2 = (Step) nodeService.find("/flow1/step2");
 
         Job job = jobService.createJob(flow.getPath());
 
@@ -225,8 +235,12 @@ public class WebhookControllerTest extends TestBase {
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
 
+        Map<String, String> map = new HashMap<>();
+        map.put("path", step1.getPath());
+        map.put("jobId", job.getId().toString());
+
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -248,18 +262,7 @@ public class WebhookControllerTest extends TestBase {
 
         stubDemo();
 
-        Flow flow = new Flow("/flow", "flow");
-
-        Step step1 = new Step("/flow/step1", "step1");
-        Step step2 = new Step("/flow/step2", "step2");
-
-        step1.setAllowFailure(true);
-
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-
-        step1.setParent(flow);
-        step2.setParent(flow);
+        Flow flow = (Flow) initYaml("demo_flow1.yaml");
 
         nodeService.create(flow);
 
@@ -285,12 +288,19 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(job.getStatus(), NodeStatus.ENQUEUE);
 
+        Step step1 = (Step) nodeService.find("/flow1/step1");
+        Step step2 = (Step) nodeService.find("/flow1/step2");
+
         // run first step timeout
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
 
+        Map<String, String> map = new HashMap<>();
+        map.put("path", step1.getPath());
+        map.put("jobId", job.getId().toString());
+
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -302,7 +312,7 @@ public class WebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(step1.getPath()))
+        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -317,5 +327,16 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
+    }
+
+    private Node initYaml(String fileName) throws IOException {
+        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+        URL resource = classLoader.getResource(fileName);
+        File path = new File(resource.getFile());
+        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+        YmlStorage storage = new YmlStorage("/flow1", ymlString);
+        ymlStorageDao.save(storage);
+
+        return NodeUtil.buildFromYml(path);
     }
 }

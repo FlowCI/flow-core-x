@@ -101,16 +101,20 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public void callback(String id, CmdBase cmdBase) {
-        Job job = find(new BigInteger(id));
+        Job job;
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
 
+            job = find(new BigInteger(id));
             if (job == null) {
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
                 throw new RuntimeException("job not found");
             }
             sessionCallback(job, cmdBase);
         } else if (cmdBase.getType() == CmdType.RUN_SHELL) {
-            nodeCallback(id, cmdBase, job);
+            Map<String, String> map = Jsonable.GSON_CONFIG.fromJson(id, Map.class);
+            job = find(new BigInteger(map.get("jobId")));
+
+            nodeCallback(map.get("path"), cmdBase, job);
         } else {
             LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
             throw new RuntimeException("not found cmdType");
@@ -133,7 +137,7 @@ public class JobServiceImpl implements JobService {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         Node flow = NodeUtil.findRootNode(node);
         cmdInfo.setInputs(mergeEnvs(flow.getEnvs(), node.getEnvs()));
-        cmdInfo.setWebhook(getNodeHook(node));
+        cmdInfo.setWebhook(getNodeHook(node, jobId));
 
         Job job = find(jobId);
         cmdInfo.setSessionId(job.getSessionId());
@@ -201,8 +205,11 @@ public class JobServiceImpl implements JobService {
     /**
      * get node callback
      */
-    private String getNodeHook(Node node) {
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(node.getPath());
+    private String getNodeHook(Node node, BigInteger jobId) {
+        Map<String, String> map = new HashMap<>();
+        map.put("path", node.getPath());
+        map.put("jobId", jobId.toString());
+        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map));
     }
 
     /**
@@ -307,13 +314,12 @@ public class JobServiceImpl implements JobService {
      * update job flow status
      */
     private void updateJobStatus(NodeResult nodeResult) {
-        Job job = null;
-        if (nodeResult.getNodeResultKey().getJobId() != null) {
-            job = find(nodeResult.getNodeResultKey().getJobId());
-        }
-        if (job == null) {
+        Node node = jobYmlStorageService.get(nodeResult.getNodeResultKey().getJobId(), nodeResult.getNodeResultKey().getPath());
+
+        if (node instanceof Step) {
             return;
         }
+        Job job = find(nodeResult.getNodeResultKey().getJobId());
         job.setUpdatedAt(ZonedDateTime.now());
         job.setExitCode(nodeResult.getExitCode());
         NodeStatus nodeStatus = nodeResult.getStatus();
@@ -396,16 +402,16 @@ public class JobServiceImpl implements JobService {
                     }
                 }
 
-            //update parent node if next is not null, if allow failure is false
-            if (parent != null && !((Step) node).getAllowFailure()) {
-                updateNodeStatus(node.getParent(), cmdBase, job);
-            }
+                //update parent node if next is not null, if allow failure is false
+                if (parent != null && !((Step) node).getAllowFailure()) {
+                    updateNodeStatus(node.getParent(), cmdBase, job);
+                }
 
-            //next node not null, run next node
-            if (next != null && ((Step) node).getAllowFailure()) {
-                run(NodeUtil.next(node), job.getId());
-            }
-            break;
+                //next node not null, run next node
+                if (next != null && ((Step) node).getAllowFailure()) {
+                    run(NodeUtil.next(node), job.getId());
+                }
+                break;
         }
 
         //update job status
