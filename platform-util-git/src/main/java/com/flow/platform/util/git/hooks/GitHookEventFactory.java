@@ -21,8 +21,8 @@ import com.flow.platform.util.git.hooks.GitlabEvents.Hooks;
 import com.flow.platform.util.git.hooks.GitlabEvents.PullRequestAdaptor;
 import com.flow.platform.util.git.hooks.GitlabEvents.PushAdapter;
 import com.flow.platform.util.git.hooks.GitlabEvents.TagAdapter;
-import com.flow.platform.util.git.model.GitHookEvent;
-import com.flow.platform.util.git.model.GitHookEventType;
+import com.flow.platform.util.git.model.GitEvent;
+import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,9 +40,9 @@ public class GitHookEventFactory {
     static {
         // init gitlab hook data adaptor
         Map<String, GitHookEventAdaptor> gitlabAdaptors = new HashMap<>(3);
-        gitlabAdaptors.put(Hooks.EVENT_TYPE_PR, new PullRequestAdaptor(GitSource.GITLAB, GitHookEventType.PR));
-        gitlabAdaptors.put(Hooks.EVENT_TYPE_PUSH, new PushAdapter(GitSource.GITLAB, GitHookEventType.PUSH));
-        gitlabAdaptors.put(Hooks.EVENT_TYPE_TAG, new TagAdapter(GitSource.GITLAB, GitHookEventType.TAG));
+        gitlabAdaptors.put(Hooks.EVENT_TYPE_PR, new PullRequestAdaptor(GitSource.GITLAB, GitEventType.PR));
+        gitlabAdaptors.put(Hooks.EVENT_TYPE_PUSH, new PushAdapter(GitSource.GITLAB, GitEventType.PUSH));
+        gitlabAdaptors.put(Hooks.EVENT_TYPE_TAG, new TagAdapter(GitSource.GITLAB, GitEventType.TAG));
         adaptors.put(Hooks.HEADER, gitlabAdaptors);
     }
 
@@ -51,7 +51,7 @@ public class GitHookEventFactory {
      *
      * @throws GitException if cannot find matched adaptor
      */
-    public static GitHookEvent build(Map<String, String> header, String json) throws GitException {
+    public static GitEvent build(Map<String, String> header, String json) throws GitException {
         GitHookEventAdaptor matchedAdaptor = null;
 
         String gitlabEventType = header.get(Hooks.HEADER);

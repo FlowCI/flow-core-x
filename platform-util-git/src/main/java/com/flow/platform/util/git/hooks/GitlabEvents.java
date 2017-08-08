@@ -18,8 +18,8 @@ package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEventCommit;
-import com.flow.platform.util.git.model.GitHookEvent;
-import com.flow.platform.util.git.model.GitHookEventType;
+import com.flow.platform.util.git.model.GitEvent;
+import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
@@ -44,12 +44,12 @@ public class GitlabEvents {
 
     public static class PushAdapter extends GitHookEventAdaptor {
 
-        public PushAdapter(GitSource gitSource, GitHookEventType eventType) {
+        public PushAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
         @Override
-        public GitHookEvent convert(String json) throws GitException {
+        public GitEvent convert(String json) throws GitException {
             GitPushTagEvent event = GSON.fromJson(json, GitPushTagEvent.class);
             event.setType(eventType);
             event.setGitSource(gitSource);
@@ -59,12 +59,12 @@ public class GitlabEvents {
 
     public static class TagAdapter extends GitHookEventAdaptor {
 
-        public TagAdapter(GitSource gitSource, GitHookEventType eventType) {
+        public TagAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
         @Override
-        public GitHookEvent convert(String json) throws GitException {
+        public GitEvent convert(String json) throws GitException {
             GitPushTagEvent event = GSON.fromJson(json, GitPushTagEvent.class);
             event.setType(eventType);
             event.setGitSource(gitSource);
@@ -74,12 +74,12 @@ public class GitlabEvents {
 
     public static class PullRequestAdaptor extends GitHookEventAdaptor {
 
-        public PullRequestAdaptor(GitSource gitSource, GitHookEventType eventType) {
+        public PullRequestAdaptor(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
         @Override
-        public GitHookEvent convert(String json) throws GitException {
+        public GitEvent convert(String json) throws GitException {
             try {
                 Map raw = toMap(json);
                 Map attrs = (Map) raw.get("object_attributes");

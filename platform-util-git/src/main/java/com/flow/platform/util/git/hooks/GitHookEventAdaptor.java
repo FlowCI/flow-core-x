@@ -17,8 +17,8 @@
 package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
-import com.flow.platform.util.git.model.GitHookEvent;
-import com.flow.platform.util.git.model.GitHookEventType;
+import com.flow.platform.util.git.model.GitEvent;
+import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.Gson;
 import java.util.LinkedHashMap;
@@ -36,14 +36,14 @@ public abstract class GitHookEventAdaptor {
 
     protected GitSource gitSource;
 
-    protected GitHookEventType eventType;
+    protected GitEventType eventType;
 
-    public GitHookEventAdaptor(GitSource gitSource, GitHookEventType eventType) {
+    public GitHookEventAdaptor(GitSource gitSource, GitEventType eventType) {
         this.gitSource = gitSource;
         this.eventType = eventType;
     }
 
-    public abstract GitHookEvent convert(String json) throws GitException;
+    public abstract GitEvent convert(String json) throws GitException;
 
     static Map toMap(String json) {
         return GSON.fromJson(json, LinkedHashMap.class);

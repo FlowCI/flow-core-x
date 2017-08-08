@@ -20,7 +20,7 @@ import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
-import com.flow.platform.util.git.model.GitHookEvent;
+import com.flow.platform.util.git.model.GitEvent;
 import com.google.common.io.CharStreams;
 import java.io.IOException;
 import java.util.Map;
@@ -55,7 +55,7 @@ public class GitWebHookController {
         }
 
         try {
-            GitHookEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
+            GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
             assert hookEvent != null;
         } catch (GitException e) {
             LOGGER.error("Cannot process web hook event", e);

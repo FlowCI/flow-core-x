@@ -19,7 +19,7 @@ package com.flow.platform.util.git.test;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.hooks.GitlabEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventCommit;
-import com.flow.platform.util.git.model.GitHookEventType;
+import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
@@ -53,7 +53,7 @@ public class GitlabHooksEventTest {
 
         // then: verify push info
         Assert.assertEquals(GitSource.GITLAB, pushEvent.getGitSource());
-        Assert.assertEquals(GitHookEventType.PUSH, pushEvent.getType());
+        Assert.assertEquals(GitEventType.PUSH, pushEvent.getType());
 
         Assert.assertEquals("95790bf891e76fee5e1747ab589903a6a1f80f22", pushEvent.getBefore());
         Assert.assertEquals("da1560886d4f094c3e6c9ef40349f7d38b5d27d7", pushEvent.getAfter());

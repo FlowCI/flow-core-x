@@ -19,7 +19,7 @@ package com.flow.platform.util.git.model;
 /**
  * @author yang
  */
-public class GitPullRequestEvent extends GitHookEvent {
+public class GitPullRequestEvent extends GitEvent {
 
     private String title;
 

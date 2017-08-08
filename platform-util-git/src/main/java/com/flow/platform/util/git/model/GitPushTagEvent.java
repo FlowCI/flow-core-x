@@ -24,7 +24,7 @@ import java.util.List;
  *
  * @author yang
  */
-public class GitPushTagEvent extends GitHookEvent {
+public class GitPushTagEvent extends GitEvent {
 
     /**
      * Commit SHA before event
