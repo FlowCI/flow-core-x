@@ -16,6 +16,7 @@
 
 package com.flow.platform.util.git.test;
 
+import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.hooks.GithubEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventCommit;
@@ -129,6 +130,17 @@ public class GithubHooksEventTest {
         Assert.assertEquals(86284448, target.getProjectId().intValue());
         Assert.assertEquals("yang-guo-2016/Test", target.getProjectName());
         Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", target.getCommit().getId());
+    }
+
+    @Test(expected = GitException.class)
+    public void should_raise_exception_when_mr_action_not_closed() throws Throwable {
+        // when:
+        String mrEventContent = loadWebhookSampleJson("github/webhook_mr_invalid.json");
+        Map<String, String> dummyHeader = new HashMap<>();
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_MR);
+
+        // then:
+        GitHookEventFactory.build(dummyHeader, mrEventContent);
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {
