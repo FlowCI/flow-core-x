@@ -16,8 +16,10 @@
 
 package com.flow.platform.api.domain;
 
+import com.flow.platform.api.domain.adaptor.ZonedDateTimeAdaptor;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.JsonAdapter;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -29,14 +31,18 @@ public class Job extends Jsonable {
 
     private String type;
 
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime createdAt;
 
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime updatedAt;
 
     private Long duration;
 
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime startedAt;
 
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime finishedAt;
 
     private Integer exitCode;

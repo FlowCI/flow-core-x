@@ -314,7 +314,8 @@ public class JobServiceImpl implements JobService {
      * update job flow status
      */
     private void updateJobStatus(NodeResult nodeResult) {
-        Node node = jobYmlStorageService.get(nodeResult.getNodeResultKey().getJobId(), nodeResult.getNodeResultKey().getPath());
+        Node node = jobYmlStorageService
+            .get(nodeResult.getNodeResultKey().getJobId(), nodeResult.getNodeResultKey().getPath());
 
         if (node instanceof Step) {
             return;
@@ -483,5 +484,9 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<Job> listLatestJobs(List<String> names) {
         return jobDao.listLatest(names);
+    }
+
+    public List<Job> listJobs() {
+        return jobDao.list();
     }
 }

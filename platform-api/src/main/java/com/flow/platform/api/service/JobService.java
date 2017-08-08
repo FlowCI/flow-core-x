@@ -72,4 +72,6 @@ public interface JobService {
      * @return
      */
     List<Job> listLatestJobs(List<String> names);
+
+    List<Job> listJobs();
 }
