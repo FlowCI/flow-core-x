@@ -15,6 +15,8 @@
  */
 package com.flow.platform.api.service;
 
+import static com.google.common.collect.Maps.newHashMap;
+
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.domain.JobYmlStorage;
 import com.flow.platform.api.domain.Node;
@@ -34,45 +36,39 @@ import org.springframework.stereotype.Service;
 public class JobYmlStorageServiceImpl implements JobYmlStorageService {
 
     @Autowired
-    private JobYmlStorageDao jobYmlStorgeDao;
+    private JobYmlStorageDao jobYmlStorageDao;
 
-    private Map<BigInteger, Map<String, Node>> mocNodes = new HashMap<>();
+    private Map<BigInteger, Map<String, Node>> mocNodes = newHashMap();
 
     @Override
     public void save(BigInteger jobId, String yml) {
-        JobYmlStorage jobYmlStorage = jobYmlStorgeDao.get(jobId);
+        JobYmlStorage jobYmlStorage = jobYmlStorageDao.get(jobId);
         if (jobYmlStorage == null) {
             jobYmlStorage = new JobYmlStorage(jobId, yml);
-            jobYmlStorgeDao.save(jobYmlStorage);
+            jobYmlStorageDao.save(jobYmlStorage);
         } else {
             jobYmlStorage.setFile(yml);
-            jobYmlStorgeDao.update(jobYmlStorage);
+            jobYmlStorageDao.update(jobYmlStorage);
         }
 
         addNodeToCache(jobYmlStorage);
     }
 
     @Override
-    public Node get(BigInteger jobId) {
-        JobYmlStorage jobYmlStorage = jobYmlStorgeDao.get(jobId);
-        if (jobYmlStorage == null) {
-            throw new NotFoundException("job yml storage not found");
-        }
-        Node node = addNodeToCache(jobYmlStorage);
-        return node;
-    }
-
-
-    @Override
     public Node get(BigInteger jobId, String path) {
         Map<String, Node> nodeMap = mocNodes.get(jobId);
-        if(nodeMap == null){
+        if (nodeMap == null) {
+
             //load to cache
-            get(jobId);
+            JobYmlStorage jobYmlStorage = jobYmlStorageDao.get(jobId);
+            if (jobYmlStorage == null) {
+                throw new NotFoundException(String.format("jobYmlStorage not found, jobId is %s", jobId));
+            }
+
+            addNodeToCache(jobYmlStorage);
             nodeMap = mocNodes.get(jobId);
         }
-
-
+        
         return nodeMap.get(path);
     }
 
@@ -81,7 +77,7 @@ public class JobYmlStorageServiceImpl implements JobYmlStorageService {
         NodeUtil.recurse(root, item -> {
 
             Map<String, Node> nodeMap = mocNodes.get(jobYmlStorage.getJobId());
-            if(nodeMap == null){
+            if (nodeMap == null) {
                 nodeMap = new HashMap<>();
             }
             nodeMap.put(item.getPath(), item);

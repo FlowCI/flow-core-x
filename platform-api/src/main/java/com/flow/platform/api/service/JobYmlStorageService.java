@@ -23,10 +23,15 @@ import java.math.BigInteger;
  */
 public interface JobYmlStorageService {
 
+    /**
+     * save yml to db
+     */
     void save(BigInteger jobId, String yml);
 
-    Node get(BigInteger jobId);
 
+    /**
+     * get node from node and jobId
+     */
     Node get(BigInteger jobId, String path);
 
 }
