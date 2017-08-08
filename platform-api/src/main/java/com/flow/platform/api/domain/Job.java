@@ -57,6 +57,8 @@ public class Job extends Jsonable {
 
     private Map<String, String> envs = new HashMap<>();
 
+    private Map<String, String> outputs = new HashMap<>();
+
     private String nodeName;
 
     private String branch;
@@ -186,6 +188,14 @@ public class Job extends Jsonable {
 
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public Map<String, String> getOutputs() {
+        return outputs;
+    }
+
+    public void setOutputs(Map<String, String> outputs) {
+        this.outputs = outputs;
     }
 
     @Override

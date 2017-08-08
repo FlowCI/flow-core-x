@@ -315,11 +315,17 @@ public class JobServiceImpl implements JobService {
     private void updateJobStatus(NodeResult nodeResult) {
         Node node = jobYmlStorageService
             .get(nodeResult.getNodeResultKey().getJobId(), nodeResult.getNodeResultKey().getPath());
+        Job job = find(nodeResult.getNodeResultKey().getJobId());
 
         if (node instanceof Step) {
+
+            //merge step outputs in flow outputs
+            job.setOutputs(mergeEnvs(nodeResult.getOutputs(), job.getOutputs()));
+            update(job);
             return;
         }
-        Job job = find(nodeResult.getNodeResultKey().getJobId());
+
+
         job.setUpdatedAt(ZonedDateTime.now());
         job.setExitCode(nodeResult.getExitCode());
         NodeStatus nodeStatus = nodeResult.getStatus();

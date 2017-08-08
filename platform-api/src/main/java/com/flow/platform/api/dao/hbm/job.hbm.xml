@@ -15,6 +15,7 @@
     <property name="exitCode" type="integer"></property>
     <property name="cmdId" type="string" column="cmd_id"></property>
     <property name="sessionId" type="string" column="session_id"></property>
+    <property name="outputs" type="com.flow.platform.api.dao.adaptor.MapAdaptor" column="outputs"></property>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
@@ -26,6 +27,7 @@
     <property name="finishedAt" type="java.time.ZonedDateTime">
       <column name="finished_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
     </property>
+
     <property name="startedAt" type="java.time.ZonedDateTime">
       <column name="started_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
     </property>
