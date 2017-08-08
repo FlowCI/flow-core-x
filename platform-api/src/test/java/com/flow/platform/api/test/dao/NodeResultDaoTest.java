@@ -99,6 +99,4 @@ public class NodeResultDaoTest extends TestBase {
 
         Assert.assertEquals(null, job_node);
     }
-
-
 }

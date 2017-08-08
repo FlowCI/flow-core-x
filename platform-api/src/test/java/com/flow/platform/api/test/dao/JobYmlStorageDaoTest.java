@@ -81,5 +81,4 @@ public class JobYmlStorageDaoTest extends TestBase {
         jobYmlStorageDao.delete(jobYmlStorage);
         Assert.assertEquals(null, jobYmlStorageDao.get(jobYmlStorage.getJobId()));
     }
-
 }

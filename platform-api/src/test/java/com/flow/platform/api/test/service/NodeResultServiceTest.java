@@ -15,7 +15,6 @@
  */
 package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
@@ -54,9 +53,6 @@ public class NodeResultServiceTest extends TestBase {
     @Autowired
     private YmlStorageDao ymlStorageDao;
 
-    @Autowired
-    private JobDao jobDao;
-
     @Test
     public void should_save_job_node_by_job() throws IOException{
         stubDemo();
@@ -81,6 +77,5 @@ public class NodeResultServiceTest extends TestBase {
         nodeResult.setNodeTag(NodeTag.STEP);
         NodeResult nodeResult1 = nodeResultService.update(nodeResult);
         Assert.assertEquals(nodeResult1.getNodeTag(), NodeTag.STEP);
-
     }
 }

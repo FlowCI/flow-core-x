@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.domain;
 
+import com.flow.platform.domain.AgentPath;
 import java.io.Serializable;
 import java.math.BigInteger;
 
@@ -61,15 +62,15 @@ public class NodeResultKey implements Serializable {
 
         NodeResultKey that = (NodeResultKey) o;
 
-        if (jobId != null ? !jobId.equals(that.jobId) : that.jobId != null) {
+        if (!jobId.equals(that.jobId)) {
             return false;
         }
-        return path != null ? path.equals(that.path) : that.path == null;
+        return path.equals(that.path);
     }
 
     @Override
     public int hashCode() {
-        int result = jobId != null ? jobId.hashCode() : 0;
+        int result = jobId.hashCode();
         result = 31 * result + (path != null ? path.hashCode() : 0);
         return result;
     }
