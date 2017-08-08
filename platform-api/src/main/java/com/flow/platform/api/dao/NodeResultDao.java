@@ -16,11 +16,12 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeResultKey;
 
 /**
  * @author lhl
  */
 public interface NodeResultDao extends BaseDao<String, NodeResult>{
 
-
+    NodeResult get(final NodeResultKey nodeResultKey);
 }

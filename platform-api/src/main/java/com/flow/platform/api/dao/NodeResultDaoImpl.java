@@ -15,7 +15,14 @@
  */
 package com.flow.platform.api.dao;
 
+import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeResultKey;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -23,7 +30,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository(value = "nodeResultDao")
 
-public class NodeResultDaoImpl extends AbstractBaseDao<String, NodeResult> implements NodeResultDao{
+public class NodeResultDaoImpl extends AbstractBaseDao<String, NodeResult> implements NodeResultDao {
 
     @Override
     Class<NodeResult> getEntityClass() {
@@ -35,4 +42,18 @@ public class NodeResultDaoImpl extends AbstractBaseDao<String, NodeResult> imple
         return "nodeResultKey";
     }
 
+    @Override
+    public NodeResult get(NodeResultKey nodeResultKey) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<NodeResult> select = builder.createQuery(NodeResult.class);
+            Root<NodeResult> nodeResultRoot = select.from(NodeResult.class);
+            Predicate pathCriteria = builder
+                .equal(nodeResultRoot.get("nodeResultKey").get("path"), nodeResultKey.getPath());
+            Predicate jobCriteria = builder
+                .equal(nodeResultRoot.get("nodeResultKey").get("jobId"), nodeResultKey.getJobId());
+            select.where(builder.and(pathCriteria, jobCriteria));
+            return session.createQuery(select).uniqueResult();
+        });
+    }
 }

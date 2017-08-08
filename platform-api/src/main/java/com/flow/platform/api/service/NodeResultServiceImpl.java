@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeResultKey;
 import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.util.NodeUtil;
@@ -63,7 +64,7 @@ public class NodeResultServiceImpl implements NodeResultService {
 
     @Override
     public NodeResult find(String nodePath, BigInteger jobId) {
-       return null;
+       return nodeResultDao.get(new NodeResultKey(jobId, nodePath));
     }
 
     @Override
