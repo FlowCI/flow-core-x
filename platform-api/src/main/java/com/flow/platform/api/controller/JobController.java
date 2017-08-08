@@ -17,11 +17,9 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.service.YmlStorageService;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -55,14 +53,11 @@ public class JobController {
 
     @PostMapping
     public Job create(@RequestBody String body) {
-        Node node = NodeUtil.buildFromYml(body);
-        nodeService.create(node);
-        ymlStorageService.save(node.getPath(), body);
-        return jobService.createJob(node.getPath());
+        return jobService.createJob(body);
     }
 
     @GetMapping
-    public Collection<Job> index(){
+    public Collection<Job> index() {
         return jobService.listJobs();
     }
 
@@ -72,7 +67,7 @@ public class JobController {
     }
 
     @PostMapping(path = "/status/latest")
-    public List<Job> listLatestJobStatus(@RequestBody List<String> flowNames){
+    public List<Job> listLatestJobStatus(@RequestBody List<String> flowNames) {
         return jobService.listLatestJobs(flowNames);
     }
 }

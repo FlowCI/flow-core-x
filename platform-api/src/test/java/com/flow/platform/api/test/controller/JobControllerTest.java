@@ -28,10 +28,12 @@ import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.test.util.NodeUtilYmlTest;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.domain.Jsonable;
 import com.google.common.io.Files;
 import java.io.File;
 import java.net.URL;
 import java.nio.charset.Charset;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -57,15 +59,8 @@ public class JobControllerTest extends TestBase {
     @Test
     public void should_show_job_success() throws Exception {
         stubDemo();
-        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
-        URL resource = classLoader.getResource("flow.yaml");
-        File path = new File(resource.getFile());
-        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
-        YmlStorage storage = new YmlStorage("/flow1", ymlString);
-        ymlStorageDao.save(storage);
-        Flow flow = (Flow) NodeUtil.buildFromYml(path);
-        nodeService.create(flow);
-        Job job = jobService.createJob(flow.getPath());
+
+        Job job = jobService.createJob(getBody("flow.yaml"));
 
         MockHttpServletRequestBuilder content = get(new StringBuffer("/jobs/").append(job.getId()).toString())
             .contentType(MediaType.APPLICATION_JSON);
@@ -77,7 +72,7 @@ public class JobControllerTest extends TestBase {
         MockHttpServletResponse response = mvcResult.getResponse();
 //        String s = response.getContentAsString();
 //        Job job1 = Jsonable.parse(s, Job.class);
-//        Assert.assertEquals(job1 .getId(), job.getId());
+//        Assert.assertEquals(job1.getId(), job.getId());
     }
 
 }

@@ -64,23 +64,14 @@ public class JobServiceTest extends TestBase {
     @Test
     public void should_create_node_success() throws IOException {
         stubDemo();
+        Job job = jobService.createJob(getBody("demo_flow2.yaml"));
 
-        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
-        URL resource = classLoader.getResource("demo_flow2.yaml");
-        File path = new File(resource.getFile());
-        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
-        YmlStorage storage = new YmlStorage("/flow1", ymlString);
-        ymlStorageDao.save(storage);
-        Flow flow = (Flow) NodeUtil.buildFromYml(path);
-        nodeService.create(flow);
-
+        Assert.assertNotNull(job.getId());
+        Assert.assertEquals(NodeStatus.ENQUEUE, job.getStatus());
         Step step1 = (Step) nodeService.find("/flow1/step1");
         Step step2 = (Step) nodeService.find("/flow1/step2");
         Step step3 = (Step) nodeService.find("/flow1/step3");
-
-        Job job = jobService.createJob(flow.getPath());
-        Assert.assertNotNull(job.getId());
-        Assert.assertEquals(NodeStatus.ENQUEUE, job.getStatus());
+        Flow flow = (Flow) nodeService.find(job.getNodePath());
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId("11111111");
         cmd.setStatus(CmdStatus.SENT);

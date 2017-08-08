@@ -21,17 +21,12 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeTag;
-import com.flow.platform.api.domain.YmlStorage;
-import com.flow.platform.api.service.NodeResultService;
 import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.NodeResultService;
+import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.test.util.NodeUtilYmlTest;
 import com.flow.platform.api.util.CommonUtil;
-import com.google.common.io.Files;
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,17 +48,14 @@ public class NodeResultServiceTest extends TestBase {
     @Autowired
     private YmlStorageDao ymlStorageDao;
 
+    @Autowired
+    private NodeService nodeService;
+
     @Test
-    public void should_save_job_node_by_job() throws IOException{
+    public void should_save_job_node_by_job() throws IOException {
         stubDemo();
-        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
-        URL resource = classLoader.getResource("flow.yaml");
-        File path = new File(resource.getFile());
-        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
-        YmlStorage storage = new YmlStorage("/flow1", ymlString);
-        ymlStorageDao.save(storage);
-        Flow flow = new Flow("/flow1", "flow");
-        Job job = jobService.createJob(flow.getPath());
+        Job job = jobService.createJob(getBody("flow.yaml"));
+        Flow flow = (Flow) nodeService.find(job.getNodePath());
         Assert.assertEquals(job.getId(), nodeResultService.find(flow.getPath(), job.getId()).getJobId());
     }
 

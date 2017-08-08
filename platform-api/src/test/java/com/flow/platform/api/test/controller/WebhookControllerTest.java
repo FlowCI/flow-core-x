@@ -73,9 +73,7 @@ public class WebhookControllerTest extends TestBase {
     @Test
     public void should_callback_session_success() throws Exception {
         stubDemo();
-        Flow flow = (Flow) initYaml("demo_flow.yaml");
-        nodeService.create(flow);
-        Job job = jobService.createJob(flow.getPath());
+        Job job = jobService.createJob(getBody("demo_flow.yaml"));
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
@@ -97,7 +95,7 @@ public class WebhookControllerTest extends TestBase {
 
         Step step1 = (Step) nodeService.find("/flow1/step1");
         Step step2 = (Step) nodeService.find("/flow1/step2");
-
+        Flow flow = (Flow) nodeService.find(job.getNodePath());
         // run first step running
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
@@ -176,11 +174,11 @@ public class WebhookControllerTest extends TestBase {
     @Test
     public void should_callback_failure() throws Exception {
         stubDemo();
-        Flow flow = (Flow) initYaml("demo_flow.yaml");
-        nodeService.create(flow);
-        Step step1 = (Step) nodeService.find("/flow1/step1");
+
+        Job job = jobService.createJob(getBody("demo_flow.yaml"));
         Step step2 = (Step) nodeService.find("/flow1/step2");
-        Job job = jobService.createJob(flow.getPath());
+        Step step1 = (Step) nodeService.find("/flow1/step1");
+        Flow flow = (Flow) nodeService.find(job.getNodePath());
 
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -232,9 +230,7 @@ public class WebhookControllerTest extends TestBase {
     @Test
     public void should_callback_timeout_allow_failure() throws Exception {
         stubDemo();
-        Flow flow = (Flow) initYaml("demo_flow1.yaml");
-        nodeService.create(flow);
-        Job job = jobService.createJob(flow.getPath());
+        Job job = jobService.createJob(getBody("demo_flow1.yaml"));
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
@@ -257,7 +253,7 @@ public class WebhookControllerTest extends TestBase {
 
         Step step1 = (Step) nodeService.find("/flow1/step1");
         Step step2 = (Step) nodeService.find("/flow1/step2");
-
+        Flow flow = (Flow) nodeService.find(job.getNodePath());
         // run first step timeout
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
@@ -294,16 +290,5 @@ public class WebhookControllerTest extends TestBase {
         Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
-    }
-
-    private Node initYaml(String fileName) throws IOException {
-        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
-        URL resource = classLoader.getResource(fileName);
-        File path = new File(resource.getFile());
-        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
-        YmlStorage storage = new YmlStorage("/flow1", ymlString);
-        ymlStorageDao.save(storage);
-
-        return NodeUtil.buildFromYml(path);
     }
 }

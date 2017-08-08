@@ -24,10 +24,15 @@ import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.test.util.NodeUtilYmlTest;
 import com.flow.platform.domain.Cmd;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.io.Files;
 import com.google.gson.Gson;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -84,6 +89,14 @@ public abstract class TestBase {
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
+    }
+
+    public String getBody(String fileName) throws IOException {
+        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+        URL resource = classLoader.getResource(fileName);
+        File path = new File(resource.getFile());
+        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+        return ymlString;
     }
 
     public void stubDemo() {

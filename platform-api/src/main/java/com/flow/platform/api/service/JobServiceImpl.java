@@ -64,6 +64,12 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private JobDao jobDao;
 
+    @Autowired
+    private NodeService nodeService;
+
+    @Autowired
+    private YmlStorageService ymlStorageService;
+
     @Value(value = "${domain}")
     private String domain;
 
@@ -77,13 +83,17 @@ public class JobServiceImpl implements JobService {
     private String queueUrl;
 
     @Override
-    public Job createJob(String nodePath) {
+    public Job createJob(String ymlBody) {
+
+        Node node = NodeUtil.buildFromYml(ymlBody);
+        nodeService.create(node);
+        ymlStorageService.save(node.getPath(), ymlBody);
 
         Job job = new Job(CommonUtil.randomId());
         job.setId(CommonUtil.randomId());
-        job.setNodePath(nodePath);
+        job.setNodePath(node.getPath());
 
-        jobYmlStorageService.save(job.getId(), ymlStorgeService.get(nodePath).getFile());
+        jobYmlStorageService.save(job.getId(), ymlBody);
         NodeResult nodeResult = nodeResultService.create(job);
 
         job.setCreatedAt(ZonedDateTime.now());
