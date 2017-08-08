@@ -36,21 +36,4 @@ public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult
     String getKeyName() {
         return "nodeResultKey";
     }
-
-
-
-//    @Override
-//    public NodeResult get(NodeResultKey nodeResultKey) {
-//        return execute((Session session) -> {
-//            CriteriaBuilder builder = session.getCriteriaBuilder();
-//            CriteriaQuery<NodeResult> select = builder.createQuery(NodeResult.class);
-//            Root<NodeResult> nodeResultRoot = select.from(NodeResult.class);
-//            Predicate pathCriteria = builder
-//                .equal(nodeResultRoot.get("nodeResultKey").get("path"), nodeResultKey.getPath());
-//            Predicate jobCriteria = builder
-//                .equal(nodeResultRoot.get("nodeResultKey").get("jobId"), nodeResultKey.getJobId());
-//            select.where(builder.and(pathCriteria, jobCriteria));
-//            return session.createQuery(select).uniqueResult();
-//        });
-//    }
 }

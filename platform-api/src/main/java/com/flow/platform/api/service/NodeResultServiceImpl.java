@@ -71,6 +71,7 @@ public class NodeResultServiceImpl implements NodeResultService {
     @Override
     public NodeResult save(BigInteger jobId, Node node) {
         NodeResult nodeResult = new NodeResult(jobId, node.getPath());
+        nodeResult.setName(node.getName());
         nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
         return nodeResultDao.save(nodeResult);
     }
