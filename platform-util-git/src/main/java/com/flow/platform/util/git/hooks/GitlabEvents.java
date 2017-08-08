@@ -39,10 +39,10 @@ public class GitlabEvents {
 
         public final static String EVENT_TYPE_TAG = "Tag Push Hook";
 
-        public final static String EVENT_TYPE_PR = "Merge Request Hook";
+        public final static String EVENT_TYPE_MR = "Merge Request Hook";
     }
 
-    public static class PushAdapter extends GitHookEventAdaptor {
+    public static class PushAdapter extends GitHookEventAdapter {
 
         PushAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
@@ -57,7 +57,7 @@ public class GitlabEvents {
         }
     }
 
-    public static class TagAdapter extends GitHookEventAdaptor {
+    public static class TagAdapter extends GitHookEventAdapter {
 
         TagAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
@@ -72,9 +72,9 @@ public class GitlabEvents {
         }
     }
 
-    public static class PullRequestAdaptor extends GitHookEventAdaptor {
+    public static class MergeRequestAdaptor extends GitHookEventAdapter {
 
-        PullRequestAdaptor(GitSource gitSource, GitEventType eventType) {
+        MergeRequestAdaptor(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 

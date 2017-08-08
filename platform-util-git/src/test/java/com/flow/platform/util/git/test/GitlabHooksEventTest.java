@@ -60,7 +60,6 @@ public class GitlabHooksEventTest {
         Assert.assertEquals("refs/heads/master", pushEvent.getRef());
         Assert.assertEquals(4, Integer.parseInt(pushEvent.getUserId()));
         Assert.assertEquals("John Smith", pushEvent.getUsername());
-        Assert.assertEquals(new Integer(4), pushEvent.getNumOfCommits());
 
         // then: verify push commit info
         List<GitEventCommit> commits = pushEvent.getCommits();
@@ -90,12 +89,13 @@ public class GitlabHooksEventTest {
         Assert.assertNotNull(tagEvent);
 
         // then:
+        Assert.assertEquals(GitSource.GITLAB, tagEvent.getGitSource());
+        Assert.assertEquals(GitEventType.TAG, tagEvent.getType());
         Assert.assertEquals("0000000000000000000000000000000000000000", tagEvent.getBefore());
         Assert.assertEquals("82b3d5ae55f7080f1e6022629cdb57bfae7cccc7", tagEvent.getAfter());
         Assert.assertEquals("refs/tags/v1.0.0", tagEvent.getRef());
         Assert.assertEquals(1, Integer.parseInt(tagEvent.getUserId()));
         Assert.assertEquals("John Smith", tagEvent.getUsername());
-        Assert.assertEquals(0, tagEvent.getNumOfCommits().intValue());
         Assert.assertEquals(0, tagEvent.getCommits().size());
     }
 
@@ -104,24 +104,27 @@ public class GitlabHooksEventTest {
         // given:
         String prEventContent = loadWebhookSampleJson("gitlab/webhook_mr.json");
         Map<String, String> mockHeader = new HashMap<>();
-        mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PR);
+        mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_MR);
 
         // when:
-        GitPullRequestEvent prEvent = (GitPullRequestEvent) GitHookEventFactory.build(mockHeader, prEventContent);
-        Assert.assertNotNull(prEvent);
+        GitPullRequestEvent mrEvent = (GitPullRequestEvent) GitHookEventFactory.build(mockHeader, prEventContent);
+        Assert.assertNotNull(mrEvent);
 
         // then:
-        Assert.assertEquals(99, prEvent.getRequestId().intValue());
-        Assert.assertEquals("MS-Viewport", prEvent.getTitle());
-        Assert.assertEquals("opened", prEvent.getStatus());
-        Assert.assertEquals("unchecked", prEvent.getMergeStatus());
-        Assert.assertEquals("open", prEvent.getAction());
+        Assert.assertEquals(GitSource.GITLAB, mrEvent.getGitSource());
+        Assert.assertEquals(GitEventType.MR, mrEvent.getType());
 
-        GitPullRequestInfo target = prEvent.getTarget();
+        Assert.assertEquals(99, mrEvent.getRequestId().intValue());
+        Assert.assertEquals("MS-Viewport", mrEvent.getTitle());
+        Assert.assertEquals("opened", mrEvent.getStatus());
+        Assert.assertEquals("unchecked", mrEvent.getMergeStatus());
+        Assert.assertEquals("open", mrEvent.getAction());
+
+        GitPullRequestInfo target = mrEvent.getTarget();
         Assert.assertEquals("master", target.getBranch());
         Assert.assertEquals(14, target.getProjectId().intValue());
 
-        GitPullRequestInfo source = prEvent.getSource();
+        GitPullRequestInfo source = mrEvent.getSource();
         Assert.assertEquals("ms-viewport", source.getBranch());
         Assert.assertEquals(14, source.getProjectId().intValue());
 

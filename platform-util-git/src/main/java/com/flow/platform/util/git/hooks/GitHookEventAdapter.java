@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * @author yang
  */
-public abstract class GitHookEventAdaptor {
+public abstract class GitHookEventAdapter {
 
     /**
      * Default gson json serializer
@@ -38,7 +38,7 @@ public abstract class GitHookEventAdaptor {
 
     protected GitEventType eventType;
 
-    public GitHookEventAdaptor(GitSource gitSource, GitEventType eventType) {
+    public GitHookEventAdapter(GitSource gitSource, GitEventType eventType) {
         this.gitSource = gitSource;
         this.eventType = eventType;
     }

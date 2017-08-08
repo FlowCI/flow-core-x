@@ -47,14 +47,20 @@ public class GitPushTagEvent extends GitEvent {
     @SerializedName(value = "ref")
     private String ref;
 
+    @SerializedName(value = "base_ref")
+    private String baseRef;
+
+    /**
+     * User id who send this event
+     */
     @SerializedName(value = "user_id")
     private String userId;
 
+    /**
+     * User name who end this event
+     */
     @SerializedName(value = "user_name")
     private String username;
-
-    @SerializedName(value = "total_commits_count", alternate = "distinct_size")
-    private Integer numOfCommits;
 
     /**
      * Commit info
@@ -86,6 +92,14 @@ public class GitPushTagEvent extends GitEvent {
         this.ref = ref;
     }
 
+    public String getBaseRef() {
+        return baseRef;
+    }
+
+    public void setBaseRef(String baseRef) {
+        this.baseRef = baseRef;
+    }
+
     public String getUserId() {
         return userId;
     }
@@ -100,14 +114,6 @@ public class GitPushTagEvent extends GitEvent {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public Integer getNumOfCommits() {
-        return numOfCommits;
-    }
-
-    public void setNumOfCommits(Integer numOfCommits) {
-        this.numOfCommits = numOfCommits;
     }
 
     public List<GitEventCommit> getCommits() {
