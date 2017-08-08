@@ -59,6 +59,7 @@ public class NodeResultServiceTest extends TestBase {
 
     @Test
     public void should_save_job_node_by_job() throws IOException{
+        stubDemo();
         ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         File path = new File(resource.getFile());

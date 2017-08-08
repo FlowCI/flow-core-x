@@ -76,17 +76,17 @@ public class WebhookControllerTest extends TestBase {
     @Autowired
     private YmlStorageDao ymlStorageDao;
 
-    private void stubDemo() {
-        Cmd cmdRes = new Cmd();
-        cmdRes.setId(UUID.randomUUID().toString());
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
-            .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
-
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
-            .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
-    }
+//    private void stubDemo() {
+//        Cmd cmdRes = new Cmd();
+//        cmdRes.setId(UUID.randomUUID().toString());
+//        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
+//            .willReturn(aResponse()
+//                .withBody(cmdRes.toJson())));
+//
+//        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
+//            .willReturn(aResponse()
+//                .withBody(cmdRes.toJson())));
+//    }
 
     @Test
     public void should_callback_session_success() throws Exception {

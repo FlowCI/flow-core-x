@@ -20,18 +20,31 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
+import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeResultService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.test.util.NodeUtilYmlTest;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
+import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,54 +64,26 @@ public class JobServiceTest extends TestBase {
     @Autowired
     private NodeResultService jobNodeService;
 
-    private void stubDemo() {
-        Cmd cmdRes = new Cmd();
-        cmdRes.setId(UUID.randomUUID().toString());
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
-            .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
-
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
-            .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
-    }
+    @Autowired
+    private YmlStorageDao ymlStorageDao;
 
     @Test
-    public void should_create_node_success() {
+    public void should_create_node_success() throws IOException {
         stubDemo();
 
-        Flow flow = new Flow("/flow", "flow");
-
-        Step step1 = new Step("/flow/step1", "step1");
-        Step step2 = new Step("/flow/step2", "step2");
-        Step step3 = new Step("/flow/step3", "step3");
-        Step step4 = new Step("/flow/step4", "step4");
-        Step step5 = new Step("/flow/step5", "step5");
-        Step step6 = new Step("/flow/step6", "step6");
-        Step step7 = new Step("/flow/step7", "step7");
-        Step step8 = new Step("/flow/step8", "step8");
-
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-        step1.setParent(flow);
-        step2.setParent(flow);
-
-        step1.getChildren().add(step3);
-        step1.getChildren().add(step4);
-        step3.setParent(step1);
-        step4.setParent(step1);
-
-        step2.getChildren().add(step5);
-        step2.getChildren().add(step6);
-        step5.setParent(step2);
-        step6.setParent(step2);
-
-        step4.getChildren().add(step7);
-        step4.getChildren().add(step8);
-        step8.setParent(step4);
-        step7.setParent(step4);
-
+        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+        URL resource = classLoader.getResource("demo_flow2.yaml");
+        File path = new File(resource.getFile());
+        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+        YmlStorage storage = new YmlStorage("/flow1", ymlString);
+        ymlStorageDao.save(storage);
+        Flow flow = (Flow) NodeUtil.buildFromYml(path);
         nodeService.create(flow);
+
+        Step step1 = (Step) nodeService.find("/flow1/step1");
+        Step step2 = (Step) nodeService.find("/flow1/step2");
+        Step step3 = (Step) nodeService.find("/flow1/step3");
+
         Job job = jobService.createJob(flow.getPath());
         Assert.assertNotNull(job.getId());
         Assert.assertEquals(NodeStatus.ENQUEUE, job.getStatus());
@@ -112,7 +97,12 @@ public class JobServiceTest extends TestBase {
 
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setType(CmdType.RUN_SHELL);
-        jobService.callback(step3.getPath(), cmd);
+
+        Map<String, String> map = new HashMap<>();
+        map.put("path", step1.getPath());
+        map.put("jobId", job.getId().toString());
+
+        jobService.callback(Jsonable.GSON_CONFIG.toJson(map), cmd);
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, job.getStatus());
         job = jobService.find(job.getId());
@@ -121,7 +111,13 @@ public class JobServiceTest extends TestBase {
 
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setType(CmdType.RUN_SHELL);
-        jobService.callback(step2.getPath(), cmd);
+        CmdResult cmdResult = new CmdResult();
+        cmdResult.setExitValue(1);
+        cmd.setCmdResult(cmdResult);
+
+        map.put("path", step2.getPath());
+
+        jobService.callback(Jsonable.GSON_CONFIG.toJson(map), cmd);
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, (jobNodeService.find(step2.getPath(), job.getId())).getStatus());
         Assert.assertEquals(NodeStatus.FAILURE, job.getStatus());
@@ -153,7 +149,7 @@ public class JobServiceTest extends TestBase {
         step2.setParent(step1);
 
         nodeService.create(flow);
-        Job job = jobService.createJob(flow.getPath());
+//        Job job = jobService.createJob(flow.getPath());
 //        List<JobStep> jobSteps = jobService.listJobStep(job.getId());
 //        Assert.assertEquals(2, jobSteps.size());
     }

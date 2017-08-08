@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author lhl
  */
-public class JobNodeTest extends TestBase {
+public class NodeResultDaoTest extends TestBase {
 
     @Autowired
     private NodeResultService nodeResultService;
@@ -43,7 +43,8 @@ public class JobNodeTest extends TestBase {
     @Test
     public void should_save_and_get_success() {
         Job job = new Job(CommonUtil.randomId());
-        NodeResult jobNode = new NodeResult(job.getId(), "/flow");
+        job.setNodePath("/flow1");
+        NodeResult jobNode = new NodeResult(job.getId(), "/flow1");
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
@@ -54,14 +55,15 @@ public class JobNodeTest extends TestBase {
         NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
         NodeResult job_node = nodeResultDao.get(nodeResultKey);
         Assert.assertNotNull(job_node);
-        Assert.assertEquals("/flow", job_node.getNodeResultKey().getPath());
+        Assert.assertEquals("/flow1", job_node.getNodeResultKey().getPath());
         Assert.assertEquals(NodeTag.FLOW, job_node.getNodeTag());
     }
 
     @Test
     public void should_update_success() {
         Job job = new Job(CommonUtil.randomId());
-        NodeResult jobNode = new NodeResult(job.getId(), "/flow");
+        job.setNodePath("/flow1");
+        NodeResult jobNode = new NodeResult(job.getId(), "/flow1");
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
@@ -69,12 +71,11 @@ public class JobNodeTest extends TestBase {
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
-        NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
-        NodeResult job_node = nodeResultDao.get(nodeResultKey);
+        NodeResult job_node = nodeResultService.find(job.getNodePath(), job.getId());
         job_node.setNodeTag(NodeTag.STEP);
         nodeResultDao.update(job_node);
 
-        NodeResult job_node1 = nodeResultDao.get(nodeResultKey);
+        NodeResult job_node1 = nodeResultService.find(job.getNodePath(), job.getId());
         job_node1.setCmdId("22222");
         nodeResultDao.update(job_node1);
 
@@ -93,9 +94,8 @@ public class JobNodeTest extends TestBase {
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
-        NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
         nodeResultDao.delete(jobNode);
-        NodeResult job_node = nodeResultDao.get(nodeResultKey);
+        NodeResult job_node = nodeResultService.find(job.getNodePath(), job.getId());
 
         Assert.assertEquals(null, job_node);
     }
