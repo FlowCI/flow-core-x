@@ -16,8 +16,8 @@
 
 package com.flow.platform.util.git.test;
 
-import com.flow.platform.util.git.hooks.GitlabPullRequestEventAdaptor;
-import com.flow.platform.util.git.hooks.PullRequestEventAdaptor;
+import com.flow.platform.util.git.hooks.GitlabEvents;
+import com.flow.platform.util.git.hooks.GitHookEventAdaptor;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
@@ -98,8 +98,8 @@ public class GitlabHooksEventTest {
         String prEventContent = loadWebhookSampleJson("gitlab/webhook_mr.json");
 
         // when:
-        PullRequestEventAdaptor adaptor = new GitlabPullRequestEventAdaptor(prEventContent);
-        GitPullRequestEvent prEvent = adaptor.convert();
+        GitHookEventAdaptor adaptor = new GitlabEvents.PullRequestAdaptor();
+        GitPullRequestEvent prEvent = (GitPullRequestEvent) adaptor.convert(prEventContent);
         Assert.assertNotNull(prEvent);
 
         // then:

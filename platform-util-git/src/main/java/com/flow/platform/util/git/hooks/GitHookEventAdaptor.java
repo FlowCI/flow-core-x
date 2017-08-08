@@ -17,31 +17,25 @@
 package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
-import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitHookEvent;
 import com.google.gson.Gson;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * @author yang
  */
-public abstract class PullRequestEventAdaptor {
+public abstract class GitHookEventAdaptor {
 
-    protected final static Gson GSON = new Gson();
+    final static Gson GSON = new Gson();
 
-    private Map raw;
+    public abstract GitHookEvent convert(String json) throws GitException;
 
-    public PullRequestEventAdaptor(String jsonRaw) {
-        raw = GSON.fromJson(jsonRaw, HashMap.class);
+    static Map toMap(String json) {
+        return GSON.fromJson(json, LinkedHashMap.class);
     }
 
-    public GitPullRequestEvent convert() {
-        return convert(raw);
-    }
-
-    protected abstract GitPullRequestEvent convert(Map raw) throws GitException;
-
-    public static Integer toInteger(String value) {
+    static Integer toInteger(String value) {
         return new Double(value).intValue();
     }
 }

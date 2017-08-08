@@ -17,7 +17,6 @@
 package com.flow.platform.util.git.model;
 
 import com.google.gson.annotations.SerializedName;
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -25,14 +24,7 @@ import java.util.List;
  *
  * @author yang
  */
-public class GitPushTagEvent implements Serializable {
-
-    /**
-     * Git event type
-     *  - Gitlab: object_kind
-     */
-    @SerializedName(value = "object_kind")
-    private String type;
+public class GitPushTagEvent extends GitHookEvent {
 
     /**
      * Commit SHA before event
@@ -69,14 +61,6 @@ public class GitPushTagEvent implements Serializable {
      */
     @SerializedName(value = "commits")
     private List<GitEventCommit> commits;
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public String getBefore() {
         return before;

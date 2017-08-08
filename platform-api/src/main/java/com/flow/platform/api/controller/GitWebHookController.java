@@ -16,7 +16,19 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.exception.IllegalStatusException;
+import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.GitException;
+import com.flow.platform.util.git.hooks.GitHookEventFactory;
+import com.flow.platform.util.git.model.GitHookEvent;
+import com.google.common.io.CharStreams;
+import java.io.IOException;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,8 +39,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/hooks/git")
 public class GitWebHookController {
 
-    @PostMapping(path = "")
-    public void onEventReceived() {
+    private final static Logger LOGGER = new Logger(GitWebHookController.class);
 
+    @PostMapping(path = "/{flowname}")
+    public void onEventReceived(@PathVariable("flowname") String flowName,
+                                @RequestHeader HttpHeaders headers,
+                                HttpServletRequest request) {
+
+        Map<String, String> headerAsMap = headers.toSingleValueMap();
+        String body;
+        try {
+            body = CharStreams.toString(request.getReader());
+        } catch (IOException e) {
+            throw new IllegalStatusException("Cannot read raw body");
+        }
+
+        try {
+            GitHookEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
+            assert hookEvent != null;
+        } catch (GitException e) {
+            LOGGER.error("Cannot process web hook event", e);
+        }
     }
 }

@@ -16,16 +16,12 @@
 
 package com.flow.platform.util.git.model;
 
-import java.io.Serializable;
-
 /**
  * @author yang
  */
-public class GitPullRequestEvent implements Serializable {
+public class GitPullRequestEvent extends GitHookEvent {
 
     private String title;
-
-    private String type;
 
     private Integer requestId;
 
@@ -47,14 +43,6 @@ public class GitPullRequestEvent implements Serializable {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public Integer getRequestId() {
