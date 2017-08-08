@@ -112,7 +112,6 @@ public class JobServiceImpl implements JobService {
         } else if (cmdBase.getType() == CmdType.RUN_SHELL) {
             Map<String, String> map = Jsonable.GSON_CONFIG.fromJson(id, Map.class);
             job = find(new BigInteger(map.get("jobId")));
-
             nodeCallback(map.get("path"), cmdBase, job);
         } else {
             LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));

@@ -74,8 +74,6 @@ public class NodeServiceImpl implements NodeService {
         return node;
     }
 
-
-
     @Override
     public Node find(String nodePath) {
         Node node = mocNodeList.get(nodePath);

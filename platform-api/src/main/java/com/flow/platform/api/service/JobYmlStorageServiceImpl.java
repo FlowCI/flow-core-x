@@ -44,7 +44,6 @@ public class JobYmlStorageServiceImpl implements JobYmlStorageService {
 
     private Cache<BigInteger, Map<String, Node>> nodeCache = CacheBuilder.newBuilder().maximumSize(1000).build();
 
-    @SuppressWarnings("unchecked")
     private Map<String, Node> get(final BigInteger jobId) {
         Map<String, Node> map = null;
         try {
@@ -55,7 +54,6 @@ public class JobYmlStorageServiceImpl implements JobYmlStorageService {
         return map;
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Node> getNodeMapFromYam(BigInteger jobId) {
         JobYmlStorage jobYmlStorage = jobYmlStorageDao.get(jobId);
         if (jobYmlStorage == null) {

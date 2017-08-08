@@ -66,11 +66,6 @@ public class JobController {
         return jobService.listJobs();
     }
 
-//    @GetMapping(path = "/{id}/steps")
-//    public Collection<JobStep> showSteps(@PathVariable BigInteger id) {
-//        return jobService.listJobStep(id);
-//    }
-
     @GetMapping(path = "/{id}")
     public Job show(@PathVariable BigInteger id) {
         return jobService.find(id);
