@@ -44,7 +44,7 @@ public class GitlabEvents {
 
     public static class PushAdapter extends GitHookEventAdaptor {
 
-        public PushAdapter(GitSource gitSource, GitEventType eventType) {
+        PushAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
@@ -59,7 +59,7 @@ public class GitlabEvents {
 
     public static class TagAdapter extends GitHookEventAdaptor {
 
-        public TagAdapter(GitSource gitSource, GitEventType eventType) {
+        TagAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
@@ -74,7 +74,7 @@ public class GitlabEvents {
 
     public static class PullRequestAdaptor extends GitHookEventAdaptor {
 
-        public PullRequestAdaptor(GitSource gitSource, GitEventType eventType) {
+        PullRequestAdaptor(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
