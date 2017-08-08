@@ -19,9 +19,11 @@ package com.flow.platform.util.git.hooks;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitHookEvent;
+import com.flow.platform.util.git.model.GitHookEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
+import com.flow.platform.util.git.model.GitSource;
 import java.util.Map;
 
 /**
@@ -40,15 +42,41 @@ public class GitlabEvents {
         public final static String EVENT_TYPE_PR = "Merge Request Hook";
     }
 
-    public static class PushTagAdapter extends GitHookEventAdaptor {
+    public static class PushAdapter extends GitHookEventAdaptor {
+
+        public PushAdapter(GitSource gitSource, GitHookEventType eventType) {
+            super(gitSource, eventType);
+        }
 
         @Override
         public GitHookEvent convert(String json) throws GitException {
-            return GSON.fromJson(json, GitPushTagEvent.class);
+            GitPushTagEvent event = GSON.fromJson(json, GitPushTagEvent.class);
+            event.setType(eventType);
+            event.setGitSource(gitSource);
+            return event;
+        }
+    }
+
+    public static class TagAdapter extends GitHookEventAdaptor {
+
+        public TagAdapter(GitSource gitSource, GitHookEventType eventType) {
+            super(gitSource, eventType);
+        }
+
+        @Override
+        public GitHookEvent convert(String json) throws GitException {
+            GitPushTagEvent event = GSON.fromJson(json, GitPushTagEvent.class);
+            event.setType(eventType);
+            event.setGitSource(gitSource);
+            return event;
         }
     }
 
     public static class PullRequestAdaptor extends GitHookEventAdaptor {
+
+        public PullRequestAdaptor(GitSource gitSource, GitHookEventType eventType) {
+            super(gitSource, eventType);
+        }
 
         @Override
         public GitHookEvent convert(String json) throws GitException {
@@ -57,7 +85,9 @@ public class GitlabEvents {
                 Map attrs = (Map) raw.get("object_attributes");
 
                 GitPullRequestEvent prEvent = new GitPullRequestEvent();
-                prEvent.setType(raw.get("object_kind").toString());
+                prEvent.setGitSource(gitSource);
+                prEvent.setType(eventType);
+
                 prEvent.setTitle(attrs.get("title").toString());
                 prEvent.setRequestId(toInteger(attrs.get("id").toString()));
                 prEvent.setDescription(attrs.get("description").toString());

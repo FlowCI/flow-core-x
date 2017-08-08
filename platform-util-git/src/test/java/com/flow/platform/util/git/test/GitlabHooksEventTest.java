@@ -16,19 +16,22 @@
 
 package com.flow.platform.util.git.test;
 
-import com.flow.platform.util.git.hooks.GitlabEvents;
-import com.flow.platform.util.git.hooks.GitHookEventAdaptor;
+import com.flow.platform.util.git.hooks.GitHookEventFactory;
+import com.flow.platform.util.git.hooks.GitlabEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventCommit;
+import com.flow.platform.util.git.model.GitHookEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
+import com.flow.platform.util.git.model.GitSource;
 import com.google.common.io.Files;
-import com.google.gson.Gson;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.io.File;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,19 +40,21 @@ import org.junit.Test;
  */
 public class GitlabHooksEventTest {
 
-    private final static Gson GSON = new Gson();
-
     @Test
     public void should_convert_to_push_event_obj() throws Throwable {
-        // given:
+        // given: init dummy data of http header and push event content
         String pushEventContent = loadWebhookSampleJson("gitlab/webhook_push.json");
+        Map<String, String> mockHeader = new HashMap<>();
+        mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
 
         // when:
-        GitPushTagEvent pushEvent = GSON.fromJson(pushEventContent, GitPushTagEvent.class);
+        GitPushTagEvent pushEvent = (GitPushTagEvent) GitHookEventFactory.build(mockHeader, pushEventContent);
         Assert.assertNotNull(pushEvent);
 
         // then: verify push info
-        Assert.assertEquals("push", pushEvent.getType());
+        Assert.assertEquals(GitSource.GITLAB, pushEvent.getGitSource());
+        Assert.assertEquals(GitHookEventType.PUSH, pushEvent.getType());
+
         Assert.assertEquals("95790bf891e76fee5e1747ab589903a6a1f80f22", pushEvent.getBefore());
         Assert.assertEquals("da1560886d4f094c3e6c9ef40349f7d38b5d27d7", pushEvent.getAfter());
         Assert.assertEquals("refs/heads/master", pushEvent.getRef());
@@ -77,9 +82,11 @@ public class GitlabHooksEventTest {
     public void should_convert_to_tag_event_obj() throws Throwable {
         // given:
         String tagEventContent = loadWebhookSampleJson("gitlab/webhook_tag.json");
+        Map<String, String> mockHeader = new HashMap<>();
+        mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_TAG);
 
         // when:
-        GitPushTagEvent tagEvent = GSON.fromJson(tagEventContent, GitPushTagEvent.class);
+        GitPushTagEvent tagEvent = (GitPushTagEvent) GitHookEventFactory.build(mockHeader, tagEventContent);
         Assert.assertNotNull(tagEvent);
 
         // then:
@@ -96,10 +103,11 @@ public class GitlabHooksEventTest {
     public void should_convert_to_pr_event_obj() throws Throwable {
         // given:
         String prEventContent = loadWebhookSampleJson("gitlab/webhook_mr.json");
+        Map<String, String> mockHeader = new HashMap<>();
+        mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PR);
 
         // when:
-        GitHookEventAdaptor adaptor = new GitlabEvents.PullRequestAdaptor();
-        GitPullRequestEvent prEvent = (GitPullRequestEvent) adaptor.convert(prEventContent);
+        GitPullRequestEvent prEvent = (GitPullRequestEvent) GitHookEventFactory.build(mockHeader, prEventContent);
         Assert.assertNotNull(prEvent);
 
         // then:

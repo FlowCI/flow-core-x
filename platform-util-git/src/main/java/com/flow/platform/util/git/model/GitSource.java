@@ -16,32 +16,21 @@
 
 package com.flow.platform.util.git.model;
 
-import java.io.Serializable;
-
 /**
- * The base class of all git web hook event
- *
  * @author yang
  */
-public abstract class GitHookEvent implements Serializable {
+public enum GitSource {
 
-    protected GitSource gitSource = GitSource.UNDEFINED;
+    UNDEFINED,
 
-    protected GitHookEventType type;
+    GITLAB,
 
-    public GitSource getGitSource() {
-        return gitSource;
-    }
+    GITHUB,
 
-    public void setGitSource(GitSource gitSource) {
-        this.gitSource = gitSource;
-    }
+    CODING,
 
-    public GitHookEventType getType() {
-        return type;
-    }
+    OSCHINA,
 
-    public void setType(GitHookEventType type) {
-        this.type = type;
-    }
+    BITBUCKET
+
 }

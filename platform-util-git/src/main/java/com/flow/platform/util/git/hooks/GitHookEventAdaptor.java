@@ -18,6 +18,8 @@ package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitHookEvent;
+import com.flow.platform.util.git.model.GitHookEventType;
+import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.Gson;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -27,7 +29,19 @@ import java.util.Map;
  */
 public abstract class GitHookEventAdaptor {
 
+    /**
+     * Default gson json serializer
+     */
     final static Gson GSON = new Gson();
+
+    protected GitSource gitSource;
+
+    protected GitHookEventType eventType;
+
+    public GitHookEventAdaptor(GitSource gitSource, GitHookEventType eventType) {
+        this.gitSource = gitSource;
+        this.eventType = eventType;
+    }
 
     public abstract GitHookEvent convert(String json) throws GitException;
 
