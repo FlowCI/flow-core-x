@@ -62,16 +62,12 @@ public interface JobService {
     Job update(Job job);
 
     /**
-     * show job's job step
-     */
-//    List<JobStep> listJobStep(BigInteger jobId);
-
-    /**
      * get latest jobs by node name
-     * @param names
-     * @return
      */
     List<Job> listLatestJobs(List<String> names);
 
+    /**
+     * list all jobs
+     */
     List<Job> listJobs();
 }

@@ -325,7 +325,6 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-
         job.setUpdatedAt(ZonedDateTime.now());
         job.setExitCode(nodeResult.getExitCode());
         NodeStatus nodeStatus = nodeResult.getStatus();
@@ -462,35 +461,12 @@ public class JobServiceImpl implements JobService {
         return nodeStatus;
     }
 
-//    @Override
-//    public List<JobStep> listJobStep(BigInteger jobId) {
-//        Job job = find(jobId);
-//        if (job == null) {
-//            throw new NotFoundException(String.format("Not Found Job"));
-//        }
-////        JobNode jobFlow = jobNodeService.find(job.getNodePath(), jobId);
-//        List<JobStep> jobSteps = new LinkedList<>();
-////        for (Object node : jobFlow.getChildren()) {
-////            if (node instanceof JobStep) {
-////                JobStep js = (JobStep) node;
-////                JobStep jobStep = ObjectUtil.deepCopy(js);
-////                jobStep.setParent(null);
-////                jobStep.setPrev(null);
-////                jobStep.setNext(null);
-////                jobStep.setStatus(js.getStatus());
-////                jobStep.setChildren(new ArrayList<>());
-////                jobSteps.add(jobStep);
-////            }
-////        }
-//        return jobSteps;
-//    }
-
-
     @Override
     public List<Job> listLatestJobs(List<String> names) {
         return jobDao.listLatest(names);
     }
 
+    @Override
     public List<Job> listJobs() {
         return jobDao.list();
     }
