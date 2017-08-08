@@ -44,7 +44,7 @@
 
   <class name="JobYmlStorage" table="job_yml_storage">
     <id name="jobId" type="big_integer">
-      <column name="job_id" sql-type="decimal(25, 2)"></column>
+      <column name="job_id" sql-type="decimal(25, 0)"></column>
     </id>
 
     <property name="file" type="com.flow.platform.api.dao.adaptor.ByteAdaptor">
