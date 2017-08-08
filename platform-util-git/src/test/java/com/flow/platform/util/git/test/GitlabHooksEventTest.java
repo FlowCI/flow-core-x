@@ -117,7 +117,6 @@ public class GitlabHooksEventTest {
         Assert.assertEquals(99, mrEvent.getRequestId().intValue());
         Assert.assertEquals("MS-Viewport", mrEvent.getTitle());
         Assert.assertEquals("opened", mrEvent.getStatus());
-        Assert.assertEquals("unchecked", mrEvent.getMergeStatus());
         Assert.assertEquals("open", mrEvent.getAction());
 
         GitPullRequestInfo target = mrEvent.getTarget();

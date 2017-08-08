@@ -20,6 +20,8 @@ import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.hooks.GithubEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
+import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.io.Files;
@@ -94,6 +96,39 @@ public class GithubHooksEventTest {
         Assert.assertEquals("23307997", event.getUserId());
         Assert.assertEquals("yang-guo-2016", event.getUsername());
         Assert.assertEquals(0, event.getCommits().size());
+    }
+
+    @Test
+    public void should_convert_to_mr_event_obj() throws Throwable {
+        // given:
+        String mrEventContent = loadWebhookSampleJson("github/webhook_mr.json");
+        Map<String, String> dummyHeader = new HashMap<>();
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_MR);
+
+        // when:
+        GitPullRequestEvent event = (GitPullRequestEvent) GitHookEventFactory.build(dummyHeader, mrEventContent);
+        Assert.assertNotNull(event);
+
+        // then: verify merge request event
+        Assert.assertEquals(134584493, event.getRequestId().intValue());
+        Assert.assertEquals("closed", event.getAction());
+        Assert.assertEquals("closed", event.getStatus());
+        Assert.assertEquals("Update settings.gradle title", event.getTitle());
+        Assert.assertEquals("hello desc", event.getDescription());
+
+        // then: verify source info
+        GitPullRequestInfo source = event.getSource();
+        Assert.assertEquals("developer", source.getBranch());
+        Assert.assertEquals(86284448, source.getProjectId().intValue());
+        Assert.assertEquals("yang-guo-2016/Test", source.getProjectName());
+        Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", source.getCommit().getId());
+
+        // then: verify target info
+        GitPullRequestInfo target = event.getSource();
+        Assert.assertEquals("developer", target.getBranch());
+        Assert.assertEquals(86284448, target.getProjectId().intValue());
+        Assert.assertEquals("yang-guo-2016/Test", target.getProjectName());
+        Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", target.getCommit().getId());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {

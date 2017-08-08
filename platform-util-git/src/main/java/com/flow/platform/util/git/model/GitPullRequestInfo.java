@@ -25,6 +25,8 @@ public class GitPullRequestInfo implements Serializable {
 
     private Integer projectId;
 
+    private String projectName;
+
     private String branch;
 
     private GitEventCommit commit;
@@ -35,6 +37,14 @@ public class GitPullRequestInfo implements Serializable {
 
     public void setProjectId(Integer projectId) {
         this.projectId = projectId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getBranch() {

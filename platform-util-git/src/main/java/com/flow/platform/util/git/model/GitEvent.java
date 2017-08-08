@@ -29,6 +29,11 @@ public abstract class GitEvent implements Serializable {
 
     protected GitEventType type;
 
+    public GitEvent(GitSource gitSource, GitEventType type) {
+        this.gitSource = gitSource;
+        this.type = type;
+    }
+
     public GitSource getGitSource() {
         return gitSource;
     }

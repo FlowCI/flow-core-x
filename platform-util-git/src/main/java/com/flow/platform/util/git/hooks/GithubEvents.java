@@ -18,9 +18,13 @@ package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEvent;
+import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
+import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
+import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 
 /**
@@ -52,22 +56,6 @@ public class GithubEvents {
             private Boolean created;
 
             private Map<String, String> sender;
-
-            public Boolean getCreated() {
-                return created;
-            }
-
-            public void setCreated(Boolean created) {
-                this.created = created;
-            }
-
-            Map<String, String> getSender() {
-                return sender;
-            }
-
-            public void setSender(Map<String, String> sender) {
-                this.sender = sender;
-            }
         }
 
         PushAndTagAdapter(GitSource gitSource, GitEventType eventType) {
@@ -80,7 +68,7 @@ public class GithubEvents {
             JsonHelper helper = GSON.fromJson(json, JsonHelper.class);
 
             // for create tag event
-            if (event.getRef().startsWith("refs/tags") && helper.getCreated()) {
+            if (event.getRef().startsWith("refs/tags") && helper.created) {
                 event.setType(GitEventType.TAG);
             }
 
@@ -89,7 +77,7 @@ public class GithubEvents {
                 event.setType(GitEventType.PUSH);
             }
 
-            Map<String, String> sender = helper.getSender();
+            Map<String, String> sender = helper.sender;
             if (sender != null) {
                 event.setUserId(sender.get("id"));
                 event.setUsername(sender.get("login"));
@@ -102,13 +90,83 @@ public class GithubEvents {
 
     public static class MergeRequestAdapter extends GitHookEventAdapter {
 
+        private class MergeRequest {
+
+            private String action;
+
+            @SerializedName("pull_request")
+            private PullRequest pullRequest;
+        }
+
+        private class PullRequest {
+
+            private Integer id;
+
+            private String state;
+
+            private String title;
+
+            @SerializedName("body")
+            private String desc;
+
+            @SerializedName("head")
+            private PrInfo source;
+
+            @SerializedName("base")
+            private PrInfo target;
+        }
+
+        private class PrInfo {
+
+            private String ref;
+
+            private String sha;
+
+            private PrRepo repo;
+        }
+
+        private class PrRepo {
+
+            private Integer id;
+
+            @SerializedName("full_name")
+            private String name;
+        }
+
         public MergeRequestAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
         @Override
         public GitEvent convert(String json) throws GitException {
-            return null;
+            MergeRequest mr = GSON.fromJson(json, MergeRequest.class);
+            PullRequest pullRequest = mr.pullRequest;
+
+            GitPullRequestEvent event = new GitPullRequestEvent(gitSource, eventType);
+
+            event.setAction(mr.action);
+            event.setRequestId(pullRequest.id);
+            event.setDescription(pullRequest.desc);
+            event.setTitle(pullRequest.title);
+            event.setStatus(pullRequest.state);
+            event.setSource(new GitPullRequestInfo());
+            event.setTarget(new GitPullRequestInfo());
+
+            // set source
+            GitPullRequestInfo source = event.getSource();
+            source.setProjectId(pullRequest.source.repo.id);
+            source.setProjectName(pullRequest.source.repo.name);
+            source.setBranch(pullRequest.source.ref);
+            source.setCommit(new GitEventCommit(pullRequest.source.sha));
+
+            // set target
+            GitPullRequestInfo target = event.getTarget();
+            target.setProjectId(pullRequest.target.repo.id);
+            target.setProjectName(pullRequest.target.repo.name);
+            target.setBranch(pullRequest.target.ref);
+            target.setCommit(new GitEventCommit(pullRequest.target.sha));
+
+            return event;
         }
     }
 }

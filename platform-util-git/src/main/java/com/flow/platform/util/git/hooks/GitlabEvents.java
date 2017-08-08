@@ -84,17 +84,13 @@ public class GitlabEvents {
                 Map raw = toMap(json);
                 Map attrs = (Map) raw.get("object_attributes");
 
-                GitPullRequestEvent prEvent = new GitPullRequestEvent();
-                prEvent.setGitSource(gitSource);
-                prEvent.setType(eventType);
-
+                GitPullRequestEvent prEvent = new GitPullRequestEvent(gitSource, eventType);
                 prEvent.setTitle(attrs.get("title").toString());
                 prEvent.setRequestId(toInteger(attrs.get("id").toString()));
                 prEvent.setDescription(attrs.get("description").toString());
                 prEvent.setTarget(new GitPullRequestInfo());
                 prEvent.setSource(new GitPullRequestInfo());
                 prEvent.setStatus(attrs.get("state").toString());
-                prEvent.setMergeStatus(attrs.get("merge_status").toString());
                 prEvent.setAction(attrs.get("action").toString());
 
                 // set pr target info

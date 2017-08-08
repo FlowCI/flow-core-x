@@ -41,6 +41,13 @@ public class GitEventCommit implements Serializable {
 
     private List<String> removed;
 
+    public GitEventCommit() {
+    }
+
+    public GitEventCommit(String id) {
+        this.id = id;
+    }
+
     public String getId() {
         return id;
     }

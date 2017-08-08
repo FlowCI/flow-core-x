@@ -68,6 +68,10 @@ public class GitPushTagEvent extends GitEvent {
     @SerializedName(value = "commits")
     private List<GitEventCommit> commits;
 
+    public GitPushTagEvent(GitSource gitSource, GitEventType type) {
+        super(gitSource, type);
+    }
+
     public String getBefore() {
         return before;
     }

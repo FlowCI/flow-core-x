@@ -17,6 +17,8 @@
 package com.flow.platform.util.git.model;
 
 /**
+ * Pull Request with Closed event (Merge Request)
+ *
  * @author yang
  */
 public class GitPullRequestEvent extends GitEvent {
@@ -35,7 +37,9 @@ public class GitPullRequestEvent extends GitEvent {
 
     private String status;
 
-    private String mergeStatus;
+    public GitPullRequestEvent(GitSource gitSource, GitEventType type) {
+        super(gitSource, type);
+    }
 
     public String getTitle() {
         return title;
@@ -91,13 +95,5 @@ public class GitPullRequestEvent extends GitEvent {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public String getMergeStatus() {
-        return mergeStatus;
-    }
-
-    public void setMergeStatus(String mergeStatus) {
-        this.mergeStatus = mergeStatus;
     }
 }
