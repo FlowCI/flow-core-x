@@ -19,6 +19,10 @@
 
     <property name="cmdId" type="string" column="cmd_id"></property>
 
+    <property name="outputs" type="com.flow.platform.api.dao.adaptor.MapAdaptor" column="outputs"></property>
+
+    <property name="logPaths" type="com.flow.platform.api.dao.adaptor.ListAdaptor" column="log_paths"/>
+
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
     </property>
