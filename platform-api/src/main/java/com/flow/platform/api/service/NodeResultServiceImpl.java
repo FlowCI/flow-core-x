@@ -44,7 +44,6 @@ public class NodeResultServiceImpl implements NodeResultService {
 
     @Override
     public NodeResult create(Job job) {
-
         String nodePath = job.getNodePath();
         YmlStorage storage = ymlStorageService.get(nodePath);
 

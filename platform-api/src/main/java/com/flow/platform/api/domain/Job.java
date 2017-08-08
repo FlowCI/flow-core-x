@@ -18,7 +18,6 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.api.domain.adaptor.ZonedDateTimeAdaptor;
 import com.flow.platform.domain.Jsonable;
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
@@ -29,25 +28,13 @@ public class Job extends Jsonable {
 
     private BigInteger id;
 
-    private String type;
+    private String nodePath;
 
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime createdAt;
-
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime updatedAt;
+    private String nodeName;
 
     private Long duration;
 
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime startedAt;
-
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime finishedAt;
-
     private Integer exitCode;
-
-    private String nodePath;
 
     private String sessionId;
 
@@ -59,9 +46,19 @@ public class Job extends Jsonable {
 
     private Map<String, String> outputs = new HashMap<>();
 
-    private String nodeName;
-
     private String branch;
+
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
+    private ZonedDateTime startedAt;
+
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
+    private ZonedDateTime finishedAt;
+
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
+    private ZonedDateTime createdAt;
+
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
+    private ZonedDateTime updatedAt;
 
     public Job() {
     }
@@ -84,14 +81,6 @@ public class Job extends Jsonable {
 
     public void setId(BigInteger id) {
         this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public ZonedDateTime getCreatedAt() {
@@ -221,7 +210,6 @@ public class Job extends Jsonable {
     public String toString() {
         return "Job{" +
             "id='" + id + '\'' +
-            ", type='" + type + '\'' +
             ", duration=" + duration +
             ", exitCode=" + exitCode +
             ", nodePath='" + nodePath + '\'' +

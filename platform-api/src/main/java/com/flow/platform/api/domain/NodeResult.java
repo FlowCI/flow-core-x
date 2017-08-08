@@ -16,13 +16,15 @@
 
 package com.flow.platform.api.domain;
 
-import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Jsonable;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class NodeResult {
+public class NodeResult extends Jsonable {
 
     private NodeResultKey nodeResultKey;
 
@@ -101,25 +103,6 @@ public class NodeResult {
         return this.nodeResultKey.getPath();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        NodeResult that = (NodeResult) o;
-
-        return nodeResultKey.equals(that.nodeResultKey);
-    }
-
-    @Override
-    public int hashCode() {
-        return  this.getNodeResultKey().hashCode();
-    }
-
     public Map<String, String> getOutputs() {
         return outputs;
     }
@@ -190,5 +173,24 @@ public class NodeResult {
 
     public void setFinishTime(ZonedDateTime finishTime) {
         this.finishTime = finishTime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        NodeResult that = (NodeResult) o;
+
+        return nodeResultKey.equals(that.nodeResultKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return  this.getNodeResultKey().hashCode();
     }
 }
