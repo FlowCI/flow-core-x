@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.domain;
 
+import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
@@ -98,6 +99,25 @@ public class NodeResult {
 
     public String getPath() {
         return this.nodeResultKey.getPath();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        NodeResult that = (NodeResult) o;
+
+        return nodeResultKey.equals(that.nodeResultKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return  this.getNodeResultKey().hashCode();
     }
 
     public Map<String, String> getOutputs() {

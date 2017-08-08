@@ -16,29 +16,22 @@
 
 package com.flow.platform.api.test.controller;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.test.util.NodeUtilYmlTest;
 import com.flow.platform.api.util.NodeUtil;
-import com.flow.platform.domain.Cmd;
 import com.google.common.io.Files;
 import java.io.File;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.UUID;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -61,35 +54,17 @@ public class JobControllerTest extends TestBase {
     @Autowired
     private YmlStorageDao ymlStorageDao;
 
-//    private void stubDemo() {
-//        Cmd cmdRes = new Cmd();
-//        cmdRes.setId(UUID.randomUUID().toString());
-//        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
-//            .willReturn(aResponse()
-//                .withBody(cmdRes.toJson())));
-//
-//        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
-//            .willReturn(aResponse()
-//                .withBody(cmdRes.toJson())));
-//    }
-
-
     @Test
     public void should_show_job_success() throws Exception {
         stubDemo();
-
         ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         File path = new File(resource.getFile());
         String ymlString = Files.toString(path, Charset.forName("UTF-8"));
         YmlStorage storage = new YmlStorage("/flow1", ymlString);
         ymlStorageDao.save(storage);
-
         Flow flow = (Flow) NodeUtil.buildFromYml(path);
-
         nodeService.create(flow);
-
-
         Job job = jobService.createJob(flow.getPath());
 
         MockHttpServletRequestBuilder content = get(new StringBuffer("/jobs/").append(job.getId()).toString())

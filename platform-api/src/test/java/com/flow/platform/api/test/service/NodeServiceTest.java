@@ -43,10 +43,8 @@ public class NodeServiceTest extends TestBase {
     public void should_create_and_get_node() {
         Flow flow = new Flow("/flow", "flow");
         Step step1 = new Step("/flow/step1", "step1");
-
         flow.getChildren().add(step1);
         step1.setParent(flow);
-
         nodeService.create(flow);
         NodeUtil.recurse(flow, item -> {
             Assert.assertEquals(item.getName(), nodeService.find(item.getPath()).getName());

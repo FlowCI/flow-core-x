@@ -80,10 +80,8 @@ public class JobDaoTest extends TestBase {
         job.setStartedAt(ZonedDateTime.now());
         job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
-
         Assert.assertEquals(1, jobDao.list().size());
     }
-
 
     @Test
     public void should_delete_success() {
@@ -99,6 +97,4 @@ public class JobDaoTest extends TestBase {
         jobDao.delete(job);
         Assert.assertEquals(0, jobDao.list().size());
     }
-
-
 }

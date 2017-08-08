@@ -24,7 +24,6 @@ import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
-import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.domain.Cmd;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.gson.Gson;

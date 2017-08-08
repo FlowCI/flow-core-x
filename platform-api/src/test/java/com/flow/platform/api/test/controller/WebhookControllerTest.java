@@ -16,13 +16,9 @@
 
 package com.flow.platform.api.test.controller;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
@@ -45,14 +41,12 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.google.common.io.Files;
-import com.google.gson.annotations.JsonAdapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,30 +70,12 @@ public class WebhookControllerTest extends TestBase {
     @Autowired
     private YmlStorageDao ymlStorageDao;
 
-//    private void stubDemo() {
-//        Cmd cmdRes = new Cmd();
-//        cmdRes.setId(UUID.randomUUID().toString());
-//        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
-//            .willReturn(aResponse()
-//                .withBody(cmdRes.toJson())));
-//
-//        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
-//            .willReturn(aResponse()
-//                .withBody(cmdRes.toJson())));
-//    }
-
     @Test
     public void should_callback_session_success() throws Exception {
-
         stubDemo();
-
         Flow flow = (Flow) initYaml("demo_flow.yaml");
-
         nodeService.create(flow);
-        ;
-
         Job job = jobService.createJob(flow.getPath());
-
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
@@ -199,15 +175,11 @@ public class WebhookControllerTest extends TestBase {
 
     @Test
     public void should_callback_failure() throws Exception {
-
         stubDemo();
-
         Flow flow = (Flow) initYaml("demo_flow.yaml");
-
         nodeService.create(flow);
         Step step1 = (Step) nodeService.find("/flow1/step1");
         Step step2 = (Step) nodeService.find("/flow1/step2");
-
         Job job = jobService.createJob(flow.getPath());
 
         // create session
@@ -259,15 +231,10 @@ public class WebhookControllerTest extends TestBase {
 
     @Test
     public void should_callback_timeout_allow_failure() throws Exception {
-
         stubDemo();
-
         Flow flow = (Flow) initYaml("demo_flow1.yaml");
-
         nodeService.create(flow);
-
         Job job = jobService.createJob(flow.getPath());
-
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
