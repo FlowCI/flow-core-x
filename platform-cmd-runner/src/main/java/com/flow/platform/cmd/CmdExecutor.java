@@ -118,7 +118,7 @@ public final class CmdExecutor {
             this.logListener = logListener;
         }
 
-        this.outputEnvFilter = outputEnvFilter;
+        this.outputEnvFilter = "FLOW";
         cmdList = Lists.newArrayList(cmd);
         pBuilder = new ProcessBuilder("/bin/bash");
 

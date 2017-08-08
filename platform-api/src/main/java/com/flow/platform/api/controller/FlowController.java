@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.dao.FlowDao;
+import com.flow.platform.domain.Jsonable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,6 @@ public class FlowController {
 
     @GetMapping
     public String index() {
-        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        return gson.toJson(flowDao.list());
+        return Jsonable.GSON_EXPOSE_CONFIG.toJson(flowDao.list());
     }
 }
