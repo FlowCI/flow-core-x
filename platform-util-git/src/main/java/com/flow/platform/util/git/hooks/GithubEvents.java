@@ -18,7 +18,6 @@ package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEvent;
-import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
@@ -28,8 +27,8 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 
 /**
- * Adding GitHub web hook, should select 'Let me select individual events'
- * and select 'Push' and 'Pull request'
+ * To adding GitHub web hook, should select 'Let me select individual events'
+ * and then select 'Push' and 'Pull request'
  *
  * @author yang
  */

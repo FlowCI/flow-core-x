@@ -62,6 +62,8 @@ public class GitPushTagEvent extends GitEvent {
     @SerializedName(value = "user_name")
     private String username;
 
+    private String message;
+
     /**
      * Commit info
      */
@@ -118,6 +120,14 @@ public class GitPushTagEvent extends GitEvent {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public List<GitEventCommit> getCommits() {

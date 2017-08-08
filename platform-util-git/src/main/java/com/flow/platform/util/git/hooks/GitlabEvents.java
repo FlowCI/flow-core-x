@@ -26,6 +26,9 @@ import com.flow.platform.util.git.model.GitSource;
 import java.util.Map;
 
 /**
+ * To adding GitLab web hook,
+ * should select 'Push events', 'Tag push events' and 'Merge Request events'
+ *
  * @author yang
  */
 public class GitlabEvents {

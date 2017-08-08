@@ -97,6 +97,7 @@ public class GitlabHooksEventTest {
         Assert.assertEquals(1, Integer.parseInt(tagEvent.getUserId()));
         Assert.assertEquals("John Smith", tagEvent.getUsername());
         Assert.assertEquals(0, tagEvent.getCommits().size());
+        Assert.assertEquals("hello test", tagEvent.getMessage());
     }
 
     @Test
