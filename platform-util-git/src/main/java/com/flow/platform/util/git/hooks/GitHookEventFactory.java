@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * TODO: it could handle git webhook by plugin with interface
+ *
  * @author yang
  */
 public class GitHookEventFactory {
