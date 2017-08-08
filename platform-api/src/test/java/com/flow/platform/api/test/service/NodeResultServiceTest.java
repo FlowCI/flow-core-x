@@ -63,11 +63,11 @@ public class NodeResultServiceTest extends TestBase {
         URL resource = classLoader.getResource("flow.yaml");
         File path = new File(resource.getFile());
         String ymlString = Files.toString(path, Charset.forName("UTF-8"));
-        YmlStorage storage = new YmlStorage("/flow", ymlString);
+        YmlStorage storage = new YmlStorage("/flow1", ymlString);
         ymlStorageDao.save(storage);
-        Flow flow = new Flow("/flow", "flow");
+        Flow flow = new Flow("/flow1", "flow");
         Job job = jobService.createJob(flow.getPath());
-//        Assert.assertEquals(job.getId(), nodeResultService.find(flow.getPath(), job.getId()).getJobId());
+        Assert.assertEquals(job.getId(), nodeResultService.find(flow.getPath(), job.getId()).getJobId());
     }
 
     @Test
@@ -76,11 +76,10 @@ public class NodeResultServiceTest extends TestBase {
         NodeResult nodeResult = new NodeResult(job.getId(), "/flow_test");
         nodeResult.setNodeTag(NodeTag.FLOW);
         nodeResultDao.save(nodeResult);
+
         nodeResult.setNodeTag(NodeTag.STEP);
         NodeResult nodeResult1 = nodeResultService.update(nodeResult);
         Assert.assertEquals(nodeResult1.getNodeTag(), NodeTag.STEP);
 
     }
-
-
 }

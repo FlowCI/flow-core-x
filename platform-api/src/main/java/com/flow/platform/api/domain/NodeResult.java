@@ -23,40 +23,31 @@ import java.util.*;
 
 public class NodeResult {
 
-//    protected BigInteger jobId;
-//
-//    protected String path;
-
     private NodeResultKey nodeResultKey;
 
-    protected Map<String, String> outputs = new HashMap<>();
+    private Map<String, String> outputs = new HashMap<>();
 
-    protected Long duration;
+    private Long duration;
 
-    protected Integer exitCode;
+    private Integer exitCode;
 
-    protected List<String> logPaths = new ArrayList<>();
+    private List<String> logPaths = new ArrayList<>();
 
-    protected NodeStatus status = NodeStatus.PENDING;
+    private NodeStatus status = NodeStatus.PENDING;
 
-    protected String cmdId;
+    private String cmdId;
 
-    protected NodeTag nodeTag;
+    private NodeTag nodeTag;
 
-    protected ZonedDateTime startTime;
+    private ZonedDateTime startTime;
 
-    protected ZonedDateTime finishTime;
+    private ZonedDateTime finishTime;
 
     private String name;
 
     private ZonedDateTime createdAt;
 
     private ZonedDateTime updatedAt;
-
-//    public NodeResult(BigInteger jobId, String path) {
-//        this.jobId = jobId;
-//        this.path = path;
-//    }
 
     public NodeResult() {
     }
@@ -85,33 +76,13 @@ public class NodeResult {
         this.updatedAt = updatedAt;
     }
 
-//    public BigInteger getJobId() {
-//        return jobId;
-//    }
-//
-//    public void setJobId(BigInteger jobId) {
-//        this.jobId = jobId;
-//    }
-//
-//    public String getPath() {
-//        return path;
-//    }
-//
-//    public void setPath(String path) {
-//        this.path = path;
-//    }
-
-    public NodeResult(BigInteger jobId, String path){
+    public NodeResult(BigInteger jobId, String path) {
         this(new NodeResultKey(jobId, path));
     }
-//    public NodeResult(BigInteger jobId, String path) {
-//
-//    }
 
     public NodeResult(NodeResultKey nodeResultKey) {
         this.nodeResultKey = nodeResultKey;
     }
-
 
     public NodeResultKey getNodeResultKey() {
         return nodeResultKey;
@@ -119,6 +90,14 @@ public class NodeResult {
 
     public void setNodeResultKey(NodeResultKey nodeResultKey) {
         this.nodeResultKey = nodeResultKey;
+    }
+
+    public BigInteger getJobId() {
+        return this.nodeResultKey.getJobId();
+    }
+
+    public String getPath() {
+        return this.nodeResultKey.getPath();
     }
 
     public Map<String, String> getOutputs() {

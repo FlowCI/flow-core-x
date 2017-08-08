@@ -18,6 +18,7 @@ package com.flow.platform.api.test.dao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeResultKey;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.service.NodeResultService;
@@ -50,8 +51,8 @@ public class JobNodeTest extends TestBase {
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
-
-        NodeResult job_node = nodeResultDao.get(jobNode.getNodeResultKey().getPath());
+        NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
+        NodeResult job_node = nodeResultDao.get(nodeResultKey);
         Assert.assertNotNull(job_node);
         Assert.assertEquals("/flow", job_node.getNodeResultKey().getPath());
         Assert.assertEquals(NodeTag.FLOW, job_node.getNodeTag());
@@ -68,12 +69,12 @@ public class JobNodeTest extends TestBase {
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
-
-        NodeResult job_node = nodeResultDao.get(jobNode.getNodeResultKey().getPath());
+        NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
+        NodeResult job_node = nodeResultDao.get(nodeResultKey);
         job_node.setNodeTag(NodeTag.STEP);
         nodeResultDao.update(job_node);
 
-        NodeResult job_node1 = nodeResultDao.get(jobNode.getNodeResultKey().getPath());
+        NodeResult job_node1 = nodeResultDao.get(nodeResultKey);
         job_node1.setCmdId("22222");
         nodeResultDao.update(job_node1);
 
@@ -92,9 +93,9 @@ public class JobNodeTest extends TestBase {
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
-
+        NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
         nodeResultDao.delete(jobNode);
-        NodeResult job_node = nodeResultDao.get(jobNode.getNodeResultKey().getPath());
+        NodeResult job_node = nodeResultDao.get(nodeResultKey);
 
         Assert.assertEquals(null, job_node);
     }

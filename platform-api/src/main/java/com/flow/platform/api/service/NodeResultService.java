@@ -18,6 +18,7 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeResultKey;
 import java.math.BigInteger;
 
 /**
@@ -33,7 +34,7 @@ public interface NodeResultService {
     /**
      * find node by node path
      */
-    NodeResult find(String nodePath, BigInteger jobId);
+    NodeResult find(String path, BigInteger jobId);
 
     /**
      * save node

@@ -16,6 +16,7 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeResultKey;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository(value = "nodeResultDao")
 
-public class NodeResultDaoImpl extends AbstractBaseDao<String, NodeResult> implements NodeResultDao{
+public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult> implements NodeResultDao{
 
     @Override
     Class<NodeResult> getEntityClass() {
@@ -34,5 +35,19 @@ public class NodeResultDaoImpl extends AbstractBaseDao<String, NodeResult> imple
     String getKeyName() {
         return "nodeResultKey";
     }
+
+//    @Override
+//    public NodeResult find(final NodeResultKey nodeResultKey){
+//        NodeResult nodeResult = (NodeResult) execute(session -> (NodeResult) session
+//          .createQuery("from NodeResult where jobId = :jobId and path = :path")
+//          .setParameter("jobId", nodeResultKey.getJobId())
+//          .setParameter("path", nodeResultKey.getPath())
+//          .uniqueResult());
+//        return nodeResult;
+//
+//    }
+//
+
+
 
 }
