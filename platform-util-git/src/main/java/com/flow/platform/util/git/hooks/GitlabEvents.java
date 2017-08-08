@@ -17,7 +17,6 @@
 package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
-import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
@@ -103,9 +102,8 @@ public class GitlabEvents {
                 source.setBranch(attrs.get("source_branch").toString());
                 source.setProjectId(toInteger(attrs.get("source_project_id").toString()));
 
-                // set commit to source
-                String commitJson = GSON.toJson(attrs.get("last_commit"));
-                source.setCommit(GSON.fromJson(commitJson, GitEventCommit.class));
+                Map lastCommit = (Map) attrs.get("last_commit");
+                source.setSha(lastCommit.get("id").toString());
 
                 return prEvent;
             } catch (Throwable e) {

@@ -29,7 +29,7 @@ public class GitPullRequestInfo implements Serializable {
 
     private String branch;
 
-    private GitEventCommit commit;
+    private String sha;
 
     public Integer getProjectId() {
         return projectId;
@@ -55,11 +55,11 @@ public class GitPullRequestInfo implements Serializable {
         this.branch = branch;
     }
 
-    public GitEventCommit getCommit() {
-        return commit;
+    public String getSha() {
+        return sha;
     }
 
-    public void setCommit(GitEventCommit commit) {
-        this.commit = commit;
+    public void setSha(String sha) {
+        this.sha = sha;
     }
 }

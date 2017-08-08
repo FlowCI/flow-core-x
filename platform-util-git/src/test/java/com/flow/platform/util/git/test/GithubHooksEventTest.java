@@ -122,14 +122,14 @@ public class GithubHooksEventTest {
         Assert.assertEquals("developer", source.getBranch());
         Assert.assertEquals(86284448, source.getProjectId().intValue());
         Assert.assertEquals("yang-guo-2016/Test", source.getProjectName());
-        Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", source.getCommit().getId());
+        Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", source.getSha());
 
         // then: verify target info
         GitPullRequestInfo target = event.getSource();
         Assert.assertEquals("developer", target.getBranch());
         Assert.assertEquals(86284448, target.getProjectId().intValue());
         Assert.assertEquals("yang-guo-2016/Test", target.getProjectName());
-        Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", target.getCommit().getId());
+        Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", source.getSha());
     }
 
     @Test(expected = GitException.class)

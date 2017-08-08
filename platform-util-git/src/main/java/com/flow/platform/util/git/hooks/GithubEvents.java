@@ -162,14 +162,14 @@ public class GithubEvents {
             source.setProjectId(pullRequest.source.repo.id);
             source.setProjectName(pullRequest.source.repo.name);
             source.setBranch(pullRequest.source.ref);
-            source.setCommit(new GitEventCommit(pullRequest.source.sha));
+            source.setSha(pullRequest.source.sha);
 
             // set target
             GitPullRequestInfo target = event.getTarget();
             target.setProjectId(pullRequest.target.repo.id);
             target.setProjectName(pullRequest.target.repo.name);
             target.setBranch(pullRequest.target.ref);
-            target.setCommit(new GitEventCommit(pullRequest.target.sha));
+            target.setSha(pullRequest.target.sha);
 
             return event;
         }

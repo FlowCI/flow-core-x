@@ -126,15 +126,7 @@ public class GitlabHooksEventTest {
         GitPullRequestInfo source = mrEvent.getSource();
         Assert.assertEquals("ms-viewport", source.getBranch());
         Assert.assertEquals(14, source.getProjectId().intValue());
-
-        GitEventCommit sourceCommitInfo = source.getCommit();
-        Assert.assertNotNull(sourceCommitInfo);
-        Assert.assertEquals("da1560886d4f094c3e6c9ef40349f7d38b5d27d7", sourceCommitInfo.getId());
-        Assert.assertEquals("fixed readme", sourceCommitInfo.getMessage());
-        Assert.assertEquals("2012-01-03T23:36:29+02:00", sourceCommitInfo.getTimestamp());
-
-        Assert.assertEquals("GitLab dev user", sourceCommitInfo.getAuthor().getName());
-        Assert.assertEquals("gitlabdev@dv6700.(none)", sourceCommitInfo.getAuthor().getEmail());
+        Assert.assertEquals("da1560886d4f094c3e6c9ef40349f7d38b5d27d7", source.getSha());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {
