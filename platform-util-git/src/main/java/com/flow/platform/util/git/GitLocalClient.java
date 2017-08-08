@@ -16,6 +16,7 @@
 
 package com.flow.platform.util.git;
 
+import com.flow.platform.util.git.model.GitCommit;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -80,7 +81,7 @@ public class GitLocalClient implements GitClient {
      * Get latest commit by ref name from local .git
      */
     @Override
-    public Commit commit(String refName) {
+    public GitCommit commit(String refName) {
         try (Git git = gitOpen()) {
             Repository repo = git.getRepository();
             Ref head = repo.findRef(refName);
@@ -93,7 +94,7 @@ public class GitLocalClient implements GitClient {
                 String message = commit.getFullMessage();
                 String author = commit.getAuthorIdent().getName();
 
-                return new Commit(id, message, author);
+                return new GitCommit(id, message, author);
             }
         } catch (IOException e) {
             throw new GitException("Fail to get commit message", e);

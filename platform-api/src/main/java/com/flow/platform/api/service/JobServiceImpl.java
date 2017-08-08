@@ -182,14 +182,14 @@ public class JobServiceImpl implements JobService {
      * get job callback
      */
     private String getJobHook(Job job) {
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(job.getId());
+        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId());
     }
 
     /**
      * get node callback
      */
     private String getNodeHook(Node node) {
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(node.getPath());
+        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(node.getPath());
     }
 
     /**

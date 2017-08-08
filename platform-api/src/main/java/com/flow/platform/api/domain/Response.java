@@ -22,6 +22,7 @@ import com.flow.platform.domain.Jsonable;
  * @author yh@firim
  */
 public class Response extends Jsonable {
+
     private String message;
 
     public String getMessage() {

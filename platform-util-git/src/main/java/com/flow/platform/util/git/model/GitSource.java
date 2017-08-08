@@ -14,36 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git;
-
-import java.io.Serializable;
+package com.flow.platform.util.git.model;
 
 /**
  * @author yang
  */
-public class Commit implements Serializable {
+public enum GitSource {
 
-    private String id;
+    UNDEFINED,
 
-    private String message;
+    GITLAB,
 
-    private String author;
+    GITHUB,
 
-    public Commit(String id, String message, String author) {
-        this.id = id;
-        this.message = message;
-        this.author = author;
-    }
+    CODING,
 
-    public String getId() {
-        return id;
-    }
+    OSCHINA,
 
-    public String getMessage() {
-        return message;
-    }
+    BITBUCKET
 
-    public String getAuthor() {
-        return author;
-    }
 }

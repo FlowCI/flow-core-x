@@ -16,7 +16,7 @@
 
 package com.flow.platform.util.git.test;
 
-import com.flow.platform.util.git.Commit;
+import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.GitLocalClient;
 import com.flow.platform.util.git.GitSshClient;
 import com.google.common.collect.Lists;
@@ -51,7 +51,7 @@ public class GitLocalClientTest {
         Collection<Ref> branches = gitClient.branches();
 
         // then: verify commit info
-        Commit commit = gitClient.commit(Lists.newArrayList(branches).get(0).getName());
+        GitCommit commit = gitClient.commit(Lists.newArrayList(branches).get(0).getName());
         Assert.assertNotNull(commit.getId());
         Assert.assertNotNull(commit.getMessage());
         Assert.assertNotNull(commit.getAuthor());

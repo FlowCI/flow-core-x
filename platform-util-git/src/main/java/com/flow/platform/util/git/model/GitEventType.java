@@ -14,35 +14,18 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git;
-
-import com.flow.platform.util.git.model.GitCommit;
-import java.util.Collection;
-import org.eclipse.jgit.lib.Ref;
+package com.flow.platform.util.git.model;
 
 /**
  * @author yang
  */
-public interface GitClient {
+public enum GitEventType {
 
-    /**
-     * Git pull with depth
-     * @param depth git pull depth, can be set to null
-     */
-    void pull(Integer depth);
+    PUSH,
 
-    /**
-     * Load all branches from git
-     */
-    Collection<Ref> branches();
+    PR, // open pull request
 
-    /**
-     * Load all tags from git
-     */
-    Collection<Ref> tags();
+    MR, // merge request
 
-    /**
-     * Git latest commit from ref
-     */
-    GitCommit commit(String refName);
+    TAG;
 }
