@@ -53,8 +53,9 @@ public class JobControllerTest extends TestBase {
 
         String response = mvcResult.getResponse().getContentAsString();
         Job returnedJob = Job.parse(response, Job.class);
-
         Assert.assertEquals(returnedJob.getId(), job.getId());
+
+        // those fields cannot exported
         Assert.assertNull(returnedJob.getExitCode());
         Assert.assertNull(returnedJob.getSessionId());
         Assert.assertNull(returnedJob.getCmdId());

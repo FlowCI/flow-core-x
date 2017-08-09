@@ -16,21 +16,37 @@
 
 package com.flow.platform.api.util;
 
-import com.flow.platform.domain.Jsonable;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
 /**
+ * Gson object to json converter
+ *  - enable expose annotation
+ *  - convert ZonedDateTime to timestamp
+ *
  * @author yh@firim
  */
 public class GsonHttpExposeConverter extends GsonHttpMessageConverter {
+
+    private Gson gsonForObjectToJson = new GsonBuilder()
+        .excludeFieldsWithoutExposeAnnotation()
+        .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdaptor())
+        .create();
 
     public GsonHttpExposeConverter() {
         super();
@@ -44,9 +60,9 @@ public class GsonHttpExposeConverter extends GsonHttpMessageConverter {
         OutputStreamWriter writer = new OutputStreamWriter(outputMessage.getBody(), charset);
         try {
             if (type != null) {
-                Jsonable.GSON_EXPOSE_CONFIG.toJson(o, type, writer);
+                gsonForObjectToJson.toJson(o, type, writer);
             } else {
-                Jsonable.GSON_EXPOSE_CONFIG.toJson(o, writer);
+                gsonForObjectToJson.toJson(o, writer);
             }
             writer.close();
         } catch (JsonIOException ex) {
@@ -59,5 +75,25 @@ public class GsonHttpExposeConverter extends GsonHttpMessageConverter {
             return DEFAULT_CHARSET;
         }
         return headers.getContentType().getCharset();
+    }
+
+    /**
+     * Used for convert zoned date time to timestamp
+     */
+    private class ZonedDateTimeAdaptor extends TypeAdapter<ZonedDateTime> {
+
+        @Override
+        public void write(JsonWriter out, ZonedDateTime value) throws IOException {
+            out.value(value.toEpochSecond());
+        }
+
+        @Override
+        public ZonedDateTime read(JsonReader in) throws IOException {
+            Long ts = in.nextLong();
+            Instant i = Instant.ofEpochSecond(ts);
+            ZonedDateTime z;
+            z = ZonedDateTime.ofInstant(i, ZoneId.systemDefault());
+            return z;
+        }
     }
 }
