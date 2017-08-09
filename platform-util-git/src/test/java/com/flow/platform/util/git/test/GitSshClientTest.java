@@ -60,13 +60,13 @@ public class GitSshClientTest {
         String tmpPath = folder.getRoot().getAbsolutePath();
 
         GitSshClient gitClient = new GitSshClient(TEST_GIT_SSH_URL, Paths.get(tmpPath));
-        gitClient.clone(1, Sets.newHashSet(".flow.yml"));
+        gitClient.clone(null, Sets.newHashSet(".flow.yml"));
 
-        final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml");
+        final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml", "README.md");
 
         // then:
         File[] files = Paths.get(tmpPath).toFile().listFiles();
-        Assert.assertEquals(2, files.length);
+        Assert.assertEquals(3, files.length);
         for (File file : files) {
             Assert.assertTrue(acceptedFiles.contains(file.getName()));
         }
