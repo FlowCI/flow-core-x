@@ -41,10 +41,14 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
 
 
     /**
-     * get latest job by flow names
+     * get latest job by flow path
      *
-     * @param names flow names
      * @return List<Job>
      */
-    List<Job> listLatest(List<String> names);
+    List<Job> listLatest(List<String> nodePaths);
+
+    /**
+     * get jobs from nodePath
+     */
+    List<Job> list(String nodePath);
 }

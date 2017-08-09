@@ -61,12 +61,7 @@ public interface JobService {
     Job update(Job job);
 
     /**
-     * get latest jobs by node name
-     */
-    List<Job> listLatestJobs(List<String> names);
-
-    /**
      * list all jobs
      */
-    List<Job> listJobs();
+    List<Job> listJobs(String flowPath, List<String> flowPaths);
 }
