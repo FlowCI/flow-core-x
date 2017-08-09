@@ -6,22 +6,22 @@
 <hibernate-mapping package="com.flow.platform.api.domain">
   <class name="Job" table="job">
     <id name="id" type="big_integer">
-      <column name="id" sql-type="decimal(25, 0)"></column>
+      <column name="id" sql-type="decimal(25, 0)"/>
     </id>
 
-    <property name="nodeName" column="node_name"></property>
-    <property name="nodePath" column="name_path"></property>
-    <property name="duration" type="long" column="duration"></property>
-    <property name="exitCode" type="integer"></property>
-    <property name="cmdId" type="string" column="cmd_id"></property>
-    <property name="sessionId" type="string" column="session_id"></property>
-    <property name="outputs" type="com.flow.platform.api.dao.adaptor.MapAdaptor" column="outputs"></property>
+    <property name="nodeName" column="node_name"/>
+    <property name="nodePath" column="node_path"/>
+    <property name="duration" type="long" column="duration"/>
+    <property name="exitCode" type="integer" column="exit_code"/>
+    <property name="cmdId" type="string" column="cmd_id"/>
+    <property name="sessionId" type="string" column="session_id"/>
+    <property name="outputs" type="com.flow.platform.api.dao.adaptor.MapAdaptor" column="outputs"/>
 
-    <property name="createdAt" type="java.time.ZonedDateTime">
-      <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
-    </property>
-    <property name="updatedAt" type="java.time.ZonedDateTime" update="false">
-      <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    <property name="status" column="status" length="10" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.api.domain.NodeStatus</param>
+        <param name="useNamed">true</param>
+      </type>
     </property>
 
     <property name="finishedAt" type="java.time.ZonedDateTime">
@@ -32,24 +32,21 @@
       <column name="started_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
     </property>
 
-    <property name="type" type="string"></property>
-
-    <property name="status" column="status" length="10" not-null="true">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">com.flow.platform.api.domain.NodeStatus</param>
-        <param name="useNamed">true</param>
-      </type>
+    <property name="createdAt" type="java.time.ZonedDateTime">
+      <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
     </property>
 
+    <property name="updatedAt" type="java.time.ZonedDateTime" update="false">
+      <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    </property>
   </class>
 
 
   <class name="JobYmlStorage" table="job_yml_storage">
     <id name="jobId" type="big_integer">
-      <column name="job_id" sql-type="decimal(25, 0)"></column>
+      <column name="job_id" sql-type="decimal(25, 0)"/>
     </id>
 
-    <property name="file" type="com.flow.platform.api.dao.adaptor.ByteAdaptor">
-    </property>
+    <property name="file" type="com.flow.platform.api.dao.adaptor.ByteAdaptor"/>
   </class>
 </hibernate-mapping>

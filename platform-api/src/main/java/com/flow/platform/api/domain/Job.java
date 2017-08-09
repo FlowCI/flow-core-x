@@ -34,29 +34,12 @@ public class Job extends Jsonable {
     private String type;
 
     @Expose
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime createdAt;
-
-    @Expose
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime updatedAt;
-
-    @Expose
     private Long duration;
 
     @Expose
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime startedAt;
-
-    @Expose
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime finishedAt;
-
-    @Expose
-    private Integer exitCode;
-
-    @Expose
     private String nodePath;
+
+    private Integer exitCode;
 
     private String sessionId;
 
@@ -75,6 +58,22 @@ public class Job extends Jsonable {
 
     @Expose
     private String branch;
+
+    @Expose
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
+    private ZonedDateTime startedAt;
+
+    @Expose
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
+    private ZonedDateTime finishedAt;
+
+    @Expose
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
+    private ZonedDateTime createdAt;
+
+    @Expose
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
+    private ZonedDateTime updatedAt;
 
     public Job() {
     }
@@ -97,14 +96,6 @@ public class Job extends Jsonable {
 
     public void setId(BigInteger id) {
         this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public ZonedDateTime getCreatedAt() {
@@ -234,7 +225,6 @@ public class Job extends Jsonable {
     public String toString() {
         return "Job{" +
             "id='" + id + '\'' +
-            ", type='" + type + '\'' +
             ", duration=" + duration +
             ", exitCode=" + exitCode +
             ", nodePath='" + nodePath + '\'' +
