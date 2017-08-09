@@ -14,35 +14,32 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git;
+package com.flow.platform.util.git.model;
 
-import com.flow.platform.util.git.model.GitCommit;
-import java.util.Collection;
-import org.eclipse.jgit.lib.Ref;
+import java.io.Serializable;
 
 /**
  * @author yang
  */
-public interface GitClient {
+public class GitEventAuthor implements Serializable {
 
-    /**
-     * Git pull with depth
-     * @param depth git pull depth, can be set to null
-     */
-    void pull(Integer depth);
+    private String name;
 
-    /**
-     * Load all branches from git
-     */
-    Collection<Ref> branches();
+    private String email;
 
-    /**
-     * Load all tags from git
-     */
-    Collection<Ref> tags();
+    public String getName() {
+        return name;
+    }
 
-    /**
-     * Git latest commit from ref
-     */
-    GitCommit commit(String refName);
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }

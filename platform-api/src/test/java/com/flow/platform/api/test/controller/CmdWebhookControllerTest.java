@@ -22,17 +22,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
-import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeResultService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.test.util.NodeUtilYmlTest;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
@@ -40,11 +36,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
-import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
@@ -56,7 +47,9 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 /**
  * @author yh@firim
  */
-public class WebhookControllerTest extends TestBase {
+public class CmdWebhookControllerTest extends TestBase {
+
+    private final static String CMD_HOOKS_URL = "/hooks/cmd?identifier=";
 
     @Autowired
     private NodeService nodeService;
