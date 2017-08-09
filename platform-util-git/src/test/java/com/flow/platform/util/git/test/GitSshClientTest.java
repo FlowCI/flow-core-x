@@ -25,6 +25,7 @@ import java.util.Set;
 import org.eclipse.jgit.lib.Ref;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -32,6 +33,7 @@ import org.junit.rules.TemporaryFolder;
 /**
  * @author yang
  */
+@Ignore("ignore since this test need to set ssh public key into git hub")
 public class GitSshClientTest {
 
     private final static String TEST_GIT_SSH_URL = "git@github.com:flow-ci-plugin/for-testing.git";
