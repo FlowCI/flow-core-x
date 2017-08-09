@@ -17,11 +17,13 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.exception.NotImplementedException;
 import com.flow.platform.exception.UnsupportedException;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitSshClient;
 import com.flow.platform.util.git.model.GitSource;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,5 +54,10 @@ public class GitServiceImpl implements GitService {
         }
 
         return null;
+    }
+
+    @Override
+    public void fetch(Flow flow, String filePath, Consumer<String> callBack) {
+        throw new NotImplementedException();
     }
 }

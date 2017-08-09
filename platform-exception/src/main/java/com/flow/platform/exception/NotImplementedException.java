@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
-
-import com.flow.platform.api.domain.Flow;
-import java.util.function.Consumer;
+package com.flow.platform.exception;
 
 /**
- * To fetch related git repo info
- *
  * @author yang
  */
-public interface GitService {
+public class NotImplementedException extends FlowException {
 
-    /**
-     * Fetch file content from git repo
-     *
-     * @param flow flow instance which includes git repo info
-     * @param filePath target file path
-     * @return file content
-     */
-    String fetch(Flow flow, String filePath);
+    public NotImplementedException() {
+        super("Not implemented on: " + invokerInfo() , null);
+    }
 
-    /**
-     * Async to fetch file content from git repo
-     */
-    void fetch(Flow flow, String filePath, Consumer<String> callBack);
+    public NotImplementedException(String description, Throwable e) {
+        super(description, e);
+    }
+
+    private static String invokerInfo() {
+        StackTraceElement traceElement = Thread.currentThread().getStackTrace()[3];
+        return traceElement.getClassName() + "." + traceElement.getMethodName();
+    }
 }

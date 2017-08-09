@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
+package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.domain.Flow;
-import java.util.function.Consumer;
+import com.flow.platform.api.service.GitService;
+import com.flow.platform.api.test.TestBase;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * To fetch related git repo info
- *
  * @author yang
  */
-public interface GitService {
+public class GitServiceTest extends TestBase {
 
-    /**
-     * Fetch file content from git repo
-     *
-     * @param flow flow instance which includes git repo info
-     * @param filePath target file path
-     * @return file content
-     */
-    String fetch(Flow flow, String filePath);
+    @Autowired
+    private GitService gitService;
 
-    /**
-     * Async to fetch file content from git repo
-     */
-    void fetch(Flow flow, String filePath, Consumer<String> callBack);
+    @Test
+    public void should_fetch_git_file() throws Throwable {
+
+    }
 }
