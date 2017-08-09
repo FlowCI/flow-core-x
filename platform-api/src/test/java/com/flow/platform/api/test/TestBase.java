@@ -14,19 +14,32 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
-import com.flow.platform.api.config.WebConfig;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.gson.Gson;
-import java.io.IOException;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
+import com.flow.platform.api.config.WebConfig;
+import com.flow.platform.api.dao.FlowDao;
+import com.flow.platform.api.dao.JobDao;
+import com.flow.platform.api.dao.JobYmlStorageDao;
+import com.flow.platform.api.dao.NodeResultDao;
+import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.test.util.NodeUtilYmlTest;
+import com.flow.platform.domain.Cmd;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.io.Files;
+import com.google.gson.Gson;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -51,6 +64,21 @@ public abstract class TestBase {
     }
 
     @Autowired
+    private FlowDao flowDao;
+
+    @Autowired
+    private JobDao jobDao;
+
+    @Autowired
+    private YmlStorageDao ymlStorageDao;
+
+    @Autowired
+    private JobYmlStorageDao jobYmlStorageDao;
+
+    @Autowired
+    private NodeResultDao nodeResultDao;
+
+    @Autowired
     private WebApplicationContext webAppContext;
 
     @Autowired
@@ -63,11 +91,40 @@ public abstract class TestBase {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
     }
 
+    public String getBody(String fileName) throws IOException {
+        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+        URL resource = classLoader.getResource(fileName);
+        File path = new File(resource.getFile());
+        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+        return ymlString;
+    }
+
+    public void stubDemo() {
+        Cmd cmdRes = new Cmd();
+        cmdRes.setId(UUID.randomUUID().toString());
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
+            .willReturn(aResponse()
+                .withBody(cmdRes.toJson())));
+
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
+            .willReturn(aResponse()
+                .withBody(cmdRes.toJson())));
+    }
+
+    private void cleanDatabase() {
+        flowDao.deleteAll();
+        jobDao.deleteAll();
+        ymlStorageDao.deleteAll();
+        jobYmlStorageDao.deleteAll();
+        nodeResultDao.deleteAll();
+    }
+
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
     @After
     public void afterEach() {
+        cleanDatabase();
     }
 
     @AfterClass

@@ -13,14 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.dao;
 
-package com.flow.platform.api.domain;
+import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeResultKey;
 
-public class JobFlow extends JobNode<JobStep> {
-    public JobFlow(String name, String path){
-        super(name, path);
+import org.springframework.stereotype.Repository;
+
+/**
+ * @author lhl
+ */
+@Repository(value = "nodeResultDao")
+
+public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult> implements NodeResultDao{
+
+    @Override
+    Class<NodeResult> getEntityClass() {
+        return NodeResult.class;
     }
 
-    public JobFlow() {
+    @Override
+    String getKeyName() {
+        return "nodeResultKey";
     }
 }

@@ -17,18 +17,19 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobStep;
-import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
-import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.service.YmlStorageService;
 import com.flow.platform.util.Logger;
+import java.math.BigInteger;
 import java.util.Collection;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
+@RequestMapping(path = "/jobs")
 public class JobController {
 
     private static Logger LOGGER = new Logger(JobController.class);
@@ -47,20 +49,26 @@ public class JobController {
     @Autowired
     private NodeService nodeService;
 
-    @PostMapping(path = "/jobs")
+    @Autowired
+    private YmlStorageService ymlStorageService;
+
+    @PostMapping
     public Job create(@RequestBody String body) {
-        Node node = NodeUtil.buildFromYml(body);
-        nodeService.create(node);
-        return jobService.createJob(node.getPath());
+        return jobService.createJob(body);
     }
 
-    @GetMapping(path = "/jobs/{id}/steps")
-    public Collection<JobStep> showSteps(@PathVariable String id) {
-        return jobService.listJobStep(id);
+    @GetMapping
+    public Collection<Job> index(@RequestParam(required = false) String flowPath) {
+        return jobService.listJobs(flowPath, null);
     }
 
-    @GetMapping(path = "/jobs/{id}")
-    public Job show(@PathVariable String id) {
+    @GetMapping(path = "/{id}")
+    public Job show(@PathVariable BigInteger id) {
         return jobService.find(id);
+    }
+
+    @PostMapping(path = "/status/latest")
+    public Collection<Job> latestStatus(@RequestBody List<String> flowPaths) {
+        return jobService.listJobs(null, flowPaths);
     }
 }

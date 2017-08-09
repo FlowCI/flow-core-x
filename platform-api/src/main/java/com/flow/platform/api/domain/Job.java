@@ -16,23 +16,33 @@
 
 package com.flow.platform.api.domain;
 
+import com.flow.platform.api.domain.adaptor.ZonedDateTimeAdaptor;
 import com.flow.platform.domain.Jsonable;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.JsonAdapter;
+import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Job extends Jsonable {
 
-    private String id;
+    private BigInteger id;
 
     private String type;
 
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime createdAt;
 
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime updatedAt;
 
     private Long duration;
 
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
+    private ZonedDateTime startedAt;
+
+    @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime finishedAt;
 
     private Integer exitCode;
@@ -47,10 +57,16 @@ public class Job extends Jsonable {
 
     private Map<String, String> envs = new HashMap<>();
 
+    private Map<String, String> outputs = new HashMap<>();
+
+    private String nodeName;
+
+    private String branch;
+
     public Job() {
     }
 
-    public Job(String id) {
+    public Job(BigInteger id) {
         this.id = id;
     }
 
@@ -62,11 +78,11 @@ public class Job extends Jsonable {
         this.sessionId = sessionId;
     }
 
-    public String getId() {
+    public BigInteger getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(BigInteger id) {
         this.id = id;
     }
 
@@ -110,6 +126,14 @@ public class Job extends Jsonable {
         this.finishedAt = finishedAt;
     }
 
+    public ZonedDateTime getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(ZonedDateTime startedAt) {
+        this.startedAt = startedAt;
+    }
+
     public Integer getExitCode() {
         return exitCode;
     }
@@ -148,6 +172,30 @@ public class Job extends Jsonable {
 
     public void setCmdId(String cmdId) {
         this.cmdId = cmdId;
+    }
+
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+    public Map<String, String> getOutputs() {
+        return outputs;
+    }
+
+    public void setOutputs(Map<String, String> outputs) {
+        this.outputs = outputs;
     }
 
     @Override

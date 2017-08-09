@@ -16,10 +16,9 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobFlow;
-import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.domain.JobStep;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.domain.CmdBase;
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -30,10 +29,9 @@ public interface JobService {
     /**
      * create job
      *
-     * @param nodePath node path
      * @return job
      */
-    Job createJob(String nodePath);
+    Job createJob(String ymlBody);
 
     /**
      * handle callback
@@ -45,7 +43,7 @@ public interface JobService {
     /**
      * run node
      */
-    void run(JobNode node);
+    void run(Node node, BigInteger jobId);
 
     /**
      * save job
@@ -55,7 +53,7 @@ public interface JobService {
     /**
      * find job by id
      */
-    Job find(String id);
+    Job find(BigInteger id);
 
     /**
      * update job
@@ -63,7 +61,7 @@ public interface JobService {
     Job update(Job job);
 
     /**
-     * show job's job step
+     * list all jobs
      */
-    List<JobStep> listJobStep(String jobId);
+    List<Job> listJobs(String flowPath, List<String> flowPaths);
 }

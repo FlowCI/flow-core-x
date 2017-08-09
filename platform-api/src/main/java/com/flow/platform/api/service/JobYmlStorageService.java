@@ -15,35 +15,23 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.JobFlow;
-import com.flow.platform.api.domain.JobNode;
+import com.flow.platform.api.domain.Node;
+import java.math.BigInteger;
 
 /**
- * @author yh@firim
+ * @author lhl
  */
-public interface JobNodeService {
+public interface JobYmlStorageService {
 
     /**
-     * create node and children
+     * save yml to db
      */
-    JobNode create(JobNode jobNode);
-
-    /**
-     * find node by node path
-     */
-    JobNode find(String nodePath);
-
-    /**
-     * save node
-     */
-    JobNode save(JobNode jobNode);
+    void save(BigInteger jobId, String yml);
 
 
     /**
-     * create job node by node path
-     *
-     * @param nodePath can copy every node
+     * get node from node and jobId
      */
-    JobNode createJobNode(String nodePath);
+    Node get(BigInteger jobId, String path);
 
 }

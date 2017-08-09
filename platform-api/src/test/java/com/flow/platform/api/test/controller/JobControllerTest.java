@@ -16,22 +16,24 @@
 
 package com.flow.platform.api.test.controller;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Step;
-import com.flow.platform.api.service.JobNodeService;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.domain.Cmd;
-import java.util.UUID;
+import com.flow.platform.api.test.util.NodeUtilYmlTest;
+import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.domain.Jsonable;
+import com.google.common.io.Files;
+import java.io.File;
+import java.net.URL;
+import java.nio.charset.Charset;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -51,43 +53,14 @@ public class JobControllerTest extends TestBase {
     @Autowired
     private JobService jobService;
 
-
-    private void stubDemo() {
-        Cmd cmdRes = new Cmd();
-        cmdRes.setId(UUID.randomUUID().toString());
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
-            .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
-
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
-            .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
-    }
-
+    @Autowired
+    private YmlStorageDao ymlStorageDao;
 
     @Test
     public void should_show_job_success() throws Exception {
         stubDemo();
 
-        Flow flow = new Flow();
-        flow.setPath("/flow");
-        flow.setName("flow");
-        Step step1 = new Step();
-        step1.setPath("/flow/step1");
-        step1.setName("step1");
-        Step step2 = new Step();
-        step2.setPath("/flow/step2");
-        step2.setName("step2");
-
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-
-        step1.setParent(flow);
-        step2.setParent(flow);
-
-        nodeService.create(flow);
-
-        Job job = jobService.createJob(flow.getPath());
+        Job job = jobService.createJob(getBody("flow.yaml"));
 
         MockHttpServletRequestBuilder content = get(new StringBuffer("/jobs/").append(job.getId()).toString())
             .contentType(MediaType.APPLICATION_JSON);
@@ -99,7 +72,7 @@ public class JobControllerTest extends TestBase {
         MockHttpServletResponse response = mvcResult.getResponse();
 //        String s = response.getContentAsString();
 //        Job job1 = Jsonable.parse(s, Job.class);
-//        Assert.assertEquals(job1 .getId(), job.getId());
+//        Assert.assertEquals(job1.getId(), job.getId());
     }
 
 }
