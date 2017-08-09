@@ -17,9 +17,12 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.dao.FlowDao;
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.service.NodeService;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,10 +37,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class FlowController {
 
     @Autowired
-    private FlowDao flowDao;
+    private NodeService nodeService;
 
     @GetMapping
-    public String index() {
-        return Jsonable.GSON_EXPOSE_CONFIG.toJson(flowDao.list());
+    public List<Flow> index() {
+        return nodeService.listFlows();
     }
 }

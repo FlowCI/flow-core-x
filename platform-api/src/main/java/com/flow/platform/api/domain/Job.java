@@ -27,40 +27,53 @@ import java.util.Map;
 
 public class Job extends Jsonable {
 
+    @Expose
     private BigInteger id;
 
+    @Expose
     private String type;
 
+    @Expose
     @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime createdAt;
 
+    @Expose
     @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime updatedAt;
 
+    @Expose
     private Long duration;
 
+    @Expose
     @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime startedAt;
 
+    @Expose
     @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime finishedAt;
 
+    @Expose
     private Integer exitCode;
 
+    @Expose
     private String nodePath;
 
     private String sessionId;
 
     private String cmdId;
 
+    @Expose
     private NodeStatus status;
 
     private Map<String, String> envs = new HashMap<>();
 
+    @Expose
     private Map<String, String> outputs = new HashMap<>();
 
+    @Expose
     private String nodeName;
 
+    @Expose
     private String branch;
 
     public Job() {

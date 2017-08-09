@@ -207,7 +207,7 @@ public class JobServiceImpl implements JobService {
      * get job callback
      */
     private String getJobHook(Job job) {
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString());
+        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString());
     }
 
     /**
@@ -217,7 +217,7 @@ public class JobServiceImpl implements JobService {
         Map<String, String> map = new HashMap<>();
         map.put("path", node.getPath());
         map.put("jobId", jobId.toString());
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map));
+        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map));
     }
 
     /**

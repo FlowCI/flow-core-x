@@ -41,15 +41,4 @@ public class FlowDaoImpl extends AbstractBaseDao<String, Flow> implements FlowDa
         return "path";
     }
 
-    @Override
-    public List<Flow> list() {
-        return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Flow> select = builder.createQuery(Flow.class);
-            Root<Flow> flow = select.from(Flow.class);
-            Predicate condition = builder.not(flow.get("path").isNull());
-            select.where(condition);
-            return session.createQuery(select).list();
-        });
-    }
 }

@@ -38,6 +38,8 @@ public interface BaseDao<K extends Serializable, T> {
 
     void delete(final T obj);
 
+    List<T> list();
+
     /**
      * Delete all data of table. should only used for test
      */

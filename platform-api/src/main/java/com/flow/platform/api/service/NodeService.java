@@ -15,7 +15,9 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
+import java.util.List;
 
 /**
  * @author yh@firim
@@ -36,4 +38,9 @@ public interface NodeService {
      * save node
      */
     Node save(Node node);
+
+    /**
+     * list current flows
+     */
+    List<Flow> listFlows();
 }

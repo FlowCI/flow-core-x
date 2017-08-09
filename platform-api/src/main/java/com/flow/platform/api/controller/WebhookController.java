@@ -41,7 +41,7 @@ public class WebhookController {
     @Autowired
     private JobService jobService;
 
-    @PostMapping(path = "/hooks")
+    @PostMapping(path = "/hooks/cmd")
     public Response execute(@RequestBody Cmd cmd,
         @RequestParam String identifier) {
         identifier = UrlUtil.urlDecoder(identifier);
@@ -51,8 +51,8 @@ public class WebhookController {
         }
 
         LOGGER.trace(String
-            .format("Webhook Comming Url: %s CmdType: %s CmdStatus: %s", cmd.getWebhook(), cmd.getType().toString(),
-                cmd.getStatus().toString()));
+            .format("Webhook Comming Url: %s CmdType: %s CmdStatus: %s", cmd.getWebhook(), cmd.getType(),
+                cmd.getStatus()));
 
         jobService.callback(identifier, cmd);
         return new Response("ok");

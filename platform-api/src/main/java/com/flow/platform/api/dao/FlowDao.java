@@ -23,9 +23,5 @@ import java.util.List;
  * @author yh@firim
  */
 public interface FlowDao extends BaseDao<String, Flow> {
-
-    /**
-     * list flows
-     */
-    List<Flow> list();
+    
 }

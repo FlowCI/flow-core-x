@@ -20,19 +20,28 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Jsonable;
+import com.google.gson.annotations.Expose;
 
 /**
  * @author yh@firim
  */
 public class AgentWithFlow extends Jsonable{
-    private AgentPath path;
+    @Expose
+    private String agentName;
+    @Expose
+    private String agentZone;
+    @Expose
     private String flowName;
+    @Expose
     private AgentStatus agentStatus;
+    @Expose
     private Integer number;
+    @Expose
     private String branch;
 
     public AgentWithFlow(AgentPath path, String flowName, AgentStatus agentStatus, Integer number) {
-        this.path = path;
+        this.agentName = path.getName();
+        this.agentZone = path.getZone();
         this.flowName = flowName;
         this.agentStatus = agentStatus;
         this.number = number;
@@ -42,7 +51,8 @@ public class AgentWithFlow extends Jsonable{
     }
 
     public AgentWithFlow(Agent agent, Job job){
-        this.path = agent.getPath();
+        this.agentName = agent.getPath().getName();
+        this.agentZone = agent.getPath().getZone();
         this.agentStatus = agent.getStatus();
         if(job != null){
             this.flowName = job.getNodeName();
@@ -59,12 +69,20 @@ public class AgentWithFlow extends Jsonable{
         this.branch = branch;
     }
 
-    public AgentPath getPath() {
-        return path;
+    public String getAgentName() {
+        return agentName;
     }
 
-    public void setPath(AgentPath path) {
-        this.path = path;
+    public void setAgentName(String agentName) {
+        this.agentName = agentName;
+    }
+
+    public String getAgentZone() {
+        return agentZone;
+    }
+
+    public void setAgentZone(String agentZone) {
+        this.agentZone = agentZone;
     }
 
     public String getFlowName() {
