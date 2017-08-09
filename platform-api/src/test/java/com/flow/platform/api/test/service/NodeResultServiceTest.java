@@ -21,7 +21,7 @@ import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeResultService;
+import com.flow.platform.api.service.JobNodeResultService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class NodeResultServiceTest extends TestBase {
 
     @Autowired
-    private NodeResultService nodeResultService;
+    private JobNodeResultService nodeResultService;
 
     @Autowired
     private NodeResultDao nodeResultDao;

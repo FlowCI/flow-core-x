@@ -55,10 +55,10 @@ public class JobServiceImpl implements JobService {
     private static Logger LOGGER = new Logger(JobService.class);
 
     @Autowired
-    private NodeResultService nodeResultService;
+    private JobNodeResultService nodeResultService;
 
     @Autowired
-    private JobYmlStorageService jobYmlStorageService;
+    private JobNodeService jobNodeService;
 
     @Autowired
     private JobDao jobDao;
@@ -91,7 +91,7 @@ public class JobServiceImpl implements JobService {
         save(job);
 
         // create yml snapshot for job
-        jobYmlStorageService.save(job.getId(), ymlBody);
+        jobNodeService.save(job.getId(), ymlBody);
 
         // init for node result
         nodeResultService.create(job);
@@ -277,7 +277,7 @@ public class JobServiceImpl implements JobService {
             update(job);
             // run step
             NodeResult nodeResult = nodeResultService.find(job.getNodePath(), job.getId());
-            Node flow = jobYmlStorageService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
+            Node flow = jobNodeService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
 
             if (flow == null) {
                 throw new NotFoundException(String.format("Not Found Job Flow - %s", flow.getName()));
@@ -307,7 +307,7 @@ public class JobServiceImpl implements JobService {
 
         nodeResultService.update(nodeResult);
 
-        Node step = jobYmlStorageService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
+        Node step = jobNodeService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
         //update node status
         updateNodeStatus(step, cmdBase, job);
     }
@@ -316,7 +316,7 @@ public class JobServiceImpl implements JobService {
      * update job flow status
      */
     private void updateJobStatus(NodeResult nodeResult) {
-        Node node = jobYmlStorageService
+        Node node = jobNodeService
             .get(nodeResult.getNodeResultKey().getJobId(), nodeResult.getNodeResultKey().getPath());
         Job job = find(nodeResult.getNodeResultKey().getJobId());
 
@@ -474,9 +474,6 @@ public class JobServiceImpl implements JobService {
             return jobDao.listLatest(flowPaths);
         }
 
-        if(flowPath != null){
-            return jobDao.list(flowPath);
-        }
-        return null;
+        return jobDao.list(flowPath);
     }
 }

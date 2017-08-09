@@ -24,6 +24,7 @@ import com.flow.platform.util.git.model.GitSource;
 import java.nio.file.Path;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.FileSystemUtils;
@@ -40,6 +41,7 @@ public class GitServiceTest extends TestBase {
     private Path workspace;
 
     @Test
+    @Ignore("since ssh public key should added to git repo")
     public void should_fetch_git_file() throws Throwable {
         Flow dummyFlow = new Flow("/flow-test", "flow-test");
         dummyFlow.getEnvs().put("FLOW_GIT_SOURCE", GitSource.UNDEFINED.name());

@@ -31,8 +31,8 @@ import org.springframework.stereotype.Service;
 /**
  * @author gyfirim
  */
-@Service(value = "nodeResultService")
-public class NodeResultServiceImpl implements NodeResultService {
+@Service
+public class JobNodeResultServiceImpl implements JobNodeResultService {
 
     @Autowired
     private NodeResultDao nodeResultDao;

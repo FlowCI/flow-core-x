@@ -21,7 +21,7 @@ import java.math.BigInteger;
 /**
  * @author lhl
  */
-public interface JobYmlStorageService {
+public interface JobNodeService {
 
     /**
      * save yml to db

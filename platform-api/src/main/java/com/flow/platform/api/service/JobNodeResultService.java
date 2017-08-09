@@ -18,13 +18,12 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
-import com.flow.platform.api.domain.NodeResultKey;
 import java.math.BigInteger;
 
 /**
  * @author yh@firim
  */
-public interface NodeResultService {
+public interface JobNodeResultService {
 
     /**
      * create node and children

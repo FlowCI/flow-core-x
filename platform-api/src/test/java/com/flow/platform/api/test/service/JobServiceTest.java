@@ -22,7 +22,7 @@ import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeResultService;
+import com.flow.platform.api.service.JobNodeResultService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Cmd;
@@ -49,7 +49,7 @@ public class JobServiceTest extends TestBase {
     private NodeService nodeService;
 
     @Autowired
-    private NodeResultService jobNodeService;
+    private JobNodeResultService jobNodeService;
 
     @Test
     public void should_create_node_success() throws IOException {
