@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.config;
 
+import com.flow.platform.api.util.SystemUtil;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,9 +40,9 @@ public class AppConfig {
     private String workingDir;
 
     @Bean
-    private Path workingDir() {
+    public Path workingDir() {
         try {
-            Path dir = Files.createDirectories(Paths.get(workingDir));
+            Path dir = Files.createDirectories(SystemUtil.replacePathWithEnv(workingDir));
             LOGGER.trace("flow.ci working dir been created : %s", dir);
             return dir;
         } catch (IOException e) {
