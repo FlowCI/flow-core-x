@@ -25,6 +25,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,7 +48,7 @@ import org.eclipse.jgit.util.FS;
 /**
  * @author yang
  */
-public class GitSshClient extends GitLocalClient {
+public class GitSshClient extends GitAbstractClient {
 
     private static final int GIT_TRANS_TIMEOUT = 30; // in seconds
 
@@ -71,12 +72,7 @@ public class GitSshClient extends GitLocalClient {
         initSessionFactory();
     }
 
-    /**
-     * Git clone from remote url
-     *
-     * @param noCheckout git clone xxxx --no-checkout, only clone .git dir
-     * @return .git folder path
-     */
+    @Override
     public File clone(boolean noCheckout) {
         checkGitUrl();
 
@@ -92,46 +88,35 @@ public class GitSshClient extends GitLocalClient {
         }
     }
 
-    /**
-     * Git clone from remote url with specific checkout files
-     *
-     * @param checkoutFiles specific checkout file
-     * @return .git folder path
-     */
-    public File clone(int depth, Set<String> checkoutFiles) {
+    @Override
+    public File clone(Integer depth, Set<String> checkoutFiles) {
         checkGitUrl();
+        File gitDir = getGitPath().toFile();
 
-        File gitDir;
-        try (Git git = Git.init().setDirectory(targetDir.toFile()).call()) {
-            Repository repository = git.getRepository();
+        // open existing git folder to verification
+        if (gitDir.exists()) {
+            try (Git git = Git.open(gitDir)) {
 
-            gitDir = repository.getDirectory();
-            setSparseCheckout(gitDir, checkoutFiles);
-            configRemote(repository.getConfig(), "origin", gitUrl);
+            } catch (IOException e) {
+                throw new GitException("Fail to open existing git repo at: " + gitDir, e);
+            }
+        }
 
-        } catch (GitAPIException e) {
-            throw new GitException("Fail to clone git repo", e);
-        } catch (GitException e) {
-            throw e;
+        // git init
+        else {
+            try (Git git = Git.init().setDirectory(targetDir.toFile()).call()){
+                Repository repository = git.getRepository();
+                gitDir = repository.getDirectory();
+                setSparseCheckout(gitDir, checkoutFiles);
+                configRemote(repository.getConfig(), "origin", gitUrl);
+            } catch (GitAPIException e) {
+                throw new GitException("Fail to init git repo at: " + gitDir, e);
+            }
         }
 
         pull(depth);
+
         return gitDir;
-    }
-
-    @Override
-    protected StringBuilder pullShellCommand(Integer depth, String remote, String branch) {
-        if (privateKeyPath == null) {
-            return super.pullShellCommand(depth, remote, branch);
-        }
-
-        StringBuilder builder = new StringBuilder();
-        builder.append("chmod 400 ").append(privateKeyPath).append("\n");
-        builder.append("ssh-agent bash -c '");
-        builder.append("ssh-add ").append(privateKeyPath).append("; ");
-        builder.append(super.pullShellCommand(depth, remote, branch));
-        builder.append("'");
-        return builder;
     }
 
     @Override
@@ -213,8 +198,12 @@ public class GitSshClient extends GitLocalClient {
             config.save();
 
             Path sparseCheckoutPath = Paths.get(gitDir.getAbsolutePath(), "info", "sparse-checkout");
-            Files.createDirectory(sparseCheckoutPath.getParent());
-            Files.createFile(sparseCheckoutPath);
+            try {
+                Files.createDirectory(sparseCheckoutPath.getParent());
+                Files.createFile(sparseCheckoutPath);
+            } catch (FileAlreadyExistsException ignore) {
+            }
+
             Charset charset = Charset.forName("UTF-8");
 
             // load all existing

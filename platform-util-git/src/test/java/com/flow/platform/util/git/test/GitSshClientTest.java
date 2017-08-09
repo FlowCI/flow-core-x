@@ -16,7 +16,6 @@
 
 package com.flow.platform.util.git.test;
 
-import com.flow.platform.util.git.GitLocalClient;
 import com.flow.platform.util.git.GitSshClient;
 import com.google.common.collect.Sets;
 import java.io.File;

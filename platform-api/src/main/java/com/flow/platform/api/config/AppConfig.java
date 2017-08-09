@@ -21,7 +21,6 @@ import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,15 +33,17 @@ import org.springframework.context.annotation.Import;
 @Import({DatabaseConfig.class})
 public class AppConfig {
 
+    public final static String DEFAULT_YML_FILE = ".flow.yml";
+
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
-    @Value("${api.dir}")
-    private String workingDir;
+    @Value("${api.workspace}")
+    private String workspace;
 
     @Bean
-    public Path workingDir() {
+    public Path workspace() {
         try {
-            Path dir = Files.createDirectories(SystemUtil.replacePathWithEnv(workingDir));
+            Path dir = Files.createDirectories(SystemUtil.replacePathWithEnv(workspace));
             LOGGER.trace("flow.ci working dir been created : %s", dir);
             return dir;
         } catch (IOException e) {

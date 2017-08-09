@@ -16,13 +16,22 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.exception.NotFoundException;
+import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.exception.NotImplementedException;
 import com.flow.platform.exception.UnsupportedException;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitSshClient;
 import com.flow.platform.util.git.model.GitSource;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +46,10 @@ public class GitServiceImpl implements GitService {
     private final static String FLOW_GIT_URL = "FLOW_GIT_URL";
 
     @Autowired
-    private Path workingDir;
+    private Path workspace;
+
+    @Autowired
+    private FlowDao flowDao;
 
     @Override
     public String fetch(Flow flow, String filePath) {
@@ -46,14 +58,25 @@ public class GitServiceImpl implements GitService {
 
         GitClient client = null;
         if (gitSource == GitSource.UNDEFINED) {
-            client = new GitSshClient(gitUrl, workingDir);
+            client = new GitSshClient(gitUrl, flowDao.workspace(workspace, flow));
         }
 
         if (client == null) {
             throw new UnsupportedException(String.format("Git source %s not supported yet", gitSource));
         }
 
-        return null;
+        File gitFolder = client.clone(null, Sets.newHashSet(filePath));
+
+        try {
+            File targetFile = Paths.get(gitFolder.getParent(), filePath).toFile();
+            if (targetFile.exists()) {
+                return Files.toString(targetFile, Charset.forName("UTF-8"));
+            }
+
+            throw new NotFoundException("Target fetched file doesn't exist");
+        } catch (IOException e) {
+            throw new IllegalStatusException("Fail to read target fetched file");
+        }
     }
 
     @Override

@@ -17,7 +17,9 @@
 package com.flow.platform.util.git;
 
 import com.flow.platform.util.git.model.GitCommit;
+import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 import org.eclipse.jgit.lib.Ref;
 
 /**
@@ -26,7 +28,26 @@ import org.eclipse.jgit.lib.Ref;
 public interface GitClient {
 
     /**
+     * Git clone from remote url
+     *
+     * @param noCheckout git clone xxxx --no-checkout, only clone .git dir
+     * @return .git folder path
+     */
+    File clone(boolean noCheckout);
+
+    /**
+     * Git clone from remote url with specific checkout files
+     * Just pull latest if .git folder existed
+     *
+     * @param depth git --depth param, can be set to null
+     * @param checkoutFiles specific checkout file
+     * @return .git folder path
+     */
+    File clone(Integer depth, Set<String> checkoutFiles);
+
+    /**
      * Git pull with depth
+     *
      * @param depth git pull depth, can be set to null
      */
     void pull(Integer depth);

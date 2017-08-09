@@ -16,10 +16,17 @@
 
 package com.flow.platform.api.test.service;
 
+import com.flow.platform.api.config.AppConfig;
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.util.git.model.GitSource;
+import java.nio.file.Path;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.FileSystemUtils;
 
 /**
  * @author yang
@@ -29,8 +36,21 @@ public class GitServiceTest extends TestBase {
     @Autowired
     private GitService gitService;
 
+    @Autowired
+    private Path workspace;
+
     @Test
     public void should_fetch_git_file() throws Throwable {
+        Flow dummyFlow = new Flow("/flow-test", "flow-test");
+        dummyFlow.getEnvs().put("FLOW_GIT_SOURCE", GitSource.UNDEFINED.name());
+        dummyFlow.getEnvs().put("FLOW_GIT_URL", "git@github.com:flow-ci-plugin/for-testing.git");
 
+        String content = gitService.fetch(dummyFlow, AppConfig.DEFAULT_YML_FILE);
+        Assert.assertNotNull(content);
+    }
+
+    @After
+    public void after() throws Throwable {
+        FileSystemUtils.deleteRecursively(workspace.toFile());
     }
 }

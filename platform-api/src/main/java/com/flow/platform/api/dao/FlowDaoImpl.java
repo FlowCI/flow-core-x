@@ -17,6 +17,13 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.exception.FlowException;
+import com.flow.platform.exception.IllegalStatusException;
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -39,6 +46,18 @@ public class FlowDaoImpl extends AbstractBaseDao<String, Flow> implements FlowDa
     @Override
     String getKeyName() {
         return "path";
+    }
+
+    @Override
+    public Path workspace(Path base, Flow flow) {
+        Path flowWorkingPath = Paths.get(base.toString(), flow.getName());
+        try {
+            return Files.createDirectories(flowWorkingPath);
+        } catch (FileAlreadyExistsException e) {
+            return flowWorkingPath;
+        } catch (Throwable e) {
+            throw new IllegalStatusException("Unable to get flow working path");
+        }
     }
 
     @Override
