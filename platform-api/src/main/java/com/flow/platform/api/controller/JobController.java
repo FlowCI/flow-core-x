@@ -18,8 +18,6 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeService;
-import com.flow.platform.api.service.YmlStorageService;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -45,12 +43,6 @@ public class JobController {
 
     @Autowired
     private JobService jobService;
-
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private YmlStorageService ymlStorageService;
 
     @PostMapping
     public Job create(@RequestBody String body) {

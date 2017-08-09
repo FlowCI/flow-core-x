@@ -17,6 +17,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.NodeResultDao;
+import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
@@ -39,13 +40,12 @@ public class NodeResultServiceImpl implements NodeResultService {
     private NodeResultDao nodeResultDao;
 
     @Autowired
-    private YmlStorageService ymlStorageService;
-
+    private YmlStorageDao ymlStorageDao;
 
     @Override
     public NodeResult create(Job job) {
         String nodePath = job.getNodePath();
-        YmlStorage storage = ymlStorageService.get(nodePath);
+        YmlStorage storage = ymlStorageDao.get(nodePath);
 
         Node root = NodeUtil.buildFromYml(storage.getFile());
 
@@ -58,6 +58,7 @@ public class NodeResultServiceImpl implements NodeResultService {
                 save(job.getId(), item);
             }
         });
+
         return jobNodeRoot;
     }
 
