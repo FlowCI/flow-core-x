@@ -53,18 +53,7 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public String fetch(Flow flow, String filePath) {
-        GitSource gitSource = GitSource.valueOf(flow.getEnvs().get(FLOW_GIT_SOURCE));
-        String gitUrl = flow.getEnvs().get(FLOW_GIT_URL);
-
-        GitClient client = null;
-        if (gitSource == GitSource.UNDEFINED) {
-            client = new GitSshClient(gitUrl, flowDao.workspace(workspace, flow));
-        }
-
-        if (client == null) {
-            throw new UnsupportedException(String.format("Git source %s not supported yet", gitSource));
-        }
-
+        GitClient client = gitClientInstance(flow);
         File gitFolder = client.clone(null, Sets.newHashSet(filePath));
 
         try {
@@ -82,5 +71,20 @@ public class GitServiceImpl implements GitService {
     @Override
     public void fetch(Flow flow, String filePath, Consumer<String> callBack) {
         throw new NotImplementedException();
+    }
+
+    private GitClient gitClientInstance(Flow flow) {
+        GitSource gitSource = GitSource.valueOf(flow.getEnvs().get(FLOW_GIT_SOURCE));
+        String gitUrl = flow.getEnvs().get(FLOW_GIT_URL);
+
+        GitClient client = null;
+        if (gitSource == GitSource.UNDEFINED) {
+            client = new GitSshClient(gitUrl, flowDao.workspace(workspace, flow));
+        }
+
+        if (client == null) {
+            throw new UnsupportedException(String.format("Git source %s not supported yet", gitSource));
+        }
+        return client;
     }
 }
