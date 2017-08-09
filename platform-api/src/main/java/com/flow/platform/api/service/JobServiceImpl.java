@@ -468,12 +468,18 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<Job> listLatestJobs(List<String> names) {
-        return jobDao.listLatest(names);
-    }
+    public List<Job> listJobs(String flowPath, List<String> flowPaths) {
+        if (flowPath == null && flowPaths == null) {
+            return jobDao.list();
+        }
 
-    @Override
-    public List<Job> listJobs() {
-        return jobDao.list();
+        if(flowPaths != null){
+            return jobDao.listLatest(flowPaths);
+        }
+
+        if(flowPath != null){
+            return jobDao.list(flowPath);
+        }
+        return null;
     }
 }
