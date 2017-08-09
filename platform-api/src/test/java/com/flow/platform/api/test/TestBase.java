@@ -28,7 +28,6 @@ import com.flow.platform.api.test.util.NodeUtilYmlTest;
 import com.flow.platform.domain.Cmd;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
-import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -81,9 +80,6 @@ public abstract class TestBase {
     @Autowired
     private WebApplicationContext webAppContext;
 
-    @Autowired
-    protected Gson gsonConfig;
-
     protected MockMvc mockMvc;
 
     @Before
@@ -91,12 +87,11 @@ public abstract class TestBase {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
     }
 
-    public String getBody(String fileName) throws IOException {
+    public String getResourceContent(String fileName) throws IOException {
         ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
         URL resource = classLoader.getResource(fileName);
         File path = new File(resource.getFile());
-        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
-        return ymlString;
+        return Files.toString(path, Charset.forName("UTF-8"));
     }
 
     public void stubDemo() {

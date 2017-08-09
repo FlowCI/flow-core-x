@@ -54,16 +54,6 @@ public class GsonHttpExposeConverter extends GsonHttpMessageConverter {
         }
     }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "GsonHttpExposeConverter{}";
-    }
-
     private Charset getCharset(HttpHeaders headers) {
         if (headers == null || headers.getContentType() == null || headers.getContentType().getCharset() == null) {
             return DEFAULT_CHARSET;

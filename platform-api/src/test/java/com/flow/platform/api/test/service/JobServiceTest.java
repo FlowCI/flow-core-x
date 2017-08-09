@@ -54,7 +54,7 @@ public class JobServiceTest extends TestBase {
     @Test
     public void should_create_node_success() throws IOException {
         stubDemo();
-        Job job = jobService.createJob(getBody("demo_flow2.yaml"));
+        Job job = jobService.createJob(getResourceContent("demo_flow2.yaml"));
 
         Assert.assertNotNull(job.getId());
         Assert.assertEquals(NodeStatus.ENQUEUE, job.getStatus());

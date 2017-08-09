@@ -24,12 +24,14 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
@@ -77,20 +79,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         return configurer;
     }
 
-    @Bean
-    public Gson gsonConfig() {
-        return Jsonable.GSON_CONFIG;
-    }
-
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        for (HttpMessageConverter converter : converters) {
-            // customize gson http message converter
-            if (converter instanceof GsonHttpExposeConverter) {
-                GsonHttpExposeConverter gsonConverter = (GsonHttpExposeConverter) converter;
-                gsonConverter.setGson(gsonConfig());
-            }
-        }
+        converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
+        converters.add(new GsonHttpExposeConverter());
     }
 
     @Bean
@@ -101,34 +93,5 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         taskExecutor.setQueueCapacity(100);
         taskExecutor.setThreadNamePrefix("async-task-");
         return taskExecutor;
-    }
-
-    @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new ByteArrayHttpMessageConverter());
-        converters.add(new StringHttpMessageConverter());
-        converters.add(new ResourceHttpMessageConverter());
-        converters.add(new AllEncompassingFormHttpMessageConverter());
-        converters.add(new Jaxb2RootElementHttpMessageConverter());
-        converters.add(new SourceHttpMessageConverter<>());
-        converters.add(new GsonHttpExposeConverter());
-    }
-
-    //
-    @Bean
-    public HandlerAdapter handlerAdapter() {
-        final AnnotationMethodHandlerAdapter handlerAdapter = new AnnotationMethodHandlerAdapter();
-        handlerAdapter.setAlwaysUseFullPath(true);
-        List<HttpMessageConverter<?>> converterList = new ArrayList<HttpMessageConverter<?>>();
-        converterList.addAll(Arrays.asList(handlerAdapter.getMessageConverters()));
-        converterList.add(new ByteArrayHttpMessageConverter());
-        converterList.add(new StringHttpMessageConverter());
-        converterList.add(new ResourceHttpMessageConverter());
-        converterList.add(new AllEncompassingFormHttpMessageConverter());
-        converterList.add(new Jaxb2RootElementHttpMessageConverter());
-        converterList.add(new SourceHttpMessageConverter<>());
-        converterList.add(new GsonHttpExposeConverter());
-        handlerAdapter.setMessageConverters(converterList.toArray(new HttpMessageConverter<?>[converterList.size()]));
-        return handlerAdapter;
     }
 }
