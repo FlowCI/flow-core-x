@@ -48,7 +48,7 @@ import org.eclipse.jgit.util.FS;
 /**
  * @author yang
  */
-public class GitSshClient extends GitAbstractClient {
+public class GitSshClient extends AbstractGitClient {
 
     private static final int GIT_TRANS_TIMEOUT = 30; // in seconds
 

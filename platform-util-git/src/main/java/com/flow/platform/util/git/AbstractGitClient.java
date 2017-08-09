@@ -31,13 +31,13 @@ import org.eclipse.jgit.revwalk.RevWalk;
 /**
  * @author yang
  */
-public abstract class GitAbstractClient implements GitClient {
+public abstract class AbstractGitClient implements GitClient {
 
     protected String gitUrl;
 
     protected Path targetDir; // target directory
 
-    public GitAbstractClient(String gitUrl, Path targetDir) {
+    public AbstractGitClient(String gitUrl, Path targetDir) {
         this.gitUrl = gitUrl;
         this.targetDir = targetDir;
     }
