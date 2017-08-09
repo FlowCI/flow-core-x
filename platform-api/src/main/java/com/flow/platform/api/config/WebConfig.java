@@ -44,7 +44,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.service",
     "com.flow.platform.api.dao",
     "com.flow.platform.api.util"})
-@Import({DatabaseConfig.class})
+@Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private final static int ASYNC_POOL_SIZE = 100;

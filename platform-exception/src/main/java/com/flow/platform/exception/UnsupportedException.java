@@ -17,11 +17,15 @@
 package com.flow.platform.exception;
 
 /**
- * @author gy@fir.im
+ * @author yang
  */
-public class FlowException extends RuntimeException {
+public class UnsupportedException extends FlowException {
 
-    public FlowException(String description, Throwable e) {
+    public UnsupportedException(String description) {
+        super(description, null);
+    }
+
+    public UnsupportedException(String description, Throwable e) {
         super(description, e);
     }
 }

@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.exception;
+package com.flow.platform.api.service;
+
+import com.flow.platform.api.domain.Flow;
 
 /**
- * @author gy@fir.im
+ * To fetch related git repo info
+ *
+ * @author yang
  */
-public class FlowException extends RuntimeException {
+public interface GitService {
 
-    public FlowException(String description, Throwable e) {
-        super(description, e);
-    }
+    /**
+     * Fetch file content from git repo
+     * @param flow flow instance which includes git repo info
+     * @param filePath target file path
+     * @return file content
+     */
+    String fetch(Flow flow, String filePath);
+
 }
