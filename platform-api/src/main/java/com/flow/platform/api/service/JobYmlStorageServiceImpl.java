@@ -27,6 +27,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +43,9 @@ public class JobYmlStorageServiceImpl implements JobYmlStorageService {
     @Autowired
     private JobYmlStorageDao jobYmlStorageDao;
 
-    private Cache<BigInteger, Map<String, Node>> nodeCache = CacheBuilder.newBuilder().maximumSize(1000).build();
+    // 1 day expire
+    private Cache<BigInteger, Map<String, Node>> nodeCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(3600 * 24, TimeUnit.SECONDS).maximumSize(1000).build();
 
     private Map<String, Node> get(final BigInteger jobId) {
         Map<String, Node> map = null;

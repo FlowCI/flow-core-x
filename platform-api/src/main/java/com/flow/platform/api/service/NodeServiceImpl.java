@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +42,8 @@ public class NodeServiceImpl implements NodeService {
 
     private final Logger LOGGER = new Logger(NodeService.class);
 
-    private Cache<String, Node> nodeCache = CacheBuilder.newBuilder().maximumSize(1000).build();
+    private Cache<String, Node> nodeCache = CacheBuilder.newBuilder().expireAfterAccess(3600 * 24, TimeUnit.SECONDS)
+        .maximumSize(1000).build();
 
     private Node get(final String nodePath) {
         Node node = null;
