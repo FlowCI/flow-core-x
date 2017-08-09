@@ -27,12 +27,6 @@ import java.util.List;
 public interface JobDao extends BaseDao<BigInteger, Job> {
 
     /**
-     * list Jobs
-     */
-    List<Job> list();
-
-
-    /**
      * list jobs by statuses
      *
      * @param statuses RUNNING

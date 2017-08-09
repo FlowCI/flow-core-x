@@ -66,7 +66,7 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_session_success() throws Exception {
         stubDemo();
-        Job job = jobService.createJob(getBody("demo_flow.yaml"));
+        Job job = jobService.createJob(getResourceContent("demo_flow.yaml"));
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
@@ -74,8 +74,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-
-        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
+        MockHttpServletRequestBuilder content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -99,7 +98,7 @@ public class CmdWebhookControllerTest extends TestBase {
         map.put("path", step1.getPath());
         map.put("jobId", job.getId().toString());
 
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -122,7 +121,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setCmdResult(cmdResult);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -148,7 +147,7 @@ public class CmdWebhookControllerTest extends TestBase {
 
         cmdBase = cmd;
         map.put("path", step2.getPath());
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -169,7 +168,7 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_callback_failure() throws Exception {
         stubDemo();
 
-        Job job = jobService.createJob(getBody("demo_flow.yaml"));
+        Job job = jobService.createJob(getResourceContent("demo_flow.yaml"));
         Step step2 = (Step) nodeService.find("/flow1/step2");
         Step step1 = (Step) nodeService.find("/flow1/step1");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
@@ -181,7 +180,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
+        MockHttpServletRequestBuilder content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -204,7 +203,7 @@ public class CmdWebhookControllerTest extends TestBase {
         map.put("jobId", job.getId().toString());
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -224,7 +223,7 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_timeout_allow_failure() throws Exception {
         stubDemo();
-        Job job = jobService.createJob(getBody("demo_flow1.yaml"));
+        Job job = jobService.createJob(getResourceContent("demo_flow1.yaml"));
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
@@ -232,7 +231,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
+        MockHttpServletRequestBuilder content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -257,7 +256,7 @@ public class CmdWebhookControllerTest extends TestBase {
         map.put("jobId", job.getId().toString());
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -269,7 +268,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)

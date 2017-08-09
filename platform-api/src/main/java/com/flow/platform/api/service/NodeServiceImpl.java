@@ -26,6 +26,7 @@ import com.flow.platform.util.Logger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,5 +102,10 @@ public class NodeServiceImpl implements NodeService {
         } else {
             return node;
         }
+    }
+
+    @Override
+    public List<Flow> listFlows() {
+        return flowDao.list();
     }
 }

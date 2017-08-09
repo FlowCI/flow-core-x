@@ -5,9 +5,9 @@
 
 <hibernate-mapping package="com.flow.platform.api.domain">
   <class name="Flow" table="flow">
-    <id name="path" type="string" column="path"></id>
+    <id name="path" type="string" column="path"/>
 
-    <property name="name" length="50" column="name"></property>
+    <property name="name" length="50" column="name"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
@@ -19,8 +19,8 @@
   </class>
 
   <class name="YmlStorage" table="yml_storage">
-    <id name="nodePath" type="string" column="node_path"></id>
-    <property name="file" type="com.flow.platform.api.dao.adaptor.ByteAdaptor">
-    </property>
+    <id name="nodePath" type="string" column="node_path"/>
+
+    <property name="file" type="com.flow.platform.api.dao.adaptor.ByteAdaptor"/>
   </class>
 </hibernate-mapping>

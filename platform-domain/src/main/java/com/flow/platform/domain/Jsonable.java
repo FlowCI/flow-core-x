@@ -35,8 +35,6 @@ public abstract class Jsonable implements Serializable {
     public final static DateTimeFormatter DOMAIN_DATE_FORMAT = DateTimeFormatter
         .ofPattern("yyyy-MM-dd'T'HH:mm:ss:SSSZ");
 
-    public final static Gson GSON_EXPOSE_CONFIG = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-
     public final static Gson GSON_CONFIG = new GsonBuilder()
         .registerTypeAdapter(ZonedDateTime.class, new TypeAdapter<ZonedDateTime>() {
             @Override

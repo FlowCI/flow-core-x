@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Spliterator;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -30,6 +31,7 @@ import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 /**
  * @author yh@firim
@@ -48,28 +50,12 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
-    public List<Job> list() {
-        return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Job> select = builder.createQuery(Job.class);
-            Root<Job> job = select.from(Job.class);
-            Predicate condition = builder.not(job.get("id").isNull());
-            select.where(condition);
-            return session.createQuery(select).list();
-        });
-    }
-
-    @Override
     public List<Job> list(NodeStatus... statuses) {
         return execute((Session session) -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
             CriteriaQuery<Job> select = builder.createQuery(Job.class);
             Root<Job> job = select.from(Job.class);
-            Set<NodeStatus> nodeStatuses = new HashSet<>();
-            for (NodeStatus status : statuses) {
-                nodeStatuses.add(status);
-            }
-            Predicate condition = job.get("status").in(nodeStatuses);
+            Predicate condition = job.get("status").in(statuses);
             select.where(condition);
             return session.createQuery(select).list();
         });
@@ -82,15 +68,8 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             CriteriaBuilder builder = session.getCriteriaBuilder();
             CriteriaQuery<Job> select = builder.createQuery(Job.class);
             Root<Job> job = select.from(Job.class);
-            Set<NodeStatus> nodeStatuses = new HashSet<>();
-            nodeStatuses.add(nodeStatus);
-            Set<String> stringSet = new HashSet<>();
-            for (String sessionId : sessionIds) {
-                stringSet.add(sessionId);
-            }
-            Predicate aCondition = job.get("status").in(nodeStatuses);
-            Predicate bCondition = job.get("sessionId").in(stringSet);
-
+            Predicate aCondition = builder.equal(job.get("status"), nodeStatus);
+            Predicate bCondition = job.get("sessionId").in(sessionIds);
             select.where(builder.and(aCondition, bCondition));
             return session.createQuery(select).list();
         });
@@ -99,38 +78,14 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public List<Job> listLatest(List<String> nodePaths) {
         return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Job> select = builder.createQuery(Job.class);
-            Root<Job> job = select.from(Job.class);
-            Set<String> strings = new HashSet<>();
-            for (String name : nodePaths) {
-                strings.add(name);
-            }
-            Predicate condition = job.get("nodePath").in(nodePaths);
-            select.where(condition);
-            select.orderBy(builder.asc(job.get("createdAt")));
-            List<Job> originJobs = session.createQuery(select)
+            String string = String.join("','", nodePaths);
+            string = "'" + string + "'";
+
+            String select = String.format("from Job where id in (select max(id) from Job where nodePath in ( %s ) group by nodePath)", string);
+            List<Job> jobs = (List<Job>) session.createQuery(select)
                 .list();
-            List<Job> jobs = new ArrayList<>();
-            for (String name : nodePaths) {
-                Job j = matchByNodeName(name, originJobs);
-                if (j != null) {
-                    jobs.add(j);
-                }
-            }
             return jobs;
         });
-    }
-
-    private Job matchByNodeName(String nodeName, List<Job> jobs) {
-        Job j = null;
-        for (Job job : jobs) {
-            if (job.getNodePath().equals(nodeName)) {
-                j = job;
-                break;
-            }
-        }
-        return j;
     }
 
 

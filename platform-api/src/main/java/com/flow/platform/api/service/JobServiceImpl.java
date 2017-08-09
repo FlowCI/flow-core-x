@@ -43,11 +43,13 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author yh@firim
  */
 @Service(value = "jobService")
+@Transactional
 public class JobServiceImpl implements JobService {
 
     private static Logger LOGGER = new Logger(JobService.class);
@@ -57,9 +59,6 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private JobYmlStorageService jobYmlStorageService;
-
-    @Autowired
-    private YmlStorageService ymlStorgeService;
 
     @Autowired
     private JobDao jobDao;
@@ -90,18 +89,16 @@ public class JobServiceImpl implements JobService {
         ymlStorageService.save(node.getPath(), ymlBody);
 
         Job job = new Job(CommonUtil.randomId());
-        job.setId(CommonUtil.randomId());
+        job.setStatus(NodeStatus.PENDING);
         job.setNodePath(node.getPath());
-
-        jobYmlStorageService.save(job.getId(), ymlBody);
-        NodeResult nodeResult = nodeResultService.create(job);
-
+        job.setNodeName(node.getName());
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
 
-        job.setNodeName(nodeResult.getName());
-        job.setStatus(NodeStatus.PENDING);
         save(job);
+
+        jobYmlStorageService.save(job.getId(), ymlBody);
+        nodeResultService.create(job);
 
         //create session
         createSession(job);
@@ -207,7 +204,7 @@ public class JobServiceImpl implements JobService {
      * get job callback
      */
     private String getJobHook(Job job) {
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString());
+        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString());
     }
 
     /**
@@ -217,7 +214,7 @@ public class JobServiceImpl implements JobService {
         Map<String, String> map = new HashMap<>();
         map.put("path", node.getPath());
         map.put("jobId", jobId.toString());
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map));
+        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map));
     }
 
     /**
