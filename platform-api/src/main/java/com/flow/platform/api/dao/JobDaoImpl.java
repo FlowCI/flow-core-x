@@ -112,9 +112,9 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             List<Job> originJobs = session.createQuery(select)
                 .list();
             List<Job> jobs = new ArrayList<>();
-            for (String name : nodePaths){
+            for (String name : nodePaths) {
                 Job j = matchByNodeName(name, originJobs);
-                if(j != null){
+                if (j != null) {
                     jobs.add(j);
                 }
             }
@@ -122,10 +122,10 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         });
     }
 
-    private Job matchByNodeName(String nodeName, List<Job> jobs){
+    private Job matchByNodeName(String nodeName, List<Job> jobs) {
         Job j = null;
         for (Job job : jobs) {
-            if(job.getNodePath().equals(nodeName)){
+            if (job.getNodePath().equals(nodeName)) {
                 j = job;
                 break;
             }
