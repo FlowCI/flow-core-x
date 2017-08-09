@@ -25,17 +25,23 @@ import com.google.gson.annotations.Expose;
 /**
  * @author yh@firim
  */
-public class AgentWithFlow extends Jsonable{
+public class AgentWithFlow extends Jsonable {
+
     @Expose
     private String agentName;
+
     @Expose
     private String agentZone;
+
     @Expose
     private String flowName;
+
     @Expose
     private AgentStatus agentStatus;
+
     @Expose
     private Integer number;
+
     @Expose
     private String branch;
 
@@ -50,11 +56,11 @@ public class AgentWithFlow extends Jsonable{
     public AgentWithFlow() {
     }
 
-    public AgentWithFlow(Agent agent, Job job){
+    public AgentWithFlow(Agent agent, Job job) {
         this.agentName = agent.getPath().getName();
         this.agentZone = agent.getPath().getZone();
         this.agentStatus = agent.getStatus();
-        if(job != null){
+        if (job != null) {
             this.flowName = job.getNodeName();
             this.number = 10;
             this.branch = "master";

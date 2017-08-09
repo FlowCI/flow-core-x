@@ -15,7 +15,6 @@
  */
 package com.flow.platform.api.domain;
 
-import com.flow.platform.domain.AgentPath;
 import java.io.Serializable;
 import java.math.BigInteger;
 
@@ -23,6 +22,7 @@ import java.math.BigInteger;
  * @author lhl
  */
 public class NodeResultKey implements Serializable {
+
     private BigInteger jobId;
 
     private String path;
