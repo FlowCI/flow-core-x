@@ -57,8 +57,8 @@ public class CmdWebhookController {
         }
 
         LOGGER.trace(String
-            .format("Webhook Comming Url: %s CmdType: %s CmdStatus: %s", cmd.getWebhook(), cmd.getType().toString(),
-                cmd.getStatus().toString()));
+            .format("Webhook Comming Url: %s CmdType: %s CmdStatus: %s", cmd.getWebhook(), cmd.getType(),
+                cmd.getStatus()));
 
         jobService.callback(decodedIdentifier, cmd);
         return new Response("ok");

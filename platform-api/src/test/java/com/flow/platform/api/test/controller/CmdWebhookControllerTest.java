@@ -74,8 +74,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-
-        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
+        MockHttpServletRequestBuilder content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -99,7 +98,7 @@ public class CmdWebhookControllerTest extends TestBase {
         map.put("path", step1.getPath());
         map.put("jobId", job.getId().toString());
 
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -122,7 +121,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setCmdResult(cmdResult);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -148,7 +147,7 @@ public class CmdWebhookControllerTest extends TestBase {
 
         cmdBase = cmd;
         map.put("path", step2.getPath());
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -181,7 +180,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
+        MockHttpServletRequestBuilder content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -204,7 +203,7 @@ public class CmdWebhookControllerTest extends TestBase {
         map.put("jobId", job.getId().toString());
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -232,7 +231,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
+        MockHttpServletRequestBuilder content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -257,7 +256,7 @@ public class CmdWebhookControllerTest extends TestBase {
         map.put("jobId", job.getId().toString());
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)
@@ -269,7 +268,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
 
         cmdBase = cmd;
-        content = post("/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
         this.mockMvc.perform(content)

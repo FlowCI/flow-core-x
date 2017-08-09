@@ -17,24 +17,34 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.resource.PropertyResourceLoader;
+import com.flow.platform.api.util.GsonHttpExposeConverter;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.resource.AppResourceLoader;
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
+import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
+import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
+import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter;
 
 @Configuration
 @EnableWebMvc
@@ -76,8 +86,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         for (HttpMessageConverter converter : converters) {
             // customize gson http message converter
-            if (converter instanceof GsonHttpMessageConverter) {
-                GsonHttpMessageConverter gsonConverter = (GsonHttpMessageConverter) converter;
+            if (converter instanceof GsonHttpExposeConverter) {
+                GsonHttpExposeConverter gsonConverter = (GsonHttpExposeConverter) converter;
                 gsonConverter.setGson(gsonConfig());
             }
         }
@@ -91,5 +101,34 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         taskExecutor.setQueueCapacity(100);
         taskExecutor.setThreadNamePrefix("async-task-");
         return taskExecutor;
+    }
+
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        converters.add(new ByteArrayHttpMessageConverter());
+        converters.add(new StringHttpMessageConverter());
+        converters.add(new ResourceHttpMessageConverter());
+        converters.add(new AllEncompassingFormHttpMessageConverter());
+        converters.add(new Jaxb2RootElementHttpMessageConverter());
+        converters.add(new SourceHttpMessageConverter<>());
+        converters.add(new GsonHttpExposeConverter());
+    }
+
+    //
+    @Bean
+    public HandlerAdapter handlerAdapter() {
+        final AnnotationMethodHandlerAdapter handlerAdapter = new AnnotationMethodHandlerAdapter();
+        handlerAdapter.setAlwaysUseFullPath(true);
+        List<HttpMessageConverter<?>> converterList = new ArrayList<HttpMessageConverter<?>>();
+        converterList.addAll(Arrays.asList(handlerAdapter.getMessageConverters()));
+        converterList.add(new ByteArrayHttpMessageConverter());
+        converterList.add(new StringHttpMessageConverter());
+        converterList.add(new ResourceHttpMessageConverter());
+        converterList.add(new AllEncompassingFormHttpMessageConverter());
+        converterList.add(new Jaxb2RootElementHttpMessageConverter());
+        converterList.add(new SourceHttpMessageConverter<>());
+        converterList.add(new GsonHttpExposeConverter());
+        handlerAdapter.setMessageConverters(converterList.toArray(new HttpMessageConverter<?>[converterList.size()]));
+        return handlerAdapter;
     }
 }
