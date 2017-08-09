@@ -72,9 +72,6 @@ public class NodeResultServiceImpl implements NodeResultService {
         NodeResult nodeResult = new NodeResult(jobId, node.getPath());
         nodeResult.setName(node.getName());
         nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
-        System.out.println("=======================================");
-        System.out.println(nodeResult.getNodeResultKey().toString());
-        System.out.println("=======================================");
         return nodeResultDao.save(nodeResult);
     }
 
