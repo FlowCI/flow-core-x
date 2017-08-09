@@ -16,9 +16,11 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.FlowDao;
+import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.exception.IllegalParameterException;
@@ -43,26 +45,28 @@ public class NodeServiceImpl implements NodeService {
 
     private Cache<String, Node> nodeCache = CacheBuilder.newBuilder().maximumSize(1000).build();
 
-    private Node get(final String nodePath) {
-        Node node = null;
-        try {
-            node = nodeCache.get(nodePath, () -> getNodeFromDb(nodePath));
-        } catch (ExecutionException e) {
-            LOGGER.trace(String.format("get node from db error - %s", e));
-        }
-        return node;
-    }
-
-    private Node getNodeFromDb(String nodePath) {
-        Node node = create(NodeUtil.buildFromYml(ymlStorageService.get(nodePath).getFile()));
-        return node;
-    }
-
     @Autowired
-    private YmlStorageService ymlStorageService;
+    private YmlStorageDao ymlStorageDao;
 
     @Autowired
     private FlowDao flowDao;
+
+    @Override
+    public Node create(String yml) {
+        Node root = NodeUtil.buildFromYml(yml);
+        create(root);
+
+        // TODO: should check md5 of yml to reduce db io
+        YmlStorage ymlStorage = ymlStorageDao.get(root.getPath());
+        if (ymlStorage == null) {
+            ymlStorageDao.save(new YmlStorage(root.getPath(), yml));
+        } else {
+            ymlStorage.setFile(yml);
+            ymlStorageDao.update(ymlStorage);
+        }
+
+        return root;
+    }
 
     @Override
     public Node create(Node node) {
@@ -75,21 +79,12 @@ public class NodeServiceImpl implements NodeService {
                 }
             }
 
-            save(item);
-        });
-        return node;
-    }
-
-    @Override
-    public Node save(Node node) {
-        nodeCache.put(node.getPath(), node);
-
-        if (node instanceof Flow) {
-            Flow flow = flowDao.get(node.getPath());
-            if (flow == null) {
-                flowDao.save((Flow) node);
+            if (item instanceof Flow) {
+                flowDao.save((Flow) item);
             }
-        }
+
+            nodeCache.put(item.getPath(), item);
+        });
 
         return node;
     }
@@ -107,5 +102,19 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public List<Flow> listFlows() {
         return flowDao.list();
+    }
+
+    private Node get(final String nodePath) {
+        Node node = null;
+        try {
+            node = nodeCache.get(nodePath, () -> getNodeFromDb(nodePath));
+        } catch (ExecutionException e) {
+            LOGGER.trace(String.format("get node from db error - %s", e));
+        }
+        return node;
+    }
+
+    private Node getNodeFromDb(String nodePath) {
+        return create(NodeUtil.buildFromYml(ymlStorageDao.get(nodePath).getFile()));
     }
 }

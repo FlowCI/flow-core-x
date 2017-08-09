@@ -25,7 +25,19 @@ import java.util.List;
 public interface NodeService {
 
     /**
-     * create node and children
+     * Create from yml config file content
+     * and persistent flow node and yml content
+     *
+     * @param yml raw yml
+     * @return root node
+     */
+    Node create(String yml);
+
+    /**
+     * Recursive go though node tree,
+     * and persistent flow node
+     *
+     * @return root node
      */
     Node create(Node node);
 
@@ -33,11 +45,6 @@ public interface NodeService {
      * find node by node path
      */
     Node find(String nodePath);
-
-    /**
-     * save node
-     */
-    Node save(Node node);
 
     /**
      * list current flows

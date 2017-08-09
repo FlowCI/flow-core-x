@@ -20,7 +20,6 @@ import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.exception.IllegalStatusException;
-import com.flow.platform.exception.NotImplementedException;
 import com.flow.platform.exception.UnsupportedException;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitSshClient;
@@ -34,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,6 +50,9 @@ public class GitServiceImpl implements GitService {
 
     @Autowired
     private FlowDao flowDao;
+
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
 
     @Override
     public String fetch(Flow flow, String filePath) {
@@ -70,7 +73,11 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public void fetch(Flow flow, String filePath, Consumer<String> callBack) {
-        throw new NotImplementedException();
+        // TODO: progress of fetch may be included
+        taskExecutor.execute(() -> {
+            String content = fetch(flow, filePath);
+            callBack.accept(content);
+        });
     }
 
     private GitClient gitClientInstance(Flow flow) {

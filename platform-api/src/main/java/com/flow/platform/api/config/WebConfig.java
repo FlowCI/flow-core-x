@@ -59,8 +59,6 @@ import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAda
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-    private final static int ASYNC_POOL_SIZE = 100;
-
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
@@ -83,15 +81,5 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
         converters.add(new GsonHttpExposeConverter());
-    }
-
-    @Bean
-    public ThreadPoolTaskExecutor taskExecutor() {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
-        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
-        taskExecutor.setQueueCapacity(100);
-        taskExecutor.setThreadNamePrefix("async-task-");
-        return taskExecutor;
     }
 }

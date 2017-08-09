@@ -16,7 +16,9 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
@@ -33,10 +35,51 @@ public class NodeServiceTest extends TestBase {
     private NodeService nodeService;
 
     @Test
-    public void should_save_node() {
+    public void should_create_node_by_obj_tree() {
+        // given: create node
         Flow flow = new Flow("/flow", "flow");
-        nodeService.save(flow);
+        flow.getChildren().add(new Step("/flow/first", "first"));
+        flow.getChildren().add(new Step("/flow/second", "second"));
+
+        NodeUtil.buildNodeRelation(flow);
+        Assert.assertEquals(flow, flow.getChildren().get(0).getParent());
+        Assert.assertEquals(flow, flow.getChildren().get(1).getParent());
+
+        Assert.assertEquals(flow.getChildren().get(1), flow.getChildren().get(0).getNext());
+        Assert.assertEquals(null, flow.getChildren().get(0).getPrev());
+
+        Assert.assertEquals(flow.getChildren().get(0), flow.getChildren().get(1).getPrev());
+        Assert.assertEquals(null, flow.getChildren().get(1).getNext());
+
+        // when: create node
+        Node root = nodeService.create(flow);
+        Assert.assertEquals(flow, root);
+
         Assert.assertEquals(flow.getPath(), nodeService.find(flow.getPath()).getPath());
+    }
+
+    @Test
+    public void should_create_node_by_yml() throws Throwable {
+        // when:
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.create(resourceContent);
+
+        // then:
+        Flow saved = flowDao.get(root.getPath());
+        Assert.assertNotNull(saved);
+        Assert.assertEquals(root, saved);
+        Assert.assertEquals("flow1", saved.getName());
+        Assert.assertEquals("/flow1", saved.getPath());
+
+        root = nodeService.find(saved.getPath());
+        Step step1 = (Step) root.getChildren().get(0);
+        Assert.assertEquals("/flow1/step1", step1.getPath());
+        Step step2 = (Step) root.getChildren().get(1);
+        Assert.assertEquals("/flow1/step2", step2.getPath());
+
+        YmlStorage yaml = ymlStorageDao.get(root.getPath());
+        Assert.assertNotNull(yaml);
+        Assert.assertEquals(resourceContent, yaml.getFile());
     }
 
     @Test

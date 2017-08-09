@@ -66,9 +66,6 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private NodeService nodeService;
 
-    @Autowired
-    private YmlStorageService ymlStorageService;
-
     @Value(value = "${domain}")
     private String domain;
 
@@ -83,25 +80,25 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job createJob(String ymlBody) {
+        // persistent nodes and yml
+        Node root = nodeService.create(ymlBody);
 
-        Node node = NodeUtil.buildFromYml(ymlBody);
-        nodeService.create(node);
-        ymlStorageService.save(node.getPath(), ymlBody);
-
+        // create job
         Job job = new Job(CommonUtil.randomId());
         job.setStatus(NodeStatus.PENDING);
-        job.setNodePath(node.getPath());
-        job.setNodeName(node.getName());
-        job.setCreatedAt(ZonedDateTime.now());
-        job.setUpdatedAt(ZonedDateTime.now());
-
+        job.setNodePath(root.getPath());
+        job.setNodeName(root.getName());
         save(job);
 
+        // create yml snapshot for job
         jobYmlStorageService.save(job.getId(), ymlBody);
+
+        // init for node result
         nodeResultService.create(job);
 
         //create session
         createSession(job);
+
         return job;
     }
 

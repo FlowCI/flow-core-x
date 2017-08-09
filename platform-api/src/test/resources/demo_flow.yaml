@@ -8,6 +8,7 @@ flow:
      - name: step1
        isAllowFailure: false
        script: "echo 1"
+
      - name: step2
        isAllowFailure: false
        script: "echo 2"

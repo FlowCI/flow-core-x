@@ -206,7 +206,7 @@ public class NodeUtil {
     /**
      * Build node path, parent, next, prev relation
      */
-    private static void buildNodeRelation(Node<? extends Node> root) {
+    public static void buildNodeRelation(Node<? extends Node> root) {
         setNodePath(root);
 
         List<? extends Node> children = root.getChildren();

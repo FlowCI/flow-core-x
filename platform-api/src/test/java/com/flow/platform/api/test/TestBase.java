@@ -63,19 +63,19 @@ public abstract class TestBase {
     }
 
     @Autowired
-    private FlowDao flowDao;
+    protected FlowDao flowDao;
 
     @Autowired
-    private JobDao jobDao;
+    protected JobDao jobDao;
 
     @Autowired
-    private YmlStorageDao ymlStorageDao;
+    protected YmlStorageDao ymlStorageDao;
 
     @Autowired
-    private JobYmlStorageDao jobYmlStorageDao;
+    protected JobYmlStorageDao jobYmlStorageDao;
 
     @Autowired
-    private NodeResultDao nodeResultDao;
+    protected NodeResultDao nodeResultDao;
 
     @Autowired
     private WebApplicationContext webAppContext;

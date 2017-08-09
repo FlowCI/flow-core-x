@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yang
@@ -36,6 +37,8 @@ public class AppConfig {
     public final static String DEFAULT_YML_FILE = ".flow.yml";
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
+
+    private final static int ASYNC_POOL_SIZE = 100;
 
     @Value("${api.workspace}")
     private String workspace;
@@ -51,4 +54,13 @@ public class AppConfig {
         }
     }
 
+    @Bean
+    public ThreadPoolTaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
+        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
+        taskExecutor.setQueueCapacity(100);
+        taskExecutor.setThreadNamePrefix("async-task-");
+        return taskExecutor;
+    }
 }
