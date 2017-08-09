@@ -77,6 +77,26 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
 
 
     @Override
+    public List<Job> list(List<String> sessionIds, NodeStatus nodeStatus) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> job = select.from(Job.class);
+            Set<NodeStatus> nodeStatuses = new HashSet<>();
+            nodeStatuses.add(nodeStatus);
+            Set<String> stringSet = new HashSet<>();
+            for (String sessionId : sessionIds) {
+                stringSet.add(sessionId);
+            }
+            Predicate aCondition = job.get("status").in(nodeStatuses);
+            Predicate bCondition = job.get("sessionId").in(stringSet);
+
+            select.where(builder.and(aCondition, bCondition));
+            return session.createQuery(select).list();
+        });
+    }
+
+    @Override
     public List<Job> listLatest(List<String> nodePaths) {
         return execute((Session session) -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();

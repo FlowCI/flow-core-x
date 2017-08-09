@@ -59,17 +59,26 @@ public class AgentServiceImpl implements AgentService {
 
         Agent[] agents = Jsonable.GSON_CONFIG.fromJson(res, Agent[].class);
         List<AgentWithFlow> agentWithFlows = new ArrayList<>();
-        List<Job> jobs = jobDao.list(NodeStatus.RUNNING);
-        LOGGER.trace(String.format("Job lenth %s", jobs.size()));
+        List<String> sessionIds = new ArrayList<>();
         for (Agent agent : agents) {
-            Job job = findBySessionId(jobs, agent.getSessionId());
+            if (agent.getSessionId() != null) {
+                sessionIds.add(agent.getSessionId());
+            }
+        }
+        List<Job> jobs = new ArrayList<>();
+        if (!sessionIds.isEmpty()) {
+            jobs = jobDao.list(sessionIds, NodeStatus.RUNNING);
+        }
+        LOGGER.trace(String.format("Job lenth %s", jobs.size()));
+
+        for (Agent agent : agents) {
+            Job job = matchJobBySessionId(jobs, agent.getSessionId());
             agentWithFlows.add(new AgentWithFlow(agent, job));
         }
-
         return agentWithFlows;
     }
 
-    private Job findBySessionId(List<Job> jobs, String sessionId) {
+    private Job matchJobBySessionId(List<Job> jobs, String sessionId) {
         Job j = null;
         for (Job job : jobs) {
             if (job.getSessionId().equals(sessionId)) {

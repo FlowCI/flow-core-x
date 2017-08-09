@@ -39,6 +39,7 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      */
     List<Job> list(NodeStatus... statuses);
 
+    List<Job> list(List<String> sessionId, NodeStatus nodeStatus);
 
     /**
      * get latest job by flow path
