@@ -17,14 +17,12 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.NodeResultDao;
-import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeResultKey;
 import com.flow.platform.api.domain.NodeTag;
-import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.util.NodeUtil;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +38,12 @@ public class NodeResultServiceImpl implements NodeResultService {
     private NodeResultDao nodeResultDao;
 
     @Autowired
-    private YmlStorageDao ymlStorageDao;
+    private NodeService nodeService;
 
     @Override
     public NodeResult create(Job job) {
         String nodePath = job.getNodePath();
-        YmlStorage storage = ymlStorageDao.get(nodePath);
-
-        Node root = NodeUtil.buildFromYml(storage.getFile());
+        Node root = nodeService.find(nodePath);
 
         // save root to db
         NodeResult jobNodeRoot = save(job.getId(), root);

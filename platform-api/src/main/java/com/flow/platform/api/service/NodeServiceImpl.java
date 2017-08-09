@@ -94,9 +94,8 @@ public class NodeServiceImpl implements NodeService {
         Node node = get(nodePath);
         if (node == null) {
             throw new NotFoundException(String.format("Node not found %s ", nodePath));
-        } else {
-            return node;
         }
+        return node;
     }
 
     @Override
