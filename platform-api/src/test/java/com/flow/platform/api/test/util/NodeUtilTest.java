@@ -73,6 +73,27 @@ public class NodeUtilTest extends TestBase {
     }
 
     @Test
+    public void should_get_node_path() {
+        // get root path
+        Node root = new Node();
+        root.setName("root");
+        root.setPath(NodeUtil.getNodePath(null, root.getName()));
+        Assert.assertEquals("/root", root.getPath());
+
+        // get child path
+        Node child = new Node();
+        child.setName("child");
+        child.setPath(NodeUtil.getNodePath(root, child.getName()));
+        Assert.assertEquals("/root/child", child.getPath());
+
+        // get child of child path
+        Node childOfChild = new Node();
+        childOfChild.setName("child-child");
+        childOfChild.setPath(NodeUtil.getNodePath(child, childOfChild.getName()));
+        Assert.assertEquals("/root/child/child-child", childOfChild.getPath());
+    }
+
+    @Test
     public void should_flat() {
         List<Node> nodes = NodeUtil.flat(initNodes());
         StringBuffer out = new StringBuffer("");
@@ -81,7 +102,6 @@ public class NodeUtilTest extends TestBase {
             out.append(node.getName()).append(";");
         }
         Assert.assertEquals("step3;step7;step8;step4;step1;step5;step6;step2;flow;", out.toString());
-
     }
 
     @Test

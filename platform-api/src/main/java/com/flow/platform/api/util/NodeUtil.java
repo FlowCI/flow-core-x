@@ -19,6 +19,8 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.exception.IllegalParameterException;
+import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import java.io.File;
 import java.nio.charset.Charset;
@@ -32,6 +34,8 @@ import org.yaml.snakeyaml.Yaml;
  * @author yh@firim
  */
 public class NodeUtil {
+
+    private final static String NODE_PATH_SEPARATOR = "/";
 
     /**
      * Build node tree structure from yml file
@@ -222,13 +226,27 @@ public class NodeUtil {
         }
     }
 
-    public static void setNodePath(Node node) {
-        if (node.getParent() == null) {
-            node.setPath("/" + node.getName());
-            return;
+    public static String getNodePath(Node parent, String name) {
+        if (!isValidName(name)) {
+            throw new IllegalParameterException("Illegal node name");
         }
 
-        // FIXME: recursive
-        node.setPath(String.format("%s/%s", node.getParent().getPath(), node.getName()));
+        if (parent == null) {
+            return NODE_PATH_SEPARATOR + name;
+        }
+
+        if (parent.getPath() == null) {
+            throw new IllegalParameterException("Parent node path is required");
+        }
+
+        return parent.getPath() + NODE_PATH_SEPARATOR + name;
+    }
+
+    public static void setNodePath(Node node) {
+        node.setPath(getNodePath(node.getParent(), node.getName()));
+    }
+
+    public static boolean isValidName(String name) {
+        return !Strings.isNullOrEmpty(name) && !name.startsWith(NODE_PATH_SEPARATOR);
     }
 }

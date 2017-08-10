@@ -97,8 +97,9 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public boolean isExistedFlow(String flowPath) {
-        return flowDao.get(flowPath) != null;
+    public boolean isExistedFlow(String flowName) {
+        String path = NodeUtil.getNodePath(null, flowName);
+        return flowDao.get(path) != null;
     }
 
     @Override
@@ -107,7 +108,7 @@ public class NodeServiceImpl implements NodeService {
         flow.setName(flowName);
         NodeUtil.setNodePath(flow);
 
-        if (isExistedFlow(flow.getPath())) {
+        if (isExistedFlow(flow.getName())) {
             throw new IllegalParameterException("Flow name already existed");
         }
 

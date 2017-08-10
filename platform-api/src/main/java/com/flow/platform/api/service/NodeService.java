@@ -47,9 +47,9 @@ public interface NodeService {
     Node find(String nodePath);
 
     /**
-     * To check flow node is existed
+     * To check flow name is existed
      */
-    boolean isExistedFlow(String flowPath);
+    boolean isExistedFlow(String flowName);
 
     /**
      * Create flow without any children
