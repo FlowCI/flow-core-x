@@ -62,7 +62,6 @@ public class NodeServiceImpl implements NodeService {
         Node root = NodeUtil.buildFromYml(yml);
 
         // persistent flow type node to flow table
-        // TODO: should change to root_list dao
         flowDao.save((Flow) root);
 
         // TODO: should check md5 of yml to reduce db io
