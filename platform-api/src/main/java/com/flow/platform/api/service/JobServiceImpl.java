@@ -95,6 +95,9 @@ public class JobServiceImpl implements JobService {
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
 
+        //update number
+        job.setNumber(jobDao.list(node.getPath()).size()+1);
+
         save(job);
 
         jobYmlStorageService.save(job.getId(), ymlBody);

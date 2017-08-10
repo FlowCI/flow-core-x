@@ -36,8 +36,8 @@ import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
 /**
  * Gson object to json converter
- *  - enable expose annotation
- *  - convert ZonedDateTime to timestamp
+ * - enable expose annotation
+ * - convert ZonedDateTime to timestamp
  *
  * @author yh@firim
  */
@@ -84,7 +84,11 @@ public class GsonHttpExposeConverter extends GsonHttpMessageConverter {
 
         @Override
         public void write(JsonWriter out, ZonedDateTime value) throws IOException {
-            out.value(value.toEpochSecond());
+            if (value != null) {
+                out.value(value.toEpochSecond());
+            }else{
+                out.nullValue();
+            }
         }
 
         @Override

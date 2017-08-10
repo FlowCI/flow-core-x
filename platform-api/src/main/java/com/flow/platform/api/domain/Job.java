@@ -68,11 +68,22 @@ public class Job extends Jsonable {
     @Expose
     private ZonedDateTime updatedAt;
 
+    @Expose
+    private Integer number;
+
     public Job() {
     }
 
     public Job(BigInteger id) {
         this.id = id;
+    }
+
+    public Integer getNumber() {
+        return number;
+    }
+
+    public void setNumber(Integer number) {
+        this.number = number;
     }
 
     public String getSessionId() {
