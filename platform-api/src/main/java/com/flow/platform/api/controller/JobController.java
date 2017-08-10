@@ -20,12 +20,14 @@ import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.service.YmlStorageService;
+import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,6 +53,22 @@ public class JobController {
 
     @Autowired
     private YmlStorageService ymlStorageService;
+
+    @ModelAttribute
+    public void setLocale(@RequestParam(required = false) String locale) {
+        if (locale == null) {
+            I18nUtil.initLocale("en", "US");
+            return;
+        }
+
+        if (locale.equals("zh-CN")) {
+            I18nUtil.initLocale("zh", "CN");
+        }
+
+        if (locale.equals("en-US")) {
+            I18nUtil.initLocale("en", "US");
+        }
+    }
 
     @PostMapping
     public Job create(@RequestBody String body) {

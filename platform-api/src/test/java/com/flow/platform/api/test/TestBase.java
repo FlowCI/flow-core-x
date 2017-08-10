@@ -56,6 +56,7 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @ContextConfiguration(classes = {WebConfig.class})
 @PropertySource("classpath:app-default.properties")
+@PropertySource("classpath:i18n")
 public abstract class TestBase {
 
     static {

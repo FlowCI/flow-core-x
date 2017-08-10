@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.domain;
 
+import com.flow.platform.api.domain.adaptor.EnvAdaptor;
 import com.flow.platform.api.domain.adaptor.ZonedDateTimeAdaptor;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
@@ -51,6 +52,7 @@ public class Job extends Jsonable {
     private Map<String, String> envs = new HashMap<>();
 
     @Expose
+    @JsonAdapter(EnvAdaptor.class)
     private Map<String, String> outputs = new HashMap<>();
 
     @Expose
