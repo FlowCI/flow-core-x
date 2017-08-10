@@ -22,17 +22,18 @@ import java.util.ResourceBundle;
 /**
  * @author yh@firim
  */
-public class I18nUtil
-{
+public class I18nUtil {
+
     private static ResourceBundle resourceBundle = ResourceBundle.getBundle("i18n");
-    public static void initLocale(String language, String countryCode){
+
+    public static void initLocale(String language, String countryCode) {
         Locale.setDefault(new Locale(language, countryCode));
         resourceBundle = ResourceBundle.getBundle("i18n");
     }
 
-    public static String translate(String key){
+    public static String translate(String key) {
         try {
-            return new String(resourceBundle.getString(key).getBytes("ISO-8859-1"),"UTF-8");
+            return new String(resourceBundle.getString(key).getBytes("ISO-8859-1"), "UTF-8");
         } catch (Throwable throwable) {
             return null;
         }

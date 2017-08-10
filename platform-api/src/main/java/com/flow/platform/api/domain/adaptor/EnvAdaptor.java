@@ -16,11 +16,14 @@
 
 package com.flow.platform.api.domain.adaptor;
 
+import com.flow.platform.api.domain.response.EnvWithDesc;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.domain.Jsonable;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -30,27 +33,24 @@ public class EnvAdaptor extends TypeAdapter<Map<String, String>> {
 
     @Override
     public void write(JsonWriter out, Map<String, String> value) throws IOException {
-        out.beginObject();
-        if(value != null){
+        Map<String, EnvWithDesc> stringEnvWithDescMap = new HashMap<>();
+        if (value != null) {
             value.forEach((k, v) -> {
-                try {
-                    out.name(k);
-                    out.beginObject();
-                    out.name("desc");
-                    out.value(I18nUtil.translate(k));
-                    out.name("value");
-                    out.value(v);
-                    out.endObject();
-                } catch (Throwable throwable) {
-                }
+                stringEnvWithDescMap.put(k, new EnvWithDesc(v, I18nUtil.translate(k)));
             });
         }
-        out.endObject();
-
+        out.jsonValue(Jsonable.GSON_CONFIG.toJson(stringEnvWithDescMap));
     }
 
     @Override
     public Map<String, String> read(JsonReader in) throws IOException {
-        return null;
+        String str = in.nextString();
+        Map<String, String> map = new HashMap<>();
+        Map<String, EnvWithDesc> stringEnvWithDescMap = Jsonable.GSON_CONFIG
+            .fromJson(str, Map.class);
+        stringEnvWithDescMap.forEach((k, v) -> {
+            map.put(k, v.getValue());
+        });
+        return map;
     }
 }
