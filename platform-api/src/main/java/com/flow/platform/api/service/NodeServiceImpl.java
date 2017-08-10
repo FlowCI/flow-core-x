@@ -58,7 +58,7 @@ public class NodeServiceImpl implements NodeService {
     private String domain;
 
     @Override
-    public Node create(String yml) {
+    public Node create(final String yml) {
         Node root = NodeUtil.buildFromYml(yml);
 
         // persistent flow type node to flow table
@@ -83,15 +83,14 @@ public class NodeServiceImpl implements NodeService {
     public void setEnv(String path, Map<String, String> envs) {
         throw new NotImplementedException();
         //TODO: convert node tree to yml and save
-
     }
 
     @Override
-    public Node find(String nodePath) {
+    public Node find(final String path) {
         try {
-            return nodeCache.get(nodePath, () -> {
+            return nodeCache.get(path, () -> {
                 // find root path to load related yml
-                String rootPath = PathUtil.rootPath(nodePath);
+                String rootPath = PathUtil.rootPath(path);
                 YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
 
                 // the root node does not have related yml
@@ -103,7 +102,7 @@ public class NodeServiceImpl implements NodeService {
                 final List<Node> target = new ArrayList<>(1);
                 NodeUtil.recurse(root, node -> {
                     nodeCache.put(node.getPath(), node);
-                    if (Objects.equals(node.getPath(), nodePath)) {
+                    if (Objects.equals(node.getPath(), path)) {
                         target.add(node);
                     }
                 });
@@ -116,13 +115,13 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public boolean isExistedFlow(String flowName) {
+    public boolean isExistedFlow(final String flowName) {
         String path = PathUtil.build(flowName);
         return flowDao.get(path) != null;
     }
 
     @Override
-    public Flow createEmptyFlow(String flowName) {
+    public Flow createEmptyFlow(final String flowName) {
         Flow flow = new Flow(PathUtil.build(flowName), flowName);
 
         if (isExistedFlow(flow.getName())) {
@@ -149,7 +148,7 @@ public class NodeServiceImpl implements NodeService {
         return hooks;
     }
 
-    private String hooksUrl(Flow flow) {
+    private String hooksUrl(final Flow flow) {
         return String.format("%s/hooks/git/%s", domain, flow.getName());
     }
 }

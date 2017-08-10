@@ -38,7 +38,7 @@ public interface NodeService {
     /**
      * Find node by node path from yml
      */
-    Node find(String nodePath);
+    Node find(String path);
 
     /**
      * Set node evn and sync to yml
