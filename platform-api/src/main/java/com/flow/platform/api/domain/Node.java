@@ -16,14 +16,10 @@
 
 package com.flow.platform.api.domain;
 
-import com.flow.platform.api.domain.adaptor.ZonedDateTimeAdaptor;
 import com.flow.platform.domain.Jsonable;
-
 import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import java.time.ZonedDateTime;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,11 +52,9 @@ public class Node<T extends Node> extends Jsonable {
     protected Node next;
 
     @Expose
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
     protected ZonedDateTime createdAt;
 
     @Expose
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
     protected ZonedDateTime updatedAt;
 
     public Node() {

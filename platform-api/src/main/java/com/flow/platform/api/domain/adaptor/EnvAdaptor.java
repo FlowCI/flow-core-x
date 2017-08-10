@@ -44,13 +44,20 @@ public class EnvAdaptor extends TypeAdapter<Map<String, String>> {
 
     @Override
     public Map<String, String> read(JsonReader in) throws IOException {
-        String str = in.nextString();
         Map<String, String> map = new HashMap<>();
-        Map<String, EnvWithDesc> stringEnvWithDescMap = Jsonable.GSON_CONFIG
-            .fromJson(str, Map.class);
-        stringEnvWithDescMap.forEach((k, v) -> {
-            map.put(k, v.getValue());
-        });
+        in.beginObject();
+        while (in.hasNext()) {
+            String key = in.nextName();
+
+            in.beginObject();
+            while (in.hasNext()) {
+                if (in.nextName().equals("value")) {
+                    map.put(key, in.nextString());
+                }
+            }
+            in.endObject();
+        }
+        in.endObject();
         return map;
     }
 }

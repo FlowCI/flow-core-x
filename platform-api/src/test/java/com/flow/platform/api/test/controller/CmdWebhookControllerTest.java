@@ -66,7 +66,7 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_session_success() throws Exception {
         stubDemo();
-        Job job = jobService.createJob(getBody("demo_flow.yaml"));
+        Job job = jobService.createJob(getResourceContent("demo_flow.yaml"));
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
@@ -168,7 +168,7 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_callback_failure() throws Exception {
         stubDemo();
 
-        Job job = jobService.createJob(getBody("demo_flow.yaml"));
+        Job job = jobService.createJob(getResourceContent("demo_flow.yaml"));
         Step step2 = (Step) nodeService.find("/flow1/step2");
         Step step1 = (Step) nodeService.find("/flow1/step1");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
@@ -223,7 +223,7 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_timeout_allow_failure() throws Exception {
         stubDemo();
-        Job job = jobService.createJob(getBody("demo_flow1.yaml"));
+        Job job = jobService.createJob(getResourceContent("demo_flow1.yaml"));
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
