@@ -61,7 +61,6 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         });
     }
 
-
     @Override
     public List<Job> list(List<String> sessionIds, NodeStatus nodeStatus) {
         return execute((Session session) -> {

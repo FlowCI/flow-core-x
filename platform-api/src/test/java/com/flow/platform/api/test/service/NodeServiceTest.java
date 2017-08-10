@@ -67,6 +67,7 @@ public class NodeServiceTest extends TestBase {
         // then:
         Flow saved = flowDao.get(root.getPath());
         Assert.assertNotNull(saved);
+        Assert.assertTrue(nodeService.isExistedFlow(root.getPath()));
         Assert.assertEquals(root, saved);
         Assert.assertEquals("flow1", saved.getName());
         Assert.assertEquals("/flow1", saved.getPath());
@@ -92,5 +93,21 @@ public class NodeServiceTest extends TestBase {
         NodeUtil.recurse(flow, item -> {
             Assert.assertEquals(item.getName(), nodeService.find(item.getPath()).getName());
         });
+    }
+
+    @Test
+    public void should_create_empty_flow() {
+        // when:
+        String flowName = "default";
+        Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+
+        // then:
+        Flow loaded = flowDao.get(emptyFlow.getPath());
+        Assert.assertNotNull(loaded);
+        Assert.assertEquals(emptyFlow, loaded);
+        Assert.assertEquals(0, loaded.getChildren().size());
+
+        // should with empty yml
+        Assert.assertNull(ymlStorageDao.get(loaded.getPath()));
     }
 }

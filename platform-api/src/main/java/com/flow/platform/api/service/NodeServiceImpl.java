@@ -97,6 +97,26 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
+    public boolean isExistedFlow(String flowPath) {
+        return flowDao.get(flowPath) != null;
+    }
+
+    @Override
+    public Flow createEmptyFlow(String flowName) {
+        Flow flow = new Flow();
+        flow.setName(flowName);
+        NodeUtil.setNodePath(flow);
+
+        if (isExistedFlow(flow.getPath())) {
+            throw new IllegalParameterException("Flow name already existed");
+        }
+
+        flow = flowDao.save(flow);
+        nodeCache.put(flow.getPath(), flow);
+        return flow;
+    }
+
+    @Override
     public List<Flow> listFlows() {
         return flowDao.list();
     }

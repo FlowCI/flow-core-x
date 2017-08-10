@@ -222,11 +222,13 @@ public class NodeUtil {
         }
     }
 
-    private static void setNodePath(Node node) {
+    public static void setNodePath(Node node) {
         if (node.getParent() == null) {
             node.setPath("/" + node.getName());
             return;
         }
+
+        // FIXME: recursive
         node.setPath(String.format("%s/%s", node.getParent().getPath(), node.getName()));
     }
 }

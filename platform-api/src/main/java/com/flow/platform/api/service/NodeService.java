@@ -47,7 +47,17 @@ public interface NodeService {
     Node find(String nodePath);
 
     /**
-     * list current flows
+     * To check flow node is existed
+     */
+    boolean isExistedFlow(String flowPath);
+
+    /**
+     * Create flow without any children
+     */
+    Flow createEmptyFlow(String flowName);
+
+    /**
+     * list current flows with path, name, created at and updated at
      */
     List<Flow> listFlows();
 }

@@ -34,6 +34,8 @@ public interface BaseDao<K extends Serializable, T> {
 
     T save(final T obj);
 
+    T saveOrUpdate(final T obj);
+
     void update(final T obj);
 
     void delete(final T obj);
