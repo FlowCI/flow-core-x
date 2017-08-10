@@ -40,14 +40,37 @@ public class PathUtil {
     /**
      * Build flow node path
      *
-     * @param nameOrPaths node name or path
+     * @param nameOrPaths node name or path, can be null or empty string
      * @return node path
      */
     public static String build(String... nameOrPaths) {
         StringBuilder builder = new StringBuilder();
-        for (String name : nameOrPaths) {
-            if (name.startsWith(PATH_SEPARATOR)) {
-                name = name.substring(1);
+        for (String nameOrPath : nameOrPaths) {
+            if (nameOrPath == null) {
+                continue;
+            }
+            nameOrPath = nameOrPath.trim();
+
+            if (nameOrPath.startsWith(PATH_SEPARATOR)) {
+                nameOrPath = nameOrPath.substring(1);
+            }
+
+            // name include path separator
+            String[] names = nameOrPath.split(PATH_SEPARATOR);
+            if (names.length > 0) {
+                for (String name : names) {
+                    if (Strings.isNullOrEmpty(name.trim())) {
+                        continue;
+                    }
+                    validateName(name);
+                    builder.append(PATH_SEPARATOR).append(name);
+                }
+                continue;
+            }
+
+            String name = nameOrPath;
+            if (Strings.isNullOrEmpty(name)) {
+                continue;
             }
             validateName(name);
             builder.append(PATH_SEPARATOR).append(name);
@@ -100,6 +123,7 @@ public class PathUtil {
     public static void validateName(String name) throws IllegalParameterException {
         String errMsg = "Illegal node name: " + name;
 
+        name = name.trim();
         if (Strings.isNullOrEmpty(name) || name.startsWith(PATH_SEPARATOR)) {
             throw new IllegalParameterException(errMsg);
         }

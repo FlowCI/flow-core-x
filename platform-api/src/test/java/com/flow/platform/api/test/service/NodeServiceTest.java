@@ -43,6 +43,18 @@ public class NodeServiceTest extends TestBase {
     private String domain;
 
     @Test
+    public void should_find_any_node() throws Throwable {
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.create(resourceContent);
+
+        Assert.assertNotNull(nodeService.find(root.getPath()));
+
+        List children = root.getChildren();
+        Assert.assertNotNull(nodeService.find(((Node) children.get(0)).getPath()));
+        Assert.assertNotNull(nodeService.find(((Node) children.get(1)).getPath()));
+    }
+
+    @Test
     public void should_create_node_by_yml() throws Throwable {
         // when:
         String resourceContent = getResourceContent("demo_flow.yaml");

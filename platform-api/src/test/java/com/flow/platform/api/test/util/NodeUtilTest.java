@@ -73,24 +73,43 @@ public class NodeUtilTest extends TestBase {
     }
 
     @Test
-    public void should_get_node_path() {
-        // get root path
-        Node root = new Node();
+    public void should_build_node_relation() {
+        // when: init node tree
+        Node<Step> root = new Node<>();
         root.setName("root");
-        root.setPath(NodeUtil.getNodePath(null, root.getName()));
+
+        Step childFirst = new Step();
+        childFirst.setName("child-1");
+
+        Step childSecond = new Step();
+        childSecond.setName("child-2");
+
+        Step subOfChildSecond = new Step();
+        subOfChildSecond.setName("child-2-1");
+
+        root.getChildren().add(childFirst);
+        root.getChildren().add(childSecond);
+
+        childSecond.getChildren().add(subOfChildSecond);
+
+        NodeUtil.buildNodeRelation(root);
+
+        // then: verify path of nodes
         Assert.assertEquals("/root", root.getPath());
+        Assert.assertEquals("/root/child-1", childFirst.getPath());
+        Assert.assertEquals("/root/child-2", childSecond.getPath());
+        Assert.assertEquals("/root/child-2/child-2-1", subOfChildSecond.getPath());
 
-        // get child path
-        Node child = new Node();
-        child.setName("child");
-        child.setPath(NodeUtil.getNodePath(root, child.getName()));
-        Assert.assertEquals("/root/child", child.getPath());
+        // then: verify relation
+        Assert.assertEquals(childSecond, subOfChildSecond.getParent());
+        Assert.assertEquals(null, subOfChildSecond.getPrev());
+        Assert.assertEquals(null, subOfChildSecond.getNext());
 
-        // get child of child path
-        Node childOfChild = new Node();
-        childOfChild.setName("child-child");
-        childOfChild.setPath(NodeUtil.getNodePath(child, childOfChild.getName()));
-        Assert.assertEquals("/root/child/child-child", childOfChild.getPath());
+        Assert.assertEquals(root, childFirst.getParent());
+        Assert.assertEquals(root, childSecond.getParent());
+
+        Assert.assertEquals(childSecond, childFirst.getNext());
+        Assert.assertEquals(childFirst, childSecond.getPrev());
     }
 
     @Test
@@ -137,7 +156,6 @@ public class NodeUtilTest extends TestBase {
         Assert.assertEquals("/flow", NodeUtil.findRootNode(step1).getName());
         Assert.assertEquals("/flow", NodeUtil.findRootNode(step2).getName());
     }
-
 
     @Test
     public void should_find_root_complex() {

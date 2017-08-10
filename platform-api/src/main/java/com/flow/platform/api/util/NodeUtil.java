@@ -226,27 +226,11 @@ public class NodeUtil {
         }
     }
 
-    public static String getNodePath(Node parent, String name) {
-        if (!isValidName(name)) {
-            throw new IllegalParameterException("Illegal node name");
+    private static void setNodePath(Node node) {
+        if (node.getParent() == null) {
+            node.setPath(PathUtil.build(node.getName()));
+            return;
         }
-
-        if (parent == null) {
-            return NODE_PATH_SEPARATOR + name;
-        }
-
-        if (parent.getPath() == null) {
-            throw new IllegalParameterException("Parent node path is required");
-        }
-
-        return parent.getPath() + NODE_PATH_SEPARATOR + name;
-    }
-
-    public static void setNodePath(Node node) {
-        node.setPath(getNodePath(node.getParent(), node.getName()));
-    }
-
-    public static boolean isValidName(String name) {
-        return !Strings.isNullOrEmpty(name) && !name.startsWith(NODE_PATH_SEPARATOR) && !name.contains("*");
+        node.setPath(PathUtil.build(node.getParent().getPath(), node.getName()));
     }
 }

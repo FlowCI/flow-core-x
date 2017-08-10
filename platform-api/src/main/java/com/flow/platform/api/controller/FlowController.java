@@ -19,8 +19,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.service.NodeService;
-import com.flow.platform.api.validator.FlowValidator;
-import com.flow.platform.api.validator.ValidatorUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.exception.NotImplementedException;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +42,6 @@ public class FlowController {
     @Autowired
     private NodeService nodeService;
 
-    @Autowired
-    private FlowValidator nodeNameValidator;
-
     @GetMapping
     public List<Flow> index() {
         return nodeService.listFlows();
@@ -53,13 +49,13 @@ public class FlowController {
 
     @PostMapping("/{flowName}")
     public Flow createEmptyFlow(@PathVariable String flowName) {
-        ValidatorUtil.invoke(nodeNameValidator, flowName);
+        PathUtil.validateName(flowName);
         return nodeService.createEmptyFlow(flowName);
     }
 
     @PostMapping("/{flowName}/env")
     public void setFlowEnv(@PathVariable String flowName, @RequestBody Map<String, String> envs) {
-        ValidatorUtil.invoke(nodeNameValidator, flowName);
+        PathUtil.validateName(flowName);
         throw new NotImplementedException();
     }
 
@@ -68,7 +64,7 @@ public class FlowController {
      */
     @GetMapping("/exist/{flowName}")
     public Boolean isFlowNameExist(@PathVariable String flowName) {
-        ValidatorUtil.invoke(nodeNameValidator, flowName);
+        PathUtil.validateName(flowName);
         return nodeService.isExistedFlow(flowName);
     }
 

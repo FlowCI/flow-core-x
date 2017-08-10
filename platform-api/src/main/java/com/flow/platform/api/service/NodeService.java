@@ -36,7 +36,7 @@ public interface NodeService {
     Node create(String yml);
 
     /**
-     * find node by node path
+     * Find node by node path from yml
      */
     Node find(String nodePath);
 

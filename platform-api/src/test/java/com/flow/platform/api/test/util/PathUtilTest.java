@@ -87,5 +87,20 @@ public class PathUtilTest {
 
         Assert.assertEquals("sub", PathUtil.currentName(path));
 
+        // verify unformatted path build
+        path = PathUtil.build("/root/child/", "sub");
+        Assert.assertEquals("/root/child/sub", path);
+
+        path = PathUtil.build("root/child/", "/sub/");
+        Assert.assertEquals("/root/child/sub", path);
+
+        path = PathUtil.build("", "/sub/");
+        Assert.assertEquals("/sub", path);
+
+        path = PathUtil.build(null, "/sub/");
+        Assert.assertEquals("/sub", path);
+
+        path = PathUtil.build("sub", null, null);
+        Assert.assertEquals("/sub", path);
     }
 }

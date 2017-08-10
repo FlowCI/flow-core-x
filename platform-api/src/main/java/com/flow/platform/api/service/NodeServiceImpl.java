@@ -19,11 +19,10 @@ import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
-import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.exception.NotImplementedException;
 import com.flow.platform.util.Logger;
@@ -32,6 +31,7 @@ import com.google.common.cache.CacheBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,9 +62,8 @@ public class NodeServiceImpl implements NodeService {
         Node root = NodeUtil.buildFromYml(yml);
 
         // persistent flow type node to flow table
-        if (root instanceof Flow) {
-            flowDao.save((Flow) root);
-        }
+        // TODO: should change to root_list dao
+        flowDao.save((Flow) root);
 
         // TODO: should check md5 of yml to reduce db io
         YmlStorage ymlStorage = ymlStorageDao.get(root.getPath());
@@ -75,7 +74,8 @@ public class NodeServiceImpl implements NodeService {
             ymlStorageDao.update(ymlStorage);
         }
 
-        saveToCache(root);
+        // save to cache
+        NodeUtil.recurse(root, item -> nodeCache.put(item.getPath(), item));
         return root;
     }
 
@@ -88,24 +88,42 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public Node find(String nodePath) {
-        Node node = get(nodePath);
-        if (node == null) {
-            throw new NotFoundException(String.format("Node not found %s ", nodePath));
+        try {
+            return nodeCache.get(nodePath, () -> {
+                // find root path to load related yml
+                String rootPath = PathUtil.rootPath(nodePath);
+                YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
+
+                // the root node does not have related yml
+                if (ymlStorage == null) {
+                    return null;
+                }
+
+                Node root = NodeUtil.buildFromYml(ymlStorage.getFile());
+                final List<Node> target = new ArrayList<>(1);
+                NodeUtil.recurse(root, node -> {
+                    nodeCache.put(node.getPath(), node);
+                    if (Objects.equals(node.getPath(), nodePath)) {
+                        target.add(node);
+                    }
+                });
+
+                return target.get(0);
+            });
+        } catch (ExecutionException ignore) {
+            return null;
         }
-        return node;
     }
 
     @Override
     public boolean isExistedFlow(String flowName) {
-        String path = NodeUtil.getNodePath(null, flowName);
+        String path = PathUtil.build(flowName);
         return flowDao.get(path) != null;
     }
 
     @Override
     public Flow createEmptyFlow(String flowName) {
-        Flow flow = new Flow();
-        flow.setName(flowName);
-        NodeUtil.setNodePath(flow);
+        Flow flow = new Flow(PathUtil.build(flowName), flowName);
 
         if (isExistedFlow(flow.getName())) {
             throw new IllegalParameterException("Flow name already existed");
@@ -129,39 +147,6 @@ public class NodeServiceImpl implements NodeService {
             hooks.add(new Webhook(flow.getPath(), hooksUrl(flow)));
         }
         return hooks;
-    }
-
-    private Node get(final String nodePath) {
-        Node node = null;
-        try {
-            node = nodeCache.get(nodePath, () -> {
-                YmlStorage ymlStorage = ymlStorageDao.get(nodePath);
-                if (ymlStorage != null) {
-                    Node root = NodeUtil.buildFromYml(ymlStorage.getFile());
-                    return saveToCache(root);
-                }
-                return null;
-            });
-        } catch (ExecutionException e) {
-            LOGGER.trace(String.format("get node from db error - %s", e));
-        }
-        return node;
-    }
-
-    private Node saveToCache(Node node) {
-        NodeUtil.recurse(node, item -> {
-            String env = System.getProperty("flow.api.env");
-            if (item instanceof Step && env != "test") {
-                if (NodeUtil.canRun(item) && (item.getScript() == null || item.getScript().isEmpty())) {
-                    throw new IllegalParameterException(
-                        String.format("Missing Param Script, NodeName: %s", item.getName()));
-                }
-            }
-
-            nodeCache.put(item.getPath(), item);
-        });
-
-        return node;
     }
 
     private String hooksUrl(Flow flow) {
