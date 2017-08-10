@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,6 +32,23 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  * @author yang
  */
 public class FlowControllerTest extends TestBase {
+
+    @Test
+    public void should_response_4xx_if_flow_name_format_invalid() throws Throwable {
+        String flowName = "hello*gmail";
+
+        MockHttpServletRequestBuilder content = get("/flows/exist/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON);
+
+        MvcResult result = this.mockMvc.perform(content)
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+        ResponseError error = ResponseError.parse(body, ResponseError.class);
+        Assert.assertNotNull(error);
+        Assert.assertEquals(error.getMessage(), "Invalid node name");
+    }
 
     @Test
     public void should_response_true_if_flow_name_not_exist() throws Throwable {

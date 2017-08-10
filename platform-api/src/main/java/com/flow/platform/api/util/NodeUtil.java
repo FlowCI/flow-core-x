@@ -247,6 +247,6 @@ public class NodeUtil {
     }
 
     public static boolean isValidName(String name) {
-        return !Strings.isNullOrEmpty(name) && !name.startsWith(NODE_PATH_SEPARATOR);
+        return !Strings.isNullOrEmpty(name) && !name.startsWith(NODE_PATH_SEPARATOR) && !name.contains("*");
     }
 }

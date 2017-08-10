@@ -17,28 +17,32 @@
 package com.flow.platform.api.validator;
 
 import com.flow.platform.api.util.NodeUtil;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+import org.springframework.validation.ValidationUtils;
 
 /**
  * @author yang
  */
-public class NodeNameValidator implements Validator {
+@Component
+public class NodeNameValidator implements FlowValidator {
 
-    private final static String ERR_CODE_NODE_NAME = "NodeName";
+    private final static String ERR_CODE_NODE_NAME = "err.node.name";
+
+    private final static String NAME = "node.name";
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
 
     @Override
     public boolean supports(Class<?> aClass) {
-        return String.class.equals(aClass);
+        return String.class.isAssignableFrom(aClass);
     }
 
     @Override
     public void validate(Object o, Errors errors) {
-        if (o == null) {
-            errors.reject(ERR_CODE_NODE_NAME, "Node name cannot be empty");
-            return;
-        }
-
         if (!NodeUtil.isValidName(o.toString())) {
             errors.reject(ERR_CODE_NODE_NAME, "Invalid node name");
         }

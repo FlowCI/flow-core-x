@@ -18,10 +18,13 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.validator.FlowValidator;
 import com.flow.platform.api.validator.NodeNameValidator;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.api.validator.ValidatorUtil;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,13 +43,17 @@ public class FlowController {
     @Autowired
     private NodeService nodeService;
 
+    @Autowired
+    private FlowValidator nodeNameValidator;
+
     @GetMapping
     public List<Flow> index() {
         return nodeService.listFlows();
     }
 
     @PostMapping("/{flowName}")
-    public Flow createEmptyFlow(@Validated(NodeNameValidator.class) @PathVariable String flowName) {
+    public Flow createEmptyFlow(@PathVariable String flowName) {
+        ValidatorUtil.invoke(nodeNameValidator, flowName);
         return nodeService.createEmptyFlow(flowName);
     }
 
@@ -54,7 +61,8 @@ public class FlowController {
      * Check flow name is exist
      */
     @GetMapping("/exist/{flowName}")
-    public Boolean isFlowNameExist(@Validated(NodeNameValidator.class) @PathVariable String flowName) {
+    public Boolean isFlowNameExist(@PathVariable String flowName) {
+        ValidatorUtil.invoke(nodeNameValidator, flowName);
         return nodeService.isExistedFlow(flowName);
     }
 }
