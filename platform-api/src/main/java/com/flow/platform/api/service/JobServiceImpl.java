@@ -143,7 +143,7 @@ public class JobServiceImpl implements JobService {
         Node flow = NodeUtil.findRootNode(node);
         cmdInfo.setInputs(mergeEnvs(flow.getEnvs(), node.getEnvs()));
         cmdInfo.setWebhook(getNodeHook(node, jobId));
-
+        cmdInfo.setOutputEnvFilter("FLOW_");
         Job job = find(jobId);
         cmdInfo.setSessionId(job.getSessionId());
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
