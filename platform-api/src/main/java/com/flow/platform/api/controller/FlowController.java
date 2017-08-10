@@ -17,15 +17,12 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.validator.FlowValidator;
-import com.flow.platform.api.validator.NodeNameValidator;
 import com.flow.platform.api.validator.ValidatorUtil;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -64,5 +61,10 @@ public class FlowController {
     public Boolean isFlowNameExist(@PathVariable String flowName) {
         ValidatorUtil.invoke(nodeNameValidator, flowName);
         return nodeService.isExistedFlow(flowName);
+    }
+
+    @GetMapping("/webhooks")
+    public List<Webhook> listFlowWebhooks() {
+        return nodeService.listWebhooks();
     }
 }

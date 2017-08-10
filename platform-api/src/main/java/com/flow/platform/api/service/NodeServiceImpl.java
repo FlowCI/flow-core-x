@@ -20,6 +20,7 @@ import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.NodeUtil;
@@ -27,9 +28,11 @@ import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,6 +51,9 @@ public class NodeServiceImpl implements NodeService {
 
     @Autowired
     private FlowDao flowDao;
+
+    @Value(value = "${domain}")
+    private String domain;
 
     @Override
     public Node create(String yml) {
@@ -122,6 +128,16 @@ public class NodeServiceImpl implements NodeService {
         return flowDao.list();
     }
 
+    @Override
+    public List<Webhook> listWebhooks() {
+        List<Flow> flows = listFlows();
+        List<Webhook> hooks = new ArrayList<>(flows.size());
+        for (Flow flow : flows) {
+            hooks.add(new Webhook(flow.getPath(), hooksUrl(flow)));
+        }
+        return hooks;
+    }
+
     private Node get(final String nodePath) {
         Node node = null;
         try {
@@ -134,5 +150,9 @@ public class NodeServiceImpl implements NodeService {
 
     private Node getNodeFromDb(String nodePath) {
         return create(NodeUtil.buildFromYml(ymlStorageDao.get(nodePath).getFile()));
+    }
+
+    private String hooksUrl(Flow flow) {
+        return String.format("%s/hooks/git/%s", domain, flow.getName());
     }
 }

@@ -18,13 +18,16 @@ package com.flow.platform.api.test.service;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author yh@firim
@@ -33,6 +36,9 @@ public class NodeServiceTest extends TestBase {
 
     @Autowired
     private NodeService nodeService;
+
+    @Value(value = "${domain}")
+    private String domain;
 
     @Test
     public void should_create_node_by_obj_tree() {
@@ -96,7 +102,7 @@ public class NodeServiceTest extends TestBase {
     }
 
     @Test
-    public void should_create_empty_flow() {
+    public void should_create_empty_flow_and_get_webhooks() {
         // when:
         String flowName = "default";
         Flow emptyFlow = nodeService.createEmptyFlow(flowName);
@@ -109,5 +115,10 @@ public class NodeServiceTest extends TestBase {
 
         // should with empty yml
         Assert.assertNull(ymlStorageDao.get(loaded.getPath()));
+
+        // when:
+        List<Webhook> hooks = nodeService.listWebhooks();
+        Assert.assertEquals(1, hooks.size());
+        Assert.assertEquals(domain + "/hooks/git/" + loaded.getName(), hooks.get(0).getHook());
     }
 }

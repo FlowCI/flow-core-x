@@ -56,7 +56,7 @@ public class GitWebHookController {
 
         try {
             GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
-            assert hookEvent != null;
+            LOGGER.trace("Webhook received: %s", hookEvent.toString());
         } catch (GitException e) {
             LOGGER.error("Cannot process web hook event", e);
         }

@@ -17,6 +17,7 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.Webhook;
 import java.util.List;
 
 /**
@@ -60,4 +61,9 @@ public interface NodeService {
      * list current flows with path, name, created at and updated at
      */
     List<Flow> listFlows();
+
+    /**
+     * List webhooks for all flow
+     */
+    List<Webhook> listWebhooks();
 }
