@@ -123,7 +123,9 @@ public class JobServiceTest extends TestBase {
         step1.setNext(step2);
         step2.setParent(step1);
 
-        nodeService.create(flow);
+        // TODO: write yml converter
+
+//        nodeService.create(flow);
 //        Job job = jobService.createJob(flow.getPath());
 //        List<JobStep> jobSteps = jobService.listJobStep(job.getId());
 //        Assert.assertEquals(2, jobSteps.size());

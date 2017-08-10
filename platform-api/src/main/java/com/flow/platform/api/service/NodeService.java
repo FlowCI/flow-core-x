@@ -19,6 +19,7 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yh@firim
@@ -35,17 +36,14 @@ public interface NodeService {
     Node create(String yml);
 
     /**
-     * Recursive go though node tree,
-     * and persistent flow node
-     *
-     * @return root node
-     */
-    Node create(Node node);
-
-    /**
      * find node by node path
      */
     Node find(String nodePath);
+
+    /**
+     * Set node evn and sync to yml
+     */
+    void setEnv(String path, Map<String, String> envs);
 
     /**
      * To check flow name is existed

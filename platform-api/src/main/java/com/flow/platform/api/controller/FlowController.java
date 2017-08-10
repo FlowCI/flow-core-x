@@ -21,11 +21,14 @@ import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.validator.FlowValidator;
 import com.flow.platform.api.validator.ValidatorUtil;
+import com.flow.platform.exception.NotImplementedException;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,6 +55,12 @@ public class FlowController {
     public Flow createEmptyFlow(@PathVariable String flowName) {
         ValidatorUtil.invoke(nodeNameValidator, flowName);
         return nodeService.createEmptyFlow(flowName);
+    }
+
+    @PostMapping("/{flowName}/env")
+    public void setFlowEnv(@PathVariable String flowName, @RequestBody Map<String, String> envs) {
+        ValidatorUtil.invoke(nodeNameValidator, flowName);
+        throw new NotImplementedException();
     }
 
     /**

@@ -23,7 +23,9 @@ import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,30 +41,6 @@ public class NodeServiceTest extends TestBase {
 
     @Value(value = "${domain}")
     private String domain;
-
-    @Test
-    public void should_create_node_by_obj_tree() {
-        // given: create node
-        Flow flow = new Flow("/flow", "flow");
-        flow.getChildren().add(new Step("/flow/first", "first"));
-        flow.getChildren().add(new Step("/flow/second", "second"));
-
-        NodeUtil.buildNodeRelation(flow);
-        Assert.assertEquals(flow, flow.getChildren().get(0).getParent());
-        Assert.assertEquals(flow, flow.getChildren().get(1).getParent());
-
-        Assert.assertEquals(flow.getChildren().get(1), flow.getChildren().get(0).getNext());
-        Assert.assertEquals(null, flow.getChildren().get(0).getPrev());
-
-        Assert.assertEquals(flow.getChildren().get(0), flow.getChildren().get(1).getPrev());
-        Assert.assertEquals(null, flow.getChildren().get(1).getNext());
-
-        // when: create node
-        Node root = nodeService.create(flow);
-        Assert.assertEquals(flow, root);
-
-        Assert.assertEquals(flow.getPath(), nodeService.find(flow.getPath()).getPath());
-    }
 
     @Test
     public void should_create_node_by_yml() throws Throwable {
@@ -90,18 +68,6 @@ public class NodeServiceTest extends TestBase {
     }
 
     @Test
-    public void should_create_and_get_node() {
-        Flow flow = new Flow("/flow", "flow");
-        Step step1 = new Step("/flow/step1", "step1");
-        flow.getChildren().add(step1);
-        step1.setParent(flow);
-        nodeService.create(flow);
-        NodeUtil.recurse(flow, item -> {
-            Assert.assertEquals(item.getName(), nodeService.find(item.getPath()).getName());
-        });
-    }
-
-    @Test
     public void should_create_empty_flow_and_get_webhooks() {
         // when:
         String flowName = "default";
@@ -120,5 +86,35 @@ public class NodeServiceTest extends TestBase {
         List<Webhook> hooks = nodeService.listWebhooks();
         Assert.assertEquals(1, hooks.size());
         Assert.assertEquals(domain + "/hooks/git/" + loaded.getName(), hooks.get(0).getHook());
+    }
+
+    @Test
+    public void should_save_node_env() throws Throwable {
+        // given:
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.create(resourceContent);
+        Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
+
+        // when:
+        Map<String, String> envs = new HashMap<>();
+        envs.put("FLOW_NEW_1", "hello");
+        envs.put("FLOW_NEW_2", "world");
+        envs.put("FLOW_NEW_3", "done");
+        nodeService.setEnv(root.getPath(), envs);
+
+        // then:
+        Node loaded = nodeService.find("/flow1");
+        Assert.assertEquals(3, loaded.getEnvs().size());
+        Assert.assertEquals("hello", loaded.getEnvs().get("FLOW_NEW_1"));
+        Assert.assertEquals("world", loaded.getEnvs().get("FLOW_NEW_2"));
+        Assert.assertEquals("done", loaded.getEnvs().get("FLOW_NEW_3"));
+
+        // check env been sync with yml
+        Flow flow = flowDao.get("/flow1");
+        Assert.assertEquals(3, flow.getEnvs().size());
+        Assert.assertEquals("hello", flow.getEnvs().get("FLOW_NEW_1"));
+        Assert.assertEquals("world", flow.getEnvs().get("FLOW_NEW_2"));
+        Assert.assertEquals("done", flow.getEnvs().get("FLOW_NEW_3"));
     }
 }
