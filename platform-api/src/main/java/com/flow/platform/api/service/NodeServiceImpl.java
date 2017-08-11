@@ -21,6 +21,8 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.exception.NotFoundException;
+import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.exception.IllegalParameterException;
@@ -69,8 +71,15 @@ public class NodeServiceImpl implements NodeService {
     public Node create(final String yml) {
         Node root = NodeUtil.buildFromYml(yml);
 
-        // persistent flow type node to flow table
-        flowDao.save((Flow) root);
+        // root node must be created
+        Flow flow = flowDao.get(root.getPath());
+        if (flow == null) {
+            throw new NotFoundException("Flow name defined in yml has not been created");
+        }
+
+        // persistent flow type node to flow table with env which from yml
+        EnvUtil.merge(root, flow, true);
+        flowDao.update(flow);
 
         // TODO: should check md5 of yml to reduce db io
         YmlStorage ymlStorage = ymlStorageDao.get(root.getPath());
@@ -120,6 +129,16 @@ public class NodeServiceImpl implements NodeService {
             // not not found or unable to load from cache
             return null;
         }
+    }
+
+    @Override
+    public String rawYml(String path) {
+        final String rootPath = PathUtil.rootPath(path);
+        YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
+        if (ymlStorage == null) {
+            return null;
+        }
+        return ymlStorage.getFile();
     }
 
     @Override

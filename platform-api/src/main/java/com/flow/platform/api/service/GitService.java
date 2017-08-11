@@ -26,6 +26,12 @@ import java.util.function.Consumer;
  */
 public interface GitService {
 
+    String ENV_FLOW_GIT_SOURCE = "FLOW_GIT_SOURCE";
+
+    String ENV_FLOW_GIT_URL = "FLOW_GIT_URL";
+
+    String ENV_FLOW_GIT_BRANCH = "FLOW_GIT_BRANCH";
+
     /**
      * Fetch file content from git repo
      *

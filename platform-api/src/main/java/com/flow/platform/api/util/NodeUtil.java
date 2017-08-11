@@ -56,6 +56,8 @@ public class NodeUtil {
      * Build node tree structure from yml string
      *
      * @param yml raw yml string
+     * @return root node of yml
+     * @throws YmlException if yml format is illegal
      */
     public static Node buildFromYml(String yml) {
         Yaml yaml = new Yaml();

@@ -43,6 +43,14 @@ public interface NodeService {
     Node find(String path);
 
     /**
+     * Find raw yml file content by node path
+     *
+     * @param path any node path
+     * @return yml content or null if not found
+     */
+    String rawYml(String path);
+
+    /**
      * To check flow name is existed
      */
     boolean isExistedFlow(String flowName);

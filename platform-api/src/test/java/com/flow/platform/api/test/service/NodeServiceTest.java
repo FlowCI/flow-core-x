@@ -44,6 +44,7 @@ public class NodeServiceTest extends TestBase {
 
     @Test
     public void should_find_any_node() throws Throwable {
+        nodeService.createEmptyFlow("flow1");
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.create(resourceContent);
 
@@ -57,6 +58,7 @@ public class NodeServiceTest extends TestBase {
     @Test
     public void should_create_node_by_yml() throws Throwable {
         // when:
+        nodeService.createEmptyFlow("flow1");
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.create(resourceContent);
 
@@ -103,6 +105,7 @@ public class NodeServiceTest extends TestBase {
     @Test
     public void should_save_node_env() throws Throwable {
         // given:
+        nodeService.createEmptyFlow("flow1");
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.create(resourceContent);
         Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
@@ -132,9 +135,12 @@ public class NodeServiceTest extends TestBase {
 
     @Test(expected = IllegalParameterException.class)
     public void should_error_if_node_path_is_not_for_flow() throws Throwable {
+        // given:
+        nodeService.createEmptyFlow("flow1");
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.create(resourceContent);
 
+        // when: set env with child path
         List children = root.getChildren();
         nodeService.setFlowEnv(((Node) children.get(0)).getPath(), new HashMap<>());
     }

@@ -108,4 +108,13 @@ public abstract class AbstractGitClient implements GitClient {
     protected Path getGitPath() {
         return Paths.get(targetDir.toString(), ".git");
     }
+
+    @Override
+    public String toString() {
+        return "GitClient{" +
+            "gitUrl='" + gitUrl + '\'' +
+            ", targetDir=" + targetDir +
+            ", clientType=" + getClass().getSimpleName() +
+            '}';
+    }
 }

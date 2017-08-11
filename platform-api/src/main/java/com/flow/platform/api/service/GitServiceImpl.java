@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.exception.UnsupportedException;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitSshClient;
 import com.flow.platform.util.git.model.GitSource;
@@ -42,8 +43,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class GitServiceImpl implements GitService {
 
-    private final static String FLOW_GIT_SOURCE = "FLOW_GIT_SOURCE";
-    private final static String FLOW_GIT_URL = "FLOW_GIT_URL";
+    private final static Logger LOGGER = new Logger(GitService.class);
 
     @Autowired
     private Path workspace;
@@ -80,18 +80,25 @@ public class GitServiceImpl implements GitService {
         });
     }
 
+    /**
+     * Init git client by ENV_FLOW_GIT_SOURCE, and ENV_FLOW_GIT_URL from flow env
+     */
     private GitClient gitClientInstance(Flow flow) {
-        GitSource gitSource = GitSource.valueOf(flow.getEnvs().get(FLOW_GIT_SOURCE));
-        String gitUrl = flow.getEnvs().get(FLOW_GIT_URL);
+        GitSource gitSource = GitSource.valueOf(flow.getEnvs().get(ENV_FLOW_GIT_SOURCE));
+        String gitUrl = flow.getEnvs().get(ENV_FLOW_GIT_URL);
+        Path flowWorkspace = null;
 
         GitClient client = null;
         if (gitSource == GitSource.UNDEFINED) {
-            client = new GitSshClient(gitUrl, flowDao.workspace(workspace, flow));
+            flowWorkspace = flowDao.workspace(this.workspace, flow);
+            client = new GitSshClient(gitUrl, flowWorkspace);
         }
 
         if (client == null) {
             throw new UnsupportedException(String.format("Git source %s not supported yet", gitSource));
         }
+
+        LOGGER.trace("Git client initialized: %s", client);
         return client;
     }
 }
