@@ -45,6 +45,9 @@ public class GitServiceImpl implements GitService {
 
     private final static Logger LOGGER = new Logger(GitService.class);
 
+    // the folder in the flow workspace
+    private final static String SOURCE_FOLDER_NAME = "source";
+
     @Autowired
     private Path workspace;
 
@@ -91,7 +94,8 @@ public class GitServiceImpl implements GitService {
         GitClient client = null;
         if (gitSource == GitSource.UNDEFINED) {
             flowWorkspace = flowDao.workspace(this.workspace, flow);
-            client = new GitSshClient(gitUrl, flowWorkspace);
+            Path sourcePath = Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
+            client = new GitSshClient(gitUrl, sourcePath);
         }
 
         if (client == null) {
