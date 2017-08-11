@@ -471,17 +471,17 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<Job> listJobs(String flowPath, List<String> flowPaths) {
-        if (flowPath == null && flowPaths == null) {
+    public List<Job> listJobs(String flowName, List<String> flowNames) {
+        if (flowName == null && flowNames == null) {
             return jobDao.list();
         }
 
-        if(flowPaths != null){
-            return jobDao.listLatest(flowPaths);
+        if(flowNames != null){
+            return jobDao.listLatest(flowNames);
         }
 
-        if(flowPath != null){
-            return jobDao.list(flowPath);
+        if(flowName != null){
+            return jobDao.list(flowName);
         }
         return null;
     }

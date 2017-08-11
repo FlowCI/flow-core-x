@@ -76,8 +76,8 @@ public class JobController {
     }
 
     @GetMapping
-    public Collection<Job> index(@RequestParam(required = false) String flowPath) {
-        return jobService.listJobs(flowPath, null);
+    public Collection<Job> index(@RequestParam(required = false) String flowName) {
+        return jobService.listJobs(flowName, null);
     }
 
     @GetMapping(path = "/{id}")
