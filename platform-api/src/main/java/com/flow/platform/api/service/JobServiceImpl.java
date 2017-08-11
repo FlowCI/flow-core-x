@@ -86,7 +86,7 @@ public class JobServiceImpl implements JobService {
 
         Node node = NodeUtil.buildFromYml(ymlBody);
         nodeService.create(node);
-        ymlStorageService.save(node.getPath(), ymlBody);
+        ymlStorageService.save(node.getName(), ymlBody);
 
         Job job = new Job(CommonUtil.randomId());
         job.setStatus(NodeStatus.PENDING);
