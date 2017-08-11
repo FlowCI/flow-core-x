@@ -86,7 +86,7 @@ public class JobServiceImpl implements JobService {
 
         Node node = NodeUtil.buildFromYml(ymlBody);
         nodeService.create(node);
-        ymlStorageService.save(node.getName(), ymlBody);
+        ymlStorageService.save(node.getPath(), ymlBody);
 
         Job job = new Job(CommonUtil.randomId());
         job.setStatus(NodeStatus.PENDING);
@@ -96,7 +96,7 @@ public class JobServiceImpl implements JobService {
         job.setUpdatedAt(ZonedDateTime.now());
 
         //update number
-        job.setNumber(jobDao.list(node.getPath()).size()+1);
+        job.setNumber(jobDao.list(node.getName()).size()+1);
 
         save(job);
 
