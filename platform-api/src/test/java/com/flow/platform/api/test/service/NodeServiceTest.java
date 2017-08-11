@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.exception.IllegalParameterException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +113,7 @@ public class NodeServiceTest extends TestBase {
         envs.put("FLOW_NEW_1", "hello");
         envs.put("FLOW_NEW_2", "world");
         envs.put("FLOW_NEW_3", "done");
-        nodeService.setEnv(root.getPath(), envs);
+        nodeService.setFlowEnv(root.getPath(), envs);
 
         // then:
         Node loaded = nodeService.find("/flow1");
@@ -127,5 +128,14 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("hello", flow.getEnvs().get("FLOW_NEW_1"));
         Assert.assertEquals("world", flow.getEnvs().get("FLOW_NEW_2"));
         Assert.assertEquals("done", flow.getEnvs().get("FLOW_NEW_3"));
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_error_if_node_path_is_not_for_flow() throws Throwable {
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.create(resourceContent);
+
+        List children = root.getChildren();
+        nodeService.setFlowEnv(((Node) children.get(0)).getPath(), new HashMap<>());
     }
 }

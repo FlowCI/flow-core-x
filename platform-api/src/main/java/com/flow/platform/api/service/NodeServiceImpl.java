@@ -24,15 +24,17 @@ import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.exception.IllegalParameterException;
-import com.flow.platform.exception.NotImplementedException;
 import com.flow.platform.util.Logger;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -82,12 +84,6 @@ public class NodeServiceImpl implements NodeService {
         // reset cache
         treeCache.invalidate(root.getPath());
         return root;
-    }
-
-    @Override
-    public void setEnv(String path, Map<String, String> envs) {
-        throw new NotImplementedException();
-        //TODO: convert node tree to yml and save
     }
 
     @Override
@@ -145,6 +141,23 @@ public class NodeServiceImpl implements NodeService {
         // reset cache
         treeCache.invalidate(flow.getPath());
         return flow;
+    }
+
+    @Override
+    public void setFlowEnv(String path, Map<String, String> envs) {
+        Node node = find(path);
+        if (node == null) {
+            throw new IllegalParameterException("The flow path doesn't exist");
+        }
+
+        if (!(node instanceof Flow)) {
+            throw new IllegalParameterException("The path is not for flow");
+        }
+
+        node.setEnvs(envs);
+
+        // sync latest env into flow table
+        flowDao.update((Flow) node);
     }
 
     @Override

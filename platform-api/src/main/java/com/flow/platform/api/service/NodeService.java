@@ -43,11 +43,6 @@ public interface NodeService {
     Node find(String path);
 
     /**
-     * Set node evn and sync to yml
-     */
-    void setEnv(String path, Map<String, String> envs);
-
-    /**
      * To check flow name is existed
      */
     boolean isExistedFlow(String flowName);
@@ -56,6 +51,11 @@ public interface NodeService {
      * Create flow without any children
      */
     Flow createEmptyFlow(String flowName);
+
+    /**
+     * Set flow node evn and sync to yml
+     */
+    void setFlowEnv(String path, Map<String, String> envs);
 
     /**
      * list current flows with path, name, created at and updated at
