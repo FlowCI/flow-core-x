@@ -56,16 +56,34 @@ public class FlowController {
     @PostMapping("/{flowName}/env")
     public void setFlowEnv(@PathVariable String flowName, @RequestBody Map<String, String> envs) {
         PathUtil.validateName(flowName);
-        throw new NotImplementedException();
+        nodeService.setFlowEnv(PathUtil.build(flowName), envs);
     }
 
     /**
      * Check flow name is exist
      */
-    @GetMapping("/exist/{flowName}")
+    @GetMapping("/{flowName}/exist")
     public Boolean isFlowNameExist(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        return nodeService.isExistedFlow(flowName);
+        return nodeService.exist(PathUtil.build(flowName));
+    }
+
+    @GetMapping("/{flowName}/yml")
+    public String getRawYml(@PathVariable String flowName) {
+        PathUtil.validateName(flowName);
+        return nodeService.rawYml(PathUtil.build(flowName));
+    }
+
+    @GetMapping("/{flowName}/yml/verify")
+    public String verifyYml(@PathVariable String flowName) {
+        PathUtil.validateName(flowName);
+        throw new NotImplementedException();
+    }
+
+    @GetMapping("/{flowName}/webhook")
+    public String getWebhook(@PathVariable String flowName) {
+        PathUtil.validateName(flowName);
+        throw new NotImplementedException();
     }
 
     @GetMapping("/webhooks")

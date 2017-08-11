@@ -65,7 +65,7 @@ public class NodeServiceTest extends TestBase {
         // then:
         Flow saved = flowDao.get(root.getPath());
         Assert.assertNotNull(saved);
-        Assert.assertTrue(nodeService.isExistedFlow(root.getName()));
+        Assert.assertTrue(nodeService.exist(root.getName()));
         Assert.assertEquals(root, saved);
         Assert.assertEquals("flow1", saved.getName());
         Assert.assertEquals("/flow1", saved.getPath());

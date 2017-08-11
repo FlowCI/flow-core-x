@@ -53,7 +53,7 @@ public interface NodeService {
     /**
      * To check flow name is existed
      */
-    boolean isExistedFlow(String flowName);
+    boolean exist(String path);
 
     /**
      * Create flow without any children
