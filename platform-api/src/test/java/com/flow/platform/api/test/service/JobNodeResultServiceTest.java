@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author yh@firim
  */
-public class NodeResultServiceTest extends TestBase {
+public class JobNodeResultServiceTest extends TestBase {
 
     @Autowired
     private JobNodeResultService nodeResultService;

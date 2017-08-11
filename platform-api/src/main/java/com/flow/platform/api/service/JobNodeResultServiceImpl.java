@@ -24,6 +24,7 @@ import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeResultKey;
 import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.exception.IllegalStatusException;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,35 +42,26 @@ public class JobNodeResultServiceImpl implements JobNodeResultService {
     private NodeService nodeService;
 
     @Override
-    public NodeResult create(Job job) {
+    public void create(Job job) {
         String nodePath = job.getNodePath();
         Node root = nodeService.find(nodePath);
 
-        // save root to db
-        NodeResult jobNodeRoot = save(job.getId(), root);
+        if (root == null) {
+            throw new IllegalStatusException("Job related node is empty, please check");
+        }
 
-        // save children nodes to db
-        NodeUtil.recurse(root, item -> {
-            if (root != item) {
-                save(job.getId(), item);
-            }
+        // save all empty node result to db
+        NodeUtil.recurse(root, node -> {
+            NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
+            nodeResult.setName(node.getName());
+            nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+            nodeResultDao.save(nodeResult);
         });
-
-        return jobNodeRoot;
     }
 
     @Override
     public NodeResult find(String path, BigInteger jobID) {
-        NodeResultKey nodeResultKey = new NodeResultKey(jobID, path);
-        return nodeResultDao.get(nodeResultKey);
-    }
-
-    @Override
-    public NodeResult save(BigInteger jobId, Node node) {
-        NodeResult nodeResult = new NodeResult(jobId, node.getPath());
-        nodeResult.setName(node.getName());
-        nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
-        return nodeResultDao.save(nodeResult);
+        return nodeResultDao.get(new NodeResultKey(jobID, path));
     }
 
     @Override

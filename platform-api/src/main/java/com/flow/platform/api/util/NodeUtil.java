@@ -35,8 +35,6 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class NodeUtil {
 
-    private final static String NODE_PATH_SEPARATOR = "/";
-
     /**
      * Build node tree structure from yml file
      *

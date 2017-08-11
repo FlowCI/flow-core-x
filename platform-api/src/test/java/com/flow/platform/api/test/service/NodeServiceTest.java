@@ -22,7 +22,6 @@ import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.NodeUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +85,7 @@ public class NodeServiceTest extends TestBase {
         Flow emptyFlow = nodeService.createEmptyFlow(flowName);
 
         // then:
-        Flow loaded = flowDao.get(emptyFlow.getPath());
+        Flow loaded = (Flow) nodeService.find(emptyFlow.getPath());
         Assert.assertNotNull(loaded);
         Assert.assertEquals(emptyFlow, loaded);
         Assert.assertEquals(0, loaded.getChildren().size());

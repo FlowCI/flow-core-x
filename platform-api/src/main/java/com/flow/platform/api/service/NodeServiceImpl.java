@@ -28,10 +28,10 @@ import com.flow.platform.exception.NotImplementedException;
 import com.flow.platform.util.Logger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,9 +44,15 @@ import org.springframework.stereotype.Service;
 @Service(value = "nodeService")
 public class NodeServiceImpl implements NodeService {
 
+    private final static int MAX_TREE_CACHE_NUM = 100;
+
+    private final static int INIT_NODE_CACHE_NUM = 10;
+
     private final Logger LOGGER = new Logger(NodeService.class);
 
-    private Cache<String, Node> nodeCache = CacheBuilder.newBuilder().maximumSize(1000).build();
+    // To cache key is root node (flow) path, value is flatted tree as map
+    private Cache<String, Cache<String, Node>> treeCache =
+        CacheBuilder.newBuilder().maximumSize(MAX_TREE_CACHE_NUM).build();
 
     @Autowired
     private YmlStorageDao ymlStorageDao;
@@ -73,8 +79,8 @@ public class NodeServiceImpl implements NodeService {
             ymlStorageDao.update(ymlStorage);
         }
 
-        // save to cache
-        NodeUtil.recurse(root, item -> nodeCache.put(item.getPath(), item));
+        // reset cache
+        treeCache.invalidate(root.getPath());
         return root;
     }
 
@@ -86,29 +92,36 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public Node find(final String path) {
-        try {
-            return nodeCache.get(path, () -> {
-                // find root path to load related yml
-                String rootPath = PathUtil.rootPath(path);
-                YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
+        final String rootPath = PathUtil.rootPath(path);
 
-                // the root node does not have related yml
-                if (ymlStorage == null) {
-                    return null;
+        try {
+            // load tree from tree cache
+            Cache<String, Node> tree = treeCache.get(rootPath, () -> {
+
+                YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
+                Cache<String, Node> cache = CacheBuilder.newBuilder().initialCapacity(INIT_NODE_CACHE_NUM).build();
+
+                // has related yml
+                if (ymlStorage != null) {
+                    Node root = NodeUtil.buildFromYml(ymlStorage.getFile());
+                    NodeUtil.recurse(root, node -> cache.put(node.getPath(), node));
+                    return cache;
                 }
 
-                Node root = NodeUtil.buildFromYml(ymlStorage.getFile());
-                final List<Node> target = new ArrayList<>(1);
-                NodeUtil.recurse(root, node -> {
-                    nodeCache.put(node.getPath(), node);
-                    if (Objects.equals(node.getPath(), path)) {
-                        target.add(node);
-                    }
-                });
+                // for empty flow
+                Flow flow = flowDao.get(path);
+                if (flow != null) {
+                    cache.put(flow.getPath(), flow);
+                    return cache;
+                }
 
-                return target.get(0);
+                // root path not exist
+                return null;
             });
-        } catch (ExecutionException ignore) {
+
+            return tree.getIfPresent(path);
+        } catch (ExecutionException | InvalidCacheLoadException ignore) {
+            // not not found or unable to load from cache
             return null;
         }
     }
@@ -128,7 +141,9 @@ public class NodeServiceImpl implements NodeService {
         }
 
         flow = flowDao.save(flow);
-        nodeCache.put(flow.getPath(), flow);
+
+        // reset cache
+        treeCache.invalidate(flow.getPath());
         return flow;
     }
 
