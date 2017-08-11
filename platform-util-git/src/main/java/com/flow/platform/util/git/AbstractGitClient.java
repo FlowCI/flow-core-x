@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -49,7 +50,7 @@ public abstract class AbstractGitClient implements GitClient {
         }
 
         try (Git git = gitOpen()) {
-            git.pull().call();
+            pullCommand(git).call();
         } catch (Throwable e) {
             throw new GitException("Fail to pull with specific files", e);
         }
@@ -95,6 +96,10 @@ public abstract class AbstractGitClient implements GitClient {
         } catch (IOException e) {
             throw new GitException("Fail to get commit message", e);
         }
+    }
+
+    protected PullCommand pullCommand(Git git) {
+        return git.pull();
     }
 
     protected Git gitOpen() {

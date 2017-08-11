@@ -19,12 +19,12 @@ package com.flow.platform.api.test.service;
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.service.GitService;
+import com.flow.platform.api.service.GitService.Env;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
 import java.nio.file.Path;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.FileSystemUtils;
@@ -41,11 +41,11 @@ public class GitServiceTest extends TestBase {
     private Path workspace;
 
     @Test
-//    @Ignore("since ssh public key should added to git repo")
-    public void should_fetch_git_file() throws Throwable {
+    public void should_fetch_git_file_with_ssh_pk() throws Throwable {
         Flow dummyFlow = new Flow("/flow-test", "flow-test");
-        dummyFlow.getEnvs().put("FLOW_GIT_SOURCE", GitSource.UNDEFINED_SSH.name());
-        dummyFlow.getEnvs().put("FLOW_GIT_URL", "git@github.com:flow-ci-plugin/for-testing.git");
+        dummyFlow.getEnvs().put(Env.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
+        dummyFlow.getEnvs().put(Env.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
+        dummyFlow.getEnvs().put(Env.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
 
         String content = gitService.fetch(dummyFlow, AppConfig.DEFAULT_YML_FILE);
         Assert.assertNotNull(content);

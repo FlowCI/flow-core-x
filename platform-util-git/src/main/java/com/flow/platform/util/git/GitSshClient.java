@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -141,6 +142,11 @@ public class GitSshClient extends AbstractGitClient {
         } catch (GitAPIException e) {
             throw new GitException("Fail to list tags from remote repo", e);
         }
+    }
+
+    @Override
+    protected PullCommand pullCommand(Git git) {
+        return buildSshCommand(super.pullCommand(git));
     }
 
     private <T extends TransportCommand> T buildSshCommand(T command) {

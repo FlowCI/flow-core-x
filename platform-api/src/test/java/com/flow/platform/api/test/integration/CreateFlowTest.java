@@ -20,6 +20,7 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.GitService;
+import com.flow.platform.api.service.GitService.Env;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
@@ -53,6 +54,7 @@ public class CreateFlowTest extends TestBase {
         Map<String, String> env = new HashMap<>();
         env.put(GitService.Env.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
         env.put(GitService.Env.FLOW_GIT_URL, GIT_URL);
+        env.put(Env.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
         nodeService.setFlowEnv(flow.getPath(), env);
 
         flow = (Flow) nodeService.find(flow.getPath());
