@@ -76,12 +76,12 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
-    public List<Job> listLatest(List<String> nodePaths) {
+    public List<Job> listLatest(List<String> nodeNames) {
         return execute((Session session) -> {
-            String string = String.join("','", nodePaths);
+            String string = String.join("','", nodeNames);
             string = "'" + string + "'";
 
-            String select = String.format("from Job where id in (select max(id) from Job where nodePath in ( %s ) group by nodePath)", string);
+            String select = String.format("from Job where id in (select max(id) from Job where nodeName in ( %s ) group by nodePath)", string);
             List<Job> jobs = (List<Job>) session.createQuery(select)
                 .list();
             return jobs;
@@ -95,7 +95,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             CriteriaBuilder builder = session.getCriteriaBuilder();
             CriteriaQuery<Job> select = builder.createQuery(Job.class);
             Root<Job> job = select.from(Job.class);
-            Predicate condition = job.get("nodePath").in(nodePath);
+            Predicate condition = job.get("nodeName").in(nodePath);
             select.where(condition);
             return session.createQuery(select).list();
         });

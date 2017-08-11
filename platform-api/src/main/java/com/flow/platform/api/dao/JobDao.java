@@ -43,7 +43,7 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     List<Job> listLatest(List<String> nodePaths);
 
     /**
-     * get jobs from nodePath
+     * get jobs from nodeName
      */
-    List<Job> list(String nodePath);
+    List<Job> list(String nodeName);
 }
