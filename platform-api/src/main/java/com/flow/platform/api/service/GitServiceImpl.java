@@ -19,11 +19,12 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.exception.NotFoundException;
+import com.flow.platform.api.git.GitClientBuilder;
+import com.flow.platform.api.git.GitSshClientBuilder;
 import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.exception.UnsupportedException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
-import com.flow.platform.util.git.GitSshClient;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -32,7 +33,10 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -45,8 +49,7 @@ public class GitServiceImpl implements GitService {
 
     private final static Logger LOGGER = new Logger(GitService.class);
 
-    // the folder in the flow workspace
-    private final static String SOURCE_FOLDER_NAME = "source";
+    private final Map<GitSource, Class<? extends GitClientBuilder>> clientBuilderType = new HashMap<>(6);
 
     @Autowired
     private Path workspace;
@@ -56,6 +59,11 @@ public class GitServiceImpl implements GitService {
 
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
+
+    @PostConstruct
+    public void init() {
+        clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
+    }
 
     @Override
     public String fetch(Flow flow, String filePath) {
@@ -84,24 +92,29 @@ public class GitServiceImpl implements GitService {
     }
 
     /**
-     * Init git client by ENV_FLOW_GIT_SOURCE, and ENV_FLOW_GIT_URL from flow env
+     * Init git client from flow env
+     * - FLOW_GIT_SOURCE
+     * - FLOW_GIT_URL
+     * - FLOW_GIT_BRANCH
+     * - FLOW_GIT_SSH_PRIVATE_KEY
+     * - FLOW_GIT_SSH_PUBLIC_KEY
      */
     private GitClient gitClientInstance(Flow flow) {
-        GitSource gitSource = GitSource.valueOf(flow.getEnvs().get(ENV_FLOW_GIT_SOURCE));
-        String gitUrl = flow.getEnvs().get(ENV_FLOW_GIT_URL);
-        Path flowWorkspace = null;
-
-        GitClient client = null;
-        if (gitSource == GitSource.UNDEFINED) {
-            flowWorkspace = flowDao.workspace(this.workspace, flow);
-            Path sourcePath = Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
-            client = new GitSshClient(gitUrl, sourcePath);
+        GitSource source = GitSource.valueOf(flow.getEnvs().get(Env.FLOW_GIT_SOURCE));
+        Class<? extends GitClientBuilder> builderClass = clientBuilderType.get(source);
+        if (builderClass == null) {
+            throw new UnsupportedException(String.format("Git source %s not supported yet", source));
         }
 
-        if (client == null) {
-            throw new UnsupportedException(String.format("Git source %s not supported yet", gitSource));
+        GitClientBuilder builder;
+        try {
+            Path flowWorkspace = flowDao.workspace(this.workspace, flow);
+            builder = builderClass.getConstructor(Flow.class, Path.class).newInstance(flow, flowWorkspace);
+        } catch (Throwable e) {
+            throw new IllegalStatusException("Fail to create GitClientBuilder instance");
         }
 
+        GitClient client = builder.build();
         LOGGER.trace("Git client initialized: %s", client);
         return client;
     }

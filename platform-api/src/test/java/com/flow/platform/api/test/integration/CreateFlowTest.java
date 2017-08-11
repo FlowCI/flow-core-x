@@ -51,14 +51,14 @@ public class CreateFlowTest extends TestBase {
 
         // setup git related env
         Map<String, String> env = new HashMap<>();
-        env.put(GitService.ENV_FLOW_GIT_SOURCE, GitSource.UNDEFINED.name());
-        env.put(GitService.ENV_FLOW_GIT_URL, GIT_URL);
+        env.put(GitService.Env.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
+        env.put(GitService.Env.FLOW_GIT_URL, GIT_URL);
         nodeService.setFlowEnv(flow.getPath(), env);
 
         flow = (Flow) nodeService.find(flow.getPath());
         Assert.assertNotNull(flow);
-        Assert.assertEquals(GitSource.UNDEFINED.name(), flow.getEnvs().get(GitService.ENV_FLOW_GIT_SOURCE));
-        Assert.assertEquals(GIT_URL, flow.getEnvs().get(GitService.ENV_FLOW_GIT_URL));
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), flow.getEnvs().get(GitService.Env.FLOW_GIT_SOURCE));
+        Assert.assertEquals(GIT_URL, flow.getEnvs().get(GitService.Env.FLOW_GIT_URL));
 
         // git clone and load .flow.yml file
         String ymlContent = gitService.fetch(flow, AppConfig.DEFAULT_YML_FILE);

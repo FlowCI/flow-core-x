@@ -41,10 +41,10 @@ public class GitServiceTest extends TestBase {
     private Path workspace;
 
     @Test
-    @Ignore("since ssh public key should added to git repo")
+//    @Ignore("since ssh public key should added to git repo")
     public void should_fetch_git_file() throws Throwable {
         Flow dummyFlow = new Flow("/flow-test", "flow-test");
-        dummyFlow.getEnvs().put("FLOW_GIT_SOURCE", GitSource.UNDEFINED.name());
+        dummyFlow.getEnvs().put("FLOW_GIT_SOURCE", GitSource.UNDEFINED_SSH.name());
         dummyFlow.getEnvs().put("FLOW_GIT_URL", "git@github.com:flow-ci-plugin/for-testing.git");
 
         String content = gitService.fetch(dummyFlow, AppConfig.DEFAULT_YML_FILE);

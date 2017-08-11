@@ -25,7 +25,7 @@ import java.io.Serializable;
  */
 public abstract class GitEvent implements Serializable {
 
-    protected GitSource gitSource = GitSource.UNDEFINED;
+    protected GitSource gitSource;
 
     protected GitEventType type;
 

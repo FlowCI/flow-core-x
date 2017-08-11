@@ -26,11 +26,18 @@ import java.util.function.Consumer;
  */
 public interface GitService {
 
-    String ENV_FLOW_GIT_SOURCE = "FLOW_GIT_SOURCE";
+    class Env {
 
-    String ENV_FLOW_GIT_URL = "FLOW_GIT_URL";
+        public final static String FLOW_GIT_SOURCE = "FLOW_GIT_SOURCE";
 
-    String ENV_FLOW_GIT_BRANCH = "FLOW_GIT_BRANCH";
+        public final static String FLOW_GIT_URL = "FLOW_GIT_URL";
+
+        public final static String FLOW_GIT_BRANCH = "FLOW_GIT_BRANCH";
+
+        public final static String FLOW_GIT_SSH_PRIVATE_KEY = "FLOW_GIT_SSH_PRIVATE_KEY";
+
+        public final static String FLOW_GIT_SSH_PUBLIC_KEY = "FLOW_GIT_SSH_PRIVATE_KEY";
+    }
 
     /**
      * Fetch file content from git repo
