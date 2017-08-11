@@ -17,12 +17,16 @@
 package com.flow.platform.api.test.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.PathUtil;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
@@ -33,33 +37,53 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  */
 public class FlowControllerTest extends TestBase {
 
+    private final String flowName = "flow-default";
+
+    @Before
+    public void initToCreateEmptyFlow() throws Throwable {
+        MockHttpServletRequestBuilder request = post("/flows/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON);
+        mockMvc.perform(request).andExpect(status().isOk());
+    }
+
+    @Test
+    public void should_return_true_if_flow_name_exist() throws Throwable {
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/exist")
+            .contentType(MediaType.APPLICATION_JSON);
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+
+        String body = result.getResponse().getContentAsString();
+        Assert.assertEquals(true, Boolean.parseBoolean(body));
+    }
+
     @Test
     public void should_response_4xx_if_flow_name_format_invalid() throws Throwable {
         String flowName = "hello*gmail";
 
-        MockHttpServletRequestBuilder content = get("/flows/exist/" + flowName)
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/exist")
             .contentType(MediaType.APPLICATION_JSON);
 
-        MvcResult result = this.mockMvc.perform(content)
+        MvcResult result = this.mockMvc.perform(request)
             .andExpect(status().is4xxClientError())
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
         ResponseError error = ResponseError.parse(body, ResponseError.class);
         Assert.assertNotNull(error);
-        Assert.assertEquals(error.getMessage(), "Invalid node name");
+        Assert.assertEquals(error.getMessage(), "Illegal node name: hello*gmail");
     }
 
     @Test
-    public void should_response_true_if_flow_name_not_exist() throws Throwable {
+    public void should_response_false_if_flow_name_not_exist() throws Throwable {
         // given:
         String flowName = "default";
 
         // when:
-        MockHttpServletRequestBuilder content = get("/flows/exist/" + flowName)
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/exist")
             .contentType(MediaType.APPLICATION_JSON);
 
-        MvcResult mvcResult = this.mockMvc.perform(content)
+        MvcResult mvcResult = this.mockMvc.perform(request)
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
@@ -68,5 +92,31 @@ public class FlowControllerTest extends TestBase {
         String response = mvcResult.getResponse().getContentAsString();
         Assert.assertNotNull(response);
         Assert.assertEquals(false, Boolean.parseBoolean(response));
+    }
+
+    @Test
+    public void should_get_yml_file_content() throws Throwable {
+        // given:
+        String path = PathUtil.build(flowName);
+        ymlStorageDao.save(new YmlStorage(path, "test"));
+
+        // when:
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml");
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        String content = result.getResponse().getContentAsString();
+
+        // then:
+        Assert.assertEquals("test", content);
+    }
+
+    @Test
+    public void should_return_empty_string_if_not_yml_content() throws Throwable {
+        // when:
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml");
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        String content = result.getResponse().getContentAsString();
+
+        // then:
+        Assert.assertEquals("", content);
     }
 }

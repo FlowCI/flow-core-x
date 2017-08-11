@@ -149,6 +149,7 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public Flow createEmptyFlow(final String flowName) {
         Flow flow = new Flow(PathUtil.build(flowName), flowName);
+        treeCache.invalidate(flow.getPath());
 
         if (exist(flow.getPath())) {
             throw new IllegalParameterException("Flow name already existed");
@@ -156,8 +157,6 @@ public class NodeServiceImpl implements NodeService {
 
         flow = flowDao.save(flow);
 
-        // reset cache
-        treeCache.invalidate(flow.getPath());
         return flow;
     }
 

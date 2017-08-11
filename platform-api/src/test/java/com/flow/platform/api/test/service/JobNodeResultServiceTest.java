@@ -50,7 +50,9 @@ public class JobNodeResultServiceTest extends TestBase {
     @Test
     public void should_save_job_node_by_job() throws IOException {
         stubDemo();
+        nodeService.createEmptyFlow("flow1");
         Job job = jobService.createJob(getResourceContent("flow.yaml"));
+
         Flow flow = (Flow) nodeService.find(job.getNodePath());
         Assert.assertEquals(job.getId(), nodeResultService.find(flow.getPath(), job.getId()).getJobId());
     }

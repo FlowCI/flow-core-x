@@ -41,8 +41,10 @@ public class EnvUtil {
             String key = entry.getKey();
             String value = entry.getValue();
 
-            if (targetEnv.containsKey(key) && overwrite) {
-                targetEnv.put(key, value);
+            if (targetEnv.containsKey(key)) {
+                if (overwrite) {
+                    targetEnv.put(key, value);
+                }
                 continue;
             }
 

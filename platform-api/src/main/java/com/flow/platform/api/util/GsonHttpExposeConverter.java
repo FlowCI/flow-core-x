@@ -84,6 +84,10 @@ public class GsonHttpExposeConverter extends GsonHttpMessageConverter {
 
         @Override
         public void write(JsonWriter out, ZonedDateTime value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
             out.value(value.toEpochSecond());
         }
 

@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
@@ -38,9 +39,13 @@ public class JobControllerTest extends TestBase {
     @Autowired
     private JobService jobService;
 
+    @Autowired
+    private NodeService nodeService;
+
     @Test
     public void should_show_job_success() throws Exception {
         stubDemo();
+        nodeService.createEmptyFlow("flow1");
         Job job = jobService.createJob(getResourceContent("flow.yaml"));
 
         MockHttpServletRequestBuilder content = get("/jobs/" + job.getId())

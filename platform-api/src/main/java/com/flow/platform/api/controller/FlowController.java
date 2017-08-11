@@ -71,7 +71,8 @@ public class FlowController {
     @GetMapping("/{flowName}/yml")
     public String getRawYml(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        return nodeService.rawYml(PathUtil.build(flowName));
+        String yml = nodeService.rawYml(PathUtil.build(flowName));
+        return yml == null ? "" : yml;
     }
 
     @GetMapping("/{flowName}/yml/verify")

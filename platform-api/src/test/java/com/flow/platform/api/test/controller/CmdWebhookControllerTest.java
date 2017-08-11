@@ -60,13 +60,12 @@ public class CmdWebhookControllerTest extends TestBase {
     @Autowired
     private JobService jobService;
 
-    @Autowired
-    private YmlStorageDao ymlStorageDao;
-
     @Test
     public void should_callback_session_success() throws Exception {
         stubDemo();
+        nodeService.createEmptyFlow("flow1");
         Job job = jobService.createJob(getResourceContent("demo_flow.yaml"));
+
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
@@ -167,7 +166,7 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_failure() throws Exception {
         stubDemo();
-
+        nodeService.createEmptyFlow("flow1");
         Job job = jobService.createJob(getResourceContent("demo_flow.yaml"));
         Step step2 = (Step) nodeService.find("/flow1/step2");
         Step step1 = (Step) nodeService.find("/flow1/step1");
@@ -223,7 +222,9 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_timeout_allow_failure() throws Exception {
         stubDemo();
+        nodeService.createEmptyFlow("flow1");
         Job job = jobService.createJob(getResourceContent("demo_flow1.yaml"));
+
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);

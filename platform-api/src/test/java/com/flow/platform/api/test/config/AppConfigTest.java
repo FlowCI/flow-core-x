@@ -36,9 +36,4 @@ public class AppConfigTest extends TestBase {
     public void should_create_working_path() throws Throwable {
         Assert.assertTrue(Files.exists(workingDir));
     }
-
-    @After
-    public void after() throws Throwable {
-        Files.delete(workingDir);
-    }
 }
