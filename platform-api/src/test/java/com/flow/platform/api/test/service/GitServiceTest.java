@@ -41,13 +41,13 @@ public class GitServiceTest extends TestBase {
     private Path workspace;
 
     @Test
-    public void should_fetch_git_file_with_ssh_pk() throws Throwable {
+    public void should_clone_git_file_with_ssh_pk() throws Throwable {
         Flow dummyFlow = new Flow("/flow-test", "flow-test");
         dummyFlow.getEnvs().put(Env.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
         dummyFlow.getEnvs().put(Env.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
         dummyFlow.getEnvs().put(Env.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
 
-        String content = gitService.fetch(dummyFlow, AppConfig.DEFAULT_YML_FILE);
+        String content = gitService.clone(dummyFlow, AppConfig.DEFAULT_YML_FILE);
         Assert.assertNotNull(content);
     }
 

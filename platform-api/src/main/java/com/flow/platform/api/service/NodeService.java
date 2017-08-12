@@ -18,8 +18,10 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.YmlStorage;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author yh@firim
@@ -43,12 +45,23 @@ public interface NodeService {
     Node find(String path);
 
     /**
-     * Find raw yml file content by node path
+     * Find raw yml file content by node path from
+     *  - yam storage
+     *  - flow workspace if yml storage not found
      *
      * @param path any node path
      * @return yml content or null if not found
      */
-    String rawYml(String path);
+    String getYmlContent(String path);
+
+    /**
+     * Load yml content from git repo in async,
+     * Then call "getYmlContent" to get yml
+     *
+     * @param path any node path
+     * @param callback method on yml loaded
+     */
+    void loadYmlContent(String path, Consumer<YmlStorage> callback);
 
     /**
      * To check flow name is existed

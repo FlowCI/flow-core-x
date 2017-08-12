@@ -16,20 +16,24 @@
 
 package com.flow.platform.api.test.integration;
 
-import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.GitService.Env;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import joptsimple.internal.Strings;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.FileSystemUtils;
 
 /**
  * @author yang
@@ -42,7 +46,7 @@ public class CreateFlowTest extends TestBase {
     private NodeService nodeService;
 
     @Autowired
-    private GitService gitService;
+    private Path workspace;
 
     @Test
     public void should_create_flow_and_init_yml() throws Throwable {
@@ -57,18 +61,31 @@ public class CreateFlowTest extends TestBase {
         env.put(Env.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
         nodeService.setFlowEnv(flow.getPath(), env);
 
-        flow = (Flow) nodeService.find(flow.getPath());
-        Assert.assertNotNull(flow);
-        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), flow.getEnvs().get(GitService.Env.FLOW_GIT_SOURCE));
-        Assert.assertEquals(GIT_URL, flow.getEnvs().get(GitService.Env.FLOW_GIT_URL));
+        final Flow loaded = (Flow) nodeService.find(flow.getPath());
+        Assert.assertNotNull(loaded);
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), loaded.getEnvs().get(GitService.Env.FLOW_GIT_SOURCE));
+        Assert.assertEquals(GIT_URL, loaded.getEnvs().get(GitService.Env.FLOW_GIT_URL));
 
-        // git clone and load .flow.yml file
-        String ymlContent = gitService.fetch(flow, AppConfig.DEFAULT_YML_FILE);
-        Assert.assertTrue(!Strings.isNullOrEmpty(ymlContent));
+        // async to clone and return .flow.yml content
+        final CountDownLatch latch = new CountDownLatch(1);
+        final StringBuilder yml = new StringBuilder();
+        nodeService.loadYmlContent(loaded.getPath(), ymlStorage -> {
+            yml.append(ymlStorage.getFile());
+            latch.countDown();
+        });
 
-        // setup node from yml
-        Node root = nodeService.create(ymlContent);
-        Assert.assertEquals(flow, root);
-        Assert.assertEquals(ymlContent, nodeService.rawYml(flow.getPath()));
+        latch.await(60, TimeUnit.SECONDS);
+
+        // create node by yml content
+        nodeService.create(yml.toString());
+
+        YmlStorage ymlStorage = ymlStorageDao.get(loaded.getPath());
+        Assert.assertNotNull(ymlStorage);
+        Assert.assertEquals(yml.toString(), ymlStorage.getFile());
+    }
+
+    @After
+    public void after() {
+        FileSystemUtils.deleteRecursively(Paths.get(workspace.toString(), "flow-integration").toFile());
     }
 }

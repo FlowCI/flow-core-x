@@ -41,19 +41,20 @@ public class GitSshClientBuilder extends GitClientBuilder {
 
     private String publicKey;
 
-    public GitSshClientBuilder(final Flow flow, final Path flowWorkspace) {
-        super(flow, flowWorkspace);
+    public GitSshClientBuilder(final Flow flow, final Path sourceFolder) {
+        super(flow, sourceFolder);
         privateKey = flow.getEnvs().get(Env.FLOW_GIT_SSH_PRIVATE_KEY);
         publicKey = flow.getEnvs().get(Env.FLOW_GIT_SSH_PUBLIC_KEY);
     }
 
     @Override
     public GitClient build() {
-        GitSshClient client = new GitSshClient(url, codeFolder);
+        GitSshClient client = new GitSshClient(url, sourceFolder);
 
         // save private key to flow workspace folder
         if (!Strings.isNullOrEmpty(privateKey)) {
-            Path privateKeyPath = Paths.get(flowWorkspace.toString(), SSH_PRIVATE_KEY_NAME);
+            Path privateKeyPath = Paths.get(sourceFolder.getParent().toString(), SSH_PRIVATE_KEY_NAME);
+
             try {
                 Files.write(privateKey, privateKeyPath.toFile(), Charset.forName("UTF-8"));
                 client.setPrivateKeyPath(privateKeyPath);

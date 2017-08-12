@@ -17,7 +17,6 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Flow;
-import java.util.function.Consumer;
 
 /**
  * To fetch related git repo info
@@ -25,6 +24,9 @@ import java.util.function.Consumer;
  * @author yang
  */
 public interface GitService {
+
+    // the folder in the flow workspace
+    String SOURCE_FOLDER_NAME = "source";
 
     class Env {
 
@@ -40,16 +42,16 @@ public interface GitService {
     }
 
     /**
-     * Fetch file content from git repo
+     * Fetch file content from git repo in flow workspace
+     */
+    String fetch(Flow flow, String filePath);
+
+    /**
+     * Fetch file content from git repo by git clone
      *
      * @param flow flow instance which includes git repo info
      * @param filePath target file path
      * @return file content
      */
-    String fetch(Flow flow, String filePath);
-
-    /**
-     * Async to fetch file content from git repo
-     */
-    void fetch(Flow flow, String filePath, Consumer<String> callBack);
+    String clone(Flow flow, String filePath);
 }

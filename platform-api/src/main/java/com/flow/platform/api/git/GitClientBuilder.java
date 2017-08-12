@@ -20,29 +20,25 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.service.GitService.Env;
 import com.flow.platform.util.git.GitClient;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * @author yang
  */
 public abstract class GitClientBuilder {
 
-    // the folder in the flow workspace
-    private final static String SOURCE_FOLDER_NAME = "source";
-
     protected String url;
 
     protected String branch;
 
-    protected Path flowWorkspace;
+    /**
+     * The folder path for git clone
+     */
+    protected Path sourceFolder;
 
-    protected Path codeFolder;
-
-    public GitClientBuilder(final Flow flow, final Path flowWorkspace) {
-        this.flowWorkspace = flowWorkspace;
-        url = flow.getEnvs().get(Env.FLOW_GIT_URL);
-        branch = flow.getEnvs().get(Env.FLOW_GIT_BRANCH);
-        codeFolder = Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
+    public GitClientBuilder(final Flow flow, final Path sourceFolder) {
+        this.url = flow.getEnvs().get(Env.FLOW_GIT_URL);
+        this.branch = flow.getEnvs().get(Env.FLOW_GIT_BRANCH);
+        this.sourceFolder = sourceFolder;
     }
 
     public abstract GitClient build();

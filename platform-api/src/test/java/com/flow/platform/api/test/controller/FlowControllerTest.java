@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -97,8 +98,9 @@ public class FlowControllerTest extends TestBase {
     @Test
     public void should_get_yml_file_content() throws Throwable {
         // given:
+        String yml = "flow:\n" + "  - name: " + flowName;
         String path = PathUtil.build(flowName);
-        ymlStorageDao.save(new YmlStorage(path, "test"));
+        ymlStorageDao.save(new YmlStorage(path, yml));
 
         // when:
         MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml");
@@ -106,7 +108,7 @@ public class FlowControllerTest extends TestBase {
         String content = result.getResponse().getContentAsString();
 
         // then:
-        Assert.assertEquals("test", content);
+        Assert.assertEquals(yml, content);
     }
 
     @Test

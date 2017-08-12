@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -71,14 +72,14 @@ public class FlowController {
     @GetMapping("/{flowName}/yml")
     public String getRawYml(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        String yml = nodeService.rawYml(PathUtil.build(flowName));
+        String yml = nodeService.getYmlContent(PathUtil.build(flowName));
         return yml == null ? "" : yml;
     }
 
-    @GetMapping("/{flowName}/yml/verify")
-    public String verifyYml(@PathVariable String flowName) {
+    @GetMapping("/{flowName}/yml/load")
+    public void loadRawYmlFromGit(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        throw new NotImplementedException();
+        nodeService.loadYmlContent(PathUtil.build(flowName), null);
     }
 
     @GetMapping("/{flowName}/webhook")

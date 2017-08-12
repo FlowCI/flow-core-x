@@ -18,7 +18,6 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
 import com.flow.platform.exception.IllegalStatusException;
@@ -27,18 +26,16 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -57,9 +54,6 @@ public class GitServiceImpl implements GitService {
     @Autowired
     private FlowDao flowDao;
 
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
-
     @PostConstruct
     public void init() {
         clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
@@ -67,28 +61,21 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public String fetch(Flow flow, String filePath) {
-        GitClient client = gitClientInstance(flow);
-        File gitFolder = client.clone(null, Sets.newHashSet(filePath));
+        Path gitSourcePath = gitSourcePath(flow);
+        Path targetPath = Paths.get(gitSourcePath.toString(), filePath);
 
-        try {
-            File targetFile = Paths.get(gitFolder.getParent(), filePath).toFile();
-            if (targetFile.exists()) {
-                return Files.toString(targetFile, Charset.forName("UTF-8"));
-            }
-
-            throw new NotFoundException("Target fetched file doesn't exist");
-        } catch (IOException e) {
-            throw new IllegalStatusException("Fail to read target fetched file");
+        if (Files.exists(targetPath)) {
+            return getContent(targetPath);
         }
+
+        return null;
     }
 
     @Override
-    public void fetch(Flow flow, String filePath, Consumer<String> callBack) {
-        // TODO: progress of fetch may be included
-        taskExecutor.execute(() -> {
-            String content = fetch(flow, filePath);
-            callBack.accept(content);
-        });
+    public String clone(Flow flow, String filePath) {
+        GitClient client = gitClientInstance(flow);
+        client.clone(null, Sets.newHashSet(filePath));
+        return fetch(flow, filePath);
     }
 
     /**
@@ -108,8 +95,9 @@ public class GitServiceImpl implements GitService {
 
         GitClientBuilder builder;
         try {
-            Path flowWorkspace = flowDao.workspace(this.workspace, flow);
-            builder = builderClass.getConstructor(Flow.class, Path.class).newInstance(flow, flowWorkspace);
+            builder = builderClass
+                .getConstructor(Flow.class, Path.class)
+                .newInstance(flow, gitSourcePath(flow));
         } catch (Throwable e) {
             throw new IllegalStatusException("Fail to create GitClientBuilder instance");
         }
@@ -117,5 +105,19 @@ public class GitServiceImpl implements GitService {
         GitClient client = builder.build();
         LOGGER.trace("Git client initialized: %s", client);
         return client;
+    }
+
+    private Path gitSourcePath(Flow flow) {
+        Path flowWorkspace = flowDao.workspace(this.workspace, flow);
+        return Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
+    }
+
+    private String getContent(Path path) {
+        try {
+            return com.google.common.io.Files.toString(path.toFile(), Charset.forName("UTF-8"));
+        } catch (IOException e) {
+            LOGGER.warn("Fail to load file content from %s", path.toString());
+            return null;
+        }
     }
 }
