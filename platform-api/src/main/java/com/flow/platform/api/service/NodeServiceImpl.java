@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,15 +48,18 @@ import org.springframework.stereotype.Service;
 @Service(value = "nodeService")
 public class NodeServiceImpl implements NodeService {
 
+    private final Logger LOGGER = new Logger(NodeService.class);
+
     private final static int MAX_TREE_CACHE_NUM = 100;
 
     private final static int INIT_NODE_CACHE_NUM = 10;
 
-    private final Logger LOGGER = new Logger(NodeService.class);
-
     // To cache key is root node (flow) path, value is flatted tree as map
-    private Cache<String, Cache<String, Node>> treeCache =
-        CacheBuilder.newBuilder().maximumSize(MAX_TREE_CACHE_NUM).build();
+    private Cache<String, Cache<String, Node>> treeCache = CacheBuilder
+        .newBuilder()
+        .expireAfterAccess(3600 * 24, TimeUnit.SECONDS)
+        .maximumSize(MAX_TREE_CACHE_NUM)
+        .build();
 
     @Autowired
     private YmlStorageDao ymlStorageDao;

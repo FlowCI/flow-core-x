@@ -20,10 +20,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +51,11 @@ public class JobControllerTest extends TestBase {
         nodeService.createEmptyFlow("flow1");
         Job job = jobService.createJob(getResourceContent("flow.yaml"));
 
+        Map<String, String> map = new HashMap<>();
+        map.put("FLOW_GIT_BRANCH", "a");
+        job.setOutputs(map);
+
+        jobDao.update(job);
         MockHttpServletRequestBuilder content = get("/jobs/" + job.getId())
             .contentType(MediaType.APPLICATION_JSON);
 

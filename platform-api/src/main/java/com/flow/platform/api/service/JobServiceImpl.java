@@ -88,6 +88,12 @@ public class JobServiceImpl implements JobService {
         job.setStatus(NodeStatus.PENDING);
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
+        job.setCreatedAt(ZonedDateTime.now());
+        job.setUpdatedAt(ZonedDateTime.now());
+
+        //update number
+        job.setNumber(jobDao.list(root.getName()).size() + 1);
+
         save(job);
 
         // create yml snapshot for job
@@ -140,7 +146,7 @@ public class JobServiceImpl implements JobService {
         Node flow = NodeUtil.findRootNode(node);
         cmdInfo.setInputs(mergeEnvs(flow.getEnvs(), node.getEnvs()));
         cmdInfo.setWebhook(getNodeHook(node, jobId));
-
+        cmdInfo.setOutputEnvFilter("FLOW_");
         Job job = find(jobId);
         cmdInfo.setSessionId(job.getSessionId());
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
@@ -465,15 +471,18 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<Job> listJobs(String flowPath, List<String> flowPaths) {
-        if (flowPath == null && flowPaths == null) {
+    public List<Job> listJobs(String flowName, List<String> flowNames) {
+        if (flowName == null && flowNames == null) {
             return jobDao.list();
         }
 
-        if(flowPaths != null){
-            return jobDao.listLatest(flowPaths);
+        if (flowNames != null) {
+            return jobDao.listLatest(flowNames);
         }
 
-        return jobDao.list(flowPath);
+        if (flowName != null) {
+            return jobDao.list(flowName);
+        }
+        return null;
     }
 }

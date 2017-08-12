@@ -18,18 +18,21 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 
 /**
  * @author yh@firim
@@ -44,14 +47,30 @@ public class JobController {
     @Autowired
     private JobService jobService;
 
+    @ModelAttribute
+    public void setLocale(@RequestParam(required = false) String locale) {
+        if (locale == null) {
+            I18nUtil.initLocale("en", "US");
+            return;
+        }
+
+        if (locale.equals("zh-CN")) {
+            I18nUtil.initLocale("zh", "CN");
+        }
+
+        if (locale.equals("en-US")) {
+            I18nUtil.initLocale("en", "US");
+        }
+    }
+
     @PostMapping
     public Job create(@RequestBody String body) {
         return jobService.createJob(body);
     }
 
     @GetMapping
-    public Collection<Job> index(@RequestParam(required = false) String flowPath) {
-        return jobService.listJobs(flowPath, null);
+    public Collection<Job> index(@RequestParam(required = false) String flowName) {
+        return jobService.listJobs(flowName, null);
     }
 
     @GetMapping(path = "/{id}")

@@ -15,9 +15,10 @@
  */
 
 package com.flow.platform.api.domain;
-
+import com.flow.platform.api.domain.adaptor.EnvAdaptor;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.JsonAdapter;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ public class Job extends Jsonable {
     private Map<String, String> envs = new HashMap<>();
 
     @Expose
+    @JsonAdapter(EnvAdaptor.class)
     private Map<String, String> outputs = new HashMap<>();
 
     @Expose
@@ -66,11 +68,22 @@ public class Job extends Jsonable {
     @Expose
     private ZonedDateTime updatedAt;
 
+    @Expose
+    private Integer number;
+
     public Job() {
     }
 
     public Job(BigInteger id) {
         this.id = id;
+    }
+
+    public Integer getNumber() {
+        return number;
+    }
+
+    public void setNumber(Integer number) {
+        this.number = number;
     }
 
     public String getSessionId() {

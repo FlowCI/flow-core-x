@@ -31,8 +31,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -48,8 +47,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.util"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
-
-    private final static LocalValidatorFactoryBean VALIDATOR = new LocalValidatorFactoryBean();
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -72,6 +69,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
-        converters.add(new GsonHttpExposeConverter());
+        GsonHttpExposeConverter gsonHttpExposeConverter = new GsonHttpExposeConverter();
+        converters.add(gsonHttpExposeConverter);
     }
 }

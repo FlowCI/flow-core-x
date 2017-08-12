@@ -9,6 +9,9 @@
       <column name="id" sql-type="decimal(25, 0)"/>
     </id>
 
+    <property name="number" type="integer"  column="number">
+
+    </property>
     <property name="nodeName" column="node_name"/>
     <property name="nodePath" column="node_path"/>
     <property name="duration" type="long" column="duration"/>

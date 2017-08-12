@@ -36,8 +36,8 @@ import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
 /**
  * Gson object to json converter
- *  - enable expose annotation
- *  - convert ZonedDateTime to timestamp
+ * - enable expose annotation
+ * - convert ZonedDateTime to timestamp
  *
  * @author yh@firim
  */

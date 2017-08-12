@@ -28,10 +28,10 @@ import com.google.gson.annotations.Expose;
 public class AgentWithFlow extends Jsonable {
 
     @Expose
-    private String agentName;
+    private String name;
 
     @Expose
-    private String agentZone;
+    private String zone;
 
     @Expose
     private String flowName;
@@ -43,11 +43,13 @@ public class AgentWithFlow extends Jsonable {
     private Integer number;
 
     @Expose
+    private String zoneWithName;
+    @Expose
     private String branch;
 
     public AgentWithFlow(AgentPath path, String flowName, AgentStatus agentStatus, Integer number) {
-        this.agentName = path.getName();
-        this.agentZone = path.getZone();
+        this.name = path.getName();
+        this.zone = path.getZone();
         this.flowName = flowName;
         this.agentStatus = agentStatus;
         this.number = number;
@@ -57,14 +59,24 @@ public class AgentWithFlow extends Jsonable {
     }
 
     public AgentWithFlow(Agent agent, Job job) {
-        this.agentName = agent.getPath().getName();
-        this.agentZone = agent.getPath().getZone();
+        this.name = agent.getPath().getName();
+        this.zone = agent.getPath().getZone();
         this.agentStatus = agent.getStatus();
+        this.zoneWithName = this.name.concat(" - ").concat(this.zone);
+
         if (job != null) {
             this.flowName = job.getNodeName();
-            this.number = 10;
+            this.number = job.getNumber();
             this.branch = "master";
         }
+    }
+
+    public String getZoneWithName() {
+        return zoneWithName;
+    }
+
+    public void setZoneWithName(String zoneWithName) {
+        this.zoneWithName = zoneWithName;
     }
 
     public String getBranch() {
@@ -75,20 +87,20 @@ public class AgentWithFlow extends Jsonable {
         this.branch = branch;
     }
 
-    public String getAgentName() {
-        return agentName;
+    public String getName() {
+        return name;
     }
 
-    public void setAgentName(String agentName) {
-        this.agentName = agentName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getAgentZone() {
-        return agentZone;
+    public String getZone() {
+        return zone;
     }
 
-    public void setAgentZone(String agentZone) {
-        this.agentZone = agentZone;
+    public void setZone(String zone) {
+        this.zone = zone;
     }
 
     public String getFlowName() {
