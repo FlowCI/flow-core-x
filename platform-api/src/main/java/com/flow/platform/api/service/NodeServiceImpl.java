@@ -22,7 +22,6 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
-import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -79,27 +78,20 @@ public class NodeServiceImpl implements NodeService {
     private String domain;
 
     @Override
-    public Node create(final String yml) {
-        Node root = NodeUtil.buildFromYml(yml);
-
-        // root node must be created
-        Flow flow;
-        try {
-            flow = findFlow(root.getPath());
-        } catch (IllegalParameterException e) {
-            throw new NotFoundException("The flow name '" + root.getPath() + "' in yml has not been created");
-        }
+    public Node create(final String path, final String yml) {
+        final Node rootFromYml = verifyYml(path, yml);
+        final Flow flow = findFlow(rootFromYml.getPath());
 
         // persistent flow type node to flow table with env which from yml
-        EnvUtil.merge(root, flow, true);
+        EnvUtil.merge(rootFromYml, flow, true);
         flowDao.update(flow);
 
-        YmlStorage ymlStorage = new YmlStorage(root.getPath(), yml);
+        YmlStorage ymlStorage = new YmlStorage(rootFromYml.getPath(), yml);
         ymlStorageDao.saveOrUpdate(ymlStorage);
 
         // reset cache
-        treeCache.invalidate(root.getPath());
-        return root;
+        treeCache.invalidate(rootFromYml.getPath());
+        return rootFromYml;
     }
 
     @Override
@@ -136,6 +128,19 @@ public class NodeServiceImpl implements NodeService {
             // not not found or unable to load from cache
             return null;
         }
+    }
+
+    @Override
+    public Node verifyYml(final String path, final String yml) {
+        final String rootPath = PathUtil.rootPath(path);
+        final Flow flow = findFlow(rootPath);
+
+        Node rootFromYml = NodeUtil.buildFromYml(yml);
+        if (flow.equals(rootFromYml)) {
+            return rootFromYml;
+        }
+
+        throw new IllegalParameterException("Flow name in yml not match the path");
     }
 
     @Override
@@ -219,6 +224,13 @@ public class NodeServiceImpl implements NodeService {
         return String.format("%s/hooks/git/%s", domain, flow.getName());
     }
 
+    /**
+     * Find flow by path
+     *
+     * @param path flow path
+     * @return Flow object
+     * @throws IllegalParameterException if node path not exist or path is not for flow
+     */
     private Flow findFlow(String path) {
         Node node = find(path);
         if (node == null) {

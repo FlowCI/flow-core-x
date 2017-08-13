@@ -26,6 +26,7 @@ import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
@@ -34,7 +35,9 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -79,9 +82,16 @@ public class JobServiceImpl implements JobService {
     private String queueUrl;
 
     @Override
-    public Job createJob(String ymlBody) {
-        // persistent nodes and yml
-        Node root = nodeService.create(ymlBody);
+    public Job createJob(String path) {
+        Node root = nodeService.find(PathUtil.rootPath(path));
+        if (root == null) {
+            throw new IllegalParameterException("Path does not existed");
+        }
+
+        String yml = nodeService.getYmlContent(root.getPath());
+        if (Strings.isNullOrEmpty(yml)) {
+            throw new NotFoundException("Yml content not found for path " + path);
+        }
 
         // create job
         Job job = new Job(CommonUtil.randomId());
@@ -97,7 +107,7 @@ public class JobServiceImpl implements JobService {
         save(job);
 
         // create yml snapshot for job
-        jobNodeService.save(job.getId(), ymlBody);
+        jobNodeService.save(job.getId(), yml);
 
         // init for node result
         nodeResultService.create(job);

@@ -19,7 +19,6 @@ import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobYmlStorage;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.test.util.NodeUtilYmlTest;
 import com.flow.platform.api.util.CommonUtil;
 import com.google.common.io.Files;
 import java.io.File;
@@ -51,7 +50,7 @@ public class JobYmlStorageDaoTest extends TestBase {
     @Test
     public void should_save_and_get_yml_success() throws IOException {
         Job job = new Job(CommonUtil.randomId());
-        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+        ClassLoader classLoader = JobYmlStorageDaoTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         File path = new File(resource.getFile());
         String ymlString = Files.toString(path, Charset.forName("UTF-8"));

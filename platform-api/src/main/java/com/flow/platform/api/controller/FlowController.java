@@ -82,6 +82,12 @@ public class FlowController {
         nodeService.loadYmlContent(PathUtil.build(flowName), null);
     }
 
+    @PostMapping("/{flowName}/yml/verify")
+    public void ymlVerification(@PathVariable String flowName, @RequestBody String yml) {
+        PathUtil.validateName(flowName);
+
+    }
+
     @GetMapping("/{flowName}/webhook")
     public String getWebhook(@PathVariable String flowName) {
         PathUtil.validateName(flowName);

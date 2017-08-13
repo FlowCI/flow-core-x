@@ -32,10 +32,11 @@ public interface NodeService {
      * Create from yml config file content
      * and persistent flow node and yml content
      *
+     * @param path any path
      * @param yml raw yml
      * @return root node
      */
-    Node create(String yml);
+    Node create(String path, String yml);
 
     /**
      * Find node by node path from yml
@@ -43,6 +44,15 @@ public interface NodeService {
      * @return node from path or null if not found
      */
     Node find(String path);
+
+    /**
+     * Verify yml format
+     *
+     * @param path any path
+     * @param yml yml content
+     * @return Node from yml
+     */
+    Node verifyYml(String path, String yml);
 
     /**
      * Find raw yml file content by node path from
