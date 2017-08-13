@@ -103,17 +103,20 @@ public class NodeServiceImpl implements NodeService {
             Cache<String, Node> tree = treeCache.get(rootPath, () -> {
 
                 YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
+                Flow flow = flowDao.get(path);
+
                 Cache<String, Node> cache = CacheBuilder.newBuilder().initialCapacity(INIT_NODE_CACHE_NUM).build();
 
                 // has related yml
                 if (ymlStorage != null) {
                     Node root = NodeUtil.buildFromYml(ymlStorage.getFile());
                     NodeUtil.recurse(root, node -> cache.put(node.getPath(), node));
+
+                    // should merge env from flow dao and yml
+                    EnvUtil.merge(flow, root, false);
                     return cache;
                 }
 
-                // for empty flow
-                Flow flow = flowDao.get(path);
                 if (flow != null) {
                     cache.put(flow.getPath(), flow);
                     return cache;

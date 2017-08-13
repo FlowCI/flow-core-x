@@ -57,12 +57,18 @@ public class NodeServiceTest extends TestBase {
 
     @Test
     public void should_create_node_by_yml() throws Throwable {
-        // when:
+        // when: create empty flow and set special env for flow
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        Map<String, String> flowEnv = new HashMap<>();
+        flowEnv.put("FLOW_SP_1", "111");
+        flowEnv.put("FLOW_SP_2", "222");
+        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.create(emptyFlow.getPath(), resourceContent);
 
-        // then:
+
+        // then: check is created in dao
         Flow saved = flowDao.get(root.getPath());
         Assert.assertNotNull(saved);
         Assert.assertTrue(nodeService.exist(root.getPath()));
@@ -70,12 +76,18 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("flow1", saved.getName());
         Assert.assertEquals("/flow1", saved.getPath());
 
+        // then: check root node can be loaded from node service
         root = nodeService.find(saved.getPath());
         Step step1 = (Step) root.getChildren().get(0);
         Assert.assertEquals("/flow1/step1", step1.getPath());
         Step step2 = (Step) root.getChildren().get(1);
         Assert.assertEquals("/flow1/step2", step2.getPath());
 
+        // then: check env is merged from flow dao
+        Assert.assertNotNull("111", root.getEnvs().get("FLOW_SP_1"));
+        Assert.assertNotNull("222", root.getEnvs().get("FLOW_SP_2"));
+
+        // then:
         YmlStorage yaml = ymlStorageDao.get(root.getPath());
         Assert.assertNotNull(yaml);
         Assert.assertEquals(resourceContent, yaml.getFile());
