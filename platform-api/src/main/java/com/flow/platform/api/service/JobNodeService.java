@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.YmlStorage;
 import java.math.BigInteger;
 
 /**
- * @author yh@firim
+ * @author lhl
  */
-public interface YmlStorageService {
+public interface JobNodeService {
 
-    void save(String nodePath, String yml);
+    /**
+     * save yml to db
+     */
+    void save(BigInteger jobId, String yml);
 
-    YmlStorage get(String nodePath);
+
+    /**
+     * get node from node and jobId
+     */
+    Node get(BigInteger jobId, String path);
+
 }

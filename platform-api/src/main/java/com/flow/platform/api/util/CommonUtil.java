@@ -31,12 +31,11 @@ public class CommonUtil {
      *
      * @return long
      */
-    public static BigInteger randomId() {
+    public synchronized static BigInteger randomId() {
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmssSSS");
         StringBuilder stringBuilder = new StringBuilder(localDateTime.format(formatter));
         String uuid = String.format("%08d", Math.abs(UUID.randomUUID().hashCode()) / 100);
-        BigInteger id = new BigInteger(stringBuilder.append(uuid).toString());
-        return id;
+        return new BigInteger(stringBuilder.append(uuid).toString());
     }
 }

@@ -29,14 +29,19 @@ public class AgentWithFlow extends Jsonable {
 
     @Expose
     private String name;
+
     @Expose
     private String zone;
+
     @Expose
     private String flowName;
+
     @Expose
     private AgentStatus agentStatus;
+
     @Expose
     private Integer number;
+
     @Expose
     private String zoneWithName;
     @Expose
@@ -57,7 +62,6 @@ public class AgentWithFlow extends Jsonable {
         this.name = agent.getPath().getName();
         this.zone = agent.getPath().getZone();
         this.agentStatus = agent.getStatus();
-
         this.zoneWithName = this.name.concat(" - ").concat(this.zone);
 
         if (job != null) {

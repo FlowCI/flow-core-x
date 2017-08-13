@@ -39,7 +39,9 @@ public class FlowDaoTest extends TestBase {
         flow.setCreatedAt(ZonedDateTime.now());
         flow.setUpdatedAt(ZonedDateTime.now());
         flowDao.save(flow);
+
         Flow flowCp = flowDao.get(flow.getPath());
+        Assert.assertNotNull(flowCp);
 
         Assert.assertEquals(flow, flowCp);
         Assert.assertEquals(flow.getName(), flowCp.getName());

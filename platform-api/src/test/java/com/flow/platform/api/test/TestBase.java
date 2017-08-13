@@ -24,7 +24,11 @@ import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
-import com.flow.platform.api.test.util.NodeUtilYmlTest;
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.service.JobNodeResultService;
+import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
@@ -64,19 +68,28 @@ public abstract class TestBase {
     }
 
     @Autowired
-    private FlowDao flowDao;
+    protected FlowDao flowDao;
 
     @Autowired
-    private JobDao jobDao;
+    protected JobDao jobDao;
 
     @Autowired
-    private YmlStorageDao ymlStorageDao;
+    protected YmlStorageDao ymlStorageDao;
 
     @Autowired
-    private JobYmlStorageDao jobYmlStorageDao;
+    protected JobYmlStorageDao jobYmlStorageDao;
 
     @Autowired
-    private NodeResultDao nodeResultDao;
+    protected NodeResultDao nodeResultDao;
+
+    @Autowired
+    protected NodeService nodeService;
+
+    @Autowired
+    protected JobService jobService;
+
+    @Autowired
+    protected JobNodeResultService jobNodeResultService;
 
     @Autowired
     private WebApplicationContext webAppContext;
@@ -89,10 +102,16 @@ public abstract class TestBase {
     }
 
     public String getResourceContent(String fileName) throws IOException {
-        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+        ClassLoader classLoader = TestBase.class.getClassLoader();
         URL resource = classLoader.getResource(fileName);
         File path = new File(resource.getFile());
         return Files.toString(path, Charset.forName("UTF-8"));
+    }
+
+    public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
+        Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+        String yml = getResourceContent(ymlResourceName);
+        return nodeService.create(emptyFlow.getPath(), yml);
     }
 
     public void stubDemo() {

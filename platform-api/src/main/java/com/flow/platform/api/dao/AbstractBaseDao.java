@@ -16,7 +16,6 @@
 
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.Job;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
@@ -94,6 +93,14 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
     public T save(final T obj) {
         return execute(session -> {
             session.save(obj);
+            return obj;
+        });
+    }
+
+    @Override
+    public T saveOrUpdate(T obj) {
+        return execute(session -> {
+            session.saveOrUpdate(obj);
             return obj;
         });
     }

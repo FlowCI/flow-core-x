@@ -18,8 +18,6 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeService;
-import com.flow.platform.api.service.YmlStorageService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
@@ -35,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+
 /**
  * @author yh@firim
  */
@@ -47,12 +46,6 @@ public class JobController {
 
     @Autowired
     private JobService jobService;
-
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private YmlStorageService ymlStorageService;
 
     @ModelAttribute
     public void setLocale(@RequestParam(required = false) String locale) {

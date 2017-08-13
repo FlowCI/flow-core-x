@@ -16,30 +16,23 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
-import com.flow.platform.api.domain.NodeResultKey;
 import java.math.BigInteger;
 
 /**
  * @author yh@firim
  */
-public interface NodeResultService {
+public interface JobNodeResultService {
 
     /**
-     * create node and children
+     * Create empty node results by job
      */
-    NodeResult create(Job job);
+    void create(Job job);
 
     /**
      * find node by node path
      */
     NodeResult find(String path, BigInteger jobId);
-
-    /**
-     * save node
-     */
-    NodeResult save(BigInteger jobId, Node node);
 
     NodeResult update(NodeResult nodeResult);
 

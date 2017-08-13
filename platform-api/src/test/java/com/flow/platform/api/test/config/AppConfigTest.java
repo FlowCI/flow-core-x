@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Node;
-import java.math.BigInteger;
+package com.flow.platform.api.test.config;
+
+import com.flow.platform.api.test.TestBase;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author lhl
+ * @author yang
  */
-public interface JobYmlStorageService {
+public class AppConfigTest extends TestBase {
 
-    /**
-     * save yml to db
-     */
-    void save(BigInteger jobId, String yml);
+    @Autowired
+    private Path workingDir;
 
-
-    /**
-     * get node from node and jobId
-     */
-    Node get(BigInteger jobId, String path);
-
+    @Test
+    public void should_create_working_path() throws Throwable {
+        Assert.assertTrue(Files.exists(workingDir));
+    }
 }

@@ -27,7 +27,7 @@ import org.junit.Test;
 public class I18nUtilTest extends TestBase {
 
     @Test
-    public void should_get_message_success(){
+    public void should_get_message_success() {
         I18nUtil.initLocale("en", "US");
         Assert.assertEquals("hello", I18nUtil.translate("hello"));
         I18nUtil.initLocale("zh", "CN");
@@ -35,7 +35,7 @@ public class I18nUtilTest extends TestBase {
     }
 
     @Test
-    public void should_get_message_null(){
+    public void should_get_message_null() {
         I18nUtil.initLocale("en", "US");
         Assert.assertNull(I18nUtil.translate("AAAA"));
         I18nUtil.initLocale("zh", "CN");

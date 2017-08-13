@@ -15,44 +15,30 @@
  */
 package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeTag;
-import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeResultService;
-import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author yh@firim
  */
-public class NodeResultServiceTest extends TestBase {
-
-    @Autowired
-    private NodeResultService nodeResultService;
-
-    @Autowired
-    private NodeResultDao nodeResultDao;
-
-    @Autowired
-    private JobService jobService;
-
-    @Autowired
-    private NodeService nodeService;
+public class JobNodeResultServiceTest extends TestBase {
 
     @Test
     public void should_save_job_node_by_job() throws IOException {
         stubDemo();
-        Job job = jobService.createJob(getResourceContent("flow.yaml"));
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath());
+
         Flow flow = (Flow) nodeService.find(job.getNodePath());
-        Assert.assertEquals(job.getId(), nodeResultService.find(flow.getPath(), job.getId()).getJobId());
+        Assert.assertEquals(job.getId(), jobNodeResultService.find(flow.getPath(), job.getId()).getJobId());
     }
 
     @Test
@@ -63,7 +49,7 @@ public class NodeResultServiceTest extends TestBase {
         nodeResultDao.save(nodeResult);
 
         nodeResult.setNodeTag(NodeTag.STEP);
-        NodeResult nodeResult1 = nodeResultService.update(nodeResult);
+        NodeResult nodeResult1 = jobNodeResultService.update(nodeResult);
         Assert.assertEquals(nodeResult1.getNodeTag(), NodeTag.STEP);
     }
 }

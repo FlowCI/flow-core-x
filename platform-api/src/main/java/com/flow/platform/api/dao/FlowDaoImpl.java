@@ -17,12 +17,11 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Flow;
-import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import org.hibernate.Session;
+import com.flow.platform.exception.IllegalStatusException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -41,4 +40,15 @@ public class FlowDaoImpl extends AbstractBaseDao<String, Flow> implements FlowDa
         return "path";
     }
 
+    @Override
+    public Path workspace(Path base, Flow flow) {
+        Path flowWorkingPath = Paths.get(base.toString(), flow.getName());
+        try {
+            return Files.createDirectories(flowWorkingPath);
+        } catch (FileAlreadyExistsException e) {
+            return flowWorkingPath;
+        } catch (Throwable e) {
+            throw new IllegalStatusException("Unable to get flow working path");
+        }
+    }
 }

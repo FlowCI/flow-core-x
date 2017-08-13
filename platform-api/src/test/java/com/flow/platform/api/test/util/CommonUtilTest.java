@@ -21,6 +21,12 @@ import com.flow.platform.api.util.CommonUtil;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,12 +36,25 @@ import org.junit.Test;
 public class CommonUtilTest extends TestBase {
 
     @Test
-    public void should_generate_success(){
-        Map<BigInteger, String> hashMap = new HashMap<>();
-        for (int i = 0; i < 10000; i++) {
-            BigInteger id = CommonUtil.randomId();
-            hashMap.put(id, String.valueOf(i));
+    public void should_generate_success() throws Throwable {
+        int numOfThread = 10;
+        int numOfIdPerThread = 1000;
+
+        CountDownLatch latch = new CountDownLatch(numOfThread);
+        Executor pool = Executors.newFixedThreadPool(numOfThread);
+        Map<BigInteger, String> hashMap = new ConcurrentHashMap<>(numOfThread * numOfIdPerThread);
+
+        for (int i = 0; i < numOfThread; i++) {
+            pool.execute(() -> {
+                for (int j = 0; j < numOfIdPerThread; j++) {
+                    BigInteger id = CommonUtil.randomId();
+                    hashMap.put(id, String.valueOf(j));
+                }
+                latch.countDown();
+            });
         }
-        Assert.assertEquals(10000, hashMap.size());
+
+        latch.await(30, TimeUnit.SECONDS);
+        Assert.assertEquals(numOfIdPerThread * numOfThread, hashMap.size());
     }
 }

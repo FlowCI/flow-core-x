@@ -25,7 +25,7 @@ import java.io.Serializable;
  */
 public abstract class GitEvent implements Serializable {
 
-    protected GitSource gitSource = GitSource.UNDEFINED;
+    protected GitSource gitSource;
 
     protected GitEventType type;
 
@@ -48,5 +48,13 @@ public abstract class GitEvent implements Serializable {
 
     public void setType(GitEventType type) {
         this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "GitEvent{" +
+            "source=" + gitSource +
+            ", type=" + type +
+            '}';
     }
 }

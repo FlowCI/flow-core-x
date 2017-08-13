@@ -17,11 +17,15 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Flow;
-import java.util.List;
+import java.nio.file.Path;
 
 /**
  * @author yh@firim
  */
 public interface FlowDao extends BaseDao<String, Flow> {
-    
+
+    /**
+     * Get flow workspace
+     */
+    Path workspace(Path base, Flow flow);
 }

@@ -24,8 +24,10 @@ import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.exception.HttpException;
 import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
@@ -34,7 +36,9 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -55,19 +59,16 @@ public class JobServiceImpl implements JobService {
     private static Logger LOGGER = new Logger(JobService.class);
 
     @Autowired
-    private NodeResultService nodeResultService;
+    private JobNodeResultService jobNodeResultService;
 
     @Autowired
-    private JobYmlStorageService jobYmlStorageService;
+    private JobNodeService jobNodeService;
 
     @Autowired
     private JobDao jobDao;
 
     @Autowired
     private NodeService nodeService;
-
-    @Autowired
-    private YmlStorageService ymlStorageService;
 
     @Value(value = "${domain}")
     private String domain;
@@ -82,29 +83,39 @@ public class JobServiceImpl implements JobService {
     private String queueUrl;
 
     @Override
-    public Job createJob(String ymlBody) {
+    public Job createJob(String path) {
+        Node root = nodeService.find(PathUtil.rootPath(path));
+        if (root == null) {
+            throw new IllegalParameterException("Path does not existed");
+        }
 
-        Node node = NodeUtil.buildFromYml(ymlBody);
-        nodeService.create(node);
-        ymlStorageService.save(node.getPath(), ymlBody);
+        String yml = nodeService.getYmlContent(root.getPath());
+        if (Strings.isNullOrEmpty(yml)) {
+            throw new NotFoundException("Yml content not found for path " + path);
+        }
 
+        // create job
         Job job = new Job(CommonUtil.randomId());
         job.setStatus(NodeStatus.PENDING);
-        job.setNodePath(node.getPath());
-        job.setNodeName(node.getName());
+        job.setNodePath(root.getPath());
+        job.setNodeName(root.getName());
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
 
         //update number
-        job.setNumber(jobDao.list(node.getName()).size()+1);
+        job.setNumber(jobDao.list(root.getName()).size() + 1);
 
         save(job);
 
-        jobYmlStorageService.save(job.getId(), ymlBody);
-        nodeResultService.create(job);
+        // create yml snapshot for job
+        jobNodeService.save(job.getId(), yml);
+
+        // init for node result
+        jobNodeResultService.create(job);
 
         //create session
         createSession(job);
+
         return job;
     }
 
@@ -142,9 +153,11 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         Node flow = NodeUtil.findRootNode(node);
-        cmdInfo.setInputs(mergeEnvs(flow.getEnvs(), node.getEnvs()));
+        EnvUtil.merge(flow, node, false);
+
+        CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
+        cmdInfo.setInputs(node.getEnvs());
         cmdInfo.setWebhook(getNodeHook(node, jobId));
         cmdInfo.setOutputEnvFilter("FLOW_");
         Job job = find(jobId);
@@ -160,30 +173,14 @@ public class JobServiceImpl implements JobService {
             }
 
             Cmd cmd = Jsonable.parse(res, Cmd.class);
-            NodeResult nodeResult = nodeResultService.find(node.getPath(), jobId);
+            NodeResult nodeResult = jobNodeResultService.find(node.getPath(), jobId);
 
             // record cmd id
             nodeResult.setCmdId(cmd.getId());
-            nodeResultService.update(nodeResult);
+            jobNodeResultService.update(nodeResult);
         } catch (Throwable ignore) {
             LOGGER.warn("run step UnsupportedEncodingException", ignore);
         }
-    }
-
-    /**
-     * merge two env
-     */
-    private Map<String, String> mergeEnvs(Map<String, String> flowEnv, Map<String, String> stepEnv) {
-        Map<String, String> hash = new HashMap<>();
-        if (flowEnv != null) {
-            hash.putAll(flowEnv);
-        }
-
-        if (stepEnv != null) {
-            hash.putAll(stepEnv);
-        }
-
-        return hash;
     }
 
     @Override
@@ -282,8 +279,8 @@ public class JobServiceImpl implements JobService {
             job.setSessionId(cmdBase.getSessionId());
             update(job);
             // run step
-            NodeResult nodeResult = nodeResultService.find(job.getNodePath(), job.getId());
-            Node flow = jobYmlStorageService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
+            NodeResult nodeResult = jobNodeResultService.find(job.getNodePath(), job.getId());
+            Node flow = jobNodeService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
 
             if (flow == null) {
                 throw new NotFoundException(String.format("Not Found Job Flow - %s", flow.getName()));
@@ -300,7 +297,7 @@ public class JobServiceImpl implements JobService {
      * step success callback
      */
     private void nodeCallback(String nodePath, CmdBase cmdBase, Job job) {
-        NodeResult nodeResult = nodeResultService.find(nodePath, job.getId());
+        NodeResult nodeResult = jobNodeResultService.find(nodePath, job.getId());
         NodeStatus nodeStatus = handleStatus(cmdBase);
 
         // keep job step status sorted
@@ -311,9 +308,9 @@ public class JobServiceImpl implements JobService {
         //update job step status
         nodeResult.setStatus(nodeStatus);
 
-        nodeResultService.update(nodeResult);
+        jobNodeResultService.update(nodeResult);
 
-        Node step = jobYmlStorageService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
+        Node step = jobNodeService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
         //update node status
         updateNodeStatus(step, cmdBase, job);
     }
@@ -322,14 +319,13 @@ public class JobServiceImpl implements JobService {
      * update job flow status
      */
     private void updateJobStatus(NodeResult nodeResult) {
-        Node node = jobYmlStorageService
+        Node node = jobNodeService
             .get(nodeResult.getNodeResultKey().getJobId(), nodeResult.getNodeResultKey().getPath());
         Job job = find(nodeResult.getNodeResultKey().getJobId());
 
         if (node instanceof Step) {
-
             //merge step outputs in flow outputs
-            job.setOutputs(mergeEnvs(nodeResult.getOutputs(), job.getOutputs()));
+            EnvUtil.merge(nodeResult.getOutputs(), job.getOutputs(), false);
             update(job);
             return;
         }
@@ -355,7 +351,7 @@ public class JobServiceImpl implements JobService {
      * update node status
      */
     private void updateNodeStatus(Node node, CmdBase cmdBase, Job job) {
-        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
         //update jobNode
         nodeResult.setUpdatedAt(ZonedDateTime.now());
         nodeResult.setStatus(handleStatus(cmdBase));
@@ -432,7 +428,7 @@ public class JobServiceImpl implements JobService {
         updateJobStatus(nodeResult);
 
         //save
-        nodeResultService.update(nodeResult);
+        jobNodeResultService.update(nodeResult);
     }
 
     /**
@@ -476,11 +472,11 @@ public class JobServiceImpl implements JobService {
             return jobDao.list();
         }
 
-        if(flowNames != null){
+        if (flowNames != null) {
             return jobDao.listLatest(flowNames);
         }
 
-        if(flowName != null){
+        if (flowName != null) {
             return jobDao.list(flowName);
         }
         return null;

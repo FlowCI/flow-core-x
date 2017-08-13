@@ -20,15 +20,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.test.TestBase;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -38,16 +36,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  */
 public class JobControllerTest extends TestBase {
 
-    @Autowired
-    private JobService jobService;
-
-    @Autowired
-    private JobDao jobDao;
-
     @Test
     public void should_show_job_success() throws Exception {
         stubDemo();
-        Job job = jobService.createJob(getResourceContent("flow.yaml"));
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath());
 
         Map<String, String> map = new HashMap<>();
         map.put("FLOW_GIT_BRANCH", "a");

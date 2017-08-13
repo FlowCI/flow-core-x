@@ -29,9 +29,10 @@ public interface JobService {
     /**
      * create job
      *
+     * @param path any node path
      * @return job
      */
-    Job createJob(String ymlBody);
+    Job createJob(String path);
 
     /**
      * handle callback

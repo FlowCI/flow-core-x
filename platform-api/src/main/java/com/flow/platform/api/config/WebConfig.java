@@ -18,7 +18,6 @@ package com.flow.platform.api.config;
 
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.api.util.GsonHttpExposeConverter;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
 import java.util.List;
@@ -30,6 +29,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.validation.Validator;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -42,11 +43,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.controller",
     "com.flow.platform.api.service",
     "com.flow.platform.api.dao",
+    "com.flow.platform.api.validator",
     "com.flow.platform.api.util"})
-@Import({DatabaseConfig.class})
+@Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
-
-    private final static int ASYNC_POOL_SIZE = 100;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -70,17 +70,6 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
         GsonHttpExposeConverter gsonHttpExposeConverter = new GsonHttpExposeConverter();
-        gsonHttpExposeConverter.setGson(Jsonable.GSON_CONFIG);
         converters.add(gsonHttpExposeConverter);
-    }
-
-    @Bean
-    public ThreadPoolTaskExecutor taskExecutor() {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
-        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
-        taskExecutor.setQueueCapacity(100);
-        taskExecutor.setThreadNamePrefix("async-task-");
-        return taskExecutor;
     }
 }

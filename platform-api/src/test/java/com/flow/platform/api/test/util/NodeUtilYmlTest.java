@@ -29,6 +29,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author yang
@@ -92,5 +93,8 @@ public class NodeUtilYmlTest {
         String yamlRaw = Files.toString(ymlSampleFile, Charset.forName("UTF-8"));
         Node node = NodeUtil.buildFromYml(yamlRaw);
         Assert.assertEquals("flow1", node.getName());
+
+        String yml = new Yaml().dump(node);
+        Assert.assertNotNull(yml);
     }
 }

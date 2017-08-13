@@ -35,8 +35,8 @@ import org.springframework.stereotype.Service;
  * @author lhl
  */
 
-@Service(value = "jobYmlStorageService")
-public class JobYmlStorageServiceImpl implements JobYmlStorageService {
+@Service
+public class JobNodeServiceImpl implements JobNodeService {
 
     private final Logger LOGGER = new Logger(JobYmlStorage.class);
 

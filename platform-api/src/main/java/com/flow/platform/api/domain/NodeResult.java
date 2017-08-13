@@ -191,6 +191,6 @@ public class NodeResult extends Jsonable {
 
     @Override
     public int hashCode() {
-        return  this.getNodeResultKey().hashCode();
+        return this.getNodeResultKey().hashCode();
     }
 }

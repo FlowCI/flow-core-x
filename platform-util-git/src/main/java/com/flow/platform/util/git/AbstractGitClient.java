@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -31,29 +32,25 @@ import org.eclipse.jgit.revwalk.RevWalk;
 /**
  * @author yang
  */
-public class GitLocalClient implements GitClient {
+public abstract class AbstractGitClient implements GitClient {
 
     protected String gitUrl;
 
     protected Path targetDir; // target directory
 
-    public GitLocalClient(String gitUrl, Path targetDir) {
+    public AbstractGitClient(String gitUrl, Path targetDir) {
         this.gitUrl = gitUrl;
         this.targetDir = targetDir;
     }
 
     @Override
     public void pull(Integer depth) {
-        // exec git linux command since jGit doesn't support sparse checkout
+        if (depth != null) {
+            throw new GitException("JGit api doesn't support shallow clone");
+        }
+
         try (Git git = gitOpen()) {
-            String branch = git.getRepository().getBranch();
-
-            String pullCmd = pullShellCommand(depth, "origin", branch).toString();
-            ProcessBuilder pBuilder = new ProcessBuilder("/bin/bash", "-c", pullCmd);
-            pBuilder.directory(targetDir.toFile());
-
-            Process exec = pBuilder.start();
-            exec.waitFor();
+            pullCommand(git).call();
         } catch (Throwable e) {
             throw new GitException("Fail to pull with specific files", e);
         }
@@ -101,24 +98,28 @@ public class GitLocalClient implements GitClient {
         }
     }
 
-    protected StringBuilder pullShellCommand(Integer depth, String remote, String branch) {
-        StringBuilder cmdBuilder = new StringBuilder("git pull");
-
-        if (depth != null) {
-            cmdBuilder.append(" --depth ").append(depth);
-        }
-
-        cmdBuilder.append(" ").append(remote);
-        cmdBuilder.append(" ").append(branch);
-
-        return cmdBuilder;
+    protected PullCommand pullCommand(Git git) {
+        return git.pull();
     }
 
     protected Git gitOpen() {
         try {
-            return Git.open(Paths.get(targetDir.toString(), ".git").toFile());
+            return Git.open(getGitPath().toFile());
         } catch (IOException e) {
             throw new GitException("Fail to open .git folder", e);
         }
+    }
+
+    protected Path getGitPath() {
+        return Paths.get(targetDir.toString(), ".git");
+    }
+
+    @Override
+    public String toString() {
+        return "GitClient{" +
+            "gitUrl='" + gitUrl + '\'' +
+            ", targetDir=" + targetDir +
+            ", clientType=" + getClass().getSimpleName() +
+            '}';
     }
 }
