@@ -34,8 +34,19 @@ public class EnvUtil {
      * @param overwrite is overwrite target node env if it is existed
      */
     public static void merge(Node from, Node to, boolean overwrite) {
+        if (from == null || to == null) {
+            return;
+        }
+
         Map<String, String> sourceEnv = from.getEnvs();
         Map<String, String> targetEnv = to.getEnvs();
+        merge(sourceEnv, targetEnv, overwrite);
+    }
+
+    public static void merge(Map<String, String> sourceEnv, Map<String, String> targetEnv, boolean overwrite) {
+        if (sourceEnv == null || targetEnv == null) {
+            return;
+        }
 
         for (Entry<String, String> entry : sourceEnv.entrySet()) {
             String key = entry.getKey();

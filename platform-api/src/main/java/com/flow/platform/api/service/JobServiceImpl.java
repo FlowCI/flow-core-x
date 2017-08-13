@@ -24,6 +24,7 @@ import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.exception.HttpException;
 import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -58,7 +59,7 @@ public class JobServiceImpl implements JobService {
     private static Logger LOGGER = new Logger(JobService.class);
 
     @Autowired
-    private JobNodeResultService nodeResultService;
+    private JobNodeResultService jobNodeResultService;
 
     @Autowired
     private JobNodeService jobNodeService;
@@ -110,7 +111,7 @@ public class JobServiceImpl implements JobService {
         jobNodeService.save(job.getId(), yml);
 
         // init for node result
-        nodeResultService.create(job);
+        jobNodeResultService.create(job);
 
         //create session
         createSession(job);
@@ -152,9 +153,11 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         Node flow = NodeUtil.findRootNode(node);
-        cmdInfo.setInputs(mergeEnvs(flow.getEnvs(), node.getEnvs()));
+        EnvUtil.merge(flow, node, false);
+
+        CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
+        cmdInfo.setInputs(node.getEnvs());
         cmdInfo.setWebhook(getNodeHook(node, jobId));
         cmdInfo.setOutputEnvFilter("FLOW_");
         Job job = find(jobId);
@@ -170,30 +173,14 @@ public class JobServiceImpl implements JobService {
             }
 
             Cmd cmd = Jsonable.parse(res, Cmd.class);
-            NodeResult nodeResult = nodeResultService.find(node.getPath(), jobId);
+            NodeResult nodeResult = jobNodeResultService.find(node.getPath(), jobId);
 
             // record cmd id
             nodeResult.setCmdId(cmd.getId());
-            nodeResultService.update(nodeResult);
+            jobNodeResultService.update(nodeResult);
         } catch (Throwable ignore) {
             LOGGER.warn("run step UnsupportedEncodingException", ignore);
         }
-    }
-
-    /**
-     * merge two env
-     */
-    private Map<String, String> mergeEnvs(Map<String, String> flowEnv, Map<String, String> stepEnv) {
-        Map<String, String> hash = new HashMap<>();
-        if (flowEnv != null) {
-            hash.putAll(flowEnv);
-        }
-
-        if (stepEnv != null) {
-            hash.putAll(stepEnv);
-        }
-
-        return hash;
     }
 
     @Override
@@ -292,7 +279,7 @@ public class JobServiceImpl implements JobService {
             job.setSessionId(cmdBase.getSessionId());
             update(job);
             // run step
-            NodeResult nodeResult = nodeResultService.find(job.getNodePath(), job.getId());
+            NodeResult nodeResult = jobNodeResultService.find(job.getNodePath(), job.getId());
             Node flow = jobNodeService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
 
             if (flow == null) {
@@ -310,7 +297,7 @@ public class JobServiceImpl implements JobService {
      * step success callback
      */
     private void nodeCallback(String nodePath, CmdBase cmdBase, Job job) {
-        NodeResult nodeResult = nodeResultService.find(nodePath, job.getId());
+        NodeResult nodeResult = jobNodeResultService.find(nodePath, job.getId());
         NodeStatus nodeStatus = handleStatus(cmdBase);
 
         // keep job step status sorted
@@ -321,7 +308,7 @@ public class JobServiceImpl implements JobService {
         //update job step status
         nodeResult.setStatus(nodeStatus);
 
-        nodeResultService.update(nodeResult);
+        jobNodeResultService.update(nodeResult);
 
         Node step = jobNodeService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
         //update node status
@@ -337,9 +324,8 @@ public class JobServiceImpl implements JobService {
         Job job = find(nodeResult.getNodeResultKey().getJobId());
 
         if (node instanceof Step) {
-
             //merge step outputs in flow outputs
-            job.setOutputs(mergeEnvs(nodeResult.getOutputs(), job.getOutputs()));
+            EnvUtil.merge(nodeResult.getOutputs(), job.getOutputs(), false);
             update(job);
             return;
         }
@@ -365,7 +351,7 @@ public class JobServiceImpl implements JobService {
      * update node status
      */
     private void updateNodeStatus(Node node, CmdBase cmdBase, Job job) {
-        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
         //update jobNode
         nodeResult.setUpdatedAt(ZonedDateTime.now());
         nodeResult.setStatus(handleStatus(cmdBase));
@@ -442,7 +428,7 @@ public class JobServiceImpl implements JobService {
         updateJobStatus(nodeResult);
 
         //save
-        nodeResultService.update(nodeResult);
+        jobNodeResultService.update(nodeResult);
     }
 
     /**
