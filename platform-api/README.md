@@ -90,7 +90,7 @@
   ```
       Method: Post
       Route: /job/status/lastest
-      Body: ['/flow-1', '/flow-2']
+      Body: ['flow-1', 'flow-2']
       Response:
           [
           {
@@ -103,7 +103,7 @@
 
   ``` 
         Method: Get
-        Route: /job/:id
+        Route: /:flowName/jobs/:buildNumber
         Response:
             {
                 "id": 17080916210140717520056,

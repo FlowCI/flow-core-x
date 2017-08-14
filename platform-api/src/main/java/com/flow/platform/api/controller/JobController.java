@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@RequestMapping(path = "/jobs")
+@RequestMapping
 public class JobController {
 
     @Autowired
@@ -65,22 +65,22 @@ public class JobController {
         }
     }
 
-    @PostMapping(path = "/{flowName}")
+    @PostMapping(path = "/jobs/{flowName}")
     public Job create(@PathVariable String flowName) {
         return jobService.createJob(PathUtil.build(flowName));
     }
 
-    @GetMapping
+    @GetMapping(path = "/jobs")
     public Collection<Job> index(@RequestParam(required = false) String flowName) {
         return jobService.listJobs(flowName, null);
     }
 
-    @GetMapping(path = "/{flowName}/{buildNumber}")
+    @GetMapping(path = "/{flowName}/jobs/{buildNumber}")
     public Job show(@PathVariable String flowName, @PathVariable Integer buildNumber) {
         return jobService.find(flowName, buildNumber);
     }
 
-    @PostMapping(path = "/status/latest")
+    @PostMapping(path = "/jobs/status/latest")
     public Collection<Job> latestStatus(@RequestBody List<String> flowPaths) {
         return jobService.listJobs(null, flowPaths);
     }
