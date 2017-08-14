@@ -54,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author yh@firim
  */
 @Service(value = "jobService")
-@Transactional
+@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class JobServiceImpl implements JobService {
 
     private static Logger LOGGER = new Logger(JobService.class);
