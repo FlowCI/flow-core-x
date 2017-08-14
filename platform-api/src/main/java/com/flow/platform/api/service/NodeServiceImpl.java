@@ -246,10 +246,4 @@ public class NodeServiceImpl implements NodeService {
 
         return (Flow) node;
     }
-
-
-    @Override
-    public Node findFlowInDb(String path) {
-        return flowDao.get(path);
-    }
 }

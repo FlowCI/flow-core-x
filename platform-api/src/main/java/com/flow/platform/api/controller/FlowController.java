@@ -49,10 +49,9 @@ public class FlowController {
     }
 
     @GetMapping(path = "/{flowName}")
-    public Flow show(@PathVariable String flowName) {
+    public Node show(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        String path = PathUtil.build(flowName);
-        return (Flow) nodeService.findFlowInDb(path);
+        return nodeService.find(PathUtil.build(flowName));
     }
 
     @PostMapping("/{flowName}")

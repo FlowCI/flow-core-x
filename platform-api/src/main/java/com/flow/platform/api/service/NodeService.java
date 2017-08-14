@@ -45,8 +45,6 @@ public interface NodeService {
      */
     Node find(String path);
 
-    Node findFlowInDb(String path);
-
     /**
      * Verify yml format
      *
