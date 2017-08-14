@@ -110,7 +110,7 @@ public class JobServiceImpl implements JobService {
         job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
 
         //save job
-        save(job);
+        jobDao.save(job);
 
         // create yml snapshot for job
         jobNodeService.save(job.getId(), yml);
@@ -133,7 +133,7 @@ public class JobServiceImpl implements JobService {
             job = find(new BigInteger(id));
             if (job == null) {
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
-                throw new RuntimeException("job not found");
+                throw new NotFoundException("job not found");
             }
             sessionCallback(job, cmdBase);
         } else if (cmdBase.getType() == CmdType.RUN_SHELL) {
@@ -142,7 +142,7 @@ public class JobServiceImpl implements JobService {
             nodeCallback(map.get("path"), cmdBase, job);
         } else {
             LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
-            throw new RuntimeException("not found cmdType");
+            throw new NotFoundException("not found cmdType");
         }
     }
 
@@ -188,6 +188,7 @@ public class JobServiceImpl implements JobService {
         Job job = find(jobId);
         cmdInfo.setSessionId(job.getSessionId());
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
+
         try {
             String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
 
@@ -209,20 +210,8 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job save(Job job) {
-        jobDao.save(job);
-        return job;
-    }
-
-    @Override
     public Job find(BigInteger id) {
         return jobDao.get(id);
-    }
-
-    @Override
-    public Job update(Job job) {
-        jobDao.update(job);
-        return job;
     }
 
     /**
@@ -247,14 +236,16 @@ public class JobServiceImpl implements JobService {
      */
     private void createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
-        LOGGER.traceMarker("createSession", String.format("jobId - %s", job.getId()));
         cmdInfo.setWebhook(getJobHook(job));
+        LOGGER.traceMarker("createSession", String.format("jobId - %s", job.getId()));
+
         // create session
         Cmd cmd = sendToQueue(cmdInfo);
+
         //enter queue
         job.setStatus(NodeStatus.ENQUEUE);
         job.setCmdId(cmd.getId());
-        update(job);
+        jobDao.update(job);
     }
 
     /**
@@ -302,7 +293,8 @@ public class JobServiceImpl implements JobService {
         if (cmdBase.getStatus() == CmdStatus.SENT) {
             job.setUpdatedAt(ZonedDateTime.now());
             job.setSessionId(cmdBase.getSessionId());
-            update(job);
+            jobDao.update(job);
+
             // run step
             NodeResult nodeResult = jobNodeResultService.find(job.getNodePath(), job.getId());
             Node flow = jobNodeService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
@@ -353,7 +345,7 @@ public class JobServiceImpl implements JobService {
             EnvUtil.merge(nodeResult.getOutputs(), job.getOutputs(), false);
 
             job.setDuration(job.getDuration() + nodeResult.getDuration());
-            update(job);
+            jobDao.update(job);
             return;
         }
 
@@ -366,7 +358,7 @@ public class JobServiceImpl implements JobService {
         }
 
         job.setStatus(nodeStatus);
-        update(job);
+        jobDao.update(job);
 
         //delete session
         if (nodeStatus == NodeStatus.FAILURE || nodeStatus == NodeStatus.SUCCESS) {

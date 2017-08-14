@@ -28,11 +28,13 @@ import com.flow.platform.exception.IllegalStatusException;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author gyfirim
  */
 @Service
+@Transactional
 public class JobNodeResultServiceImpl implements JobNodeResultService {
 
     @Autowired

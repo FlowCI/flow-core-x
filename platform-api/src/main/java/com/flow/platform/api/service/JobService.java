@@ -47,11 +47,6 @@ public interface JobService {
     void run(Node node, BigInteger jobId);
 
     /**
-     * save job
-     */
-    Job save(Job job);
-
-    /**
      * find job by id
      */
     Job find(BigInteger id);
@@ -60,11 +55,6 @@ public interface JobService {
      * find by flow name and number
      */
     Job find(String flowName, Integer number);
-
-    /**
-     * update job
-     */
-    Job update(Job job);
 
     /**
      * list all jobs
