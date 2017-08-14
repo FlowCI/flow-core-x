@@ -77,7 +77,7 @@ public class CreateFlowTest extends TestBase {
         latch.await(60, TimeUnit.SECONDS);
 
         // create node by yml content
-        nodeService.create(loaded.getPath(), yml.toString());
+        nodeService.createOrUpdate(loaded.getPath(), yml.toString());
 
         YmlStorage ymlStorage = ymlStorageDao.get(loaded.getPath());
         Assert.assertNotNull(ymlStorage);

@@ -78,7 +78,7 @@ public class NodeServiceImpl implements NodeService {
     private String domain;
 
     @Override
-    public Node create(final String path, final String yml) {
+    public Node createOrUpdate(final String path, final String yml) {
         final Node rootFromYml = verifyYml(path, yml);
         final Flow flow = findFlow(rootFromYml.getPath());
 
