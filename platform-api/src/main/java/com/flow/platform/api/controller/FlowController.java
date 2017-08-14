@@ -20,19 +20,16 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.service.NodeService;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.exception.NotImplementedException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -49,6 +46,13 @@ public class FlowController {
     @GetMapping
     public List<Flow> index() {
         return nodeService.listFlows();
+    }
+
+    @GetMapping(path = "/{flowName}")
+    public Flow show(@PathVariable String flowName) {
+        PathUtil.validateName(flowName);
+        String path = PathUtil.build(flowName);
+        return (Flow) nodeService.findFlowInDb(path);
     }
 
     @PostMapping("/{flowName}")

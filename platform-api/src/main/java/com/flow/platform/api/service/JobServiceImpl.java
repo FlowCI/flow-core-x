@@ -351,6 +351,8 @@ public class JobServiceImpl implements JobService {
         if (node instanceof Step) {
             //merge step outputs in flow outputs
             EnvUtil.merge(nodeResult.getOutputs(), job.getOutputs(), false);
+
+            job.setDuration(job.getDuration() + nodeResult.getDuration());
             update(job);
             return;
         }
@@ -368,6 +370,7 @@ public class JobServiceImpl implements JobService {
 
         //delete session
         if (nodeStatus == NodeStatus.FAILURE || nodeStatus == NodeStatus.SUCCESS) {
+
             deleteSession(job);
         }
     }
