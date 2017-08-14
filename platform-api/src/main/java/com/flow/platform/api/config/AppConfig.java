@@ -16,11 +16,12 @@
 
 package com.flow.platform.api.config;
 
-import com.flow.platform.api.util.SystemUtil;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +37,8 @@ public class AppConfig {
 
     public final static String DEFAULT_YML_FILE = ".flow.yml";
 
+    public final static Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
     private final static int ASYNC_POOL_SIZE = 100;
@@ -46,7 +49,7 @@ public class AppConfig {
     @Bean
     public Path workspace() {
         try {
-            Path dir = Files.createDirectories(SystemUtil.replacePathWithEnv(workspace));
+            Path dir = Files.createDirectories(Paths.get(workspace));
             LOGGER.trace("flow.ci working dir been created : %s", dir);
             return dir;
         } catch (IOException e) {

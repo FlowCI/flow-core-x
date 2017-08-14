@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.git.GitClientBuilder;
@@ -114,7 +115,7 @@ public class GitServiceImpl implements GitService {
 
     private String getContent(Path path) {
         try {
-            return com.google.common.io.Files.toString(path.toFile(), Charset.forName("UTF-8"));
+            return com.google.common.io.Files.toString(path.toFile(), AppConfig.DEFAULT_CHARSET);
         } catch (IOException e) {
             LOGGER.warn("Fail to load file content from %s", path.toString());
             return null;

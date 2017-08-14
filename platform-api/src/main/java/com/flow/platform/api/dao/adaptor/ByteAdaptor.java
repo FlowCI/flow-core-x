@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.dao.adaptor;
 
+import com.flow.platform.api.config.AppConfig;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.sql.PreparedStatement;
@@ -76,12 +77,12 @@ public class ByteAdaptor extends BaseAdaptor{
     }
 
     private String byteToString(byte[] bytes){
-        String str = new String(bytes, Charset.forName("UTF-8"));
+        String str = new String(bytes, AppConfig.DEFAULT_CHARSET);
         return str;
     }
 
     private byte[] stringToByte(String str){
-        byte[] bytes = str.getBytes(Charset.forName("UTF-8"));
+        byte[] bytes = str.getBytes(AppConfig.DEFAULT_CHARSET);
         return bytes;
     }
 }

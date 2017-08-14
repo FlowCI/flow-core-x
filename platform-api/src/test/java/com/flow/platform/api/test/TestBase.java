@@ -18,6 +18,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
@@ -105,7 +106,7 @@ public abstract class TestBase {
         ClassLoader classLoader = TestBase.class.getClassLoader();
         URL resource = classLoader.getResource(fileName);
         File path = new File(resource.getFile());
-        return Files.toString(path, Charset.forName("UTF-8"));
+        return Files.toString(path, AppConfig.DEFAULT_CHARSET);
     }
 
     public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
