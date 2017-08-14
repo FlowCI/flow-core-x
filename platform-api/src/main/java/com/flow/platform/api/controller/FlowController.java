@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.util.NodeUtil;
@@ -25,6 +26,7 @@ import com.flow.platform.exception.NotImplementedException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,7 +52,7 @@ public class FlowController {
     }
 
     @PostMapping("/{flowName}")
-    public Flow createEmptyFlow(@PathVariable String flowName) {
+    public Node createEmptyFlow(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
         return nodeService.createEmptyFlow(flowName);
     }
@@ -87,6 +89,12 @@ public class FlowController {
     public void ymlVerification(@PathVariable String flowName, @RequestBody String yml) {
         PathUtil.validateName(flowName);
         nodeService.verifyYml(PathUtil.build(flowName), yml);
+    }
+
+    @PostMapping("/{flowName}/yml/create")
+    public Node createFromYml(@PathVariable String flowName, @RequestBody String yml) {
+        PathUtil.validateName(flowName);
+        return nodeService.create(PathUtil.build(flowName), yml);
     }
 
     @GetMapping("/{flowName}/webhook")
