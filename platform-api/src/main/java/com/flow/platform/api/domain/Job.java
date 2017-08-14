@@ -30,7 +30,7 @@ public class Job extends Jsonable {
     private BigInteger id;
 
     @Expose
-    private Long duration;
+    private Long duration = 0l;
 
     @Expose
     private String nodePath;

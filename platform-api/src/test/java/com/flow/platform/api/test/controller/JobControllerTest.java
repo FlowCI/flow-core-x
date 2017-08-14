@@ -47,7 +47,11 @@ public class JobControllerTest extends TestBase {
         job.setOutputs(map);
 
         jobDao.update(job);
-        MockHttpServletRequestBuilder content = get("/jobs/" + job.getId())
+
+        StringBuilder stringBuilder = new StringBuilder("/jobs/");
+
+        MockHttpServletRequestBuilder content = get(
+            stringBuilder.append(job.getNodeName()).append("/").append(job.getNumber()).toString())
             .contentType(MediaType.APPLICATION_JSON);
 
         MvcResult mvcResult = this.mockMvc.perform(content)

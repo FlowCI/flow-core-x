@@ -48,6 +48,12 @@ public class FlowController {
         return nodeService.listFlows();
     }
 
+    @GetMapping(path = "/{flowName}")
+    public Node show(@PathVariable String flowName) {
+        PathUtil.validateName(flowName);
+        return nodeService.find(PathUtil.build(flowName));
+    }
+
     @PostMapping("/{flowName}")
     public Node createEmptyFlow(@PathVariable String flowName) {
         PathUtil.validateName(flowName);

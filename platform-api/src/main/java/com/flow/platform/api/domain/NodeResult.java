@@ -30,7 +30,7 @@ public class NodeResult extends Jsonable {
 
     private Map<String, String> outputs = new HashMap<>();
 
-    private Long duration;
+    private Long duration = 0l;
 
     private Integer exitCode;
 

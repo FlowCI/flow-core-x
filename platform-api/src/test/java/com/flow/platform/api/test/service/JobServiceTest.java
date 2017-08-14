@@ -77,6 +77,7 @@ public class JobServiceTest extends TestBase {
         cmd.setType(CmdType.RUN_SHELL);
         CmdResult cmdResult = new CmdResult();
         cmdResult.setExitValue(1);
+        cmdResult.setDuration(10l);
         cmd.setCmdResult(cmdResult);
 
         map.put("path", step2.getPath());

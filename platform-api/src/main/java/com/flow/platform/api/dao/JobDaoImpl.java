@@ -92,6 +92,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             Root<Job> job = select.from(Job.class);
             Predicate condition = job.get("nodeName").in(nodePath);
             select.where(condition);
+            select.orderBy(builder.desc(job.get("number")));
             return session.createQuery(select).list();
         });
     }
