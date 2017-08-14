@@ -115,11 +115,6 @@ public class AgentManager implements Runnable, TreeCacheListener {
             onDataChanged(eventData.getPath());
             return;
         }
-
-        if (event.getType() == Type.NODE_REMOVED) {
-            onDeleted();
-            return;
-        }
     }
 
     /**
