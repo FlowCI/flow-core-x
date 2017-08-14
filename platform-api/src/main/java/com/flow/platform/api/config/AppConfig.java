@@ -18,6 +18,7 @@ package com.flow.platform.api.config;
 
 import com.flow.platform.util.Logger;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,6 +36,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class AppConfig {
 
     public final static String DEFAULT_YML_FILE = ".flow.yml";
+
+    public final static Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 

@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.test.dao;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.JobYmlStorage;
@@ -53,7 +54,7 @@ public class JobYmlStorageDaoTest extends TestBase {
         ClassLoader classLoader = JobYmlStorageDaoTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         File path = new File(resource.getFile());
-        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+        String ymlString = Files.toString(path, AppConfig.DEFAULT_CHARSET);
         JobYmlStorage jys = new JobYmlStorage(job.getId(), ymlString);
         jobYmlStorageDao.save(jys);
         JobYmlStorage storage = jobYmlStorageDao.get(jys.getJobId());

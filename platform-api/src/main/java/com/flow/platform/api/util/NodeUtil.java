@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.util;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.exception.YmlException;
@@ -43,7 +44,7 @@ public class NodeUtil {
      */
     public static Node buildFromYml(File path) {
         try {
-            String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+            String ymlString = Files.toString(path, AppConfig.DEFAULT_CHARSET);
             return buildFromYml(ymlString);
         } catch (YmlException e) {
             throw e;

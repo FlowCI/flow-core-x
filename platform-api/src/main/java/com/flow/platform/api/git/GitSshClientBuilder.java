@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.git;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.service.GitService.Env;
 import com.flow.platform.util.Logger;
@@ -56,7 +57,7 @@ public class GitSshClientBuilder extends GitClientBuilder {
             Path privateKeyPath = Paths.get(sourceFolder.getParent().toString(), SSH_PRIVATE_KEY_NAME);
 
             try {
-                Files.write(privateKey, privateKeyPath.toFile(), Charset.forName("UTF-8"));
+                Files.write(privateKey, privateKeyPath.toFile(), AppConfig.DEFAULT_CHARSET);
                 client.setPrivateKeyPath(privateKeyPath);
             } catch (IOException warn) {
                 LOGGER.warn("Fail to write ssh private key to: %s", privateKeyPath);
