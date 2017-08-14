@@ -47,6 +47,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -57,6 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class JobServiceImpl implements JobService {
 
     private static Logger LOGGER = new Logger(JobService.class);
+
+    private Integer RETRY_TIMEs = 5;
 
     @Autowired
     private JobNodeResultService jobNodeResultService;
@@ -124,7 +127,7 @@ public class JobServiceImpl implements JobService {
         Job job;
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
 
-            job = find(new BigInteger(id));
+            job = retryFindJob(new BigInteger(id));
             if (job == null) {
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
                 throw new RuntimeException("job not found");
@@ -132,12 +135,33 @@ public class JobServiceImpl implements JobService {
             sessionCallback(job, cmdBase);
         } else if (cmdBase.getType() == CmdType.RUN_SHELL) {
             Map<String, String> map = Jsonable.GSON_CONFIG.fromJson(id, Map.class);
-            job = find(new BigInteger(map.get("jobId")));
+            job = retryFindJob(new BigInteger(map.get("jobId")));
             nodeCallback(map.get("path"), cmdBase, job);
         } else {
             LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
             throw new RuntimeException("not found cmdType");
         }
+    }
+
+    /**
+     * the reason of transaction to retry 5 times
+     * @param id
+     * @return
+     */
+    public Job retryFindJob(BigInteger id) {
+        Job job = null;
+        for (Integer i = 0; i < RETRY_TIMEs; i++) {
+            job = find(id);
+            if (job != null) {
+                break;
+            }
+            try {
+                Thread.sleep(5000);
+            } catch (Throwable throwable) {
+            }
+            LOGGER.traceMarker("retryFindJob", String.format("retry times %s", i));
+        }
+        return job;
     }
 
     /**

@@ -18,6 +18,7 @@ package com.flow.platform.api.config;
 
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.api.util.GsonHttpExposeConverter;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
 import java.util.List;
@@ -70,6 +71,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
         GsonHttpExposeConverter gsonHttpExposeConverter = new GsonHttpExposeConverter();
+        gsonHttpExposeConverter.setGson(Jsonable.GSON_CONFIG);
         converters.add(gsonHttpExposeConverter);
     }
 }

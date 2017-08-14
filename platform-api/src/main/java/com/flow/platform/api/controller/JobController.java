@@ -17,8 +17,12 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -42,8 +46,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/jobs")
 public class JobController {
 
-    private static Logger LOGGER = new Logger(JobController.class);
-
     @Autowired
     private JobService jobService;
 
@@ -63,9 +65,9 @@ public class JobController {
         }
     }
 
-    @PostMapping
-    public Job create(@RequestBody String body) {
-        return jobService.createJob(body);
+    @PostMapping(path = "/{flowName}")
+    public Job create(@PathVariable String flowName) {
+        return jobService.createJob(PathUtil.build(flowName));
     }
 
     @GetMapping
@@ -73,8 +75,8 @@ public class JobController {
         return jobService.listJobs(flowName, null);
     }
 
-    @GetMapping(path = "/{id}")
-    public Job show(@PathVariable BigInteger id) {
+    @GetMapping(path = "/{flowName}/{buildNumber}")
+    public Job show(@PathVariable BigInteger id, @PathVariable Integer buildNumber) {
         return jobService.find(id);
     }
 
