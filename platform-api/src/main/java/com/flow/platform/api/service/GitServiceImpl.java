@@ -74,8 +74,9 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public String clone(Flow flow, String filePath) {
+        String branch = flow.getEnvs().get(Env.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(flow);
-        client.clone(null, Sets.newHashSet(filePath));
+        client.clone(branch, null, Sets.newHashSet(filePath));
         return fetch(flow, filePath);
     }
 

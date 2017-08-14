@@ -17,6 +17,7 @@
 package com.flow.platform.util.git;
 
 import com.flow.platform.util.git.model.GitCommit;
+import com.google.common.base.Strings;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,13 +45,13 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
-    public void pull(Integer depth) {
+    public void pull(String branch, Integer depth) {
         if (depth != null) {
             throw new GitException("JGit api doesn't support shallow clone");
         }
 
         try (Git git = gitOpen()) {
-            pullCommand(git).call();
+            pullCommand(branch, git).call();
         } catch (Throwable e) {
             throw new GitException("Fail to pull with specific files", e);
         }
@@ -98,8 +99,11 @@ public abstract class AbstractGitClient implements GitClient {
         }
     }
 
-    protected PullCommand pullCommand(Git git) {
-        return git.pull();
+    protected PullCommand pullCommand(String branch, Git git) {
+        if (Strings.isNullOrEmpty(branch)) {
+            return git.pull();
+        }
+        return git.pull().setRemoteBranchName(branch);
     }
 
     protected Git gitOpen() {
