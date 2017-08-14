@@ -1,3 +1,5 @@
+### Flow Relate API ###
+
 ### GET Flows
   ```
       Method: Get
@@ -18,20 +20,84 @@
           }
         ]
   ```
+
+### Get Check flow name is existed
+  ```
+      Method: GET:
+      Route: /flows/{flowname}/exist
+      Response: true or false
+  ```
+
+### POST Create flow by name
+  ```
+      Method: POST:
+      Route: /flows/{flowname}
+      Response: {
+        name: "xxx",
+        path: "/xxx"
+        createdAt: 12121212,
+        updatedAt: 12121212,
+      }
+
+  ```
+
+### POST Set flow environment variable
+  ```
+      Method: POST:
+      Route: /flows/{flowname}/env
+      Body: {
+        FLOW_XXX_1: xxx,
+        FLOW_XXX_2: xxx
+      }
+  ```
   
-  
-  ### GET latest job status
+### GET Load flow yml content from repo
+  ```
+      Description: Async method, and then call Get flow yml content periodically 
+      Method: GET:
+      Route: /flows/{flowname}/yml/load
+  ```
+
+### GET Get flow yml content
+  ```
+      Method: GET:
+      Route: /flows/{flowname}/yml
+      Response:
+      flow:
+        - name: xx
+        - steps:
+          - name : xxx
+  ```
+
+### POST Verify yml content
     ```
-        Method: Post
-        Route: /job/status/lastest
-        Body: ['/flow-1', '/flow-2']
-        Response:
-            [
-            {
-               path: "/flow",
-               status: xxx
-            }]
+        Method: POST:
+        Route: /flows/{flowname}/yml/verify
+        Response: if yml been verified, response 200, otherwise response 4xx with error message {message: xxx}
     ```
+
+### GET Get flow webhook
+  ```
+      Method: GET:
+      Route: /flows/{flowname}/webhook
+      Response: {
+        path: /xxx
+        hook: http://xxxxxxxx 
+      }
+  ```
+
+### GET latest job status
+  ```
+      Method: Post
+      Route: /job/status/lastest
+      Body: ['/flow-1', '/flow-2']
+      Response:
+          [
+          {
+             path: "/flow",
+             status: xxx
+          }]
+  ```
 
 ### Get Job 
 

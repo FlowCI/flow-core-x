@@ -19,6 +19,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.exception.NotImplementedException;
 import java.util.List;
@@ -85,11 +86,11 @@ public class FlowController {
     @PostMapping("/{flowName}/yml/verify")
     public void ymlVerification(@PathVariable String flowName, @RequestBody String yml) {
         PathUtil.validateName(flowName);
-
+        nodeService.verifyYml(PathUtil.build(flowName), yml);
     }
 
     @GetMapping("/{flowName}/webhook")
-    public String getWebhook(@PathVariable String flowName) {
+    public Webhook getWebhook(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
         throw new NotImplementedException();
     }
