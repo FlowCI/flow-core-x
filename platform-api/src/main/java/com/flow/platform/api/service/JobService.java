@@ -57,6 +57,11 @@ public interface JobService {
     Job find(BigInteger id);
 
     /**
+     * find by flow name and number
+     */
+    Job find(String flowName, Integer number);
+
+    /**
      * update job
      */
     Job update(Job job);

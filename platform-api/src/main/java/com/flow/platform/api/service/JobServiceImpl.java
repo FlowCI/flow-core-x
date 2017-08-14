@@ -86,6 +86,7 @@ public class JobServiceImpl implements JobService {
     private String queueUrl;
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Job createJob(String path) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
@@ -106,8 +107,9 @@ public class JobServiceImpl implements JobService {
         job.setUpdatedAt(ZonedDateTime.now());
 
         //update number
-        job.setNumber(jobDao.list(root.getName()).size() + 1);
+        job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
 
+        //save job
         save(job);
 
         // create yml snapshot for job
@@ -123,11 +125,12 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void callback(String id, CmdBase cmdBase) {
         Job job;
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
 
-            job = retryFindJob(new BigInteger(id));
+            job = find(new BigInteger(id));
             if (job == null) {
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
                 throw new RuntimeException("job not found");
@@ -135,7 +138,7 @@ public class JobServiceImpl implements JobService {
             sessionCallback(job, cmdBase);
         } else if (cmdBase.getType() == CmdType.RUN_SHELL) {
             Map<String, String> map = Jsonable.GSON_CONFIG.fromJson(id, Map.class);
-            job = retryFindJob(new BigInteger(map.get("jobId")));
+            job = find(new BigInteger(map.get("jobId")));
             nodeCallback(map.get("path"), cmdBase, job);
         } else {
             LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
@@ -145,8 +148,6 @@ public class JobServiceImpl implements JobService {
 
     /**
      * the reason of transaction to retry 5 times
-     * @param id
-     * @return
      */
     public Job retryFindJob(BigInteger id) {
         Job job = null;
@@ -504,5 +505,10 @@ public class JobServiceImpl implements JobService {
             return jobDao.list(flowName);
         }
         return null;
+    }
+
+    @Override
+    public Job find(String flowName, Integer number) {
+        return jobDao.get(flowName, number);
     }
 }

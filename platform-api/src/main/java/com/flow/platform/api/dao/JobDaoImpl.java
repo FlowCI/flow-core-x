@@ -19,19 +19,13 @@ package com.flow.platform.api.dao;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeStatus;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.Spliterator;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.criterion.Order;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 /**
  * @author yh@firim
@@ -80,7 +74,9 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             String string = String.join("','", nodeNames);
             string = "'" + string + "'";
 
-            String select = String.format("from Job where id in (select max(id) from Job where nodeName in ( %s ) group by nodePath)", string);
+            String select = String
+                .format("from Job where id in (select max(id) from Job where nodeName in ( %s ) group by nodePath)",
+                    string);
             List<Job> jobs = (List<Job>) session.createQuery(select)
                 .list();
             return jobs;
@@ -97,6 +93,31 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             Predicate condition = job.get("nodeName").in(nodePath);
             select.where(condition);
             return session.createQuery(select).list();
+        });
+    }
+
+    @Override
+    public Job get(String flowName, Integer number) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> job = select.from(Job.class);
+            Predicate condition = builder.equal(job.get("nodeName"), flowName);
+            Predicate bCondition = builder.equal(job.get("number"), number);
+            select.where(builder.and(condition, bCondition));
+            return session.createQuery(select).uniqueResult();
+        });
+    }
+
+    @Override
+    public Integer maxBuildNumber(String flowName) {
+        return execute((Session session) -> {
+            String select = String.format("select max(number) from Job where node_name='%s'", flowName);
+            Integer integer = (Integer) session.createQuery(select).uniqueResult();
+            if (integer == null) {
+                integer = 0;
+            }
+            return integer;
         });
     }
 }

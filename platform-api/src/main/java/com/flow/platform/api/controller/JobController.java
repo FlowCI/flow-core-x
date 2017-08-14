@@ -76,8 +76,8 @@ public class JobController {
     }
 
     @GetMapping(path = "/{flowName}/{buildNumber}")
-    public Job show(@PathVariable BigInteger id, @PathVariable Integer buildNumber) {
-        return jobService.find(id);
+    public Job show(@PathVariable String flowName, @PathVariable Integer buildNumber) {
+        return jobService.find(flowName, buildNumber);
     }
 
     @PostMapping(path = "/status/latest")
