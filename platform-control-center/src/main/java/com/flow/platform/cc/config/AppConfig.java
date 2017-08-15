@@ -17,6 +17,7 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;

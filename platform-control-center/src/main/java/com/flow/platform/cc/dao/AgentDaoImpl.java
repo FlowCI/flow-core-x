@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.dao;
 
+import com.flow.platform.core.dao.AbstractBaseDao;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -44,12 +45,12 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
         .newHashSet("createdDate", "updatedDate", "sessionDate");
 
     @Override
-    Class getEntityClass() {
+    protected Class getEntityClass() {
         return Agent.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "path";
     }
 

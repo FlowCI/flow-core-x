@@ -17,10 +17,11 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeResultKey;
+import com.flow.platform.core.dao.BaseDao;
 
 /**
  * @author lhl
  */
-public interface NodeResultDao extends BaseDao<NodeResultKey, NodeResult>{
+public interface NodeResultDao extends BaseDao<NodeResultKey, NodeResult> {
 
 }

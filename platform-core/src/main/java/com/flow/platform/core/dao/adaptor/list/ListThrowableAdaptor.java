@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.dao.adaptor.list;
+package com.flow.platform.core.dao.adaptor.list;
 
-import com.flow.platform.cc.dao.adaptor.BaseAdaptor;
 import com.google.gson.reflect.TypeToken;
-
 import java.lang.reflect.Type;
 import java.util.List;
 
 /**
  * @author gy@fir.im
  */
-public class ListAdaptor extends BaseAdaptor {
-
-    @Override
-    public Class returnedClass() {
-        return List.class;
-    }
+public class ListThrowableAdaptor extends ListAdaptor {
 
     @Override
     protected Type getTargetType() {
-        TypeToken<List<String>> typeToken = new TypeToken<List<String>>() {};
+        TypeToken<List<Throwable>> typeToken = new TypeToken<List<Throwable>>() {};
         return typeToken.getType();
     }
 }

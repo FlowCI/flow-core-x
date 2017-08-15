@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.dao;
-
+package com.flow.platform.core.dao;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
@@ -35,12 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class AbstractBaseDao<K extends Serializable, T> implements BaseDao<K, T> {
 
     @FunctionalInterface
-    interface Executable<O> {
+    public interface Executable<O> {
 
         O execute(Session session);
     }
 
-    <O> O execute(Executable<O> ex) {
+    public  <O> O execute(Executable<O> ex) {
         Session session = getSession();
         return ex.execute(session);
     }
@@ -56,9 +55,9 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
         return sessionFactory.getCurrentSession();
     }
 
-    abstract Class<T> getEntityClass();
+    protected abstract Class<T> getEntityClass();
 
-    abstract String getKeyName();
+    protected abstract String getKeyName();
 
     @Override
     public List<T> list(final Set<K> keySet) {
@@ -147,4 +146,5 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
         });
     }
 }
+
 

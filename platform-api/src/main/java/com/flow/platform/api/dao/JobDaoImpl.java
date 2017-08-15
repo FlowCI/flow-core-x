@@ -18,6 +18,7 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.core.dao.AbstractBaseDao;
 import java.math.BigInteger;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -34,12 +35,12 @@ import org.springframework.stereotype.Repository;
 public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobDao {
 
     @Override
-    Class<Job> getEntityClass() {
+    protected Class<Job> getEntityClass() {
         return Job.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "id";
     }
 

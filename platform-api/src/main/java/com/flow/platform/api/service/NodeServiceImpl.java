@@ -114,6 +114,13 @@ public class NodeServiceImpl implements NodeService {
 
                     // should merge env from flow dao and yml
                     EnvUtil.merge(flow, root, false);
+
+                    // should set created time and updated time
+                    if(flow != null){
+                        root.setCreatedAt(flow.getCreatedAt());
+                        root.setUpdatedAt(flow.getUpdatedAt());
+                    }
+
                     return cache;
                 }
 
