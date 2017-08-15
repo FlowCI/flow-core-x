@@ -16,6 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.JobDao;
+import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
@@ -44,6 +45,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -68,6 +70,9 @@ public class JobServiceImpl implements JobService {
     private JobNodeService jobNodeService;
 
     @Autowired
+    private BlockingQueue<CmdQueueItem> cmdBaseBlockingQueue;
+
+    @Autowired
     private JobDao jobDao;
 
     @Autowired
@@ -86,7 +91,7 @@ public class JobServiceImpl implements JobService {
     private String queueUrl;
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Job createJob(String path) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
@@ -125,7 +130,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void callback(String id, CmdBase cmdBase) {
         Job job;
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
@@ -505,5 +510,15 @@ public class JobServiceImpl implements JobService {
     @Override
     public Job find(String flowName, Integer number) {
         return jobDao.get(flowName, number);
+    }
+
+    @Override
+    public void enterQueue(String identifier, CmdBase cmdBase) {
+        LOGGER.traceMarker("enterQueue", String.format("cmd enter queue"));
+        try {
+            cmdBaseBlockingQueue.put(new CmdQueueItem(identifier, cmdBase));
+        } catch (Throwable throwable) {
+            LOGGER.traceMarker("enterQueue", String.format("exception - %s", throwable));
+        }
     }
 }

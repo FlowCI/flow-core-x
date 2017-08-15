@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.config;
 
+import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
@@ -23,6 +24,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -66,5 +69,10 @@ public class AppConfig {
         taskExecutor.setQueueCapacity(100);
         taskExecutor.setThreadNamePrefix("async-task-");
         return taskExecutor;
+    }
+
+    @Bean
+    public BlockingQueue<CmdQueueItem> cmdBaseBlockingQueue() {
+        return new LinkedBlockingQueue<>(50);
     }
 }

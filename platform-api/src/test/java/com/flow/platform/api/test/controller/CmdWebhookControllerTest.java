@@ -66,6 +66,7 @@ public class CmdWebhookControllerTest extends TestBase {
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
+        Thread.sleep(1000);
         job = jobService.find(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertEquals(sessionId, job.getSessionId());
@@ -90,6 +91,7 @@ public class CmdWebhookControllerTest extends TestBase {
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
+        Thread.sleep(1000);
         job = jobService.find(job.getId());
         NodeResult jobStep1 = jobNodeResultService.find(step1.getPath(), job.getId());
         NodeResult jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
@@ -113,7 +115,7 @@ public class CmdWebhookControllerTest extends TestBase {
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
-
+        Thread.sleep(1000);
         job = jobService.find(job.getId());
         jobStep1 = jobNodeResultService.find(step1.getPath(), job.getId());
         jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
@@ -139,7 +141,7 @@ public class CmdWebhookControllerTest extends TestBase {
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
-
+        Thread.sleep(1000);
         job = jobService.find(job.getId());
         NodeResult jobStep2 = jobNodeResultService.find(step2.getPath(), job.getId());
         jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
@@ -175,6 +177,7 @@ public class CmdWebhookControllerTest extends TestBase {
             .andExpect(status().isOk())
             .andReturn();
 
+        Thread.sleep(1000);
         job = jobService.find(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getCmdId());
@@ -197,7 +200,7 @@ public class CmdWebhookControllerTest extends TestBase {
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
-
+        Thread.sleep(1000);
         job = jobService.find(job.getId());
         NodeResult jobStep1 = jobNodeResultService.find(step1.getPath(), job.getId());
         Assert.assertNotNull(jobStep1.getCmdId());
@@ -227,6 +230,9 @@ public class CmdWebhookControllerTest extends TestBase {
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
+
+        Thread.sleep(1000);
+
         job = jobService.find(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getCmdId());
@@ -253,6 +259,7 @@ public class CmdWebhookControllerTest extends TestBase {
             .andExpect(status().isOk())
             .andReturn();
 
+        Thread.sleep(1000);
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
 
@@ -264,7 +271,7 @@ public class CmdWebhookControllerTest extends TestBase {
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
-
+        Thread.sleep(1000);
         NodeResult jobStep1 = jobNodeResultService.find(step1.getPath(), job.getId());
         Assert.assertNotNull(jobStep1.getCmdId());
         NodeResult jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());

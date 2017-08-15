@@ -60,4 +60,9 @@ public interface JobService {
      * list all jobs
      */
     List<Job> listJobs(String flowPath, List<String> flowPaths);
+
+    /**
+     * send cmd to queue
+     */
+    void enterQueue(String identifier, CmdBase cmdBase);
 }

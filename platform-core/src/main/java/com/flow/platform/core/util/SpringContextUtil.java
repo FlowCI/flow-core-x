@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.util;
+package com.flow.platform.core.util;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
 
 /**
  * @author gy@fir.im
  */
-@Component(value = "springContextUtil")
 public class SpringContextUtil implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;

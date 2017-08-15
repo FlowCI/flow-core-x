@@ -18,6 +18,7 @@ package com.flow.platform.api.config;
 
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.api.util.GsonHttpExposeConverter;
+import com.flow.platform.core.util.SpringContextUtil;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
@@ -45,7 +46,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.service",
     "com.flow.platform.api.dao",
     "com.flow.platform.api.validator",
-    "com.flow.platform.api.util"})
+    "com.flow.platform.api.util",
+    "com.flow.platform.api.consumer",
+    "com.flow.platform.api.context"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
@@ -74,5 +77,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         GsonHttpExposeConverter gsonHttpExposeConverter = new GsonHttpExposeConverter();
         gsonHttpExposeConverter.setGson(Jsonable.GSON_CONFIG);
         converters.add(gsonHttpExposeConverter);
+    }
+
+    @Bean
+    public SpringContextUtil springContextUtil(){
+        return new SpringContextUtil();
     }
 }
