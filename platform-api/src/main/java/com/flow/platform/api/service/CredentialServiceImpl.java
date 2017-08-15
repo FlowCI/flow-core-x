@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.flow.platform.api.service;
+
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.Credential;
 import com.jcraft.jsch.JSch;
@@ -29,32 +30,32 @@ import org.springframework.stereotype.Service;
  */
 
 @Service(value = "credentialService")
-public class CredentialServiceImpl implements CredentialService{
+public class CredentialServiceImpl implements CredentialService {
 
     @Autowired
     private CredentialDao credentialDao;
 
     @Override
-    public Credential create(Credential credential){
+    public Credential create(Credential credential) {
         credentialDao.save(credential);
         return credential;
     }
 
     @Override
-    public Credential find(String name){
+    public Credential find(String name) {
         Credential credential = credentialDao.get(name);
         return credential;
     }
 
     @Override
-    public Credential update(Credential credential){
+    public Credential update(Credential credential) {
         credentialDao.update(credential);
         return credential;
 
     }
 
     @Override
-    public boolean delete(String name){
+    public boolean delete(String name) {
         Credential credential = find(name);
         credentialDao.delete(credential);
         return true;

@@ -71,7 +71,7 @@ public class CredentialController {
     }
 
     @GetMapping(path = "/get_keys")
-    public Map<String, String> getKeys(){
+    public Map<String, String> getKeys() {
         return credentialService.getKeyMap();
     }
 }

@@ -35,7 +35,6 @@ public enum CredentialType {
         return name;
     }
 
-
     public int getIndex() {
         return index;
     }

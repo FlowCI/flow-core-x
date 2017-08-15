@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.flow.platform.api.test.dao;
+
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.Credential;
 import com.flow.platform.api.domain.CredentialType;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author lhl
  */
 public class CredentialDaoTest extends TestBase {
+
     @Autowired
     private CredentialDao credentialDao;
 
@@ -35,7 +37,7 @@ public class CredentialDaoTest extends TestBase {
     private CredentialService credentialService;
 
     @Test
-    public void should_save_and_get_success(){
+    public void should_save_and_get_success() {
         Credential credential = new Credential();
         String publicKey = credentialService.getKeyMap().get("publicKey");
         credential.setPublicKey(publicKey);
@@ -45,11 +47,11 @@ public class CredentialDaoTest extends TestBase {
         credential.setUpdatedAt(ZonedDateTime.now());
         credentialDao.save(credential);
         Assert.assertEquals(2, credentialService.getKeyMap().size());
-        Assert.assertEquals("test",credential.getName());
+        Assert.assertEquals("test", credential.getName());
     }
 
     @Test
-    public void should_update_credential_success(){
+    public void should_update_credential_success() {
         Credential credential = new Credential();
         String publicKey = credentialService.getKeyMap().get("publicKey");
         credential.setPublicKey(publicKey);
@@ -67,7 +69,7 @@ public class CredentialDaoTest extends TestBase {
 
 
     @Test
-    public void should_delete_success(){
+    public void should_delete_success() {
         Credential credential = new Credential();
         String publicKey = credentialService.getKeyMap().get("publicKey");
         credential.setPublicKey(publicKey);

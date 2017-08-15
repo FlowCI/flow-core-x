@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.flow.platform.api.test.service;
+
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.Credential;
 import com.flow.platform.api.domain.CredentialType;
@@ -36,24 +37,24 @@ public class CredentialServiceTest extends TestBase {
     private CredentialDao credentialDao;
 
     @Test
-    public void should_create_credential(){
+    public void should_create_credential() {
         Credential credential = new Credential();
         credential.setName("test");
         credential.setUserName("name1");
         credential.setPassword("password");
         credential.setCredentialType(CredentialType.USERNAME);
         credentialService.create(credential);
-        Assert.assertEquals(credential.getUserName(),credentialService.find("test").getUserName());
+        Assert.assertEquals(credential.getUserName(), credentialService.find("test").getUserName());
     }
 
     @Test
-    public void should_generate_ssh_key(){
+    public void should_generate_ssh_key() {
         Map<String, String> keys = credentialService.getKeyMap();
-        Assert.assertEquals(2,keys.size());
+        Assert.assertEquals(2, keys.size());
     }
 
     @Test
-    public void should_find_credential(){
+    public void should_find_credential() {
         Credential credential = new Credential();
         credential.setName("test");
         credential.setUserName("name1");
@@ -64,7 +65,7 @@ public class CredentialServiceTest extends TestBase {
     }
 
     @Test
-    public void should_update_credential(){
+    public void should_update_credential() {
         Credential credential = new Credential();
         credential.setName("test");
         credential.setUserName("name1");
@@ -78,7 +79,7 @@ public class CredentialServiceTest extends TestBase {
     }
 
     @Test
-    public void should_delete_credential(){
+    public void should_delete_credential() {
         Credential credential = new Credential();
         credential.setName("test");
         credential.setUserName("name1");

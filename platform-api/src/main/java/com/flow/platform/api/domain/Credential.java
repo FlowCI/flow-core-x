@@ -24,7 +24,7 @@ import java.time.ZonedDateTime;
 /**
  * @author lhl
  */
-public class Credential extends Jsonable{
+public class Credential extends Jsonable {
 
     @Expose
     private String name;

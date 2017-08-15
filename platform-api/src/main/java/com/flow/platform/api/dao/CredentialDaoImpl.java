@@ -30,6 +30,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository(value = "credentialDao")
 public class CredentialDaoImpl extends AbstractBaseDao<String, Credential> implements CredentialDao {
+
     @Override
     Class<Credential> getEntityClass() {
         return Credential.class;

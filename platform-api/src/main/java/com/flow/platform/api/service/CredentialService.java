@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.flow.platform.api.service;
+
 import com.flow.platform.api.domain.Credential;
 import java.util.Map;
 
@@ -24,9 +25,9 @@ public interface CredentialService {
 
     Map<String, String> getKeyMap();
 
-   /**
-    * create credential
-    * */
+    /**
+     * create credential
+     */
     Credential create(Credential credential);
 
     /**
@@ -36,7 +37,7 @@ public interface CredentialService {
 
     /**
      * update credential
-     * */
+     */
 
     Credential update(Credential credential);
 
