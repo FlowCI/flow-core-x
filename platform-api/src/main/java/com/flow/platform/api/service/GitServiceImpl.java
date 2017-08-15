@@ -80,6 +80,7 @@ public class GitServiceImpl implements GitService {
 
     /**
      * Init git client from flow env
+     *
      * - FLOW_GIT_SOURCE
      * - FLOW_GIT_URL
      * - FLOW_GIT_BRANCH
@@ -107,11 +108,17 @@ public class GitServiceImpl implements GitService {
         return client;
     }
 
+    /**
+     * Get git source code folder path of flow workspace
+     */
     private Path gitSourcePath(Flow flow) {
         Path flowWorkspace = flowDao.workspace(this.workspace, flow);
         return Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
     }
 
+    /**
+     * Get file content from source code folder of flow workspace
+     */
     private String getContent(Path path) {
         try {
             return com.google.common.io.Files.toString(path.toFile(), AppConfig.DEFAULT_CHARSET);

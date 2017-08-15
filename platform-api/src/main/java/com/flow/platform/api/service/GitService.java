@@ -39,6 +39,8 @@ public interface GitService {
         public final static String FLOW_GIT_SSH_PRIVATE_KEY = "FLOW_GIT_SSH_PRIVATE_KEY";
 
         public final static String FLOW_GIT_SSH_PUBLIC_KEY = "FLOW_GIT_SSH_PRIVATE_KEY";
+
+        public static final String FLOW_GIT_CHANGELOG = "FLOW_GIT_CHANGELOG";
     }
 
     /**

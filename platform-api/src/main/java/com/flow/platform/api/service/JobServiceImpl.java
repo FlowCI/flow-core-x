@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.controller.GitWebHookController;
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
@@ -23,6 +24,7 @@ import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.exception.HttpException;
 import com.flow.platform.api.exception.NotFoundException;
+import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.HttpUtil;
@@ -38,6 +40,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.model.GitEvent;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
@@ -87,7 +90,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Job createJob(String path) {
+    public Job createJob(String path, GitEvent event) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
@@ -103,11 +106,12 @@ public class JobServiceImpl implements JobService {
         job.setStatus(NodeStatus.PENDING);
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
-        job.setCreatedAt(ZonedDateTime.now());
-        job.setUpdatedAt(ZonedDateTime.now());
-
-        //update number
         job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
+
+        // set git info to job out put
+        if (event != null) {
+            job.setOutputs(GitEventDataExtractor.extract(event));
+        }
 
         //save job
         jobDao.save(job);

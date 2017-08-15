@@ -16,6 +16,9 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
@@ -25,6 +28,7 @@ import com.google.common.io.CharStreams;
 import java.io.IOException;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +45,12 @@ public class GitWebHookController {
 
     private final static Logger LOGGER = new Logger(GitWebHookController.class);
 
+    @Autowired
+    private NodeService nodeService;
+
+    @Autowired
+    private JobService jobService;
+
     @PostMapping(path = "/{flowname}")
     public void onEventReceived(@PathVariable("flowname") String flowName,
                                 @RequestHeader HttpHeaders headers,
@@ -55,8 +65,18 @@ public class GitWebHookController {
         }
 
         try {
-            GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
+            final String path = PathUtil.build(flowName);
+            final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
             LOGGER.trace("Webhook received: %s", hookEvent.toString());
+
+            nodeService.loadYmlContent(path, yml -> {
+                // update yml content
+                nodeService.createOrUpdate(path, yml.getFile());
+
+                // start job
+                jobService.createJob(path, hookEvent);
+            });
+
         } catch (GitException e) {
             LOGGER.error("Cannot process web hook event", e);
         }
