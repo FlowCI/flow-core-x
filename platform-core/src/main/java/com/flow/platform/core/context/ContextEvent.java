@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.context;
+package com.flow.platform.core.context;
 
 /**
  * Event interface when spring context refreshed and closed
