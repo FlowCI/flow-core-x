@@ -14,18 +14,38 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.config;
+package com.flow.platform.core.dao;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
+import org.hibernate.Session;
 
 /**
  * @author yh@firim
  */
-@Configuration
-@ImportResource({"classpath:hibernate-mysql.config.xml"})
-@EnableTransactionManagement
-public class DatabaseConfig {
+public interface BaseDao<K extends Serializable, T> {
 
+    Session getSession();
+
+    List<T> list(final Set<K> keySet);
+
+    T get(final K key);
+
+    T save(final T obj);
+
+    T saveOrUpdate(final T obj);
+
+    void update(final T obj);
+
+    void delete(final T obj);
+
+    List<T> list();
+
+    /**
+     * Delete all data of table. should only used for test
+     */
+    int deleteAll();
 }
+
+

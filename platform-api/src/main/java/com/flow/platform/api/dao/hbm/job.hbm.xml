@@ -18,7 +18,7 @@
     <property name="exitCode" type="integer" column="exit_code"/>
     <property name="cmdId" type="string" column="cmd_id"/>
     <property name="sessionId" type="string" column="session_id"/>
-    <property name="outputs" type="com.flow.platform.api.dao.adaptor.MapAdaptor" column="outputs"/>
+    <property name="outputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="outputs"/>
 
     <property name="status" column="status" length="10" not-null="true">
       <type name="org.hibernate.type.EnumType">
@@ -50,6 +50,6 @@
       <column name="job_id" sql-type="decimal(25, 0)"/>
     </id>
 
-    <property name="file" type="com.flow.platform.api.dao.adaptor.ByteAdaptor"/>
+    <property name="file" type="com.flow.platform.core.dao.adaptor.ByteAdaptor"/>
   </class>
 </hibernate-mapping>

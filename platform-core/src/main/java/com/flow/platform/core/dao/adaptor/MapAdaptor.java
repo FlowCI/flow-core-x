@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.config;
+package com.flow.platform.core.dao.adaptor;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
+import java.util.Map;
 
 /**
- * @author Will
+ * @author gy@fir.im
  */
-@Configuration
-@ImportResource({"classpath:hibernate-mysql.config.xml"})
-@EnableTransactionManagement
-public class DatabaseConfig {
+public class MapAdaptor extends BaseAdaptor {
 
+    @Override
+    public Class returnedClass() {
+        return Map.class;
+    }
+
+    @Override
+    protected Type getTargetType() {
+        TypeToken<Map<String, String>> typeToken = new TypeToken<Map<String, String>>() {};
+        return typeToken.getType();
+    }
 }

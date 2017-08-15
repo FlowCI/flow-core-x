@@ -17,6 +17,7 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.core.dao.AbstractBaseDao;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -26,12 +27,12 @@ import org.springframework.stereotype.Repository;
 public class YmlStorageDaoImpl extends AbstractBaseDao<String, YmlStorage> implements YmlStorageDao {
 
     @Override
-    Class<YmlStorage> getEntityClass() {
+    protected Class<YmlStorage> getEntityClass() {
         return YmlStorage.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "nodePath";
     }
 }

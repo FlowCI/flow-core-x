@@ -17,8 +17,8 @@
     <property name="name" type="string" column="name"/>
     <property name="exitCode" type="integer" column="exit_code"/>
     <property name="cmdId" type="string" column="cmd_id"/>
-    <property name="outputs" type="com.flow.platform.api.dao.adaptor.MapAdaptor" column="outputs"/>
-    <property name="logPaths" type="com.flow.platform.api.dao.adaptor.ListAdaptor" column="log_paths"/>
+    <property name="outputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="outputs"/>
+    <property name="logPaths" type="com.flow.platform.core.dao.adaptor.list.ListAdaptor" column="log_paths"/>
 
     <property name="nodeTag" column="type" length="10" not-null="true">
       <type name="org.hibernate.type.EnumType">

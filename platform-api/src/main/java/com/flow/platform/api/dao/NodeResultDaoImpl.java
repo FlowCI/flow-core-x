@@ -18,6 +18,7 @@ package com.flow.platform.api.dao;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeResultKey;
 
+import com.flow.platform.core.dao.AbstractBaseDao;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -28,12 +29,12 @@ import org.springframework.stereotype.Repository;
 public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult> implements NodeResultDao{
 
     @Override
-    Class<NodeResult> getEntityClass() {
+    protected Class<NodeResult> getEntityClass() {
         return NodeResult.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "nodeResultKey";
     }
 }
