@@ -15,7 +15,13 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.YmlStorage;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author yh@firim
@@ -23,17 +29,72 @@ import com.flow.platform.api.domain.Node;
 public interface NodeService {
 
     /**
-     * create node and children
+     * Create from yml config file content
+     * and persistent flow node and yml content
+     *
+     * @param path any path
+     * @param yml raw yml
+     * @return root node
      */
-    Node create(Node node);
+    Node create(String path, String yml);
 
     /**
-     * find node by node path
+     * Find node by node path from yml
+     *
+     * @return node from path or null if not found
      */
-    Node find(String nodePath);
+    Node find(String path);
 
     /**
-     * save node
+     * Verify yml format
+     *
+     * @param path any path
+     * @param yml yml content
+     * @return Node from yml
      */
-    Node save(Node node);
+    Node verifyYml(String path, String yml);
+
+    /**
+     * Find raw yml file content by node path from
+     *  - yam storage
+     *  - flow workspace if yml storage not found
+     *
+     * @param path any node path
+     * @return yml content or null if not found
+     */
+    String getYmlContent(String path);
+
+    /**
+     * Load yml content from git repo in async,
+     * Then call "getYmlContent" to get yml
+     *
+     * @param path any node path
+     * @param callback method on yml loaded
+     */
+    void loadYmlContent(String path, Consumer<YmlStorage> callback);
+
+    /**
+     * To check flow name is existed
+     */
+    boolean exist(String path);
+
+    /**
+     * Create flow without any children
+     */
+    Flow createEmptyFlow(String flowName);
+
+    /**
+     * Set flow node evn and sync to yml
+     */
+    void setFlowEnv(String path, Map<String, String> envs);
+
+    /**
+     * list current flows with path, name, created at and updated at
+     */
+    List<Flow> listFlows();
+
+    /**
+     * List webhooks for all flow
+     */
+    List<Webhook> listWebhooks();
 }

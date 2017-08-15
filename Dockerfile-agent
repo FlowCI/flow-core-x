@@ -1,0 +1,20 @@
+# flow.ci agent docker include flow ci agent
+# VERSION beta 0.1
+
+# ENV needs to be specified
+# - FLOW_ZOOKEEPER_HOST: zookeeper host will be connected to
+# - FLOW_AGENT_ZONE: agent working zone
+# - FLOW_AGENT_NAME: agent name
+
+FROM java:8-jre
+
+# setup agent working dir
+ENV FLOW_AGENT_DIR=$HOME/agent
+RUN mkdir -p $FLOW_AGENT_DIR
+
+# add agent file
+COPY ./platform-agent/target/flow-agent-*.jar $FLOW_AGENT_DIR
+
+WORKDIR $FLOW_AGENT_DIR
+
+CMD java -jar ./flow-agent-*.jar $FLOW_ZOOKEEPER_HOST $FLOW_AGENT_ZONE $FLOW_AGENT_NAME

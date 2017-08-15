@@ -32,8 +32,8 @@
     <property name="timeout" column="timeout"/>
     <property name="workingDir" type="string" column="working_dir"/>
     <property name="outputEnvFilter" type="string" column="output_env_filter" length="50"/>
-    <property name="logPaths" type="com.flow.platform.cc.dao.adaptor.list.ListAdaptor" column="log_paths"/>
-    <property name="inputs" type="com.flow.platform.cc.dao.adaptor.MapAdaptor" column="inputs"/>
+    <property name="logPaths" type="com.flow.platform.core.dao.adaptor.list.ListAdaptor" column="log_paths"/>
+    <property name="inputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="inputs"/>
     <property name="webhook" type="string" column="webhook"/>
     <property name="extra" type="string" column="extra"/>
 
@@ -60,7 +60,7 @@
     <property name="executedTime" column="executed_time"/>
     <property name="finishTime" column="finish_time"/>
 
-    <property name="output" type="com.flow.platform.cc.dao.adaptor.MapAdaptor" column="output"/>
-    <property name="exceptions" type="com.flow.platform.cc.dao.adaptor.list.ListThrowableAdaptor" column="exceptions"/>
+    <property name="output" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="output"/>
+    <property name="exceptions" type="com.flow.platform.core.dao.adaptor.list.ListThrowableAdaptor" column="exceptions"/>
   </class>
 </hibernate-mapping>

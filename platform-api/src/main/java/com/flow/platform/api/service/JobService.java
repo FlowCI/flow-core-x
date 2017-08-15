@@ -16,9 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobFlow;
-import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.domain.JobStep;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.domain.CmdBase;
 import java.math.BigInteger;
 import java.util.List;
@@ -31,10 +29,10 @@ public interface JobService {
     /**
      * create job
      *
-     * @param nodePath node path
+     * @param path any node path
      * @return job
      */
-    Job createJob(String nodePath);
+    Job createJob(String path);
 
     /**
      * handle callback
@@ -46,12 +44,7 @@ public interface JobService {
     /**
      * run node
      */
-    void run(JobNode node);
-
-    /**
-     * save job
-     */
-    Job save(Job job);
+    void run(Node node, BigInteger jobId);
 
     /**
      * find job by id
@@ -59,19 +52,12 @@ public interface JobService {
     Job find(BigInteger id);
 
     /**
-     * update job
+     * find by flow name and number
      */
-    Job update(Job job);
+    Job find(String flowName, Integer number);
 
     /**
-     * show job's job step
+     * list all jobs
      */
-    List<JobStep> listJobStep(BigInteger jobId);
-
-    /**
-     * get latest jobs by node name
-     * @param names
-     * @return
-     */
-    List<Job> listLatestJobs(List<String> names);
+    List<Job> listJobs(String flowPath, List<String> flowPaths);
 }

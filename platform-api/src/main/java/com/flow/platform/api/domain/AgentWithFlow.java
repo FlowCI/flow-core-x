@@ -20,19 +20,36 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Jsonable;
+import com.google.gson.annotations.Expose;
 
 /**
  * @author yh@firim
  */
-public class AgentWithFlow extends Jsonable{
-    private AgentPath path;
+public class AgentWithFlow extends Jsonable {
+
+    @Expose
+    private String name;
+
+    @Expose
+    private String zone;
+
+    @Expose
     private String flowName;
+
+    @Expose
     private AgentStatus agentStatus;
+
+    @Expose
     private Integer number;
+
+    @Expose
+    private String zoneWithName;
+    @Expose
     private String branch;
 
     public AgentWithFlow(AgentPath path, String flowName, AgentStatus agentStatus, Integer number) {
-        this.path = path;
+        this.name = path.getName();
+        this.zone = path.getZone();
         this.flowName = flowName;
         this.agentStatus = agentStatus;
         this.number = number;
@@ -41,14 +58,25 @@ public class AgentWithFlow extends Jsonable{
     public AgentWithFlow() {
     }
 
-    public AgentWithFlow(Agent agent, Job job){
-        this.path = agent.getPath();
+    public AgentWithFlow(Agent agent, Job job) {
+        this.name = agent.getPath().getName();
+        this.zone = agent.getPath().getZone();
         this.agentStatus = agent.getStatus();
-        if(job != null){
+        this.zoneWithName = this.name.concat(" - ").concat(this.zone);
+
+        if (job != null) {
             this.flowName = job.getNodeName();
-            this.number = 10;
+            this.number = job.getNumber();
             this.branch = "master";
         }
+    }
+
+    public String getZoneWithName() {
+        return zoneWithName;
+    }
+
+    public void setZoneWithName(String zoneWithName) {
+        this.zoneWithName = zoneWithName;
     }
 
     public String getBranch() {
@@ -59,12 +87,20 @@ public class AgentWithFlow extends Jsonable{
         this.branch = branch;
     }
 
-    public AgentPath getPath() {
-        return path;
+    public String getName() {
+        return name;
     }
 
-    public void setPath(AgentPath path) {
-        this.path = path;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getZone() {
+        return zone;
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
     }
 
     public String getFlowName() {

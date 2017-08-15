@@ -28,24 +28,35 @@ import java.util.List;
 public interface JobDao extends BaseDao<BigInteger, Job> {
 
     /**
-     * list Jobs
-     */
-    List<Job> list();
-
-
-    /**
      * list jobs by statuses
      *
      * @param statuses RUNNING
      */
     List<Job> list(NodeStatus... statuses);
 
+    List<Job> list(List<String> sessionId, NodeStatus nodeStatus);
 
     /**
-     * get latest job by flow names
+     * get latest job by flow path
      *
-     * @param names flow names
      * @return List<Job>
      */
-    List<Job> listLatest(List<String> names);
+    List<Job> listLatest(List<String> nodePaths);
+
+    /**
+     * get jobs from nodeName
+     */
+    List<Job> list(String nodeName);
+
+    /**
+     * get job from node name and number
+     */
+    Job get(String flowName, Integer number);
+
+    /**
+     * get max number
+     * @param flowName
+     * @return
+     */
+    Integer maxBuildNumber(String flowName);
 }

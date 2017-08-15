@@ -80,10 +80,8 @@ public class JobDaoTest extends TestBase {
         job.setStartedAt(ZonedDateTime.now());
         job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
-
         Assert.assertEquals(1, jobDao.list().size());
     }
-
 
     @Test
     public void should_delete_success() {
@@ -100,5 +98,23 @@ public class JobDaoTest extends TestBase {
         Assert.assertEquals(0, jobDao.list().size());
     }
 
+    @Test
+    public void should_get_max_number_success(){
+        Job job = new Job(CommonUtil.randomId());
+        job.setNumber(1);
+        job.setStatus(NodeStatus.SUCCESS);
+        job.setExitCode(0);
+        job.setCmdId("1111");
+        job.setNodePath("/flow/test");
+        job.setNodeName("test");
+        job.setStartedAt(ZonedDateTime.now());
+        job.setFinishedAt(ZonedDateTime.now());
 
+        jobDao.save(job);
+
+        Integer number = jobDao.maxBuildNumber(job.getNodeName());
+        Assert.assertNotNull(number);
+
+        Assert.assertEquals((Integer)0, jobDao.maxBuildNumber("flows"));
+    }
 }

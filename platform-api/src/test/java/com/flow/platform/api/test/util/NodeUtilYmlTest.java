@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.test.util;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
@@ -29,6 +30,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author yang
@@ -89,8 +91,11 @@ public class NodeUtilYmlTest {
 
     @Test
     public void should_create_node_by_string() throws Throwable {
-        String yamlRaw = Files.toString(ymlSampleFile, Charset.forName("UTF-8"));
+        String yamlRaw = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
         Node node = NodeUtil.buildFromYml(yamlRaw);
         Assert.assertEquals("flow1", node.getName());
+
+        String yml = new Yaml().dump(node);
+        Assert.assertNotNull(yml);
     }
 }

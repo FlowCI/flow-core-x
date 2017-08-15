@@ -96,6 +96,14 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
         });
     }
 
+    @Override
+    public T saveOrUpdate(T obj) {
+        return execute(session -> {
+            session.saveOrUpdate(obj);
+            return obj;
+        });
+    }
+
     /**
      * Update object
      */
@@ -125,6 +133,16 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
             CriteriaDelete<T> delete = builder.createCriteriaDelete(getEntityClass());
             delete.from(getEntityClass());
             return session.createQuery(delete).executeUpdate();
+        });
+    }
+
+    @Override
+    public List<T> list() {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<T> select = builder.createQuery(getEntityClass());
+            select.from(getEntityClass());
+            return session.createQuery(select).list();
         });
     }
 }

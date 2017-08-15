@@ -15,135 +15,65 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.JobFlow;
-import com.flow.platform.api.domain.JobNode;
-import com.flow.platform.api.domain.JobStep;
+import com.flow.platform.api.dao.JobYmlStorageDao;
+import com.flow.platform.api.domain.JobYmlStorage;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.NodeUtil;
-import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.ObjectUtil;
-import com.google.gson.internal.LinkedTreeMap;
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import java.math.BigInteger;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author yh@firim
+ * @author lhl
  */
-@Service(value = "jobNodeService")
+
+@Service
+@Transactional
 public class JobNodeServiceImpl implements JobNodeService {
 
-    private final Map<String, JobNode> mocNodeList = new HashMap<>();
-    private final Logger LOGGER = new Logger(JobService.class);
+    private final Logger LOGGER = new Logger(JobYmlStorage.class);
 
     @Autowired
-    private NodeService nodeService;
+    private JobYmlStorageDao jobYmlStorageDao;
+
+    // 1 day expire
+    private Cache<BigInteger, Cache<String, Node>> nodeCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(3600 * 24, TimeUnit.SECONDS).maximumSize(1000).build();
 
     @Override
-    public JobNode create(JobNode jobNode) {
-        NodeUtil.recurse(jobNode, item -> {
-            save((JobNode) item);
-        });
-        return jobNode;
+    public void save(final BigInteger jobId, final String yml) {
+        JobYmlStorage jobYmlStorage = new JobYmlStorage(jobId, yml);
+        jobYmlStorageDao.saveOrUpdate(jobYmlStorage);
+        nodeCache.invalidate(jobId);
     }
 
     @Override
-    public JobNode save(JobNode jobNode) {
-        mocNodeList.put(jobNode.getPath(), jobNode);
-        return jobNode;
-    }
-
-    @Override
-    public JobNode find(String nodePath) {
-        return mocNodeList.get(nodePath);
-    }
-
-
-    /**
-     * copy node to job node and save
-     */
-    @Override
-    public JobNode createJobNode(String nodePath) {
-        Node flow = nodeService.find(nodePath);
-        NodeUtil.recurse(flow, node -> {
-            JobNode jobNode;
-            if (node instanceof Flow) {
-                jobNode = copyNode(node, Flow.class, JobFlow.class);
-            } else {
-                jobNode = copyNode(node, Step.class, JobStep.class);
-            }
-            save(jobNode);
-
-            // create job node
-            for (int i = 0; i < node.getChildren().size(); i++) {
-                Node child = (Node) node.getChildren().get(i);
-                JobNode jobChild = find(child.getPath());
-                jobNode.getChildren().add(jobChild);
-                jobChild.setParent(jobNode);
-                save(jobChild);
-            }
-
-            // build node prev next relation
-            for (int i = 0; i < jobNode.getChildren().size(); i++) {
-                JobNode jobChild = (JobNode) jobNode.getChildren().get(i);
-                if (i == 0) {
-                    // first node
-                    jobChild.setPrev(null);
-                    try {
-                        jobChild.setNext((Node) jobNode.getChildren().get(i + 1));
-                    } catch (Throwable ignore) {
-                    }
-                } else if (i == jobNode.getChildren().size() - 1) {
-                    // last node
-                    try {
-                        jobChild.setPrev((Node) jobNode.getChildren().get(i - 1));
-                    } catch (Throwable ignore) {
-                    }
-                    jobChild.setNext(null);
-                } else {
-                    // build node prev next relation
-                    jobChild.setNext((Node) jobNode.getChildren().get(i + 1));
-                    jobChild.setPrev((Node) jobNode.getChildren().get(i - 1));
-                }
-                save(jobChild);
-            }
-        });
-        return (JobFlow) find(flow.getPath());
-    }
-
-    /**
-     * copy node data to job node
-     */
-    private JobNode copyNode(Node node, Class<?> sourceClass, Class<?> targetClass) {
-        Object k = null;
+    public Node get(final BigInteger jobId, final String path) {
         try {
-            k = targetClass.newInstance();
-            Object finalK = k;
-            ReflectionUtils.doWithFields(sourceClass, field -> {
-                field.setAccessible(true);
-                Object ob = ReflectionUtils.getField(field, node);
-                ObjectUtil.assignValueToField(field, finalK, ob);
-            }, field -> {
-                String[] filerWords = {"children", "prev", "next", "parent"};
-                // this word not copy
-                for (String arr : filerWords) {
-                    if (arr == field.getName()) {
-                        return false;
-                    }
+            Cache<String, Node> jobNodeCache = nodeCache.get(jobId, () -> {
+                JobYmlStorage jobYmlStorage = jobYmlStorageDao.get(jobId);
+                if (jobYmlStorage == null) {
+                    throw new NotFoundException(String.format("Job node of job '%s' not found", jobId));
                 }
-                return true;
-            });
-        } catch (InstantiationException | IllegalAccessException e) {
-            LOGGER.warn("copy node exception  %s - %s", e.getClass().toString(), e);
-            throw new IllegalParameterException(
-                String.format("Copy Node Exception Node - %s - %s", node.toJson(), e.toString()));
-        }
-        return (JobNode) k;
-    }
 
+                Cache<String, Node> treeCache = CacheBuilder.newBuilder().build();
+
+                Node root = NodeUtil.buildFromYml(jobYmlStorage.getFile());
+                NodeUtil.recurse(root, node -> treeCache.put(node.getPath(), node));
+                return treeCache;
+            });
+
+            return jobNodeCache.getIfPresent(path);
+        } catch (ExecutionException e) {
+            LOGGER.warn(String.format("get yaml from jobYamlService error - %s", e));
+            return null;
+        }
+    }
 }

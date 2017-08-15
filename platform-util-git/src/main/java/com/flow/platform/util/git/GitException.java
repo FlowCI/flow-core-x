@@ -21,6 +21,10 @@ package com.flow.platform.util.git;
  */
 public class GitException extends RuntimeException {
 
+    public GitException(String message) {
+        super(message, null);
+    }
+
     public GitException(String message, Throwable cause) {
         super(message, cause);
     }

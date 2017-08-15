@@ -25,27 +25,19 @@ public class App {
 
     private final static Logger LOGGER = new Logger(App.class);
 
-    private final static String ZK_HOME = "54.222.129.38:2181";
-    private final static String AGENT_ZONE = "firmac";
-    private final static String AGENT_NAME = "test-001";
-
     public static void main(String args[]) {
-        String zkHome; // zookeeper address
-        String zone; // agent zone
-        String name; // agent name
+        String zkHome = null; // zookeeper address
+        String zone = null; // agent zone
+        String name = null; // agent name
 
         if (args.length != 3) {
-            zkHome = ZK_HOME;
-            zone = AGENT_ZONE;
-            name = AGENT_NAME;
+            System.out.println("Missing arguments: please specify zookeeper host, working zone and agent name");
+            System.out.println("Cmd: java -jar {zookeeper host} {working zone} {agent name}");
+            Runtime.getRuntime().exit(1);
         } else {
             zkHome = args[0];
             zone = args[1];
             name = args[2];
-
-            LOGGER.info(zkHome);
-            LOGGER.info(zone);
-            LOGGER.info(name);
         }
 
         LOGGER.trace("========= Run agent =========");
@@ -55,16 +47,16 @@ public class App {
             LOGGER.trace("========= Init config =========");
 
             Config.AGENT_SETTINGS = Config.loadAgentConfig(zkHome, zone, 5);
-            LOGGER.trace(" -- Agent Settings: %s", Config.agentSettings());
+            LOGGER.trace(" -- Settings: %s", Config.agentSettings());
 
             Config.ZK_URL = zkHome;
-            LOGGER.trace(" -- Zookeeper Url: %s", Config.zkUrl());
+            LOGGER.trace(" -- Zookeeper host: %s", Config.zkUrl());
 
             Config.ZONE = zone;
-            LOGGER.trace(" -- Zone Name: %s", Config.zone());
+            LOGGER.trace(" -- Working zone: %s", Config.zone());
 
             Config.NAME = name;
-            LOGGER.trace(" -- Agent Name: %s", Config.name());
+            LOGGER.trace(" -- Agent agent: %s", Config.name());
 
             LOGGER.trace("========= Config initialized =========");
         } catch (Throwable e) {

@@ -16,13 +16,20 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.exception.IllegalParameterException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author yh@firim
@@ -32,24 +39,121 @@ public class NodeServiceTest extends TestBase {
     @Autowired
     private NodeService nodeService;
 
+    @Value(value = "${domain}")
+    private String domain;
+
     @Test
-    public void should_save_node() {
-        Flow flow = new Flow("/flow", "flow");
-        nodeService.save(flow);
-        Assert.assertEquals(flow.getPath(), nodeService.find(flow.getPath()).getPath());
+    public void should_find_any_node() throws Throwable {
+        Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.create(emptyFlow.getPath(), resourceContent);
+
+        Assert.assertNotNull(nodeService.find(root.getPath()));
+
+        List children = root.getChildren();
+        Assert.assertNotNull(nodeService.find(((Node) children.get(0)).getPath()));
+        Assert.assertNotNull(nodeService.find(((Node) children.get(1)).getPath()));
     }
 
     @Test
-    public void should_create_and_get_node() {
-        Flow flow = new Flow("/flow", "flow");
-        Step step1 = new Step("/flow/step1", "step1");
+    public void should_create_node_by_yml() throws Throwable {
+        // when: create empty flow and set special env for flow
+        Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        Map<String, String> flowEnv = new HashMap<>();
+        flowEnv.put("FLOW_SP_1", "111");
+        flowEnv.put("FLOW_SP_2", "222");
+        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
 
-        flow.getChildren().add(step1);
-        step1.setParent(flow);
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.create(emptyFlow.getPath(), resourceContent);
 
-        nodeService.create(flow);
-        NodeUtil.recurse(flow, item -> {
-            Assert.assertEquals(item.getName(), nodeService.find(item.getPath()).getName());
-        });
+
+        // then: check is created in dao
+        Flow saved = flowDao.get(root.getPath());
+        Assert.assertNotNull(saved);
+        Assert.assertTrue(nodeService.exist(root.getPath()));
+        Assert.assertEquals(root, saved);
+        Assert.assertEquals("flow1", saved.getName());
+        Assert.assertEquals("/flow1", saved.getPath());
+
+        // then: check root node can be loaded from node service
+        root = nodeService.find(saved.getPath());
+        Step step1 = (Step) root.getChildren().get(0);
+        Assert.assertEquals("/flow1/step1", step1.getPath());
+        Step step2 = (Step) root.getChildren().get(1);
+        Assert.assertEquals("/flow1/step2", step2.getPath());
+
+        // then: check env is merged from flow dao
+        Assert.assertNotNull("111", root.getEnvs().get("FLOW_SP_1"));
+        Assert.assertNotNull("222", root.getEnvs().get("FLOW_SP_2"));
+
+        // then:
+        YmlStorage yaml = ymlStorageDao.get(root.getPath());
+        Assert.assertNotNull(yaml);
+        Assert.assertEquals(resourceContent, yaml.getFile());
+    }
+
+    @Test
+    public void should_create_empty_flow_and_get_webhooks() {
+        // when:
+        String flowName = "default";
+        Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+
+        // then:
+        Flow loaded = (Flow) nodeService.find(emptyFlow.getPath());
+        Assert.assertNotNull(loaded);
+        Assert.assertEquals(emptyFlow, loaded);
+        Assert.assertEquals(0, loaded.getChildren().size());
+
+        // should with empty yml
+        Assert.assertNull(ymlStorageDao.get(loaded.getPath()));
+
+        // when:
+        List<Webhook> hooks = nodeService.listWebhooks();
+        Assert.assertEquals(1, hooks.size());
+        Assert.assertEquals(domain + "/hooks/git/" + loaded.getName(), hooks.get(0).getHook());
+    }
+
+    @Test
+    public void should_save_node_env() throws Throwable {
+        // given:
+        Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.create(emptyFlow.getPath(), resourceContent);
+        Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
+
+        // when:
+        Map<String, String> envs = new HashMap<>();
+        envs.put("FLOW_NEW_1", "hello");
+        envs.put("FLOW_NEW_2", "world");
+        envs.put("FLOW_NEW_3", "done");
+        nodeService.setFlowEnv(root.getPath(), envs);
+
+        // then:
+        Node loaded = nodeService.find("/flow1");
+        Assert.assertEquals(3, loaded.getEnvs().size());
+        Assert.assertEquals("hello", loaded.getEnvs().get("FLOW_NEW_1"));
+        Assert.assertEquals("world", loaded.getEnvs().get("FLOW_NEW_2"));
+        Assert.assertEquals("done", loaded.getEnvs().get("FLOW_NEW_3"));
+
+        // check env been sync with yml
+        Flow flow = flowDao.get("/flow1");
+        Assert.assertEquals(3, flow.getEnvs().size());
+        Assert.assertEquals("hello", flow.getEnvs().get("FLOW_NEW_1"));
+        Assert.assertEquals("world", flow.getEnvs().get("FLOW_NEW_2"));
+        Assert.assertEquals("done", flow.getEnvs().get("FLOW_NEW_3"));
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_error_if_node_path_is_not_for_flow() throws Throwable {
+        // given:
+        Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.create(emptyFlow.getPath(), resourceContent);
+
+        // when: set env with child path
+        List children = root.getChildren();
+        nodeService.setFlowEnv(((Node) children.get(0)).getPath(), new HashMap<>());
     }
 }

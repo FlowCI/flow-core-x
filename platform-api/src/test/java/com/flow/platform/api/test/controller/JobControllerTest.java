@@ -16,27 +16,19 @@
 
 package com.flow.platform.api.test.controller;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Step;
-import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.domain.Cmd;
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
@@ -44,55 +36,36 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  */
 public class JobControllerTest extends TestBase {
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private JobService jobService;
-
-
-    private void stubDemo() {
-        Cmd cmdRes = new Cmd();
-        cmdRes.setId(UUID.randomUUID().toString());
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
-            .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
-
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
-            .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
-    }
-
-
     @Test
     public void should_show_job_success() throws Exception {
         stubDemo();
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath());
 
-        Flow flow = new Flow("/flow", "flow");
-        Step step1 = new Step("/flow/step1", "step1");
-        Step step2 = new Step("/flow/step2", "step2");
+        Map<String, String> map = new HashMap<>();
+        map.put("FLOW_GIT_BRANCH", "a");
+        job.setOutputs(map);
 
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
+        jobDao.update(job);
 
-        step1.setParent(flow);
-        step2.setParent(flow);
+        StringBuilder stringBuilder = new StringBuilder("/jobs/");
 
-        nodeService.create(flow);
-
-        Job job = jobService.createJob(flow.getPath());
-
-        MockHttpServletRequestBuilder content = get(new StringBuffer("/jobs/").append(job.getId()).toString())
+        MockHttpServletRequestBuilder content = get(
+            stringBuilder.append(job.getNodeName()).append("/").append(job.getNumber()).toString())
             .contentType(MediaType.APPLICATION_JSON);
-        ResultHandler resultHandler;
+
         MvcResult mvcResult = this.mockMvc.perform(content)
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-//        String s = response.getContentAsString();
-//        Job job1 = Jsonable.parse(s, Job.class);
-//        Assert.assertEquals(job1 .getId(), job.getId());
-    }
 
+        String response = mvcResult.getResponse().getContentAsString();
+        Job returnedJob = Job.parse(response, Job.class);
+        Assert.assertEquals(returnedJob.getId(), job.getId());
+
+        // those fields cannot exported
+        Assert.assertNull(returnedJob.getExitCode());
+        Assert.assertNull(returnedJob.getSessionId());
+        Assert.assertNull(returnedJob.getCmdId());
+    }
 }

@@ -34,6 +34,7 @@
       <list>
         <value>com/flow/platform/api/dao/hbm/flow.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/job.hbm.xml</value>
+        <value>com/flow/platform/api/dao/hbm/nodeResult.hbm.xml</value>
       </list>
     </property>
     <property name="hibernateProperties">

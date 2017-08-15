@@ -14,22 +14,36 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
+import com.flow.platform.api.dao.JobYmlStorageDao;
+import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.service.JobNodeResultService;
+import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.NodeService;
+import com.flow.platform.domain.Cmd;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.gson.Gson;
+import com.google.common.io.Files;
+import java.io.File;
 import java.io.IOException;
-
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -46,6 +60,7 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @ContextConfiguration(classes = {WebConfig.class})
 @PropertySource("classpath:app-default.properties")
+@PropertySource("classpath:i18n")
 public abstract class TestBase {
 
     static {
@@ -54,19 +69,31 @@ public abstract class TestBase {
     }
 
     @Autowired
-    private FlowDao flowDao;
+    protected FlowDao flowDao;
 
     @Autowired
-    private JobDao jobDao;
+    protected JobDao jobDao;
 
     @Autowired
-    private YmlStorageDao ymlStorageDao;
+    protected YmlStorageDao ymlStorageDao;
+
+    @Autowired
+    protected JobYmlStorageDao jobYmlStorageDao;
+
+    @Autowired
+    protected NodeResultDao nodeResultDao;
+
+    @Autowired
+    protected NodeService nodeService;
+
+    @Autowired
+    protected JobService jobService;
+
+    @Autowired
+    protected JobNodeResultService jobNodeResultService;
 
     @Autowired
     private WebApplicationContext webAppContext;
-
-    @Autowired
-    protected Gson gsonConfig;
 
     protected MockMvc mockMvc;
 
@@ -75,10 +102,37 @@ public abstract class TestBase {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
     }
 
-    private void cleanDatabase(){
+    public String getResourceContent(String fileName) throws IOException {
+        ClassLoader classLoader = TestBase.class.getClassLoader();
+        URL resource = classLoader.getResource(fileName);
+        File path = new File(resource.getFile());
+        return Files.toString(path, AppConfig.DEFAULT_CHARSET);
+    }
+
+    public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
+        Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+        String yml = getResourceContent(ymlResourceName);
+        return nodeService.create(emptyFlow.getPath(), yml);
+    }
+
+    public void stubDemo() {
+        Cmd cmdRes = new Cmd();
+        cmdRes.setId(UUID.randomUUID().toString());
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
+            .willReturn(aResponse()
+                .withBody(cmdRes.toJson())));
+
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
+            .willReturn(aResponse()
+                .withBody(cmdRes.toJson())));
+    }
+
+    private void cleanDatabase() {
         flowDao.deleteAll();
         jobDao.deleteAll();
         ymlStorageDao.deleteAll();
+        jobYmlStorageDao.deleteAll();
+        nodeResultDao.deleteAll();
     }
 
     @Rule

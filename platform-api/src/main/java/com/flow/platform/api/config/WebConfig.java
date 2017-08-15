@@ -17,20 +17,21 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.resource.PropertyResourceLoader;
+import com.flow.platform.api.util.GsonHttpExposeConverter;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.resource.AppResourceLoader;
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.validation.Validator;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -43,19 +44,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.controller",
     "com.flow.platform.api.service",
     "com.flow.platform.api.dao",
+    "com.flow.platform.api.validator",
     "com.flow.platform.api.util"})
-@Import({DatabaseConfig.class})
+@Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
-
-    private final static int ASYNC_POOL_SIZE = 100;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
             .allowedOrigins("*")
-            .allowedMethods("GET", "POST")
+//            .allowedMethods("GET", "POST", "OPTIONS")
+            .allowedMethods("*")
             .allowCredentials(true)
-            .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate");
+            .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate", "library");
     }
 
     @Bean
@@ -67,29 +68,11 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         return configurer;
     }
 
-    @Bean
-    public Gson gsonConfig() {
-        return Jsonable.GSON_CONFIG;
-    }
-
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        for (HttpMessageConverter converter : converters) {
-            // customize gson http message converter
-            if (converter instanceof GsonHttpMessageConverter) {
-                GsonHttpMessageConverter gsonConverter = (GsonHttpMessageConverter) converter;
-                gsonConverter.setGson(gsonConfig());
-            }
-        }
-    }
-
-    @Bean
-    public ThreadPoolTaskExecutor taskExecutor() {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
-        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
-        taskExecutor.setQueueCapacity(100);
-        taskExecutor.setThreadNamePrefix("async-task-");
-        return taskExecutor;
+        converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
+        GsonHttpExposeConverter gsonHttpExposeConverter = new GsonHttpExposeConverter();
+        gsonHttpExposeConverter.setGson(Jsonable.GSON_CONFIG);
+        converters.add(gsonHttpExposeConverter);
     }
 }

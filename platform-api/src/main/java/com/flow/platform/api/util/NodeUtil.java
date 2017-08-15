@@ -15,10 +15,13 @@
  */
 package com.flow.platform.api.util;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.exception.IllegalParameterException;
+import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import java.io.File;
 import java.nio.charset.Charset;
@@ -41,7 +44,7 @@ public class NodeUtil {
      */
     public static Node buildFromYml(File path) {
         try {
-            String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+            String ymlString = Files.toString(path, AppConfig.DEFAULT_CHARSET);
             return buildFromYml(ymlString);
         } catch (YmlException e) {
             throw e;
@@ -54,6 +57,8 @@ public class NodeUtil {
      * Build node tree structure from yml string
      *
      * @param yml raw yml string
+     * @return root node of yml
+     * @throws YmlException if yml format is illegal
      */
     public static Node buildFromYml(String yml) {
         Yaml yaml = new Yaml();
@@ -206,7 +211,7 @@ public class NodeUtil {
     /**
      * Build node path, parent, next, prev relation
      */
-    private static void buildNodeRelation(Node<? extends Node> root) {
+    public static void buildNodeRelation(Node<? extends Node> root) {
         setNodePath(root);
 
         List<? extends Node> children = root.getChildren();
@@ -224,9 +229,9 @@ public class NodeUtil {
 
     private static void setNodePath(Node node) {
         if (node.getParent() == null) {
-            node.setPath("/" + node.getName());
+            node.setPath(PathUtil.build(node.getName()));
             return;
         }
-        node.setPath(String.format("%s/%s", node.getParent().getPath(), node.getName()));
+        node.setPath(PathUtil.build(node.getParent().getPath(), node.getName()));
     }
 }

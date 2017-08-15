@@ -20,6 +20,7 @@ package com.flow.platform.api.domain;
  * @author yh@firim
  */
 public class YmlStorage {
+
     private String nodePath;
 
     private String file;
