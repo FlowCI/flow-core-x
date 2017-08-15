@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.config;
+package com.flow.platform.core.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * @author yh@firim
+ * @author Will
  */
 @Configuration
 @ImportResource({"classpath:hibernate-mysql.config.xml"})

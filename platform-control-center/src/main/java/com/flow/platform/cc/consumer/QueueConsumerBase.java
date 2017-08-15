@@ -55,3 +55,4 @@ public abstract class QueueConsumerBase<T> implements ContextEvent {
         shouldStop = true;
     }
 }
+

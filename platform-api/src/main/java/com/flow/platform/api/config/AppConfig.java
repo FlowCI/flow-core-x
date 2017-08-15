@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.config;
 
+import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.charset.Charset;
