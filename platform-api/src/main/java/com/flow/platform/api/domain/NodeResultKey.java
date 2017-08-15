@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.flow.platform.api.domain;
-
-import com.flow.platform.domain.AgentPath;
 import java.io.Serializable;
 import java.math.BigInteger;
 

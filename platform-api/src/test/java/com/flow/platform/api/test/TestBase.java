@@ -17,8 +17,8 @@ package com.flow.platform.api.test;/*
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-
 import com.flow.platform.api.config.WebConfig;
+import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
@@ -79,6 +79,9 @@ public abstract class TestBase {
     private NodeResultDao nodeResultDao;
 
     @Autowired
+    private CredentialDao credentialDao;
+
+    @Autowired
     private WebApplicationContext webAppContext;
 
     @Autowired
@@ -117,6 +120,7 @@ public abstract class TestBase {
         ymlStorageDao.deleteAll();
         jobYmlStorageDao.deleteAll();
         nodeResultDao.deleteAll();
+        credentialDao.deleteAll();
     }
 
     @Rule

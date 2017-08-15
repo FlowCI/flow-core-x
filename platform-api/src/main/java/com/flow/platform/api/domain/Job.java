@@ -18,7 +18,6 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.api.domain.adaptor.ZonedDateTimeAdaptor;
 import com.flow.platform.domain.Jsonable;
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;

@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 package com.flow.platform.api.dao;
-import com.flow.platform.api.domain.JobYmlStorage;
-import java.math.BigInteger;
-import org.springframework.stereotype.Repository;
+import com.flow.platform.api.domain.Credential;
+import java.util.List;
 
 /**
  * @author lhl
  */
+public interface CredentialDao extends BaseDao<String, Credential> {
 
-@Repository(value = "jobYmlStorageDao")
-public class JobYmlStorageDaoImpl extends AbstractBaseDao<BigInteger, JobYmlStorage> implements JobYmlStorageDao {
+    List<Credential> list();
 
-    @Override
-    Class<JobYmlStorage> getEntityClass() {
-        return JobYmlStorage.class;
-    }
-
-    @Override
-    String getKeyName() {
-        return "jobId";
-    }
 }

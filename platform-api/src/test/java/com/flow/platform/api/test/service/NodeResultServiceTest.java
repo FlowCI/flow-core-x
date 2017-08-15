@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 package com.flow.platform.api.test.service;
-
 import com.flow.platform.api.dao.NodeResultDao;
-import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeResult;
@@ -44,9 +42,6 @@ public class NodeResultServiceTest extends TestBase {
 
     @Autowired
     private JobService jobService;
-
-    @Autowired
-    private YmlStorageDao ymlStorageDao;
 
     @Autowired
     private NodeService nodeService;

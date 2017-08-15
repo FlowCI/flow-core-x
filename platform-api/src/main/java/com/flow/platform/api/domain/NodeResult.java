@@ -15,9 +15,6 @@
  */
 
 package com.flow.platform.api.domain;
-
-import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentPath;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.*;
