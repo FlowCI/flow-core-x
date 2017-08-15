@@ -25,6 +25,7 @@ import java.util.Collection;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -51,7 +52,7 @@ public abstract class AbstractGitClient implements GitClient {
         }
 
         try (Git git = gitOpen()) {
-            pullCommand(branch, git).call();
+            pullCommand(branch, git).setProgressMonitor(new DebugProgressMonitor()).call();
         } catch (Throwable e) {
             throw new GitException("Fail to pull with specific files", e);
         }
@@ -125,5 +126,38 @@ public abstract class AbstractGitClient implements GitClient {
             ", targetDir=" + targetDir +
             ", clientType=" + getClass().getSimpleName() +
             '}';
+    }
+
+    private class DebugProgressMonitor implements ProgressMonitor {
+
+        private String task;
+        private int totalWork;
+
+        @Override
+        public void start(int totalTasks) {
+            System.out.println("Git total task: " + totalTasks);
+        }
+
+        @Override
+        public void beginTask(String title, int totalWork) {
+            this.task = title;
+            this.totalWork = totalWork;
+            System.out.println("Git begin task: " + task + ", " + totalWork);
+        }
+
+        @Override
+        public void update(int completed) {
+            System.out.println("Git on task: " + task + ", " + completed);
+        }
+
+        @Override
+        public void endTask() {
+            System.out.println("Git end task: " + task);
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
     }
 }

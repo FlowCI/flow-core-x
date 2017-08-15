@@ -15,7 +15,6 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.controller.GitWebHookController;
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
@@ -90,7 +89,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public Job createJob(String path, GitEvent event) {
+    public Job createJob(String path) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
@@ -107,11 +106,7 @@ public class JobServiceImpl implements JobService {
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
-
-        // set git info to job out put
-        if (event != null) {
-            job.setOutputs(GitEventDataExtractor.extract(event));
-        }
+        job.setOutputs(root.getEnvs());
 
         //save job
         jobDao.save(job);

@@ -18,7 +18,6 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.domain.CmdBase;
-import com.flow.platform.util.git.model.GitEvent;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -31,10 +30,9 @@ public interface JobService {
      * create job
      *
      * @param path any node path
-     * @param event Event from git, null for manual build
      * @return job
      */
-    Job createJob(String path, GitEvent event);
+    Job createJob(String path);
 
     /**
      * handle callback

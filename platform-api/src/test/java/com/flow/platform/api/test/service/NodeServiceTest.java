@@ -132,17 +132,21 @@ public class NodeServiceTest extends TestBase {
 
         // then:
         Node loaded = nodeService.find("/flow1");
-        Assert.assertEquals(3, loaded.getEnvs().size());
+        Assert.assertEquals(5, loaded.getEnvs().size());
         Assert.assertEquals("hello", loaded.getEnvs().get("FLOW_NEW_1"));
         Assert.assertEquals("world", loaded.getEnvs().get("FLOW_NEW_2"));
         Assert.assertEquals("done", loaded.getEnvs().get("FLOW_NEW_3"));
+        Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
 
         // check env been sync with yml
         Flow flow = flowDao.get("/flow1");
-        Assert.assertEquals(3, flow.getEnvs().size());
+        Assert.assertEquals(5, flow.getEnvs().size());
         Assert.assertEquals("hello", flow.getEnvs().get("FLOW_NEW_1"));
         Assert.assertEquals("world", flow.getEnvs().get("FLOW_NEW_2"));
         Assert.assertEquals("done", flow.getEnvs().get("FLOW_NEW_3"));
+        Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
     }
 
     @Test(expected = IllegalParameterException.class)

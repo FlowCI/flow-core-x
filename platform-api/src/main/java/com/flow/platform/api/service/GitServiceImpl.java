@@ -21,6 +21,8 @@ import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
+import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.exception.UnsupportedException;
 import com.flow.platform.util.Logger;
@@ -32,7 +34,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,6 +76,11 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public String clone(Flow flow, String filePath) {
+        final Set<String> requiredEnvSet = Sets.newHashSet(Env.FLOW_GIT_URL, Env.FLOW_GIT_SOURCE);
+        if(!EnvUtil.hasRequired(flow, requiredEnvSet)) {
+            throw new IllegalParameterException("Missing required envs");
+        }
+
         String branch = flow.getEnvs().get(Env.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(flow);
         client.clone(branch, null, Sets.newHashSet(filePath));

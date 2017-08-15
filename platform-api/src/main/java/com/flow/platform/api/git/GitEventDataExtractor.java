@@ -33,7 +33,8 @@ public class GitEventDataExtractor {
         if (event instanceof GitPullRequestEvent) {
             GitPullRequestEvent pr = (GitPullRequestEvent) event;
             Map<String, String> info = new HashMap<>();
-            info.put(Env.FLOW_GIT_BRANCH, pr.getTarget().getBranch());
+            info.put(Env.FLOW_GIT_EVENT_TYPE, pr.getType().name());
+            info.put(Env.FLOW_GIT_BRANCH, simpleRef(pr.getTarget().getBranch()));
             info.put(Env.FLOW_GIT_CHANGELOG, pr.getTitle());
             return info;
         }
@@ -41,11 +42,26 @@ public class GitEventDataExtractor {
         if (event instanceof GitPushTagEvent) {
             GitPushTagEvent pt = (GitPushTagEvent) event;
             Map<String, String> info = new HashMap<>();
-            info.put(Env.FLOW_GIT_BRANCH, pt.getRef());
-            info.put(Env.FLOW_GIT_CHANGELOG, pt.getMessage());
+            info.put(Env.FLOW_GIT_EVENT_TYPE, pt.getType().name());
+            info.put(Env.FLOW_GIT_BRANCH, simpleRef(pt.getRef()));
+
+            if (pt.getCommits().size() > 0) {
+                info.put(Env.FLOW_GIT_CHANGELOG, pt.getCommits().get(0).getMessage());
+            }
             return info;
         }
 
         throw new IllegalParameterException("Git event type not supported");
+    }
+
+    /**
+     * Simplify ref from 'ref/head/master' to 'master'
+     */
+    private static String simpleRef(String ref) {
+        int slashIndex = ref.lastIndexOf('/');
+        if (slashIndex == -1) {
+            return ref;
+        }
+        return ref.substring(slashIndex + 1);
     }
 }

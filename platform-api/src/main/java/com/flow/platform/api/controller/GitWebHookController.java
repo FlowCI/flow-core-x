@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.util.PathUtil;
@@ -69,16 +70,19 @@ public class GitWebHookController {
             final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
             LOGGER.trace("Webhook received: %s", hookEvent.toString());
 
+            // extract git info from event and set to flow env
+            nodeService.setFlowEnv(path, GitEventDataExtractor.extract(hookEvent));
+
             nodeService.loadYmlContent(path, yml -> {
                 // update yml content
                 nodeService.createOrUpdate(path, yml.getFile());
 
                 // start job
-                jobService.createJob(path, hookEvent);
+                jobService.createJob(path);
             });
 
         } catch (GitException e) {
-            LOGGER.error("Cannot process web hook event", e);
+            LOGGER.warn("Cannot process web hook event: %s", e.getMessage());
         }
     }
 }

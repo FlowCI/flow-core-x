@@ -18,6 +18,7 @@ package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.util.EnvUtil;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,5 +72,16 @@ public class EnvUtilTest {
         Assert.assertEquals("source 1", target.getEnvs().get("FLOW_1"));
         Assert.assertEquals("source 2", target.getEnvs().get("FLOW_2"));
         Assert.assertEquals("target 3", target.getEnvs().get("FLOW_3"));
+    }
+
+    @Test
+    public void should_check_required_env_value() {
+        Node source = nodes[0];
+
+        boolean hasRequried = EnvUtil.hasRequired(source, Sets.newHashSet("FLOW_1", "FLOW_2"));
+        Assert.assertEquals(true, hasRequried);
+
+        hasRequried = EnvUtil.hasRequired(source, Sets.newHashSet("FLOW_1", "FLOW_2", "FLOW_3"));
+        Assert.assertEquals(false, hasRequried);
     }
 }

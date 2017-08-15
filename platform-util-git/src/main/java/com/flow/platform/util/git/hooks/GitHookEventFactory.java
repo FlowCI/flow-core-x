@@ -57,6 +57,7 @@ public class GitHookEventFactory {
         githubAdaptors.put(
             GithubEvents.Hooks.EVENT_TYPE_MR,
             new GithubEvents.MergeRequestAdapter(GitSource.GITHUB, GitEventType.MR));
+
         adaptors.put(GithubEvents.Hooks.HEADER, githubAdaptors);
     }
 

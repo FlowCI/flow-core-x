@@ -202,7 +202,7 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public void setFlowEnv(String path, Map<String, String> envs) {
         Flow flow = findFlow(path);
-        flow.setEnvs(envs);
+        EnvUtil.merge(envs, flow.getEnvs(), true);
 
         // sync latest env into flow table
         flowDao.update(flow);
