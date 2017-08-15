@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
@@ -30,6 +32,7 @@ import java.io.IOException;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,6 +54,9 @@ public class GitWebHookController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @PostMapping(path = "/{flowname}")
     public void onEventReceived(@PathVariable("flowname") String flowName,
@@ -74,11 +80,22 @@ public class GitWebHookController {
             nodeService.setFlowEnv(path, GitEventDataExtractor.extract(hookEvent));
 
             nodeService.loadYmlContent(path, yml -> {
+                LOGGER.trace("Yml content has been loaded for path : " + path);
+
                 // update yml content
-                nodeService.createOrUpdate(path, yml.getFile());
+                try {
+                    nodeService.createOrUpdate(path, yml.getFile());
+                } catch (Throwable e) {
+                    LOGGER.warn("Fail to create or update yml in node");
+                }
 
                 // start job
-                jobService.createJob(path);
+                try {
+                    Job job = jobService.createJob(path);
+                    applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
+                } catch (Throwable e) {
+                    LOGGER.warn("Fail to create job for path : " + path);
+                }
             });
 
         } catch (GitException e) {
