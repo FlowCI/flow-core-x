@@ -17,6 +17,7 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.core.dao.BaseDao;
 
 /**
  * @author yh@firim

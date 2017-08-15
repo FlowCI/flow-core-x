@@ -13,24 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao.adaptor;
 
+package com.flow.platform.core.dao.adaptor.list;
+
+import com.flow.platform.core.dao.adaptor.BaseAdaptor;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
-import java.util.Map;
+import java.util.List;
 
 /**
- * @author lhl
+ * @author gy@fir.im
  */
-public class MapAdaptor extends BaseAdaptor{
+public class ListAdaptor extends BaseAdaptor {
+
     @Override
     public Class returnedClass() {
-        return Map.class;
+        return List.class;
     }
 
     @Override
     protected Type getTargetType() {
-        TypeToken<Map<String, String>> typeToken = new TypeToken<Map<String, String>>() {};
+        TypeToken<List<String>> typeToken = new TypeToken<List<String>>() {};
         return typeToken.getType();
     }
 }

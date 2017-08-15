@@ -16,18 +16,21 @@
 
 package com.flow.platform.cc.dao;
 
-import com.flow.platform.cc.dao.adaptor.BaseAdaptor;
+import com.flow.platform.core.dao.AbstractBaseDao;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.ObjectUtil;
 import com.google.common.collect.Sets;
-import org.springframework.stereotype.Repository;
-
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Root;
-import java.lang.reflect.Field;
-import java.util.*;
+import org.springframework.stereotype.Repository;
+import com.flow.platform.core.dao.adaptor.BaseAdaptor;
 
 /**
  * @author Will
@@ -36,12 +39,12 @@ import java.util.*;
 public class CmdResultDaoImpl extends AbstractBaseDao<String, CmdResult> implements CmdResultDao {
 
     @Override
-    Class getEntityClass() {
+    protected Class getEntityClass() {
         return CmdResult.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "cmdId";
     }
 

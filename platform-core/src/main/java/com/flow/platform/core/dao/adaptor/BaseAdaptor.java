@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.dao.adaptor;
+package com.flow.platform.core.dao.adaptor;
 
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ObjectUtil;
 import com.google.gson.Gson;
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.usertype.UserType;
-
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.UserType;
 
 /**
  * @author Will
