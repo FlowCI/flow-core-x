@@ -28,6 +28,7 @@ import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.util.ObjectWrapper;
+import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,7 +76,10 @@ public class GitWebhookTest extends TestBase {
             .header("x-github-event", "push")
             .header("x-github-delivery", "29087180-8177-11e7-83a4-3b68852f0c9e");
 
-        push_trigger_from_git(push);
+        Job job = push_trigger_from_git(push);
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getOutputs().get(Env.FLOW_GIT_SOURCE));
+        Assert.assertEquals(GitEventType.PUSH.name(), job.getOutputs().get(Env.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals("Update .flow.yml for github", job.getOutputs().get(Env.FLOW_GIT_CHANGELOG));
     }
 
     @Test
@@ -87,7 +91,10 @@ public class GitWebhookTest extends TestBase {
             .content(getResourceContent("gitlab/push_payload.json"))
             .header("x-gitlab-event", "Push Hook");
 
-        push_trigger_from_git(push);
+        Job job = push_trigger_from_git(push);
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getOutputs().get(Env.FLOW_GIT_SOURCE));
+        Assert.assertEquals(GitEventType.PUSH.name(), job.getOutputs().get(Env.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals("Update .flow.yml for gitlab", job.getOutputs().get(Env.FLOW_GIT_CHANGELOG));
     }
 
     private void init_flow(String gitUrl) throws Throwable {
@@ -109,7 +116,7 @@ public class GitWebhookTest extends TestBase {
         Assert.assertNull(nodeService.getYmlContent(flowPath));
     }
 
-    private void push_trigger_from_git(RequestBuilder push) throws Throwable {
+    private Job push_trigger_from_git(RequestBuilder push) throws Throwable {
         final CountDownLatch latch = new CountDownLatch(1);
         final ObjectWrapper<Job> wrapper = new ObjectWrapper<>();
 
@@ -134,5 +141,6 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals(flowPath, created.getNodePath());
         Assert.assertEquals(1, created.getNumber().intValue());
         Assert.assertNotNull(created.getCmdId());
+        return created;
     }
 }
