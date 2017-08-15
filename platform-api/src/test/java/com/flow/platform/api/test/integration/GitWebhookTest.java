@@ -34,12 +34,14 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
@@ -52,24 +54,43 @@ public class GitWebhookTest extends TestBase {
 
     private final String flowPath = PathUtil.build(flowName);
 
-    private final String gitUrl = "git@github.com:flow-ci-plugin/for-testing.git";
-
     @Autowired
     private NodeService nodeService;
 
     @Autowired
     private SpringContext springContext;
 
-    @Test
-    public void should_create_job_after_git_webhook_trigger() throws Throwable {
+    @Before
+    public void before() {
         stubDemo();
-
-        init_flow();
-
-        push_trigger_from_git();
     }
 
-    private void init_flow() throws Throwable {
+    @Test
+    public void should_create_job_after_github_webhook_trigger() throws Throwable {
+        init_flow("git@github.com:flow-ci-plugin/for-testing.git");
+
+        MockHttpServletRequestBuilder push = post("/hooks/git/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getResourceContent("github/push_payload.json"))
+            .header("x-github-event", "push")
+            .header("x-github-delivery", "29087180-8177-11e7-83a4-3b68852f0c9e");
+
+        push_trigger_from_git(push);
+    }
+
+    @Test
+    public void should_create_job_after_gitlab_webhook_trigger() throws Throwable {
+        init_flow("git@gitlab.com:yang.guo/for-testing.git");
+
+        MockHttpServletRequestBuilder push = post("/hooks/git/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getResourceContent("gitlab/push_payload.json"))
+            .header("x-gitlab-event", "Push Hook");
+
+        push_trigger_from_git(push);
+    }
+
+    private void init_flow(String gitUrl) throws Throwable {
         // create empty flow
         nodeService.createEmptyFlow(flowName);
 
@@ -88,7 +109,7 @@ public class GitWebhookTest extends TestBase {
         Assert.assertNull(nodeService.getYmlContent(flowPath));
     }
 
-    private void push_trigger_from_git() throws Throwable {
+    private void push_trigger_from_git(RequestBuilder push) throws Throwable {
         final CountDownLatch latch = new CountDownLatch(1);
         final ObjectWrapper<Job> wrapper = new ObjectWrapper<>();
 
@@ -98,12 +119,6 @@ public class GitWebhookTest extends TestBase {
         };
 
         springContext.registerApplicationListener(listener);
-
-        MockHttpServletRequestBuilder push = post("/hooks/git/" + flowName)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(getResourceContent("github/push_webhook_payload"))
-            .header("x-github-event", "push")
-            .header("x-github-delivery", "29087180-8177-11e7-83a4-3b68852f0c9e");
 
         mockMvc.perform(push).andExpect(status().isOk());
 
