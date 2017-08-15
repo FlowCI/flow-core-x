@@ -17,6 +17,7 @@
 package com.flow.platform.api.util;
 
 import com.flow.platform.api.domain.Node;
+import com.google.common.base.Strings;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -25,6 +26,21 @@ import java.util.Set;
  * @author yang
  */
 public class EnvUtil {
+
+    public static boolean hasRequired(Node node, Set<String> requiredEnvSet) {
+        for (String requiredKey : requiredEnvSet) {
+            if (!node.getEnvs().containsKey(requiredKey)) {
+                return false;
+            }
+
+            Object requiredValue = node.getEnvs().get(requiredKey);
+            if (requiredValue == null || Strings.isNullOrEmpty(requiredValue.toString().trim())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * Merget env variables of nodes

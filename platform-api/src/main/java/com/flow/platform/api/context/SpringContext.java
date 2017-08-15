@@ -14,24 +14,39 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.util;
+package com.flow.platform.api.context;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.stereotype.Component;
 
 /**
- * @author gy@fir.im
+ * @author yang
  */
-@Component(value = "springContextUtil")
-public class SpringContextUtil implements ApplicationContextAware {
+
+@Component
+public class SpringContext implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
+    private ApplicationEventMulticaster eventMulticaster;
+
     public ApplicationContext getApplicationContext() {
         return applicationContext;
+    }
+
+    public void registerApplicationListener(ApplicationListener<?> listener) {
+        eventMulticaster.addApplicationListener(listener);
+    }
+
+    public void removeApplicationListener(ApplicationListener<?> listener) {
+        eventMulticaster.removeApplicationListener(listener);
     }
 
     public Object getBean(String name) {
@@ -57,5 +72,7 @@ public class SpringContextUtil implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+        this.eventMulticaster = (ApplicationEventMulticaster) applicationContext
+            .getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
     }
 }
