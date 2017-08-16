@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.consumer;
+package com.flow.platform.api.consumer;
 
-import com.flow.platform.cc.domain.CmdStatusItem;
-import com.flow.platform.cc.service.CmdService;
+import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.service.JobService;
 import com.flow.platform.core.consumer.QueueConsumerBase;
 import com.flow.platform.util.Logger;
 import java.util.concurrent.BlockingQueue;
@@ -26,23 +26,21 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
- * To update cmd status and agent status
- *
- * @author yang
+ * @author yh@firim
  */
 @Component
-public class CmdStatusQueueConsumer extends QueueConsumerBase<CmdStatusItem> {
+public class CmdQueueConsumer extends QueueConsumerBase<CmdQueueItem> {
 
-    private final static Logger LOGGER = new Logger(CmdStatusQueueConsumer.class);
-
-    @Autowired
-    private BlockingQueue<CmdStatusItem> cmdStatusQueue;
+    private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
 
     @Autowired
-    private CmdService cmdService;
+    private BlockingQueue<CmdQueueItem> cmdBaseBlockingQueue;
 
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
+
+    @Autowired
+    private JobService jobService;
 
     @Override
     public ThreadPoolTaskExecutor getTaskExecutor() {
@@ -50,21 +48,19 @@ public class CmdStatusQueueConsumer extends QueueConsumerBase<CmdStatusItem> {
     }
 
     @Override
-    public BlockingQueue<CmdStatusItem> getQueue() {
-        return cmdStatusQueue;
+    public BlockingQueue<CmdQueueItem> getQueue() {
+        return cmdBaseBlockingQueue;
     }
 
     @Override
-    public void onQueueItem(CmdStatusItem item) {
+    public void onQueueItem(CmdQueueItem item) {
         if (item == null) {
             return;
         }
-
         try {
-            LOGGER.debug(Thread.currentThread().getName() + " : " + item.toString());
-            cmdService.updateStatus(item, false);
-        } catch (Throwable e) {
-            LOGGER.error("Update cmd error:", e);
+            jobService.callback(item);
+        }catch (Throwable throwable){
+            LOGGER.traceMarker("onQueueItem", String.format("exception - %s", throwable));
         }
     }
 }

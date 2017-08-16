@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.test.service;
 
+import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
@@ -54,7 +55,7 @@ public class JobServiceTest extends TestBase {
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId("11111111");
         cmd.setStatus(CmdStatus.SENT);
-        jobService.callback(job.getId().toString(), cmd);
+        jobService.callback(new CmdQueueItem(job.getId().toString(), cmd));
 
         job = jobService.find(job.getId());
         Assert.assertEquals("11111111", job.getSessionId());
@@ -66,7 +67,7 @@ public class JobServiceTest extends TestBase {
         map.put("path", step1.getPath());
         map.put("jobId", job.getId().toString());
 
-        jobService.callback(Jsonable.GSON_CONFIG.toJson(map), cmd);
+        jobService.callback(new CmdQueueItem(Jsonable.GSON_CONFIG.toJson(map), cmd));
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, job.getStatus());
         job = jobService.find(job.getId());
@@ -82,11 +83,11 @@ public class JobServiceTest extends TestBase {
 
         map.put("path", step2.getPath());
 
-        jobService.callback(Jsonable.GSON_CONFIG.toJson(map), cmd);
+        jobService.callback(new CmdQueueItem(Jsonable.GSON_CONFIG.toJson(map), cmd));
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, (jobNodeResultService.find(step2.getPath(), job.getId())).getStatus());
         Assert.assertEquals(NodeStatus.FAILURE, job.getStatus());
-        jobFlow =  jobNodeResultService.find(flow.getPath(), job.getId());
+        jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
 
     }

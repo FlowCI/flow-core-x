@@ -17,6 +17,7 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Jsonable;
@@ -29,7 +30,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
-import org.apache.zookeeper.ZooKeeper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -47,13 +47,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
     WebSocketConfig.class,
     AgentConfig.class
 })
-public class AppConfig {
+public class AppConfig extends AppConfigBase{
 
     public final static DateTimeFormatter APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
 
     public final static Path CMD_LOG_DIR = Paths.get(System.getenv("HOME"), "uploaded-agent-log");
 
     private final static int ASYNC_POOL_SIZE = 100;
+
+    private final static String THREAD_NAME_PREFIX = "async-task-";
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
@@ -66,15 +68,9 @@ public class AppConfig {
         }
     }
 
-    // TODO: should separate task and scheduler
     @Bean
-    public ThreadPoolTaskExecutor taskExecutor() {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
-        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
-        taskExecutor.setQueueCapacity(100);
-        taskExecutor.setThreadNamePrefix("async-task-");
-        return taskExecutor;
+    protected ThreadPoolTaskExecutor taskExecutor() {
+        return super.taskExecutor(ASYNC_POOL_SIZE, THREAD_NAME_PREFIX);
     }
 
     /**
