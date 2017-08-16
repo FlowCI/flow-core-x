@@ -22,6 +22,8 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -201,6 +203,8 @@ public class NodeServiceImpl implements NodeService {
             throw new IllegalParameterException("Flow name already existed");
         }
 
+        flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
+        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.Value.FLOW_STATUS_PENDING);
         flow = flowDao.save(flow);
 
         return flow;

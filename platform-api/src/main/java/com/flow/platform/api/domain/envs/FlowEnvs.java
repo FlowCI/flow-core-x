@@ -14,31 +14,36 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
-
-import com.flow.platform.api.domain.Flow;
+package com.flow.platform.api.domain.envs;
 
 /**
- * To fetch related git repo info
- *
  * @author yang
  */
-public interface GitService {
+public enum FlowEnvs implements EnvKey {
 
-    // the folder in the flow workspace
-    String SOURCE_FOLDER_NAME = "source";
+    FLOW_STATUS;
 
-    /**
-     * Fetch file content from git repo in flow workspace
-     */
-    String fetch(Flow flow, String filePath);
+    public enum Value implements EnvValue {
 
-    /**
-     * Fetch file content from git repo by git clone
-     *
-     * @param flow flow instance which includes git repo info
-     * @param filePath target file path
-     * @return file content
-     */
-    String clone(Flow flow, String filePath);
+        FLOW_STATUS_READY("READY"),
+
+        FLOW_STATUS_PENDING("PENDING");
+
+        private String value;
+
+        Value(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String value() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
+
 }

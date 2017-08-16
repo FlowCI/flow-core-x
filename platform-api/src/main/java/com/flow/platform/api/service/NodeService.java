@@ -80,11 +80,12 @@ public interface NodeService {
 
     /**
      * Create flow without any children
+     * - FLOW_GIT_WEBHOOK will be created in env
      */
     Flow createEmptyFlow(String flowName);
 
     /**
-     * Set flow node evn and sync to yml
+     * Merge new env to flow node evn and sync to yml
      */
     void setFlowEnv(String path, Map<String, String> envs);
 
