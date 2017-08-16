@@ -23,8 +23,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yh@firim
  */
-public abstract class AbstractContextCloseHandler  implements ApplicationListener<ContextClosedEvent> {
+public abstract class AbstractContextCloseHandler implements ApplicationListener<ContextClosedEvent> {
+
     public abstract ThreadPoolTaskExecutor getTaskExecutor();
+
     public abstract SpringContext getSpringContext();
 
     @Override

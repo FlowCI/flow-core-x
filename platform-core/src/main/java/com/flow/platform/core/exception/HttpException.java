@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.exception;
-
-import com.flow.platform.core.exception.FlowException;
+package com.flow.platform.core.exception;
 
 /**
  * @author yh@firim

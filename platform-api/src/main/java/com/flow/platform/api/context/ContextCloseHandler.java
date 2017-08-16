@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ContextCloseHandler extends AbstractContextCloseHandler {
 
-
     @Autowired
     private SpringContext springContext;
 
