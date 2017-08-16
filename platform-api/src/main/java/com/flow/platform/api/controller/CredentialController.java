@@ -18,8 +18,8 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.Credential;
 import com.flow.platform.api.service.CredentialService;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,14 +40,11 @@ public class CredentialController {
     private final static Logger LOGGER = new Logger(CredentialController.class);
 
     @Autowired
-    private CredentialDao credentialDao;
-
-    @Autowired
     private CredentialService credentialService;
 
     @GetMapping
-    public String index() {
-        return Jsonable.GSON_EXPOSE_CONFIG.toJson(credentialDao.list());
+    public List<Credential> index() {
+        return credentialService.listCredentials();
     }
 
     @GetMapping(path = "/{name}")

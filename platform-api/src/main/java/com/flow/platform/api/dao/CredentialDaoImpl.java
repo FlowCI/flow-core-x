@@ -41,16 +41,16 @@ public class CredentialDaoImpl extends AbstractBaseDao<String, Credential> imple
         return "name";
     }
 
-    @Override
-    public List<Credential> list() {
-        return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Credential> select = builder.createQuery(Credential.class);
-            Root<Credential> credential = select.from(Credential.class);
-            Predicate condition = builder.not(credential.get("name").isNull());
-            select.where(condition);
-            return session.createQuery(select).list();
-        });
-    }
+//    @Override
+//    public List<Credential> list() {
+//        return execute((Session session) -> {
+//            CriteriaBuilder builder = session.getCriteriaBuilder();
+//            CriteriaQuery<Credential> select = builder.createQuery(Credential.class);
+//            Root<Credential> credential = select.from(Credential.class);
+//            Predicate condition = builder.not(credential.get("name").isNull());
+//            select.where(condition);
+//            return session.createQuery(select).list();
+//        });
+//    }
 }
 

@@ -87,7 +87,19 @@ public class CredentialServiceTest extends TestBase {
         credential.setCredentialType(CredentialType.USERNAME);
         credentialDao.save(credential);
         credentialService.delete("test");
-        Assert.assertEquals(0, credentialDao.list().size());
+        Assert.assertEquals(0, credentialService.listCredentials().size());
+    }
+
+    @Test
+    public void should_list_credentials(){
+        Credential credential = new Credential();
+        credential.setName("test");
+        credential.setUserName("name1");
+        credential.setPassword("password");
+        credential.setCredentialType(CredentialType.USERNAME);
+        credentialDao.save(credential);
+
+        Assert.assertEquals(1, credentialService.listCredentials().size());
     }
 
 }

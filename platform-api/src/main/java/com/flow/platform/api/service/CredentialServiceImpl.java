@@ -21,6 +21,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -62,6 +63,11 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
+    public List<Credential> listCredentials() {
+        return credentialDao.list();
+    }
+
+    @Override
     public Map<String, String> getKeyMap() {
         String comment = "FLOWCI";
         Map<String, String> keys = new HashMap<>();
@@ -70,7 +76,7 @@ public class CredentialServiceImpl implements CredentialService {
         try {
             KeyPair kpair = KeyPair.genKeyPair(jsch, type);
             //私钥
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();//向OutPutStream中写入
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             kpair.writePrivateKey(baos);
             String privateKeyString = baos.toString();
             //公钥

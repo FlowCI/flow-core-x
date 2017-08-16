@@ -16,6 +16,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Credential;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,5 +43,7 @@ public interface CredentialService {
     Credential update(Credential credential);
 
     boolean delete(String name);
+
+    List<Credential> listCredentials();
 
 }

@@ -23,6 +23,6 @@ import java.util.List;
  */
 public interface CredentialDao extends BaseDao<String, Credential> {
 
-    List<Credential> list();
+//    List<Credential> list();
 
 }
