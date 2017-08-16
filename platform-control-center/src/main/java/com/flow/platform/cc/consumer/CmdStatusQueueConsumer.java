@@ -18,9 +18,11 @@ package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.CmdService;
+import com.flow.platform.core.consumer.QueueConsumerBase;
 import com.flow.platform.util.Logger;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,6 +40,14 @@ public class CmdStatusQueueConsumer extends QueueConsumerBase<CmdStatusItem> {
 
     @Autowired
     private CmdService cmdService;
+
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
+    @Override
+    public ThreadPoolTaskExecutor getTaskExecutor() {
+        return taskExecutor;
+    }
 
     @Override
     public BlockingQueue<CmdStatusItem> getQueue() {

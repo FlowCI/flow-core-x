@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.context;
+package com.flow.platform.core.config;
+
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * Event interface when spring context refreshed and closed
- *
- * @author yang
+ * @author yh@firim
  */
-public interface ContextEvent {
+public abstract class AbstractAppConfig {
+    private final static int ASYNC_POOL_SIZE = 100;
 
-    void start();
-
-    void stop();
+    public ThreadPoolTaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
+        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
+        taskExecutor.setQueueCapacity(100);
+        taskExecutor.setThreadNamePrefix("async-task-");
+        return taskExecutor;
+    }
 }

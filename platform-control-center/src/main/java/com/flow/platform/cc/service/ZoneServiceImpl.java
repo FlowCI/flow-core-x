@@ -17,10 +17,10 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
-import com.flow.platform.cc.context.ContextEvent;
-import com.flow.platform.cc.util.SpringContextUtil;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.cloud.InstanceManager;
+import com.flow.platform.core.context.ContextEvent;
+import com.flow.platform.core.util.SpringContextUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.CmdInfo;

@@ -16,11 +16,10 @@
 
 package com.flow.platform.cc.context;
 
-import com.flow.platform.cc.util.SpringContextUtil;
+import com.flow.platform.core.context.AbstractContextInitHandler;
+import com.flow.platform.core.util.SpringContextUtil;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,7 +28,7 @@ import org.springframework.stereotype.Component;
  * @author gy@fir.im
  */
 @Component
-public class ContextInitHandler implements ApplicationListener<ContextRefreshedEvent> {
+public class ContextInitHandler extends AbstractContextInitHandler {
 
     private final static Logger LOGGER = new Logger(ContextInitHandler.class);
 
@@ -37,12 +36,7 @@ public class ContextInitHandler implements ApplicationListener<ContextRefreshedE
     private SpringContextUtil springContextUtil;
 
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
-        // init queue consumer
-        for (String eventClassName : springContextUtil.getBeanNameByType(ContextEvent.class)) {
-            ContextEvent eventClass = (ContextEvent) springContextUtil.getBean(eventClassName);
-            eventClass.start();
-            LOGGER.trace("Start context : %s", eventClassName);
-        }
+    public SpringContextUtil getSpringContextUtil() {
+        return springContextUtil;
     }
 }

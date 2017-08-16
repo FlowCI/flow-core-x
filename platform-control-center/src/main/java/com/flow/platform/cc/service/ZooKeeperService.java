@@ -16,7 +16,7 @@
 
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.context.ContextEvent;
+import com.flow.platform.core.context.ContextEvent;
 
 /**
  * @author yang

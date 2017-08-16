@@ -17,7 +17,9 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.core.config.AbstractAppConfig;
 import com.flow.platform.core.config.DatabaseConfig;
+import com.flow.platform.core.util.SpringContextUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
@@ -47,7 +49,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
     WebSocketConfig.class,
     AgentConfig.class
 })
-public class AppConfig {
+public class AppConfig extends AbstractAppConfig{
 
     public final static DateTimeFormatter APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
 
@@ -66,15 +68,10 @@ public class AppConfig {
         }
     }
 
-    // TODO: should separate task and scheduler
     @Bean
+    @Override
     public ThreadPoolTaskExecutor taskExecutor() {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
-        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
-        taskExecutor.setQueueCapacity(100);
-        taskExecutor.setThreadNamePrefix("async-task-");
-        return taskExecutor;
+        return super.taskExecutor();
     }
 
     /**
@@ -91,5 +88,10 @@ public class AppConfig {
     @Bean
     public BlockingQueue<CmdStatusItem> cmdStatusQueue() {
         return new LinkedBlockingQueue<>(50);
+    }
+
+    @Bean
+    public SpringContextUtil springContextUtil(){
+        return new SpringContextUtil();
     }
 }
