@@ -19,11 +19,13 @@ package com.flow.platform.api.domain;
 import com.flow.platform.domain.CmdBase;
 
 /**
- * @author gyfirim
+ * @author yh@firim
  */
 public class CmdQueueItem {
+
     private String identifier;
     private CmdBase cmdBase;
+    private Integer retryTimes = 0;
 
     public CmdQueueItem(String identifier, CmdBase cmdBase) {
         this.identifier = identifier;
@@ -44,6 +46,13 @@ public class CmdQueueItem {
 
     public void setCmdBase(CmdBase cmdBase) {
         this.cmdBase = cmdBase;
+    }
+
+    /**
+     * self plus ++
+     */
+    public void plus() {
+        retryTimes += 1;
     }
 
     @Override
@@ -76,5 +85,13 @@ public class CmdQueueItem {
             "identifier='" + identifier + '\'' +
             ", cmdBase=" + cmdBase +
             '}';
+    }
+
+    public Integer getRetryTimes() {
+        return retryTimes;
+    }
+
+    public void setRetryTimes(Integer retryTimes) {
+        this.retryTimes = retryTimes;
     }
 }

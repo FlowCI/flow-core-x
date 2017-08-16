@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.Response;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.util.UrlUtil;
@@ -61,7 +62,7 @@ public class CmdWebhookController {
                 cmd.getStatus()));
 
 //        jobService.callback(decodedIdentifier, cmd);
-        jobService.enterQueue(decodedIdentifier, cmd);
+        jobService.enterQueue(new CmdQueueItem(decodedIdentifier, cmd));
         return new Response("ok");
     }
 }

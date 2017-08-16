@@ -131,12 +131,26 @@ public class JobServiceImpl implements JobService {
 
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    public void callback(String id, CmdBase cmdBase) {
+    public void callback(CmdQueueItem cmdQueueItem) {
+        String id = cmdQueueItem.getIdentifier();
+        CmdBase cmdBase = cmdQueueItem.getCmdBase();
         Job job;
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
 
             job = find(new BigInteger(id));
             if (job == null) {
+                if (cmdQueueItem.getRetryTimes() < RETRY_TIMEs) {
+                    try {
+                        Thread.sleep(1000);
+                        LOGGER.traceMarker("callback", String
+                            .format("job not found, retry times - %s jobId - %s", cmdQueueItem.getRetryTimes(), id));
+                    } catch (Throwable throwable) {
+                    }
+
+                    cmdQueueItem.plus();
+                    enterQueue(cmdQueueItem);
+                    return;
+                }
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
                 throw new NotFoundException("job not found");
             }
@@ -348,7 +362,6 @@ public class JobServiceImpl implements JobService {
         if (node instanceof Step) {
             //merge step outputs in flow outputs
             EnvUtil.merge(nodeResult.getOutputs(), job.getOutputs(), false);
-
             job.setDuration(job.getDuration() + nodeResult.getDuration());
             jobDao.update(job);
             return;
@@ -385,7 +398,9 @@ public class JobServiceImpl implements JobService {
         if (cmdResult != null) {
             nodeResult.setExitCode(cmdResult.getExitValue());
             if (NodeUtil.canRun(node)) {
-                nodeResult.setDuration(cmdResult.getDuration());
+                if (cmdResult.getDuration() != null) {
+                    nodeResult.setDuration(cmdResult.getDuration());
+                }
                 nodeResult.setOutputs(cmdResult.getOutput());
                 nodeResult.setLogPaths(((Cmd) cmdBase).getLogPaths());
                 nodeResult.setStartTime(cmdResult.getStartTime());
@@ -513,10 +528,9 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void enterQueue(String identifier, CmdBase cmdBase) {
-        LOGGER.traceMarker("enterQueue", String.format("cmd enter queue"));
+    public void enterQueue(CmdQueueItem cmdQueueItem) {
         try {
-            cmdBaseBlockingQueue.put(new CmdQueueItem(identifier, cmdBase));
+            cmdBaseBlockingQueue.put(cmdQueueItem);
         } catch (Throwable throwable) {
             LOGGER.traceMarker("enterQueue", String.format("exception - %s", throwable));
         }

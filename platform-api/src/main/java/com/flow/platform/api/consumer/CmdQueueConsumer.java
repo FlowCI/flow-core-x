@@ -57,8 +57,10 @@ public class CmdQueueConsumer extends QueueConsumerBase<CmdQueueItem> {
         if (item == null) {
             return;
         }
-        LOGGER.traceMarker("onQueueItem", "...........start............");
-        jobService.callback(item.getIdentifier(), item.getCmdBase());
-        LOGGER.traceMarker("onQueueItem", "...........finish............");
+        try {
+            jobService.callback(item);
+        }catch (Throwable throwable){
+            LOGGER.traceMarker("onQueueItem", String.format("exception - %s", throwable));
+        }
     }
 }

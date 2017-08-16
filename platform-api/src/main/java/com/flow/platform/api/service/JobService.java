@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.domain.CmdBase;
@@ -36,10 +37,8 @@ public interface JobService {
 
     /**
      * handle callback
-     *
-     * @param identifier if node callback identifier is nodePath, if session callback identifier is jobId
-     */
-    void callback(String identifier, CmdBase cmdBase);
+     **/
+    void callback(CmdQueueItem cmdQueueItem);
 
     /**
      * run node
@@ -64,5 +63,5 @@ public interface JobService {
     /**
      * send cmd to queue
      */
-    void enterQueue(String identifier, CmdBase cmdBase);
+    void enterQueue(CmdQueueItem cmdQueueItem);
 }
