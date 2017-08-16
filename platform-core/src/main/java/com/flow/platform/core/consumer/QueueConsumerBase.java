@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.consumer;
+package com.flow.platform.core.consumer;
 
 import com.flow.platform.core.context.ContextEvent;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -27,8 +26,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 public abstract class QueueConsumerBase<T> implements ContextEvent {
 
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
+    public abstract ThreadPoolTaskExecutor getTaskExecutor();
 
     private volatile boolean shouldStop = false;
 
@@ -38,7 +36,7 @@ public abstract class QueueConsumerBase<T> implements ContextEvent {
 
     @Override
     public void start() {
-        taskExecutor.execute(() -> {
+        getTaskExecutor().execute(() -> {
             while (!shouldStop) {
                 try {
                     T item = getQueue().poll(1L, TimeUnit.SECONDS);
@@ -55,4 +53,3 @@ public abstract class QueueConsumerBase<T> implements ContextEvent {
         shouldStop = true;
     }
 }
-

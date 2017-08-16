@@ -17,6 +17,7 @@
 package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.dao.AgentDao;
+import com.flow.platform.core.consumer.QueueConsumerBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -25,6 +26,7 @@ import com.flow.platform.util.Logger;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +46,14 @@ public class AgentReportQueueConsumer extends QueueConsumerBase<AgentPath> {
 
     @Autowired
     private AgentDao agentDao;
+
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
+    @Override
+    public ThreadPoolTaskExecutor getTaskExecutor() {
+        return taskExecutor;
+    }
 
     @Override
     public BlockingQueue<AgentPath> getQueue() {

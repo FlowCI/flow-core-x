@@ -30,9 +30,6 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.validation.Validator;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -47,7 +44,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.dao",
     "com.flow.platform.api.context",
     "com.flow.platform.api.validator",
-    "com.flow.platform.api.util"})
+    "com.flow.platform.api.util",
+    "com.flow.platform.api.consumer",
+    "com.flow.platform.api.context"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
@@ -77,4 +76,5 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         gsonHttpExposeConverter.setGson(Jsonable.GSON_CONFIG);
         converters.add(gsonHttpExposeConverter);
     }
+
 }

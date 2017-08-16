@@ -14,26 +14,31 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.context;
+package com.flow.platform.api.context;
 
-import com.flow.platform.core.context.AbstractContextInitHandler;
+import com.flow.platform.core.context.AbstractContextCloseHandler;
 import com.flow.platform.core.context.SpringContext;
-import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
- * Listen spring application context refreshed event to initialize default zone
- *
- * @author gy@fir.im
+ * @author yh@irim
  */
 @Component
-public class ContextInitHandler extends AbstractContextInitHandler {
+public class ContextCloseHandler extends AbstractContextCloseHandler {
 
-    private final static Logger LOGGER = new Logger(ContextInitHandler.class);
 
     @Autowired
     private SpringContext springContext;
+
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
+    @Override
+    public ThreadPoolTaskExecutor getTaskExecutor() {
+        return taskExecutor;
+    }
 
     @Override
     public SpringContext getSpringContext() {
