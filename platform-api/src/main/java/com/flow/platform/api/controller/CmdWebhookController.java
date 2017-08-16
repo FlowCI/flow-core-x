@@ -61,7 +61,6 @@ public class CmdWebhookController {
             .format("Webhook Comming Url: %s CmdType: %s CmdStatus: %s", cmd.getWebhook(), cmd.getType(),
                 cmd.getStatus()));
 
-//        jobService.callback(decodedIdentifier, cmd);
         jobService.enterQueue(new CmdQueueItem(decodedIdentifier, cmd));
         return new Response("ok");
     }
