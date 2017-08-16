@@ -22,7 +22,7 @@ import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

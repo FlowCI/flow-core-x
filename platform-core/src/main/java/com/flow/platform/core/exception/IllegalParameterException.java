@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.validator;
-
-import org.springframework.validation.Validator;
+package com.flow.platform.core.exception;
 
 /**
- * @author yang
+ * @author gy@fir.im
  */
-public interface FlowValidator extends Validator {
+public class IllegalParameterException extends FlowException {
 
-    /**
-     * Get validated object name
-     */
-    String getName();
-
+    public IllegalParameterException(String description) {
+        super(description, null);
+    }
 }

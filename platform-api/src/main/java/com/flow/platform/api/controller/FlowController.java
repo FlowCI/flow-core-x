@@ -21,7 +21,7 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.exception.NotImplementedException;
+import com.flow.platform.core.exception.NotImplementedException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;

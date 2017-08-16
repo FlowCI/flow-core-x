@@ -20,7 +20,7 @@ import com.flow.platform.api.domain.Response;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;

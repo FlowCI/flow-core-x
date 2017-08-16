@@ -110,12 +110,6 @@
 
     <dependency>
       <groupId>com.flow.platform</groupId>
-      <artifactId>platform-exception</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.flow.platform</groupId>
       <artifactId>platform-util-resource</artifactId>
       <version>${project.version}</version>
     </dependency>

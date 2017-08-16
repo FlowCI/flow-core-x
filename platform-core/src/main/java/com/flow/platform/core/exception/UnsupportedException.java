@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package com.flow.platform.exception;
+package com.flow.platform.core.exception;
 
 /**
- * @author gy@fir.im
+ * @author yang
  */
-public class IllegalParameterException extends FlowException {
+public class UnsupportedException extends FlowException {
 
-    public IllegalParameterException(String description) {
+    public UnsupportedException(String description) {
         super(description, null);
+    }
+
+    public UnsupportedException(String description, Throwable e) {
+        super(description, e);
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.exception;
+package com.flow.platform.core.exception;
 
 /**
  * @author gy@fir.im

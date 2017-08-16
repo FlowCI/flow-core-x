@@ -17,7 +17,7 @@
 package com.flow.platform.api.git;
 
 import com.flow.platform.api.service.GitService.Env;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPushTagEvent;

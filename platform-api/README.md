@@ -1,4 +1,4 @@
-### Flow Relate API ###
+## Flow API Reference ##
 
 ### GET Flows
   ```
@@ -204,3 +204,28 @@
              }
            ]
     ```
+    
+    
+## Environments Description
+
+### Flow
+
+**FLOW_STATUS**: READY | PENDING
+
+### Git 
+        
+**FLOW_GIT_SOURCE**: UNDEFINED_SSH | UNDEFINED_HTTP | GITLAB | GITHUB| CODING| OSCHINA | BITBUCKET 
+
+**FLOW_GIT_URL**: Git repo url
+
+**FLOW_GIT_BRANCH**: Git repo branch to check
+
+**FLOW_GIT_WEBHOOK**: readonly, output webhook url of flow
+
+**FLOW_GIT_CHANGELOG**: readonly
+
+**FLOW_GIT_EVENT_TYPE**: readonly
+
+**FLOW_GIT_SSH_PRIVATE_KEY**: readonly
+
+**FLOW_GIT_SSH_PUBLIC_KEY**: readonly

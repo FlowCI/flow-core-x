@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.exception;
+package com.flow.platform.core.exception;
 
 /**
  * @author yang
  */
-public class UnsupportedException extends FlowException {
+public class IllegalStatusException extends FlowException {
 
-    public UnsupportedException(String description) {
+    public IllegalStatusException(String description) {
         super(description, null);
-    }
-
-    public UnsupportedException(String description, Throwable e) {
-        super(description, e);
     }
 }

@@ -25,7 +25,7 @@ import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;

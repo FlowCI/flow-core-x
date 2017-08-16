@@ -22,7 +22,7 @@ import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.exception.IllegalStatusException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
