@@ -33,9 +33,11 @@ import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -179,6 +181,11 @@ public class NodeServiceImpl implements NodeService {
     public void loadYmlContent(final String path, final Consumer<YmlStorage> callback) {
         final String rootPath = PathUtil.rootPath(path);
         final Flow flow = findFlow(rootPath);
+        final Set<String> requiredEnvSet = Sets.newHashSet(GitEnvs.FLOW_GIT_URL.name(), GitEnvs.FLOW_GIT_SOURCE.name());
+
+        if(!EnvUtil.hasRequired(flow, requiredEnvSet)) {
+            throw new IllegalParameterException("Missing required envs");
+        }
 
         // async to load yml file
         taskExecutor.execute(() -> {

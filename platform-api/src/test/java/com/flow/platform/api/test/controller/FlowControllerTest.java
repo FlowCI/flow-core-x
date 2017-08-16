@@ -96,6 +96,19 @@ public class FlowControllerTest extends TestBase {
     }
 
     @Test
+    public void should_response_4xx_if_env_not_defined_for_load_file_content() throws Throwable {
+        // when: send request to load content
+        MvcResult result = this.mockMvc.perform(get("/flows/" + flowName + "/yml/load"))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+        // then:
+        String response = result.getResponse().getContentAsString();
+        ResponseError error = ResponseError.parse(response, ResponseError.class);
+        Assert.assertTrue(error.getMessage().contains("Missing required envs"));
+    }
+
+    @Test
     public void should_get_yml_file_content() throws Throwable {
         // given:
         String yml = "flow:\n" + "  - name: " + flowName;
