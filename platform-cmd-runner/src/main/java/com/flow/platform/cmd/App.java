@@ -72,15 +72,15 @@ public final class App {
     };
 
     private final static ThreadPoolExecutor executor = new ThreadPoolExecutor(
-            1,
-            1,
-            0L,
-            TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(),
-            defaultFactory,
-            (r, executor) -> {
-                System.out.println("Rejected !!!");
-            });
+        1,
+        1,
+        0L,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(),
+        defaultFactory,
+        (r, executor) -> {
+            System.out.println("Rejected !!!");
+        });
 
     public static void main(String[] args) throws Throwable {
         Map<String, String> inputs = new HashMap<>();
@@ -88,29 +88,30 @@ public final class App {
         inputs.put("FLOW_INPUT", "HELLO");
 
         CmdExecutor executor = new CmdExecutor(
-                procListener,
-                logListener,
-                inputs,
-                null,
-                "FLOW_", // find env start with FLOW_ and put to cmd result output map
-                null,
-                "$TEST", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/");
+            procListener,
+            logListener,
+            inputs,
+            null,
+            "FLOW_", // find env start with FLOW_ and put to cmd result output map
+            null,
+            "$TEST", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/");
 
         executor.run();
     }
 
     private static class MyThread implements Runnable {
+
         @Override
         public void run() {
             try {
                 CmdExecutor executor = new CmdExecutor(
-                        procListener,
-                        logListener,
-                        null,
-                        null,
-                        null,
-                        null,
-                        "sleep 10 && echo \"hello\"");
+                    procListener,
+                    logListener,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "sleep 10 && echo \"hello\"");
 
                 executor.run();
             } catch (FileNotFoundException e) {
