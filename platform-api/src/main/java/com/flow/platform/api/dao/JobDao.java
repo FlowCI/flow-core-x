@@ -18,6 +18,7 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -25,12 +26,6 @@ import java.util.List;
  * @author yh@firim
  */
 public interface JobDao extends BaseDao<BigInteger, Job> {
-
-    /**
-     * list Jobs
-     */
-    List<Job> list();
-
 
     /**
      * list jobs by statuses
@@ -49,7 +44,19 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     List<Job> listLatest(List<String> nodePaths);
 
     /**
-     * get jobs from nodePath
+     * get jobs from nodeName
      */
-    List<Job> list(String nodePath);
+    List<Job> list(String nodeName);
+
+    /**
+     * get job from node name and number
+     */
+    Job get(String flowName, Integer number);
+
+    /**
+     * get max number
+     * @param flowName
+     * @return
+     */
+    Integer maxBuildNumber(String flowName);
 }

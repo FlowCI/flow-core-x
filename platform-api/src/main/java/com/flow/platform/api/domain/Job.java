@@ -15,8 +15,7 @@
  */
 
 package com.flow.platform.api.domain;
-
-import com.flow.platform.api.domain.adaptor.ZonedDateTimeAdaptor;
+import com.flow.platform.api.domain.adaptor.EnvAdaptor;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.JsonAdapter;
 import java.math.BigInteger;
@@ -26,47 +25,64 @@ import java.util.Map;
 
 public class Job extends Jsonable {
 
+    @Expose
     private BigInteger id;
 
-    private String type;
+    @Expose
+    private Long duration = 0l;
 
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime createdAt;
-
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime updatedAt;
-
-    private Long duration;
-
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime startedAt;
-
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
-    private ZonedDateTime finishedAt;
+    @Expose
+    private String nodePath;
 
     private Integer exitCode;
-
-    private String nodePath;
 
     private String sessionId;
 
     private String cmdId;
 
+    @Expose
     private NodeStatus status;
 
     private Map<String, String> envs = new HashMap<>();
 
+    @Expose
+    @JsonAdapter(EnvAdaptor.class)
     private Map<String, String> outputs = new HashMap<>();
 
+    @Expose
     private String nodeName;
 
+    @Expose
     private String branch;
+
+    @Expose
+    private ZonedDateTime startedAt;
+
+    @Expose
+    private ZonedDateTime finishedAt;
+
+    @Expose
+    private ZonedDateTime createdAt;
+
+    @Expose
+    private ZonedDateTime updatedAt;
+
+    @Expose
+    private Integer number;
 
     public Job() {
     }
 
     public Job(BigInteger id) {
         this.id = id;
+    }
+
+    public Integer getNumber() {
+        return number;
+    }
+
+    public void setNumber(Integer number) {
+        this.number = number;
     }
 
     public String getSessionId() {
@@ -83,14 +99,6 @@ public class Job extends Jsonable {
 
     public void setId(BigInteger id) {
         this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public ZonedDateTime getCreatedAt() {
@@ -220,7 +228,6 @@ public class Job extends Jsonable {
     public String toString() {
         return "Job{" +
             "id='" + id + '\'' +
-            ", type='" + type + '\'' +
             ", duration=" + duration +
             ", exitCode=" + exitCode +
             ", nodePath='" + nodePath + '\'' +

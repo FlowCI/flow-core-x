@@ -17,7 +17,8 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Flow;
-import java.util.List;
+import com.flow.platform.core.dao.BaseDao;
+import java.nio.file.Path;
 
 /**
  * @author yh@firim
@@ -25,7 +26,7 @@ import java.util.List;
 public interface FlowDao extends BaseDao<String, Flow> {
 
     /**
-     * list flows
+     * Get flow workspace
      */
-    List<Flow> list();
+    Path workspace(Path base, Flow flow);
 }

@@ -22,6 +22,7 @@ import java.math.BigInteger;
  * @author yh@firim
  */
 public class JobYmlStorage {
+
     private BigInteger jobId;
 
     private String file;

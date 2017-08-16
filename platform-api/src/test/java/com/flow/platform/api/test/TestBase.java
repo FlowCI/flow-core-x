@@ -17,6 +17,7 @@ package com.flow.platform.api.test;/*
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.dao.FlowDao;
@@ -24,11 +25,14 @@ import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
-import com.flow.platform.api.test.util.NodeUtilYmlTest;
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.service.JobNodeResultService;
+import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
-import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -56,6 +60,7 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @ContextConfiguration(classes = {WebConfig.class})
 @PropertySource("classpath:app-default.properties")
+@PropertySource("classpath:i18n")
 public abstract class TestBase {
 
     static {
@@ -64,28 +69,34 @@ public abstract class TestBase {
     }
 
     @Autowired
-    private FlowDao flowDao;
+    protected FlowDao flowDao;
 
     @Autowired
-    private JobDao jobDao;
+    protected JobDao jobDao;
 
     @Autowired
-    private YmlStorageDao ymlStorageDao;
+    protected YmlStorageDao ymlStorageDao;
 
     @Autowired
-    private JobYmlStorageDao jobYmlStorageDao;
+    protected JobYmlStorageDao jobYmlStorageDao;
 
     @Autowired
-    private NodeResultDao nodeResultDao;
+    protected NodeResultDao nodeResultDao;
 
     @Autowired
     private CredentialDao credentialDao;
 
-    @Autowired
-    private WebApplicationContext webAppContext;
+
+    protected NodeService nodeService;
 
     @Autowired
-    protected Gson gsonConfig;
+    protected JobService jobService;
+
+    @Autowired
+    protected JobNodeResultService jobNodeResultService;
+
+    @Autowired
+    private WebApplicationContext webAppContext;
 
     protected MockMvc mockMvc;
 
@@ -94,12 +105,17 @@ public abstract class TestBase {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
     }
 
-    public String getBody(String fileName) throws IOException {
-        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+    public String getResourceContent(String fileName) throws IOException {
+        ClassLoader classLoader = TestBase.class.getClassLoader();
         URL resource = classLoader.getResource(fileName);
         File path = new File(resource.getFile());
-        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
-        return ymlString;
+        return Files.toString(path, AppConfig.DEFAULT_CHARSET);
+    }
+
+    public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
+        Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+        String yml = getResourceContent(ymlResourceName);
+        return nodeService.create(emptyFlow.getPath(), yml);
     }
 
     public void stubDemo() {

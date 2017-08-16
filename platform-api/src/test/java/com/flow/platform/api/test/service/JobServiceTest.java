@@ -15,56 +15,35 @@
  */
 
 package com.flow.platform.api.test.service;
-import com.flow.platform.api.dao.YmlStorageDao;
+
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
-import com.flow.platform.api.domain.YmlStorage;
-import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeResultService;
-import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.test.util.NodeUtilYmlTest;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
-import com.google.common.io.Files;
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author yh@firim
  */
 public class JobServiceTest extends TestBase {
 
-    @Autowired
-    private JobService jobService;
-
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private NodeResultService jobNodeService;
-
-    @Autowired
-    private YmlStorageDao ymlStorageDao;
-
     @Test
     public void should_create_node_success() throws IOException {
         stubDemo();
-        Job job = jobService.createJob(getBody("demo_flow2.yaml"));
+        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath());
 
         Assert.assertNotNull(job.getId());
         Assert.assertEquals(NodeStatus.ENQUEUE, job.getStatus());
@@ -91,22 +70,23 @@ public class JobServiceTest extends TestBase {
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, job.getStatus());
         job = jobService.find(job.getId());
-        NodeResult jobFlow = jobNodeService.find(flow.getPath(), job.getId());
+        NodeResult jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
 
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setType(CmdType.RUN_SHELL);
         CmdResult cmdResult = new CmdResult();
         cmdResult.setExitValue(1);
+        cmdResult.setDuration(10l);
         cmd.setCmdResult(cmdResult);
 
         map.put("path", step2.getPath());
 
         jobService.callback(Jsonable.GSON_CONFIG.toJson(map), cmd);
         job = jobService.find(job.getId());
-        Assert.assertEquals(NodeStatus.FAILURE, (jobNodeService.find(step2.getPath(), job.getId())).getStatus());
+        Assert.assertEquals(NodeStatus.FAILURE, (jobNodeResultService.find(step2.getPath(), job.getId())).getStatus());
         Assert.assertEquals(NodeStatus.FAILURE, job.getStatus());
-        jobFlow =  jobNodeService.find(flow.getPath(), job.getId());
+        jobFlow =  jobNodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
 
     }
@@ -133,7 +113,9 @@ public class JobServiceTest extends TestBase {
         step1.setNext(step2);
         step2.setParent(step1);
 
-        nodeService.create(flow);
+        // TODO: write yml converter
+
+//        nodeService.create(flow);
 //        Job job = jobService.createJob(flow.getPath());
 //        List<JobStep> jobSteps = jobService.listJobStep(job.getId());
 //        Assert.assertEquals(2, jobSteps.size());

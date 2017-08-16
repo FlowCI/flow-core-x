@@ -16,7 +16,6 @@
 
 package com.flow.platform.util.git.test;
 
-import com.flow.platform.util.git.GitLocalClient;
 import com.flow.platform.util.git.GitSshClient;
 import com.google.common.collect.Sets;
 import java.io.File;
@@ -26,6 +25,7 @@ import java.util.Set;
 import org.eclipse.jgit.lib.Ref;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -33,6 +33,7 @@ import org.junit.rules.TemporaryFolder;
 /**
  * @author yang
  */
+@Ignore("ignore since this test need to set ssh public key into git hub")
 public class GitSshClientTest {
 
     private final static String TEST_GIT_SSH_URL = "git@github.com:flow-ci-plugin/for-testing.git";
@@ -61,13 +62,13 @@ public class GitSshClientTest {
         String tmpPath = folder.getRoot().getAbsolutePath();
 
         GitSshClient gitClient = new GitSshClient(TEST_GIT_SSH_URL, Paths.get(tmpPath));
-        gitClient.clone(1, Sets.newHashSet(".flow.yml"));
+        gitClient.clone(null, Sets.newHashSet(".flow.yml"));
 
-        final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml");
+        final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml", "README.md");
 
         // then:
         File[] files = Paths.get(tmpPath).toFile().listFiles();
-        Assert.assertEquals(2, files.length);
+        Assert.assertEquals(3, files.length);
         for (File file : files) {
             Assert.assertTrue(acceptedFiles.contains(file.getName()));
         }

@@ -19,10 +19,13 @@ package com.flow.platform.api.domain;
  * @author lhl
  */
 public enum NodeTag {
+
     FLOW("FLOW", 0),
+
     STEP("STEP", 1);
 
     private String name;
+
     private int index;
 
     NodeTag(String name, int index) {

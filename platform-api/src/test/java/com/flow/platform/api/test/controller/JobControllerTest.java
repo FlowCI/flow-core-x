@@ -18,17 +18,16 @@ package com.flow.platform.api.test.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+
+import com.flow.platform.api.domain.Node;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
@@ -36,32 +35,36 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  */
 public class JobControllerTest extends TestBase {
 
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private JobService jobService;
-
-    @Autowired
-    private YmlStorageDao ymlStorageDao;
-
     @Test
     public void should_show_job_success() throws Exception {
         stubDemo();
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath());
 
-        Job job = jobService.createJob(getBody("flow.yaml"));
+        Map<String, String> map = new HashMap<>();
+        map.put("FLOW_GIT_BRANCH", "a");
+        job.setOutputs(map);
 
-        MockHttpServletRequestBuilder content = get(new StringBuffer("/jobs/").append(job.getId()).toString())
+        jobDao.update(job);
+
+        StringBuilder stringBuilder = new StringBuilder("/jobs/");
+
+        MockHttpServletRequestBuilder content = get(
+            stringBuilder.append(job.getNodeName()).append("/").append(job.getNumber()).toString())
             .contentType(MediaType.APPLICATION_JSON);
-        ResultHandler resultHandler;
+
         MvcResult mvcResult = this.mockMvc.perform(content)
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-//        String s = response.getContentAsString();
-//        Job job1 = Jsonable.parse(s, Job.class);
-//        Assert.assertEquals(job1.getId(), job.getId());
-    }
 
+        String response = mvcResult.getResponse().getContentAsString();
+        Job returnedJob = Job.parse(response, Job.class);
+        Assert.assertEquals(returnedJob.getId(), job.getId());
+
+        // those fields cannot exported
+        Assert.assertNull(returnedJob.getExitCode());
+        Assert.assertNull(returnedJob.getSessionId());
+        Assert.assertNull(returnedJob.getCmdId());
+    }
 }

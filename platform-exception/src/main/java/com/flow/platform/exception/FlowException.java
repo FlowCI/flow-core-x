@@ -19,7 +19,7 @@ package com.flow.platform.exception;
 /**
  * @author gy@fir.im
  */
-public abstract class FlowException extends RuntimeException {
+public class FlowException extends RuntimeException {
 
     public FlowException(String description, Throwable e) {
         super(description, e);

@@ -24,8 +24,10 @@ import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.exception.HttpException;
 import com.flow.platform.api.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
@@ -34,7 +36,9 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -43,32 +47,31 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author yh@firim
  */
 @Service(value = "jobService")
+@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class JobServiceImpl implements JobService {
 
     private static Logger LOGGER = new Logger(JobService.class);
 
-    @Autowired
-    private NodeResultService nodeResultService;
+    private Integer RETRY_TIMEs = 5;
 
     @Autowired
-    private JobYmlStorageService jobYmlStorageService;
+    private JobNodeResultService jobNodeResultService;
 
     @Autowired
-    private YmlStorageService ymlStorgeService;
+    private JobNodeService jobNodeService;
 
     @Autowired
     private JobDao jobDao;
 
     @Autowired
     private NodeService nodeService;
-
-    @Autowired
-    private YmlStorageService ymlStorageService;
 
     @Value(value = "${domain}")
     private String domain;
@@ -83,32 +86,46 @@ public class JobServiceImpl implements JobService {
     private String queueUrl;
 
     @Override
-    public Job createJob(String ymlBody) {
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public Job createJob(String path) {
+        Node root = nodeService.find(PathUtil.rootPath(path));
+        if (root == null) {
+            throw new IllegalParameterException("Path does not existed");
+        }
 
-        Node node = NodeUtil.buildFromYml(ymlBody);
-        nodeService.create(node);
-        ymlStorageService.save(node.getPath(), ymlBody);
+        String yml = nodeService.getYmlContent(root.getPath());
+        if (Strings.isNullOrEmpty(yml)) {
+            throw new NotFoundException("Yml content not found for path " + path);
+        }
 
+        // create job
         Job job = new Job(CommonUtil.randomId());
-        job.setId(CommonUtil.randomId());
-        job.setNodePath(node.getPath());
-
-        jobYmlStorageService.save(job.getId(), ymlBody);
-        NodeResult nodeResult = nodeResultService.create(job);
-
+        job.setStatus(NodeStatus.PENDING);
+        job.setNodePath(root.getPath());
+        job.setNodeName(root.getName());
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
 
-        job.setNodeName(nodeResult.getName());
-        job.setStatus(NodeStatus.PENDING);
-        save(job);
+        //update number
+        job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
+
+        //save job
+        jobDao.save(job);
+
+        // create yml snapshot for job
+        jobNodeService.save(job.getId(), yml);
+
+        // init for node result
+        jobNodeResultService.create(job);
 
         //create session
         createSession(job);
+
         return job;
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void callback(String id, CmdBase cmdBase) {
         Job job;
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
@@ -116,7 +133,7 @@ public class JobServiceImpl implements JobService {
             job = find(new BigInteger(id));
             if (job == null) {
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
-                throw new RuntimeException("job not found");
+                throw new NotFoundException("job not found");
             }
             sessionCallback(job, cmdBase);
         } else if (cmdBase.getType() == CmdType.RUN_SHELL) {
@@ -125,8 +142,27 @@ public class JobServiceImpl implements JobService {
             nodeCallback(map.get("path"), cmdBase, job);
         } else {
             LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
-            throw new RuntimeException("not found cmdType");
+            throw new NotFoundException("not found cmdType");
         }
+    }
+
+    /**
+     * the reason of transaction to retry 5 times
+     */
+    public Job retryFindJob(BigInteger id) {
+        Job job = null;
+        for (Integer i = 0; i < RETRY_TIMEs; i++) {
+            job = find(id);
+            if (job != null) {
+                break;
+            }
+            try {
+                Thread.sleep(5000);
+            } catch (Throwable throwable) {
+            }
+            LOGGER.traceMarker("retryFindJob", String.format("retry times %s", i));
+        }
+        return job;
     }
 
     /**
@@ -142,14 +178,17 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         Node flow = NodeUtil.findRootNode(node);
-        cmdInfo.setInputs(mergeEnvs(flow.getEnvs(), node.getEnvs()));
-        cmdInfo.setWebhook(getNodeHook(node, jobId));
+        EnvUtil.merge(flow, node, false);
 
+        CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
+        cmdInfo.setInputs(node.getEnvs());
+        cmdInfo.setWebhook(getNodeHook(node, jobId));
+        cmdInfo.setOutputEnvFilter("FLOW_");
         Job job = find(jobId);
         cmdInfo.setSessionId(job.getSessionId());
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
+
         try {
             String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
 
@@ -160,36 +199,14 @@ public class JobServiceImpl implements JobService {
             }
 
             Cmd cmd = Jsonable.parse(res, Cmd.class);
-            NodeResult nodeResult = nodeResultService.find(node.getPath(), jobId);
+            NodeResult nodeResult = jobNodeResultService.find(node.getPath(), jobId);
 
             // record cmd id
             nodeResult.setCmdId(cmd.getId());
-            nodeResultService.update(nodeResult);
+            jobNodeResultService.update(nodeResult);
         } catch (Throwable ignore) {
             LOGGER.warn("run step UnsupportedEncodingException", ignore);
         }
-    }
-
-    /**
-     * merge two env
-     */
-    private Map<String, String> mergeEnvs(Map<String, String> flowEnv, Map<String, String> stepEnv) {
-        Map<String, String> hash = new HashMap<>();
-        if (flowEnv != null) {
-            hash.putAll(flowEnv);
-        }
-
-        if (stepEnv != null) {
-            hash.putAll(stepEnv);
-        }
-
-        return hash;
-    }
-
-    @Override
-    public Job save(Job job) {
-        jobDao.save(job);
-        return job;
     }
 
     @Override
@@ -197,17 +214,11 @@ public class JobServiceImpl implements JobService {
         return jobDao.get(id);
     }
 
-    @Override
-    public Job update(Job job) {
-        jobDao.update(job);
-        return job;
-    }
-
     /**
      * get job callback
      */
     private String getJobHook(Job job) {
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(job.getId().toString());
+        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString());
     }
 
     /**
@@ -217,7 +228,7 @@ public class JobServiceImpl implements JobService {
         Map<String, String> map = new HashMap<>();
         map.put("path", node.getPath());
         map.put("jobId", jobId.toString());
-        return domain + "/hooks?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map));
+        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map));
     }
 
     /**
@@ -225,14 +236,16 @@ public class JobServiceImpl implements JobService {
      */
     private void createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
-        LOGGER.traceMarker("createSession", String.format("jobId - %s", job.getId()));
         cmdInfo.setWebhook(getJobHook(job));
+        LOGGER.traceMarker("createSession", String.format("jobId - %s", job.getId()));
+
         // create session
         Cmd cmd = sendToQueue(cmdInfo);
+
         //enter queue
         job.setStatus(NodeStatus.ENQUEUE);
         job.setCmdId(cmd.getId());
-        update(job);
+        jobDao.update(job);
     }
 
     /**
@@ -280,10 +293,11 @@ public class JobServiceImpl implements JobService {
         if (cmdBase.getStatus() == CmdStatus.SENT) {
             job.setUpdatedAt(ZonedDateTime.now());
             job.setSessionId(cmdBase.getSessionId());
-            update(job);
+            jobDao.update(job);
+
             // run step
-            NodeResult nodeResult = nodeResultService.find(job.getNodePath(), job.getId());
-            Node flow = jobYmlStorageService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
+            NodeResult nodeResult = jobNodeResultService.find(job.getNodePath(), job.getId());
+            Node flow = jobNodeService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
 
             if (flow == null) {
                 throw new NotFoundException(String.format("Not Found Job Flow - %s", flow.getName()));
@@ -300,7 +314,7 @@ public class JobServiceImpl implements JobService {
      * step success callback
      */
     private void nodeCallback(String nodePath, CmdBase cmdBase, Job job) {
-        NodeResult nodeResult = nodeResultService.find(nodePath, job.getId());
+        NodeResult nodeResult = jobNodeResultService.find(nodePath, job.getId());
         NodeStatus nodeStatus = handleStatus(cmdBase);
 
         // keep job step status sorted
@@ -311,9 +325,9 @@ public class JobServiceImpl implements JobService {
         //update job step status
         nodeResult.setStatus(nodeStatus);
 
-        nodeResultService.update(nodeResult);
+        jobNodeResultService.update(nodeResult);
 
-        Node step = jobYmlStorageService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
+        Node step = jobNodeService.get(job.getId(), nodeResult.getNodeResultKey().getPath());
         //update node status
         updateNodeStatus(step, cmdBase, job);
     }
@@ -322,15 +336,16 @@ public class JobServiceImpl implements JobService {
      * update job flow status
      */
     private void updateJobStatus(NodeResult nodeResult) {
-        Node node = jobYmlStorageService
+        Node node = jobNodeService
             .get(nodeResult.getNodeResultKey().getJobId(), nodeResult.getNodeResultKey().getPath());
         Job job = find(nodeResult.getNodeResultKey().getJobId());
 
         if (node instanceof Step) {
-
             //merge step outputs in flow outputs
-            job.setOutputs(mergeEnvs(nodeResult.getOutputs(), job.getOutputs()));
-            update(job);
+            EnvUtil.merge(nodeResult.getOutputs(), job.getOutputs(), false);
+
+            job.setDuration(job.getDuration() + nodeResult.getDuration());
+            jobDao.update(job);
             return;
         }
 
@@ -343,10 +358,11 @@ public class JobServiceImpl implements JobService {
         }
 
         job.setStatus(nodeStatus);
-        update(job);
+        jobDao.update(job);
 
         //delete session
         if (nodeStatus == NodeStatus.FAILURE || nodeStatus == NodeStatus.SUCCESS) {
+
             deleteSession(job);
         }
     }
@@ -355,7 +371,7 @@ public class JobServiceImpl implements JobService {
      * update node status
      */
     private void updateNodeStatus(Node node, CmdBase cmdBase, Job job) {
-        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
         //update jobNode
         nodeResult.setUpdatedAt(ZonedDateTime.now());
         nodeResult.setStatus(handleStatus(cmdBase));
@@ -432,7 +448,7 @@ public class JobServiceImpl implements JobService {
         updateJobStatus(nodeResult);
 
         //save
-        nodeResultService.update(nodeResult);
+        jobNodeResultService.update(nodeResult);
     }
 
     /**
@@ -471,18 +487,23 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<Job> listJobs(String flowPath, List<String> flowPaths) {
-        if (flowPath == null && flowPaths == null) {
+    public List<Job> listJobs(String flowName, List<String> flowNames) {
+        if (flowName == null && flowNames == null) {
             return jobDao.list();
         }
 
-        if(flowPaths != null){
-            return jobDao.listLatest(flowPaths);
+        if (flowNames != null) {
+            return jobDao.listLatest(flowNames);
         }
 
-        if(flowPath != null){
-            return jobDao.list(flowPath);
+        if (flowName != null) {
+            return jobDao.list(flowName);
         }
         return null;
+    }
+
+    @Override
+    public Job find(String flowName, Integer number) {
+        return jobDao.get(flowName, number);
     }
 }

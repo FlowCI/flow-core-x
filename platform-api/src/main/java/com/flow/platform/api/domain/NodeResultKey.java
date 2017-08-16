@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.flow.platform.api.domain;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 
@@ -21,6 +22,7 @@ import java.math.BigInteger;
  * @author lhl
  */
 public class NodeResultKey implements Serializable {
+
     private BigInteger jobId;
 
     private String path;

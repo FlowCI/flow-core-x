@@ -17,12 +17,12 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Flow;
-import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import org.hibernate.Session;
+import com.flow.platform.core.dao.AbstractBaseDao;
+import com.flow.platform.exception.IllegalStatusException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -32,24 +32,24 @@ import org.springframework.stereotype.Repository;
 public class FlowDaoImpl extends AbstractBaseDao<String, Flow> implements FlowDao {
 
     @Override
-    Class<Flow> getEntityClass() {
+    protected Class<Flow> getEntityClass() {
         return Flow.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "path";
     }
 
     @Override
-    public List<Flow> list() {
-        return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Flow> select = builder.createQuery(Flow.class);
-            Root<Flow> flow = select.from(Flow.class);
-            Predicate condition = builder.not(flow.get("path").isNull());
-            select.where(condition);
-            return session.createQuery(select).list();
-        });
+    public Path workspace(Path base, Flow flow) {
+        Path flowWorkingPath = Paths.get(base.toString(), flow.getName());
+        try {
+            return Files.createDirectories(flowWorkingPath);
+        } catch (FileAlreadyExistsException e) {
+            return flowWorkingPath;
+        } catch (Throwable e) {
+            throw new IllegalStatusException("Unable to get flow working path");
+        }
     }
 }

@@ -21,6 +21,7 @@
     <module>platform-util-resource</module>
     <module>platform-util-zk</module>
     <module>platform-util-git</module>
+    <module>platform-core</module>
   </modules>
 
   <properties>
@@ -48,6 +49,7 @@
     <tyrus-server.version>1.13.1</tyrus-server.version>
     <org.eclipse.jgit.version>4.8.0.201706111038-r</org.eclipse.jgit.version>
     <jsch.version>0.1.54</jsch.version>
+    <hibernate-validator.version>5.4.1.Final</hibernate-validator.version>
   </properties>
 
   <build>
@@ -208,6 +210,12 @@
         <groupId>org.hibernate.common</groupId>
         <artifactId>hibernate-commons-annotations</artifactId>
         <version>${hibernate-common-annotation.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-validator</artifactId>
+        <version>${hibernate-validator.version}</version>
       </dependency>
 
       <dependency>

@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.dao;
 import com.flow.platform.api.domain.JobYmlStorage;
+import com.flow.platform.core.dao.AbstractBaseDao;
 import java.math.BigInteger;
 import org.springframework.stereotype.Repository;
 
@@ -26,12 +27,12 @@ import org.springframework.stereotype.Repository;
 public class JobYmlStorageDaoImpl extends AbstractBaseDao<BigInteger, JobYmlStorage> implements JobYmlStorageDao {
 
     @Override
-    Class<JobYmlStorage> getEntityClass() {
+    protected Class<JobYmlStorage> getEntityClass() {
         return JobYmlStorage.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "jobId";
     }
 }

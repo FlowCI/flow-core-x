@@ -16,10 +16,10 @@
 
 package com.flow.platform.api.test.dao;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.test.util.NodeUtilYmlTest;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
@@ -59,10 +59,10 @@ public class YmlStorageDaoTest extends TestBase {
 
     @Test
     public void should_save_and_get_yml_success() throws IOException {
-        ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
+        ClassLoader classLoader = YmlStorageDaoTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         File path = new File(resource.getFile());
-        String ymlString = Files.toString(path, Charset.forName("UTF-8"));
+        String ymlString = Files.toString(path, AppConfig.DEFAULT_CHARSET);
         YmlStorage storage = new YmlStorage("/flow", ymlString);
         ymlStorageDao.save(storage);
 

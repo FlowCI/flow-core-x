@@ -29,9 +29,10 @@ public interface JobService {
     /**
      * create job
      *
+     * @param path any node path
      * @return job
      */
-    Job createJob(String ymlBody);
+    Job createJob(String path);
 
     /**
      * handle callback
@@ -46,19 +47,14 @@ public interface JobService {
     void run(Node node, BigInteger jobId);
 
     /**
-     * save job
-     */
-    Job save(Job job);
-
-    /**
      * find job by id
      */
     Job find(BigInteger id);
 
     /**
-     * update job
+     * find by flow name and number
      */
-    Job update(Job job);
+    Job find(String flowName, Integer number);
 
     /**
      * list all jobs
