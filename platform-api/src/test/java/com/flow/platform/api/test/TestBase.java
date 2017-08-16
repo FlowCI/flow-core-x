@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -44,12 +45,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 
@@ -95,6 +98,9 @@ public abstract class TestBase {
     @Autowired
     private WebApplicationContext webAppContext;
 
+    @Autowired
+    private Path workspace;
+
     protected MockMvc mockMvc;
 
     @Before
@@ -112,12 +118,13 @@ public abstract class TestBase {
     public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
         Flow emptyFlow = nodeService.createEmptyFlow(flowName);
         String yml = getResourceContent(ymlResourceName);
-        return nodeService.create(emptyFlow.getPath(), yml);
+        return nodeService.createOrUpdate(emptyFlow.getPath(), yml);
     }
 
     public void stubDemo() {
         Cmd cmdRes = new Cmd();
         cmdRes.setId(UUID.randomUUID().toString());
+
         stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
                 .withBody(cmdRes.toJson())));
@@ -141,6 +148,7 @@ public abstract class TestBase {
     @After
     public void afterEach() {
         cleanDatabase();
+        FileSystemUtils.deleteRecursively(workspace.toFile());
     }
 
     @AfterClass

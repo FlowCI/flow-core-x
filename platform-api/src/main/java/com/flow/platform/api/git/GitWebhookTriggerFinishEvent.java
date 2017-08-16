@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git.model;
+package com.flow.platform.api.git;
+
+import org.springframework.context.ApplicationEvent;
 
 /**
+ * Application event on job created after git web hook trigger
+ *
  * @author yang
  */
-public enum GitEventType {
+public class GitWebhookTriggerFinishEvent extends ApplicationEvent {
 
-    PING,
-
-    PUSH,
-
-    PR, // open pull request
-
-    MR, // merge request
-
-    TAG;
+    public GitWebhookTriggerFinishEvent(Object source) {
+        super(source);
+    }
 }

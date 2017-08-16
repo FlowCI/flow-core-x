@@ -17,7 +17,7 @@
 package com.flow.platform.api.context;
 
 import com.flow.platform.core.context.AbstractContextInitHandler;
-import com.flow.platform.core.util.SpringContextUtil;
+import com.flow.platform.core.context.SpringContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,10 +28,10 @@ import org.springframework.stereotype.Component;
 public class ContextInitHandler extends AbstractContextInitHandler {
 
     @Autowired
-    private SpringContextUtil springContextUtil;
+    private SpringContext springContext;
 
     @Override
-    public SpringContextUtil getSpringContextUtil() {
-        return springContextUtil;
+    public SpringContext getSpringContext() {
+        return springContext;
     }
 }

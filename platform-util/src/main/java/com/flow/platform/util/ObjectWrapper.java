@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git.model;
+package com.flow.platform.util;
 
 /**
  * @author yang
  */
-public enum GitEventType {
+public class ObjectWrapper<T> {
 
-    PING,
+    private T instance;
 
-    PUSH,
+    public ObjectWrapper() {
+    }
 
-    PR, // open pull request
+    public ObjectWrapper(T instance) {
+        this.instance = instance;
+    }
 
-    MR, // merge request
+    public T getInstance() {
+        return instance;
+    }
 
-    TAG;
+    public void setInstance(T instance) {
+        this.instance = instance;
+    }
 }

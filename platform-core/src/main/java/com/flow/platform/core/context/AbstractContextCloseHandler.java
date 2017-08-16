@@ -26,13 +26,13 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 public abstract class AbstractContextCloseHandler  implements ApplicationListener<ContextClosedEvent> {
     public abstract ThreadPoolTaskExecutor getTaskExecutor();
-    public abstract SpringContextUtil getSpringContextUtil();
+    public abstract SpringContext getSpringContext();
 
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
 
-        for (String eventClassName : getSpringContextUtil().getBeanNameByType(ContextEvent.class)) {
-            ContextEvent eventClass = (ContextEvent) getSpringContextUtil().getBean(eventClassName);
+        for (String eventClassName : getSpringContext().getBeanNameByType(ContextEvent.class)) {
+            ContextEvent eventClass = (ContextEvent) getSpringContext().getBean(eventClassName);
             eventClass.stop();
         }
 

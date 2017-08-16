@@ -59,7 +59,7 @@ public abstract class TestBase {
             System.setProperty("flow.cc.env", "local");
             System.setProperty("flow.cc.task.keep_idle_agent", "false");
 
-            TestingServer server = new TestingServer(2182);
+            TestingServer server = new TestingServer(2181);
             server.start();
         } catch (Throwable e) {
             throw new RuntimeException(e);

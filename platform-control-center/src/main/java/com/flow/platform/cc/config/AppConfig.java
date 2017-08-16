@@ -89,9 +89,4 @@ public class AppConfig extends AbstractAppConfig{
     public BlockingQueue<CmdStatusItem> cmdStatusQueue() {
         return new LinkedBlockingQueue<>(50);
     }
-
-    @Bean
-    public SpringContextUtil springContextUtil(){
-        return new SpringContextUtil();
-    }
 }

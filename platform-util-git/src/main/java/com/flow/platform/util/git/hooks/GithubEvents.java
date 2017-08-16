@@ -40,6 +40,8 @@ public class GithubEvents {
 
         public final static String HEADER = "x-github-event";
 
+        public final static String EVENT_TYPE_PING = "ping";
+
         public final static String EVENT_TYPE_PUSH = "push";
 
         public final static String EVENT_TYPE_TAG = "push";

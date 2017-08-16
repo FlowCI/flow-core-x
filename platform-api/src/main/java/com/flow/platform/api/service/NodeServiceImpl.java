@@ -78,7 +78,7 @@ public class NodeServiceImpl implements NodeService {
     private String domain;
 
     @Override
-    public Node create(final String path, final String yml) {
+    public Node createOrUpdate(final String path, final String yml) {
         final Node rootFromYml = verifyYml(path, yml);
         final Flow flow = findFlow(rootFromYml.getPath());
 
@@ -209,7 +209,7 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public void setFlowEnv(String path, Map<String, String> envs) {
         Flow flow = findFlow(path);
-        flow.setEnvs(envs);
+        EnvUtil.merge(envs, flow.getEnvs(), true);
 
         // sync latest env into flow table
         flowDao.update(flow);

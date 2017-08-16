@@ -18,7 +18,6 @@ package com.flow.platform.api.config;
 
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.api.util.GsonHttpExposeConverter;
-import com.flow.platform.core.util.SpringContextUtil;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
@@ -31,9 +30,6 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.validation.Validator;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -42,9 +38,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @EnableWebMvc
 @EnableScheduling
 @ComponentScan({
+    "com.flow.platform.core.context",
     "com.flow.platform.api.controller",
     "com.flow.platform.api.service",
     "com.flow.platform.api.dao",
+    "com.flow.platform.api.context",
     "com.flow.platform.api.validator",
     "com.flow.platform.api.util",
     "com.flow.platform.api.consumer",
@@ -79,8 +77,4 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         converters.add(gsonHttpExposeConverter);
     }
 
-    @Bean
-    public SpringContextUtil springContextUtil(){
-        return new SpringContextUtil();
-    }
 }

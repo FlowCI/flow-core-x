@@ -23,13 +23,13 @@ import org.springframework.context.event.ContextRefreshedEvent;
 public abstract class AbstractContextInitHandler implements ApplicationListener<ContextRefreshedEvent> {
 
 
-    public abstract SpringContextUtil getSpringContextUtil();
+    public abstract SpringContext getSpringContext();
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         // init queue consumer
-        for (String eventClassName : getSpringContextUtil().getBeanNameByType(ContextEvent.class)) {
-            ContextEvent eventClass = (ContextEvent) getSpringContextUtil().getBean(eventClassName);
+        for (String eventClassName : getSpringContext().getBeanNameByType(ContextEvent.class)) {
+            ContextEvent eventClass = (ContextEvent) getSpringContext().getBean(eventClassName);
             eventClass.start();
         }
     }

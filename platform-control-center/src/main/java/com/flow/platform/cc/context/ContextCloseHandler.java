@@ -17,7 +17,7 @@
 package com.flow.platform.cc.context;
 
 import com.flow.platform.core.context.AbstractContextCloseHandler;
-import com.flow.platform.core.util.SpringContextUtil;
+import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -37,15 +37,16 @@ public class ContextCloseHandler extends AbstractContextCloseHandler {
     private ThreadPoolTaskExecutor taskExecutor;
 
     @Autowired
-    private SpringContextUtil springContextUtil;
+    private SpringContext springContext;
+
+    @Override
+    public SpringContext getSpringContext() {
+        return springContext;
+    }
 
     @Override
     public ThreadPoolTaskExecutor getTaskExecutor() {
         return taskExecutor;
     }
 
-    @Override
-    public com.flow.platform.core.util.SpringContextUtil getSpringContextUtil() {
-        return springContextUtil;
-    }
 }

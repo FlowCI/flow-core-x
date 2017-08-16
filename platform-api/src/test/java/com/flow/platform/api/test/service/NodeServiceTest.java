@@ -46,7 +46,7 @@ public class NodeServiceTest extends TestBase {
     public void should_find_any_node() throws Throwable {
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
         String resourceContent = getResourceContent("demo_flow.yaml");
-        Node root = nodeService.create(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
 
@@ -65,7 +65,7 @@ public class NodeServiceTest extends TestBase {
         nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
 
         String resourceContent = getResourceContent("demo_flow.yaml");
-        Node root = nodeService.create(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
 
         // then: check is created in dao
@@ -119,7 +119,7 @@ public class NodeServiceTest extends TestBase {
         // given:
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
         String resourceContent = getResourceContent("demo_flow.yaml");
-        Node root = nodeService.create(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
         Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
 
@@ -132,17 +132,21 @@ public class NodeServiceTest extends TestBase {
 
         // then:
         Node loaded = nodeService.find("/flow1");
-        Assert.assertEquals(3, loaded.getEnvs().size());
+        Assert.assertEquals(5, loaded.getEnvs().size());
         Assert.assertEquals("hello", loaded.getEnvs().get("FLOW_NEW_1"));
         Assert.assertEquals("world", loaded.getEnvs().get("FLOW_NEW_2"));
         Assert.assertEquals("done", loaded.getEnvs().get("FLOW_NEW_3"));
+        Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
 
         // check env been sync with yml
         Flow flow = flowDao.get("/flow1");
-        Assert.assertEquals(3, flow.getEnvs().size());
+        Assert.assertEquals(5, flow.getEnvs().size());
         Assert.assertEquals("hello", flow.getEnvs().get("FLOW_NEW_1"));
         Assert.assertEquals("world", flow.getEnvs().get("FLOW_NEW_2"));
         Assert.assertEquals("done", flow.getEnvs().get("FLOW_NEW_3"));
+        Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
     }
 
     @Test(expected = IllegalParameterException.class)
@@ -150,7 +154,7 @@ public class NodeServiceTest extends TestBase {
         // given:
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
         String resourceContent = getResourceContent("demo_flow.yaml");
-        Node root = nodeService.create(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
         // when: set env with child path
         List children = root.getChildren();

@@ -16,7 +16,6 @@
 
 package com.flow.platform.core.consumer;
 
-
 import com.flow.platform.core.context.ContextEvent;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;

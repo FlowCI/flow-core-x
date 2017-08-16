@@ -97,7 +97,7 @@ public class FlowController {
     @PostMapping("/{flowName}/yml/create")
     public Node createFromYml(@PathVariable String flowName, @RequestBody String yml) {
         PathUtil.validateName(flowName);
-        return nodeService.create(PathUtil.build(flowName), yml);
+        return nodeService.createOrUpdate(PathUtil.build(flowName), yml);
     }
 
     @GetMapping("/{flowName}/webhook")

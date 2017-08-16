@@ -24,6 +24,7 @@ import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.exception.HttpException;
 import com.flow.platform.api.exception.NotFoundException;
+import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.HttpUtil;
@@ -38,7 +39,9 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.model.GitEvent;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
@@ -108,11 +111,8 @@ public class JobServiceImpl implements JobService {
         job.setStatus(NodeStatus.PENDING);
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
-        job.setCreatedAt(ZonedDateTime.now());
-        job.setUpdatedAt(ZonedDateTime.now());
-
-        //update number
         job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
+        job.setOutputs(root.getEnvs());
 
         //save job
         jobDao.save(job);
@@ -251,7 +251,9 @@ public class JobServiceImpl implements JobService {
     }
 
     /**
-     * create session
+     * Send create session cmd to create session
+     *
+     * @throws IllegalStatusException when cannot get Cmd obj from cc
      */
     private void createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
@@ -260,6 +262,9 @@ public class JobServiceImpl implements JobService {
 
         // create session
         Cmd cmd = sendToQueue(cmdInfo);
+        if (cmd == null) {
+            throw new IllegalStatusException("Unable to create session since cmd return null");
+        }
 
         //enter queue
         job.setStatus(NodeStatus.ENQUEUE);
