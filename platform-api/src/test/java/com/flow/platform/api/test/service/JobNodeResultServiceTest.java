@@ -15,9 +15,41 @@
  */
 package com.flow.platform.api.test.service;
 
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeTag;
+import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.CommonUtil;
+import java.io.IOException;
+import org.junit.Assert;
+import org.junit.Test;
+
 /**
  * @author lhl
  */
-public class JobNodeResultServiceTest {
+public class JobNodeResultServiceTest extends TestBase {
 
+    @Test
+    public void should_save_job_node_by_job() throws IOException {
+        stubDemo();
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath());
+
+        Flow flow = (Flow) nodeService.find(job.getNodePath());
+        Assert.assertEquals(job.getId(), jobNodeResultService.find(flow.getPath(), job.getId()).getJobId());
+    }
+
+    @Test
+    public void should_update_job_node() {
+        Job job = new Job(CommonUtil.randomId());
+        NodeResult nodeResult = new NodeResult(job.getId(), "/flow_test");
+        nodeResult.setNodeTag(NodeTag.FLOW);
+        nodeResultDao.save(nodeResult);
+
+        nodeResult.setNodeTag(NodeTag.STEP);
+        NodeResult nodeResult1 = jobNodeResultService.update(nodeResult);
+        Assert.assertEquals(nodeResult1.getNodeTag(), NodeTag.STEP);
+    }
 }

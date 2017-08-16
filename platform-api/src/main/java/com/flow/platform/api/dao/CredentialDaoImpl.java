@@ -16,13 +16,11 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Credential;
-import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import org.hibernate.Session;
+
+import com.flow.platform.core.dao.AbstractBaseDao;
 import org.springframework.stereotype.Repository;
+
+
 
 /**
  * @author lhl
@@ -32,25 +30,15 @@ import org.springframework.stereotype.Repository;
 public class CredentialDaoImpl extends AbstractBaseDao<String, Credential> implements CredentialDao {
 
     @Override
-    Class<Credential> getEntityClass() {
+    protected Class<Credential> getEntityClass() {
         return Credential.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "name";
     }
 
-//    @Override
-//    public List<Credential> list() {
-//        return execute((Session session) -> {
-//            CriteriaBuilder builder = session.getCriteriaBuilder();
-//            CriteriaQuery<Credential> select = builder.createQuery(Credential.class);
-//            Root<Credential> credential = select.from(Credential.class);
-//            Predicate condition = builder.not(credential.get("name").isNull());
-//            select.where(condition);
-//            return session.createQuery(select).list();
-//        });
-//    }
+
 }
 

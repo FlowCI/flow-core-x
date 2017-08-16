@@ -16,13 +16,11 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Credential;
-import java.util.List;
+import com.flow.platform.core.dao.BaseDao;
 
 /**
  * @author lhl
  */
 public interface CredentialDao extends BaseDao<String, Credential> {
-
-//    List<Credential> list();
 
 }
