@@ -18,14 +18,13 @@ package com.flow.platform.api.git;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.service.GitService.Env;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitSshClient;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -44,8 +43,8 @@ public class GitSshClientBuilder extends GitClientBuilder {
 
     public GitSshClientBuilder(final Flow flow, final Path sourceFolder) {
         super(flow, sourceFolder);
-        privateKey = flow.getEnvs().get(Env.FLOW_GIT_SSH_PRIVATE_KEY);
-        publicKey = flow.getEnvs().get(Env.FLOW_GIT_SSH_PUBLIC_KEY);
+        privateKey = flow.getEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY);
+        publicKey = flow.getEnv(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY);
     }
 
     @Override

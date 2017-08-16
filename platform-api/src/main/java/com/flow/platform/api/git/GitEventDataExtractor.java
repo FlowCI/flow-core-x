@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.git;
 
-import com.flow.platform.api.service.GitService.Env;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
@@ -33,20 +33,20 @@ public class GitEventDataExtractor {
         if (event instanceof GitPullRequestEvent) {
             GitPullRequestEvent pr = (GitPullRequestEvent) event;
             Map<String, String> info = new HashMap<>();
-            info.put(Env.FLOW_GIT_EVENT_TYPE, pr.getType().name());
-            info.put(Env.FLOW_GIT_BRANCH, simpleRef(pr.getTarget().getBranch()));
-            info.put(Env.FLOW_GIT_CHANGELOG, pr.getTitle());
+            info.put(GitEnvs.FLOW_GIT_EVENT_TYPE.name(), pr.getType().name());
+            info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pr.getTarget().getBranch()));
+            info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pr.getTitle());
             return info;
         }
 
         if (event instanceof GitPushTagEvent) {
             GitPushTagEvent pt = (GitPushTagEvent) event;
             Map<String, String> info = new HashMap<>();
-            info.put(Env.FLOW_GIT_EVENT_TYPE, pt.getType().name());
-            info.put(Env.FLOW_GIT_BRANCH, simpleRef(pt.getRef()));
+            info.put(GitEnvs.FLOW_GIT_EVENT_TYPE.name(), pt.getType().name());
+            info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pt.getRef()));
 
             if (pt.getCommits().size() > 0) {
-                info.put(Env.FLOW_GIT_CHANGELOG, pt.getCommits().get(0).getMessage());
+                info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getCommits().get(0).getMessage());
             }
             return info;
         }

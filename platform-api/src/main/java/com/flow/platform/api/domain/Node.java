@@ -16,21 +16,18 @@
 
 package com.flow.platform.api.domain;
 
-import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Gson parse the yml file, @SerializedName("xxx")
  * find the super class, but abstract class cannot be instant,
  * so now modified to class
  */
-public class Node<T extends Node> extends Jsonable {
+public class Node<T extends Node> extends EnvObject {
 
     @Expose
     protected String path;
@@ -39,8 +36,6 @@ public class Node<T extends Node> extends Jsonable {
     protected String name;
 
     protected String script;
-
-    protected Map<String, String> envs = new HashMap<>();
 
     protected Node parent;
 
@@ -79,14 +74,6 @@ public class Node<T extends Node> extends Jsonable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Map<String, String> getEnvs() {
-        return envs;
-    }
-
-    public void setEnvs(Map<String, String> envs) {
-        this.envs = envs;
     }
 
     public Node getParent() {

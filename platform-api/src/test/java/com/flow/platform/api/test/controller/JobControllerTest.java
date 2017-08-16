@@ -40,6 +40,7 @@ public class JobControllerTest extends TestBase {
     public void should_show_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Map<String, String> map = new HashMap<>();

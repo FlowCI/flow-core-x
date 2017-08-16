@@ -19,10 +19,9 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
-import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.UnsupportedException;
 import com.flow.platform.util.Logger;
@@ -35,7 +34,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -75,12 +73,7 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public String clone(Flow flow, String filePath) {
-        final Set<String> requiredEnvSet = Sets.newHashSet(Env.FLOW_GIT_URL, Env.FLOW_GIT_SOURCE);
-        if(!EnvUtil.hasRequired(flow, requiredEnvSet)) {
-            throw new IllegalParameterException("Missing required envs");
-        }
-
-        String branch = flow.getEnvs().get(Env.FLOW_GIT_BRANCH);
+        String branch = flow.getEnv(GitEnvs.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(flow);
         client.clone(branch, null, Sets.newHashSet(filePath));
         return fetch(flow, filePath);
@@ -96,7 +89,7 @@ public class GitServiceImpl implements GitService {
      * - FLOW_GIT_SSH_PUBLIC_KEY
      */
     private GitClient gitClientInstance(Flow flow) {
-        GitSource source = GitSource.valueOf(flow.getEnvs().get(Env.FLOW_GIT_SOURCE));
+        GitSource source = GitSource.valueOf(flow.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Class<? extends GitClientBuilder> builderClass = clientBuilderType.get(source);
         if (builderClass == null) {
             throw new UnsupportedException(String.format("Git source %s not supported yet", source));

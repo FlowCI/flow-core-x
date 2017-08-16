@@ -21,7 +21,6 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.core.exception.NotImplementedException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,12 +97,6 @@ public class FlowController {
     public Node createFromYml(@PathVariable String flowName, @RequestBody String yml) {
         PathUtil.validateName(flowName);
         return nodeService.createOrUpdate(PathUtil.build(flowName), yml);
-    }
-
-    @GetMapping("/{flowName}/webhook")
-    public Webhook getWebhook(@PathVariable String flowName) {
-        PathUtil.validateName(flowName);
-        throw new NotImplementedException();
     }
 
     @GetMapping("/webhooks")

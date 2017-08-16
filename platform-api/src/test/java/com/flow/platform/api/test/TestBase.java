@@ -27,6 +27,7 @@ import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.service.JobNodeResultService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
@@ -36,8 +37,9 @@ import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -45,7 +47,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -119,6 +120,12 @@ public abstract class TestBase {
         Flow emptyFlow = nodeService.createEmptyFlow(flowName);
         String yml = getResourceContent(ymlResourceName);
         return nodeService.createOrUpdate(emptyFlow.getPath(), yml);
+    }
+
+    public void setFlowToReady(Node flowNode) {
+        Map<String, String> envs = new HashMap<>();
+        envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.Value.FLOW_STATUS_READY.value());
+        nodeService.setFlowEnv(flowNode.getPath(), envs);
     }
 
     public void stubDemo() {

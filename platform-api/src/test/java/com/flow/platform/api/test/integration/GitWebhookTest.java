@@ -19,11 +19,12 @@ package com.flow.platform.api.test.integration;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
-import com.flow.platform.api.service.GitService.Env;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.PathUtil;
@@ -77,9 +78,9 @@ public class GitWebhookTest extends TestBase {
             .header("x-github-delivery", "29087180-8177-11e7-83a4-3b68852f0c9e");
 
         Job job = push_trigger_from_git(push);
-        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getOutputs().get(Env.FLOW_GIT_SOURCE));
-        Assert.assertEquals(GitEventType.PUSH.name(), job.getOutputs().get(Env.FLOW_GIT_EVENT_TYPE));
-        Assert.assertEquals("Update .flow.yml for github", job.getOutputs().get(Env.FLOW_GIT_CHANGELOG));
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getOutputs().get(GitEnvs.FLOW_GIT_SOURCE.name()));
+        Assert.assertEquals(GitEventType.PUSH.name(), job.getOutputs().get(GitEnvs.FLOW_GIT_EVENT_TYPE.name()));
+        Assert.assertEquals("Update .flow.yml for github", job.getOutputs().get(GitEnvs.FLOW_GIT_CHANGELOG.name()));
     }
 
     @Test
@@ -92,27 +93,28 @@ public class GitWebhookTest extends TestBase {
             .header("x-gitlab-event", "Push Hook");
 
         Job job = push_trigger_from_git(push);
-        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getOutputs().get(Env.FLOW_GIT_SOURCE));
-        Assert.assertEquals(GitEventType.PUSH.name(), job.getOutputs().get(Env.FLOW_GIT_EVENT_TYPE));
-        Assert.assertEquals("Update .flow.yml for gitlab", job.getOutputs().get(Env.FLOW_GIT_CHANGELOG));
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getOutputs().get(GitEnvs.FLOW_GIT_SOURCE.name()));
+        Assert.assertEquals(GitEventType.PUSH.name(), job.getOutputs().get(GitEnvs.FLOW_GIT_EVENT_TYPE.name()));
+        Assert.assertEquals("Update .flow.yml for gitlab", job.getOutputs().get(GitEnvs.FLOW_GIT_CHANGELOG.name()));
     }
 
     private void init_flow(String gitUrl) throws Throwable {
         // create empty flow
-        nodeService.createEmptyFlow(flowName);
+        Flow flow = nodeService.createEmptyFlow(flowName);
+        setFlowToReady(flow);
 
         // set flow git related env
         Map<String, String> env = new HashMap<>();
-        env.put(Env.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
-        env.put(Env.FLOW_GIT_URL, gitUrl);
-        env.put(Env.FLOW_GIT_BRANCH, "develop");
-        env.put(Env.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
+        env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
+        env.put(GitEnvs.FLOW_GIT_URL.name(), gitUrl);
+        env.put(GitEnvs.FLOW_GIT_BRANCH.name(), "develop");
+        env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
         nodeService.setFlowEnv(flowPath, env);
 
         Node loaded = nodeService.find(flowPath);
 
         Assert.assertNotNull(loaded);
-        Assert.assertEquals(4, loaded.getEnvs().size());
+        Assert.assertEquals(6, loaded.getEnvs().size());
         Assert.assertNull(nodeService.getYmlContent(flowPath));
     }
 
