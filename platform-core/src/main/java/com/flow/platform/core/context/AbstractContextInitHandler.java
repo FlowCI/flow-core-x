@@ -16,7 +16,6 @@
 
 package com.flow.platform.core.context;
 
-import com.flow.platform.core.util.SpringContextUtil;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
