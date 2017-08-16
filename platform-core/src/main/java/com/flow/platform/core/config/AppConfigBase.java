@@ -21,15 +21,14 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yh@firim
  */
-public abstract class AbstractAppConfig {
-    private final static int ASYNC_POOL_SIZE = 100;
+public abstract class AppConfigBase {
 
-    public ThreadPoolTaskExecutor taskExecutor() {
+    protected ThreadPoolTaskExecutor taskExecutor(int asyncPoolSize, String threadNamePrefix) {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(ASYNC_POOL_SIZE / 3);
-        taskExecutor.setMaxPoolSize(ASYNC_POOL_SIZE);
+        taskExecutor.setCorePoolSize(asyncPoolSize / 3);
+        taskExecutor.setMaxPoolSize(asyncPoolSize);
         taskExecutor.setQueueCapacity(100);
-        taskExecutor.setThreadNamePrefix("async-task-");
+        taskExecutor.setThreadNamePrefix(threadNamePrefix);
         return taskExecutor;
     }
 }

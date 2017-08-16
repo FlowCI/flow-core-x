@@ -17,7 +17,7 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.domain.CmdQueueItem;
-import com.flow.platform.core.config.AbstractAppConfig;
+import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
@@ -38,7 +38,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 @Configuration
 @Import({DatabaseConfig.class})
-public class AppConfig extends AbstractAppConfig{
+public class AppConfig extends AppConfigBase{
 
     public final static String DEFAULT_YML_FILE = ".flow.yml";
 
@@ -47,6 +47,8 @@ public class AppConfig extends AbstractAppConfig{
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
     private final static int ASYNC_POOL_SIZE = 100;
+
+    private final static String THREAD_NAME_PREFIX = "async-task-";
 
     @Value("${api.workspace}")
     private String workspace;
@@ -63,9 +65,8 @@ public class AppConfig extends AbstractAppConfig{
     }
 
     @Bean
-    @Override
     public ThreadPoolTaskExecutor taskExecutor() {
-        return super.taskExecutor();
+        return super.taskExecutor(ASYNC_POOL_SIZE, THREAD_NAME_PREFIX);
     }
 
     @Bean

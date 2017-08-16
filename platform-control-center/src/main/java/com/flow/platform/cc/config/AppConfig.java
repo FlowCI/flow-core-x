@@ -17,7 +17,7 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
-import com.flow.platform.core.config.AbstractAppConfig;
+import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Jsonable;
@@ -47,13 +47,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
     WebSocketConfig.class,
     AgentConfig.class
 })
-public class AppConfig extends AbstractAppConfig{
+public class AppConfig extends AppConfigBase{
 
     public final static DateTimeFormatter APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
 
     public final static Path CMD_LOG_DIR = Paths.get(System.getenv("HOME"), "uploaded-agent-log");
 
     private final static int ASYNC_POOL_SIZE = 100;
+
+    private final static String THREAD_NAME_PREFIX = "async-task-";
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
@@ -67,9 +69,8 @@ public class AppConfig extends AbstractAppConfig{
     }
 
     @Bean
-    @Override
-    public ThreadPoolTaskExecutor taskExecutor() {
-        return super.taskExecutor();
+    protected ThreadPoolTaskExecutor taskExecutor() {
+        return super.taskExecutor(ASYNC_POOL_SIZE, THREAD_NAME_PREFIX);
     }
 
     /**
