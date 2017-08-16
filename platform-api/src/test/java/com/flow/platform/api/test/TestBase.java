@@ -23,6 +23,7 @@ import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
+import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
@@ -87,6 +88,9 @@ public abstract class TestBase {
     protected NodeResultDao nodeResultDao;
 
     @Autowired
+    protected MessageSettingDao messageDao;
+
+    @Autowired
     protected NodeService nodeService;
 
     @Autowired
@@ -140,6 +144,7 @@ public abstract class TestBase {
         ymlStorageDao.deleteAll();
         jobYmlStorageDao.deleteAll();
         nodeResultDao.deleteAll();
+        messageDao.deleteAll();
     }
 
     @Rule
