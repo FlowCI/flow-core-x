@@ -206,8 +206,7 @@ public final class CmdExecutor {
             executor.shutdown();
 
             // try to shutdown all threads with max 30 seconds waitting time
-            if (!executor.isShutdown()) {
-                executor.awaitTermination(DEFAULT_SHUTDING_WATTING_SECONDS, TimeUnit.SECONDS);
+            if (!executor.awaitTermination(DEFAULT_SHUTDING_WATTING_SECONDS, TimeUnit.SECONDS)) {
                 executor.shutdownNow();
             }
 
@@ -266,7 +265,7 @@ public final class CmdExecutor {
                     }
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Exception on write cmd: " + e.getMessage());
                 }
             }
         };
@@ -318,7 +317,7 @@ public final class CmdExecutor {
                         loggingQueue.add(new Log(type, line));
                     }
                 } catch (IOException ignore) {
-                    ignore.printStackTrace();
+
                 } finally {
                     stdThreadCountDown.countDown();
                     System.out.println(String.format(" ===== %s Stream Reader Thread Finish =====", type));

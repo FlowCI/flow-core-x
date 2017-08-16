@@ -136,6 +136,11 @@ public class AgentManager implements Runnable, TreeCacheListener {
 
         try {
             final byte[] rawData = zkClient.getData(path);
+            if (rawData == null) {
+                LOGGER.warn("Zookeeper node data is null");
+                return;
+            }
+
             cmd = Jsonable.parse(rawData, Cmd.class);
             cmdHistory.add(cmd);
 
