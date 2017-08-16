@@ -100,12 +100,6 @@ public class FlowController {
         return nodeService.createOrUpdate(PathUtil.build(flowName), yml);
     }
 
-    @GetMapping("/{flowName}/webhook")
-    public Webhook getWebhook(@PathVariable String flowName) {
-        PathUtil.validateName(flowName);
-        throw new NotImplementedException();
-    }
-
     @GetMapping("/webhooks")
     public List<Webhook> listFlowWebhooks() {
         return nodeService.listWebhooks();
