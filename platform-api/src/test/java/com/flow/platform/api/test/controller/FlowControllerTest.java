@@ -21,7 +21,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.PathUtil;
@@ -43,7 +47,12 @@ public class FlowControllerTest extends TestBase {
     public void initToCreateEmptyFlow() throws Throwable {
         MockHttpServletRequestBuilder request = post("/flows/" + flowName)
             .contentType(MediaType.APPLICATION_JSON);
-        mockMvc.perform(request).andExpect(status().isOk());
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        Node flowNode = Flow.parse(result.getResponse().getContentAsString(), Flow.class);
+        Assert.assertNotNull(flowNode);
+        Assert.assertNotNull(flowNode.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
+        Assert.assertEquals("PENDING", flowNode.getEnv(FlowEnvs.FLOW_STATUS));
     }
 
     @Test
