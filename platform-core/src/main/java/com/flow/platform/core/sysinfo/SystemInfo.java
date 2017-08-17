@@ -29,30 +29,50 @@ public class SystemInfo implements Serializable {
     private final static int DEFAULT_GROUP_NUM = 5;
 
     @Expose
-    private Map<GroupName, Map<?, ?>> groupInfo = new HashMap<>(DEFAULT_GROUP_NUM);
+    private String name;
 
-    public Map<Object, Object> addGroup(GroupName name) {
-        HashMap<Object, Object> value = new HashMap<>();
-        groupInfo.putIfAbsent(name, value);
-        return value;
+    @Expose
+    private String version;
+
+    @Expose
+    private Map<GroupName, Map<String, String>> info = new HashMap<>(DEFAULT_GROUP_NUM);
+
+    public SystemInfo() {
     }
 
-    public Map<?, ?> addGroup(GroupName name, int size) {
-        HashMap<Object, Object> value = new HashMap<>(size);
-        groupInfo.putIfAbsent(name, value);
-        return value;
+    public String getName() {
+        return name;
     }
 
-    public void addGroup(GroupName name, Map<?, ?> data) {
-        groupInfo.remove(name);
-        groupInfo.put(name, data);
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public int groupSize() {
-        return groupInfo.size();
+    public String getVersion() {
+        return version;
     }
 
-    public Map<?, ?> getGroup(GroupName name) {
-        return groupInfo.get(name);
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public Map<GroupName, Map<String, String>> getInfo() {
+        return info;
+    }
+
+    public void setInfo(Map<GroupName, Map<String, String>> info) {
+        this.info = info;
+    }
+
+    public void put(GroupName key, Map<String, String> content) {
+        info.put(key, content);
+    }
+
+    public Map<String, String> get(GroupName key) {
+        return info.get(key);
+    }
+
+    public int size() {
+        return info.size();
     }
 }

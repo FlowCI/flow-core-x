@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.test;
+package com.flow.platform.core.sysinfo;
 
-import com.flow.platform.core.sysinfo.JvmLoader;
-import com.flow.platform.core.sysinfo.JvmLoader.JvmGroup;
-import com.flow.platform.core.sysinfo.SystemInfo;
-import org.junit.Assert;
-import org.junit.Test;
+import com.flow.platform.core.exception.NotImplementedException;
+import java.util.Properties;
 
 /**
  * @author yang
  */
-public class JvmLoaderTest {
+public class AppServerLoader implements SystemInfoLoader {
 
-    @Test
-    public void should_load_jvm_properties() throws Throwable {
-        SystemInfo jvm = new JvmLoader().load();
-        Assert.assertEquals(JvmGroup.values().length, jvm.groupSize());
+    private final String tomcatBase = "catalina.home";
+
+    @Override
+    public SystemInfo load() {
+        Properties properties = System.getProperties();
+        if (properties.getProperty(tomcatBase) == null) {
+            return new SystemInfo();
+        }
+
+        String s = "java -cp lib/catalina.jar org.apache.catalina.util.ServerInfo";
+        throw new NotImplementedException();
     }
 }

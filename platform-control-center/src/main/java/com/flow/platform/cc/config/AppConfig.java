@@ -47,7 +47,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
     WebSocketConfig.class,
     AgentConfig.class
 })
-public class AppConfig extends AppConfigBase{
+public class AppConfig extends AppConfigBase {
 
     public final static DateTimeFormatter APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
 

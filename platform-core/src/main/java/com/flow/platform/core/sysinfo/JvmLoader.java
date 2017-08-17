@@ -48,11 +48,9 @@ public class JvmLoader implements SystemInfoLoader {
         ));
 
         GROUP_KEYS.put(JvmGroup.GENERAL, Sets.newHashSet(
-            "java.runtime.name",
             "java.vm.version",
             "java.vm.vendor",
             "java.vm.name",
-            "java.runtime.version",
             "java.vm.specification.version",
             "java.home"
         ));
@@ -61,9 +59,11 @@ public class JvmLoader implements SystemInfoLoader {
     public SystemInfo load() {
         Properties properties = System.getProperties();
         SystemInfo jvm = new SystemInfo();
+        jvm.setName(properties.getProperty("java.runtime.name"));
+        jvm.setVersion(properties.getProperty("java.runtime.version"));
 
-        jvm.addGroup(JvmGroup.OS, buildFromProperties(JvmGroup.OS, properties));
-        jvm.addGroup(JvmGroup.GENERAL, buildFromProperties(JvmGroup.GENERAL, properties));
+        jvm.put(JvmGroup.OS, buildFromProperties(JvmGroup.OS, properties));
+        jvm.put(JvmGroup.GENERAL, buildFromProperties(JvmGroup.GENERAL, properties));
 
         // memory info
         Runtime runtime = Runtime.getRuntime();
@@ -71,16 +71,21 @@ public class JvmLoader implements SystemInfoLoader {
         memory.put("java.vm.memory.free", Long.toString(runtime.freeMemory()));
         memory.put("java.vm.memory.max", Long.toString(runtime.maxMemory()));
         memory.put("java.vm.memory.total", Long.toString(runtime.totalMemory()));
-        jvm.addGroup(JvmGroup.MEMORY, memory);
+        jvm.put(JvmGroup.MEMORY, memory);
+
+
 
         return jvm;
     }
 
-    private Map<String, Object> buildFromProperties(JvmGroup group, Properties properties) {
+    private Map<String, String> buildFromProperties(JvmGroup group, Properties properties) {
         Set<Object> keys = GROUP_KEYS.get(group);
-        HashMap<String, Object> general = new HashMap<>(keys.size());
+        HashMap<String, String> general = new HashMap<>(keys.size());
         for (Object key : keys) {
-            general.put(key.toString(), properties.remove(key));
+            Object value = properties.remove(key);
+            if (value != null) {
+                general.put(key.toString(), value.toString());
+            }
         }
         return general;
     }
