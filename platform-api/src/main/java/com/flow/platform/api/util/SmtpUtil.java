@@ -31,15 +31,9 @@ import javax.mail.internet.MimeMessage;
  */
 public class SmtpUtil {
 
-    public static void sendEmail(EmailSetting emailSetting) {
-        Properties props = new Properties();
-        props.put("mail.smtp.host", emailSetting.getSmtpUrl());
-        props.put("mail.smtp.socketFactory.port", emailSetting.getSmtpPort().toString());
-        props.put("mail.smtp.socketFactory.class",
-            "javax.net.ssl.SSLSocketFactory");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.port", emailSetting.getSmtpPort().toString());
+    public static void sendEmail(EmailSetting emailSetting, String acceptor, String subject, String body) {
 
+        Properties props = buildProperty(emailSetting);
         Session session = Session.getDefaultInstance(props,
             new javax.mail.Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -52,10 +46,9 @@ public class SmtpUtil {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(emailSetting.getSender()));
             message.setRecipients(Message.RecipientType.TO,
-                InternetAddress.parse("yh@fir.im"));
-            message.setSubject("Testing Subject");
-            message.setText("Dear Mail Crawler," +
-                "\n\n No spam to my email, please!");
+                InternetAddress.parse(acceptor));
+            message.setSubject(subject);
+            message.setText(body);
 
             Transport.send(message);
 
@@ -64,5 +57,38 @@ public class SmtpUtil {
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    /**
+     * authentication
+     */
+    public static Boolean authentication(EmailSetting emailSetting) {
+
+        Properties props = buildProperty(emailSetting);
+
+        Session session = Session.getDefaultInstance(props, null);
+
+        try {
+            Transport transport = session.getTransport("smtp");
+            transport.connect(emailSetting.getSmtpUrl(), emailSetting.getSmtpPort(), emailSetting.getUsername(),
+                emailSetting.getPassword());
+            transport.close();
+            System.out.println("success");
+            return true;
+        } catch (Throwable throwable) {
+            return false;
+        }
+    }
+
+    private static Properties buildProperty(EmailSetting emailSetting) {
+        Properties props = new Properties();
+        props.put("mail.smtp.host", emailSetting.getSmtpUrl());
+        props.put("mail.smtp.socketFactory.port", emailSetting.getSmtpPort().toString());
+        props.put("mail.smtp.socketFactory.class",
+            "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.port", emailSetting.getSmtpPort().toString());
+        return props;
     }
 }

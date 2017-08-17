@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
+package com.flow.platform.api.domain.response;
 
-import com.flow.platform.api.domain.EmailSetting;
-import com.flow.platform.api.domain.MessageSetting;
+import com.google.gson.annotations.Expose;
 
 /**
  * @author yh@firim
  */
+public class SmtpAuthResponse {
 
-public interface MessageService {
+    @Expose
+    private Boolean auth;
 
-    MessageSetting save(MessageSetting t);
+    public SmtpAuthResponse(Boolean auth) {
+        this.auth = auth;
+    }
 
-    MessageSetting find(String type);
+    public Boolean getAuth() {
+        return auth;
+    }
 
-    void delete(MessageSetting t);
-
-    MessageSetting update(MessageSetting t);
-
-    Boolean authEmailSetting(EmailSetting emailSetting);
+    public void setAuth(Boolean auth) {
+        this.auth = auth;
+    }
 }

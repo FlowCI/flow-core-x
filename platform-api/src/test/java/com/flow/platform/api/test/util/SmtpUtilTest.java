@@ -19,6 +19,7 @@ package com.flow.platform.api.test.util;
 import com.flow.platform.api.domain.EmailSetting;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.SmtpUtil;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -27,10 +28,8 @@ import org.junit.Test;
 public class SmtpUtilTest extends TestBase {
 
     @Test
-    public void should_send_success(){
+    public void should_auth_success(){
         EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "liyunhehappy6@163.com");
-        emailSetting.setUsername("liyunhehappy6@163.com");
-        emailSetting.setPassword("122333123ppp12,");
-        SmtpUtil.sendEmail(emailSetting);
+        Assert.assertEquals(false, SmtpUtil.authentication(emailSetting));
     }
 }

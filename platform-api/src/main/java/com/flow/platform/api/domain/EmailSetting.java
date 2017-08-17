@@ -16,21 +16,29 @@
 
 package com.flow.platform.api.domain;
 
+import com.google.gson.annotations.Expose;
+
 /**
  * @author yh@firim
  */
 public class EmailSetting extends MessageSetting {
 
+    @Expose
     private String smtpUrl;
 
+    @Expose
     private Integer smtpPort;
 
+    @Expose
     private String sender;
 
+    @Expose
     private String username;
 
+    @Expose
     private String password;
 
+    @Expose
     private boolean isAuthenticated;
 
     public EmailSetting(String smtpUrl, Integer smtpPort, String sender) {

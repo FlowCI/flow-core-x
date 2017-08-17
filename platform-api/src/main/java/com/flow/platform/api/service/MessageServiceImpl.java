@@ -19,6 +19,7 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.domain.EmailSetting;
 import com.flow.platform.api.domain.MessageSetting;
+import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import java.lang.reflect.Type;
@@ -36,6 +37,11 @@ public class MessageServiceImpl implements MessageService {
 
     @Autowired
     private MessageSettingDao messageDao;
+
+    @Override
+    public Boolean authEmailSetting(EmailSetting emailSetting) {
+        return SmtpUtil.authentication(emailSetting);
+    }
 
     @Override
     public MessageSetting save(MessageSetting t) {

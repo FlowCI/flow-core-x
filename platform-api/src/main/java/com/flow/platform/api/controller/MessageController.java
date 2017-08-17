@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.EmailSetting;
+import com.flow.platform.api.domain.response.SmtpAuthResponse;
 import com.flow.platform.api.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,5 +53,12 @@ public class MessageController {
         return (EmailSetting) messageService.update(emailSetting);
     }
 
-
+    @PostMapping(path = "/emailSetting/auth")
+    public SmtpAuthResponse authEmailSetting(@RequestBody EmailSetting emailSetting) {
+        if (messageService.authEmailSetting(emailSetting)) {
+            return new SmtpAuthResponse(true);
+        } else {
+            return new SmtpAuthResponse(false);
+        }
+    }
 }
