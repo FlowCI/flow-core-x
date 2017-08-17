@@ -27,13 +27,16 @@ public interface SysInfoService {
 
     String INFO_TYPE_JVM = "jvm";
 
+    String INFO_TYPE_TOMCAT = "tomcat";
+
     String INFO_TYPE_DB = "db";
 
     String INFO_TYPE_ZK = "zk";
 
     String INFO_TYPE_MQ = "mq";
 
-    Set<String> SUPPORT_TYPES = Sets.newHashSet(INFO_TYPE_JVM, INFO_TYPE_DB, INFO_TYPE_MQ, INFO_TYPE_ZK);
+    Set<String> SUPPORT_TYPES = Sets
+        .newHashSet(INFO_TYPE_JVM, INFO_TYPE_DB, INFO_TYPE_MQ, INFO_TYPE_ZK, INFO_TYPE_TOMCAT);
 
     SystemInfo get(String type);
 

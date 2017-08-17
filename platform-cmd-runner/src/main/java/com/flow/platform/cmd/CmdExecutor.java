@@ -168,8 +168,8 @@ public final class CmdExecutor {
         }
     }
 
-    public CmdExecutor(final List<String> cmds) {
-        this(null, null, null, null, null, null, cmds);
+    public CmdExecutor(final String workingDir, final List<String> cmds) {
+        this(null, null, null, workingDir, null, null, cmds);
     }
 
     public void setProcListener(ProcListener procListener) {
@@ -179,6 +179,8 @@ public final class CmdExecutor {
     public void setLogListener(LogListener logListener) {
         this.logListener = logListener;
     }
+
+
 
     public CmdResult run() {
         outputResult = new CmdResult();

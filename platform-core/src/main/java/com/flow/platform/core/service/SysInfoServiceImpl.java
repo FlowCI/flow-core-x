@@ -17,6 +17,7 @@
 package com.flow.platform.core.service;
 
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.sysinfo.AppServerLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
 import com.flow.platform.core.sysinfo.JvmLoader;
 import com.flow.platform.core.sysinfo.SystemInfo;
@@ -55,6 +56,10 @@ public class SysInfoServiceImpl implements SysInfoService {
 
         if (Objects.equals(type, INFO_TYPE_DB)) {
             return new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword).load();
+        }
+
+        if (Objects.equals(type, INFO_TYPE_TOMCAT)) {
+            return new AppServerLoader().load();
         }
 
         return null;
