@@ -17,11 +17,23 @@
 package com.flow.platform.core.service;
 
 import com.flow.platform.core.sysinfo.SystemInfo;
+import com.google.common.collect.Sets;
+import java.util.Set;
 
 /**
  * @author yang
  */
 public interface SysInfoService {
+
+    String INFO_TYPE_JVM = "jvm";
+
+    String INFO_TYPE_DB = "db";
+
+    String INFO_TYPE_ZK = "zk";
+
+    String INFO_TYPE_MQ = "mq";
+
+    Set<String> SUPPORT_TYPES = Sets.newHashSet(INFO_TYPE_JVM, INFO_TYPE_DB, INFO_TYPE_MQ, INFO_TYPE_ZK);
 
     SystemInfo get(String type);
 

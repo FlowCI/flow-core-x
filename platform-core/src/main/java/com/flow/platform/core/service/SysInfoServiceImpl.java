@@ -16,6 +16,7 @@
 
 package com.flow.platform.core.service;
 
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
 import com.flow.platform.core.sysinfo.JvmLoader;
 import com.flow.platform.core.sysinfo.SystemInfo;
@@ -44,11 +45,15 @@ public class SysInfoServiceImpl implements SysInfoService {
 
     @Override
     public SystemInfo get(String type) {
-        if (Objects.equals(type, "jvm")) {
+        if (!SUPPORT_TYPES.contains(type)) {
+            throw new IllegalParameterException("System into type not supported: " + type);
+        }
+
+        if (Objects.equals(type, INFO_TYPE_JVM)) {
             return jvmLoader.load();
         }
 
-        if (Objects.equals(type, "db")) {
+        if (Objects.equals(type, INFO_TYPE_DB)) {
             return new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword).load();
         }
 
