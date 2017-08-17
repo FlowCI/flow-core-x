@@ -39,7 +39,7 @@ public class MessageControllerTest extends TestBase {
     @Test
     public void should_create_email_setting_success() {
 
-        EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "liyunhehappy6@163.com");
+        EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "xxxx@163.com");
 
         MockHttpServletRequestBuilder content = post("/message/emailSetting")
             .contentType(MediaType.APPLICATION_JSON)
@@ -65,7 +65,7 @@ public class MessageControllerTest extends TestBase {
 
     @Test
     public void should_update_success() {
-        EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "liyunhehappy6@163.com");
+        EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "xxxx@163.com");
 
         MockHttpServletRequestBuilder content = post("/message/emailSetting")
             .contentType(MediaType.APPLICATION_JSON)
@@ -97,8 +97,8 @@ public class MessageControllerTest extends TestBase {
 
     @Test
     public void should_auth_failure() {
-        EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "liyunhehappy6@163.com");
-        
+        EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "xxxx@163.com");
+
         MockHttpServletRequestBuilder content = post("/message/emailSetting/auth")
             .contentType(MediaType.APPLICATION_JSON)
             .content(emailSetting.toJson());
