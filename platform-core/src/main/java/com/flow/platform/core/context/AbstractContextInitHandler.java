@@ -16,11 +16,13 @@
 
 package com.flow.platform.core.context;
 
+import com.flow.platform.util.Logger;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 public abstract class AbstractContextInitHandler implements ApplicationListener<ContextRefreshedEvent> {
 
+    private final static Logger LOGGER = new Logger(AbstractContextInitHandler.class);
 
     public abstract SpringContext getSpringContext();
 
@@ -30,6 +32,7 @@ public abstract class AbstractContextInitHandler implements ApplicationListener<
         for (String eventClassName : getSpringContext().getBeanNameByType(ContextEvent.class)) {
             ContextEvent eventClass = (ContextEvent) getSpringContext().getBean(eventClassName);
             eventClass.start();
+            LOGGER.trace("%s started", eventClassName);
         }
     }
 }

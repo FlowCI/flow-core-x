@@ -31,8 +31,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ContextCloseHandler extends AbstractContextCloseHandler {
 
-    private final static Logger LOGGER = new Logger(ContextCloseHandler.class);
-
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 

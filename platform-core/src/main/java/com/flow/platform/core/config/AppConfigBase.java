@@ -29,6 +29,7 @@ public abstract class AppConfigBase {
         taskExecutor.setMaxPoolSize(asyncPoolSize);
         taskExecutor.setQueueCapacity(100);
         taskExecutor.setThreadNamePrefix(threadNamePrefix);
+        taskExecutor.setDaemon(true);
         return taskExecutor;
     }
 }
