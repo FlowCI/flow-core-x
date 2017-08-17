@@ -53,7 +53,8 @@ public class JvmLoader implements SystemInfoLoader {
             "java.vm.vendor",
             "java.vm.name",
             "java.runtime.version",
-            "java.vm.specification.version"
+            "java.vm.specification.version",
+            "java.home"
         ));
     }
 
