@@ -28,11 +28,34 @@ public interface UserService {
     /**
      * Register
      *
+     * @param user
+     * @return
+     */
+    String register(User user);
+
+    /**
+     * Check the format of the email
+     *
+     * @param email
+     * @return
+     */
+    Boolean checkEmailFormatIsPass(String email);
+
+    /**
+     * Check the format of the user_name
+     *
      * @param userName
+     * @return
+     */
+    Boolean checkUserNameFormatIsPass(String userName);
+
+    /**
+     * Check the format of the password
+     *
      * @param password
      * @return
      */
-    String register(String email, String userName, String password);
+    Boolean checkPasswordFormatIsPass(String password);
 
     /**
      * Verify email is exist

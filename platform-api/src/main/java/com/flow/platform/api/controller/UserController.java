@@ -24,20 +24,18 @@ public class UserController {
 
     @PostMapping("/login")
     public String login(@RequestBody User user) {
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8");
         if (user.getEmail() == null) {
             // Use user_name to login
-            return userService.loginByUserName(user.getUserName(), passwordForMD5);
+            return userService.loginByUserName(user.getUserName(), user.getPassword());
         } else {
             // Use email to login
-            return userService.loginByEmail(user.getEmail(), passwordForMD5);
+            return userService.loginByEmail(user.getEmail(), user.getPassword());
         }
 
     }
 
     @PostMapping("/register")
     public String register(@RequestBody User user) {
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8");
-        return userService.register(user.getEmail(), user.getUserName(), passwordForMD5);
+        return userService.register(user);
     }
 }
