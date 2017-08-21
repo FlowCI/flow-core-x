@@ -127,12 +127,12 @@ public final class CmdExecutor {
      * @throws FileNotFoundException throw when working dir defined but not found
      */
     public CmdExecutor(final ProcListener procListener,
-                       final LogListener logListener,
-                       final Map<String, String> inputs,
-                       final String workingDir,
-                       final String outputEnvFilter,
-                       final Integer timeout,
-                       final String... cmd) throws FileNotFoundException {
+        final LogListener logListener,
+        final Map<String, String> inputs,
+        final String workingDir,
+        final String outputEnvFilter,
+        final Integer timeout,
+        final String... cmd) throws FileNotFoundException {
 
         if (procListener != null) {
             this.procListener = procListener;
@@ -164,6 +164,8 @@ public final class CmdExecutor {
         // init timeout
         if (timeout == null) {
             this.timeout = DEFAULT_TIMEOUT;
+        } else {
+            this.timeout = timeout;
         }
     }
 
@@ -331,8 +333,8 @@ public final class CmdExecutor {
      * put env item which match 'start with filter' to CmdResult.output map
      */
     private void readEnv(final BufferedReader reader,
-                         final Map<String, String> output,
-                         final String filter) throws IOException {
+        final Map<String, String> output,
+        final String filter) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith(filter)) {
