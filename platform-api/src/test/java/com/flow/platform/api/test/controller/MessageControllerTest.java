@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.EmailSetting;
+import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.response.SmtpAuthResponse;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Jsonable;
@@ -39,9 +39,9 @@ public class MessageControllerTest extends TestBase {
     @Test
     public void should_create_email_setting_success() {
 
-        EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "xxxx@163.com");
+        EmailSettingContent emailSetting = new EmailSettingContent("smtp.163.com", 465, "xxxx@163.com");
 
-        MockHttpServletRequestBuilder content = post("/message/emailSetting")
+        MockHttpServletRequestBuilder content = post("/message/email/settings")
             .contentType(MediaType.APPLICATION_JSON)
             .content(emailSetting.toJson());
         try {
@@ -51,7 +51,7 @@ public class MessageControllerTest extends TestBase {
                 .andReturn();
 
             String response = mvcResult.getResponse().getContentAsString();
-            EmailSetting setting = Jsonable.GSON_CONFIG.fromJson(response, EmailSetting.class);
+            EmailSettingContent setting = Jsonable.GSON_CONFIG.fromJson(response, EmailSettingContent.class);
 
             Assert.assertEquals(emailSetting.getSmtpUrl(), setting.getSmtpUrl());
             Assert.assertEquals(emailSetting.getSmtpPort(), setting.getSmtpPort());
@@ -65,9 +65,9 @@ public class MessageControllerTest extends TestBase {
 
     @Test
     public void should_update_success() {
-        EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "xxxx@163.com");
+        EmailSettingContent emailSetting = new EmailSettingContent("smtp.163.com", 465, "xxxx@163.com");
 
-        MockHttpServletRequestBuilder content = post("/message/emailSetting")
+        MockHttpServletRequestBuilder content = post("/message/email/settings")
             .contentType(MediaType.APPLICATION_JSON)
             .content(emailSetting.toJson());
         try {
@@ -77,7 +77,7 @@ public class MessageControllerTest extends TestBase {
                 .andReturn();
 
             emailSetting.setPassword("123456");
-            content = patch("/message/emailSetting")
+            content = patch("/message/email/settings")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(emailSetting.toJson());
 
@@ -87,7 +87,7 @@ public class MessageControllerTest extends TestBase {
                 .andReturn();
 
             String response = mvcResult.getResponse().getContentAsString();
-            EmailSetting setting = Jsonable.GSON_CONFIG.fromJson(response, EmailSetting.class);
+            EmailSettingContent setting = Jsonable.GSON_CONFIG.fromJson(response, EmailSettingContent.class);
 
             Assert.assertEquals(emailSetting.getPassword(), setting.getPassword());
         } catch (Exception e) {
@@ -97,9 +97,9 @@ public class MessageControllerTest extends TestBase {
 
     @Test
     public void should_auth_failure() {
-        EmailSetting emailSetting = new EmailSetting("smtp.163.com", 465, "xxxx@163.com");
+        EmailSettingContent emailSetting = new EmailSettingContent("smtp.163.com", 465, "xxxx@163.com");
 
-        MockHttpServletRequestBuilder content = post("/message/emailSetting/auth")
+        MockHttpServletRequestBuilder content = post("/message/email/settings/auth")
             .contentType(MediaType.APPLICATION_JSON)
             .content(emailSetting.toJson());
         try {

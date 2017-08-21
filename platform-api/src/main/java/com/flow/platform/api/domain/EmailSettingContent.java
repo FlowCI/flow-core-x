@@ -17,11 +17,12 @@
 package com.flow.platform.api.domain;
 
 import com.google.gson.annotations.Expose;
+import sun.plugin2.message.Message;
 
 /**
  * @author yh@firim
  */
-public class EmailSetting extends MessageSetting {
+public class EmailSettingContent extends SettingContent {
 
     @Expose
     private String smtpUrl;
@@ -41,8 +42,8 @@ public class EmailSetting extends MessageSetting {
     @Expose
     private boolean isAuthenticated;
 
-    public EmailSetting(String smtpUrl, Integer smtpPort, String sender) {
-        super.setType("EmailSetting");
+    public EmailSettingContent(String smtpUrl, Integer smtpPort, String sender) {
+        super.setType(MessageType.EMAIl);
         this.smtpUrl = smtpUrl;
         this.smtpPort = smtpPort;
         this.sender = sender;
@@ -105,41 +106,19 @@ public class EmailSetting extends MessageSetting {
             return false;
         }
 
-        EmailSetting that = (EmailSetting) o;
+        EmailSettingContent that = (EmailSettingContent) o;
 
-        if (isAuthenticated != that.isAuthenticated) {
-            return false;
-        }
-        if (smtpUrl != null ? !smtpUrl.equals(that.smtpUrl) : that.smtpUrl != null) {
-            return false;
-        }
-        if (smtpPort != null ? !smtpPort.equals(that.smtpPort) : that.smtpPort != null) {
-            return false;
-        }
-        if (sender != null ? !sender.equals(that.sender) : that.sender != null) {
-            return false;
-        }
-        if (username != null ? !username.equals(that.username) : that.username != null) {
-            return false;
-        }
-        return password != null ? password.equals(that.password) : that.password == null;
+        return smtpUrl != null ? smtpUrl.equals(that.smtpUrl) : that.smtpUrl == null;
     }
 
     @Override
     public int hashCode() {
-        int result = smtpUrl != null ? smtpUrl.hashCode() : 0;
-        result = 31 * result + (smtpPort != null ? smtpPort.hashCode() : 0);
-        result = 31 * result + (sender != null ? sender.hashCode() : 0);
-        result = 31 * result + (username != null ? username.hashCode() : 0);
-        result = 31 * result + (password != null ? password.hashCode() : 0);
-        result = 31 * result + (isAuthenticated ? 1 : 0);
-        return result;
+        return smtpUrl != null ? smtpUrl.hashCode() : 0;
     }
 
     @Override
-    public String
-    toString() {
-        return "EmailSetting{" +
+    public String toString() {
+        return "EmailSettingContent{" +
             "smtpUrl='" + smtpUrl + '\'' +
             ", smtpPort=" + smtpPort +
             ", sender='" + sender + '\'' +

@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.util;
 
-import com.flow.platform.api.domain.EmailSetting;
+import com.flow.platform.api.domain.EmailSettingContent;
 import java.util.Properties;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -31,7 +31,7 @@ import javax.mail.internet.MimeMessage;
  */
 public class SmtpUtil {
 
-    public static void sendEmail(EmailSetting emailSetting, String acceptor, String subject, String body) {
+    public static void sendEmail(EmailSettingContent emailSetting, String acceptor, String subject, String body) {
 
         Properties props = buildProperty(emailSetting);
         Session session = Session.getDefaultInstance(props,
@@ -63,7 +63,7 @@ public class SmtpUtil {
     /**
      * authentication
      */
-    public static Boolean authentication(EmailSetting emailSetting) {
+    public static Boolean authentication(EmailSettingContent emailSetting) {
 
         Properties props = buildProperty(emailSetting);
 
@@ -81,7 +81,7 @@ public class SmtpUtil {
         }
     }
 
-    private static Properties buildProperty(EmailSetting emailSetting) {
+    private static Properties buildProperty(EmailSettingContent emailSetting) {
         Properties props = new Properties();
         props.put("mail.smtp.host", emailSetting.getSmtpUrl());
         props.put("mail.smtp.socketFactory.port", emailSetting.getSmtpPort().toString());

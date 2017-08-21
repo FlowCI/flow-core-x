@@ -5,15 +5,11 @@
 
 <hibernate-mapping package="com.flow.platform.api.domain">
   <class name="MessageSetting" table="message_setting">
-    <!--<id name="id" type="string">-->
-      <!--<generator class="uuid"></generator>-->
-    <!--</id>-->
+    <id name="id" type="integer">
+      <generator class="increment"></generator>
+    </id>
 
-    <id name="type" type="string"></id>
-
-    <property name="content" column="content" type="string"></property>
-
-    <!--<property name="type" column="type" type="string"></property>-->
+    <property name="content" column="content" type="com.flow.platform.api.dao.adaptor.SettingContentAdaptor"></property>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>

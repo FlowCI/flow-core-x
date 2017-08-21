@@ -16,8 +16,9 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.EmailSetting;
-import com.flow.platform.api.domain.MessageSetting;
+import com.flow.platform.api.domain.EmailSettingContent;
+import com.flow.platform.api.domain.MessageType;
+import com.flow.platform.api.domain.SettingContent;
 
 /**
  * @author yh@firim
@@ -25,13 +26,13 @@ import com.flow.platform.api.domain.MessageSetting;
 
 public interface MessageService {
 
-    MessageSetting save(MessageSetting t);
+    SettingContent save(SettingContent t);
 
-    MessageSetting find(String type);
+    SettingContent find(MessageType type);
 
-    void delete(MessageSetting t);
+    void delete(SettingContent t);
 
-    MessageSetting update(MessageSetting t);
+    SettingContent update(SettingContent t);
 
-    Boolean authEmailSetting(EmailSetting emailSetting);
+    Boolean authEmailSetting(EmailSettingContent emailSetting);
 }

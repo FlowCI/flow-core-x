@@ -24,27 +24,29 @@ import java.time.ZonedDateTime;
  */
 public class MessageSetting extends Jsonable {
 
-    private String type;
 
-    private String content;
+    private SettingContent content;
+
+    private Integer id;
 
     private ZonedDateTime createdAt;
 
     private ZonedDateTime updatedAt;
 
-    public String getType() {
-        return type;
+    public MessageSetting(SettingContent content, ZonedDateTime createdAt, ZonedDateTime updatedAt) {
+        this.content = content;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public MessageSetting() {
     }
 
-    public String getContent() {
+    public SettingContent getContent() {
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(SettingContent content) {
         this.content = content;
     }
 
@@ -64,6 +66,14 @@ public class MessageSetting extends Jsonable {
         this.updatedAt = updatedAt;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -75,19 +85,18 @@ public class MessageSetting extends Jsonable {
 
         MessageSetting that = (MessageSetting) o;
 
-        return type != null ? type.equals(that.type) : that.type == null;
+        return id != null ? id.equals(that.id) : that.id == null;
     }
 
     @Override
     public int hashCode() {
-        return type != null ? type.hashCode() : 0;
+        return id != null ? id.hashCode() : 0;
     }
 
     @Override
     public String toString() {
         return "MessageSetting{" +
-            ", type='" + type + '\'' +
-            ", content='" + content + '\'' +
+            "id=" + id +
             ", createdAt=" + createdAt +
             ", updatedAt=" + updatedAt +
             '}';

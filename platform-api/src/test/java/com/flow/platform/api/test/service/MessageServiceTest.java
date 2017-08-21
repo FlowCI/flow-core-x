@@ -16,7 +16,8 @@
 
 package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.domain.EmailSetting;
+import com.flow.platform.api.domain.EmailSettingContent;
+import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.service.MessageService;
 import com.flow.platform.api.test.TestBase;
 import org.junit.Assert;
@@ -37,9 +38,9 @@ public class MessageServiceTest extends TestBase {
 
     @Test
     public void should_save_and_update_success(){
-        EmailSetting emailSetting = new EmailSetting("smtp.qq.com", 25, "admin@qq.com");
+        EmailSettingContent emailSetting = new EmailSettingContent("smtp.qq.com", 25, "admin@qq.com");
         messageService.save(emailSetting);
-        EmailSetting setting = (EmailSetting) messageService.find("EmailSetting");
+        EmailSettingContent setting = (EmailSettingContent) messageService.find(MessageType.EMAIl);
         Assert.assertNotNull(setting);
         Assert.assertNotNull(setting.getSmtpUrl());
         Assert.assertNotNull(setting.getSmtpPort());
@@ -48,15 +49,15 @@ public class MessageServiceTest extends TestBase {
         setting.setSender("admin@163.com");
         messageService.update(setting);
 
-        EmailSetting settingt = (EmailSetting) messageService.find("EmailSetting");
+        EmailSettingContent settingt = (EmailSettingContent) messageService.find(MessageType.EMAIl);
         Assert.assertEquals("admin@163.com", settingt.getSender());
     }
 
     @Test
     public void should_delete_success(){
-        EmailSetting emailSetting = new EmailSetting("smtp.qq.com", 25, "admin@qq.com");
+        EmailSettingContent emailSetting = new EmailSettingContent("smtp.qq.com", 25, "admin@qq.com");
         messageService.save(emailSetting);
-        EmailSetting setting = (EmailSetting) messageService.find("EmailSetting");
+        EmailSettingContent setting = (EmailSettingContent) messageService.find(MessageType.EMAIl);
         Assert.assertNotNull(setting);
         Assert.assertNotNull(setting.getSmtpUrl());
         Assert.assertNotNull(setting.getSmtpPort());
@@ -64,7 +65,7 @@ public class MessageServiceTest extends TestBase {
 
         messageService.delete(emailSetting);
 
-        EmailSetting settingT = (EmailSetting) messageService.find("EmailSetting");
+        EmailSettingContent settingT = (EmailSettingContent) messageService.find(MessageType.EMAIl);
         Assert.assertNull(settingT);
     }
 }

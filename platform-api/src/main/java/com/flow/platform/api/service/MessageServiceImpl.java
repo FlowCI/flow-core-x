@@ -17,12 +17,14 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.MessageSettingDao;
-import com.flow.platform.api.domain.EmailSetting;
+import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageSetting;
+import com.flow.platform.api.domain.MessageType;
+import com.flow.platform.api.domain.SettingContent;
 import com.flow.platform.api.util.SmtpUtil;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
-import java.lang.reflect.Type;
+import java.time.ZonedDateTime;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,51 +40,53 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     private MessageSettingDao messageDao;
 
-    @Override
-    public Boolean authEmailSetting(EmailSetting emailSetting) {
-        return SmtpUtil.authentication(emailSetting);
-    }
 
     @Override
-    public MessageSetting save(MessageSetting t) {
-        MessageSetting messageSetting = new MessageSetting();
-        messageSetting.setContent(Jsonable.GSON_CONFIG.toJson(t));
-        messageSetting.setType(t.getType());
+    public SettingContent save(SettingContent t) {
+        MessageSetting messageSetting = new MessageSetting(t, ZonedDateTime.now(), ZonedDateTime.now());
         messageDao.save(messageSetting);
         return t;
     }
 
     @Override
-    public MessageSetting find(String type) {
-        MessageSetting messageSetting = messageDao.get(type);
-        try {
-            return Jsonable.GSON_CONFIG.fromJson(messageSetting.getContent(),
-                convertClazz(messageSetting.getType()));
-        } catch (Throwable throwable) {
-            LOGGER.warn(String.format("not found class, exception - %s", throwable));
+    public SettingContent find(MessageType type) {
+        if(findSettingByType(type) == null){
+            return null;
         }
-        return null;
+        return findSettingByType(type).getContent();
     }
 
     @Override
-    public MessageSetting update(MessageSetting t) {
-        MessageSetting messageSetting = messageDao.get(t.getType());
-        messageSetting.setContent(Jsonable.GSON_CONFIG.toJson(t));
-        messageDao.update(messageSetting);
-        return messageSetting;
-    }
-
-    @Override
-    public void delete(MessageSetting t) {
-        MessageSetting messageSetting = messageDao.get(t.getType());
+    public void delete(SettingContent t) {
+        MessageSetting messageSetting = findSettingByType(t.getType());
         messageDao.delete(messageSetting);
     }
 
-    private Type convertClazz(String type){
-        switch (type){
-            case "EmailSetting" :
-                return EmailSetting.class;
+    @Override
+    public SettingContent update(SettingContent t) {
+        MessageSetting messageSetting = findSettingByType(t.getType());
+        messageSetting.setContent(t);
+        messageDao.update(messageSetting);
+        return null;
+    }
+
+    @Override
+    public Boolean authEmailSetting(EmailSettingContent emailSetting) {
+        return SmtpUtil.authentication(emailSetting);
+    }
+
+    private List<MessageSetting> listMsg() {
+        return messageDao.list();
+    }
+
+    private MessageSetting findSettingByType(MessageType type) {
+        for (MessageSetting messageSetting : listMsg()) {
+            if (messageSetting.getContent().getType() == type) {
+                return messageSetting;
+            }
         }
         return null;
     }
+
+
 }

@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.test.util;
+package com.flow.platform.api.domain;
 
-import com.flow.platform.api.domain.EmailSettingContent;
-import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.SmtpUtil;
-import org.junit.Assert;
-import org.junit.Test;
+import com.flow.platform.domain.Jsonable;
 
 /**
  * @author yh@firim
  */
-public class SmtpUtilTest extends TestBase {
+public class SettingContent extends Jsonable {
 
-    @Test
-    public void should_auth_success(){
-        EmailSettingContent emailSetting = new EmailSettingContent("smtp.163.com", 465, "xxxx@163.com");
-        Assert.assertEquals(false, SmtpUtil.authentication(emailSetting));
+    private MessageType type;
+
+    public MessageType getType() {
+        return type;
+    }
+
+    public void setType(MessageType type) {
+        this.type = type;
     }
 }

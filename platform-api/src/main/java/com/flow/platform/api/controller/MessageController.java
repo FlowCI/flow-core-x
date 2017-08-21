@@ -16,7 +16,8 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.EmailSetting;
+import com.flow.platform.api.domain.EmailSettingContent;
+import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.response.SmtpAuthResponse;
 import com.flow.platform.api.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,23 +39,23 @@ public class MessageController {
     @Autowired
     private MessageService messageService;
 
-    @PostMapping(path = "/emailSetting")
-    public EmailSetting createEmailSetting(@RequestBody EmailSetting emailSetting) {
-        return (EmailSetting) messageService.save(emailSetting);
+    @PostMapping(path = "/email/settings")
+    public EmailSettingContent createEmailSetting(@RequestBody EmailSettingContent emailSetting) {
+        return (EmailSettingContent) messageService.save(emailSetting);
     }
 
-    @GetMapping(path = "/emailSetting")
-    public EmailSetting showEmailSetting() {
-        return (EmailSetting) messageService.find("EmailSetting");
+    @GetMapping(path = "/email/settings")
+    public EmailSettingContent showEmailSetting() {
+        return (EmailSettingContent) messageService.find(MessageType.EMAIl);
     }
 
-    @PatchMapping(path = "/emailSetting")
-    public EmailSetting updateEmailSetting(@RequestBody EmailSetting emailSetting) {
-        return (EmailSetting) messageService.update(emailSetting);
+    @PatchMapping(path = "/email/settings")
+    public EmailSettingContent updateEmailSetting(@RequestBody EmailSettingContent emailSetting) {
+        return (EmailSettingContent) messageService.update(emailSetting);
     }
 
-    @PostMapping(path = "/emailSetting/auth")
-    public SmtpAuthResponse authEmailSetting(@RequestBody EmailSetting emailSetting) {
+    @PostMapping(path = "/email/settings/auth")
+    public SmtpAuthResponse authEmailSetting(@RequestBody EmailSettingContent emailSetting) {
         if (messageService.authEmailSetting(emailSetting)) {
             return new SmtpAuthResponse(true);
         } else {
