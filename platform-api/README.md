@@ -208,7 +208,7 @@
 ### POST emailSetting
     ```
         Method: Post
-        Route: /message/emailSetting
+        Route: /message/email/settings
         Param:
           - smtpUrl
           - smtpPort
@@ -230,7 +230,7 @@
 ### UPDATE emailSetting
     ```
         Method: Patch
-        Route: /message/emailSetting
+        Route: /message/email/settings
         Param:
           - smtpUrl
           - smtpPort
@@ -252,7 +252,7 @@
 ### auth emailSetting
     ```
         Method: Post
-        Route: /message/emailSetting/auth
+        Route: /message/email/settings/auth
         Param:
           - smtpUrl
           - smtpPort
