@@ -17,7 +17,6 @@
 package com.flow.platform.api.domain;
 
 import com.google.gson.annotations.Expose;
-import sun.plugin2.message.Message;
 
 /**
  * @author yh@firim
