@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.service.MessageService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.exception.NotFoundException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +66,9 @@ public class MessageServiceTest extends TestBase {
 
         messageService.delete(emailSetting);
 
-        EmailSettingContent settingT = (EmailSettingContent) messageService.find(MessageType.EMAIl);
-        Assert.assertNull(settingT);
+        try{
+            EmailSettingContent settingT = (EmailSettingContent) messageService.find(MessageType.EMAIl);
+        }catch (NotFoundException e){
+        }
     }
 }

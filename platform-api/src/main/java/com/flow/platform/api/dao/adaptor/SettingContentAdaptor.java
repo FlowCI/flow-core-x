@@ -25,7 +25,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 
 /**
- * @author gyfirim
+ * @author yh@firim
  */
 public class SettingContentAdaptor extends BaseAdaptor {
 

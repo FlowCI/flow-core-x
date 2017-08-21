@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.MessageSetting;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
 import com.flow.platform.api.util.SmtpUtil;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -44,14 +45,18 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public SettingContent save(SettingContent t) {
         MessageSetting messageSetting = new MessageSetting(t, ZonedDateTime.now(), ZonedDateTime.now());
-        messageDao.save(messageSetting);
+        if (findSettingByType(t.getType()) == null) {
+            messageDao.save(messageSetting);
+        } else {
+            update(t);
+        }
         return t;
     }
 
     @Override
     public SettingContent find(MessageType type) {
-        if(findSettingByType(type) == null){
-            return null;
+        if (findSettingByType(type) == null) {
+            throw new NotFoundException(String.format("Message Setting not found type - %s", type));
         }
         return findSettingByType(type).getContent();
     }
@@ -65,9 +70,14 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public SettingContent update(SettingContent t) {
         MessageSetting messageSetting = findSettingByType(t.getType());
+
+        //if not exist to save
+        if(messageSetting == null){
+            return save(t);
+        }
         messageSetting.setContent(t);
         messageDao.update(messageSetting);
-        return null;
+        return t;
     }
 
     @Override
