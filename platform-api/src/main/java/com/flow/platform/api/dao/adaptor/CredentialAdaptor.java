@@ -48,7 +48,7 @@ public class CredentialAdaptor extends BaseAdaptor {
         if (str == null) {
             return null;
         }
-                Credential credential = GSON.fromJson(str, Credential.class);
-                return GSON.fromJson(str, credential.getCredentialType().getClazz());
-            }
+        Credential credential = GSON.fromJson(str, Credential.class);
+        return GSON.fromJson(str, credential.getCredentialType().getClazz());
+    }
 }

@@ -15,9 +15,10 @@
  */
 package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.dao.CredentialDao;
-import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.dao.CredentialStorageDao;
+import com.flow.platform.api.domain.CredentialStorage;
 import com.flow.platform.api.domain.CredentialType;
+import com.flow.platform.api.domain.CredentialUserName;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.test.TestBase;
 import java.util.Map;
@@ -34,17 +35,17 @@ public class CredentialServiceTest extends TestBase {
     private CredentialService credentialService;
 
     @Autowired
-    private CredentialDao credentialDao;
+    private CredentialStorageDao credentialStorageDao;
 
     @Test
     public void should_create_credential() {
-        Credential credential = new Credential();
-        credential.setName("test");
-        credential.setUserName("name1");
-        credential.setPassword("password");
-        credential.setCredentialType(CredentialType.USERNAME);
-        credentialService.create(credential);
-        Assert.assertEquals(credential.getUserName(), credentialService.find("test").getUserName());
+        CredentialUserName credentialUserName = new CredentialUserName();
+        credentialUserName.setName("test");
+        credentialUserName.setUserName("name1");
+        credentialUserName.setPassword("password");
+        credentialUserName.setCredentialType(CredentialType.USERNAME);
+        credentialService.create(credentialUserName);
+        Assert.assertEquals(credentialUserName.getName(), credentialService.find("test").getName());
     }
 
     @Test
@@ -55,51 +56,73 @@ public class CredentialServiceTest extends TestBase {
 
     @Test
     public void should_find_credential() {
-        Credential credential = new Credential();
+        CredentialUserName credential = new CredentialUserName();
+        CredentialStorage credentialStorage = new CredentialStorage();
         credential.setName("test");
         credential.setUserName("name1");
         credential.setPassword("password");
         credential.setCredentialType(CredentialType.USERNAME);
-        credentialDao.save(credential);
-        Assert.assertEquals("name1", credentialService.find("test").getUserName());
+        credentialStorage.setContent(credential);
+        credentialStorageDao.save(credentialStorage);
+        Assert.assertEquals(CredentialType.USERNAME, credentialService.find("test").getCredentialType());
     }
 
     @Test
     public void should_update_credential() {
-        Credential credential = new Credential();
-        credential.setName("test");
-        credential.setUserName("name1");
-        credential.setPassword("password");
-        credential.setCredentialType(CredentialType.USERNAME);
-        credentialDao.save(credential);
-        Credential credential1 = credentialService.find("test");
+        CredentialStorage credentialStorage = new CredentialStorage();
+        CredentialUserName credentialUserName = new CredentialUserName();
+        credentialUserName.setName("test");
+        credentialUserName.setUserName("name1");
+        credentialUserName.setPassword("password");
+        credentialUserName.setCredentialType(CredentialType.USERNAME);
+        credentialStorage.setContent(credentialUserName);
+        credentialStorageDao.save(credentialStorage);
+        CredentialUserName credential1 = (CredentialUserName) credentialService.find("test");
         credential1.setUserName("name2");
         credentialService.update(credential1);
-        Assert.assertEquals("name2", credential1.getUserName());
+        Assert.assertEquals("name2", ((CredentialUserName) credentialService.find("test")).getUserName());
     }
 
     @Test
     public void should_delete_credential() {
-        Credential credential = new Credential();
-        credential.setName("test");
-        credential.setUserName("name1");
-        credential.setPassword("password");
-        credential.setCredentialType(CredentialType.USERNAME);
-        credentialDao.save(credential);
+        CredentialStorage credentialStorage = new CredentialStorage();
+        CredentialUserName credentialUserName = new CredentialUserName();
+        credentialUserName.setName("test");
+        credentialUserName.setUserName("name1");
+        credentialUserName.setPassword("password");
+        credentialUserName.setCredentialType(CredentialType.USERNAME);
+        credentialStorage.setContent(credentialUserName);
+        credentialStorageDao.save(credentialStorage);
         credentialService.delete("test");
         Assert.assertEquals(0, credentialService.listCredentials().size());
     }
 
     @Test
     public void should_list_credentials(){
-        Credential credential = new Credential();
-        credential.setName("test");
-        credential.setUserName("name1");
-        credential.setPassword("password");
-        credential.setCredentialType(CredentialType.USERNAME);
-        credentialDao.save(credential);
+        CredentialStorage credentialStorage = new CredentialStorage();
+        CredentialUserName credentialUserName = new CredentialUserName();
+        credentialUserName.setName("test");
+        credentialUserName.setUserName("name1");
+        credentialUserName.setPassword("password");
+        credentialUserName.setCredentialType(CredentialType.USERNAME);
+        credentialStorage.setContent(credentialUserName);
+        credentialStorageDao.save(credentialStorage);
 
         Assert.assertEquals(1, credentialService.listCredentials().size());
+    }
+
+    @Test
+    public void should_list_by_types(){
+        CredentialStorage credentialStorage = new CredentialStorage();
+        CredentialUserName credentialUserName = new CredentialUserName();
+        credentialUserName.setName("test");
+        credentialUserName.setUserName("name1");
+        credentialUserName.setPassword("password");
+        credentialUserName.setCredentialType(CredentialType.USERNAME);
+        credentialStorage.setContent(credentialUserName);
+        credentialStorageDao.save(credentialStorage);
+
+        Assert.assertEquals(1, credentialService.listTypes("USERNAME").size());
     }
 
 }

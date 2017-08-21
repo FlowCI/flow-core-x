@@ -19,24 +19,25 @@ package com.flow.platform.api.domain;
  * @author lhl
  */
 public enum CredentialType {
+    RSAkEYS("RSAKEYS", SSHKey.class),
+    USERNAME("USERNAME", CredentialUserName.class);
 
-    SSHKEY("SSHKEY", 0),
-    USERNAME("USERNAME", 1);
+    private Class<?> clazz;
 
     private String name;
-    private int index;
 
-    CredentialType(String name, int index) {
+
+    CredentialType(String name, Class<?> clazz) {
         this.name = name;
-        this.index = index;
+        this.clazz = clazz;
     }
 
     public String getName() {
         return name;
     }
 
-    public int getIndex() {
-        return index;
+    public Class<?> getClazz() {
+        return clazz;
     }
 
 }

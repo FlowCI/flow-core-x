@@ -17,38 +17,17 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
-import java.time.ZonedDateTime;
 
 /**
  * @author lhl
  */
-public abstract class Credential extends Jsonable {
+public class Credential extends Jsonable {
 
     @Expose
-    private String name;
+    protected String name;
 
     @Expose
-    protected String publicKey;
-    @Expose
-    protected String privateKey;
-
-    @Expose
-    private CredentialType credentialType;
-
-    @Expose
-    private String userName;
-
-    @Expose
-    private String password;
-
-    @Expose
-    private byte fileContent[];
-
-    @Expose
-    private ZonedDateTime createdAt;
-
-    @Expose
-    private ZonedDateTime updatedAt;
+    protected CredentialType credentialType;
 
     public Credential(String name) {
         this.name = name;
@@ -65,22 +44,6 @@ public abstract class Credential extends Jsonable {
         this.name = name;
     }
 
-    public String getPublicKey() {
-        return publicKey;
-    }
-
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
-    }
-
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
-    }
-
     public CredentialType getCredentialType() {
         return credentialType;
     }
@@ -89,45 +52,6 @@ public abstract class Credential extends Jsonable {
         this.credentialType = credentialType;
     }
 
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public byte[] getFileContent() {
-        return fileContent;
-    }
-
-    public void setFileContent(byte[] fileContent) {
-        this.fileContent = fileContent;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -146,5 +70,13 @@ public abstract class Credential extends Jsonable {
     @Override
     public int hashCode() {
         return name.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Credential{" +
+            "name='" + name + '\'' +
+            ", credentialType=" + credentialType +
+            '}';
     }
 }

@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.domain.CredentialStorage;
 import com.flow.platform.api.domain.CredentialType;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.util.List;
@@ -32,25 +32,25 @@ import org.springframework.stereotype.Repository;
  */
 
 @Repository(value = "credentialDao")
-public class CredentialDaoImpl extends AbstractBaseDao<String, Credential> implements CredentialDao {
+public class CredentialStorageDaoImpl extends AbstractBaseDao<String, CredentialStorage> implements CredentialStorageDao {
 
     @Override
-    protected Class<Credential> getEntityClass() {
-        return Credential.class;
+    protected Class<CredentialStorage> getEntityClass() {
+        return CredentialStorage.class;
     }
 
     @Override
     protected String getKeyName() {
-        return "name";
+        return "id";
     }
 
     @Override
-    public List<Credential> list(CredentialType... types) {
+    public List<CredentialStorage> list(CredentialType... types) {
         return execute((Session session) -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Credential> select = builder.createQuery(Credential.class);
-            Root<Credential> credentialRoot = select.from(Credential.class);
-            Predicate condition = credentialRoot.get("credentialType").in(types);
+            CriteriaQuery<CredentialStorage> select = builder.createQuery(CredentialStorage.class);
+            Root<CredentialStorage> credentialRoot = select.from(CredentialStorage.class);
+            Predicate condition = credentialRoot.get("content").get("credentialType").in(types);
             select.where(condition);
             return session.createQuery(select).list();
         });

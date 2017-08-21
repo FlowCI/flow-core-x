@@ -22,11 +22,34 @@ import com.google.gson.annotations.Expose;
  */
 public class CredentialUserName extends Credential{
 
+    @Expose
+    protected String userName;
+
+    @Expose
+    protected String password;
+
+
     public CredentialUserName(String name) {
         super(name);
     }
 
     public CredentialUserName() {
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
 

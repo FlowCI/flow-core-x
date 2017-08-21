@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.domain.CredentialStorage;
 import com.flow.platform.api.domain.CredentialType;
 import com.flow.platform.core.dao.BaseDao;
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * @author lhl
  */
-public interface CredentialDao extends BaseDao<String, Credential> {
-    List<Credential> list(CredentialType... types);
+public interface CredentialStorageDao extends BaseDao<String, CredentialStorage> {
 
+    List<CredentialStorage> list(CredentialType... types);
 }

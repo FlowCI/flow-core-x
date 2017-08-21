@@ -16,8 +16,8 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Credential;
-import com.flow.platform.api.domain.CredentialType;
 import com.flow.platform.api.service.CredentialService;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -50,23 +49,30 @@ public class CredentialController {
     }
 
     @GetMapping(path = "/{name}")
-    public Credential show(@PathVariable String name) {
-        return credentialService.find(name);
+    public String show(@PathVariable String name) {
+        Credential credential = credentialService.find(name);
+        return credential.toJson();
     }
 
     @PostMapping
-    public Credential create(@RequestBody Credential credential) {
-        return credentialService.create(credential);
+    public String create(@RequestBody String credentialJson) {
+        Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
+        Object o = Jsonable.GSON_CONFIG.fromJson(credentialJson, credential.getCredentialType().getClazz());
+        Credential createCredential = credentialService.create((Credential) o);
+        return createCredential.toJson();
     }
 
     @GetMapping(path = "/{name}/delete")
-    public boolean delete(@PathVariable String name) {
-        return credentialService.delete(name);
+    public void delete(@PathVariable String name) {
+        credentialService.delete(name);
     }
 
     @PostMapping(path = "/{name}/update")
-    public Credential reportStatus(@RequestBody Credential credential) {
-        return credentialService.update(credential);
+    public String reportStatus(@RequestBody String credentialJson) {
+        Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
+        Object o = Jsonable.GSON_CONFIG.fromJson(credentialJson, credential.getCredentialType().getClazz());
+        Credential updateCredential = credentialService.update((Credential) o);
+        return updateCredential.toJson();
     }
 
     @GetMapping(path = "/ssh/keys")
@@ -74,8 +80,8 @@ public class CredentialController {
         return credentialService.getKeyMap();
     }
 
-    @PostMapping(path = "/credentialTypeList")
-    public Collection<Credential> credentialTypeList(@RequestParam String credentialType) {
+    @GetMapping(path = "{credentialType}/credentialTypeList")
+    public Collection<Credential> credentialTypeList(@PathVariable String credentialType) {
         return credentialService.listTypes(credentialType);
     }
 }

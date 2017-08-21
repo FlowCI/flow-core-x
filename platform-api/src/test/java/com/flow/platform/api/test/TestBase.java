@@ -19,7 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
-import com.flow.platform.api.dao.CredentialDao;
+import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
@@ -89,10 +89,10 @@ public abstract class TestBase {
     protected NodeResultDao nodeResultDao;
 
     @Autowired
-    private CredentialDao credentialDao;
+    private CredentialStorageDao credentialStorageDao;
 
-
-    protected MessageSettingDao messageDao;
+    @Autowired
+    protected MessageSettingDao messageSettingDao;
 
     @Autowired
     protected NodeService nodeService;
@@ -154,8 +154,8 @@ public abstract class TestBase {
         ymlStorageDao.deleteAll();
         jobYmlStorageDao.deleteAll();
         nodeResultDao.deleteAll();
-        credentialDao.deleteAll();
-        messageDao.deleteAll();
+        credentialStorageDao.deleteAll();
+        messageSettingDao.deleteAll();
     }
 
     @Rule

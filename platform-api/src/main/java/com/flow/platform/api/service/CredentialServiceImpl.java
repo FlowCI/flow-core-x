@@ -15,12 +15,16 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.dao.CredentialDao;
+import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.domain.CredentialStorage;
 import com.flow.platform.api.domain.CredentialType;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,43 +39,58 @@ import org.springframework.stereotype.Service;
 public class CredentialServiceImpl implements CredentialService {
 
     @Autowired
-    private CredentialDao credentialDao;
+    private CredentialStorageDao credentialStorageDao;
 
     @Override
     public Credential create(Credential credential) {
-        credentialDao.save(credential);
-        return credential;
+        CredentialStorage credentialStorage = new CredentialStorage(credential, ZonedDateTime.now(),
+            ZonedDateTime.now());
+        if(findCredentialByName(credential.getName()) != null){
+            throw new IllegalParameterException(String.format("name is already present"));
+        } else {
+            credentialStorageDao.save(credentialStorage);
+            return credential;
+        }
+
     }
 
     @Override
     public Credential find(String name) {
-        Credential credential = credentialDao.get(name);
-        return credential;
+        return findCredentialByName(name).getContent();
     }
 
     @Override
     public Credential update(Credential credential) {
-        credentialDao.update(credential);
-        return credential;
 
+        CredentialStorage credentialStorage = findCredentialByName(credential.getName());
+
+        credentialStorage.setContent(credential);
+        credentialStorageDao.update(credentialStorage);
+        return credential;
     }
 
     @Override
-    public boolean delete(String name) {
-        Credential credential = find(name);
-        credentialDao.delete(credential);
-        return true;
+    public void delete(String name) {
+        CredentialStorage credentialStorage = findCredentialByName(name);
+        credentialStorageDao.delete(credentialStorage);
     }
 
     @Override
     public List<Credential> listCredentials() {
-        return credentialDao.list();
+        return listCertificate();
     }
 
     @Override
     public List<Credential> listTypes(String credentialType) {
+        List<Credential> list = new ArrayList<>();
         CredentialType credentialType1 = CredentialType.valueOf(credentialType);
-        return credentialDao.list(credentialType1);
+        List<Credential> list_certificate = listCertificate();
+        for (Credential credential : list_certificate) {
+            if (credential.getCredentialType() == credentialType1) {
+                list.add(credential);
+            }
+        }
+        return list;
     }
 
 
@@ -101,5 +120,23 @@ public class CredentialServiceImpl implements CredentialService {
         }
         return keys;
     }
+
+    private CredentialStorage findCredentialByName(String name) {
+        for (CredentialStorage credentialStorage : credentialStorageDao.list()) {
+            if (credentialStorage.getContent().getName().equals(name)) {
+                return credentialStorage;
+            }
+        }
+        return null;
+    }
+
+    private List<Credential> listCertificate() {
+        List<Credential> list = new ArrayList<>();
+        for (CredentialStorage credentialStorage : credentialStorageDao.list()) {
+            list.add(credentialStorage.getContent());
+        }
+        return list;
+    }
+
 
 }

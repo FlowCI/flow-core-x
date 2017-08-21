@@ -17,6 +17,7 @@ package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.domain.CredentialStorage;
 import com.flow.platform.api.domain.CredentialType;
 import com.flow.platform.api.domain.SSHKey;
 import com.flow.platform.api.service.CredentialService;
@@ -28,51 +29,57 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author lhl
  */
-public class CredentialDaoTest extends TestBase {
+public class CredentialStorageDaoTest extends TestBase {
 
     @Autowired
-    private CredentialStorageDao credentialDao;
+    private CredentialStorageDao credentialStorageDao;
 
     @Autowired
     private CredentialService credentialService;
 
     @Test
     public void should_save_and_get_success() {
+        CredentialStorage credentialStorage = new CredentialStorage();
         SSHKey sshKey = new SSHKey();
         String publicKey = credentialService.getKeyMap().get("publicKey");
         sshKey.setPublicKey(publicKey);
         sshKey.setCredentialType(CredentialType.RSAkEYS);
         sshKey.setName("test");
-        credentialDao.save(sshKey);
+        credentialStorage.setContent(sshKey);
+        credentialStorageDao.save(credentialStorage);
         Assert.assertEquals(2, credentialService.getKeyMap().size());
-        Assert.assertEquals("test", sshKey.getName());
+        Assert.assertEquals("test", credentialStorage.getContent().getName());
     }
 
     @Test
     public void should_update_credential_success() {
+        CredentialStorage credentialStorage = new CredentialStorage();
         SSHKey sshKey = new SSHKey();
         String publicKey = credentialService.getKeyMap().get("publicKey");
         sshKey.setPublicKey(publicKey);
         sshKey.setCredentialType(CredentialType.RSAkEYS);
         sshKey.setName("test");
-        credentialDao.save(sshKey);
+        credentialStorage.setContent(sshKey);
+        credentialStorageDao.save(credentialStorage);
 
-        Credential credential1 = credentialDao.get("test");
-        credential1.setCredentialType(CredentialType.UserName);
-        credentialDao.update(credential1);
-        Assert.assertEquals(CredentialType.UserName, credential1.getCredentialType());
+        Credential credential1 = credentialStorage.getContent();
+        credential1.setCredentialType(CredentialType.USERNAME);
+        credentialStorage.setContent(credential1);
+        credentialStorageDao.update(credentialStorage);
+        Assert.assertEquals(CredentialType.USERNAME, credentialStorage.getContent().getCredentialType());
     }
 
 
     @Test
     public void should_delete_success() {
+        CredentialStorage credentialStorage = new CredentialStorage();
         SSHKey sshKey = new SSHKey();
         String publicKey = credentialService.getKeyMap().get("publicKey");
         sshKey.setPublicKey(publicKey);
         sshKey.setCredentialType(CredentialType.RSAkEYS);
         sshKey.setName("test");
-        credentialDao.save(sshKey);
-        credentialDao.delete(sshKey);
-        Assert.assertEquals(0, credentialDao.list().size());
+        credentialStorageDao.save(credentialStorage);
+        credentialStorageDao.delete(credentialStorage);
+        Assert.assertEquals(0, credentialStorageDao.list().size());
     }
 }

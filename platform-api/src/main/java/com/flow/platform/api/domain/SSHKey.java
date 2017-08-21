@@ -22,11 +22,34 @@ import com.google.gson.annotations.Expose;
  */
 public class SSHKey extends Credential {
 
+    @Expose
+    protected String publicKey;
+
+    @Expose
+    protected String privateKey;
+
+
     public SSHKey(String name) {
         super(name);
     }
 
     public SSHKey() {
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
     }
 
 }
