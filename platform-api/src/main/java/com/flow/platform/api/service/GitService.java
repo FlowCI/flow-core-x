@@ -28,19 +28,6 @@ public interface GitService {
     // the folder in the flow workspace
     String SOURCE_FOLDER_NAME = "source";
 
-    class Env {
-
-        public final static String FLOW_GIT_SOURCE = "FLOW_GIT_SOURCE";
-
-        public final static String FLOW_GIT_URL = "FLOW_GIT_URL";
-
-        public final static String FLOW_GIT_BRANCH = "FLOW_GIT_BRANCH";
-
-        public final static String FLOW_GIT_SSH_PRIVATE_KEY = "FLOW_GIT_SSH_PRIVATE_KEY";
-
-        public final static String FLOW_GIT_SSH_PUBLIC_KEY = "FLOW_GIT_SSH_PRIVATE_KEY";
-    }
-
     /**
      * Fetch file content from git repo in flow workspace
      */

@@ -17,7 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.response.ResponseError;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;

@@ -90,7 +90,7 @@ public class GitSshClient extends AbstractGitClient {
     }
 
     @Override
-    public File clone(Integer depth, Set<String> checkoutFiles) {
+    public File clone(String branch, Integer depth, Set<String> checkoutFiles) {
         checkGitUrl();
         File gitDir = getGitPath().toFile();
 
@@ -115,8 +115,7 @@ public class GitSshClient extends AbstractGitClient {
             }
         }
 
-        pull(depth);
-
+        pull(branch, depth);
         return gitDir;
     }
 
@@ -145,8 +144,8 @@ public class GitSshClient extends AbstractGitClient {
     }
 
     @Override
-    protected PullCommand pullCommand(Git git) {
-        return buildSshCommand(super.pullCommand(git));
+    protected PullCommand pullCommand(String branch, Git git) {
+        return buildSshCommand(super.pullCommand(branch, git));
     }
 
     private <T extends TransportCommand> T buildSshCommand(T command) {

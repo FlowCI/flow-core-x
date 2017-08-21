@@ -39,18 +39,20 @@ public interface GitClient {
      * Git clone from remote url with specific checkout files
      * Just pull latest if .git folder existed
      *
+     * @param branch branch to clone, can be set to null
      * @param depth git --depth param, can be set to null
      * @param checkoutFiles specific checkout file
      * @return .git folder path
      */
-    File clone(Integer depth, Set<String> checkoutFiles);
+    File clone(String branch, Integer depth, Set<String> checkoutFiles);
 
     /**
      * Git pull with depth
      *
+     * @param branch branch to pull, can be set to null
      * @param depth git pull depth, can be set to null
      */
-    void pull(Integer depth);
+    void pull(String branch, Integer depth);
 
     /**
      * Load all branches from git

@@ -16,11 +16,10 @@
 
 package com.flow.platform.cc.context;
 
-import com.flow.platform.cc.util.SpringContextUtil;
+import com.flow.platform.core.context.AbstractContextCloseHandler;
+import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -30,30 +29,22 @@ import org.springframework.stereotype.Component;
  * @author gy@fir.im
  */
 @Component
-public class ContextCloseHandler implements ApplicationListener<ContextClosedEvent> {
-
-    private final static Logger LOGGER = new Logger(ContextCloseHandler.class);
+public class ContextCloseHandler extends AbstractContextCloseHandler {
 
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
     @Autowired
-    private SpringContextUtil springContextUtil;
+    private SpringContext springContext;
 
     @Override
-    public void onApplicationEvent(ContextClosedEvent event) {
-        LOGGER.trace("Received app context closed event");
-
-        for (String eventClassName : springContextUtil.getBeanNameByType(ContextEvent.class)) {
-            ContextEvent eventClass = (ContextEvent) springContextUtil.getBean(eventClassName);
-            eventClass.stop();
-            LOGGER.trace("Stop context event : %s", eventClassName);
-        }
-
-        taskExecutor.setWaitForTasksToCompleteOnShutdown(true);
-        taskExecutor.setAwaitTerminationSeconds(60);
-
-        taskExecutor.shutdown();
-        LOGGER.trace("Async task shutdown");
+    public SpringContext getSpringContext() {
+        return springContext;
     }
+
+    @Override
+    public ThreadPoolTaskExecutor getTaskExecutor() {
+        return taskExecutor;
+    }
+
 }

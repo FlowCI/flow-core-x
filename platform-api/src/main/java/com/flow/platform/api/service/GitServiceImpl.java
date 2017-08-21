@@ -19,17 +19,16 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
-import com.flow.platform.exception.IllegalStatusException;
-import com.flow.platform.exception.UnsupportedException;
+import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.exception.UnsupportedException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.collect.Sets;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -74,13 +73,15 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public String clone(Flow flow, String filePath) {
+        String branch = flow.getEnv(GitEnvs.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(flow);
-        client.clone(null, Sets.newHashSet(filePath));
+        client.clone(branch, null, Sets.newHashSet(filePath));
         return fetch(flow, filePath);
     }
 
     /**
      * Init git client from flow env
+     *
      * - FLOW_GIT_SOURCE
      * - FLOW_GIT_URL
      * - FLOW_GIT_BRANCH
@@ -88,7 +89,7 @@ public class GitServiceImpl implements GitService {
      * - FLOW_GIT_SSH_PUBLIC_KEY
      */
     private GitClient gitClientInstance(Flow flow) {
-        GitSource source = GitSource.valueOf(flow.getEnvs().get(Env.FLOW_GIT_SOURCE));
+        GitSource source = GitSource.valueOf(flow.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Class<? extends GitClientBuilder> builderClass = clientBuilderType.get(source);
         if (builderClass == null) {
             throw new UnsupportedException(String.format("Git source %s not supported yet", source));
@@ -108,11 +109,17 @@ public class GitServiceImpl implements GitService {
         return client;
     }
 
+    /**
+     * Get git source code folder path of flow workspace
+     */
     private Path gitSourcePath(Flow flow) {
         Path flowWorkspace = flowDao.workspace(this.workspace, flow);
         return Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
     }
 
+    /**
+     * Get file content from source code folder of flow workspace
+     */
     private String getContent(Path path) {
         try {
             return com.google.common.io.Files.toString(path.toFile(), AppConfig.DEFAULT_CHARSET);

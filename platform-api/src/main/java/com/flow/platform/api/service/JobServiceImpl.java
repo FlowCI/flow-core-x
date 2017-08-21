@@ -16,13 +16,15 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.JobDao;
+import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
-import com.flow.platform.api.exception.HttpException;
-import com.flow.platform.api.exception.NotFoundException;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.core.exception.HttpException;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.HttpUtil;
@@ -36,7 +38,8 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
@@ -44,6 +47,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -68,6 +72,9 @@ public class JobServiceImpl implements JobService {
     private JobNodeService jobNodeService;
 
     @Autowired
+    private BlockingQueue<CmdQueueItem> cmdBaseBlockingQueue;
+
+    @Autowired
     private JobDao jobDao;
 
     @Autowired
@@ -86,11 +93,15 @@ public class JobServiceImpl implements JobService {
     private String queueUrl;
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Job createJob(String path) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
+        }
+
+        String status = root.getEnv(FlowEnvs.FLOW_STATUS);
+        if (Strings.isNullOrEmpty(status) || !status.equals(FlowEnvs.Value.FLOW_STATUS_READY.value())) {
+            throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
         String yml = nodeService.getYmlContent(root.getPath());
@@ -103,11 +114,8 @@ public class JobServiceImpl implements JobService {
         job.setStatus(NodeStatus.PENDING);
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
-        job.setCreatedAt(ZonedDateTime.now());
-        job.setUpdatedAt(ZonedDateTime.now());
-
-        //update number
         job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
+        job.setOutputs(root.getEnvs());
 
         //save job
         jobDao.save(job);
@@ -125,13 +133,27 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void callback(String id, CmdBase cmdBase) {
+    public void callback(CmdQueueItem cmdQueueItem) {
+        String id = cmdQueueItem.getIdentifier();
+        CmdBase cmdBase = cmdQueueItem.getCmdBase();
         Job job;
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
 
+            // TODO: refactor to find(id, timeout)
             job = find(new BigInteger(id));
             if (job == null) {
+                if (cmdQueueItem.getRetryTimes() < RETRY_TIMEs) {
+                    try {
+                        Thread.sleep(1000);
+                        LOGGER.traceMarker("callback", String
+                            .format("job not found, retry times - %s jobId - %s", cmdQueueItem.getRetryTimes(), id));
+                    } catch (Throwable throwable) {
+                    }
+
+                    cmdQueueItem.plus();
+                    enterQueue(cmdQueueItem);
+                    return;
+                }
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
                 throw new NotFoundException("job not found");
             }
@@ -144,25 +166,6 @@ public class JobServiceImpl implements JobService {
             LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
             throw new NotFoundException("not found cmdType");
         }
-    }
-
-    /**
-     * the reason of transaction to retry 5 times
-     */
-    public Job retryFindJob(BigInteger id) {
-        Job job = null;
-        for (Integer i = 0; i < RETRY_TIMEs; i++) {
-            job = find(id);
-            if (job != null) {
-                break;
-            }
-            try {
-                Thread.sleep(5000);
-            } catch (Throwable throwable) {
-            }
-            LOGGER.traceMarker("retryFindJob", String.format("retry times %s", i));
-        }
-        return job;
     }
 
     /**
@@ -232,7 +235,9 @@ public class JobServiceImpl implements JobService {
     }
 
     /**
-     * create session
+     * Send create session cmd to create session
+     *
+     * @throws IllegalStatusException when cannot get Cmd obj from cc
      */
     private void createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
@@ -241,6 +246,9 @@ public class JobServiceImpl implements JobService {
 
         // create session
         Cmd cmd = sendToQueue(cmdInfo);
+        if (cmd == null) {
+            throw new IllegalStatusException("Unable to create session since cmd return null");
+        }
 
         //enter queue
         job.setStatus(NodeStatus.ENQUEUE);
@@ -343,7 +351,6 @@ public class JobServiceImpl implements JobService {
         if (node instanceof Step) {
             //merge step outputs in flow outputs
             EnvUtil.merge(nodeResult.getOutputs(), job.getOutputs(), false);
-
             job.setDuration(job.getDuration() + nodeResult.getDuration());
             jobDao.update(job);
             return;
@@ -380,7 +387,9 @@ public class JobServiceImpl implements JobService {
         if (cmdResult != null) {
             nodeResult.setExitCode(cmdResult.getExitValue());
             if (NodeUtil.canRun(node)) {
-                nodeResult.setDuration(cmdResult.getDuration());
+                if (cmdResult.getDuration() != null) {
+                    nodeResult.setDuration(cmdResult.getDuration());
+                }
                 nodeResult.setOutputs(cmdResult.getOutput());
                 nodeResult.setLogPaths(((Cmd) cmdBase).getLogPaths());
                 nodeResult.setStartTime(cmdResult.getStartTime());
@@ -505,5 +514,14 @@ public class JobServiceImpl implements JobService {
     @Override
     public Job find(String flowName, Integer number) {
         return jobDao.get(flowName, number);
+    }
+
+    @Override
+    public void enterQueue(CmdQueueItem cmdQueueItem) {
+        try {
+            cmdBaseBlockingQueue.put(cmdQueueItem);
+        } catch (Throwable throwable) {
+            LOGGER.warnMarker("enterQueue", String.format("exception - %s", throwable));
+        }
     }
 }

@@ -16,13 +16,17 @@
 
 package com.flow.platform.api.test.service;
 
+import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.FlowEnvs.Value;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
@@ -39,10 +43,17 @@ import org.junit.Test;
  */
 public class JobServiceTest extends TestBase {
 
+    @Test(expected = IllegalStatusException.class)
+    public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
+        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        jobService.createJob(rootForFlow.getPath());
+    }
+
     @Test
     public void should_create_node_success() throws IOException {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Assert.assertNotNull(job.getId());
@@ -54,7 +65,7 @@ public class JobServiceTest extends TestBase {
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId("11111111");
         cmd.setStatus(CmdStatus.SENT);
-        jobService.callback(job.getId().toString(), cmd);
+        jobService.callback(new CmdQueueItem(job.getId().toString(), cmd));
 
         job = jobService.find(job.getId());
         Assert.assertEquals("11111111", job.getSessionId());
@@ -66,7 +77,7 @@ public class JobServiceTest extends TestBase {
         map.put("path", step1.getPath());
         map.put("jobId", job.getId().toString());
 
-        jobService.callback(Jsonable.GSON_CONFIG.toJson(map), cmd);
+        jobService.callback(new CmdQueueItem(Jsonable.GSON_CONFIG.toJson(map), cmd));
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, job.getStatus());
         job = jobService.find(job.getId());
@@ -82,11 +93,11 @@ public class JobServiceTest extends TestBase {
 
         map.put("path", step2.getPath());
 
-        jobService.callback(Jsonable.GSON_CONFIG.toJson(map), cmd);
+        jobService.callback(new CmdQueueItem(Jsonable.GSON_CONFIG.toJson(map), cmd));
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, (jobNodeResultService.find(step2.getPath(), job.getId())).getStatus());
         Assert.assertEquals(NodeStatus.FAILURE, job.getStatus());
-        jobFlow =  jobNodeResultService.find(flow.getPath(), job.getId());
+        jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
 
     }

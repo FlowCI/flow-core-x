@@ -22,18 +22,22 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -78,7 +82,7 @@ public class NodeServiceImpl implements NodeService {
     private String domain;
 
     @Override
-    public Node create(final String path, final String yml) {
+    public Node createOrUpdate(final String path, final String yml) {
         final Node rootFromYml = verifyYml(path, yml);
         final Flow flow = findFlow(rootFromYml.getPath());
 
@@ -177,6 +181,11 @@ public class NodeServiceImpl implements NodeService {
     public void loadYmlContent(final String path, final Consumer<YmlStorage> callback) {
         final String rootPath = PathUtil.rootPath(path);
         final Flow flow = findFlow(rootPath);
+        final Set<String> requiredEnvSet = Sets.newHashSet(GitEnvs.FLOW_GIT_URL.name(), GitEnvs.FLOW_GIT_SOURCE.name());
+
+        if(!EnvUtil.hasRequired(flow, requiredEnvSet)) {
+            throw new IllegalParameterException("Missing required envs");
+        }
 
         // async to load yml file
         taskExecutor.execute(() -> {
@@ -201,6 +210,8 @@ public class NodeServiceImpl implements NodeService {
             throw new IllegalParameterException("Flow name already existed");
         }
 
+        flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
+        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.Value.FLOW_STATUS_PENDING);
         flow = flowDao.save(flow);
 
         return flow;
@@ -209,7 +220,7 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public void setFlowEnv(String path, Map<String, String> envs) {
         Flow flow = findFlow(path);
-        flow.setEnvs(envs);
+        EnvUtil.merge(envs, flow.getEnvs(), true);
 
         // sync latest env into flow table
         flowDao.update(flow);

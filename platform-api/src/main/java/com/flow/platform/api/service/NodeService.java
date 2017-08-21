@@ -29,14 +29,14 @@ import java.util.function.Consumer;
 public interface NodeService {
 
     /**
-     * Create from yml config file content
+     * Create or update from yml config file content
      * and persistent flow node and yml content
      *
      * @param path any path
      * @param yml raw yml
      * @return root node
      */
-    Node create(String path, String yml);
+    Node createOrUpdate(String path, String yml);
 
     /**
      * Find node by node path from yml
@@ -80,11 +80,14 @@ public interface NodeService {
 
     /**
      * Create flow without any children
+     *
+     * - FLOW_STATUS will be set to PENDING
+     * - FLOW_GIT_WEBHOOK will be created in env
      */
     Flow createEmptyFlow(String flowName);
 
     /**
-     * Set flow node evn and sync to yml
+     * Merge new env to flow node evn and sync to yml
      */
     void setFlowEnv(String path, Map<String, String> envs);
 

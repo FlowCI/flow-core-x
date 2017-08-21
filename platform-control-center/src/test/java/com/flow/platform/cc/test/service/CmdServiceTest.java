@@ -36,7 +36,7 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.collect.Sets;
 import java.io.InputStream;
 import java.io.OutputStream;

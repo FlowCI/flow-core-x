@@ -17,7 +17,7 @@
 package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import org.junit.Assert;
 import org.junit.Test;
 

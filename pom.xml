@@ -14,7 +14,6 @@
     <module>platform-agent</module>
     <module>platform-cmd-runner</module>
     <module>platform-control-center</module>
-    <module>platform-exception</module>
     <module>platform-cloud</module>
     <module>platform-api</module>
     <module>platform-util</module>
@@ -50,6 +49,8 @@
     <org.eclipse.jgit.version>4.8.0.201706111038-r</org.eclipse.jgit.version>
     <jsch.version>0.1.54</jsch.version>
     <hibernate-validator.version>5.4.1.Final</hibernate-validator.version>
+    <javax.mail-api.version>1.5.5</javax.mail-api.version>
+    <javax.mail.version>1.5.5</javax.mail.version>
   </properties>
 
   <build>
@@ -86,6 +87,18 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>javax.mail</groupId>
+        <artifactId>javax.mail-api</artifactId>
+        <version>${javax.mail-api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.mail</groupId>
+        <artifactId>javax.mail</artifactId>
+        <version>${javax.mail.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-webmvc</artifactId>

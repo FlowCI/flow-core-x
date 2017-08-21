@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.util;
 
-import com.flow.platform.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 

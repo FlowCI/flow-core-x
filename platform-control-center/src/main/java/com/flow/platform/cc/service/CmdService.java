@@ -19,8 +19,8 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.*;
-import com.flow.platform.exception.IllegalParameterException;
-import com.flow.platform.exception.IllegalStatusException;
+import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

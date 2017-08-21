@@ -84,9 +84,9 @@ public class LogEventHandler implements LogListener {
         // init rabbit queue
         try {
             initWebSocketSession(config.getWebSocketUrl(), 10);
-        } catch (Throwable e) {
+        } catch (Throwable warn) {
             wsSession = null;
-            LOGGER.error("Fail to web socket: " + config.getWebSocketUrl(), e);
+            LOGGER.warn("Fail to web socket: " + config.getWebSocketUrl() + ": " + warn.getMessage());
         }
     }
 
@@ -170,14 +170,13 @@ public class LogEventHandler implements LogListener {
                 if (reportManager.cmdLogUploadSync(cmd.getId(), target) && Config.isDeleteLog()) {
                     Files.deleteIfExists(target);
                 }
-            } catch (IOException e) {
-                LOGGER.error("Exception while move update log name from temp", e);
+            } catch (IOException warn) {
+                LOGGER.warn("Exception while move update log name from temp: %s", warn.getMessage());
             }
         }
     }
 
-    private boolean closeZipAndFileStream(final ZipOutputStream zipStream,
-                                          final FileOutputStream fileStream) {
+    private boolean closeZipAndFileStream(final ZipOutputStream zipStream, final FileOutputStream fileStream) {
         try {
             if (zipStream != null) {
                 zipStream.flush();

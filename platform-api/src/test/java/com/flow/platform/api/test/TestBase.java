@@ -23,10 +23,12 @@ import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
+import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.service.JobNodeResultService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
@@ -36,7 +38,9 @@ import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -50,6 +54,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 
@@ -87,6 +92,9 @@ public abstract class TestBase {
     private CredentialDao credentialDao;
 
 
+    protected MessageSettingDao messageDao;
+
+    @Autowired
     protected NodeService nodeService;
 
     @Autowired
@@ -97,6 +105,9 @@ public abstract class TestBase {
 
     @Autowired
     private WebApplicationContext webAppContext;
+
+    @Autowired
+    private Path workspace;
 
     protected MockMvc mockMvc;
 
@@ -115,12 +126,19 @@ public abstract class TestBase {
     public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
         Flow emptyFlow = nodeService.createEmptyFlow(flowName);
         String yml = getResourceContent(ymlResourceName);
-        return nodeService.create(emptyFlow.getPath(), yml);
+        return nodeService.createOrUpdate(emptyFlow.getPath(), yml);
+    }
+
+    public void setFlowToReady(Node flowNode) {
+        Map<String, String> envs = new HashMap<>();
+        envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.Value.FLOW_STATUS_READY.value());
+        nodeService.setFlowEnv(flowNode.getPath(), envs);
     }
 
     public void stubDemo() {
         Cmd cmdRes = new Cmd();
         cmdRes.setId(UUID.randomUUID().toString());
+
         stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
                 .withBody(cmdRes.toJson())));
@@ -137,6 +155,7 @@ public abstract class TestBase {
         jobYmlStorageDao.deleteAll();
         nodeResultDao.deleteAll();
         credentialDao.deleteAll();
+        messageDao.deleteAll();
     }
 
     @Rule
@@ -145,6 +164,7 @@ public abstract class TestBase {
     @After
     public void afterEach() {
         cleanDatabase();
+        FileSystemUtils.deleteRecursively(workspace.toFile());
     }
 
     @AfterClass
