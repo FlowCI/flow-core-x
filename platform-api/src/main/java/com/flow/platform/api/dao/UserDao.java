@@ -41,4 +41,13 @@ public interface UserDao extends BaseDao<String, User> {
      * @return
      */
     Boolean passwordOfUserNameIsTrue(String userName, String password);
+
+    /**
+     * Switch the role_id of the user
+     *
+     * @param user
+     * @param roleId
+     * @return
+     */
+    Boolean switchUserRoleIdTo(User user, String roleId);
 }

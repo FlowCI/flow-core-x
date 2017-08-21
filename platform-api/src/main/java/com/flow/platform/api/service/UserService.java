@@ -42,6 +42,15 @@ public interface UserService {
     String deleteUser(User user);
 
     /**
+     * Update role_id of user
+     *
+     * @param user
+     * @param switchTo
+     * @return
+     */
+    String switchRole(User user, String switchTo);
+
+    /**
      * Check the format of the email
      *
      * @param email

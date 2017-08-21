@@ -72,4 +72,17 @@ public class UserDaoImpl extends AbstractBaseDao<String, User> implements UserDa
             }
         });
     }
+
+    @Override
+    public Boolean switchUserRoleIdTo(User user, String roleId) {
+        return execute((Session session) -> {
+            String update = String.format("update User set role_id='%s' where email='%s'", roleId, user.getEmail());
+            int affectedRows = session.createQuery(update).executeUpdate();
+            if(affectedRows == 0){
+                return false;
+            }else{
+                return true;
+            }
+        });
+    }
 }
