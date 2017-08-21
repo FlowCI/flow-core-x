@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
@@ -92,11 +93,15 @@ public class JobServiceImpl implements JobService {
     private String queueUrl;
 
     @Override
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Job createJob(String path) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
+        }
+
+        String status = root.getEnv(FlowEnvs.FLOW_STATUS);
+        if (Strings.isNullOrEmpty(status) || !status.equals(FlowEnvs.Value.FLOW_STATUS_READY.value())) {
+            throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
         String yml = nodeService.getYmlContent(root.getPath());
@@ -128,13 +133,13 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void callback(CmdQueueItem cmdQueueItem) {
         String id = cmdQueueItem.getIdentifier();
         CmdBase cmdBase = cmdQueueItem.getCmdBase();
         Job job;
         if (cmdBase.getType() == CmdType.CREATE_SESSION) {
 
+            // TODO: refactor to find(id, timeout)
             job = find(new BigInteger(id));
             if (job == null) {
                 if (cmdQueueItem.getRetryTimes() < RETRY_TIMEs) {
@@ -161,25 +166,6 @@ public class JobServiceImpl implements JobService {
             LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
             throw new NotFoundException("not found cmdType");
         }
-    }
-
-    /**
-     * the reason of transaction to retry 5 times
-     */
-    public Job retryFindJob(BigInteger id) {
-        Job job = null;
-        for (Integer i = 0; i < RETRY_TIMEs; i++) {
-            job = find(id);
-            if (job != null) {
-                break;
-            }
-            try {
-                Thread.sleep(5000);
-            } catch (Throwable throwable) {
-            }
-            LOGGER.traceMarker("retryFindJob", String.format("retry times %s", i));
-        }
-        return job;
     }
 
     /**
@@ -535,7 +521,7 @@ public class JobServiceImpl implements JobService {
         try {
             cmdBaseBlockingQueue.put(cmdQueueItem);
         } catch (Throwable throwable) {
-            LOGGER.traceMarker("enterQueue", String.format("exception - %s", throwable));
+            LOGGER.warnMarker("enterQueue", String.format("exception - %s", throwable));
         }
     }
 }

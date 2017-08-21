@@ -18,8 +18,8 @@ package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.service.GitService;
-import com.flow.platform.api.service.GitService.Env;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
 import java.nio.file.Path;
@@ -43,9 +43,9 @@ public class GitServiceTest extends TestBase {
     @Test
     public void should_clone_git_file_with_ssh_pk() throws Throwable {
         Flow dummyFlow = new Flow("/flow-test", "flow-test");
-        dummyFlow.getEnvs().put(Env.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
-        dummyFlow.getEnvs().put(Env.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
-        dummyFlow.getEnvs().put(Env.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
+        dummyFlow.putEnv(GitEnvs.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
+        dummyFlow.putEnv(GitEnvs.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
+        dummyFlow.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
 
         String content = gitService.clone(dummyFlow, AppConfig.DEFAULT_YML_FILE);
         Assert.assertNotNull(content);

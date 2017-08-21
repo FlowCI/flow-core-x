@@ -30,8 +30,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ContextInitHandler extends AbstractContextInitHandler {
 
-    private final static Logger LOGGER = new Logger(ContextInitHandler.class);
-
     @Autowired
     private SpringContext springContext;
 

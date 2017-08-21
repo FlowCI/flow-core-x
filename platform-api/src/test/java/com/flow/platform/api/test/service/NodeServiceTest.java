@@ -20,6 +20,8 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -105,6 +107,10 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals(emptyFlow, loaded);
         Assert.assertEquals(0, loaded.getChildren().size());
 
+        String webhook = String.format("%s/hooks/git/%s", domain, loaded.getName());
+        Assert.assertEquals(FlowEnvs.Value.FLOW_STATUS_PENDING.value(), loaded.getEnv(FlowEnvs.FLOW_STATUS));
+        Assert.assertEquals(webhook, loaded.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
+
         // should with empty yml
         Assert.assertNull(ymlStorageDao.get(loaded.getPath()));
 
@@ -131,22 +137,28 @@ public class NodeServiceTest extends TestBase {
         nodeService.setFlowEnv(root.getPath(), envs);
 
         // then:
+        String webhook = String.format("%s/hooks/git/%s", domain, emptyFlow.getName());
+
         Node loaded = nodeService.find("/flow1");
-        Assert.assertEquals(5, loaded.getEnvs().size());
-        Assert.assertEquals("hello", loaded.getEnvs().get("FLOW_NEW_1"));
-        Assert.assertEquals("world", loaded.getEnvs().get("FLOW_NEW_2"));
-        Assert.assertEquals("done", loaded.getEnvs().get("FLOW_NEW_3"));
-        Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
-        Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
+        Assert.assertEquals(7, loaded.getEnvs().size());
+        Assert.assertEquals("hello", loaded.getEnv("FLOW_NEW_1"));
+        Assert.assertEquals("world", loaded.getEnv("FLOW_NEW_2"));
+        Assert.assertEquals("done", loaded.getEnv("FLOW_NEW_3"));
+        Assert.assertEquals("echo hello", loaded.getEnv("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo version", loaded.getEnv("FLOW_VERSION"));
+        Assert.assertEquals(webhook, loaded.getEnv("FLOW_GIT_WEBHOOK"));
+        Assert.assertEquals("PENDING", loaded.getEnv("FLOW_STATUS"));
 
         // check env been sync with yml
         Flow flow = flowDao.get("/flow1");
-        Assert.assertEquals(5, flow.getEnvs().size());
-        Assert.assertEquals("hello", flow.getEnvs().get("FLOW_NEW_1"));
-        Assert.assertEquals("world", flow.getEnvs().get("FLOW_NEW_2"));
-        Assert.assertEquals("done", flow.getEnvs().get("FLOW_NEW_3"));
-        Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
-        Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
+        Assert.assertEquals(7, flow.getEnvs().size());
+        Assert.assertEquals("hello", flow.getEnv("FLOW_NEW_1"));
+        Assert.assertEquals("world", flow.getEnv("FLOW_NEW_2"));
+        Assert.assertEquals("done", flow.getEnv("FLOW_NEW_3"));
+        Assert.assertEquals("echo hello", flow.getEnv("FLOW_WORKSPACE"));
+        Assert.assertEquals("echo version", flow.getEnv("FLOW_VERSION"));
+        Assert.assertEquals(webhook, flow.getEnv("FLOW_GIT_WEBHOOK"));
+        Assert.assertEquals("PENDING", flow.getEnv("FLOW_STATUS"));
     }
 
     @Test(expected = IllegalParameterException.class)

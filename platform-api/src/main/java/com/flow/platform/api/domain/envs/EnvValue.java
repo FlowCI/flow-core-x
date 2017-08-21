@@ -14,31 +14,12 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
-
-import com.flow.platform.api.domain.Flow;
+package com.flow.platform.api.domain.envs;
 
 /**
- * To fetch related git repo info
- *
  * @author yang
  */
-public interface GitService {
+public interface EnvValue {
 
-    // the folder in the flow workspace
-    String SOURCE_FOLDER_NAME = "source";
-
-    /**
-     * Fetch file content from git repo in flow workspace
-     */
-    String fetch(Flow flow, String filePath);
-
-    /**
-     * Fetch file content from git repo by git clone
-     *
-     * @param flow flow instance which includes git repo info
-     * @param filePath target file path
-     * @return file content
-     */
-    String clone(Flow flow, String filePath);
+    String value();
 }

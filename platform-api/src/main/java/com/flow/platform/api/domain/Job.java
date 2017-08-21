@@ -24,7 +24,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Job extends Jsonable {
+public class Job extends EnvObject {
 
     @Expose
     private BigInteger id;
@@ -43,8 +43,6 @@ public class Job extends Jsonable {
 
     @Expose
     private NodeStatus status;
-
-    private Map<String, String> envs = new HashMap<>();
 
     @Expose
     @JsonAdapter(EnvAdaptor.class)
@@ -148,14 +146,6 @@ public class Job extends Jsonable {
 
     public void setExitCode(Integer exitCode) {
         this.exitCode = exitCode;
-    }
-
-    public Map<String, String> getEnvs() {
-        return envs;
-    }
-
-    public void setEnvs(Map<String, String> envs) {
-        this.envs = envs;
     }
 
     public String getNodePath() {

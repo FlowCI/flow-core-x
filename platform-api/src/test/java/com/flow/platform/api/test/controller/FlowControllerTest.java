@@ -21,10 +21,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,7 +47,12 @@ public class FlowControllerTest extends TestBase {
     public void initToCreateEmptyFlow() throws Throwable {
         MockHttpServletRequestBuilder request = post("/flows/" + flowName)
             .contentType(MediaType.APPLICATION_JSON);
-        mockMvc.perform(request).andExpect(status().isOk());
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        Node flowNode = Flow.parse(result.getResponse().getContentAsString(), Flow.class);
+        Assert.assertNotNull(flowNode);
+        Assert.assertNotNull(flowNode.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
+        Assert.assertEquals("PENDING", flowNode.getEnv(FlowEnvs.FLOW_STATUS));
     }
 
     @Test
@@ -93,6 +101,19 @@ public class FlowControllerTest extends TestBase {
         String response = mvcResult.getResponse().getContentAsString();
         Assert.assertNotNull(response);
         Assert.assertEquals(false, Boolean.parseBoolean(response));
+    }
+
+    @Test
+    public void should_response_4xx_if_env_not_defined_for_load_file_content() throws Throwable {
+        // when: send request to load content
+        MvcResult result = this.mockMvc.perform(get("/flows/" + flowName + "/yml/load"))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+        // then:
+        String response = result.getResponse().getContentAsString();
+        ResponseError error = ResponseError.parse(response, ResponseError.class);
+        Assert.assertTrue(error.getMessage().contains("Missing required envs"));
     }
 
     @Test

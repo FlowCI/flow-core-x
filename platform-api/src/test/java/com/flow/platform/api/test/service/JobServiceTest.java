@@ -23,7 +23,10 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.FlowEnvs.Value;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
@@ -40,10 +43,17 @@ import org.junit.Test;
  */
 public class JobServiceTest extends TestBase {
 
+    @Test(expected = IllegalStatusException.class)
+    public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
+        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        jobService.createJob(rootForFlow.getPath());
+    }
+
     @Test
     public void should_create_node_success() throws IOException {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Assert.assertNotNull(job.getId());

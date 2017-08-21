@@ -18,8 +18,8 @@ package com.flow.platform.api.test.integration;
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.service.GitService;
-import com.flow.platform.api.service.GitService.Env;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
@@ -33,6 +33,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.FileSystemUtils;
 
 /**
@@ -48,6 +49,9 @@ public class CreateFlowTest extends TestBase {
     @Autowired
     private Path workspace;
 
+    @Value(value = "${domain}")
+    private String domain;
+
     @Test
     public void should_create_flow_and_init_yml() throws Throwable {
         // create empty flow
@@ -56,15 +60,15 @@ public class CreateFlowTest extends TestBase {
 
         // setup git related env
         Map<String, String> env = new HashMap<>();
-        env.put(GitService.Env.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
-        env.put(GitService.Env.FLOW_GIT_URL, GIT_URL);
-        env.put(Env.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
+        env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
+        env.put(GitEnvs.FLOW_GIT_URL.name(), GIT_URL);
+        env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
         nodeService.setFlowEnv(flow.getPath(), env);
 
         final Flow loaded = (Flow) nodeService.find(flow.getPath());
         Assert.assertNotNull(loaded);
-        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), loaded.getEnvs().get(GitService.Env.FLOW_GIT_SOURCE));
-        Assert.assertEquals(GIT_URL, loaded.getEnvs().get(GitService.Env.FLOW_GIT_URL));
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), loaded.getEnv(GitEnvs.FLOW_GIT_SOURCE));
+        Assert.assertEquals(GIT_URL, loaded.getEnv(GitEnvs.FLOW_GIT_URL));
 
         // async to clone and return .flow.yml content
         final CountDownLatch latch = new CountDownLatch(1);
