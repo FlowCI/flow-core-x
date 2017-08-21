@@ -204,7 +204,67 @@
              }
            ]
     ```
-    
+
+### POST emailSetting
+    ```
+        Method: Post
+        Route: /message/email/settings
+        Param:
+          - smtpUrl
+          - smtpPort
+          - sender
+          - username
+          - password
+          - isAuthenticated
+        Response:
+             {
+               smtpUrl: "xxxx",
+               smtpPort: "xxxx",
+               "sender": "flow6",
+               "username": "BUSY",
+               "password": xxxx,
+               "isAuthenticated": false
+             }
+    ```
+
+### UPDATE emailSetting
+    ```
+        Method: Patch
+        Route: /message/email/settings
+        Param:
+          - smtpUrl
+          - smtpPort
+          - sender
+          - username
+          - password
+          - isAuthenticated
+        Response:
+             {
+               smtpUrl: "xxxx",
+               smtpPort: "xxxx",
+               "sender": "flow6",
+               "username": "BUSY",
+               "password": xxxx,
+               "isAuthenticated": false
+             }
+    ```    
+
+### auth emailSetting
+    ```
+        Method: Post
+        Route: /message/email/settings/auth
+        Param:
+          - smtpUrl
+          - smtpPort
+          - sender
+          - username
+          - password
+          - isAuthenticated
+        Response:
+             {
+               auth: true
+             }
+    ```      
     
 ## Environments Description
 
