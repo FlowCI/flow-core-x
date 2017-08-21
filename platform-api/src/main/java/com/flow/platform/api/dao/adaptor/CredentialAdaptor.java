@@ -25,7 +25,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 
 /**
- * @author yh@firim
+ * @author lhl
  */
 public class CredentialAdaptor extends BaseAdaptor {
 
