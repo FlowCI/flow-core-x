@@ -19,6 +19,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.response.FlowWithDeployKey;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.util.PathUtil;
 import java.util.List;
@@ -45,6 +46,11 @@ public class FlowController {
     @GetMapping
     public List<Flow> index() {
         return nodeService.listFlows();
+    }
+
+    @GetMapping("/details")
+    public List<FlowWithDeployKey> indexDetailFlows() {
+        return nodeService.listDetailFlows();
     }
 
     @GetMapping(path = "/{flowName}")

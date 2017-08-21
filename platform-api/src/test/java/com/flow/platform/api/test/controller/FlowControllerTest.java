@@ -26,9 +26,11 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.response.FlowWithDeployKey;
 import com.flow.platform.api.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.domain.Jsonable;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -141,5 +143,16 @@ public class FlowControllerTest extends TestBase {
 
         // then:
         Assert.assertEquals("", content);
+    }
+
+    @Test
+    public void should_return_detail_flows_success() throws Throwable {
+        MockHttpServletRequestBuilder request = get("/flows/details");
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        String content = result.getResponse().getContentAsString();
+
+        FlowWithDeployKey[] flowWithDeployKeys = Jsonable.GSON_CONFIG.fromJson(content, FlowWithDeployKey[].class);
+        //then
+        Assert.assertEquals(1, flowWithDeployKeys.length);
     }
 }
