@@ -34,6 +34,14 @@ public interface UserService {
     String register(User user);
 
     /**
+     * Delete a user
+     *
+     * @param user
+     * @return
+     */
+    String deleteUser(User user);
+
+    /**
      * Check the format of the email
      *
      * @param email
@@ -90,12 +98,4 @@ public interface UserService {
      * @return
      */
     Boolean passwordOfUserNameIsTrue(String userName, String password);
-
-    /**
-     * Create a new user info
-     *
-     * @param user
-     * @return
-     */
-    Boolean create(User user);
 }

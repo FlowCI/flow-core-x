@@ -87,10 +87,25 @@ public class UserServiceImpl implements UserService {
         //Insert the user info into the database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8");
         user.setPassword(passwordForMD5);
-        if (create(user)) {
+        try {
+            userDao.save(user);
             return "{ \"register_status\" : \"success\" }";
-        } else {
-            return "{ \"register_status\" : \"database_insert_exception\" }";
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String deleteUser(User user) {
+        try {
+            if (userDao.emailIsExist(user.getEmail())) {
+                userDao.delete(user);
+                return "{ \"delete_status\" : \"success\" }";
+            } else {
+                return "{ \"delete_status\" : \"user_is_not_exist\" }";
+            }
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -145,15 +160,5 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean passwordOfUserNameIsTrue(String userName, String password) {
         return userDao.passwordOfUserNameIsTrue(userName, password);
-    }
-
-    @Override
-    public Boolean create(User user) {
-        try {
-            userDao.save(user);
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }

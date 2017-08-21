@@ -2,7 +2,6 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.service.UserService;
-import com.flow.platform.api.util.StringEncodeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +18,7 @@ public class UserController {
 
     @GetMapping
     public String index() {
-        return "Hello!";
+        return "Hello, please login!";
     }
 
     @PostMapping("/login")
@@ -37,5 +36,15 @@ public class UserController {
     @PostMapping("/register")
     public String register(@RequestBody User user) {
         return userService.register(user);
+    }
+
+    @PostMapping("delete_user")
+    public String deleteUser(@RequestBody User[] users) {
+        String msg = "[";
+        for (User user : users) {
+            msg += userService.deleteUser(user) + ",";
+        }
+        msg = msg.substring(0, msg.length() - 1) + "]";
+        return msg;
     }
 }
