@@ -17,6 +17,7 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.domain.CredentialType;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
@@ -66,6 +67,13 @@ public class CredentialServiceImpl implements CredentialService {
     public List<Credential> listCredentials() {
         return credentialDao.list();
     }
+
+    @Override
+    public List<Credential> listTypes(String credentialType) {
+        CredentialType credentialType1 = CredentialType.valueOf(credentialType);
+        return credentialDao.list(credentialType1);
+    }
+
 
     @Override
     public Map<String, String> getKeyMap() {

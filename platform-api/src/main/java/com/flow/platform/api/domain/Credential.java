@@ -15,24 +15,22 @@
  */
 package com.flow.platform.api.domain;
 
-import com.flow.platform.api.domain.adaptor.ZonedDateTimeAdaptor;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.JsonAdapter;
 import java.time.ZonedDateTime;
 
 /**
  * @author lhl
  */
-public class Credential extends Jsonable {
+public abstract class Credential extends Jsonable {
 
     @Expose
     private String name;
 
     @Expose
-    private String publicKey;
-
-    private String privateKey;
+    protected String publicKey;
+    @Expose
+    protected String privateKey;
 
     @Expose
     private CredentialType credentialType;
@@ -47,11 +45,9 @@ public class Credential extends Jsonable {
     private byte fileContent[];
 
     @Expose
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime createdAt;
 
     @Expose
-    @JsonAdapter(ZonedDateTimeAdaptor.class)
     private ZonedDateTime updatedAt;
 
     public Credential(String name) {

@@ -15,10 +15,11 @@
  */
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.domain.CredentialType;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.util.Logger;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -62,13 +64,18 @@ public class CredentialController {
         return credentialService.delete(name);
     }
 
-    @PostMapping(path = "/update_credential")
+    @PostMapping(path = "/{name}/update")
     public Credential reportStatus(@RequestBody Credential credential) {
         return credentialService.update(credential);
     }
 
-    @GetMapping(path = "/get_keys")
+    @GetMapping(path = "/ssh/keys")
     public Map<String, String> getKeys() {
         return credentialService.getKeyMap();
+    }
+
+    @PostMapping(path = "/credentialTypeList")
+    public Collection<Credential> credentialTypeList(@RequestParam String credentialType) {
+        return credentialService.listTypes(credentialType);
     }
 }

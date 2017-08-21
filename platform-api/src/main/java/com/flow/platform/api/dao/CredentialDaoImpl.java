@@ -16,10 +16,15 @@
 package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Credential;
-
+import com.flow.platform.api.domain.CredentialType;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
-
 
 
 /**
@@ -39,6 +44,16 @@ public class CredentialDaoImpl extends AbstractBaseDao<String, Credential> imple
         return "name";
     }
 
-
+    @Override
+    public List<Credential> list(CredentialType... types) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Credential> select = builder.createQuery(Credential.class);
+            Root<Credential> credentialRoot = select.from(Credential.class);
+            Predicate condition = credentialRoot.get("credentialType").in(types);
+            select.where(condition);
+            return session.createQuery(select).list();
+        });
+    }
 }
 

@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
+package com.flow.platform.api.domain;
 
-import com.flow.platform.api.domain.Credential;
-import com.flow.platform.api.domain.CredentialType;
-import com.flow.platform.core.dao.BaseDao;
-import java.util.List;
+import com.google.gson.annotations.Expose;
 
 /**
  * @author lhl
  */
-public interface CredentialDao extends BaseDao<String, Credential> {
-    List<Credential> list(CredentialType... types);
+public class CredentialUserName extends Credential{
+
+    public CredentialUserName(String name) {
+        super(name);
+    }
+
+    public CredentialUserName() {
+    }
+
 
 }
