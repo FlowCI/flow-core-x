@@ -33,6 +33,7 @@ import com.flow.platform.api.service.JobNodeResultService;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
 import java.io.File;
@@ -143,6 +144,14 @@ public abstract class TestBase {
         stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
             .willReturn(aResponse()
                 .withBody(cmdRes.toJson())));
+
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/stop/" + cmdRes.getId()))
+            .willReturn(aResponse()
+                .withBody(cmdRes.toJson())));
+
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/agent/shutdown"))
+            .willReturn(aResponse()
+                .withBody(Jsonable.GSON_CONFIG.toJson(true))));
     }
 
     private void cleanDatabase() {
