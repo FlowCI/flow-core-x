@@ -59,7 +59,9 @@ public class GsonHttpExposeConverter extends GsonHttpMessageConverter {
         Charset charset = getCharset(outputMessage.getHeaders());
         OutputStreamWriter writer = new OutputStreamWriter(outputMessage.getBody(), charset);
         try {
-            if (type != null) {
+            if (type == Object.class) {
+                gsonForObjectToJson.toJson(o, writer);
+            } else if (type != null) {
                 gsonForObjectToJson.toJson(o, type, writer);
             } else {
                 gsonForObjectToJson.toJson(o, writer);
