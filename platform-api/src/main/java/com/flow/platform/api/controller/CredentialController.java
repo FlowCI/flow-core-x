@@ -55,11 +55,10 @@ public class CredentialController {
     }
 
     @PostMapping
-    public String create(@RequestBody String credentialJson) {
+    public Object create(@RequestBody String credentialJson) {
         Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
         Object o = Jsonable.GSON_CONFIG.fromJson(credentialJson, credential.getCredentialType().getClazz());
-        Credential createCredential = credentialService.create((Credential) o);
-        return createCredential.toJson();
+        return credentialService.create((Credential) o);
     }
 
     @GetMapping(path = "/{name}/delete")
@@ -68,11 +67,10 @@ public class CredentialController {
     }
 
     @PostMapping(path = "/{name}/update")
-    public String reportStatus(@RequestBody String credentialJson) {
+    public Object reportStatus(@RequestBody String credentialJson) {
         Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
         Object o = Jsonable.GSON_CONFIG.fromJson(credentialJson, credential.getCredentialType().getClazz());
-        Credential updateCredential = credentialService.update((Credential) o);
-        return updateCredential.toJson();
+        return credentialService.update((Credential) o);
     }
 
     @GetMapping(path = "/ssh/keys")
