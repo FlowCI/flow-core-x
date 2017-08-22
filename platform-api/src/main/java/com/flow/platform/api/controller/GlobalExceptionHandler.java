@@ -18,7 +18,7 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.response.ResponseError;
 import com.flow.platform.core.exception.FlowException;
-import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.NotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -32,10 +32,24 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ResponseError handleNotFoundException(HttpServletRequest request, NotFoundException exception) {
+        return new ResponseError(exception.getMessage());
+    }
+
     @ExceptionHandler(FlowException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ResponseError handleParameterException(HttpServletRequest request, FlowException exception) {
+    public ResponseError handleFlowException(HttpServletRequest request, FlowException exception) {
+        return new ResponseError(exception.getMessage());
+    }
+
+    @ExceptionHandler(Throwable.class)
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public ResponseError handleFatalException(HttpServletRequest request, Throwable exception) {
         return new ResponseError(exception.getMessage());
     }
 }

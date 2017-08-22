@@ -53,7 +53,7 @@
   
 ### GET Load flow yml content from repo
   ```
-      Description: Async method, and then call Get flow yml content periodically 
+      Description: Async method, and then call 'Get flow yml content' periodically 
       Method: GET:
       Route: /flows/{flowname}/yml/load
   ```
@@ -62,18 +62,25 @@
   ```
       Method: GET:
       Route: /flows/{flowname}/yml
-      Response:
-      flow:
-        - name: xx
-        - steps:
-          - name : xxx
+      Response: 
+       - Response yml content if yml loaded,
+       - Response empty string if yml is loading,
+       - Error status:
+          - Response 404: {message: Yml content not found }
+          - Response 400: {message: Illegal yml format} | {message: Illegal FLOW_YML_STATUS value}
   ```
 
 ### POST Verify yml content
     ```
         Method: POST:
         Route: /flows/{flowname}/yml/verify
-        Response: if yml been verified, response 200, otherwise response 4xx with error message {message: xxx}
+        Body: 
+          flow:
+            - name: xx
+            - steps:
+              - name: xxx
+              
+        Response: if yml been verified, response 200, otherwise response 400 with error message {message: xxx}
     ```
 
 ### GET Get flow webhook
@@ -271,6 +278,8 @@
 ### Flow
 
 **FLOW_STATUS**: READY | PENDING
+
+**FLOW_YML_STATUS**: NOT_FOUND | LOADING | FOUND | ERROR
 
 ### Git 
         
