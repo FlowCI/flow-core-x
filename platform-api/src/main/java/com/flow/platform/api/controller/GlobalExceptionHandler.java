@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.response.ResponseError;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -31,10 +32,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IllegalParameterException.class)
+    @ExceptionHandler(FlowException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ResponseError handleParameterException(HttpServletRequest request, IllegalParameterException exception) {
+    public ResponseError handleParameterException(HttpServletRequest request, FlowException exception) {
         return new ResponseError(exception.getMessage());
     }
 }

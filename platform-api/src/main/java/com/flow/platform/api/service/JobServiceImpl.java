@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
@@ -104,9 +105,15 @@ public class JobServiceImpl implements JobService {
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
-        String yml = nodeService.getYmlContent(root.getPath());
-        if (Strings.isNullOrEmpty(yml)) {
-            throw new NotFoundException("Yml content not found for path " + path);
+        String yml = null;
+        try {
+            yml = nodeService.getYmlContent(root.getPath());
+            if (Strings.isNullOrEmpty(yml)) {
+                throw new IllegalStatusException("Yml is loading for path " + path);
+            }
+        } catch (FlowException e) {
+            LOGGER.error("Fail to get yml content", e);
+            throw e;
         }
 
         // create job
