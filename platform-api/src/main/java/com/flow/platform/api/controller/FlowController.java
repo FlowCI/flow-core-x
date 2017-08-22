@@ -25,6 +25,7 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,6 +60,12 @@ public class FlowController extends NodeController {
     public Node createEmptyFlow(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
         return nodeService.createEmptyFlow(flowName);
+    }
+
+    @PostMapping(path = "/{flowName}/delete")
+    public Node delete(@PathVariable String flowName) {
+        PathUtil.validateName(flowName);
+        return nodeService.delete(PathUtil.build(flowName));
     }
 
     @PostMapping("/{flowName}/env")

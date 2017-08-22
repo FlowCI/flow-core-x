@@ -186,4 +186,21 @@ public class NodeServiceTest extends TestBase {
         // then: should raise YmlException
         nodeService.getYmlContent(root.getPath());
     }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_delete_flow() throws Throwable {
+        Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
+
+        Assert.assertNotNull(nodeService.find(root.getPath()));
+        Assert.assertNotNull(nodeService.getYmlContent(root.getPath()));
+
+        // when:
+        nodeService.delete(root.getPath());
+
+        // then:
+        Assert.assertNull(nodeService.find(root.getPath()));
+        nodeService.getYmlContent(root.getPath());
+    }
 }

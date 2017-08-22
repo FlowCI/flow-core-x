@@ -31,8 +31,8 @@ public interface NodeService {
     /**
      * Create or update tree from yml config file content
      * and persistent flow node and yml content
-     *  - FLOW_STATUS = READY
-     *  - FLOW_YML_STATUS = FOUND
+     * - FLOW_STATUS = READY
+     * - FLOW_YML_STATUS = FOUND
      *
      * @param path any path
      * @param yml raw yml
@@ -48,12 +48,18 @@ public interface NodeService {
     Node find(String path);
 
     /**
+     * Delete root node
+     *
+     * @param path any path, will find root path
+     */
+    Node delete(String path);
+
+    /**
      * Verify yml format
      *
      * @param path any path
      * @param yml yml content
      * @return Node from yml
-     * @throws com.flow.platform.api.exception.YmlException
      */
     Node verifyYml(String path, String yml);
 
@@ -63,11 +69,7 @@ public interface NodeService {
      * - flow workspace if yml storage not found
      *
      * @param path any node path
-     * @return
-     * <p>
-     *      - yml content
-     *      - empty string while loading
-     * </p>
+     * @return <p> - yml content - empty string while loading </p>
      * @throws com.flow.platform.core.exception.NotFoundException if FLOW_YML_STATUS is NOT_FOUND
      * @throws com.flow.platform.api.exception.YmlException if FLOW_YML_STATUS is ERROR
      * @throws IllegalStateException if FLOW_YML_STATUS is illegal

@@ -87,9 +87,13 @@ public class YmlStorageDaoTest extends TestBase {
 
     @Test
     public void should_delete_success() {
-        YmlStorage storage = new YmlStorage("/flow", "Yml Body");
+        String path = "/flow";
+
+        YmlStorage storage = new YmlStorage(path, "Yml Body");
         ymlStorageDao.save(storage);
-        ymlStorageDao.delete(storage);
+        Assert.assertNotNull(ymlStorageDao.get(path));
+
+        ymlStorageDao.delete(new YmlStorage(path, null));
         Assert.assertEquals(null, ymlStorageDao.get(storage.getNodePath()));
     }
 }

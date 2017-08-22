@@ -162,6 +162,18 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
+    public Node delete(String path) {
+        String rootPath = PathUtil.rootPath(path);
+        Flow flow = findFlow(rootPath);
+
+        flowDao.delete(flow);
+        ymlStorageDao.delete(new YmlStorage(flow.getPath(), null));
+
+        treeCache.invalidate(rootPath);
+        return flow;
+    }
+
+    @Override
     public Node verifyYml(final String path, final String yml) {
         final String rootPath = PathUtil.rootPath(path);
         final Flow flow = findFlow(rootPath);
