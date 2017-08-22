@@ -265,6 +265,22 @@
                auth: true
              }
     ```      
+
+### detail flows 
+    ```
+        Method: Get
+        Route: /flows/detail
+        Response:
+             [
+               {
+                  flowName: "test",
+                  creator: "will",
+                  createdAt: 1212121,
+                  webhookUrl: "http://xxx.git",
+                  deployKey: xxxx 
+               }
+             ]
+    ```          
     
 ## Environments Description
 

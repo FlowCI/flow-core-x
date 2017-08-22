@@ -24,6 +24,7 @@ import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.response.FlowWithDeployKey;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -120,7 +121,7 @@ public class NodeServiceImpl implements NodeService {
                     EnvUtil.merge(flow, root, false);
 
                     // should set created time and updated time
-                    if(flow != null){
+                    if (flow != null) {
                         root.setCreatedAt(flow.getCreatedAt());
                         root.setUpdatedAt(flow.getUpdatedAt());
                     }
@@ -183,7 +184,7 @@ public class NodeServiceImpl implements NodeService {
         final Flow flow = findFlow(rootPath);
         final Set<String> requiredEnvSet = Sets.newHashSet(GitEnvs.FLOW_GIT_URL.name(), GitEnvs.FLOW_GIT_SOURCE.name());
 
-        if(!EnvUtil.hasRequired(flow, requiredEnvSet)) {
+        if (!EnvUtil.hasRequired(flow, requiredEnvSet)) {
             throw new IllegalParameterException("Missing required envs");
         }
 
@@ -263,5 +264,15 @@ public class NodeServiceImpl implements NodeService {
         }
 
         return (Flow) node;
+    }
+
+
+    @Override
+    public List<FlowWithDeployKey> listDetailFlows() {
+        List<FlowWithDeployKey> list = new ArrayList<>();
+        for (Flow flow : listFlows()) {
+            list.add(new FlowWithDeployKey(flow.getName(), null, flow.getCreatedAt(), hooksUrl(flow), null));
+        }
+        return list;
     }
 }

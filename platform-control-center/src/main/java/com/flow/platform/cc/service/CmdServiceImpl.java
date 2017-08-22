@@ -392,6 +392,7 @@ public class CmdServiceImpl implements CmdService {
 
         // auto select agent inside zone
         if (agentPath.getName() == null) {
+
             List<Agent> availableList = agentService.findAvailable(agentPath.getZone());
             if (availableList.size() > 0) {
                 Agent target = availableList.get(0);

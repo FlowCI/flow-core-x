@@ -19,6 +19,7 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.response.FlowWithDeployKey;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -56,8 +57,8 @@ public interface NodeService {
 
     /**
      * Find raw yml file content by node path from
-     *  - yam storage
-     *  - flow workspace if yml storage not found
+     * - yam storage
+     * - flow workspace if yml storage not found
      *
      * @param path any node path
      * @return yml content or null if not found
@@ -100,4 +101,9 @@ public interface NodeService {
      * List webhooks for all flow
      */
     List<Webhook> listWebhooks();
+
+    /**
+     * List flow's detail info, the admin use
+     */
+    List<FlowWithDeployKey> listDetailFlows();
 }
