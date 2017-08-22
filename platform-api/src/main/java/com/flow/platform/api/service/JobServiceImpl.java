@@ -541,8 +541,8 @@ public class JobServiceImpl implements JobService {
             throw new NotFoundException(String.format("running job not found name - %s", name));
         }
 
-        NodeResult nodeResult = nodeResultDao.get(runningJob.getId(), NodeStatus.RUNNING, NodeTag.STEP);
-        String url = new StringBuilder(cmdStopUrl).append(nodeResult.getCmdId()).toString();
+        NodeResult runningNodeResult = nodeResultDao.get(runningJob.getId(), NodeStatus.RUNNING, NodeTag.STEP);
+        String url = new StringBuilder(cmdStopUrl).append(runningNodeResult.getCmdId()).toString();
         LOGGER.traceMarker("stopJob", String.format("url - %s", url));
         try {
             HttpUtil.post(url, "");
