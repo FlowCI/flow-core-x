@@ -21,5 +21,10 @@ package com.flow.platform.core.sysinfo;
  */
 public interface SystemInfoLoader {
 
+    /**
+     * Load related system info data and
+     *
+     * @return SystemInfo instance or null if cannot loaded
+     */
     SystemInfo load();
 }

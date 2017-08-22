@@ -26,6 +26,28 @@ import java.util.Map;
  */
 public class SystemInfo implements Serializable {
 
+    public enum System {
+
+        API,
+
+        CC,
+
+        WEB
+    }
+
+    public enum Type {
+
+        JVM,
+
+        DB,
+
+        TOMCAT,
+
+        ZK,
+
+        MQ,
+    }
+
     private final static int DEFAULT_GROUP_NUM = 5;
 
     @Expose

@@ -21,7 +21,10 @@ import com.flow.platform.core.sysinfo.AppServerLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
 import com.flow.platform.core.sysinfo.JvmLoader;
 import com.flow.platform.core.sysinfo.SystemInfo;
-import java.util.Objects;
+import com.flow.platform.core.sysinfo.SystemInfoLoader;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -42,26 +45,30 @@ public class SysInfoServiceImpl implements SysInfoService {
     @Value("${jdbc.password}")
     private String dbPassword;
 
-    private final JvmLoader jvmLoader = new JvmLoader();
+    private final Map<SystemInfo.System, Map<SystemInfo.Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
+
+    @PostConstruct
+    public void init() {
+        infoLoaders.put(SystemInfo.System.CC, new HashMap<>(5));
+        infoLoaders.get(SystemInfo.System.CC)
+            .put(SystemInfo.Type.JVM, new JvmLoader());
+        infoLoaders.get(SystemInfo.System.CC)
+            .put(SystemInfo.Type.DB, new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword));
+        infoLoaders.get(SystemInfo.System.CC)
+            .put(SystemInfo.Type.TOMCAT, new AppServerLoader());
+    }
 
     @Override
-    public SystemInfo get(String type) {
-        if (!SUPPORT_TYPES.contains(type)) {
-            throw new IllegalParameterException("System into type not supported: " + type);
+    public SystemInfo get(SystemInfo.System sys, SystemInfo.Type type) {
+        if (type == null) {
+            // load system info
         }
 
-        if (Objects.equals(type, INFO_TYPE_JVM)) {
-            return jvmLoader.load();
+        // load related components info
+        try {
+            return infoLoaders.get(sys).get(type).load();
+        } catch (NullPointerException e) {
+            throw new IllegalParameterException(String.format("Cannot load system info of %s - %s", sys, type));
         }
-
-        if (Objects.equals(type, INFO_TYPE_DB)) {
-            return new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword).load();
-        }
-
-        if (Objects.equals(type, INFO_TYPE_TOMCAT)) {
-            return new AppServerLoader().load();
-        }
-
-        return null;
     }
 }

@@ -19,6 +19,8 @@ package com.flow.platform.core.sysinfo;
 import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
+import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +30,8 @@ import java.util.Properties;
  * @author yang
  */
 public class AppServerLoader implements SystemInfoLoader {
+
+    private final static Logger LOGGER = new Logger(AppServerLoader.class);
 
     private final static String CATALINA_HOME = "catalina.home";
 
@@ -56,8 +60,8 @@ public class AppServerLoader implements SystemInfoLoader {
     public SystemInfo load() {
         Properties properties = System.getProperties();
         String catalinaBase = properties.getProperty(CATALINA_HOME);
-        if (catalinaBase == null) {
-            return new SystemInfo();
+        if (Strings.isNullOrEmpty(catalinaBase)) {
+            return null;
         }
 
         try {
@@ -98,10 +102,10 @@ public class AppServerLoader implements SystemInfoLoader {
             exec.run();
             return info;
 
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (Throwable warn) {
+            LOGGER.warn("Unable to get tomcat server config: %s", warn.getMessage());
         }
 
-        return new SystemInfo();
+        return null;
     }
 }
