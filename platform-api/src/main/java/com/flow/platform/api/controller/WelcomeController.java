@@ -3,6 +3,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.service.SysInfoService;
 import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +29,7 @@ public class WelcomeController {
     @GetMapping(path = "/sys/{system}/info/{type}")
     public SystemInfo getJvmInfo(@PathVariable String system, @PathVariable(required = false) String type) {
         try {
-            SystemInfo.System targetSystem = SystemInfo.System.valueOf(system.toUpperCase());
+            Category targetSystem = Category.valueOf(system.toUpperCase());
             SystemInfo.Type targetType = null;
 
             if (!Strings.isNullOrEmpty(type)) {

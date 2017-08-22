@@ -18,6 +18,7 @@ package com.flow.platform.cc.controller;
 
 import com.flow.platform.core.service.SysInfoService;
 import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import com.flow.platform.util.DateUtil;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -72,6 +73,6 @@ public class WelcomeController {
     @GetMapping("/sys/info/{type}")
     public SystemInfo systemInfo(@PathVariable(required = false) String type) {
         SystemInfo.Type targetType = SystemInfo.Type.valueOf(type.toUpperCase());
-        return sysInfoService.get(SystemInfo.System.CC, targetType);
+        return sysInfoService.get(Category.CC, targetType);
     }
 }

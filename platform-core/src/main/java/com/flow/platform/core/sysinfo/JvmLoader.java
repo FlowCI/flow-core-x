@@ -16,6 +16,7 @@
 
 package com.flow.platform.core.sysinfo;
 
+import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,6 +62,7 @@ public class JvmLoader implements SystemInfoLoader {
         SystemInfo jvm = new SystemInfo();
         jvm.setName(properties.getProperty("java.runtime.name"));
         jvm.setVersion(properties.getProperty("java.runtime.version"));
+        jvm.setStatus(Status.RUNNING);
 
         jvm.put(JvmGroup.OS, buildFromProperties(JvmGroup.OS, properties));
         jvm.put(JvmGroup.GENERAL, buildFromProperties(JvmGroup.GENERAL, properties));

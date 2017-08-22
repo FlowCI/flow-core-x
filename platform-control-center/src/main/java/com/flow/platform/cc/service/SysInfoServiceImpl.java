@@ -21,6 +21,7 @@ import com.flow.platform.core.sysinfo.AppServerLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
 import com.flow.platform.core.sysinfo.JvmLoader;
 import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.core.sysinfo.SystemInfoLoader;
 import java.util.HashMap;
@@ -34,21 +35,21 @@ import org.springframework.stereotype.Service;
 @Service("sysInfoService")
 public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
-    private final Map<SystemInfo.System, Map<Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
+    private final Map<Category, Map<Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
 
     @PostConstruct
     public void init() {
-        infoLoaders.put(SystemInfo.System.CC, new HashMap<>(5));
-        infoLoaders.get(SystemInfo.System.CC)
+        infoLoaders.put(Category.CC, new HashMap<>(5));
+        infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.JVM, new JvmLoader());
-        infoLoaders.get(SystemInfo.System.CC)
+        infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.DB, new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword));
-        infoLoaders.get(SystemInfo.System.CC)
+        infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.SERVER, new AppServerLoader());
     }
 
     @Override
-    public Map<SystemInfo.System, Map<SystemInfo.Type, SystemInfoLoader>> getLoaders() {
+    public Map<Category, Map<SystemInfo.Type, SystemInfoLoader>> getLoaders() {
         return infoLoaders;
     }
 }

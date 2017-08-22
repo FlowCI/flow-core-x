@@ -18,6 +18,7 @@ package com.flow.platform.core.service;
 
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import com.flow.platform.core.sysinfo.SystemInfoLoader;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,10 +39,10 @@ public abstract class SysInfoServiceImplBase implements SysInfoService {
     @Value("${jdbc.password}")
     protected String dbPassword;
 
-    public abstract Map<SystemInfo.System, Map<SystemInfo.Type, SystemInfoLoader>> getLoaders();
+    public abstract Map<Category, Map<SystemInfo.Type, SystemInfoLoader>> getLoaders();
 
     @Override
-    public SystemInfo get(SystemInfo.System sys, SystemInfo.Type type) {
+    public SystemInfo get(Category sys, SystemInfo.Type type) {
         if (type == null) {
             // load system info
         }

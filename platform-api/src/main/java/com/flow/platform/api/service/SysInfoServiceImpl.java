@@ -22,7 +22,7 @@ import com.flow.platform.core.sysinfo.AppServerLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
 import com.flow.platform.core.sysinfo.JvmLoader;
 import com.flow.platform.core.sysinfo.SystemInfo;
-import com.flow.platform.core.sysinfo.SystemInfo.System;
+import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.core.sysinfo.SystemInfoLoader;
 import java.util.HashMap;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 @Service("sysInfoService")
 public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
-    private final Map<SystemInfo.System, Map<Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
+    private final Map<Category, Map<Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
 
     @Value("${platform.sysinfo.url}") // http://localhost:8080/sys/info
     private String sysInfoUrl;
@@ -47,30 +47,30 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
     @PostConstruct
     public void init() {
         // init api system loader
-        infoLoaders.put(SystemInfo.System.API, new HashMap<>(3));
-        infoLoaders.get(SystemInfo.System.API)
+        infoLoaders.put(Category.API, new HashMap<>(3));
+        infoLoaders.get(Category.API)
             .put(SystemInfo.Type.JVM, new JvmLoader());
-        infoLoaders.get(SystemInfo.System.API)
+        infoLoaders.get(Category.API)
             .put(SystemInfo.Type.DB, new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword));
-        infoLoaders.get(SystemInfo.System.API)
+        infoLoaders.get(Category.API)
             .put(SystemInfo.Type.SERVER, new AppServerLoader());
 
         // init cc system loader
-        infoLoaders.put(SystemInfo.System.CC, new HashMap<>(5));
-        infoLoaders.get(SystemInfo.System.CC)
+        infoLoaders.put(Category.CC, new HashMap<>(5));
+        infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.JVM, new ControlCenterInfoLoader(SystemInfo.Type.JVM));
-        infoLoaders.get(SystemInfo.System.CC)
+        infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.DB, new ControlCenterInfoLoader(SystemInfo.Type.DB));
-        infoLoaders.get(SystemInfo.System.CC)
+        infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.SERVER, new ControlCenterInfoLoader(SystemInfo.Type.SERVER));
-        infoLoaders.get(SystemInfo.System.CC)
+        infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.ZK, new ControlCenterInfoLoader(SystemInfo.Type.ZK));
-        infoLoaders.get(SystemInfo.System.CC)
+        infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.MQ, new ControlCenterInfoLoader(SystemInfo.Type.MQ));
     }
 
     @Override
-    public Map<System, Map<Type, SystemInfoLoader>> getLoaders() {
+    public Map<Category, Map<Type, SystemInfoLoader>> getLoaders() {
         return infoLoaders;
     }
 

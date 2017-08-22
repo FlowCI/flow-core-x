@@ -27,7 +27,8 @@ import com.flow.platform.core.sysinfo.DBInfoLoader.DBGroupName;
 import com.flow.platform.core.sysinfo.JvmLoader;
 import com.flow.platform.core.sysinfo.JvmLoader.JvmGroup;
 import com.flow.platform.core.sysinfo.SystemInfo;
-import com.flow.platform.core.sysinfo.SystemInfo.System;
+import com.flow.platform.core.sysinfo.SystemInfo.Category;
+import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import java.util.Map;
 import org.junit.Assert;
@@ -63,7 +64,7 @@ public class SysInfoServiceTest extends TestBase {
     @Test
     public void should_get_api_jvm_info() throws Throwable {
         // when:
-        SystemInfo jvmInfo = sysInfoService.get(System.API, Type.JVM);
+        SystemInfo jvmInfo = sysInfoService.get(Category.API, Type.JVM);
         Assert.assertNotNull(jvmInfo);
 
         // then:
@@ -82,7 +83,7 @@ public class SysInfoServiceTest extends TestBase {
     @Test
     public void should_get_api_db_info() throws Throwable {
         // when:
-        SystemInfo dbInfo = sysInfoService.get(System.API, Type.DB);
+        SystemInfo dbInfo = sysInfoService.get(Category.API, Type.DB);
         Assert.assertNotNull(dbInfo);
 
         // then:
@@ -92,9 +93,10 @@ public class SysInfoServiceTest extends TestBase {
 
     @Test
     public void should_get_api_tomcat_info() throws Throwable {
-        // when: get tomcat info should be null since unit test not in tomcat container
-        SystemInfo serverInfo = sysInfoService.get(System.API, Type.SERVER);
-        Assert.assertNull(serverInfo);
+        // when: get tomcat info should be offline since unit test not in tomcat container
+        SystemInfo serverInfo = sysInfoService.get(Category.API, Type.SERVER);
+        Assert.assertNotNull(serverInfo);
+        Assert.assertEquals(Status.OFFLINE, serverInfo.getStatus());
     }
 
     @Test
@@ -102,7 +104,7 @@ public class SysInfoServiceTest extends TestBase {
         JvmLoader jvmLoader = new JvmLoader();
         stubFor(get("/sys/info/jvm").willReturn(aResponse().withBody(jvmLoader.load().toJson())));
 
-        SystemInfo jvmInfo = sysInfoService.get(System.CC, Type.JVM);
+        SystemInfo jvmInfo = sysInfoService.get(Category.CC, Type.JVM);
         Assert.assertNotNull(jvmInfo);
 
         Assert.assertEquals(3, jvmInfo.size());
@@ -122,10 +124,21 @@ public class SysInfoServiceTest extends TestBase {
         DBInfoLoader dbInfoLoader = new DBInfoLoader("com.mysql.jdbc.Driver", jdbcUrl, jdbcUsername, jdbcPassword);
         stubFor(get("/sys/info/db").willReturn(aResponse().withBody(dbInfoLoader.load().toJson())));
 
-        SystemInfo dbInfo = sysInfoService.get(System.CC, Type.DB);
+        SystemInfo dbInfo = sysInfoService.get(Category.CC, Type.DB);
         Assert.assertNotNull(dbInfo);
 
         Map<String, String> mysqlInfo = dbInfo.get(DBGroupName.MYSQL);
         Assert.assertEquals(5, mysqlInfo.size());
+    }
+
+    @Test
+    public void should_get_cc_db_offline_status() throws Throwable {
+        DBInfoLoader dbInfoLoader = new DBInfoLoader("com.mysql.jdbc.Driver",
+            "jdbc:mysql://localhost:8888/test_db", jdbcUsername, jdbcPassword);
+        stubFor(get("/sys/info/db").willReturn(aResponse().withBody(dbInfoLoader.load().toJson())));
+
+        SystemInfo dbInfo = sysInfoService.get(Category.CC, Type.DB);
+        Assert.assertNotNull(dbInfo);
+        Assert.assertEquals(Status.OFFLINE, dbInfo.getStatus());
     }
 }

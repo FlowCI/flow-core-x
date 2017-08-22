@@ -26,13 +26,20 @@ import java.util.Map;
  */
 public class SystemInfo extends Jsonable {
 
-    public enum System {
+    public enum Category {
 
         API,
 
         CC,
 
         WEB
+    }
+
+    public enum Status {
+
+        RUNNING,
+
+        OFFLINE
     }
 
     public enum Type {
@@ -57,9 +64,16 @@ public class SystemInfo extends Jsonable {
     private String version;
 
     @Expose
+    private Status status;
+
+    @Expose
     private Map<String, Map<String, String>> info = new HashMap<>(DEFAULT_GROUP_NUM);
 
     public SystemInfo() {
+    }
+
+    public SystemInfo(Status status) {
+        this.status = status;
     }
 
     public String getName() {
@@ -76,6 +90,14 @@ public class SystemInfo extends Jsonable {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public Map<String, Map<String, String>> getInfo() {

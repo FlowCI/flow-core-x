@@ -17,12 +17,13 @@
 package com.flow.platform.core.service;
 
 import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Category;
 
 /**
  * @author yang
  */
 public interface SysInfoService {
 
-    SystemInfo get(SystemInfo.System sys, SystemInfo.Type type);
+    SystemInfo get(Category sys, SystemInfo.Type type);
 
 }
