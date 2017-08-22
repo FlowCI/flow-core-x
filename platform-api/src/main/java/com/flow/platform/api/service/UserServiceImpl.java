@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
             return "{ \"login_status\" : \"email_is_not_exist\" }";
         }
         if (!passwordOfEmailIsTrue(email, passwordForMD5)) {
-            return "{ \" login_status\" : \"password_fault\" }";
+            return "{ \"login_status\" : \"password_fault\" }";
         }
 
         //Login success

@@ -14,18 +14,9 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
-import com.flow.platform.api.dao.FlowDao;
-import com.flow.platform.api.dao.JobDao;
-import com.flow.platform.api.dao.JobYmlStorageDao;
-import com.flow.platform.api.dao.MessageSettingDao;
-import com.flow.platform.api.dao.NodeResultDao;
-import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.dao.*;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
@@ -35,13 +26,6 @@ import com.flow.platform.api.service.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -56,6 +40,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 
 /**
@@ -78,6 +72,9 @@ public abstract class TestBase {
 
     @Autowired
     protected JobDao jobDao;
+
+    @Autowired
+    private UserDao userDao;
 
     @Autowired
     protected YmlStorageDao ymlStorageDao;
@@ -152,6 +149,7 @@ public abstract class TestBase {
         jobYmlStorageDao.deleteAll();
         nodeResultDao.deleteAll();
         messageDao.deleteAll();
+        userDao.deleteAll();
     }
 
     @Rule

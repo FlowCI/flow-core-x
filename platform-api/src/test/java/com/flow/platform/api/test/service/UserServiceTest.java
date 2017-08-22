@@ -1,0 +1,138 @@
+package com.flow.platform.api.test.service;
+
+import com.flow.platform.api.dao.UserDao;
+import com.flow.platform.api.domain.User;
+import com.flow.platform.api.service.UserService;
+import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.StringEncodeUtil;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+/**
+ * @author liangpengyv
+ */
+public class UserServiceTest extends TestBase {
+
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private UserService userService;
+
+    private User user;
+
+    @Before
+    public void beforeTest() {
+        user = new User();
+        user.setEmail("liangpengyv@fir.im");
+        user.setUserName("liangpengyv");
+        user.setPassword("liangpengyv");
+        user.setRoleId("developer");
+    }
+
+    @Test
+    public void should_login_by_email_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        userDao.save(user);
+        String msg = userService.loginByEmail("liangpengyv@fir.im", "liangpengyv");
+        Assert.assertEquals("{ \"login_status\" : \"success\" }", msg);
+    }
+
+    @Test
+    public void should_login_by_user_name_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        userDao.save(user);
+        String msg = userService.loginByUserName("liangpengyv", "liangpengyv");
+        Assert.assertEquals("{ \"login_status\" : \"success\" }", msg);
+    }
+
+    @Test
+    public void should_register_success() {
+        String msg = userService.register(user);
+        Assert.assertEquals("{ \"register_status\" : \"success\" }", msg);
+    }
+
+    @Test
+    public void should_delete_user_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        userDao.save(user);
+        Assert.assertNotNull(userDao.get(user.getEmail()));
+        userService.deleteUser(user);
+        Assert.assertNull(userDao.get(user.getEmail()));
+    }
+
+    @Test
+    public void should_switch_role_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        userDao.save(user);
+        Assert.assertEquals("developer", userDao.get(user.getEmail()).getRoleId());
+        userService.switchRole(user, "admin");
+        Assert.assertEquals("admin", userDao.get(user.getEmail()).getRoleId());
+    }
+
+    @Test
+    public void should_check_email_format_success() {
+        String email1 = "test1@fir.im";  //the correct email format
+        Assert.assertEquals(true, userService.checkEmailFormatIsPass(email1));
+        String email2 = "test2fir.im";  //the wrong email format
+        Assert.assertEquals(false, userService.checkEmailFormatIsPass(email2));
+        String email3 = "test3@firim";  //the wrong email format
+        Assert.assertEquals(false, userService.checkEmailFormatIsPass(email3));
+        String email4 = "test4@.im";  //the wrong email format
+        Assert.assertEquals(false, userService.checkEmailFormatIsPass(email4));
+    }
+
+    @Test
+    public void should_check_user_name_format_success() {
+        String userName1 = "test1";  //the correct user_name format
+        Assert.assertEquals(true, userService.checkUserNameFormatIsPass(userName1));
+        String userName2 = "test";  //the wrong user_name format
+        Assert.assertEquals(false, userService.checkUserNameFormatIsPass(userName2));
+        String userName3 = "testtesttesttesttest1";  //the wrong user_name format
+        Assert.assertEquals(false, userService.checkUserNameFormatIsPass(userName3));
+        String userName4 = "#test";  //the wrong user_name format
+        Assert.assertEquals(false, userService.checkUserNameFormatIsPass(userName4));
+    }
+
+    @Test
+    public void should_check_password_format_success() {
+        String password1 = "test1";  //the correct password format
+        Assert.assertEquals(true, userService.checkPasswordFormatIsPass(password1));
+        String password2 = "test";  //the wrong password format
+        Assert.assertEquals(false, userService.checkPasswordFormatIsPass(password2));
+        String password3 = "testtesttesttesttest1";  //the wrong password format
+        Assert.assertEquals(false, userService.checkPasswordFormatIsPass(password3));
+        String password4 = "#test";  //the wrong password format
+        Assert.assertEquals(false, userService.checkPasswordFormatIsPass(password4));
+    }
+
+    @Test
+    public void should_verify_email_is_exist_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        userDao.save(user);
+        Assert.assertEquals(true, userService.emailIsExist("liangpengyv@fir.im"));
+    }
+
+    @Test
+    public void should_verify_user_name_is_exist_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        userDao.save(user);
+        Assert.assertEquals(true, userService.userNameIsExist("liangpengyv"));
+    }
+
+    @Test
+    public void should_verify_password_of_email_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        userDao.save(user);
+        Assert.assertEquals(true, userService.passwordOfEmailIsTrue("liangpengyv@fir.im", StringEncodeUtil.encodeByMD5("liangpengyv", "UTF-8")));
+    }
+
+    @Test
+    public void should_verify_password_of_user_name_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        userDao.save(user);
+        Assert.assertEquals(true, userService.passwordOfUserNameIsTrue("liangpengyv", StringEncodeUtil.encodeByMD5("liangpengyv", "UTF-8")));
+    }
+}
