@@ -16,11 +16,15 @@
 
 package com.flow.platform.cc.controller;
 
+import com.flow.platform.core.service.SysInfoService;
+import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.util.DateUtil;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,13 +56,22 @@ public class WelcomeController {
 
     private ZonedDateTime startTime;
 
+    @Autowired
+    private SysInfoService sysInfoService;
+
     @PostConstruct
     private void init() {
         startTime = DateUtil.now();
     }
 
-    @RequestMapping("/index")
+    @GetMapping("/index")
     public AppStatus heartbeat() {
         return new AppStatus("OK", startTime);
+    }
+
+    @GetMapping("/sys/info/{type}")
+    public SystemInfo systemInfo(@PathVariable(required = false) String type) {
+        SystemInfo.Type targetType = SystemInfo.Type.valueOf(type.toUpperCase());
+        return sysInfoService.get(SystemInfo.System.CC, targetType);
     }
 }

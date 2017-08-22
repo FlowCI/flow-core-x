@@ -16,15 +16,15 @@
 
 package com.flow.platform.core.sysinfo;
 
+import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author yang
  */
-public class SystemInfo implements Serializable {
+public class SystemInfo extends Jsonable {
 
     public enum System {
 
@@ -57,7 +57,7 @@ public class SystemInfo implements Serializable {
     private String version;
 
     @Expose
-    private Map<GroupName, Map<String, String>> info = new HashMap<>(DEFAULT_GROUP_NUM);
+    private Map<String, Map<String, String>> info = new HashMap<>(DEFAULT_GROUP_NUM);
 
     public SystemInfo() {
     }
@@ -78,20 +78,20 @@ public class SystemInfo implements Serializable {
         this.version = version;
     }
 
-    public Map<GroupName, Map<String, String>> getInfo() {
+    public Map<String, Map<String, String>> getInfo() {
         return info;
     }
 
-    public void setInfo(Map<GroupName, Map<String, String>> info) {
+    public void setInfo(Map<String, Map<String, String>> info) {
         this.info = info;
     }
 
     public void put(GroupName key, Map<String, String> content) {
-        info.put(key, content);
+        info.put(key.name(), content);
     }
 
     public Map<String, String> get(GroupName key) {
-        return info.get(key);
+        return info.get(key.name());
     }
 
     public int size() {
