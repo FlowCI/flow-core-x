@@ -1,0 +1,94 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.flow.platform.api.service;
+
+import com.flow.platform.api.util.HttpUtil;
+import com.flow.platform.core.service.SysInfoServiceImplBase;
+import com.flow.platform.core.sysinfo.AppServerLoader;
+import com.flow.platform.core.sysinfo.DBInfoLoader;
+import com.flow.platform.core.sysinfo.JvmLoader;
+import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.System;
+import com.flow.platform.core.sysinfo.SystemInfo.Type;
+import com.flow.platform.core.sysinfo.SystemInfoLoader;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+/**
+ * API system info service to load from api self and cc via http
+ *
+ * @author yang
+ */
+@Service("sysInfoService")
+public class SysInfoServiceImpl extends SysInfoServiceImplBase {
+
+    private final Map<SystemInfo.System, Map<Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
+
+    @Value("${platform.sysinfo.url}") // http://localhost:8080/sys/info
+    private String sysInfoUrl;
+
+    @PostConstruct
+    public void init() {
+        // init api system loader
+        infoLoaders.put(SystemInfo.System.API, new HashMap<>(3));
+        infoLoaders.get(SystemInfo.System.API)
+            .put(SystemInfo.Type.JVM, new JvmLoader());
+        infoLoaders.get(SystemInfo.System.API)
+            .put(SystemInfo.Type.DB, new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword));
+        infoLoaders.get(SystemInfo.System.API)
+            .put(SystemInfo.Type.SERVER, new AppServerLoader());
+
+        // init cc system loader
+        infoLoaders.put(SystemInfo.System.CC, new HashMap<>(5));
+        infoLoaders.get(SystemInfo.System.CC)
+            .put(SystemInfo.Type.JVM, new ControlCenterInfoLoader(SystemInfo.Type.JVM));
+        infoLoaders.get(SystemInfo.System.CC)
+            .put(SystemInfo.Type.DB, new ControlCenterInfoLoader(SystemInfo.Type.DB));
+        infoLoaders.get(SystemInfo.System.CC)
+            .put(SystemInfo.Type.SERVER, new ControlCenterInfoLoader(SystemInfo.Type.SERVER));
+        infoLoaders.get(SystemInfo.System.CC)
+            .put(SystemInfo.Type.ZK, new ControlCenterInfoLoader(SystemInfo.Type.ZK));
+        infoLoaders.get(SystemInfo.System.CC)
+            .put(SystemInfo.Type.MQ, new ControlCenterInfoLoader(SystemInfo.Type.MQ));
+    }
+
+    @Override
+    public Map<System, Map<Type, SystemInfoLoader>> getLoaders() {
+        return infoLoaders;
+    }
+
+    private class ControlCenterInfoLoader implements SystemInfoLoader {
+
+        private final SystemInfo.Type type;
+
+        public ControlCenterInfoLoader(Type type) {
+            this.type = type;
+        }
+
+        @Override
+        public SystemInfo load() {
+            String response = HttpUtil.get(sysInfoUrl + "/" + type.name().toLowerCase());
+            if (response == null) {
+                return null;
+            }
+            return SystemInfo.parse(response, SystemInfo.class);
+        }
+    }
+}

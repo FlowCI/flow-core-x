@@ -35,7 +35,7 @@ public class JvmLoader implements SystemInfoLoader {
         MEMORY
     }
 
-    private final static Map<JvmGroup, Set<Object>> GROUP_KEYS = new HashMap<>();
+    private final static Map<JvmGroup, Set<String>> GROUP_KEYS = new HashMap<>();
 
     static {
         GROUP_KEYS.put(JvmGroup.OS, Sets.newHashSet(
@@ -73,18 +73,16 @@ public class JvmLoader implements SystemInfoLoader {
         memory.put("java.vm.memory.total", Long.toString(runtime.totalMemory()));
         jvm.put(JvmGroup.MEMORY, memory);
 
-
-
         return jvm;
     }
 
     private Map<String, String> buildFromProperties(JvmGroup group, Properties properties) {
-        Set<Object> keys = GROUP_KEYS.get(group);
+        Set<String> keys = GROUP_KEYS.get(group);
         HashMap<String, String> general = new HashMap<>(keys.size());
-        for (Object key : keys) {
-            Object value = properties.remove(key);
+        for (String key : keys) {
+            String value = properties.getProperty(key);
             if (value != null) {
-                general.put(key.toString(), value.toString());
+                general.put(key, value);
             }
         }
         return general;

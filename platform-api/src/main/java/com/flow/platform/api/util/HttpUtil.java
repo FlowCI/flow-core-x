@@ -94,31 +94,32 @@ public class HttpUtil {
     private static void exec(HttpUriRequest httpUriRequest, Integer tryTimes, Consumer<String> consumer) {
         if (tryTimes > TRY_TIMES) {
             consumer.accept(null);
-        } else {
-            try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-                CloseableHttpResponse response = httpClient.execute(httpUriRequest);
-                int statusCode = response.getStatusLine().getStatusCode();
-                ResponseHandler<String> handler = new BasicResponseHandler();
-                if (statusCode == 200) {
-                    consumer.accept(handler.handleResponse(response));
-                } else {
-                    tryTimes += 1;
-                    exec(httpUriRequest, tryTimes, consumer);
-                }
-            } catch (UnsupportedEncodingException | ClientProtocolException e) {
-                // JSON data or http protocol exception, exit directly
-                LOGGER.warn(String
-                    .format("url: %s, method: %s, UnsupportedEncodingException | ClientProtocolException e: %s",
-                        httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
-                tryTimes += 1;
-                exec(httpUriRequest, tryTimes, consumer);
-            } catch (IOException e) {
-                LOGGER.warn(String
-                    .format("url: %s, method: %s, IOException e: %s",
-                        httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
+            return;
+        }
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            CloseableHttpResponse response = httpClient.execute(httpUriRequest);
+            int statusCode = response.getStatusLine().getStatusCode();
+            ResponseHandler<String> handler = new BasicResponseHandler();
+            if (statusCode == 200) {
+                consumer.accept(handler.handleResponse(response));
+            } else {
                 tryTimes += 1;
                 exec(httpUriRequest, tryTimes, consumer);
             }
+        } catch (UnsupportedEncodingException | ClientProtocolException e) {
+            // JSON data or http protocol exception, exit directly
+            LOGGER.warn(String
+                .format("url: %s, method: %s, UnsupportedEncodingException | ClientProtocolException e: %s",
+                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
+            tryTimes += 1;
+            exec(httpUriRequest, tryTimes, consumer);
+        } catch (IOException e) {
+            LOGGER.warn(String
+                .format("url: %s, method: %s, IOException e: %s",
+                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
+            tryTimes += 1;
+            exec(httpUriRequest, tryTimes, consumer);
         }
     }
 }

@@ -14,38 +14,27 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.service;
+package com.flow.platform.cc.service;
 
-import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.service.SysInfoServiceImplBase;
 import com.flow.platform.core.sysinfo.AppServerLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
 import com.flow.platform.core.sysinfo.JvmLoader;
 import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.core.sysinfo.SystemInfoLoader;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
  * @author yang
  */
-@Service
-public class SysInfoServiceImpl implements SysInfoService {
+@Service("sysInfoService")
+public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
-    private final String defaultDriverName = "com.mysql.jdbc.Driver";
-
-    @Value("${jdbc.url}")
-    private String dbUrl;
-
-    @Value("${jdbc.username}")
-    private String dbUsername;
-
-    @Value("${jdbc.password}")
-    private String dbPassword;
-
-    private final Map<SystemInfo.System, Map<SystemInfo.Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
+    private final Map<SystemInfo.System, Map<Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
 
     @PostConstruct
     public void init() {
@@ -55,20 +44,11 @@ public class SysInfoServiceImpl implements SysInfoService {
         infoLoaders.get(SystemInfo.System.CC)
             .put(SystemInfo.Type.DB, new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword));
         infoLoaders.get(SystemInfo.System.CC)
-            .put(SystemInfo.Type.TOMCAT, new AppServerLoader());
+            .put(SystemInfo.Type.SERVER, new AppServerLoader());
     }
 
     @Override
-    public SystemInfo get(SystemInfo.System sys, SystemInfo.Type type) {
-        if (type == null) {
-            // load system info
-        }
-
-        // load related components info
-        try {
-            return infoLoaders.get(sys).get(type).load();
-        } catch (NullPointerException e) {
-            throw new IllegalParameterException(String.format("Cannot load system info of %s - %s", sys, type));
-        }
+    public Map<SystemInfo.System, Map<SystemInfo.Type, SystemInfoLoader>> getLoaders() {
+        return infoLoaders;
     }
 }

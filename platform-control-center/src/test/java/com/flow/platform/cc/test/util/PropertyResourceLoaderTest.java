@@ -23,6 +23,7 @@ import com.flow.platform.cc.resource.PropertyResourceLoader;
 import java.nio.file.Paths;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -36,6 +37,7 @@ import org.springframework.core.io.Resource;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({PropertyResourceLoader.class})
+@Ignore
 public class PropertyResourceLoaderTest {
 
     private PropertyResourceLoader propertyResourceLoader = new PropertyResourceLoader();

@@ -130,7 +130,7 @@ public class CmdManager {
             LOGGER.trace("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
-            CmdExecutor executor = new CmdExecutor(Lists.newArrayList(shutdownCmd));
+            CmdExecutor executor = new CmdExecutor(null, Lists.newArrayList(shutdownCmd));
             executor.run();
 
         } catch (Throwable e) {

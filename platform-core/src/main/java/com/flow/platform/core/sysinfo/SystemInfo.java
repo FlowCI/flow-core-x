@@ -41,7 +41,7 @@ public class SystemInfo extends Jsonable {
 
         DB,
 
-        TOMCAT,
+        SERVER,
 
         ZK,
 
