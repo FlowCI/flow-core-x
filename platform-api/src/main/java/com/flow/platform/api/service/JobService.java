@@ -64,4 +64,9 @@ public interface JobService {
      * send cmd to queue
      */
     void enterQueue(CmdQueueItem cmdQueueItem);
+
+    /**
+     * stop job
+     */
+    Boolean stopJob(String name);
 }

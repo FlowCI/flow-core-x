@@ -16,21 +16,25 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.JobDao;
+import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.core.exception.HttpException;
-import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.UrlUtil;
+import com.flow.platform.core.exception.HttpException;
+import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
@@ -38,8 +42,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
@@ -78,6 +80,9 @@ public class JobServiceImpl implements JobService {
     private JobDao jobDao;
 
     @Autowired
+    private NodeResultDao nodeResultDao;
+
+    @Autowired
     private NodeService nodeService;
 
     @Value(value = "${domain}")
@@ -91,6 +96,9 @@ public class JobServiceImpl implements JobService {
 
     @Value(value = "${platform.queue.url}")
     private String queueUrl;
+
+    @Value(value = "${platform.cmd.stop.url}")
+    private String cmdStopUrl;
 
     @Override
     public Job createJob(String path) {
@@ -523,5 +531,25 @@ public class JobServiceImpl implements JobService {
         } catch (Throwable throwable) {
             LOGGER.warnMarker("enterQueue", String.format("exception - %s", throwable));
         }
+    }
+
+    @Override
+    public Boolean stopJob(String name) {
+        Job runningJob = jobDao.get(name, NodeStatus.RUNNING);
+
+        if (runningJob == null) {
+            throw new NotFoundException(String.format("running job not found name - %s", name));
+        }
+
+        NodeResult nodeResult = nodeResultDao.get(runningJob.getId(), NodeStatus.RUNNING, NodeTag.STEP);
+        String url = new StringBuilder(cmdStopUrl).append(nodeResult.getCmdId()).toString();
+        LOGGER.traceMarker("stopJob", String.format("url - %s", url));
+        try {
+            HttpUtil.post(url, "");
+        } catch (Throwable throwable) {
+            LOGGER.traceMarker("stopJob", String.format("stop job error - %s", throwable));
+            return false;
+        }
+        return true;
     }
 }

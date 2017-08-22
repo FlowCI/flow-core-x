@@ -122,4 +122,16 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             return integer;
         });
     }
+
+    @Override
+    public Job get(String flowName, NodeStatus status) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> job = select.from(Job.class);
+            Predicate condition = builder.equal(job.get("status"), status);
+            select.where(condition);
+            return session.createQuery(select).uniqueResult();
+        });
+    }
 }
