@@ -78,7 +78,7 @@ public class CredentialController {
         return credentialService.getKeyMap();
     }
 
-    @GetMapping(path = "{credentialType}/credentialTypeList")
+    @GetMapping(path = "{credentialType}/list")
     public Collection<Credential> credentialTypeList(@PathVariable String credentialType) {
         return credentialService.listTypes(credentialType);
     }

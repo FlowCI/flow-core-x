@@ -61,9 +61,7 @@ public class CredentialServiceImpl implements CredentialService {
 
     @Override
     public Credential update(Credential credential) {
-
         CredentialStorage credentialStorage = findCredentialByName(credential.getName());
-
         credentialStorage.setContent(credential);
         credentialStorageDao.update(credentialStorage);
         return credential;
