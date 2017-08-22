@@ -18,6 +18,7 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.domain.CmdBase;
 import java.math.BigInteger;
 import java.util.List;
@@ -61,6 +62,11 @@ public interface JobService {
     List<Job> listJobs(String flowPath, List<String> flowPaths);
 
     /**
+     * list node results
+     */
+    List<NodeResult> listNodeResult(String flowName, Integer number);
+
+    /**
      * send cmd to queue
      */
     void enterQueue(CmdQueueItem cmdQueueItem);
@@ -68,5 +74,5 @@ public interface JobService {
     /**
      * stop job
      */
-    Boolean stopJob(String name);
+    Boolean stopJob(String name, Integer buildNumber);
 }

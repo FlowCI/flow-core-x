@@ -55,7 +55,6 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public List<AgentWithFlow> list() {
         StringBuilder stringBuilder = new StringBuilder(agentUrl);
-        stringBuilder.append("?zone=").append(zone);
         String res = HttpUtil.get(stringBuilder.toString());
         if (res == null) {
             throw new RuntimeException("Get Agent List error");

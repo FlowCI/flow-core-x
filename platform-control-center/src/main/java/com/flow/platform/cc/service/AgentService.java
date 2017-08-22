@@ -41,6 +41,8 @@ public interface AgentService {
      */
     List<Agent> onlineList(String zone);
 
+    List<Agent> list(String zone);
+
     /**
      * Find agent by zone and agent name from online list
      *

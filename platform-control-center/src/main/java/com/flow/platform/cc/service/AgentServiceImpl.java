@@ -103,6 +103,15 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
+    public List<Agent> list(String zone) {
+        if (zone == null) {
+            return agentDao.list();
+        } else {
+            return onlineList(zone);
+        }
+    }
+
+    @Override
     public void updateStatus(AgentPath path, AgentStatus status) {
         Agent exist = find(path);
         if (exist == null) {

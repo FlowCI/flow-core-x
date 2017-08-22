@@ -42,8 +42,8 @@ public class AgentController {
      * List online agents by zone name
      */
     @GetMapping(path = "/list")
-    public Collection<Agent> list(@RequestParam(name = "zone") String zoneName) {
-        return agentService.onlineList(zoneName);
+    public Collection<Agent> list(@RequestParam(name = "zone", required = false) String zoneName) {
+        return agentService.list(zoneName);
     }
 
     @GetMapping(path = "/find")
