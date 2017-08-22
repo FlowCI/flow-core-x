@@ -18,10 +18,13 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.service.AgentService;
+import com.flow.platform.domain.AgentPath;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -37,5 +40,11 @@ public class AgentsController {
     @GetMapping
     public List<AgentWithFlow> index(){
         return agentService.list();
+    }
+
+    @PostMapping(path = "/shutdown")
+    public boolean shutDown(@RequestParam String zone, @RequestParam String name,
+        @RequestParam(required = false) String password) {
+        return agentService.shutdown(zone, name, password);
     }
 }

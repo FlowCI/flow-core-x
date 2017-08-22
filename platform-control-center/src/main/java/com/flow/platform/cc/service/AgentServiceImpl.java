@@ -180,4 +180,19 @@ public class AgentServiceImpl implements AgentService {
 
         LOGGER.traceMarker("sessionTimeoutTask", "end");
     }
+
+    @Override
+    public Boolean shutdown(AgentPath agentPath, String password) {
+        Agent agent = find(agentPath);
+        String sessionId = createSession(agent);
+        CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SHUTDOWN, String.format("%s", password));
+        cmdInfo.setSessionId(sessionId);
+        Cmd cmd = cmdService.create(cmdInfo);
+        try {
+            cmdService.send(cmd.getId(), false);
+        } catch (Throwable throwable) {
+            return false;
+        }
+        return true;
+    }
 }

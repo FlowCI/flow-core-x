@@ -24,4 +24,6 @@ import java.util.List;
  */
 public interface AgentService {
     List<AgentWithFlow> list();
+
+    Boolean shutdown(String zone, String name, String password);
 }

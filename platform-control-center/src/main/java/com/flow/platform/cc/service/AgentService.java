@@ -50,6 +50,11 @@ public interface AgentService {
     Agent find(AgentPath key);
 
     /**
+     * shutdown agent
+     */
+    Boolean shutdown(AgentPath agentPath, String password);
+
+    /**
      * FInd agent by session id
      */
     Agent find(String sessionId);

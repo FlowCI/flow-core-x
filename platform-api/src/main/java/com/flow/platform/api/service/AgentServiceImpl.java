@@ -24,6 +24,7 @@ import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Value(value = "${platform.agent.url}")
     private String agentUrl;
+
+    @Value(value = "${platform.agent.shutdown.url}")
+    private String shutdownAgentUrl;
 
     @Value(value = "${platform.zone}")
     private String zone;
@@ -87,5 +91,20 @@ public class AgentServiceImpl implements AgentService {
             }
         }
         return j;
+    }
+
+    @Override
+    public Boolean shutdown(String zone, String name, String password) {
+        String url = new StringBuilder(shutdownAgentUrl).append("?zone=" + zone).append("&name=" + name)
+            .append("&password=" + password).toString();
+
+        try {
+            String body = HttpUtil.post(url, "");
+            Boolean res = Jsonable.GSON_CONFIG.fromJson(body, Boolean.class);
+            return res;
+        } catch (Throwable throwable) {
+            LOGGER.traceMarker("shutdown", String.format("exception - %s", throwable));
+            return false;
+        }
     }
 }
