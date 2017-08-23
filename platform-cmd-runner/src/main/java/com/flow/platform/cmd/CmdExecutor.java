@@ -165,6 +165,8 @@ public final class CmdExecutor {
         // init timeout
         if (timeout == null) {
             this.timeout = DEFAULT_TIMEOUT;
+        } else {
+            this.timeout = timeout;
         }
     }
 
@@ -346,8 +348,8 @@ public final class CmdExecutor {
      * put env item which match 'start with filter' to CmdResult.output map
      */
     private void readEnv(final BufferedReader reader,
-                         final Map<String, String> output,
-                         final String filter) throws IOException {
+        final Map<String, String> output,
+        final String filter) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith(filter)) {

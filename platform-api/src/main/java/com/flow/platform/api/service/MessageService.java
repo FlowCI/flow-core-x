@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
-import com.flow.platform.api.domain.JobYmlStorage;
-import com.flow.platform.core.dao.AbstractBaseDao;
-import java.math.BigInteger;
-import org.springframework.stereotype.Repository;
+
+package com.flow.platform.api.service;
+
+import com.flow.platform.api.domain.EmailSettingContent;
+import com.flow.platform.api.domain.MessageType;
+import com.flow.platform.api.domain.SettingContent;
 
 /**
- * @author lhl
+ * @author yh@firim
  */
 
-@Repository(value = "jobYmlStorageDao")
-public class JobYmlStorageDaoImpl extends AbstractBaseDao<BigInteger, JobYmlStorage> implements JobYmlStorageDao {
+public interface MessageService {
 
-    @Override
-    protected Class<JobYmlStorage> getEntityClass() {
-        return JobYmlStorage.class;
-    }
+    SettingContent save(SettingContent t);
 
-    @Override
-    protected String getKeyName() {
-        return "jobId";
-    }
+    SettingContent find(MessageType type);
+
+    void delete(SettingContent t);
+
+    SettingContent update(SettingContent t);
+
+    Boolean authEmailSetting(EmailSettingContent emailSetting);
 }

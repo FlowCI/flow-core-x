@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
-import com.flow.platform.api.domain.JobYmlStorage;
-import com.flow.platform.core.dao.AbstractBaseDao;
-import java.math.BigInteger;
-import org.springframework.stereotype.Repository;
+
+package com.flow.platform.api.test.util;
+
+import com.flow.platform.api.domain.EmailSettingContent;
+import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.SmtpUtil;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author lhl
+ * @author yh@firim
  */
+public class SmtpUtilTest extends TestBase {
 
-@Repository(value = "jobYmlStorageDao")
-public class JobYmlStorageDaoImpl extends AbstractBaseDao<BigInteger, JobYmlStorage> implements JobYmlStorageDao {
-
-    @Override
-    protected Class<JobYmlStorage> getEntityClass() {
-        return JobYmlStorage.class;
-    }
-
-    @Override
-    protected String getKeyName() {
-        return "jobId";
+    @Test
+    public void should_auth_success(){
+        EmailSettingContent emailSetting = new EmailSettingContent("smtp.163.com", 465, "xxxx@163.com");
+        Assert.assertEquals(false, SmtpUtil.authentication(emailSetting));
     }
 }

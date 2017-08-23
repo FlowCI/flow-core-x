@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
-import com.flow.platform.api.domain.JobYmlStorage;
-import com.flow.platform.core.dao.AbstractBaseDao;
-import java.math.BigInteger;
-import org.springframework.stereotype.Repository;
+
+package com.flow.platform.api.domain;
+
+import com.flow.platform.domain.Jsonable;
 
 /**
- * @author lhl
+ * @author yh@firim
  */
+public class SettingContent extends Jsonable {
 
-@Repository(value = "jobYmlStorageDao")
-public class JobYmlStorageDaoImpl extends AbstractBaseDao<BigInteger, JobYmlStorage> implements JobYmlStorageDao {
+    private MessageType type;
 
-    @Override
-    protected Class<JobYmlStorage> getEntityClass() {
-        return JobYmlStorage.class;
+    public MessageType getType() {
+        return type;
     }
 
-    @Override
-    protected String getKeyName() {
-        return "jobId";
+    public void setType(MessageType type) {
+        this.type = type;
     }
 }
