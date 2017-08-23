@@ -226,6 +226,14 @@
             }]
  
   ```
+  
+### Job stop
+``` 
+        Method: Post
+        Route: /jobs/{flowName}/{buildNumber}/stop
+        Response:
+            true or false
+  ```  
 
 ### GET agents
     ```
@@ -243,6 +251,14 @@
              }
            ]
     ```
+    
+### Agent shutdown
+``` 
+        Method: Post
+        Route: /agents/shutdown
+        Response:
+            true or false
+  ```  
 
 ### POST emailSetting
     ```
