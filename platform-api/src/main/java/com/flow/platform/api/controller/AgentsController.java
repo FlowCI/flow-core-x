@@ -45,6 +45,7 @@ public class AgentsController {
     @PostMapping(path = "/shutdown")
     public boolean shutDown(@RequestParam String zone, @RequestParam String name,
         @RequestParam(required = false) String password) {
-        return agentService.shutdown(zone, name, password);
+        Boolean t = agentService.shutdown(zone, name, password);
+        return t;
     }
 }

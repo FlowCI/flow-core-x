@@ -17,6 +17,7 @@ package com.flow.platform.api.test;/*
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.CredentialStorageDao;
@@ -152,7 +153,8 @@ public abstract class TestBase {
             .willReturn(aResponse()
                 .withBody(cmdRes.toJson())));
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/agent/shutdown"))
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock
+            .post(urlEqualTo("/agent/shutdown?zone=default&name=machine&password=123456"))
             .willReturn(aResponse()
                 .withBody(Jsonable.GSON_CONFIG.toJson(true))));
     }
