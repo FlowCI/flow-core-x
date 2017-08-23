@@ -20,6 +20,7 @@ import com.flow.platform.core.service.SysInfoServiceImplBase;
 import com.flow.platform.core.sysinfo.AppServerLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
 import com.flow.platform.core.sysinfo.JvmLoader;
+import com.flow.platform.core.sysinfo.MQLoader;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import com.flow.platform.core.sysinfo.SystemInfo.Type;
@@ -42,20 +43,23 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
     @Value("${zk.host}")
     private String zkHost;
 
+    @Value("${mq.host}")
+    private String mqHost;
+
     @PostConstruct
     public void init() {
         infoLoaders.put(Category.CC, new HashMap<>(5));
 
-        infoLoaders.get(Category.CC)
-            .put(SystemInfo.Type.JVM, new JvmLoader());
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.JVM, new JvmLoader());
 
         infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.DB, new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword));
 
-        infoLoaders.get(Category.CC)
-            .put(SystemInfo.Type.SERVER, new AppServerLoader());
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.SERVER, new AppServerLoader());
 
         infoLoaders.get(Category.CC).put(SystemInfo.Type.ZK, new ZooKeeperLoader(zkHost));
+
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.MQ, new MQLoader(mqHost));
     }
 
     @Override

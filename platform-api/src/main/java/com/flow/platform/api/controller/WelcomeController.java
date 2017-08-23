@@ -27,7 +27,7 @@ public class WelcomeController {
     }
 
     @GetMapping(path = "/sys/{system}/info/{type}")
-    public SystemInfo getJvmInfo(@PathVariable String system, @PathVariable(required = false) String type) {
+    public SystemInfo getSystemInfo(@PathVariable String system, @PathVariable(required = false) String type) {
         try {
             Category targetSystem = Category.valueOf(system.toUpperCase());
             SystemInfo.Type targetType = null;

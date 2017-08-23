@@ -111,4 +111,17 @@ public class WelcomeControllerTest extends TestBase {
         Map<String, String> srvr = zkInfo.get(ZooKeeperGroup.SRVR);
         Assert.assertEquals(8, srvr.size());
     }
+
+    @Test
+    public void should_load_rabbitmq_info() throws Throwable {
+        // when: load zookeeper info
+        MvcResult result = this.mockMvc.perform(get("/sys/info/mq"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then:
+        String content = result.getResponse().getContentAsString();
+        SystemInfo mqInfo = SystemInfo.parse(content, SystemInfo.class);
+        Assert.assertNotNull(mqInfo);
+    }
 }
