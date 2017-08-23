@@ -48,7 +48,7 @@ import org.springframework.web.context.support.StandardServletEnvironment;
  */
 @Configuration
 @Import({DatabaseConfig.class})
-public class AppConfig extends AppConfigBase{
+public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "flow-api";
 
