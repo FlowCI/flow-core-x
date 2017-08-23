@@ -28,7 +28,7 @@ import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.api.util.HttpUtil;
+import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.UrlUtil;

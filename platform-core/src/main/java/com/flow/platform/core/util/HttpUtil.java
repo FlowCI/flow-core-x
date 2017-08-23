@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.util;
+package com.flow.platform.core.util;
 
 import com.flow.platform.util.Logger;
 import java.io.IOException;

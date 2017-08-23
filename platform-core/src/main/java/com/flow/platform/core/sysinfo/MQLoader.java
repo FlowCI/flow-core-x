@@ -16,12 +16,9 @@
 
 package com.flow.platform.core.sysinfo;
 
-import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalURLException;
 import com.google.common.base.Strings;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLDecoder;
 
 /**
@@ -35,17 +32,13 @@ public class MQLoader implements SystemInfoLoader {
         RABBITMQ,
     }
 
-    private final URL mqHostUrl;
+    private final MQURL mqHostUrl;
 
     /**
      * For url format, reference on https://www.rabbitmq.com/uri-spec.html
      */
     public MQLoader(String mqHostUrl) {
-        try {
-            this.mqHostUrl = new URL(mqHostUrl);
-        } catch (MalformedURLException e) {
-            throw new IllegalParameterException("Illegal rabbitmq url");
-        }
+        this.mqHostUrl = new MQURL(mqHostUrl);
     }
 
     @Override

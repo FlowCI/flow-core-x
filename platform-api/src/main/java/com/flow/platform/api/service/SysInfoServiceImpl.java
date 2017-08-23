@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.util.HttpUtil;
+import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.core.service.SysInfoServiceImplBase;
 import com.flow.platform.core.sysinfo.AppServerLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
