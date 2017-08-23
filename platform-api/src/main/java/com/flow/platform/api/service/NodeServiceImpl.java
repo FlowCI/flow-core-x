@@ -251,7 +251,7 @@ public class NodeServiceImpl implements NodeService {
             String yml;
             try {
                  yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
-            } catch (GitException e) {
+            } catch (Throwable e) {
                 flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
                 flowDao.update(flow);
                 return;
