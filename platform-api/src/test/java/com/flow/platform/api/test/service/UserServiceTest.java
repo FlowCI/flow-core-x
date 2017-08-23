@@ -10,6 +10,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * @author liangpengyv
  */
@@ -36,40 +39,51 @@ public class UserServiceTest extends TestBase {
     public void should_login_by_email_success() {
         user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
         userDao.save(user);
+        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
+
         String msg = userService.loginByEmail("liangpengyv@fir.im", "liangpengyv");
-        Assert.assertEquals("{ \"login_status\" : \"success\" }", msg);
+        Assert.assertEquals("token", msg);
     }
 
     @Test
     public void should_login_by_user_name_success() {
         user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
         userDao.save(user);
+        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
+
         String msg = userService.loginByUserName("liangpengyv", "liangpengyv");
-        Assert.assertEquals("{ \"login_status\" : \"success\" }", msg);
+        Assert.assertEquals("token", msg);
     }
 
     @Test
     public void should_register_success() {
-        String msg = userService.register(user);
-        Assert.assertEquals("{ \"register_status\" : \"success\" }", msg);
+        userService.register(user);
+        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
     }
 
     @Test
     public void should_delete_user_success() {
         user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
         userDao.save(user);
-        Assert.assertNotNull(userDao.get(user.getEmail()));
-        userService.deleteUser(user);
-        Assert.assertNull(userDao.get(user.getEmail()));
+        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
+
+        List<String> emailList = new LinkedList<>();
+        emailList.add("liangpengyv@fir.im");
+        userService.delete(emailList);
+        Assert.assertNull(userDao.get("liangpengyv@fir.im"));
     }
 
     @Test
     public void should_switch_role_success() {
         user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
         userDao.save(user);
-        Assert.assertEquals("developer", userDao.get(user.getEmail()).getRoleId());
-        userService.switchRole(user, "admin");
-        Assert.assertEquals("admin", userDao.get(user.getEmail()).getRoleId());
+        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
+        Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
+
+        List<String> emailList = new LinkedList<>();
+        emailList.add("liangpengyv@fir.im");
+        userService.switchRole(emailList, "admin");
+        Assert.assertEquals("admin", userDao.get("liangpengyv@fir.im").getRoleId());
     }
 
     @Test

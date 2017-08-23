@@ -3,9 +3,11 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.dao.UserDao;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.util.StringEncodeUtil;
+import com.flow.platform.core.exception.IllegalParameterException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -18,102 +20,92 @@ public class UserServiceImpl implements UserService {
     private UserDao userDao;
 
     @Override
-    public String loginByEmail(String email, String password) {
+    public String loginByEmail(String email, String password) throws IllegalParameterException {
+        String errMsg = "Illegal login request parameter: ";
+
         //Check format
         if (!checkEmailFormatIsPass(email)) {
-            return "{ \"login_status\" : \"email_format_false\" }";
+            throw new IllegalParameterException(errMsg + "email format false");
         }
         if (!checkPasswordFormatIsPass(password)) {
-            return "{ \"login_status\" : \"password_format_false\" }";
+            throw new IllegalParameterException(errMsg + "password format false");
         }
 
         //Validate database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, "UTF-8");
         if (!emailIsExist(email)) {
-            return "{ \"login_status\" : \"email_is_not_exist\" }";
+            throw new IllegalParameterException(errMsg + "email is not exist");
         }
         if (!passwordOfEmailIsTrue(email, passwordForMD5)) {
-            return "{ \"login_status\" : \"password_fault\" }";
+            throw new IllegalParameterException(errMsg + "password fault");
         }
 
         //Login success
-        return "{ \"login_status\" : \"success\" }";
+        return "token";
     }
 
     @Override
-    public String loginByUserName(String userName, String password) {
+    public String loginByUserName(String userName, String password) throws IllegalParameterException {
+        String errMsg = "Illegal login request parameter: ";
+
         //Check format
         if (!checkUserNameFormatIsPass(userName)) {
-            return "{ \"login_status\" : \"user_name_format_false\" }";
+            throw new IllegalParameterException(errMsg + "user name format false");
         }
         if (!checkPasswordFormatIsPass(password)) {
-            return "{ \"login_status\" : \"password_format_false\" }";
+            throw new IllegalParameterException(errMsg + "password format false");
         }
 
         //Validate database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, "UTF-8");
         if (!userNameIsExist(userName)) {
-            return "{ \"login_status\" : \"user_name_is_not_exist\" }";
+            throw new IllegalParameterException(errMsg + "user name is not exist");
         }
         if (!passwordOfUserNameIsTrue(userName, passwordForMD5)) {
-            return "{ \"login_status\" : \"password_fault\" }";
+            throw new IllegalParameterException(errMsg + "password fault");
         }
 
         //Login success
-        return "{ \"login_status\" : \"success\" }";
+        return "token";
     }
 
     @Override
-    public String register(User user) {
+    public void register(User user) throws IllegalParameterException {
+        String errMsg = "Illegal register request parameter: ";
+
         //Check format
         if (!checkEmailFormatIsPass(user.getEmail())) {
-            return "{ \"register_status\" : \"email_format_false\" }";
+            throw new IllegalParameterException(errMsg + "email format false");
         }
         if (!checkUserNameFormatIsPass(user.getUserName())) {
-            return "{ \"register_status\" : \"user_name_format_false\" }";
+            throw new IllegalParameterException(errMsg + "user name format false");
         }
         if (!checkPasswordFormatIsPass(user.getPassword())) {
-            return "{ \"register_status\" : \"password_format_false\" }";
+            throw new IllegalParameterException(errMsg + "password format false");
         }
 
         //Validate database
         if (emailIsExist(user.getEmail())) {
-            return "{ \"register_status\" : \"email_already_exist\" }";
+            throw new IllegalParameterException(errMsg + "email already exist");
         }
         if (userNameIsExist(user.getUserName())) {
-            return "{ \"register_status\" : \"user_name_already_exist\" }";
+            throw new IllegalParameterException(errMsg + "user name already exist");
         }
 
         //Insert the user info into the database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8");
         user.setPassword(passwordForMD5);
         userDao.save(user);
-        return "{ \"register_status\" : \"success\" }";
     }
 
     @Override
-    public String deleteUser(User user) {
-        if (emailIsExist(user.getEmail())) {
-            //When the user exist, delete it
-            userDao.delete(user);
-            return "{ \"delete_status\" : \"success\" }";
-        } else {
-            return "{ \"delete_status\" : \"user_is_not_exist\" }";
-        }
+    public void delete(List<String> emailList) {
+        userDao.deleteList(emailList);
     }
 
     @Override
-    public String switchRole(User user, String switchTo) {
-        if (emailIsExist(user.getEmail())) {
-            //When the user exist, update it
-            if (userDao.switchUserRoleIdTo(user, switchTo)) {
-                return "{ \"update_status\" : \"success\" }";
-            } else {
-                return "{ \"update_status\" : \"fail\" }";
-            }
-        } else {
-            return "{ \"update_status\" : \"user_is_not_exist\" }";
-        }
+    public void switchRole(List<String> emailList, String roleId) {
+        userDao.switchUserRoleIdTo(emailList, roleId);
     }
 
     @Override

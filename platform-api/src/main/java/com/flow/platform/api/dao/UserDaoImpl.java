@@ -5,6 +5,8 @@ import com.flow.platform.core.dao.AbstractBaseDao;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * @author liangpengyv
  */
@@ -74,13 +76,40 @@ public class UserDaoImpl extends AbstractBaseDao<String, User> implements UserDa
     }
 
     @Override
-    public Boolean switchUserRoleIdTo(User user, String roleId) {
-        return execute((Session session) -> {
-            String update = String.format("update User set role_id='%s' where email='%s'", roleId, user.getEmail());
-            int affectedRows = session.createQuery(update).executeUpdate();
-            if(affectedRows == 0){
+    public void deleteList(List<String> emailList) {
+        String result = "";
+        for (String str : emailList) {
+            result += "'" + str + "',";
+        }
+        result = result.substring(0, result.length() - 1);
+        String emailListString = result;
+
+        execute((Session session) -> {
+            String delete = String.format("delete from User where email in (%s)", emailListString);
+            int affectedRows = session.createQuery(delete).executeUpdate();
+            if (affectedRows == emailList.size()) {
+                return true;
+            } else {
                 return false;
-            }else{
+            }
+        });
+    }
+
+    @Override
+    public void switchUserRoleIdTo(List<String> emailList, String roleId) {
+        String result = "";
+        for (String str : emailList) {
+            result += "'" + str + "',";
+        }
+        result = result.substring(0, result.length() - 1);
+        String emailListString = result;
+
+        execute((Session session) -> {
+            String update = String.format("update User set role_id='%s' where email in (%s)", roleId, emailListString);
+            int affectedRows = session.createQuery(update).executeUpdate();
+            if (affectedRows == 0) {
+                return false;
+            } else {
                 return true;
             }
         });

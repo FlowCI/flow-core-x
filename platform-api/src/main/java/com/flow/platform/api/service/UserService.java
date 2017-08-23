@@ -2,6 +2,8 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.User;
 
+import java.util.List;
+
 /**
  * @author liangpengyv
  */
@@ -29,26 +31,23 @@ public interface UserService {
      * Register
      *
      * @param user
-     * @return
      */
-    String register(User user);
+    void register(User user);
 
     /**
      * Delete a user
      *
-     * @param user
-     * @return
+     * @param emailList
      */
-    String deleteUser(User user);
+    void delete(List<String> emailList);
 
     /**
      * Update role_id of user
      *
-     * @param user
-     * @param switchTo
-     * @return
+     * @param emailList
+     * @param roleId
      */
-    String switchRole(User user, String switchTo);
+    void switchRole(List<String> emailList, String roleId);
 
     /**
      * Check the format of the email

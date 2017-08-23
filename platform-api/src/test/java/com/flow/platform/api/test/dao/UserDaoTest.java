@@ -9,6 +9,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * @author liangpengyv
  */
@@ -25,14 +28,14 @@ public class UserDaoTest extends TestBase {
         user.setEmail("liangpengyv@fir.im");
         user.setUserName("liangpengyv");
         user.setPassword(StringEncodeUtil.encodeByMD5("liangpengyv", "UTF-8"));
+        user.setRoleId("developer");
         userDao.save(user);
     }
 
     @Test
     public void should_save_and_get_success() {
-        User user1 = userDao.get(user.getEmail());
-        Assert.assertNotNull(user1);
-        Assert.assertEquals(user.getEmail(), user1.getEmail());
+        Assert.assertNotNull(userDao.get(user.getEmail()));
+        Assert.assertEquals(user.getEmail(), userDao.get(user.getEmail()).getEmail());
     }
 
     @Test
@@ -53,5 +56,25 @@ public class UserDaoTest extends TestBase {
     @Test
     public void should_password_of_user_name_is_true_success() {
         Assert.assertEquals(true, userDao.passwordOfUserNameIsTrue(user.getUserName(), user.getPassword()));
+    }
+
+    @Test
+    public void should_delete_list_success() {
+        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
+
+        List<String> emailList = new LinkedList<>();
+        emailList.add("liangpengyv@fir.im");
+        userDao.deleteList(emailList);
+        Assert.assertNull(userDao.get("liangpengyv@fir.im"));
+    }
+
+    @Test
+    public void should_switch_role_success() {
+        Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
+
+        List<String> emailList = new LinkedList<>();
+        emailList.add("liangpengyv@fir.im");
+        userDao.switchUserRoleIdTo(emailList, "admin");
+        Assert.assertEquals("admin", userDao.get("liangpengyv@fir.im").getRoleId());
     }
 }

@@ -50,60 +50,51 @@ public class UserControllerTest extends TestBase {
         mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON).content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
-        Assert.assertEquals("{ \"login_status\" : \"success\" }", responseContent);
+        Assert.assertEquals("token", responseContent);
 
         requestContent = "{ \"userName\" : \"liangpengyv\", \"password\" : \"liangpengyv\" }";
         mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON).content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
-        Assert.assertEquals("{ \"login_status\" : \"success\" }", responseContent);
+        Assert.assertEquals("token", responseContent);
     }
 
     @Test
     public void should_register_success() throws Throwable {
         String requestContent;
-        String responseContent;
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
-        MvcResult mvcResult;
 
         requestContent = "{ \"email\" : \"test1@fir.im\", \"userName\" : \"test1\", \"password\" : \"test1\", \"roleId\" : \"developer\" }";
         mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON).content(requestContent);
-        mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
-        responseContent = mvcResult.getResponse().getContentAsString();
+        mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         Assert.assertNotNull(userDao.get("test1@fir.im"));
-        Assert.assertEquals("{ \"register_status\" : \"success\" }", responseContent);
     }
 
     @Test
     public void should_delete_user_success() throws Throwable {
         String requestContent;
-        String responseContent;
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
-        MvcResult mvcResult;
 
-        Assert.assertNotNull(userDao.get(user.getEmail()));
+        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 
-        requestContent = "[ {\"email\" : \"liangpengyv@fir.im\"} ]";
-        mockHttpServletRequestBuilder = post("/user/delete_user").contentType(MediaType.APPLICATION_JSON).content(requestContent);
-        mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
-        responseContent = mvcResult.getResponse().getContentAsString();
-        Assert.assertNull(userDao.get(user.getEmail()));
-        Assert.assertEquals("[{ \"delete_status\" : \"success\" }]", responseContent);
+        requestContent = "[ \"liangpengyv@fir.im\" ]";
+        mockHttpServletRequestBuilder = post("/user/delete").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
+        Assert.assertNull(userDao.get("liangpengyv@fir.im"));
     }
 
     @Test
     public void should_switch_role_success() throws Throwable {
         String requestContent;
-        String responseContent;
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
         MvcResult mvcResult;
 
-        Assert.assertEquals("developer", userDao.get(user.getEmail()).getRoleId());
+        Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
 
-        requestContent = "{ \"users\" : [ {\"email\" : \"liangpengyv@fir.im\"} ], \"switchTo\" : \"admin\" }";
+        requestContent = "{ \"emailList\" : [ \"liangpengyv@fir.im\" ], \"switchTo\" : \"admin\" }";
         mockHttpServletRequestBuilder = post("/user/switch_role").contentType(MediaType.APPLICATION_JSON).content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
-        responseContent = mvcResult.getResponse().getContentAsString();
-        Assert.assertEquals("admin", userDao.get(user.getEmail()).getRoleId());
+        mvcResult.getResponse().getContentAsString();
+        Assert.assertEquals("admin", userDao.get("liangpengyv@fir.im").getRoleId());
     }
 }

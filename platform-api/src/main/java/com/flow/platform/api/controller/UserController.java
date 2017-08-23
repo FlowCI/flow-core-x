@@ -1,15 +1,12 @@
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.SwitchRoleRequest;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.service.UserService;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author liangpengyv
@@ -39,32 +36,19 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody User user) {
-        return userService.register(user);
+    public void register(@RequestBody User user) {
+        userService.register(user);
     }
 
-    @PostMapping("/delete_user")
-    public String deleteUser(@RequestBody User[] users) {
-        String msg = "[";
-        for (User user : users) {
-            msg += userService.deleteUser(user) + ",";
-        }
-        msg = msg.substring(0, msg.length() - 1) + "]";
-        return msg;
+    @PostMapping("/delete")
+    public void delete(@RequestBody List<String> emailList) {
+        userService.delete(emailList);
     }
 
     @PostMapping("/switch_role")
-    public String switchRole(@RequestBody JsonObject jsonObject) {
-        String msg = "[";
-
-        User[] users = new Gson().fromJson(jsonObject.get("users").getAsJsonArray(), User[].class);
-        String switchTo = jsonObject.get("switchTo").toString();
-        
-        switchTo = switchTo.substring(1, switchTo.length() - 1);
-        for (User user : users) {
-            msg += userService.switchRole(user, switchTo) + ",";
-        }
-        msg = msg.substring(0, msg.length() - 1) + "]";
-        return msg;
+    public void switchRole(@RequestBody SwitchRoleRequest switchRoleRequest) {
+        List<String> emailList = switchRoleRequest.getUsers();
+        String roleId = switchRoleRequest.getSwitchTo();
+        userService.switchRole(emailList, roleId);
     }
 }

@@ -3,6 +3,8 @@ package com.flow.platform.api.dao;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.core.dao.BaseDao;
 
+import java.util.List;
+
 /**
  * @author liangpengyv
  */
@@ -43,11 +45,17 @@ public interface UserDao extends BaseDao<String, User> {
     Boolean passwordOfUserNameIsTrue(String userName, String password);
 
     /**
+     * Delete a group users through email
+     *
+     * @param emailList
+     */
+    void deleteList(List<String> emailList);
+
+    /**
      * Switch the role_id of the user
      *
-     * @param user
+     * @param emailList
      * @param roleId
-     * @return
      */
-    Boolean switchUserRoleIdTo(User user, String roleId);
+    void switchUserRoleIdTo(List<String> emailList, String roleId);
 }
