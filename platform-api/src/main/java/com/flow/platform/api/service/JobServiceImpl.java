@@ -573,13 +573,15 @@ public class JobServiceImpl implements JobService {
         updateNodeResult(runningJob, NodeStatus.STOPPED);
 
         try {
-            HttpUtil.post(url, "");
+            String res = HttpUtil.post(url, "");
+            if (Strings.isNullOrEmpty(res)) {
+                return false;
+            }
+            return true;
         } catch (Throwable throwable) {
             LOGGER.traceMarker("stopJob", String.format("stop job error - %s", throwable));
             return false;
         }
-
-        return true;
     }
 
     private void updateNodeResult(Job job, NodeStatus status) {

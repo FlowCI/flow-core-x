@@ -112,7 +112,9 @@ public class NodeServiceImpl implements NodeService {
 
         // reset cache
         treeCache.invalidate(flow.getPath());
-        return flow;
+
+        //retry find flow
+        return findFlow(PathUtil.rootPath(path));
     }
 
     @Override
