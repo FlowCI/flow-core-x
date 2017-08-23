@@ -31,8 +31,11 @@ public interface NodeService {
     /**
      * Create or update tree from yml config file content
      * and persistent flow node and yml content
+     *
+     * It will set two env in the flow
+     *
      * - FLOW_STATUS = READY
-     * - FLOW_YML_STATUS = FOUND
+     * - FLOW_YML_STATUS = FOUND or ERROR
      *
      * @param path any path
      * @param yml raw yml
