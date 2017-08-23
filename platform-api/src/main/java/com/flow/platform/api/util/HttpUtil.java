@@ -17,6 +17,7 @@
 package com.flow.platform.api.util;
 
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.function.Consumer;
@@ -100,7 +101,11 @@ public class HttpUtil {
                 int statusCode = response.getStatusLine().getStatusCode();
                 ResponseHandler<String> handler = new BasicResponseHandler();
                 if (statusCode == 200) {
-                    consumer.accept(handler.handleResponse(response));
+                    String body = handler.handleResponse(response);
+                    if (Strings.isNullOrEmpty(body)) {
+                        body = "true";
+                    }
+                    consumer.accept(body);
                 } else {
                     tryTimes += 1;
                     exec(httpUriRequest, tryTimes, consumer);

@@ -55,8 +55,11 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
 
     /**
      * get max number
-     * @param flowName
-     * @return
      */
     Integer maxBuildNumber(String flowName);
+
+    /**
+     * find running job
+     */
+    Job get (String flowName, NodeStatus status);
 }

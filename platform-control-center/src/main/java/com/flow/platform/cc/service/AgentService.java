@@ -41,6 +41,8 @@ public interface AgentService {
      */
     List<Agent> onlineList(String zone);
 
+    List<Agent> list(String zone);
+
     /**
      * Find agent by zone and agent name from online list
      *
@@ -48,6 +50,11 @@ public interface AgentService {
      * @return Agent object, or null if not found
      */
     Agent find(AgentPath key);
+
+    /**
+     * shutdown agent
+     */
+    Boolean shutdown(AgentPath agentPath, String password);
 
     /**
      * FInd agent by session id

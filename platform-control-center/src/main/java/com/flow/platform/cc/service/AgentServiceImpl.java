@@ -28,6 +28,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -100,6 +101,14 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public List<Agent> onlineList(String zone) {
         return agentDao.list(zone, "createdDate", AgentStatus.IDLE, AgentStatus.BUSY);
+    }
+
+    @Override
+    public List<Agent> list(String zone) {
+        if (Strings.isNullOrEmpty(zone)) {
+            return agentDao.list();
+        }
+        return onlineList(zone);
     }
 
     @Override
@@ -179,5 +188,20 @@ public class AgentServiceImpl implements AgentService {
         }
 
         LOGGER.traceMarker("sessionTimeoutTask", "end");
+    }
+
+    @Override
+    public Boolean shutdown(AgentPath agentPath, String password) {
+        Agent agent = find(agentPath);
+        String sessionId = createSession(agent);
+        CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SHUTDOWN, String.format("%s", password));
+        cmdInfo.setSessionId(sessionId);
+        Cmd cmd = cmdService.create(cmdInfo);
+        try {
+            cmdService.send(cmd.getId(), false);
+        } catch (Throwable throwable) {
+            return false;
+        }
+        return true;
     }
 }

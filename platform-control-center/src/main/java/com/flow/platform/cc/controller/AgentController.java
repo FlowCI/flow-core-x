@@ -42,13 +42,19 @@ public class AgentController {
      * List online agents by zone name
      */
     @GetMapping(path = "/list")
-    public Collection<Agent> list(@RequestParam(name = "zone") String zoneName) {
-        return agentService.onlineList(zoneName);
+    public Collection<Agent> list(@RequestParam(name = "zone", required = false) String zoneName) {
+        return agentService.list(zoneName);
     }
 
     @GetMapping(path = "/find")
     public Agent find(@RequestParam(name = "zone") String zoneName, @RequestParam(name = "name") String agentName) {
         return agentService.find(new AgentPath(zoneName, agentName));
+    }
+
+    @PostMapping(path = "/shutdown")
+    public boolean shutDown(@RequestParam String zone, @RequestParam String name,
+        @RequestParam(required = false) String password) {
+        return agentService.shutdown(new AgentPath(zone, name), password);
     }
 
     /**
