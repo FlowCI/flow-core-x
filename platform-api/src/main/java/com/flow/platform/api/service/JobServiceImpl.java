@@ -31,6 +31,7 @@ import com.flow.platform.api.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.UrlUtil;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -112,9 +113,15 @@ public class JobServiceImpl implements JobService {
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
-        String yml = nodeService.getYmlContent(root.getPath());
-        if (Strings.isNullOrEmpty(yml)) {
-            throw new NotFoundException("Yml content not found for path " + path);
+        String yml = null;
+        try {
+            yml = nodeService.getYmlContent(root.getPath());
+            if (Strings.isNullOrEmpty(yml)) {
+                throw new IllegalStatusException("Yml is loading for path " + path);
+            }
+        } catch (FlowException e) {
+            LOGGER.error("Fail to get yml content", e);
+            throw e;
         }
 
         // create job
@@ -543,7 +550,7 @@ public class JobServiceImpl implements JobService {
         if (runningJob == null) {
             throw new NotFoundException(String.format("running job not found name - %s", name));
         }
-        
+
         //job in create session status
         if (runningJob.getStatus() == NodeStatus.ENQUEUE || runningJob.getStatus() == NodeStatus.PENDING) {
             cmdId = runningJob.getCmdId();

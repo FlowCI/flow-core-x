@@ -21,13 +21,30 @@ package com.flow.platform.api.domain.envs;
  */
 public enum FlowEnvs implements EnvKey {
 
-    FLOW_STATUS;
+    /**
+     * Indicate flow is ready to run
+     */
+    FLOW_STATUS,
+
+    /**
+     * Indicate flow yml loading, ready
+     */
+    FLOW_YML_STATUS;
 
     public enum Value implements EnvValue {
 
         FLOW_STATUS_READY("READY"),
 
-        FLOW_STATUS_PENDING("PENDING");
+        FLOW_STATUS_PENDING("PENDING"),
+
+
+        FLOW_YML_STATUS_LOADING("LOADING"),
+
+        FLOW_YML_STATUS_NOT_FOUND("NOT_FOUND"),
+
+        FLOW_YML_STATUS_FOUND("FOUND"),
+
+        FLOW_YML_STATUS_ERROR("ERROR");
 
         private String value;
 

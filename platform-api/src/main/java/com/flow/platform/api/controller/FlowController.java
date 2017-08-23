@@ -21,9 +21,11 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,10 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path = "/flows")
-public class FlowController {
-
-    @Autowired
-    private NodeService nodeService;
+public class FlowController extends NodeController {
 
     @GetMapping
     public List<Flow> index() {
@@ -50,7 +49,11 @@ public class FlowController {
     @GetMapping(path = "/{flowName}")
     public Node show(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        return nodeService.find(PathUtil.build(flowName));
+        Node node = nodeService.find(PathUtil.build(flowName));
+        if (node == null) {
+            throw new IllegalParameterException(String.format("The flow name %s doesn't exist", flowName));
+        }
+        return node;
     }
 
     @PostMapping("/{flowName}")
@@ -59,10 +62,16 @@ public class FlowController {
         return nodeService.createEmptyFlow(flowName);
     }
 
-    @PostMapping("/{flowName}/env")
-    public void setFlowEnv(@PathVariable String flowName, @RequestBody Map<String, String> envs) {
+    @PostMapping(path = "/{flowName}/delete")
+    public Node delete(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        nodeService.setFlowEnv(PathUtil.build(flowName), envs);
+        return nodeService.delete(PathUtil.build(flowName));
+    }
+
+    @PostMapping("/{flowName}/env")
+    public Node setFlowEnv(@PathVariable String flowName, @RequestBody Map<String, String> envs) {
+        PathUtil.validateName(flowName);
+        return nodeService.setFlowEnv(PathUtil.build(flowName), envs);
     }
 
     /**
@@ -77,8 +86,7 @@ public class FlowController {
     @GetMapping("/{flowName}/yml")
     public String getRawYml(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        String yml = nodeService.getYmlContent(PathUtil.build(flowName));
-        return yml == null ? "" : yml;
+        return nodeService.getYmlContent(PathUtil.build(flowName));
     }
 
     @GetMapping("/{flowName}/yml/load")

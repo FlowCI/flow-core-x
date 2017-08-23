@@ -18,8 +18,8 @@ package com.flow.platform.api.test.integration;
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
-import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
@@ -65,10 +65,11 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
         nodeService.setFlowEnv(flow.getPath(), env);
 
-        final Flow loaded = (Flow) nodeService.find(flow.getPath());
+        Flow loaded = (Flow) nodeService.find(flow.getPath());
         Assert.assertNotNull(loaded);
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), loaded.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GIT_URL, loaded.getEnv(GitEnvs.FLOW_GIT_URL));
+        Assert.assertEquals(FlowEnvs.Value.FLOW_YML_STATUS_NOT_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // async to clone and return .flow.yml content
         final CountDownLatch latch = new CountDownLatch(1);
@@ -79,6 +80,9 @@ public class CreateFlowTest extends TestBase {
         });
 
         latch.await(60, TimeUnit.SECONDS);
+
+        loaded = (Flow) nodeService.find(flow.getPath());
+        Assert.assertEquals(FlowEnvs.Value.FLOW_YML_STATUS_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // create node by yml content
         nodeService.createOrUpdate(loaded.getPath(), yml.toString());

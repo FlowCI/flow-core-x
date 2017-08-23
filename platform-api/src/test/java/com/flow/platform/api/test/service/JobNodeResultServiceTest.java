@@ -27,7 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author yh@firim
+ * @author lhl
  */
 public class JobNodeResultServiceTest extends TestBase {
 

@@ -82,13 +82,6 @@ public class GitWebHookController {
             nodeService.loadYmlContent(path, yml -> {
                 LOGGER.trace("Yml content has been loaded for path : " + path);
 
-                // update yml content
-                try {
-                    nodeService.createOrUpdate(path, yml.getFile());
-                } catch (Throwable e) {
-                    LOGGER.warn("Fail to create or update yml in node");
-                }
-
                 // start job
                 try {
                     Job job = jobService.createJob(path);

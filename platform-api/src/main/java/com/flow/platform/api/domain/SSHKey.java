@@ -13,26 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
-import com.flow.platform.api.domain.JobYmlStorage;
-import com.flow.platform.core.dao.AbstractBaseDao;
-import java.math.BigInteger;
-import org.springframework.stereotype.Repository;
+package com.flow.platform.api.domain;
+
+import com.google.gson.annotations.Expose;
 
 /**
  * @author lhl
  */
+public class SSHKey extends Credential {
 
-@Repository(value = "jobYmlStorageDao")
-public class JobYmlStorageDaoImpl extends AbstractBaseDao<BigInteger, JobYmlStorage> implements JobYmlStorageDao {
+    @Expose
+    protected String publicKey;
 
-    @Override
-    protected Class<JobYmlStorage> getEntityClass() {
-        return JobYmlStorage.class;
+    @Expose
+    protected String privateKey;
+
+
+    public SSHKey(String name) {
+        super(name);
     }
 
-    @Override
-    protected String getKeyName() {
-        return "jobId";
+    public SSHKey() {
     }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }
+
 }

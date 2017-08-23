@@ -28,6 +28,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -104,11 +105,10 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public List<Agent> list(String zone) {
-        if (zone == null) {
+        if (Strings.isNullOrEmpty(zone)) {
             return agentDao.list();
-        } else {
-            return onlineList(zone);
         }
+        return onlineList(zone);
     }
 
     @Override
