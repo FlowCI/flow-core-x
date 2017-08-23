@@ -66,7 +66,7 @@ public class AppServerLoader implements SystemInfoLoader {
         }
 
         try {
-            SystemInfo info = new SystemInfo(Status.RUNNING);
+            GroupSystemInfo info = new GroupSystemInfo(Status.RUNNING);
             Map<String, String> infoContent = new HashMap<>();
             infoContent.put("tomcat.home", catalinaBase);
             info.put(AppServerGroup.TOMCAT, infoContent);

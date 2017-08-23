@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.core.sysinfo.GroupSystemInfo;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.core.service.SysInfoServiceImplBase;
 import com.flow.platform.core.sysinfo.AppServerLoader;
@@ -48,25 +49,18 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
     public void init() {
         // init api system loader
         infoLoaders.put(Category.API, new HashMap<>(3));
-        infoLoaders.get(Category.API)
-            .put(SystemInfo.Type.JVM, new JvmLoader());
+        infoLoaders.get(Category.API).put(SystemInfo.Type.JVM, new JvmLoader());
         infoLoaders.get(Category.API)
             .put(SystemInfo.Type.DB, new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword));
-        infoLoaders.get(Category.API)
-            .put(SystemInfo.Type.SERVER, new AppServerLoader());
+        infoLoaders.get(Category.API).put(SystemInfo.Type.SERVER, new AppServerLoader());
 
         // init cc system loader
         infoLoaders.put(Category.CC, new HashMap<>(5));
-        infoLoaders.get(Category.CC)
-            .put(SystemInfo.Type.JVM, new ControlCenterInfoLoader(SystemInfo.Type.JVM));
-        infoLoaders.get(Category.CC)
-            .put(SystemInfo.Type.DB, new ControlCenterInfoLoader(SystemInfo.Type.DB));
-        infoLoaders.get(Category.CC)
-            .put(SystemInfo.Type.SERVER, new ControlCenterInfoLoader(SystemInfo.Type.SERVER));
-        infoLoaders.get(Category.CC)
-            .put(SystemInfo.Type.ZK, new ControlCenterInfoLoader(SystemInfo.Type.ZK));
-        infoLoaders.get(Category.CC)
-            .put(SystemInfo.Type.MQ, new ControlCenterInfoLoader(SystemInfo.Type.MQ));
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.JVM, new ControlCenterInfoLoader(SystemInfo.Type.JVM));
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.DB, new ControlCenterInfoLoader(SystemInfo.Type.DB));
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.SERVER, new ControlCenterInfoLoader(SystemInfo.Type.SERVER));
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.ZK, new ControlCenterInfoLoader(SystemInfo.Type.ZK));
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.MQ, new ControlCenterInfoLoader(SystemInfo.Type.MQ));
     }
 
     @Override
@@ -88,7 +82,7 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
             if (response == null) {
                 return null;
             }
-            return SystemInfo.parse(response, SystemInfo.class);
+            return SystemInfo.parse(response, GroupSystemInfo.class);
         }
     }
 }

@@ -53,7 +53,7 @@ public class NodeServiceTest extends TestBase {
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
 
-        List children = root.getChildren();
+        List children = nodeService.find(root.getPath()).getChildren();
         Assert.assertNotNull(nodeService.find(((Node) children.get(0)).getPath()));
         Assert.assertNotNull(nodeService.find(((Node) children.get(1)).getPath()));
     }

@@ -70,7 +70,7 @@ public class MQLoader implements SystemInfoLoader {
 
             RabbitMQOverView mqInfo = RabbitMQOverView.parse(responseBody, RabbitMQOverView.class);
 
-            SystemInfo info = new SystemInfo(Status.RUNNING);
+            GroupSystemInfo info = new GroupSystemInfo(Status.RUNNING);
             info.setName(mqInfo.clusterName);
             info.setVersion(mqInfo.version);
             info.put(MQGroup.RABBITMQ, new HashMap<>());

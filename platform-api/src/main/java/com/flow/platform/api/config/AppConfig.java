@@ -19,6 +19,7 @@ package com.flow.platform.api.config;
 import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
+import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -52,6 +53,11 @@ public class AppConfig extends AppConfigBase{
 
     @Value("${api.workspace}")
     private String workspace;
+
+    @Override
+    public SystemInfo systemInfo() {
+        return null;
+    }
 
     @Bean
     public Path workspace() {

@@ -24,6 +24,7 @@ import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.service.SysInfoService;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader.DBGroupName;
+import com.flow.platform.core.sysinfo.GroupSystemInfo;
 import com.flow.platform.core.sysinfo.JvmLoader;
 import com.flow.platform.core.sysinfo.JvmLoader.JvmGroup;
 import com.flow.platform.core.sysinfo.SystemInfo;
@@ -64,7 +65,7 @@ public class SysInfoServiceTest extends TestBase {
     @Test
     public void should_get_api_jvm_info() throws Throwable {
         // when:
-        SystemInfo jvmInfo = sysInfoService.get(Category.API, Type.JVM);
+        GroupSystemInfo jvmInfo = (GroupSystemInfo) sysInfoService.get(Category.API, Type.JVM);
         Assert.assertNotNull(jvmInfo);
 
         // then:
@@ -83,7 +84,7 @@ public class SysInfoServiceTest extends TestBase {
     @Test
     public void should_get_api_db_info() throws Throwable {
         // when:
-        SystemInfo dbInfo = sysInfoService.get(Category.API, Type.DB);
+        GroupSystemInfo dbInfo = (GroupSystemInfo) sysInfoService.get(Category.API, Type.DB);
         Assert.assertNotNull(dbInfo);
 
         // then:
@@ -104,7 +105,7 @@ public class SysInfoServiceTest extends TestBase {
         JvmLoader jvmLoader = new JvmLoader();
         stubFor(get("/sys/info/jvm").willReturn(aResponse().withBody(jvmLoader.load().toJson())));
 
-        SystemInfo jvmInfo = sysInfoService.get(Category.CC, Type.JVM);
+        GroupSystemInfo jvmInfo = (GroupSystemInfo) sysInfoService.get(Category.CC, Type.JVM);
         Assert.assertNotNull(jvmInfo);
 
         Assert.assertEquals(3, jvmInfo.size());
@@ -124,7 +125,7 @@ public class SysInfoServiceTest extends TestBase {
         DBInfoLoader dbInfoLoader = new DBInfoLoader("com.mysql.jdbc.Driver", jdbcUrl, jdbcUsername, jdbcPassword);
         stubFor(get("/sys/info/db").willReturn(aResponse().withBody(dbInfoLoader.load().toJson())));
 
-        SystemInfo dbInfo = sysInfoService.get(Category.CC, Type.DB);
+        GroupSystemInfo dbInfo = (GroupSystemInfo) sysInfoService.get(Category.CC, Type.DB);
         Assert.assertNotNull(dbInfo);
 
         Map<String, String> mysqlInfo = dbInfo.get(DBGroupName.MYSQL);

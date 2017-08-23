@@ -16,6 +16,7 @@
 
 package com.flow.platform.core.config;
 
+import com.flow.platform.core.sysinfo.SystemInfo;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -27,6 +28,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
     "com.flow.platform.core.service"
 })
 public abstract class AppConfigBase {
+
+    public abstract SystemInfo systemInfo();
 
     protected ThreadPoolTaskExecutor taskExecutor(int asyncPoolSize, String threadNamePrefix) {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();

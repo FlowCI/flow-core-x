@@ -18,8 +18,7 @@ package com.flow.platform.core.sysinfo;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.ZonedDateTime;
 
 /**
  * @author yang
@@ -57,8 +56,6 @@ public class SystemInfo extends Jsonable {
         MQ,
     }
 
-    private final static int DEFAULT_GROUP_NUM = 5;
-
     @Expose
     private String name;
 
@@ -69,7 +66,7 @@ public class SystemInfo extends Jsonable {
     private Status status;
 
     @Expose
-    private Map<String, Map<String, String>> info = new HashMap<>(DEFAULT_GROUP_NUM);
+    private ZonedDateTime startTime;
 
     public SystemInfo() {
     }
@@ -102,23 +99,11 @@ public class SystemInfo extends Jsonable {
         this.status = status;
     }
 
-    public Map<String, Map<String, String>> getInfo() {
-        return info;
+    public ZonedDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setInfo(Map<String, Map<String, String>> info) {
-        this.info = info;
-    }
-
-    public void put(GroupName key, Map<String, String> content) {
-        info.put(key.name(), content);
-    }
-
-    public Map<String, String> get(GroupName key) {
-        return info.get(key.name());
-    }
-
-    public int size() {
-        return info.size();
+    public void setStartTime(ZonedDateTime startTime) {
+        this.startTime = startTime;
     }
 }

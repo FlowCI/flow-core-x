@@ -19,9 +19,11 @@ package com.flow.platform.api.test.sysinfo;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader.DBGroupName;
+import com.flow.platform.core.sysinfo.GroupSystemInfo;
 import com.flow.platform.core.sysinfo.JvmLoader;
 import com.flow.platform.core.sysinfo.JvmLoader.JvmGroup;
 import com.flow.platform.core.sysinfo.SystemInfo;
+import java.security.acl.Group;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,13 +47,13 @@ public class SysInfoTest extends TestBase {
 
     @Test
     public void should_load_jvm_properties() throws Throwable {
-        SystemInfo jvmInfo = new JvmLoader().load();
+        GroupSystemInfo jvmInfo = (GroupSystemInfo) new JvmLoader().load();
         Assert.assertEquals(JvmGroup.values().length, jvmInfo.size());
     }
 
     @Test
     public void should_load_mysql_properties() throws Throwable {
-        SystemInfo dbInfo = new DBInfoLoader(driverName, dbUrl, username, password).load();
+        GroupSystemInfo dbInfo = (GroupSystemInfo) new DBInfoLoader(driverName, dbUrl, username, password).load();
         Assert.assertNotNull(dbInfo);
 
         Map<String, String> map = dbInfo.get(DBGroupName.MYSQL);

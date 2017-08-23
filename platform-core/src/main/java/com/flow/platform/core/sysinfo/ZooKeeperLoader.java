@@ -59,7 +59,7 @@ public class ZooKeeperLoader implements SystemInfoLoader {
         Map<String, String> ruok = execFourLetterCmd(ZooKeeperGroup.RUOK);
         Map<String, String> conf = execFourLetterCmd(ZooKeeperGroup.CONF);
 
-        SystemInfo info = new SystemInfo();
+        GroupSystemInfo info = new GroupSystemInfo();
         info.setVersion(srvr.remove(ZK_VERSION_KEY));
         info.setName("ZooKeeper");
         info.setStatus(ruok.containsKey(RuokConsumer.STATES) ? Status.RUNNING : Status.OFFLINE);

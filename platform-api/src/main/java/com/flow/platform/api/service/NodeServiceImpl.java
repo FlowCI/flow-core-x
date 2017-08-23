@@ -95,8 +95,7 @@ public class NodeServiceImpl implements NodeService {
         try {
             rootFromYml = verifyYml(path, yml);
         } catch (IllegalParameterException | YmlException e) {
-            flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
-            flowDao.update(flow);
+            updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
             return flow;
         }
 
@@ -230,12 +229,11 @@ public class NodeServiceImpl implements NodeService {
         final Set<String> requiredEnvSet = Sets.newHashSet(GitEnvs.FLOW_GIT_URL.name(), GitEnvs.FLOW_GIT_SOURCE.name());
 
         if (!EnvUtil.hasRequired(flow, requiredEnvSet)) {
-            throw new IllegalParameterException("Missing required envs");
+            throw new IllegalParameterException("Missing required envs: FLOW_GIT_URL FLOW_GIT_SOURCE");
         }
 
         // update FLOW_YML_STATUS to LOADING
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_LOADING);
-        flowDao.update(flow);
+        updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_LOADING);
 
         // async to load yml file
         taskExecutor.execute(() -> {
@@ -323,5 +321,10 @@ public class NodeServiceImpl implements NodeService {
         }
 
         return (Flow) node;
+    }
+
+    private void updateYmlState(Flow flow, FlowEnvs.Value state) {
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
+        flowDao.update(flow);
     }
 }

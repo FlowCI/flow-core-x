@@ -65,7 +65,7 @@ public class DBInfoLoader implements SystemInfoLoader {
                 mysql.put("db.username", username);
                 mysql.put("db.password", password);
 
-                SystemInfo dbInfo = new SystemInfo(Status.RUNNING);
+                GroupSystemInfo dbInfo = new GroupSystemInfo(Status.RUNNING);
                 dbInfo.setName(md.getDatabaseProductName());
                 dbInfo.setVersion(md.getDatabaseProductVersion());
                 dbInfo.put(DBGroupName.MYSQL, mysql);

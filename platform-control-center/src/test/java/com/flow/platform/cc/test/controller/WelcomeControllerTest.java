@@ -20,12 +20,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.cc.controller.WelcomeController;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.core.sysinfo.DBInfoLoader.DBGroupName;
+import com.flow.platform.core.sysinfo.GroupSystemInfo;
 import com.flow.platform.core.sysinfo.JvmLoader.JvmGroup;
-import com.flow.platform.core.sysinfo.MQLoader;
 import com.flow.platform.core.sysinfo.MQLoader.MQGroup;
+import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.core.sysinfo.ZooKeeperLoader.ZooKeeperGroup;
@@ -49,10 +49,10 @@ public class WelcomeControllerTest extends TestBase {
 
         // then:
         String content = result.getResponse().getContentAsString();
-        WelcomeController.AppStatus appStatus = gsonConfig.fromJson(content, WelcomeController.AppStatus.class);
-
-        Assert.assertNotNull(appStatus);
-        Assert.assertEquals("OK", appStatus.getStatus());
+        PropertySystemInfo ccInfo = SystemInfo.parse(content, PropertySystemInfo.class);
+        Assert.assertNotNull(ccInfo);
+        Assert.assertNotNull(ccInfo.getInfo());
+        Assert.assertTrue(ccInfo.getInfo().size() > 1);
     }
 
     @Test
@@ -64,7 +64,7 @@ public class WelcomeControllerTest extends TestBase {
 
         // then:
         String content = result.getResponse().getContentAsString();
-        SystemInfo jvmInfo = SystemInfo.parse(content, SystemInfo.class);
+        GroupSystemInfo jvmInfo = GroupSystemInfo.parse(content, GroupSystemInfo.class);
 
         Map<String, String> jvmOsInfo = jvmInfo.get(JvmGroup.OS);
         Assert.assertNotNull(jvmOsInfo);
@@ -88,7 +88,7 @@ public class WelcomeControllerTest extends TestBase {
 
         // then:
         String content = result.getResponse().getContentAsString();
-        SystemInfo dbInfo = SystemInfo.parse(content, SystemInfo.class);
+        GroupSystemInfo dbInfo = SystemInfo.parse(content, GroupSystemInfo.class);
 
         Map<String, String> mysqlInfo = dbInfo.get(DBGroupName.MYSQL);
         Assert.assertNotNull(mysqlInfo);
@@ -104,7 +104,7 @@ public class WelcomeControllerTest extends TestBase {
 
         // then:
         String content = result.getResponse().getContentAsString();
-        SystemInfo zkInfo = SystemInfo.parse(content, SystemInfo.class);
+        GroupSystemInfo zkInfo = SystemInfo.parse(content, GroupSystemInfo.class);
         Assert.assertNotNull(zkInfo);
         Assert.assertEquals(SystemInfo.Status.RUNNING, zkInfo.getStatus());
 
@@ -124,7 +124,7 @@ public class WelcomeControllerTest extends TestBase {
 
         // then:
         String content = result.getResponse().getContentAsString();
-        SystemInfo mqInfo = SystemInfo.parse(content, SystemInfo.class);
+        GroupSystemInfo mqInfo = SystemInfo.parse(content, GroupSystemInfo.class);
         Assert.assertNotNull(mqInfo);
 
         Assert.assertNotNull(mqInfo.getName());

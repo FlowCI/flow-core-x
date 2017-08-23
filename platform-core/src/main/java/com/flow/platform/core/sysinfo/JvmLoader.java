@@ -59,7 +59,7 @@ public class JvmLoader implements SystemInfoLoader {
 
     public SystemInfo load() {
         Properties properties = System.getProperties();
-        SystemInfo jvm = new SystemInfo();
+        GroupSystemInfo jvm = new GroupSystemInfo();
         jvm.setName(properties.getProperty("java.runtime.name"));
         jvm.setVersion(properties.getProperty("java.runtime.version"));
         jvm.setStatus(Status.RUNNING);
