@@ -25,6 +25,7 @@ import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.core.sysinfo.DBInfoLoader.DBGroupName;
 import com.flow.platform.core.sysinfo.JvmLoader.JvmGroup;
 import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.ZooKeeperLoader.ZooKeeperGroup;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
@@ -77,7 +78,7 @@ public class WelcomeControllerTest extends TestBase {
 
     @Test
     public void should_load_system_db_info() throws Throwable {
-        // when: load jvm info
+        // when: load db info
         MvcResult result = this.mockMvc.perform(get("/sys/info/db"))
             .andExpect(status().isOk())
             .andReturn();
@@ -89,5 +90,25 @@ public class WelcomeControllerTest extends TestBase {
         Map<String, String> mysqlInfo = dbInfo.get(DBGroupName.MYSQL);
         Assert.assertNotNull(mysqlInfo);
         Assert.assertEquals(5, mysqlInfo.size());
+    }
+
+    @Test
+    public void should_load_zookeeper_info() throws Throwable {
+        // when: load zookeeper info
+        MvcResult result = this.mockMvc.perform(get("/sys/info/zk"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then:
+        String content = result.getResponse().getContentAsString();
+        SystemInfo zkInfo = SystemInfo.parse(content, SystemInfo.class);
+        Assert.assertNotNull(zkInfo);
+        Assert.assertEquals(SystemInfo.Status.RUNNING, zkInfo.getStatus());
+
+        Map<String, String> conf = zkInfo.get(ZooKeeperGroup.CONF);
+        Assert.assertEquals(8, conf.size());
+
+        Map<String, String> srvr = zkInfo.get(ZooKeeperGroup.SRVR);
+        Assert.assertEquals(8, srvr.size());
     }
 }

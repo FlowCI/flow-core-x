@@ -24,9 +24,11 @@ import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.core.sysinfo.SystemInfoLoader;
+import com.flow.platform.core.sysinfo.ZooKeeperLoader;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,15 +39,23 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
     private final Map<Category, Map<Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
 
+    @Value("${zk.host}")
+    private String zkHost;
+
     @PostConstruct
     public void init() {
         infoLoaders.put(Category.CC, new HashMap<>(5));
+
         infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.JVM, new JvmLoader());
+
         infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.DB, new DBInfoLoader(defaultDriverName, dbUrl, dbUsername, dbPassword));
+
         infoLoaders.get(Category.CC)
             .put(SystemInfo.Type.SERVER, new AppServerLoader());
+
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.ZK, new ZooKeeperLoader(zkHost));
     }
 
     @Override
