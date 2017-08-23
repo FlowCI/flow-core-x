@@ -74,9 +74,6 @@ public class AppConfig extends AppConfigBase {
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
-    @Autowired
-    private Environment env;
-
     @PostConstruct
     public void init() {
         try {
@@ -84,29 +81,6 @@ public class AppConfig extends AppConfigBase {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Bean
-    @Override
-    public SystemInfo systemInfo() {
-        PropertySystemInfo info = new PropertySystemInfo(Status.RUNNING);
-        info.setName(NAME);
-        info.setVersion(VERSION);
-        info.setStartTime(DateUtil.now());
-
-        if (!(env instanceof StandardServletEnvironment)) {
-            return info;
-        }
-
-        StandardServletEnvironment env = (StandardServletEnvironment) this.env;
-        for (PropertySource<?> next : env.getPropertySources()) {
-            if (next instanceof ResourcePropertySource) {
-                Map<String, Object> source = ((ResourcePropertySource) next).getSource();
-                info.setInfo(source);
-            }
-        }
-
-        return info;
     }
 
     @Bean
@@ -128,5 +102,15 @@ public class AppConfig extends AppConfigBase {
     @Bean
     public BlockingQueue<CmdStatusItem> cmdStatusQueue() {
         return new LinkedBlockingQueue<>(50);
+    }
+
+    @Override
+    protected String getName() {
+        return NAME;
+    }
+
+    @Override
+    protected String getVersion() {
+        return VERSION;
     }
 }

@@ -2,6 +2,7 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.service.SysInfoService;
+import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import com.google.common.base.Strings;
@@ -21,9 +22,12 @@ public class WelcomeController {
     @Autowired
     private SysInfoService sysInfoService;
 
+    @Autowired
+    private PropertySystemInfo systemInfo;
+
     @GetMapping(path = "/index")
-    public String hello() {
-        return "{\"flow-platform\": \"api\"}";
+    public PropertySystemInfo index() {
+        return systemInfo;
     }
 
     @GetMapping(path = "/sys/{system}/info/{type}")
