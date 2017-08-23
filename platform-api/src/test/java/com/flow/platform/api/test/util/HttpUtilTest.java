@@ -26,7 +26,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 import com.flow.platform.api.domain.Response;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.HttpUtil;
+import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Jsonable;
 import java.io.UnsupportedEncodingException;
 import org.junit.Assert;

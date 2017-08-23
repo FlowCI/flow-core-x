@@ -49,6 +49,10 @@ public class DateUtil {
     }
 
     public static ZonedDateTime now() {
-        return ZonedDateTime.now(ZoneId.systemDefault());
+        try {
+            return ZonedDateTime.now(ZoneId.systemDefault());
+        } catch (Throwable e) {
+            return utcNow();
+        }
     }
 }

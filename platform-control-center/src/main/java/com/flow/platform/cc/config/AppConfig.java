@@ -17,23 +17,36 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
+import com.flow.platform.core.sysinfo.PropertySystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
  * @author gy@fir.im
@@ -47,9 +60,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
     WebSocketConfig.class,
     AgentConfig.class
 })
-public class AppConfig extends AppConfigBase{
+public class AppConfig extends AppConfigBase {
 
-    public final static DateTimeFormatter APP_DATE_FORMAT = Jsonable.DOMAIN_DATE_FORMAT;
+    public final static String NAME = "flow-control-center";
+
+    public final static String VERSION = "alpha-0.1";
 
     public final static Path CMD_LOG_DIR = Paths.get(System.getenv("HOME"), "uploaded-agent-log");
 
@@ -87,5 +102,15 @@ public class AppConfig extends AppConfigBase{
     @Bean
     public BlockingQueue<CmdStatusItem> cmdStatusQueue() {
         return new LinkedBlockingQueue<>(50);
+    }
+
+    @Override
+    protected String getName() {
+        return NAME;
+    }
+
+    @Override
+    protected String getVersion() {
+        return VERSION;
     }
 }

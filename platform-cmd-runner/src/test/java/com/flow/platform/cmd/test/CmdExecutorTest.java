@@ -4,6 +4,7 @@ import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.domain.CmdResult;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,12 +33,12 @@ public class CmdExecutorTest {
         };
 
         CmdExecutor executor = new CmdExecutor(null,
-                logListener,
-                null,
-                null,
-                "CMD_RUNNER_TEST",
-                null,
-                String.format("source %s", path));
+            logListener,
+            null,
+            null,
+            "CMD_RUNNER_TEST",
+            null,
+            Lists.newArrayList(String.format("source %s", path)));
         CmdResult result = executor.run();
 
         Assert.assertNotNull(result.getStartTime());
