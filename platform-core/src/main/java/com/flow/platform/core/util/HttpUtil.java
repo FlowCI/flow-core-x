@@ -19,6 +19,8 @@ package com.flow.platform.core.util;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
@@ -49,15 +51,28 @@ public class HttpUtil {
      * @param body body
      * @return String null or other
      */
-    public static String post(String url, String body) throws UnsupportedEncodingException {
+    public static String post(final String url, final String body) throws UnsupportedEncodingException {
+        Map<String, String> headers = new HashMap<>(1);
+        headers.put("Content-Type", "application/json;charset=utf-8");
+        return post(url, body, headers, 1);
+    }
+
+    public static String post(final String url,
+                              final String body,
+                              final Map<String, String> headers,
+                              final int retry) throws UnsupportedEncodingException {
         HttpPost httpPost = new HttpPost(url);
         HttpEntity entity = new StringEntity(body);
         httpPost.setEntity(entity);
-        httpPost.addHeader("Content-Type", "application/json;charset=utf-8");
+
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                httpPost.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
         final String[] res = {null};
-        exec(httpPost, 1, (String item) -> {
-            res[0] = item;
-        });
+        exec(httpPost, retry, (String item) -> res[0] = item);
         return res[0];
     }
 
@@ -66,12 +81,23 @@ public class HttpUtil {
      *
      * @return string null or other
      */
-    public static String get(String url) {
+    public static String get(String url) throws UnsupportedEncodingException {
+        return get(url, null, 1);
+    }
+
+    public static String get(final String url,
+                             final Map<String, String> headers,
+                             final int retry) throws UnsupportedEncodingException {
         HttpGet httpGet = new HttpGet(url);
+
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                httpGet.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
         final String[] res = {null};
-        exec(httpGet, 1, (String item) -> {
-            res[0] = item;
-        });
+        exec(httpGet, retry, (String item) -> res[0] = item);
         return res[0];
     }
 
@@ -84,10 +110,9 @@ public class HttpUtil {
         HttpPut httpPut = new HttpPut(url);
         HttpEntity entity = new StringEntity(body);
         httpPut.setEntity(entity);
+
         final String[] res = {null};
-        exec(httpPut, 1, (String item) -> {
-            res[0] = item;
-        });
+        exec(httpPut, 1, (String item) -> res[0] = item);
         return res[0];
     }
 
