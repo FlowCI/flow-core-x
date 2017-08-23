@@ -29,6 +29,7 @@ import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
@@ -231,6 +232,10 @@ public class NodeServiceImpl implements NodeService {
 
         if (!EnvUtil.hasRequired(flow, requiredEnvSet)) {
             throw new IllegalParameterException("Missing required envs");
+        }
+
+        if (Objects.equals(flow.getEnv(FlowEnvs.FLOW_YML_STATUS), FlowEnvs.Value.FLOW_YML_STATUS_LOADING.value())) {
+            throw new IllegalStatusException("Yml file is loading");
         }
 
         // update FLOW_YML_STATUS to LOADING
