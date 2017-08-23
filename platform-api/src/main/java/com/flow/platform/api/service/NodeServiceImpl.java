@@ -29,8 +29,10 @@ import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.GitException;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -111,7 +113,9 @@ public class NodeServiceImpl implements NodeService {
 
         // reset cache
         treeCache.invalidate(flow.getPath());
-        return flow;
+
+        //retry find flow
+        return findFlow(PathUtil.rootPath(path));
     }
 
     @Override
@@ -232,12 +236,27 @@ public class NodeServiceImpl implements NodeService {
             throw new IllegalParameterException("Missing required envs: FLOW_GIT_URL FLOW_GIT_SOURCE");
         }
 
+        if (Objects.equals(flow.getEnv(FlowEnvs.FLOW_YML_STATUS), FlowEnvs.Value.FLOW_YML_STATUS_LOADING.value())) {
+            throw new IllegalStatusException("Yml file is loading");
+        }
+
         // update FLOW_YML_STATUS to LOADING
         updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_LOADING);
 
         // async to load yml file
         taskExecutor.execute(() -> {
-            String yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+
+            String yml;
+            try {
+                 yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+            } catch (Throwable e) {
+                LOGGER.error("Git clone error", e);
+
+                flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
+                flowDao.update(flow);
+
+                return;
+            }
 
             try {
                 createOrUpdate(path, yml);

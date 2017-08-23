@@ -30,9 +30,11 @@ public enum NodeStatus {
 
     SUCCESS("SUCCESS", 3),
 
-    FAILURE("FAILURE", 4),
+    STOPPED("STOPPED", 3),
 
-    TIMEOUT("TIMEOUT", 5);
+    FAILURE("FAILURE", 3),
+
+    TIMEOUT("TIMEOUT", 3);
 
     private String name;
 

@@ -74,7 +74,7 @@ public class CmdController {
     /**
      * Set cmd status to STOPPED
      */
-    @PostMapping("/cmd/stop/{cmdId}")
+    @PostMapping("/stop/{cmdId}")
     public void stopCommand(@PathVariable String cmdId) {
         try {
             CmdStatusItem statusItem = new CmdStatusItem(cmdId, CmdStatus.STOPPED, null, true, true);

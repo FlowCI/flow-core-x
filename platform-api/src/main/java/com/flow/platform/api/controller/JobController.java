@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -75,8 +76,18 @@ public class JobController {
         return jobService.find(flowName, buildNumber);
     }
 
+    @GetMapping(path = "/{flowName}/{buildNumber}/nodes")
+    public List<NodeResult> indexNodeResults(@PathVariable String flowName, @PathVariable Integer buildNumber) {
+        return jobService.listNodeResult(flowName, buildNumber);
+    }
+
     @PostMapping(path = "/status/latest")
     public Collection<Job> latestStatus(@RequestBody List<String> flowPaths) {
         return jobService.listJobs(null, flowPaths);
+    }
+
+    @PostMapping(path = "/{flowName}/{buildNumber}/stop")
+    public Boolean stopJob(@PathVariable String flowName, @PathVariable Integer buildNumber) {
+        return jobService.stopJob(flowName, buildNumber);
     }
 }

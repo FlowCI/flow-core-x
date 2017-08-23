@@ -26,6 +26,7 @@ import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.UnsupportedException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
+import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -72,7 +73,7 @@ public class GitServiceImpl implements GitService {
     }
 
     @Override
-    public String clone(Flow flow, String filePath) {
+    public String clone(Flow flow, String filePath) throws GitException {
         String branch = flow.getEnv(GitEnvs.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(flow);
         client.clone(branch, null, Sets.newHashSet(filePath));

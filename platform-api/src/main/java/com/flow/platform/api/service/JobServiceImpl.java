@@ -16,22 +16,26 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.JobDao;
+import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.core.exception.FlowException;
-import com.flow.platform.core.exception.HttpException;
-import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.UrlUtil;
+import com.flow.platform.core.exception.FlowException;
+import com.flow.platform.core.exception.HttpException;
+import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
@@ -39,8 +43,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
@@ -79,6 +81,9 @@ public class JobServiceImpl implements JobService {
     private JobDao jobDao;
 
     @Autowired
+    private NodeResultDao nodeResultDao;
+
+    @Autowired
     private NodeService nodeService;
 
     @Value(value = "${domain}")
@@ -92,6 +97,9 @@ public class JobServiceImpl implements JobService {
 
     @Value(value = "${platform.queue.url}")
     private String queueUrl;
+
+    @Value(value = "${platform.cmd.stop.url}")
+    private String cmdStopUrl;
 
     @Override
     public Job createJob(String path) {
@@ -333,7 +341,7 @@ public class JobServiceImpl implements JobService {
         NodeStatus nodeStatus = handleStatus(cmdBase);
 
         // keep job step status sorted
-        if (nodeResult.getStatus().getLevel() > nodeStatus.getLevel()) {
+        if (nodeResult.getStatus().getLevel() >= nodeStatus.getLevel()) {
             return;
         }
 
@@ -492,8 +500,10 @@ public class JobServiceImpl implements JobService {
             case KILLED:
             case EXCEPTION:
             case REJECTED:
-            case STOPPED:
                 nodeStatus = NodeStatus.FAILURE;
+                break;
+            case STOPPED:
+                nodeStatus = NodeStatus.STOPPED;
                 break;
             case TIMEOUT_KILL:
                 nodeStatus = NodeStatus.TIMEOUT;
@@ -530,5 +540,63 @@ public class JobServiceImpl implements JobService {
         } catch (Throwable throwable) {
             LOGGER.warnMarker("enterQueue", String.format("exception - %s", throwable));
         }
+    }
+
+    @Override
+    public Boolean stopJob(String name, Integer buildNumber) {
+        String cmdId;
+        Job runningJob = find(name, buildNumber);
+
+        if (runningJob == null) {
+            throw new NotFoundException(String.format("running job not found name - %s", name));
+        }
+
+        //job in create session status
+        if (runningJob.getStatus() == NodeStatus.ENQUEUE || runningJob.getStatus() == NodeStatus.PENDING) {
+            cmdId = runningJob.getCmdId();
+
+            // job finish, stop job failure
+        } else if (runningJob.getStatus() == NodeStatus.SUCCESS || runningJob.getStatus() == NodeStatus.FAILURE) {
+            return false;
+
+        } else { // running
+            NodeResult runningNodeResult = nodeResultDao.get(runningJob.getId(), NodeStatus.RUNNING, NodeTag.STEP);
+            cmdId = runningNodeResult.getCmdId();
+        }
+
+        String url = new StringBuilder(cmdStopUrl).append(cmdId).toString();
+        LOGGER.traceMarker("stopJob", String.format("url - %s", url));
+
+        runningJob.setStatus(NodeStatus.STOPPED);
+
+        jobDao.update(runningJob);
+        updateNodeResult(runningJob, NodeStatus.STOPPED);
+
+        try {
+            String res = HttpUtil.post(url, "");
+            if (Strings.isNullOrEmpty(res)) {
+                return false;
+            }
+            return true;
+        } catch (Throwable throwable) {
+            LOGGER.traceMarker("stopJob", String.format("stop job error - %s", throwable));
+            return false;
+        }
+    }
+
+    private void updateNodeResult(Job job, NodeStatus status) {
+        List<NodeResult> results = jobNodeResultService.list(job);
+        for (NodeResult result : results) {
+            if (result.getStatus() != NodeStatus.SUCCESS) {
+                result.setStatus(status);
+                jobNodeResultService.update(result);
+            }
+        }
+    }
+
+    @Override
+    public List<NodeResult> listNodeResult(String flowName, Integer number) {
+        Job job = find(flowName, number);
+        return jobNodeResultService.list(job);
     }
 }
