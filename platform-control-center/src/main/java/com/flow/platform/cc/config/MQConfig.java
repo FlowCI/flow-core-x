@@ -53,6 +53,9 @@ public class MQConfig {
     @Value("${mq.host}")
     private String host; // amqp://guest:guest@localhost:5672
 
+    @Value("${mq.management.host}")
+    private String mgrHost; // http://localhost:15672
+
     @Value("${mq.queue.cmd.name}")
     private String cmdQueueName; // receive cmd from upstream
 
@@ -62,6 +65,7 @@ public class MQConfig {
     @PostConstruct
     public void init() {
         LOGGER.trace("Host: %s", host);
+        LOGGER.trace("Management Host: %s", mgrHost);
         LOGGER.trace("Cmd queue name: %s", cmdQueueName);
     }
 

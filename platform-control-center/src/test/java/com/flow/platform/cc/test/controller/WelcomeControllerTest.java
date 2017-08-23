@@ -24,7 +24,10 @@ import com.flow.platform.cc.controller.WelcomeController;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.core.sysinfo.DBInfoLoader.DBGroupName;
 import com.flow.platform.core.sysinfo.JvmLoader.JvmGroup;
+import com.flow.platform.core.sysinfo.MQLoader;
+import com.flow.platform.core.sysinfo.MQLoader.MQGroup;
 import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.core.sysinfo.ZooKeeperLoader.ZooKeeperGroup;
 import java.util.Map;
 import org.junit.Assert;
@@ -123,5 +126,9 @@ public class WelcomeControllerTest extends TestBase {
         String content = result.getResponse().getContentAsString();
         SystemInfo mqInfo = SystemInfo.parse(content, SystemInfo.class);
         Assert.assertNotNull(mqInfo);
+
+        Assert.assertNotNull(mqInfo.getName());
+        Assert.assertEquals(Status.RUNNING, mqInfo.getStatus());
+        Assert.assertEquals(3, mqInfo.get(MQGroup.RABBITMQ).size());
     }
 }

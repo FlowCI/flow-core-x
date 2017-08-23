@@ -39,7 +39,9 @@ public class SystemInfo extends Jsonable {
 
         RUNNING,
 
-        OFFLINE
+        OFFLINE,
+
+        UNKNOWN
     }
 
     public enum Type {

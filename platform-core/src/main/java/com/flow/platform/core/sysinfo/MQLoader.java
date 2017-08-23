@@ -17,9 +17,15 @@
 package com.flow.platform.core.sysinfo;
 
 import com.flow.platform.core.exception.IllegalURLException;
+import com.flow.platform.core.sysinfo.SystemInfo.Status;
+import com.flow.platform.core.util.HttpUtil;
+import com.flow.platform.domain.Jsonable;
 import com.google.common.base.Strings;
+import com.google.gson.annotations.SerializedName;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * MQ loader to load rabbitmq info from rabbitmq management api
@@ -32,19 +38,70 @@ public class MQLoader implements SystemInfoLoader {
         RABBITMQ,
     }
 
-    private final MQURL mqHostUrl;
+    private String mqMgrUrl;
 
-    /**
-     * For url format, reference on https://www.rabbitmq.com/uri-spec.html
-     */
-    public MQLoader(String mqHostUrl) {
-        this.mqHostUrl = new MQURL(mqHostUrl);
+    private String mqMgrUser;
+
+    private String mqMgrPass;
+
+    public MQLoader(String mqMgrUrl, String mqMgrUser, String mqMgrPass) {
+        this.mqMgrUrl = mqMgrUrl;
+        this.mqMgrUser = mqMgrUser;
+        this.mqMgrPass = mqMgrPass;
+
+        if (this.mqMgrUser == null) {
+            this.mqMgrUser = "guest";
+        }
+
+        if (this.mqMgrPass == null) {
+            this.mqMgrPass = "guest";
+        }
     }
 
     @Override
     public SystemInfo load() {
+        String url = mqMgrUrl + "/api/overview";
+        Map<String, String> authHeader = HttpUtil.buildHttpBasicAuthHeader(mqMgrUser, mqMgrPass);
+        try {
+            String responseBody = HttpUtil.get(url, authHeader, 1);
+            if (Strings.isNullOrEmpty(responseBody)) {
+                return new SystemInfo(Status.UNKNOWN);
+            }
 
-        return null;
+            RabbitMQOverView mqInfo = RabbitMQOverView.parse(responseBody, RabbitMQOverView.class);
+
+            SystemInfo info = new SystemInfo(Status.RUNNING);
+            info.setName(mqInfo.clusterName);
+            info.setVersion(mqInfo.version);
+            info.put(MQGroup.RABBITMQ, new HashMap<>());
+
+            info.get(MQGroup.RABBITMQ).put("rabbitmq.management.version", mqInfo.managementVersion);
+            info.get(MQGroup.RABBITMQ).put("rabbitmq.erlang.version", mqInfo.erlangVersion);
+            info.get(MQGroup.RABBITMQ).put("rabbitmq.rates.mode", mqInfo.ratesMode);
+
+            return info;
+
+        } catch (Throwable e) {
+            return new SystemInfo(Status.UNKNOWN);
+        }
+    }
+
+    private static class RabbitMQOverView extends Jsonable {
+
+        @SerializedName("rabbitmq_version")
+        public String version;
+
+        @SerializedName("management_version")
+        public String managementVersion;
+
+        @SerializedName("cluster_name")
+        public String clusterName;
+
+        @SerializedName("rates_mode")
+        public String ratesMode;
+
+        @SerializedName("erlang_version")
+        public String erlangVersion;
     }
 
     public static class MQURL {

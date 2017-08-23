@@ -46,6 +46,9 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
     @Value("${mq.host}")
     private String mqHost;
 
+    @Value("${mq.management.host}")
+    private String mqManagementHost;
+
     @PostConstruct
     public void init() {
         infoLoaders.put(Category.CC, new HashMap<>(5));
@@ -59,7 +62,8 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
         infoLoaders.get(Category.CC).put(SystemInfo.Type.ZK, new ZooKeeperLoader(zkHost));
 
-        infoLoaders.get(Category.CC).put(SystemInfo.Type.MQ, new MQLoader(mqHost));
+        MQLoader.MQURL mqUrl = new MQLoader.MQURL(mqHost);
+        infoLoaders.get(Category.CC).put(SystemInfo.Type.MQ, new MQLoader(mqManagementHost, mqUrl.getUser(), mqUrl.getPass()));
     }
 
     @Override

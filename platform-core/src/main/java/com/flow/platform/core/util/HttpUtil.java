@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
@@ -40,9 +41,18 @@ import org.apache.http.impl.client.HttpClients;
  */
 public class HttpUtil {
 
-    private static Integer TRY_TIMES = 5;
+    private final static int DEFAULT_RETRY_TIME = 5;
 
-    private static Logger LOGGER = new Logger(HttpUtil.class);
+    private final static Logger LOGGER = new Logger(HttpUtil.class);
+
+    public static Map<String, String> buildHttpBasicAuthHeader(final String user, final String pass) {
+        byte[] encodedBytes = Base64.encodeBase64((user + ":" + pass).getBytes());
+        String userPass = new String(encodedBytes);
+
+        Map<String, String> header = new HashMap<>(1);
+        header.put("Authorization", "Basic " + userPass);
+        return header;
+    }
 
     /**
      * http post
@@ -54,7 +64,7 @@ public class HttpUtil {
     public static String post(final String url, final String body) throws UnsupportedEncodingException {
         Map<String, String> headers = new HashMap<>(1);
         headers.put("Content-Type", "application/json;charset=utf-8");
-        return post(url, body, headers, 1);
+        return post(url, body, headers, DEFAULT_RETRY_TIME);
     }
 
     public static String post(final String url,
@@ -81,13 +91,13 @@ public class HttpUtil {
      *
      * @return string null or other
      */
-    public static String get(String url) throws UnsupportedEncodingException {
-        return get(url, null, 1);
+    public static String get(String url) {
+        return get(url, null, DEFAULT_RETRY_TIME);
     }
 
     public static String get(final String url,
                              final Map<String, String> headers,
-                             final int retry) throws UnsupportedEncodingException {
+                             final int retry) {
         HttpGet httpGet = new HttpGet(url);
 
         if (headers != null) {
@@ -117,34 +127,37 @@ public class HttpUtil {
     }
 
     private static void exec(HttpUriRequest httpUriRequest, Integer tryTimes, Consumer<String> consumer) {
-        if (tryTimes > TRY_TIMES) {
+        if (tryTimes == 0) {
             consumer.accept(null);
             return;
         }
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             CloseableHttpResponse response = httpClient.execute(httpUriRequest);
+
             int statusCode = response.getStatusLine().getStatusCode();
             ResponseHandler<String> handler = new BasicResponseHandler();
+
             if (statusCode == 200) {
                 consumer.accept(handler.handleResponse(response));
-            } else {
-                tryTimes += 1;
-                exec(httpUriRequest, tryTimes, consumer);
+                return;
             }
+
+            exec(httpUriRequest, tryTimes - 1, consumer);
+
         } catch (UnsupportedEncodingException | ClientProtocolException e) {
             // JSON data or http protocol exception, exit directly
             LOGGER.warn(String
                 .format("url: %s, method: %s, UnsupportedEncodingException | ClientProtocolException e: %s",
-                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
-            tryTimes += 1;
-            exec(httpUriRequest, tryTimes, consumer);
+                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod(), e.toString()), e);
+
+            exec(httpUriRequest, tryTimes - 1, consumer);
         } catch (IOException e) {
             LOGGER.warn(String
                 .format("url: %s, method: %s, IOException e: %s",
-                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod().toString(), e.toString()), e);
-            tryTimes += 1;
-            exec(httpUriRequest, tryTimes, consumer);
+                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod(), e.toString()), e);
+
+            exec(httpUriRequest, tryTimes - 1, consumer);
         }
     }
 }
