@@ -17,6 +17,7 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
+import com.google.gson.annotations.Expose;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -26,30 +27,42 @@ import java.util.Map;
 
 public class NodeResult extends Jsonable {
 
+    @Expose
     private NodeResultKey nodeResultKey;
 
+    @Expose
     private Map<String, String> outputs = new HashMap<>();
 
+    @Expose
     private Long duration = 0l;
 
+    @Expose
     private Integer exitCode;
 
+    @Expose
     private List<String> logPaths = new ArrayList<>();
 
+    @Expose
     private NodeStatus status = NodeStatus.PENDING;
 
+    @Expose
     private String cmdId;
 
+    @Expose
     private NodeTag nodeTag;
 
+    @Expose
     private ZonedDateTime startTime;
 
+    @Expose
     private ZonedDateTime finishTime;
 
     private String name;
 
+    @Expose
     private ZonedDateTime createdAt;
 
+    @Expose
     private ZonedDateTime updatedAt;
 
     public NodeResult() {

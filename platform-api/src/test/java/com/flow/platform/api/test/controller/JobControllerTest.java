@@ -15,13 +15,18 @@
  */
 
 package com.flow.platform.api.test.controller;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.test.TestBase;
 
 import com.flow.platform.api.domain.Node;
+import com.flow.platform.domain.Jsonable;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
@@ -67,5 +72,49 @@ public class JobControllerTest extends TestBase {
         Assert.assertNull(returnedJob.getExitCode());
         Assert.assertNull(returnedJob.getSessionId());
         Assert.assertNull(returnedJob.getCmdId());
+    }
+
+
+    @Test
+    public void should_stop_job_success() throws Exception {
+        stubDemo();
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        setFlowToReady(rootForFlow);
+        Job job = jobService.createJob(rootForFlow.getPath());
+
+        Map<String, String> map = new HashMap<>();
+        map.put("FLOW_GIT_BRANCH", "a");
+        job.setOutputs(map);
+
+        jobDao.update(job);
+
+        StringBuilder stringBuilder = new StringBuilder("/jobs/");
+
+        MockHttpServletRequestBuilder content = post(
+            stringBuilder.append(job.getNodeName()).append("/").append(job.getNumber()).append("/stop").toString())
+            .contentType(MediaType.APPLICATION_JSON);
+
+        MvcResult mvcResult = this.mockMvc.perform(content)
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String response = mvcResult.getResponse().getContentAsString();
+        Boolean t = Jsonable.GSON_CONFIG.fromJson(response, Boolean.class);
+        Assert.assertEquals(true, t);
+
+        StringBuilder string = new StringBuilder("/jobs/");
+
+        MockHttpServletRequestBuilder con = get(
+            string.append(job.getNodeName()).append("/").append(job.getNumber()).toString())
+            .contentType(MediaType.APPLICATION_JSON);
+
+        MvcResult result = this.mockMvc.perform(con)
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+        String res = result.getResponse().getContentAsString();
+        Job job1 = Job.parse(res, Job.class);
+        Assert.assertEquals(NodeStatus.STOPPED, job1.getStatus());
     }
 }

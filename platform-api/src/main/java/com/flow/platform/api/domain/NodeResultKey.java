@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.domain;
 
+import com.google.gson.annotations.Expose;
 import java.io.Serializable;
 import java.math.BigInteger;
 
@@ -23,8 +24,10 @@ import java.math.BigInteger;
  */
 public class NodeResultKey implements Serializable {
 
+    @Expose
     private BigInteger jobId;
 
+    @Expose
     private String path;
 
     public BigInteger getJobId() {

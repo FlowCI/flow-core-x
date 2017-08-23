@@ -23,5 +23,16 @@ import java.util.List;
  * @author yh@firim
  */
 public interface AgentService {
+
     List<AgentWithFlow> list();
+
+    /**
+     * agent shutdown
+     *
+     * @param zone required
+     * @param name required
+     * @param password required
+     * @return true or false
+     */
+    Boolean shutdown(String zone, String name, String password);
 }
