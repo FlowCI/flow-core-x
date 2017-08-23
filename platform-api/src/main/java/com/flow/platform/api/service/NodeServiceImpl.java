@@ -24,10 +24,12 @@ import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -37,6 +39,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -83,19 +86,35 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public Node createOrUpdate(final String path, final String yml) {
-        final Node rootFromYml = verifyYml(path, yml);
-        final Flow flow = findFlow(rootFromYml.getPath());
+        final Flow flow = findFlow(PathUtil.rootPath(path));
+        if (Strings.isNullOrEmpty(yml)) {
+            return flow;
+        }
+
+        Node rootFromYml;
+        try {
+            rootFromYml = verifyYml(path, yml);
+        } catch (IllegalParameterException | YmlException e) {
+            flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
+            flowDao.update(flow);
+            return flow;
+        }
+
+        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.Value.FLOW_STATUS_READY);
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_FOUND);
 
         // persistent flow type node to flow table with env which from yml
         EnvUtil.merge(rootFromYml, flow, true);
         flowDao.update(flow);
 
-        YmlStorage ymlStorage = new YmlStorage(rootFromYml.getPath(), yml);
+        YmlStorage ymlStorage = new YmlStorage(flow.getPath(), yml);
         ymlStorageDao.saveOrUpdate(ymlStorage);
 
         // reset cache
-        treeCache.invalidate(rootFromYml.getPath());
-        return rootFromYml;
+        treeCache.invalidate(flow.getPath());
+
+        //retry find flow
+        return findFlow(PathUtil.rootPath(path));
     }
 
     @Override
@@ -120,7 +139,7 @@ public class NodeServiceImpl implements NodeService {
                     EnvUtil.merge(flow, root, false);
 
                     // should set created time and updated time
-                    if(flow != null){
+                    if (flow != null) {
                         root.setCreatedAt(flow.getCreatedAt());
                         root.setUpdatedAt(flow.getUpdatedAt());
                     }
@@ -145,6 +164,18 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
+    public Node delete(String path) {
+        String rootPath = PathUtil.rootPath(path);
+        Flow flow = findFlow(rootPath);
+
+        flowDao.delete(flow);
+        ymlStorageDao.delete(new YmlStorage(flow.getPath(), null));
+
+        treeCache.invalidate(rootPath);
+        return flow;
+    }
+
+    @Override
     public Node verifyYml(final String path, final String yml) {
         final String rootPath = PathUtil.rootPath(path);
         final Flow flow = findFlow(rootPath);
@@ -154,7 +185,7 @@ public class NodeServiceImpl implements NodeService {
             return rootFromYml;
         }
 
-        throw new IllegalParameterException("Flow name in yml not match the path");
+        throw new YmlException("Flow name in yml not match the path");
     }
 
     @Override
@@ -162,19 +193,36 @@ public class NodeServiceImpl implements NodeService {
         final String rootPath = PathUtil.rootPath(path);
         final Flow flow = findFlow(rootPath);
 
-        // load from database
-        YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
-        if (ymlStorage != null) {
-            return ymlStorage.getFile();
+        // check FLOW_YML_STATUS
+        String ymlStatus = flow.getEnv(FlowEnvs.FLOW_YML_STATUS);
+
+        // for LOADING status
+        if (Objects.equals(ymlStatus, FlowEnvs.Value.FLOW_YML_STATUS_LOADING.value())) {
+            return "";
         }
 
-        // load from git source folder
-        String content = gitService.fetch(flow, AppConfig.DEFAULT_YML_FILE);
-        if (!Strings.isNullOrEmpty(content)) {
-            return content;
+        // for FOUND status
+        if (Objects.equals(ymlStatus, FlowEnvs.Value.FLOW_YML_STATUS_FOUND.value())) {
+
+            // load from database
+            YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
+            if (ymlStorage != null) {
+                return ymlStorage.getFile();
+            }
         }
 
-        return null;
+        // for NOT_FOUND status
+        if (Objects.equals(ymlStatus, FlowEnvs.Value.FLOW_YML_STATUS_NOT_FOUND.value())) {
+            throw new NotFoundException("Yml content not found");
+        }
+
+        // for ERROR status
+        if (Objects.equals(ymlStatus, FlowEnvs.Value.FLOW_YML_STATUS_ERROR.value())) {
+            throw new YmlException("Illegal yml format");
+        }
+
+        // yml has not been load
+        throw new IllegalStateException("Illegal FLOW_YML_STATUS value");
     }
 
     @Override
@@ -183,13 +231,25 @@ public class NodeServiceImpl implements NodeService {
         final Flow flow = findFlow(rootPath);
         final Set<String> requiredEnvSet = Sets.newHashSet(GitEnvs.FLOW_GIT_URL.name(), GitEnvs.FLOW_GIT_SOURCE.name());
 
-        if(!EnvUtil.hasRequired(flow, requiredEnvSet)) {
+        if (!EnvUtil.hasRequired(flow, requiredEnvSet)) {
             throw new IllegalParameterException("Missing required envs");
         }
+
+        // update FLOW_YML_STATUS to LOADING
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_LOADING);
+        flowDao.update(flow);
 
         // async to load yml file
         taskExecutor.execute(() -> {
             String yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+
+            try {
+                createOrUpdate(path, yml);
+            } catch (Throwable e) {
+                LOGGER.warn("Fail to create or update yml in node");
+            }
+
+            // call consumer
             if (callback != null) {
                 callback.accept(new YmlStorage(flow.getPath(), yml));
             }
@@ -212,18 +272,20 @@ public class NodeServiceImpl implements NodeService {
 
         flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
         flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.Value.FLOW_STATUS_PENDING);
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_NOT_FOUND);
         flow = flowDao.save(flow);
 
         return flow;
     }
 
     @Override
-    public void setFlowEnv(String path, Map<String, String> envs) {
+    public Flow setFlowEnv(String path, Map<String, String> envs) {
         Flow flow = findFlow(path);
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
         // sync latest env into flow table
         flowDao.update(flow);
+        return flow;
     }
 
     @Override

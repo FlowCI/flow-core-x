@@ -2,19 +2,27 @@
 
 ### GET Flows
   ```
-      Method: Get
+      Method: GET
       Route: /flows
       Response:
         [
           {
             name: "flow", 
             path: "/flow",
+            envs: {
+              FLOW_VAR_1: xxx,
+              FLOW_VAR_2: xxx
+            }
             createdAt: 12121212,
             updatedAt: 12121212,
           },
           {
             name: "flow", 
             path: "/flow",
+            envs: {
+              FLOW_VAR_1: xxx,
+              FLOW_VAR_2: xxx
+            }            
             createdAt: 12121212,
             updatedAt: 12121212,
           }
@@ -23,18 +31,23 @@
 
 ### Get Check flow name is existed
   ```
-      Method: GET:
+      Method: GET
       Route: /flows/{flowname}/exist
       Response: true or false
   ```
 
 ### POST Create flow by name
   ```
-      Method: POST:
+      Method: POST
       Route: /flows/{flowname}
       Response: {
         name: "xxx",
         path: "/xxx"
+        envs: {
+          FLOW_GIT_WEBHOOK: http://api.domain.com/hooks/git
+          FLOW_STATUS: PENDING,
+          FLOW_YML_STATUS: NOT_FOUND
+        }
         createdAt: 12121212,
         updatedAt: 12121212,
       }
@@ -43,37 +56,63 @@
 
 ### POST Set flow environment variable
   ```
-      Method: POST:
+      Method: POST
       Route: /flows/{flowname}/env
       Body: {
         FLOW_XXX_1: xxx,
         FLOW_XXX_2: xxx
       }
+      Response: {
+        name: "flow", 
+        path: "/flow", 
+        envs: {
+          FLOW_XXX_1: xxx,
+          FLOW_XXX_2: xxx
+        }
+        createdAt: 12121212, 
+        updatedAt: 12121212
+      }
   ```
   
 ### GET Load flow yml content from repo
   ```
-      Description: Async method, and then call Get flow yml content periodically 
-      Method: GET:
+      Description: Async method, and then call 'Get flow yml content' periodically 
+      Method: GET
       Route: /flows/{flowname}/yml/load
+  ```
+
+### POST Delete flow by name
+  ```
+      Method: POST
+      Route: /flows/{flowname}/delete
+      Response: 
+        - 200 if deleted,
+        - 400 if flow name doesn't exist
+
   ```
 
 ### GET Get flow yml content
   ```
-      Method: GET:
+      Method: GET
       Route: /flows/{flowname}/yml
-      Response:
-      flow:
-        - name: xx
-        - steps:
-          - name : xxx
+      Response: 
+       - Response yml content if yml loaded,
+       - Response empty string if yml is loading,
+       - Error status:
+          - 400: {message: Yml not found} | {message: Illegal yml format} | {message: Illegal FLOW_YML_STATUS value}
   ```
 
 ### POST Verify yml content
     ```
         Method: POST:
         Route: /flows/{flowname}/yml/verify
-        Response: if yml been verified, response 200, otherwise response 4xx with error message {message: xxx}
+        Body: 
+          flow:
+            - name: xx
+            - steps:
+              - name: xxx
+              
+        Response: if yml been verified, response 200, otherwise response 400 with error message {message: xxx}
     ```
 
 ### GET Get flow webhook
@@ -187,6 +226,14 @@
             }]
  
   ```
+  
+### Job stop
+``` 
+        Method: Post
+        Route: /jobs/{flowName}/{buildNumber}/stop
+        Response:
+            true or false
+  ```  
 
 ### GET agents
     ```
@@ -204,6 +251,14 @@
              }
            ]
     ```
+    
+### Agent shutdown
+``` 
+        Method: Post
+        Route: /agents/shutdown
+        Response:
+            true or false
+  ```  
 
 ### POST emailSetting
     ```
@@ -271,6 +326,8 @@
 ### Flow
 
 **FLOW_STATUS**: READY | PENDING
+
+**FLOW_YML_STATUS**: NOT_FOUND | LOADING | FOUND | ERROR
 
 ### Git 
         

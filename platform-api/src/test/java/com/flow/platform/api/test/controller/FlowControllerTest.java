@@ -25,6 +25,7 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.FlowEnvs.Value;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
@@ -53,6 +54,16 @@ public class FlowControllerTest extends TestBase {
         Assert.assertNotNull(flowNode);
         Assert.assertNotNull(flowNode.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
         Assert.assertEquals("PENDING", flowNode.getEnv(FlowEnvs.FLOW_STATUS));
+    }
+
+    @Test
+    public void should_get_env_value() throws Throwable {
+        MockHttpServletRequestBuilder request = get("/flows/env")
+            .param("path", "/" + flowName)
+            .param("key", "FLOW_STATUS");
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        Assert.assertEquals("PENDING", result.getResponse().getContentAsString());
     }
 
     @Test
@@ -120,12 +131,12 @@ public class FlowControllerTest extends TestBase {
     public void should_get_yml_file_content() throws Throwable {
         // given:
         String yml = "flow:\n" + "  - name: " + flowName;
-        String path = PathUtil.build(flowName);
-        ymlStorageDao.save(new YmlStorage(path, yml));
+        nodeService.createOrUpdate(PathUtil.build(flowName), yml);
 
         // when:
-        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml");
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        MvcResult result = mockMvc.perform(get("/flows/" + flowName + "/yml"))
+            .andExpect(status().isOk())
+            .andReturn();
         String content = result.getResponse().getContentAsString();
 
         // then:
@@ -133,13 +144,14 @@ public class FlowControllerTest extends TestBase {
     }
 
     @Test
-    public void should_return_empty_string_if_not_yml_content() throws Throwable {
+    public void should_return_4xx_if_no_yml_content() throws Throwable {
         // when:
         MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml");
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        MvcResult result = mockMvc.perform(request).andExpect(status().is4xxClientError()).andReturn();
         String content = result.getResponse().getContentAsString();
 
         // then:
-        Assert.assertEquals("", content);
+        ResponseError error = ResponseError.parse(content, ResponseError.class);
+        Assert.assertEquals("Yml content not found", error.getMessage());
     }
 }
