@@ -32,6 +32,7 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.GitException;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -246,7 +247,15 @@ public class NodeServiceImpl implements NodeService {
 
         // async to load yml file
         taskExecutor.execute(() -> {
-            String yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+
+            String yml;
+            try {
+                 yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+            } catch (GitException e) {
+                flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
+                flowDao.update(flow);
+                return;
+            }
 
             try {
                 createOrUpdate(path, yml);
