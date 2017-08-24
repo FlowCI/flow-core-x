@@ -23,7 +23,7 @@ import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.exception.YmlException;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;

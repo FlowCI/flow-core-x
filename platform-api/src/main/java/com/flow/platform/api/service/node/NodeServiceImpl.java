@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
+package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlStorageDao;
@@ -26,6 +26,7 @@ import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.task.CloneAndVerifyYmlTask;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;

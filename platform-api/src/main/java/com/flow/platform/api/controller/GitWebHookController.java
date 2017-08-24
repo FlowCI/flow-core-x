@@ -20,7 +20,7 @@ import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;

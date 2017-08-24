@@ -17,7 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.google.common.base.Strings;
@@ -38,6 +38,7 @@ public abstract class NodeController {
     @GetMapping("/env")
     public Map<String, String> getEnv(@RequestParam String path, @RequestParam(required = false) String key) {
         Node node = nodeService.find(path);
+
         if (node == null) {
             throw new IllegalParameterException("Invalid node path");
         }

@@ -32,7 +32,7 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.service.JobNodeResultService;
 import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;

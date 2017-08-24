@@ -22,7 +22,7 @@ import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.service.GitService;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import java.util.Objects;
