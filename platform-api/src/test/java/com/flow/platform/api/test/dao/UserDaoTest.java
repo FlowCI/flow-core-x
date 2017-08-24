@@ -59,6 +59,11 @@ public class UserDaoTest extends TestBase {
     }
 
     @Test
+    public void should_get_email_success() {
+        Assert.assertEquals("liangpengyv@fir.im", userDao.getEmailBy("user_name", "liangpengyv"));
+    }
+
+    @Test
     public void should_delete_list_success() {
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 

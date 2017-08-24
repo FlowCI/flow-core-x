@@ -76,6 +76,15 @@ public class UserDaoImpl extends AbstractBaseDao<String, User> implements UserDa
     }
 
     @Override
+    public String getEmailBy(String whereWhatFieldName, String whereWhatFieldValue) {
+        return execute((Session session) -> {
+            String select = String.format("select email from User where %s='%s'", whereWhatFieldName, whereWhatFieldValue);
+            String email = (String) session.createQuery(select).uniqueResult();
+            return email;
+        });
+    }
+
+    @Override
     public void deleteList(List<String> emailList) {
         String result = "";
         for (String str : emailList) {

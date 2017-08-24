@@ -50,13 +50,13 @@ public class UserControllerTest extends TestBase {
         mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON).content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
-        Assert.assertEquals("token", responseContent);
+        Assert.assertTrue(responseContent.length() > 20);
 
         requestContent = "{ \"userName\" : \"liangpengyv\", \"password\" : \"liangpengyv\" }";
         mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON).content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
-        Assert.assertEquals("token", responseContent);
+        Assert.assertTrue(responseContent.length() > 20);
     }
 
     @Test

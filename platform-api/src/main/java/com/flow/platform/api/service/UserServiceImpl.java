@@ -3,10 +3,13 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.dao.UserDao;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.util.StringEncodeUtil;
+import com.flow.platform.api.util.TokenUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -18,6 +21,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserDao userDao;
+
+    @Value(value = "${expiration.duration}")
+    private long expirationDuration;
 
     @Override
     public String loginByEmail(String email, String password) throws IllegalParameterException {
@@ -40,8 +46,9 @@ public class UserServiceImpl implements UserService {
             throw new IllegalParameterException(errMsg + "password fault");
         }
 
-        //Login success
-        return "token";
+        //Login success, return token
+        String token = TokenUtil.createToken(email, expirationDuration);
+        return token;
     }
 
     @Override
@@ -65,8 +72,10 @@ public class UserServiceImpl implements UserService {
             throw new IllegalParameterException(errMsg + "password fault");
         }
 
-        //Login success
-        return "token";
+        //Login success, return token
+        String email = userDao.getEmailBy("user_name", userName);
+        String token = TokenUtil.createToken(email, expirationDuration);
+        return token;
     }
 
     @Override

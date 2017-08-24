@@ -45,6 +45,15 @@ public interface UserDao extends BaseDao<String, User> {
     Boolean passwordOfUserNameIsTrue(String userName, String password);
 
     /**
+     * Get email(PRIMARY_KEY) by a "where" condition
+     *
+     * @param whereWhatFieldName
+     * @param whereWhatFieldValue
+     * @return
+     */
+    String getEmailBy(String whereWhatFieldName, String whereWhatFieldValue);
+
+    /**
      * Delete a group users through email
      *
      * @param emailList
