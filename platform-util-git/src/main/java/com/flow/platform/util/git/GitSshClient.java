@@ -74,7 +74,7 @@ public class GitSshClient extends AbstractGitClient {
     }
 
     @Override
-    public File clone(boolean noCheckout) {
+    public File clone(boolean noCheckout) throws GitException {
         checkGitUrl();
 
         CloneCommand cloneCommand = Git.cloneRepository()
@@ -90,7 +90,7 @@ public class GitSshClient extends AbstractGitClient {
     }
 
     @Override
-    public File clone(String branch, Integer depth, Set<String> checkoutFiles) {
+    public File clone(String branch, Integer depth, Set<String> checkoutFiles) throws GitException {
         checkGitUrl();
         File gitDir = getGitPath().toFile();
 
@@ -105,7 +105,7 @@ public class GitSshClient extends AbstractGitClient {
 
         // git init
         else {
-            try (Git git = Git.init().setDirectory(targetDir.toFile()).call()){
+            try (Git git = Git.init().setDirectory(targetDir.toFile()).call()) {
                 Repository repository = git.getRepository();
                 gitDir = repository.getDirectory();
                 setSparseCheckout(gitDir, checkoutFiles);
@@ -120,7 +120,7 @@ public class GitSshClient extends AbstractGitClient {
     }
 
     @Override
-    public Collection<Ref> branches() {
+    public Collection<Ref> branches() throws GitException {
         try {
             return buildSshCommand(Git.lsRemoteRepository()
                 .setHeads(true)
@@ -132,7 +132,7 @@ public class GitSshClient extends AbstractGitClient {
     }
 
     @Override
-    public Collection<Ref> tags() {
+    public Collection<Ref> tags() throws GitException {
         try {
             return buildSshCommand(Git.lsRemoteRepository()
                 .setTags(true)

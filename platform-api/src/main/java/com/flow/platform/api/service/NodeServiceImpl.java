@@ -38,6 +38,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 
 /**
  * @author yh@firim
@@ -83,6 +87,9 @@ public class NodeServiceImpl implements NodeService {
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
+    @Autowired
+    private Path workspace;
+
     @Value(value = "${domain}")
     private String domain;
 
@@ -90,6 +97,7 @@ public class NodeServiceImpl implements NodeService {
     public Node createOrUpdate(final String path, final String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
         if (Strings.isNullOrEmpty(yml)) {
+            updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_NOT_FOUND);
             return flow;
         }
 
@@ -169,8 +177,15 @@ public class NodeServiceImpl implements NodeService {
         String rootPath = PathUtil.rootPath(path);
         Flow flow = findFlow(rootPath);
 
+        // delete flow
         flowDao.delete(flow);
+
+        // delete related yml storage
         ymlStorageDao.delete(new YmlStorage(flow.getPath(), null));
+
+        // delete local flow folder
+        Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);
+        FileSystemUtils.deleteRecursively(flowWorkspace.toFile());
 
         treeCache.invalidate(rootPath);
         return flow;
@@ -248,9 +263,9 @@ public class NodeServiceImpl implements NodeService {
 
             String yml;
             try {
-                 yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+                yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
             } catch (Throwable e) {
-                LOGGER.error("Git clone error", e);
+                LOGGER.error("Unable to clone from git repo", e);
                 updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
                 return;
             }
@@ -260,6 +275,8 @@ public class NodeServiceImpl implements NodeService {
             } catch (Throwable e) {
                 LOGGER.warn("Fail to create or update yml in node");
             }
+
+            LOGGER.trace("Node %s FLOW_YML_STATUS is: %s", flow.getName(), flow.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
             // call consumer
             if (callback != null) {

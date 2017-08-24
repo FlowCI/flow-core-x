@@ -25,8 +25,4 @@ import java.nio.file.Path;
  */
 public interface FlowDao extends BaseDao<String, Flow> {
 
-    /**
-     * Get flow workspace
-     */
-    Path workspace(Path base, Flow flow);
 }

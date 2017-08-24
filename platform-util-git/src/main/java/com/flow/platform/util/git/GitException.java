@@ -19,7 +19,7 @@ package com.flow.platform.util.git;
 /**
  * @author yang
  */
-public class GitException extends RuntimeException {
+public class GitException extends Exception {
 
     public GitException(String message) {
         super(message, null);

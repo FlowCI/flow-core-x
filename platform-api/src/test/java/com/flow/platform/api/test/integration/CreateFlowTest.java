@@ -73,9 +73,10 @@ public class CreateFlowTest extends TestBase {
 
         // async to clone and return .flow.yml content
         final CountDownLatch latch = new CountDownLatch(1);
-        final StringBuilder yml = new StringBuilder();
+        final String[] ymlWrapper = {null};
+
         nodeService.loadYmlContent(loaded.getPath(), ymlStorage -> {
-            yml.append(ymlStorage.getFile());
+            ymlWrapper[0] = ymlStorage.getFile();
             latch.countDown();
         });
 
@@ -84,12 +85,9 @@ public class CreateFlowTest extends TestBase {
         loaded = (Flow) nodeService.find(flow.getPath());
         Assert.assertEquals(FlowEnvs.Value.FLOW_YML_STATUS_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
-        // create node by yml content
-        nodeService.createOrUpdate(loaded.getPath(), yml.toString());
-
         YmlStorage ymlStorage = ymlStorageDao.get(loaded.getPath());
         Assert.assertNotNull(ymlStorage);
-        Assert.assertEquals(yml.toString(), ymlStorage.getFile());
+        Assert.assertEquals(ymlWrapper[0], ymlStorage.getFile());
     }
 
     @After
