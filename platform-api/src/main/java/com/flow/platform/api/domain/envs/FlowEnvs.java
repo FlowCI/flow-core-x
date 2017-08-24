@@ -38,9 +38,9 @@ public enum FlowEnvs implements EnvKey {
 
     public enum StatusValue implements EnvValue {
 
-        FLOW_STATUS_READY("READY"),
+        READY("READY"),
 
-        FLOW_STATUS_PENDING("PENDING");
+        PENDING("PENDING");
 
         private String value;
 

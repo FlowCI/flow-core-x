@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
+package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
@@ -88,6 +88,13 @@ public interface NodeService {
      * @param callback method on yml loaded
      */
     void loadYmlContent(String path, Consumer<YmlStorage> callback);
+
+    /**
+     * Stop yml content loading thread
+     *
+     * @param path
+     */
+    void stopLoadYmlContent(String path);
 
     /**
      * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG

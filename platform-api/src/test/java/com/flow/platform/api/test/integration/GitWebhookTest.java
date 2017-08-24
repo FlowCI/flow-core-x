@@ -26,7 +26,7 @@ import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.util.ObjectWrapper;

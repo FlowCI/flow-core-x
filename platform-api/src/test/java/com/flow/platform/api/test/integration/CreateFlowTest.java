@@ -22,7 +22,7 @@ import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
 import java.nio.file.Path;
