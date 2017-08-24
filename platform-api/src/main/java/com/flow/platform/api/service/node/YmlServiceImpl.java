@@ -54,15 +54,17 @@ public class YmlServiceImpl implements YmlService {
 
     private final static Logger LOGGER = new Logger(YmlService.class);
 
-    private final static int TREE_CACHE_EXPIRE_SECOND = 3600 * 24;
+    private final static int NODE_THREAD_POOL_CACHE_EXPIRE = 3600 * 24;
 
-    private final static int MAX_TREE_CACHE_NUM = 100;
+    private final static int NODE_THREAD_POOL_CACHE_SIZE = 100;
+
+    private final static int NODE_THREAD_POOL_SIZE = 1;
 
     // To cache thread pool for node path
     private Cache<String, ThreadPoolTaskExecutor> nodeThreadPool = CacheBuilder
         .newBuilder()
-        .expireAfterAccess(TREE_CACHE_EXPIRE_SECOND, TimeUnit.SECONDS)
-        .maximumSize(MAX_TREE_CACHE_NUM)
+        .expireAfterAccess(NODE_THREAD_POOL_CACHE_EXPIRE, TimeUnit.SECONDS)
+        .maximumSize(NODE_THREAD_POOL_CACHE_SIZE)
         .build();
 
     @Autowired
@@ -138,13 +140,11 @@ public class YmlServiceImpl implements YmlService {
             throw new IllegalStatusException("Yml file is loading");
         }
 
+        // update FLOW_YML_STATUS to LOADING
+        nodeService.updateYmlState(flow, YmlStatusValue.GIT_CONNECTING, null);
+
         try {
-            ThreadPoolTaskExecutor executor = nodeThreadPool.get(flow.getPath(), () -> {
-                ThreadPoolTaskExecutor taskExecutor = ThreadUtil
-                    .createTaskExecutor(5, 5, 0, "git-clone-task-" + flow.getName());
-                taskExecutor.initialize();
-                return taskExecutor;
-            });
+            ThreadPoolTaskExecutor executor = findThreadPoolFromCache(flow.getPath());
 
             // async to load yml file
             executor.execute(new CloneAndVerifyYmlTask(flow, nodeService, gitService, callback));
@@ -162,10 +162,23 @@ public class YmlServiceImpl implements YmlService {
         final Flow flow = nodeService.findFlow(rootPath);
 
         ThreadPoolTaskExecutor executor = nodeThreadPool.getIfPresent(flow.getPath());
-        if (executor == null) {
+        if (executor == null || executor.getActiveCount() == 0) {
             return;
         }
 
         executor.shutdown();
+        nodeThreadPool.invalidate(flow.getPath());
+
+        LOGGER.trace("Yml loading task been stopped for path %s", path);
+        nodeService.updateYmlState(flow, YmlStatusValue.NOT_FOUND, null);
+    }
+
+    private ThreadPoolTaskExecutor findThreadPoolFromCache(String path) throws ExecutionException {
+        return nodeThreadPool.get(path, () -> {
+            ThreadPoolTaskExecutor taskExecutor = ThreadUtil
+                .createTaskExecutor(NODE_THREAD_POOL_SIZE, NODE_THREAD_POOL_SIZE, 0, "git-clone-task");
+            taskExecutor.initialize();
+            return taskExecutor;
+        });
     }
 }

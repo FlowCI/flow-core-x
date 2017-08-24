@@ -66,9 +66,12 @@ public class CloneAndVerifyYmlTask implements Runnable {
         try {
             yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE, new GitProgressListener());
         } catch (Throwable e) {
-            Throwable rootCause = ExceptionUtil.findRootCause(e);
-            LOGGER.error("Unable to clone from git repo", rootCause);
-            nodeService.updateYmlState(flow, YmlStatusValue.ERROR, rootCause.getMessage());
+            // check yml status is running since exception will be throw if manual stop the git clone thread
+            if (YmlStatusValue.isLoadingStatus(flow.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
+                Throwable rootCause = ExceptionUtil.findRootCause(e);
+                LOGGER.error("Unable to clone from git repo", rootCause);
+                nodeService.updateYmlState(flow, YmlStatusValue.ERROR, rootCause.getMessage());
+            }
             return;
         }
 
@@ -95,7 +98,7 @@ public class CloneAndVerifyYmlTask implements Runnable {
 
         @Override
         public void onStartTask(String task) {
-
+            LOGGER.debug("Task start: %s", task);
         }
 
         @Override
@@ -107,7 +110,7 @@ public class CloneAndVerifyYmlTask implements Runnable {
 
         @Override
         public void onFinishTask(String task) {
-
+            LOGGER.debug("Task finish: %s", task);
         }
 
         @Override

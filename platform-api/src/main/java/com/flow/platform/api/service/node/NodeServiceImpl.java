@@ -244,6 +244,7 @@ public class NodeServiceImpl implements NodeService {
             flow.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
         }
 
+        LOGGER.debug("Update '%s' yml status to %s", flow.getName(), state);
         flowDao.update(flow);
     }
 
