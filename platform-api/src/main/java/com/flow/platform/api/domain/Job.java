@@ -43,8 +43,6 @@ public class Job extends EnvObject {
 
     private String cmdId;
 
-    private NodeResult nodeResult;
-
     @Expose
     private NodeStatus status;
 
@@ -95,14 +93,6 @@ public class Job extends EnvObject {
 
     public Job(BigInteger id) {
         this.id = id;
-    }
-
-    public NodeResult getNodeResult() {
-        return nodeResult;
-    }
-
-    public void setNodeResult(NodeResult nodeResult) {
-        this.nodeResult = nodeResult;
     }
 
     public Integer getNumber() {
