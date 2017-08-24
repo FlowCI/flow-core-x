@@ -29,6 +29,7 @@ import com.flow.platform.api.task.CloneAndVerifyYmlTask;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
@@ -37,6 +38,7 @@ import com.flow.platform.util.Logger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +52,7 @@ import org.springframework.stereotype.Service;
  * @author yang
  */
 @Service
-public class YmlServiceImpl implements YmlService {
+public class YmlServiceImpl implements YmlService, ContextEvent {
 
     private final static Logger LOGGER = new Logger(YmlService.class);
 
@@ -75,6 +77,22 @@ public class YmlServiceImpl implements YmlService {
 
     @Autowired
     private YmlStorageDao ymlStorageDao;
+
+    @Override
+    public void start() {
+        // ignore
+    }
+
+    /**
+     * Stop all thread from node thread pool
+     */
+    @Override
+    public void stop() {
+        for (Map.Entry<String, ThreadPoolTaskExecutor> entry : nodeThreadPool.asMap().entrySet()) {
+            entry.getValue().shutdown();
+        }
+        nodeThreadPool.invalidateAll();
+    }
 
     @Override
     public Node verifyYml(final String path, final String yml) {
