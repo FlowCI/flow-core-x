@@ -115,7 +115,7 @@ public class NodeServiceImpl implements NodeService {
             return flow;
         }
 
-        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.StatusValue.FLOW_STATUS_READY);
+        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.StatusValue.READY);
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
 
         // persistent flow type node to flow table with env which from yml
@@ -321,7 +321,7 @@ public class NodeServiceImpl implements NodeService {
         }
 
         flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
-        flow.putEnv(FlowEnvs.FLOW_STATUS, StatusValue.FLOW_STATUS_PENDING);
+        flow.putEnv(FlowEnvs.FLOW_STATUS, StatusValue.PENDING);
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND);
         flow = flowDao.save(flow);
 

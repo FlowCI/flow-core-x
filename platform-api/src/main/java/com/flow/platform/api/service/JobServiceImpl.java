@@ -109,7 +109,7 @@ public class JobServiceImpl implements JobService {
         }
 
         String status = root.getEnv(FlowEnvs.FLOW_STATUS);
-        if (Strings.isNullOrEmpty(status) || !status.equals(FlowEnvs.StatusValue.FLOW_STATUS_READY.value())) {
+        if (Strings.isNullOrEmpty(status) || !status.equals(FlowEnvs.StatusValue.READY.value())) {
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
