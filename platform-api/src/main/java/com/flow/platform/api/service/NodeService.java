@@ -90,6 +90,13 @@ public interface NodeService {
     void loadYmlContent(String path, Consumer<YmlStorage> callback);
 
     /**
+     * Stop yml content loading thread
+     *
+     * @param path
+     */
+    void stopLoadYmlContent(String path);
+
+    /**
      * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG
      */
     void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo);

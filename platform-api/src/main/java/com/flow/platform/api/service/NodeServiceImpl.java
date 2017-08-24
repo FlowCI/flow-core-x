@@ -33,6 +33,7 @@ import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -63,6 +64,8 @@ public class NodeServiceImpl implements NodeService {
 
     private final Logger LOGGER = new Logger(NodeService.class);
 
+    private final static int TREE_CACHE_EXPIRE_SECOND = 3600 * 24;
+
     private final static int MAX_TREE_CACHE_NUM = 100;
 
     private final static int INIT_NODE_CACHE_NUM = 10;
@@ -70,7 +73,14 @@ public class NodeServiceImpl implements NodeService {
     // To cache key is root node (flow) path, value is flatted tree as map
     private Cache<String, Cache<String, Node>> treeCache = CacheBuilder
         .newBuilder()
-        .expireAfterAccess(3600 * 24, TimeUnit.SECONDS)
+        .expireAfterAccess(TREE_CACHE_EXPIRE_SECOND, TimeUnit.SECONDS)
+        .maximumSize(MAX_TREE_CACHE_NUM)
+        .build();
+
+    // To cache thread pool for node path
+    private Cache<String, ThreadPoolTaskExecutor> nodeThreadPool = CacheBuilder
+        .newBuilder()
+        .expireAfterAccess(TREE_CACHE_EXPIRE_SECOND, TimeUnit.SECONDS)
         .maximumSize(MAX_TREE_CACHE_NUM)
         .build();
 
@@ -82,9 +92,6 @@ public class NodeServiceImpl implements NodeService {
 
     @Autowired
     private GitService gitService;
-
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
 
     @Autowired
     private Path workspace;
@@ -257,8 +264,33 @@ public class NodeServiceImpl implements NodeService {
         // update FLOW_YML_STATUS to LOADING
         updateYmlState(flow, YmlStatusValue.GIT_CONNECTING, null);
 
-        // async to load yml file
-        taskExecutor.execute(new CloneAndVerifyYmlTask(flow, this, gitService, callback));
+        try {
+            ThreadPoolTaskExecutor executor = nodeThreadPool.get(flow.getPath(), () -> {
+                ThreadPoolTaskExecutor taskExecutor = ThreadUtil
+                    .createTaskExecutor(5, 5, 0, "git-clone-task-" + flow.getName());
+                taskExecutor.initialize();
+                return taskExecutor;
+            });
+
+            // async to load yml file
+            executor.execute(new CloneAndVerifyYmlTask(flow, this, gitService, callback));
+        } catch (ExecutionException e) {
+            LOGGER.warn("Fail to get task executor for node: " + flow.getPath());
+            updateYmlState(flow, YmlStatusValue.ERROR, e.getMessage());
+        }
+    }
+
+    @Override
+    public void stopLoadYmlContent(String path) {
+        final String rootPath = PathUtil.rootPath(path);
+        final Flow flow = findFlow(rootPath);
+
+        ThreadPoolTaskExecutor executor = nodeThreadPool.getIfPresent(flow.getPath());
+        if (executor == null) {
+            return;
+        }
+
+        executor.shutdown();
     }
 
     @Override
