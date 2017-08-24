@@ -50,5 +50,5 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      * get max number
      */
     Integer maxBuildNumber(String flowName);
-    
+
 }

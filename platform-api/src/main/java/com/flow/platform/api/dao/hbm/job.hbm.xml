@@ -9,31 +9,14 @@
       <column name="id" sql-type="decimal(25, 0)"/>
     </id>
 
-    <property name="number" type="integer"  column="number">
+    <property name="number" type="integer" column="number">
 
     </property>
     <property name="nodeName" column="node_name"/>
     <property name="nodePath" column="node_path"/>
-    <!--&lt;!&ndash;<property name="duration" type="long" column="duration"/>-->
-    <!--&ndash;&gt;<property name="exitCode" type="integer" column="exit_code"/>-->
+    
     <property name="cmdId" type="string" column="cmd_id"/>
     <property name="sessionId" type="string" column="session_id"/>
-    <!--<property name="outputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="outputs"/>-->
-
-    <!--<property name="status" column="status" length="10" not-null="true">-->
-      <!--<type name="org.hibernate.type.EnumType">-->
-        <!--<param name="enumClass">com.flow.platform.api.domain.NodeStatus</param>-->
-        <!--<param name="useNamed">true</param>-->
-      <!--</type>-->
-    <!--</property>-->
-
-    <!--<property name="finishedAt" type="java.time.ZonedDateTime">-->
-      <!--<column name="finished_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>-->
-    <!--</property>-->
-
-    <!--<property name="startedAt" type="java.time.ZonedDateTime">-->
-      <!--<column name="started_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>-->
-    <!--</property>-->
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
