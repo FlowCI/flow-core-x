@@ -14,7 +14,7 @@
     </property>
     <property name="nodeName" column="node_name"/>
     <property name="nodePath" column="node_path"/>
-    
+
     <property name="cmdId" type="string" column="cmd_id"/>
     <property name="sessionId" type="string" column="session_id"/>
 

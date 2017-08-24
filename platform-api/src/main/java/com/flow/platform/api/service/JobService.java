@@ -44,7 +44,7 @@ public interface JobService {
     /**
      * run node
      */
-    void run(Node node, BigInteger jobId);
+    void run(Node node, Job job);
 
     /**
      * find job by id

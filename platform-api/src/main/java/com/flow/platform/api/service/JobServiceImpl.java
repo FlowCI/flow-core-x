@@ -189,10 +189,10 @@ public class JobServiceImpl implements JobService {
      * @param node job node's script and record cmdId and sync send http
      */
     @Override
-    public void run(Node node, BigInteger jobId) {
+    public void run(Node node, Job job) {
         if (!NodeUtil.canRun(node)) {
             // run next node
-            run(NodeUtil.next(node), jobId);
+            run(NodeUtil.next(node), job);
             return;
         }
 
@@ -201,9 +201,8 @@ public class JobServiceImpl implements JobService {
 
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setInputs(node.getEnvs());
-        cmdInfo.setWebhook(getNodeHook(node, jobId));
+        cmdInfo.setWebhook(getNodeHook(node, job.getId()));
         cmdInfo.setOutputEnvFilter("FLOW_");
-        Job job = find(jobId);
         cmdInfo.setSessionId(job.getSessionId());
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
 
@@ -217,7 +216,7 @@ public class JobServiceImpl implements JobService {
             }
 
             Cmd cmd = Jsonable.parse(res, Cmd.class);
-            NodeResult nodeResult = jobNodeResultService.find(node.getPath(), jobId);
+            NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
 
             // record cmd id
             nodeResult.setCmdId(cmd.getId());
@@ -327,7 +326,7 @@ public class JobServiceImpl implements JobService {
             }
 
             // start run flow
-            run(NodeUtil.first(flow), job.getId());
+            run(NodeUtil.first(flow), job);
         } else {
             LOGGER.warn(String.format("Create Session Error Session Status - %s", cmdBase.getStatus().getName()));
         }
@@ -416,7 +415,7 @@ public class JobServiceImpl implements JobService {
                     if (next == null) {
                         updateNodeStatus(node.getParent(), cmdBase, job);
                     } else {
-                        run(NodeUtil.next(node), job.getId());
+                        run(NodeUtil.next(node), job);
                     }
                 }
                 break;
@@ -440,7 +439,7 @@ public class JobServiceImpl implements JobService {
 
                 //next node not null, run next node
                 if (next != null && ((Step) node).getAllowFailure()) {
-                    run(NodeUtil.next(node), job.getId());
+                    run(NodeUtil.next(node), job);
                 }
                 break;
         }
@@ -455,6 +454,9 @@ public class JobServiceImpl implements JobService {
         jobNodeResultService.update(nodeResult);
     }
 
+    /**
+     * update node info outputs duration start time
+     */
     private void updateNodeInfo(Node node, CmdBase cmdBase, Job job) {
         NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
         //update jobNode
@@ -470,8 +472,6 @@ public class JobServiceImpl implements JobService {
 
             // setting start time
             if (nodeResult.getStartTime() == null) {
-                LOGGER.warn(
-                    String.format("update node status duration set - start time - %s", cmdResult.getStartTime()));
                 nodeResult.setStartTime(cmdResult.getStartTime());
             }
 
@@ -484,8 +484,6 @@ public class JobServiceImpl implements JobService {
             if (nodeResult.getFinishTime() != null) {
                 Long duration =
                     nodeResult.getFinishTime().toEpochSecond() - nodeResult.getStartTime().toEpochSecond();
-                LOGGER.warn(String.format("surplus %s - %s = %s", nodeResult.getFinishTime().toEpochSecond(),
-                    nodeResult.getStartTime().toEpochSecond(), duration));
                 nodeResult.setDuration(duration);
             }
 
