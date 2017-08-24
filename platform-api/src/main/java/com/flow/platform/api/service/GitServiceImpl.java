@@ -62,22 +62,6 @@ public class GitServiceImpl implements GitService {
     }
 
     @Override
-    public String fetch(Flow flow, String filePath) {
-        try {
-            Path gitSourcePath = gitSourcePath(flow);
-            Path targetPath = Paths.get(gitSourcePath.toString(), filePath);
-
-            if (Files.exists(targetPath)) {
-                return getContent(targetPath);
-            }
-        } catch (IOException warn) {
-            LOGGER.warn("Fail to create git source dir for node: %s, %s", flow.getPath(), warn.getMessage());
-        }
-
-        return null;
-    }
-
-    @Override
     public String clone(Flow flow, String filePath) throws GitException {
         String branch = flow.getEnv(GitEnvs.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(flow);
@@ -122,6 +106,24 @@ public class GitServiceImpl implements GitService {
         Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);
         Files.createDirectories(flowWorkspace);
         return Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
+    }
+
+    /**
+     * Get target file from local git repo folder
+     */
+    private String fetch(Flow flow, String filePath) {
+        try {
+            Path gitSourcePath = gitSourcePath(flow);
+            Path targetPath = Paths.get(gitSourcePath.toString(), filePath);
+
+            if (Files.exists(targetPath)) {
+                return getContent(targetPath);
+            }
+        } catch (IOException warn) {
+            LOGGER.warn("Fail to create git source dir for node: %s, %s", flow.getPath(), warn.getMessage());
+        }
+
+        return null;
     }
 
     /**

@@ -59,7 +59,7 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
-    public Collection<Ref> branches() {
+    public Collection<Ref> branches() throws GitException {
         try (Git git = gitOpen()) {
             return git.branchList().call();
         } catch (GitAPIException e) {
@@ -68,7 +68,7 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
-    public Collection<Ref> tags() {
+    public Collection<Ref> tags() throws GitException {
         try (Git git = gitOpen()) {
             return git.tagList().call();
         } catch (GitAPIException e) {
@@ -80,7 +80,7 @@ public abstract class AbstractGitClient implements GitClient {
      * Get latest commit by ref name from local .git
      */
     @Override
-    public GitCommit commit(String refName) {
+    public GitCommit commit(String refName) throws GitException {
         try (Git git = gitOpen()) {
             Repository repo = git.getRepository();
             Ref head = repo.findRef(refName);
@@ -107,7 +107,7 @@ public abstract class AbstractGitClient implements GitClient {
         return git.pull().setRemoteBranchName(branch);
     }
 
-    protected Git gitOpen() {
+    Git gitOpen() throws GitException {
         try {
             return Git.open(getGitPath().toFile());
         } catch (IOException e) {
@@ -115,7 +115,7 @@ public abstract class AbstractGitClient implements GitClient {
         }
     }
 
-    protected Path getGitPath() {
+    Path getGitPath() {
         return Paths.get(targetDir.toString(), ".git");
     }
 
