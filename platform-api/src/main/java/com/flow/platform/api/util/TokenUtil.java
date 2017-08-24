@@ -1,5 +1,6 @@
 package com.flow.platform.api.util;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.core.exception.IllegalParameterException;
 import io.jsonwebtoken.*;
 
@@ -25,7 +26,7 @@ public class TokenUtil {
     public static String createToken(String email, long expirationDuration) {
         try {
             String compactJws = Jwts.builder()
-                    .signWith(SignatureAlgorithm.HS256, secret.getBytes("UTF-8"))
+                    .signWith(SignatureAlgorithm.HS256, secret.getBytes(AppConfig.DEFAULT_CHARSET.name()))
                     .setSubject(email)
                     .setExpiration(new Date(new Date().getTime() + expirationDuration))
                     .compact();
@@ -47,7 +48,7 @@ public class TokenUtil {
         String errMsg = "Illegal token parameter: ";
         try {
             Jws<Claims> jws = Jwts.parser()
-                    .setSigningKey(secret.getBytes("UTF-8"))
+                    .setSigningKey(secret.getBytes(AppConfig.DEFAULT_CHARSET.name()))
                     .parseClaimsJws(tokenStr);
 
             email = jws.getBody().getSubject();

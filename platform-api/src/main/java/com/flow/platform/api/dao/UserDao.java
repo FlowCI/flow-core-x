@@ -19,12 +19,12 @@ public interface UserDao extends BaseDao<String, User> {
     Boolean emailIsExist(String email);
 
     /**
-     * Verify user_name is exist
+     * Verify username is exist
      *
-     * @param userName
+     * @param username
      * @return
      */
-    Boolean userNameIsExist(String userName);
+    Boolean usernameIsExist(String username);
 
     /**
      * Verify password of email
@@ -36,13 +36,13 @@ public interface UserDao extends BaseDao<String, User> {
     Boolean passwordOfEmailIsTrue(String email, String password);
 
     /**
-     * Verify password of user_name
+     * Verify password of username
      *
-     * @param userName
+     * @param username
      * @param password
      * @return
      */
-    Boolean passwordOfUserNameIsTrue(String userName, String password);
+    Boolean passwordOfUsernameIsTrue(String username, String password);
 
     /**
      * Get email(PRIMARY_KEY) by a "where" condition

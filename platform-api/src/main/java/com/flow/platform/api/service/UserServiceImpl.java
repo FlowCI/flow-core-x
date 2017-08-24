@@ -1,5 +1,6 @@
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.UserDao;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.util.StringEncodeUtil;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -26,19 +26,20 @@ public class UserServiceImpl implements UserService {
     private long expirationDuration;
 
     @Override
-    public String loginByEmail(String email, String password) throws IllegalParameterException {
+    public String loginByEmail(String email, String password) {
         String errMsg = "Illegal login request parameter: ";
 
         //Check format
         if (!checkEmailFormatIsPass(email)) {
             throw new IllegalParameterException(errMsg + "email format false");
         }
+
         if (!checkPasswordFormatIsPass(password)) {
             throw new IllegalParameterException(errMsg + "password format false");
         }
 
         //Validate database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, "UTF-8");
+        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
         if (!emailIsExist(email)) {
             throw new IllegalParameterException(errMsg + "email is not exist");
         }
@@ -52,42 +53,42 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String loginByUserName(String userName, String password) throws IllegalParameterException {
+    public String loginByUsername(String username, String password) {
         String errMsg = "Illegal login request parameter: ";
 
         //Check format
-        if (!checkUserNameFormatIsPass(userName)) {
-            throw new IllegalParameterException(errMsg + "user name format false");
+        if (!checkUsernameFormatIsPass(username)) {
+            throw new IllegalParameterException(errMsg + "username format false");
         }
         if (!checkPasswordFormatIsPass(password)) {
             throw new IllegalParameterException(errMsg + "password format false");
         }
 
         //Validate database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, "UTF-8");
-        if (!userNameIsExist(userName)) {
-            throw new IllegalParameterException(errMsg + "user name is not exist");
+        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
+        if (!usernameIsExist(username)) {
+            throw new IllegalParameterException(errMsg + "username is not exist");
         }
-        if (!passwordOfUserNameIsTrue(userName, passwordForMD5)) {
+        if (!passwordOfUsernameIsTrue(username, passwordForMD5)) {
             throw new IllegalParameterException(errMsg + "password fault");
         }
 
         //Login success, return token
-        String email = userDao.getEmailBy("user_name", userName);
+        String email = userDao.getEmailBy("username", username);
         String token = TokenUtil.createToken(email, expirationDuration);
         return token;
     }
 
     @Override
-    public void register(User user) throws IllegalParameterException {
+    public void register(User user) {
         String errMsg = "Illegal register request parameter: ";
 
         //Check format
         if (!checkEmailFormatIsPass(user.getEmail())) {
             throw new IllegalParameterException(errMsg + "email format false");
         }
-        if (!checkUserNameFormatIsPass(user.getUserName())) {
-            throw new IllegalParameterException(errMsg + "user name format false");
+        if (!checkUsernameFormatIsPass(user.getUsername())) {
+            throw new IllegalParameterException(errMsg + "username format false");
         }
         if (!checkPasswordFormatIsPass(user.getPassword())) {
             throw new IllegalParameterException(errMsg + "password format false");
@@ -97,12 +98,12 @@ public class UserServiceImpl implements UserService {
         if (emailIsExist(user.getEmail())) {
             throw new IllegalParameterException(errMsg + "email already exist");
         }
-        if (userNameIsExist(user.getUserName())) {
-            throw new IllegalParameterException(errMsg + "user name already exist");
+        if (usernameIsExist(user.getUsername())) {
+            throw new IllegalParameterException(errMsg + "username already exist");
         }
 
         //Insert the user info into the database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8");
+        String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
         user.setPassword(passwordForMD5);
         userDao.save(user);
     }
@@ -129,11 +130,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean checkUserNameFormatIsPass(String userName) {
-        if (userName == null || userName.trim().equals("")) {
+    public Boolean checkUsernameFormatIsPass(String username) {
+        if (username == null || username.trim().equals("")) {
             return false;
         }
-        if (!Pattern.compile("^\\w{5,20}$").matcher(userName).matches()) {
+        if (!Pattern.compile("^\\w{5,20}$").matcher(username).matches()) {
             return false;
         }
         return true;
@@ -156,8 +157,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean userNameIsExist(String userName) {
-        return userDao.userNameIsExist(userName);
+    public Boolean usernameIsExist(String username) {
+        return userDao.usernameIsExist(username);
     }
 
     @Override
@@ -166,7 +167,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean passwordOfUserNameIsTrue(String userName, String password) {
-        return userDao.passwordOfUserNameIsTrue(userName, password);
+    public Boolean passwordOfUsernameIsTrue(String username, String password) {
+        return userDao.passwordOfUsernameIsTrue(username, password);
     }
 }

@@ -19,13 +19,13 @@ public interface UserService {
     String loginByEmail(String email, String password);
 
     /**
-     * Login by user_name
+     * Login by username
      *
-     * @param userName
+     * @param username
      * @param password
      * @return
      */
-    String loginByUserName(String userName, String password);
+    String loginByUsername(String username, String password);
 
     /**
      * Register
@@ -58,12 +58,12 @@ public interface UserService {
     Boolean checkEmailFormatIsPass(String email);
 
     /**
-     * Check the format of the user_name
+     * Check the format of the username
      *
-     * @param userName
+     * @param username
      * @return
      */
-    Boolean checkUserNameFormatIsPass(String userName);
+    Boolean checkUsernameFormatIsPass(String username);
 
     /**
      * Check the format of the password
@@ -82,12 +82,12 @@ public interface UserService {
     Boolean emailIsExist(String email);
 
     /**
-     * Verify user_name is exist
+     * Verify username is exist
      *
-     * @param userName
+     * @param username
      * @return
      */
-    Boolean userNameIsExist(String userName);
+    Boolean usernameIsExist(String username);
 
     /**
      * Verify password of email
@@ -99,11 +99,11 @@ public interface UserService {
     Boolean passwordOfEmailIsTrue(String email, String password);
 
     /**
-     * Verify password of user_name
+     * Verify password of username
      *
-     * @param userName
+     * @param username
      * @param password
      * @return
      */
-    Boolean passwordOfUserNameIsTrue(String userName, String password);
+    Boolean passwordOfUsernameIsTrue(String username, String password);
 }

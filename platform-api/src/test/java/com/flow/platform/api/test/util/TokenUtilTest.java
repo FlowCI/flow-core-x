@@ -4,8 +4,6 @@ import com.flow.platform.api.util.TokenUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
-
 /**
  * @author liangpengyv
  */

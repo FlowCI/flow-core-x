@@ -4,7 +4,10 @@ import com.flow.platform.api.domain.SwitchRoleRequest;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -19,16 +22,11 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping
-    public String index() {
-        return "Hello, please login!";
-    }
-
     @PostMapping("/login")
     public String login(@RequestBody User user) {
         if (user.getEmail() == null) {
-            // Use user_name to login
-            return userService.loginByUserName(user.getUserName(), user.getPassword());
+            // Use username to login
+            return userService.loginByUsername(user.getUsername(), user.getPassword());
         } else {
             // Use email to login
             return userService.loginByEmail(user.getEmail(), user.getPassword());

@@ -9,15 +9,13 @@ public class User {
 
     private String email;
 
-    private String userName;
+    private String username;
 
     private String password;
 
     private String flowAuth;
 
     private String roleId;
-
-    private String token;
 
     private ZonedDateTime createdAt;
 
@@ -31,12 +29,12 @@ public class User {
         this.email = email;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -61,14 +59,6 @@ public class User {
 
     public void setRoleId(String roleId) {
         this.roleId = roleId;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 
     public ZonedDateTime getCreatedAt() {

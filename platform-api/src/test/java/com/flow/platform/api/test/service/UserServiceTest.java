@@ -1,5 +1,6 @@
 package com.flow.platform.api.test.service;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.UserDao;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.service.UserService;
@@ -30,14 +31,14 @@ public class UserServiceTest extends TestBase {
     public void beforeTest() {
         user = new User();
         user.setEmail("liangpengyv@fir.im");
-        user.setUserName("liangpengyv");
+        user.setUsername("liangpengyv");
         user.setPassword("liangpengyv");
         user.setRoleId("developer");
     }
 
     @Test
     public void should_login_by_email_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
         userDao.save(user);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 
@@ -46,12 +47,12 @@ public class UserServiceTest extends TestBase {
     }
 
     @Test
-    public void should_login_by_user_name_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+    public void should_login_by_username_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
         userDao.save(user);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 
-        String msg = userService.loginByUserName("liangpengyv", "liangpengyv");
+        String msg = userService.loginByUsername("liangpengyv", "liangpengyv");
         Assert.assertTrue(msg.length() > 20);
     }
 
@@ -63,7 +64,7 @@ public class UserServiceTest extends TestBase {
 
     @Test
     public void should_delete_user_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
         userDao.save(user);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 
@@ -75,7 +76,7 @@ public class UserServiceTest extends TestBase {
 
     @Test
     public void should_switch_role_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
         userDao.save(user);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
         Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
@@ -99,15 +100,15 @@ public class UserServiceTest extends TestBase {
     }
 
     @Test
-    public void should_check_user_name_format_success() {
-        String userName1 = "test1";  //the correct user_name format
-        Assert.assertTrue(userService.checkUserNameFormatIsPass(userName1));
-        String userName2 = "test";  //the wrong user_name format
-        Assert.assertFalse(userService.checkUserNameFormatIsPass(userName2));
-        String userName3 = "testtesttesttesttest1";  //the wrong user_name format
-        Assert.assertFalse(userService.checkUserNameFormatIsPass(userName3));
-        String userName4 = "#test";  //the wrong user_name format
-        Assert.assertFalse(userService.checkUserNameFormatIsPass(userName4));
+    public void should_check_username_format_success() {
+        String username1 = "test1";  //the correct username format
+        Assert.assertTrue(userService.checkUsernameFormatIsPass(username1));
+        String username2 = "test";  //the wrong username format
+        Assert.assertFalse(userService.checkUsernameFormatIsPass(username2));
+        String username3 = "testtesttesttesttest1";  //the wrong username format
+        Assert.assertFalse(userService.checkUsernameFormatIsPass(username3));
+        String username4 = "#test";  //the wrong username format
+        Assert.assertFalse(userService.checkUsernameFormatIsPass(username4));
     }
 
     @Test
@@ -124,29 +125,29 @@ public class UserServiceTest extends TestBase {
 
     @Test
     public void should_verify_email_is_exist_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
         userDao.save(user);
         Assert.assertTrue(userService.emailIsExist("liangpengyv@fir.im"));
     }
 
     @Test
-    public void should_verify_user_name_is_exist_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+    public void should_verify_username_is_exist_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
         userDao.save(user);
-        Assert.assertTrue(userService.userNameIsExist("liangpengyv"));
+        Assert.assertTrue(userService.usernameIsExist("liangpengyv"));
     }
 
     @Test
     public void should_verify_password_of_email_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
         userDao.save(user);
-        Assert.assertTrue(userService.passwordOfEmailIsTrue("liangpengyv@fir.im", StringEncodeUtil.encodeByMD5("liangpengyv", "UTF-8")));
+        Assert.assertTrue(userService.passwordOfEmailIsTrue("liangpengyv@fir.im", StringEncodeUtil.encodeByMD5("liangpengyv", AppConfig.DEFAULT_CHARSET.name())));
     }
 
     @Test
-    public void should_verify_password_of_user_name_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), "UTF-8"));
+    public void should_verify_password_of_username_success() {
+        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
         userDao.save(user);
-        Assert.assertTrue(userService.passwordOfUserNameIsTrue("liangpengyv", StringEncodeUtil.encodeByMD5("liangpengyv", "UTF-8")));
+        Assert.assertTrue(userService.passwordOfUsernameIsTrue("liangpengyv", StringEncodeUtil.encodeByMD5("liangpengyv", AppConfig.DEFAULT_CHARSET.name())));
     }
 }

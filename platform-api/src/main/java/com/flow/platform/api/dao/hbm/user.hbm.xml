@@ -7,15 +7,13 @@
     <class name="User" table="user">
         <id name="email" type="string" column="email"/>
 
-        <property name="userName" type="string" column="user_name"/>
+        <property name="username" type="string" column="username" unique="true"/>
 
         <property name="password" type="string" column="password"/>
 
         <property name="flowAuth" type="string" column="flow_auth"/>
 
         <property name="roleId" type="string" column="role_id"/>
-
-        <property name="token" type="string" column="token"/>
 
         <property name="createdAt" type="java.time.ZonedDateTime">
             <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>

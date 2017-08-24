@@ -32,7 +32,7 @@ public class UserControllerTest extends TestBase {
     public void beforeTest() {
         user = new User();
         user.setEmail("liangpengyv@fir.im");
-        user.setUserName("liangpengyv");
+        user.setUsername("liangpengyv");
         user.setPassword("liangpengyv");
         user.setRoleId("developer");
         userService.register(user);
@@ -52,7 +52,7 @@ public class UserControllerTest extends TestBase {
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertTrue(responseContent.length() > 20);
 
-        requestContent = "{ \"userName\" : \"liangpengyv\", \"password\" : \"liangpengyv\" }";
+        requestContent = "{ \"username\" : \"liangpengyv\", \"password\" : \"liangpengyv\" }";
         mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON).content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
@@ -64,7 +64,7 @@ public class UserControllerTest extends TestBase {
         String requestContent;
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
 
-        requestContent = "{ \"email\" : \"test1@fir.im\", \"userName\" : \"test1\", \"password\" : \"test1\", \"roleId\" : \"developer\" }";
+        requestContent = "{ \"email\" : \"test1@fir.im\", \"username\" : \"test1\", \"password\" : \"test1\", \"roleId\" : \"developer\" }";
         mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON).content(requestContent);
         mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         Assert.assertNotNull(userDao.get("test1@fir.im"));
