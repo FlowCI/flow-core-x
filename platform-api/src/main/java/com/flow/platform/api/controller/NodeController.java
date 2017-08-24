@@ -18,6 +18,7 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.google.common.base.Strings;
@@ -36,7 +37,14 @@ public abstract class NodeController {
     protected NodeService nodeService;
 
     @GetMapping("/env")
-    public Map<String, String> getEnv(@RequestParam String path, @RequestParam(required = false) String key) {
+    public Map<String, String> getEnv(@RequestParam String pathOrName, @RequestParam(required = false) String key) {
+        String path = pathOrName;
+
+        // check is path for root name
+        if (PathUtil.isRootName(path)) {
+            path = PathUtil.build(path);
+        }
+
         Node node = nodeService.find(path);
 
         if (node == null) {

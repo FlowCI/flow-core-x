@@ -78,7 +78,7 @@
   ```
       Description: the root {key} is optional, return all envs if {key} not defined
       Method: GET
-      Route: /flows/{flowname}/env/{key}
+      Route: /flows/env?pathOrName=/xxx&key=FLOW_XXX
       Response: {
         FLOW_KEY: value,
         FLOW_KEY: value
