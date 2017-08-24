@@ -364,27 +364,17 @@ public class JobServiceImpl implements JobService {
         Job job = find(nodeResult.getNodeResultKey().getJobId());
 
         if (node instanceof Step) {
-            //merge step outputs in flow outputs
-            EnvUtil.merge(nodeResult.getOutputs(), job.getOutputs(), false);
-            job.setDuration(job.getDuration() + nodeResult.getDuration());
-            jobDao.update(job);
             return;
         }
 
-        job.setUpdatedAt(ZonedDateTime.now());
-        job.setExitCode(nodeResult.getExitCode());
         NodeStatus nodeStatus = nodeResult.getStatus();
 
         if (nodeStatus == NodeStatus.TIMEOUT || nodeStatus == NodeStatus.FAILURE) {
             nodeStatus = NodeStatus.FAILURE;
         }
 
-        job.setStatus(nodeStatus);
-        jobDao.update(job);
-
         //delete session
         if (nodeStatus == NodeStatus.FAILURE || nodeStatus == NodeStatus.SUCCESS) {
-
             deleteSession(job);
         }
     }
@@ -398,19 +388,6 @@ public class JobServiceImpl implements JobService {
         nodeResult.setUpdatedAt(ZonedDateTime.now());
         nodeResult.setStatus(handleStatus(cmdBase));
         CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
-
-        if (cmdResult != null) {
-            nodeResult.setExitCode(cmdResult.getExitValue());
-            if (NodeUtil.canRun(node)) {
-                if (cmdResult.getDuration() != null) {
-                    nodeResult.setDuration(cmdResult.getDuration());
-                }
-                nodeResult.setOutputs(cmdResult.getOutput());
-                nodeResult.setLogPaths(((Cmd) cmdBase).getLogPaths());
-                nodeResult.setStartTime(cmdResult.getStartTime());
-                nodeResult.setFinishTime(((Cmd) cmdBase).getFinishedDate());
-            }
-        }
 
         Node parent = node.getParent();
         Node prev = node.getPrev();
@@ -471,8 +448,57 @@ public class JobServiceImpl implements JobService {
         //update job status
         updateJobStatus(nodeResult);
 
+        //update node info
+        updateNodeInfo(node, cmdBase, job);
+
         //save
         jobNodeResultService.update(nodeResult);
+    }
+
+    private void updateNodeInfo(Node node, CmdBase cmdBase, Job job) {
+        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
+        //update jobNode
+        nodeResult.setUpdatedAt(ZonedDateTime.now());
+
+        CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
+
+        if (cmdResult != null) {
+            nodeResult.setExitCode(cmdResult.getExitValue());
+            if (NodeUtil.canRun(node)) {
+                nodeResult.setLogPaths(((Cmd) cmdBase).getLogPaths());
+            }
+
+            // setting start time
+            if (nodeResult.getStartTime() == null) {
+                LOGGER.warn(
+                    String.format("update node status duration set - start time - %s", cmdResult.getStartTime()));
+                nodeResult.setStartTime(cmdResult.getStartTime());
+            }
+
+            // setting finish time
+            if (((Cmd) cmdBase).getFinishedDate() != null) {
+                nodeResult.setFinishTime(((Cmd) cmdBase).getFinishedDate());
+            }
+
+            //setting duration from endTime - startTime
+            if (nodeResult.getFinishTime() != null) {
+                Long duration =
+                    nodeResult.getFinishTime().toEpochSecond() - nodeResult.getStartTime().toEpochSecond();
+                LOGGER.warn(String.format("surplus %s - %s = %s", nodeResult.getFinishTime().toEpochSecond(),
+                    nodeResult.getStartTime().toEpochSecond(), duration));
+                nodeResult.setDuration(duration);
+            }
+
+            // merge envs
+            EnvUtil.merge(cmdResult.getOutput(), nodeResult.getOutputs(), false);
+
+            if (node.getParent() != null) {
+                updateNodeInfo(node.getParent(), cmdBase, job);
+            }
+
+            //save
+            jobNodeResultService.update(nodeResult);
+        }
     }
 
     /**

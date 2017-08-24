@@ -15,6 +15,7 @@
  */
 
 package com.flow.platform.api.domain;
+
 import com.flow.platform.api.domain.adaptor.EnvAdaptor;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
@@ -23,6 +24,7 @@ import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import javax.persistence.criteria.CriteriaBuilder.In;
 
 public class Job extends EnvObject {
 
@@ -40,6 +42,8 @@ public class Job extends EnvObject {
     private String sessionId;
 
     private String cmdId;
+
+    private NodeResult nodeResult;
 
     @Expose
     private NodeStatus status;
@@ -69,11 +73,36 @@ public class Job extends EnvObject {
     @Expose
     private Integer number;
 
-    public Job() {
+    public Job(BigInteger id, Integer number, String nodeName, String nodePath, String sessionId,
+        ZonedDateTime startedAt, ZonedDateTime finishedAt, NodeStatus status, Integer exitCode,
+        Map<String, String> outputs, Long duration, String cmdId, ZonedDateTime createdAt, ZonedDateTime updatedAt) {
+
+        this.id = id;
+        this.number = number;
+        this.nodeName = nodeName;
+        this.nodePath = nodePath;
+        this.sessionId = sessionId;
+        this.startedAt = startedAt;
+        this.finishedAt = finishedAt;
+        this.status = status;
+        this.exitCode = exitCode;
+        this.outputs = outputs;
+        this.duration = duration;
+        this.cmdId = cmdId;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public Job(BigInteger id) {
         this.id = id;
+    }
+
+    public NodeResult getNodeResult() {
+        return nodeResult;
+    }
+
+    public void setNodeResult(NodeResult nodeResult) {
+        this.nodeResult = nodeResult;
     }
 
     public Integer getNumber() {

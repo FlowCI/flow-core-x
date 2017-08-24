@@ -27,13 +27,6 @@ import java.util.List;
  */
 public interface JobDao extends BaseDao<BigInteger, Job> {
 
-    /**
-     * list jobs by statuses
-     *
-     * @param statuses RUNNING
-     */
-    List<Job> list(NodeStatus... statuses);
-
     List<Job> list(List<String> sessionId, NodeStatus nodeStatus);
 
     /**
@@ -57,9 +50,5 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      * get max number
      */
     Integer maxBuildNumber(String flowName);
-
-    /**
-     * find running job
-     */
-    Job get (String flowName, NodeStatus status);
+    
 }

@@ -18,10 +18,17 @@ package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.Job;
+import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.NodeResultKey;
 import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,5 +123,88 @@ public class JobDaoTest extends TestBase {
         Assert.assertNotNull(number);
 
         Assert.assertEquals((Integer)0, jobDao.maxBuildNumber("flows"));
+    }
+
+    @Test
+    public void should_list_session_status_success(){
+        Job job = new Job(CommonUtil.randomId());
+        job.setNumber(1);
+        job.setCmdId("1111");
+        job.setSessionId("11111111");
+        job.setNodePath("/flow/test");
+        job.setNodeName("test");
+        jobDao.save(job);
+
+        NodeResult nodeResult = new NodeResult();
+        nodeResult.setStatus(NodeStatus.SUCCESS);
+        nodeResult.setStartTime(ZonedDateTime.now());
+        nodeResult.setFinishTime(ZonedDateTime.now());
+        Map<String, String> outputs = new HashMap<>();
+        outputs.put("a", "a");
+        nodeResult.setDuration(10l);
+        nodeResult.setExitCode(10);
+        nodeResult.setOutputs(outputs);
+        nodeResult.setNodeTag(NodeTag.FLOW);
+        nodeResult.setNodeResultKey(new NodeResultKey(job.getId(), job.getNodePath()));
+        nodeResultDao.save(nodeResult);
+
+        List<String> sessionIds = new ArrayList<>();
+        sessionIds.add(job.getSessionId());
+        List<Job> jobs = jobDao.list(sessionIds, NodeStatus.SUCCESS);
+        Assert.assertEquals(1, jobs.size());
+        Job job1 = jobs.get(0);
+        Assert.assertEquals(nodeResult.getStatus(), job1.getStatus());
+        Assert.assertEquals(nodeResult.getOutputs(), job1.getOutputs());
+        Assert.assertEquals(nodeResult.getDuration(), job1.getDuration());
+        Assert.assertEquals(nodeResult.getExitCode(), job1.getExitCode());
+        Assert.assertNotNull(job1.getStartedAt());
+        Assert.assertNotNull(job1.getFinishedAt());
+        Assert.assertNotNull(job1.getCreatedAt());
+        Assert.assertNotNull(job1.getUpdatedAt());
+    }
+
+
+    @Test
+    public void should_list_session_status_success_complex(){
+        Job job = new Job(CommonUtil.randomId());
+        job.setNumber(1);
+        job.setNodePath("/flow/test");
+        job.setNodeName("test");
+        job.setSessionId("11111111");
+        jobDao.save(job);
+
+        NodeResult nodeResult = new NodeResult();
+        nodeResult.setStatus(NodeStatus.SUCCESS);
+        nodeResult.setNodeTag(NodeTag.FLOW);
+        nodeResult.setNodeResultKey(new NodeResultKey(job.getId(), job.getNodePath()));
+        nodeResultDao.save(nodeResult);
+
+        List<String> sessionIds = new ArrayList<>();
+        sessionIds.add(job.getSessionId());
+        List<Job> jobs = jobDao.list(sessionIds, NodeStatus.SUCCESS);
+        Assert.assertEquals(1, jobs.size());
+        Job job1 = jobs.get(0);
+    }
+
+    @Test
+    public void should_get_job_success_number_and_name(){
+        Job job = new Job(CommonUtil.randomId());
+        job.setNumber(1);
+        job.setNodePath("/flow/test");
+        job.setNodeName("test");
+        job.setSessionId("11111111");
+        jobDao.save(job);
+
+        NodeResult nodeResult = new NodeResult();
+        nodeResult.setStatus(NodeStatus.SUCCESS);
+        nodeResult.setNodeTag(NodeTag.FLOW);
+        nodeResult.setNodeResultKey(new NodeResultKey(job.getId(), job.getNodePath()));
+        nodeResultDao.save(nodeResult);
+
+        List<String> sessionIds = new ArrayList<>();
+        sessionIds.add(job.getSessionId());
+
+        Job job1 = jobDao.get(job.getNodeName(), job.getNumber());
+        Assert.assertNotNull(job1);
     }
 }

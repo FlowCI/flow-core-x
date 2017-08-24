@@ -18,13 +18,10 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.api.util.JobConvertUtil;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.math.BigInteger;
 import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
@@ -44,28 +41,81 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         return "id";
     }
 
+    private final static String TEMPLATE = ""
+        + "job.id, job.number, job.node_name"
+        + ", job.node_path, job.session_id"
+        + ", node_result.started_at, node_result.finished_at"
+        + ", node_result.status, node_result.exit_code"
+        + ", node_result.outputs"
+        + ", node_result.duration"
+        + ", job.cmd_id, job.created_at, job.updated_at ";
+
+
     @Override
-    public List<Job> list(NodeStatus... statuses) {
+    public List<Job> list() {
         return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Job> select = builder.createQuery(Job.class);
-            Root<Job> job = select.from(Job.class);
-            Predicate condition = job.get("status").in(statuses);
-            select.where(condition);
-            return session.createQuery(select).list();
+            String select = String
+                .format(
+                    "select %s"
+                        + "from job left join node_result "
+                        + "on "
+                        + " job.node_path=node_result.node_path "
+                        + " and job.id=node_result.job_id ",
+                    TEMPLATE);
+
+            List<Object[]> objects = (List<Object[]>) session.createNativeQuery(select)
+                .list();
+
+            return JobConvertUtil.convert(objects);
         });
     }
 
     @Override
     public List<Job> list(List<String> sessionIds, NodeStatus nodeStatus) {
         return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Job> select = builder.createQuery(Job.class);
-            Root<Job> job = select.from(Job.class);
-            Predicate aCondition = builder.equal(job.get("status"), nodeStatus);
-            Predicate bCondition = job.get("sessionId").in(sessionIds);
-            select.where(builder.and(aCondition, bCondition));
-            return session.createQuery(select).list();
+            StringBuilder stringBuilder = new StringBuilder("");
+            for (String sessionId : sessionIds) {
+                stringBuilder.append(" '" + sessionId + "' ");
+            }
+
+            String string = stringBuilder.toString();
+            string = string.substring(0, string.length() - 1);
+
+            String select = String
+                .format(
+                    "select %s"
+                        + "from job left join node_result "
+                        + "on "
+                        + " job.node_path=node_result.node_path "
+                        + " and job.id=node_result.job_id "
+                        + "where job.session_id in ( %s ) "
+                        + " and node_result.status='%s'",
+                    TEMPLATE, string, nodeStatus.getName());
+
+            List<Object[]> objects = (List<Object[]>) session.createNativeQuery(select)
+                .list();
+
+            return JobConvertUtil.convert(objects);
+        });
+    }
+
+    @Override
+    public Job get(BigInteger key) {
+        return execute((Session session) -> {
+            String select = String
+                .format(
+                    "select %s"
+                        + "from job left join node_result "
+                        + "on "
+                        + " job.node_path=node_result.node_path "
+                        + " and job.id=node_result.job_id "
+                        + "where id=%s",
+                    TEMPLATE, key);
+
+            Object[] objects = (Object[]) session.createNativeQuery(select)
+                .uniqueResult();
+
+            return JobConvertUtil.convert(objects);
         });
     }
 
@@ -76,8 +126,15 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             string = "'" + string + "'";
 
             String select = String
-                .format("from Job where id in (select max(id) from Job where nodeName in ( %s ) group by nodePath)",
-                    string);
+                .format(
+                    "select %s"
+                        + "from job left join node_result "
+                        + "on "
+                        + " job.node_path=node_result.node_path "
+                        + " and job.id=node_result.job_id "
+                        + "where id in (select max(id) from Job where nodeName in ( %s ) group by nodePath)",
+                    TEMPLATE, string);
+
             List<Job> jobs = (List<Job>) session.createQuery(select)
                 .list();
             return jobs;
@@ -88,26 +145,40 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public List<Job> list(String nodePath) {
         return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Job> select = builder.createQuery(Job.class);
-            Root<Job> job = select.from(Job.class);
-            Predicate condition = job.get("nodeName").in(nodePath);
-            select.where(condition);
-            select.orderBy(builder.desc(job.get("number")));
-            return session.createQuery(select).list();
+            String select = String
+                .format(
+                    "select %s"
+                        + "from job left join node_result "
+                        + "on "
+                        + " job.node_path=node_result.node_path "
+                        + " and job.id=node_result.job_id "
+                        + " where job.node_path='%s'",
+                    TEMPLATE, nodePath);
+
+            List<Object[]> objects = (List<Object[]>) session.createNativeQuery(select)
+                .list();
+
+            return JobConvertUtil.convert(objects);
         });
     }
 
     @Override
     public Job get(String flowName, Integer number) {
         return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Job> select = builder.createQuery(Job.class);
-            Root<Job> job = select.from(Job.class);
-            Predicate condition = builder.equal(job.get("nodeName"), flowName);
-            Predicate bCondition = builder.equal(job.get("number"), number);
-            select.where(builder.and(condition, bCondition));
-            return session.createQuery(select).uniqueResult();
+            String select = String
+                .format(
+                    "select %s"
+                        + "from job left join node_result "
+                        + "on "
+                        + " job.node_path=node_result.node_path "
+                        + " and job.id=node_result.job_id "
+                        + "where job.node_name='%s' and job.number=%s",
+                    TEMPLATE, flowName, number);
+
+            Object[] objects = (Object[]) session.createNativeQuery(select)
+                .uniqueResult();
+
+            return JobConvertUtil.convert(objects);
         });
     }
 
@@ -120,18 +191,6 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 integer = 0;
             }
             return integer;
-        });
-    }
-
-    @Override
-    public Job get(String flowName, NodeStatus status) {
-        return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<Job> select = builder.createQuery(Job.class);
-            Root<Job> job = select.from(Job.class);
-            Predicate condition = builder.equal(job.get("status"), status);
-            select.where(condition);
-            return session.createQuery(select).uniqueResult();
         });
     }
 }

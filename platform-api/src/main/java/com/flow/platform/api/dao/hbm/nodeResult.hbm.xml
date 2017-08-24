@@ -35,10 +35,10 @@
     </property>
 
     <property name="finishTime" type="java.time.ZonedDateTime">
-      <column name="finished_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+      <column name="finished_at" sql-type="timestamp NULL" default="NULL"/>
     </property>
     <property name="startTime" type="java.time.ZonedDateTime">
-      <column name="started_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+      <column name="started_at" sql-type="timestamp NULL"  default="NULL"/>
     </property>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
