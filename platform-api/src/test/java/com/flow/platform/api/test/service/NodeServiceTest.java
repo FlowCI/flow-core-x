@@ -99,11 +99,35 @@ public class NodeServiceTest extends TestBase {
     }
 
     @Test
-    public void should_set_yml_status_to_err() throws Throwable {
+    public void should_yml_not_found_status_when_create_node_tree_from_empty_yml() throws Throwable {
+        // given:
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
-        Node flow = nodeService.createOrUpdate(emptyFlow.getPath(), "xx: illegal yml format");
+        Map<String, String> flowEnv = new HashMap<>();
+        flowEnv.put("FLOW_YML_STATUS", "LOADING");
+        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
 
-        Assert.assertEquals(FlowEnvs.Value.FLOW_YML_STATUS_ERROR.value(), flow.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        // when:
+        nodeService.createOrUpdate(emptyFlow.getPath(), "");
+
+        // then: check FLOW_YML_STATUS
+        Node flow = nodeService.find(emptyFlow.getPath());
+        Assert.assertEquals("NOT_FOUND", flow.getEnv("FLOW_YML_STATUS"));
+    }
+
+    @Test
+    public void should_yml_error_status_when_create_node_tree_from_incorrect_yml() throws Throwable {
+        // given:
+        Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        Map<String, String> flowEnv = new HashMap<>();
+        flowEnv.put("FLOW_YML_STATUS", "LOADING");
+        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+
+        // when:
+        nodeService.createOrUpdate(emptyFlow.getPath(), "xxxx");
+
+        // then: check FLOW_YML_STATUS
+        Node flow = nodeService.find(emptyFlow.getPath());
+        Assert.assertEquals("ERROR", flow.getEnv("FLOW_YML_STATUS"));
     }
 
     @Test

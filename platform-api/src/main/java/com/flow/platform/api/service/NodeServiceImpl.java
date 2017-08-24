@@ -97,6 +97,7 @@ public class NodeServiceImpl implements NodeService {
     public Node createOrUpdate(final String path, final String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
         if (Strings.isNullOrEmpty(yml)) {
+            updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_NOT_FOUND);
             return flow;
         }
 
@@ -262,7 +263,7 @@ public class NodeServiceImpl implements NodeService {
 
             String yml;
             try {
-                 yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+                yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
             } catch (Throwable e) {
                 LOGGER.error("Unable to clone from git repo", e);
                 updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
@@ -274,6 +275,8 @@ public class NodeServiceImpl implements NodeService {
             } catch (Throwable e) {
                 LOGGER.warn("Fail to create or update yml in node");
             }
+
+            LOGGER.trace("Node %s FLOW_YML_STATUS is: %s", flow.getName(), flow.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
             // call consumer
             if (callback != null) {
