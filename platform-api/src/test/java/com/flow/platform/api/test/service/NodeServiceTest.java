@@ -24,6 +24,7 @@ import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -43,6 +44,9 @@ public class NodeServiceTest extends TestBase {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private YmlService ymlService;
 
     @Value(value = "${domain}")
     private String domain;
@@ -210,7 +214,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("ERROR", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // then: should raise YmlException
-        nodeService.getYmlContent(root.getPath());
+        ymlService.getYmlContent(root.getPath());
     }
 
     @Test(expected = IllegalParameterException.class)
@@ -220,7 +224,7 @@ public class NodeServiceTest extends TestBase {
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
-        Assert.assertNotNull(nodeService.getYmlContent(root.getPath()));
+        Assert.assertNotNull(ymlService.getYmlContent(root.getPath()));
 
         // when:
         nodeService.delete(root.getPath());
@@ -230,6 +234,6 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals(false, Files.exists(NodeUtil.workspacePath(workspace, root)));
 
         // then: should raise illegal parameter exception since flow doesn't exist
-        nodeService.getYmlContent(root.getPath());
+        ymlService.getYmlContent(root.getPath());
     }
 }

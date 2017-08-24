@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.Node;
@@ -59,6 +60,9 @@ public class GitWebhookTest extends TestBase {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private YmlService ymlService;
 
     @Autowired
     private SpringContext springContext;
@@ -137,7 +141,7 @@ public class GitWebhookTest extends TestBase {
         springContext.removeApplicationListener(listener);
 
         // verify yml is updated
-        Assert.assertNotNull(nodeService.getYmlContent(flowPath));
+        Assert.assertNotNull(ymlService.getYmlContent(flowPath));
 
         // verify job is created
         Job created = wrapper.getInstance();

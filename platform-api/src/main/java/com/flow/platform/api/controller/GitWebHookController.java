@@ -21,6 +21,7 @@ import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
@@ -53,6 +54,9 @@ public class GitWebHookController {
     private NodeService nodeService;
 
     @Autowired
+    private YmlService ymlService;
+
+    @Autowired
     private JobService jobService;
 
     @Autowired
@@ -79,7 +83,7 @@ public class GitWebHookController {
             // extract git info from event and set to flow env
             nodeService.setFlowEnv(path, GitEventDataExtractor.extract(hookEvent));
 
-            nodeService.loadYmlContent(path, yml -> {
+            ymlService.loadYmlContent(path, yml -> {
                 LOGGER.trace("Yml content has been loaded for path : " + path);
 
                 // start job
