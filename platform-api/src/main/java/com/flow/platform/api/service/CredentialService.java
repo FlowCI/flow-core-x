@@ -48,4 +48,7 @@ public interface CredentialService {
 
     List<Credential> listTypes(String credentialType);
 
+    long getAllowSize();
+
+    String allowSuffix();
 }

@@ -13,26 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.flow.platform.api.test.config;
-
-import com.flow.platform.api.test.TestBase;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+package com.flow.platform.api.domain;
 
 /**
- * @author yang
+ * @author lhl
  */
-public class AppConfigTest extends TestBase {
+public class AndroidCredential extends Credential {
 
-    @Autowired
-    private Path workingDir;
+    protected String[] fileNames;
 
-    @Test
-    public void should_create_working_path() throws Throwable {
-        Assert.assertTrue(Files.exists(workingDir));
+    public String[] getFileNames() {
+        return fileNames;
+    }
+
+    public void setFileNames(String[] fileNames) {
+        this.fileNames = fileNames;
     }
 }
