@@ -29,26 +29,22 @@ public enum FlowEnvs implements EnvKey {
     /**
      * Indicate flow yml loading, ready
      */
-    FLOW_YML_STATUS;
+    FLOW_YML_STATUS,
 
-    public enum Value implements EnvValue {
+    /**
+     * For yml error message while loading yml from git
+     */
+    FLOW_YML_ERROR_MSG;
 
-        FLOW_STATUS_READY("READY"),
+    public enum StatusValue implements EnvValue {
 
-        FLOW_STATUS_PENDING("PENDING"),
+        READY("READY"),
 
-
-        FLOW_YML_STATUS_LOADING("LOADING"),
-
-        FLOW_YML_STATUS_NOT_FOUND("NOT_FOUND"),
-
-        FLOW_YML_STATUS_FOUND("FOUND"),
-
-        FLOW_YML_STATUS_ERROR("ERROR");
+        PENDING("PENDING");
 
         private String value;
 
-        Value(String value) {
+        StatusValue(String value) {
             this.value = value;
         }
 
@@ -60,6 +56,43 @@ public enum FlowEnvs implements EnvKey {
         @Override
         public String toString() {
             return value;
+        }
+    }
+
+    public enum YmlStatusValue implements EnvValue {
+
+        NOT_FOUND("NOT_FOUND"),
+
+        GIT_CONNECTING("GIT_CONNECTING"),
+
+        GIT_CONNECTED("GIT_CONNECTED"),
+
+        GIT_LOADING("GIT_LOADING"),
+
+        GIT_LOADED("GIT_LOADED"),
+
+        FOUND("FOUND"),
+
+        ERROR("ERROR");
+
+        private String value;
+
+        YmlStatusValue(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String value() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
+        public static boolean isLoadingStatus(String value) {
+            return value.startsWith("GIT_");
         }
     }
 

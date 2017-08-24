@@ -25,6 +25,7 @@ import com.flow.platform.api.domain.NodeStatus;
 import com.flow.platform.api.domain.NodeTag;
 import com.flow.platform.api.domain.Step;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.util.HttpUtil;
@@ -109,7 +110,7 @@ public class JobServiceImpl implements JobService {
         }
 
         String status = root.getEnv(FlowEnvs.FLOW_STATUS);
-        if (Strings.isNullOrEmpty(status) || !status.equals(FlowEnvs.Value.FLOW_STATUS_READY.value())) {
+        if (Strings.isNullOrEmpty(status) || !status.equals(FlowEnvs.StatusValue.READY.value())) {
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 

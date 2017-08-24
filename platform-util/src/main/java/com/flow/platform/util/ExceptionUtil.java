@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.dao;
-
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.core.dao.BaseDao;
-import java.nio.file.Path;
+package com.flow.platform.util;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public interface FlowDao extends BaseDao<String, Flow> {
+public class ExceptionUtil {
+
+    public static Throwable findRootCause(Throwable e) {
+        if (e.getCause() == null) {
+            return e;
+        }
+
+        return findRootCause(e.getCause());
+    }
 
 }

@@ -17,8 +17,12 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.NotFoundException;
+import com.google.common.base.Strings;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,12 +36,24 @@ public abstract class NodeController {
     protected NodeService nodeService;
 
     @GetMapping("/env")
-    public String getEnv(@RequestParam String path, @RequestParam String key) {
+    public Map<String, String> getEnv(@RequestParam String path, @RequestParam(required = false) String key) {
         Node node = nodeService.find(path);
-        if (node != null) {
-            return node.getEnv(key);
+
+        if (node == null) {
+            throw new IllegalParameterException("Invalid node path");
         }
 
-        throw new IllegalParameterException("Invalid node path");
+        if (Strings.isNullOrEmpty(key)) {
+            return node.getEnvs();
+        }
+
+        String env = node.getEnv(key);
+        if (Strings.isNullOrEmpty(env)) {
+            throw new NotFoundException("Env key is not exist");
+        }
+
+        Map<String, String> singleEnv = new HashMap<>(1);
+        singleEnv.put(key, env);
+        return singleEnv;
     }
 }

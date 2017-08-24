@@ -20,6 +20,7 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.service.GitService;
+import com.flow.platform.api.service.GitService.ProgressListener;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
 import java.nio.file.Path;
@@ -47,7 +48,34 @@ public class GitServiceTest extends TestBase {
         dummyFlow.putEnv(GitEnvs.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
         dummyFlow.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
 
-        String content = gitService.clone(dummyFlow, AppConfig.DEFAULT_YML_FILE);
+        String content = gitService.clone(dummyFlow, AppConfig.DEFAULT_YML_FILE, new ProgressListener() {
+
+            @Override
+            public void onStart() {
+                System.out.println("Start clone");
+            }
+
+            @Override
+            public void onStartTask(String task) {
+                // it means git url connected
+                System.out.println("Start task: " + task);
+            }
+
+            @Override
+            public void onProgressing(String task, int total, int progress) {
+                System.out.println("Task: " + task + " : " + total + " : " + progress);
+            }
+
+            @Override
+            public void onFinishTask(String task) {
+                System.out.println("Task finished: " + task);
+            }
+
+            @Override
+            public void onFinish() {
+                System.out.println("All finished ");
+            }
+        });
         Assert.assertNotNull(content);
     }
 

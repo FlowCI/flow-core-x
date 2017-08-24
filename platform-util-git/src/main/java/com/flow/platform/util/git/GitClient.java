@@ -18,8 +18,10 @@ package com.flow.platform.util.git;
 
 import com.flow.platform.util.git.model.GitCommit;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 
 /**
@@ -27,13 +29,15 @@ import org.eclipse.jgit.lib.Ref;
  */
 public interface GitClient {
 
+    Path targetPath();
+
     /**
      * Git clone from remote url
      *
      * @param noCheckout git clone xxxx --no-checkout, only clone .git dir
      * @return .git folder path
      */
-    File clone(boolean noCheckout);
+    File clone(boolean noCheckout) throws GitException;
 
     /**
      * Git clone from remote url with specific checkout files
@@ -42,32 +46,34 @@ public interface GitClient {
      * @param branch branch to clone, can be set to null
      * @param depth git --depth param, can be set to null
      * @param checkoutFiles specific checkout file
+     * @param monitor git progress monitor, can be null
      * @return .git folder path
      * @throws GitException if git clone fail
      */
-    File clone(String branch, Integer depth, Set<String> checkoutFiles);
+    File clone(String branch, Integer depth, Set<String> checkoutFiles, ProgressMonitor monitor) throws GitException;
 
     /**
      * Git pull with depth
      *
      * @param branch branch to pull, can be set to null
      * @param depth git pull depth, can be set to null
+     * @param monitor git progress monitor, can be null
      * @throws GitException if git pull fail
      */
-    void pull(String branch, Integer depth);
+    void pull(String branch, Integer depth, ProgressMonitor monitor) throws GitException;
 
     /**
      * Load all branches from git
      */
-    Collection<Ref> branches();
+    Collection<Ref> branches() throws GitException;
 
     /**
      * Load all tags from git
      */
-    Collection<Ref> tags();
+    Collection<Ref> tags() throws GitException;
 
     /**
      * Git latest commit from ref
      */
-    GitCommit commit(String refName);
+    GitCommit commit(String refName) throws GitException;
 }
