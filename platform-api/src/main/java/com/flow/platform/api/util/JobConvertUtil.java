@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,17 +39,17 @@ public class JobConvertUtil {
     public static Job convert(Object[] objects) {
 
         return new Job(((BigDecimal) objects[0]).toBigInteger(),
-            (Integer) objects[1],
-            (String) objects[2],
-            (String) objects[3],
-            (String) objects[4],
+            convertInteger(objects[1]),
+            convertString(objects[2]),
+            convertString(objects[3]),
+            convertString(objects[4]),
             tsToZoneDateTime((Timestamp) objects[5]),
             tsToZoneDateTime((Timestamp) objects[6]),
             convertStatus((String) objects[7]),
             convertInteger(objects[8]),
-            Jsonable.GSON_CONFIG.fromJson((String) objects[9], Map.class),
+            convertMap(objects[9]),
             (convertBigInteger(objects[10])).longValue(),
-            (String) objects[11],
+            convertString(objects[11]),
             tsToZoneDateTime((Timestamp) objects[12]),
             tsToZoneDateTime((Timestamp) objects[13]));
     }
@@ -70,18 +71,32 @@ public class JobConvertUtil {
         return NodeStatus.valueOf(name);
     }
 
-    private static Integer convertInteger(Object object){
-        if(object == null){
+    private static Integer convertInteger(Object object) {
+        if (object == null) {
             return null;
         }
-        return (Integer)object;
+        return (Integer) object;
     }
 
-    private static BigInteger convertBigInteger(Object object){
-        if(object == null){
+    private static Map<String, String> convertMap(Object object) {
+        if (object == null) {
+            return new HashMap<>();
+        }
+        return Jsonable.GSON_CONFIG.fromJson((String) object, Map.class);
+    }
+
+    private static BigInteger convertBigInteger(Object object) {
+        if (object == null) {
             return new BigInteger("0");
         }
-        return (BigInteger)object;
+        return (BigInteger) object;
+    }
+
+    private static String convertString(Object object) {
+        if (object == null) {
+            return null;
+        }
+        return (String) object;
     }
 
     public static List<Job> convert(List<Object[]> objects) {
