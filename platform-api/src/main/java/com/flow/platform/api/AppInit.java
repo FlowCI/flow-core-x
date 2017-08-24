@@ -17,6 +17,10 @@
 package com.flow.platform.api;
 
 import com.flow.platform.api.config.WebConfig;
+import com.flow.platform.api.resource.PropertyResourceLoader;
+import com.flow.platform.util.resource.AppResourceLoader;
+import java.io.IOException;
+import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -42,6 +46,17 @@ public class AppInit implements WebApplicationInitializer {
         // Add the servlet mapping manually and make it initialize automatically
         DispatcherServlet dispatcherServlet = new DispatcherServlet(applicationContext);
         ServletRegistration.Dynamic servlet = servletContext.addServlet("mvc-dispatcher", dispatcherServlet);
+
+        // set app property resource
+        try {
+            AppResourceLoader propertyLoader = new PropertyResourceLoader();
+            applicationContext
+                .getEnvironment()
+                .getPropertySources()
+                .addFirst(new ResourcePropertySource(propertyLoader.find()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         servlet.addMapping("/");
         servlet.setAsyncSupported(true);

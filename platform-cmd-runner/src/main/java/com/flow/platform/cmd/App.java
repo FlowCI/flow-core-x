@@ -18,6 +18,7 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 
+import com.google.common.collect.Lists;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
@@ -94,7 +95,7 @@ public final class App {
             null,
             "FLOW_", // find env start with FLOW_ and put to cmd result output map
             null,
-            "$TEST", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/");
+            Lists.newArrayList("$TEST", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/"));
 
         executor.run();
     }
@@ -103,21 +104,16 @@ public final class App {
 
         @Override
         public void run() {
-            try {
-                CmdExecutor executor = new CmdExecutor(
-                    procListener,
-                    logListener,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "sleep 10 && echo \"hello\"");
+            CmdExecutor executor = new CmdExecutor(
+                procListener,
+                logListener,
+                null,
+                null,
+                null,
+                null,
+                Lists.newArrayList("sleep 10 && echo \"hello\""));
 
-                executor.run();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                return;
-            }
+            executor.run();
         }
     }
 }

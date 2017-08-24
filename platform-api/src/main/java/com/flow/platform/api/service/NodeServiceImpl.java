@@ -29,8 +29,10 @@ import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.GitException;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -95,8 +97,7 @@ public class NodeServiceImpl implements NodeService {
         try {
             rootFromYml = verifyYml(path, yml);
         } catch (IllegalParameterException | YmlException e) {
-            flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
-            flowDao.update(flow);
+            updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
             return flow;
         }
 
@@ -232,16 +233,27 @@ public class NodeServiceImpl implements NodeService {
         final Set<String> requiredEnvSet = Sets.newHashSet(GitEnvs.FLOW_GIT_URL.name(), GitEnvs.FLOW_GIT_SOURCE.name());
 
         if (!EnvUtil.hasRequired(flow, requiredEnvSet)) {
-            throw new IllegalParameterException("Missing required envs");
+            throw new IllegalParameterException("Missing required envs: FLOW_GIT_URL FLOW_GIT_SOURCE");
+        }
+
+        if (Objects.equals(flow.getEnv(FlowEnvs.FLOW_YML_STATUS), FlowEnvs.Value.FLOW_YML_STATUS_LOADING.value())) {
+            throw new IllegalStatusException("Yml file is loading");
         }
 
         // update FLOW_YML_STATUS to LOADING
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_LOADING);
-        flowDao.update(flow);
+        updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_LOADING);
 
         // async to load yml file
         taskExecutor.execute(() -> {
-            String yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+
+            String yml;
+            try {
+                 yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+            } catch (Throwable e) {
+                LOGGER.error("Git clone error", e);
+                updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
+                return;
+            }
 
             try {
                 createOrUpdate(path, yml);
@@ -325,5 +337,10 @@ public class NodeServiceImpl implements NodeService {
         }
 
         return (Flow) node;
+    }
+
+    private void updateYmlState(Flow flow, FlowEnvs.Value state) {
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
+        flowDao.update(flow);
     }
 }

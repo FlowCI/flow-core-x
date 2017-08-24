@@ -46,7 +46,7 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
-    public void pull(String branch, Integer depth) {
+    public void pull(String branch, Integer depth) throws GitException {
         if (depth != null) {
             throw new GitException("JGit api doesn't support shallow clone");
         }

@@ -90,9 +90,11 @@ public class FlowController extends NodeController {
     }
 
     @GetMapping("/{flowName}/yml/load")
-    public void loadRawYmlFromGit(@PathVariable String flowName) {
+    public Node loadRawYmlFromGit(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        nodeService.loadYmlContent(PathUtil.build(flowName), null);
+        String path = PathUtil.build(flowName);
+        nodeService.loadYmlContent(path, null);
+        return nodeService.find(path);
     }
 
     @PostMapping("/{flowName}/yml/verify")

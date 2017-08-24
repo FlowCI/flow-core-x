@@ -43,6 +43,7 @@ public interface GitClient {
      * @param depth git --depth param, can be set to null
      * @param checkoutFiles specific checkout file
      * @return .git folder path
+     * @throws GitException if git clone fail
      */
     File clone(String branch, Integer depth, Set<String> checkoutFiles);
 
@@ -51,6 +52,7 @@ public interface GitClient {
      *
      * @param branch branch to pull, can be set to null
      * @param depth git pull depth, can be set to null
+     * @throws GitException if git pull fail
      */
     void pull(String branch, Integer depth);
 

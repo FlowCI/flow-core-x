@@ -145,7 +145,7 @@ public class GitSshClient extends AbstractGitClient {
 
     @Override
     protected PullCommand pullCommand(String branch, Git git) {
-        return buildSshCommand(super.pullCommand(branch, git));
+        return buildSshCommand(super.pullCommand(branch, git)).setTimeout(GIT_TRANS_TIMEOUT);
     }
 
     private <T extends TransportCommand> T buildSshCommand(T command) {
