@@ -31,15 +31,13 @@ import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.git.GitException;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
-import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +95,7 @@ public class NodeServiceImpl implements NodeService {
     public Node createOrUpdate(final String path, final String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
         if (Strings.isNullOrEmpty(yml)) {
-            updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_NOT_FOUND);
+            updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_NOT_FOUND, null);
             return flow;
         }
 
@@ -105,7 +103,7 @@ public class NodeServiceImpl implements NodeService {
         try {
             rootFromYml = verifyYml(path, yml);
         } catch (IllegalParameterException | YmlException e) {
-            updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR);
+            updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR, e.getMessage());
             return flow;
         }
 
@@ -258,7 +256,7 @@ public class NodeServiceImpl implements NodeService {
         }
 
         // update FLOW_YML_STATUS to LOADING
-        updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_LOADING);
+        updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_LOADING, null);
 
         // async to load yml file
         taskExecutor.execute(() -> {
@@ -267,8 +265,9 @@ public class NodeServiceImpl implements NodeService {
             try {
                 yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
             } catch (Throwable e) {
-                LOGGER.error("Unable to clone from git repo", e);
-                updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR);
+                Throwable rootCause = ExceptionUtil.findRootCause(e);
+                LOGGER.error("Unable to clone from git repo", rootCause);
+                updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR, rootCause.getMessage());
                 return;
             }
 
@@ -358,8 +357,18 @@ public class NodeServiceImpl implements NodeService {
         return (Flow) node;
     }
 
-    private void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state) {
+    /**
+     * Update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG
+     */
+    private void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo) {
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
+
+        if (!Strings.isNullOrEmpty(errorInfo)) {
+            flow.putEnv(FlowEnvs.FLOW_YML_ERROR_MSG, errorInfo);
+        } else {
+            flow.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
+        }
+
         flowDao.update(flow);
     }
 }
