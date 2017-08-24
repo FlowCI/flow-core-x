@@ -2,6 +2,7 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.UserDao;
+import com.flow.platform.api.domain.LoginForm;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.flow.platform.api.util.TokenUtil;
@@ -26,57 +27,15 @@ public class UserServiceImpl implements UserService {
     private long expirationDuration;
 
     @Override
-    public String loginByEmail(String email, String password) {
-        String errMsg = "Illegal login request parameter: ";
-
-        //Check format
-        if (!checkEmailFormatIsPass(email)) {
-            throw new IllegalParameterException(errMsg + "email format false");
+    public String login(LoginForm loginForm) {
+        String emailOrUsername = loginForm.getEmailOrUsername();
+        String password = loginForm.getPassword();
+        if (checkEmailFormatIsPass(emailOrUsername)) {
+            // login by email
+            return loginByEmail(emailOrUsername, password);
         }
-
-        if (!checkPasswordFormatIsPass(password)) {
-            throw new IllegalParameterException(errMsg + "password format false");
-        }
-
-        //Validate database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
-        if (!emailIsExist(email)) {
-            throw new IllegalParameterException(errMsg + "email is not exist");
-        }
-        if (!passwordOfEmailIsTrue(email, passwordForMD5)) {
-            throw new IllegalParameterException(errMsg + "password fault");
-        }
-
-        //Login success, return token
-        String token = TokenUtil.createToken(email, expirationDuration);
-        return token;
-    }
-
-    @Override
-    public String loginByUsername(String username, String password) {
-        String errMsg = "Illegal login request parameter: ";
-
-        //Check format
-        if (!checkUsernameFormatIsPass(username)) {
-            throw new IllegalParameterException(errMsg + "username format false");
-        }
-        if (!checkPasswordFormatIsPass(password)) {
-            throw new IllegalParameterException(errMsg + "password format false");
-        }
-
-        //Validate database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
-        if (!usernameIsExist(username)) {
-            throw new IllegalParameterException(errMsg + "username is not exist");
-        }
-        if (!passwordOfUsernameIsTrue(username, passwordForMD5)) {
-            throw new IllegalParameterException(errMsg + "password fault");
-        }
-
-        //Login success, return token
-        String email = userDao.getEmailBy("username", username);
-        String token = TokenUtil.createToken(email, expirationDuration);
-        return token;
+        // else login by username
+        return loginByUsername(emailOrUsername, password);
     }
 
     @Override
@@ -118,8 +77,73 @@ public class UserServiceImpl implements UserService {
         userDao.switchUserRoleIdTo(emailList, roleId);
     }
 
-    @Override
-    public Boolean checkEmailFormatIsPass(String email) {
+    /**
+     * Login by email
+     *
+     * @param email
+     * @param password
+     * @return
+     */
+    private String loginByEmail(String email, String password) {
+        String errMsg = "Illegal login request parameter: ";
+
+        //Check format
+        if (!checkPasswordFormatIsPass(password)) {
+            throw new IllegalParameterException(errMsg + "password format false");
+        }
+
+        //Validate database
+        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
+        if (!emailIsExist(email)) {
+            throw new IllegalParameterException(errMsg + "email is not exist");
+        }
+        if (!passwordOfEmailIsTrue(email, passwordForMD5)) {
+            throw new IllegalParameterException(errMsg + "password fault");
+        }
+
+        //Login success, return token
+        return TokenUtil.createToken(email, expirationDuration);
+    }
+
+    /**
+     * ogin by username
+     *
+     * @param username
+     * @param password
+     * @return
+     */
+    private String loginByUsername(String username, String password) {
+        String errMsg = "Illegal login request parameter: ";
+
+        //Check format
+        if (!checkUsernameFormatIsPass(username)) {
+            throw new IllegalParameterException(errMsg + "username format false");
+        }
+        if (!checkPasswordFormatIsPass(password)) {
+            throw new IllegalParameterException(errMsg + "password format false");
+        }
+
+        //Validate database
+        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
+        if (!usernameIsExist(username)) {
+            throw new IllegalParameterException(errMsg + "username is not exist");
+        }
+        if (!passwordOfUsernameIsTrue(username, passwordForMD5)) {
+            throw new IllegalParameterException(errMsg + "password fault");
+        }
+
+        //Login success, return token
+        String email = userDao.getEmailBy("username", username);
+        return TokenUtil.createToken(email, expirationDuration);
+    }
+
+    /**
+     * Check the format of the email
+     *
+     * @param email
+     * @return
+     */
+    private Boolean checkEmailFormatIsPass(String email) {
         if (email == null || email.trim().equals("")) {
             return false;
         }
@@ -129,8 +153,13 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    @Override
-    public Boolean checkUsernameFormatIsPass(String username) {
+    /**
+     * Check the format of the username
+     *
+     * @param username
+     * @return
+     */
+    private Boolean checkUsernameFormatIsPass(String username) {
         if (username == null || username.trim().equals("")) {
             return false;
         }
@@ -140,8 +169,13 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    @Override
-    public Boolean checkPasswordFormatIsPass(String password) {
+    /**
+     * Check the format of the password
+     *
+     * @param password
+     * @return
+     */
+    private Boolean checkPasswordFormatIsPass(String password) {
         if (password == null || password.trim().equals("")) {
             return false;
         }
@@ -151,23 +185,45 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    @Override
-    public Boolean emailIsExist(String email) {
+    /**
+     * Verify email is exist
+     *
+     * @param email
+     * @return
+     */
+    private Boolean emailIsExist(String email) {
         return userDao.emailIsExist(email);
     }
 
-    @Override
-    public Boolean usernameIsExist(String username) {
+    /**
+     * Verify username is exist
+     *
+     * @param username
+     * @return
+     */
+    private Boolean usernameIsExist(String username) {
         return userDao.usernameIsExist(username);
     }
 
-    @Override
-    public Boolean passwordOfEmailIsTrue(String email, String password) {
+    /**
+     * Verify password of email
+     *
+     * @param email
+     * @param password
+     * @return
+     */
+    private Boolean passwordOfEmailIsTrue(String email, String password) {
         return userDao.passwordOfEmailIsTrue(email, password);
     }
 
-    @Override
-    public Boolean passwordOfUsernameIsTrue(String username, String password) {
+    /**
+     * Verify password of username
+     *
+     * @param username
+     * @param password
+     * @return
+     */
+    private Boolean passwordOfUsernameIsTrue(String username, String password) {
         return userDao.passwordOfUsernameIsTrue(username, password);
     }
 }

@@ -1,5 +1,6 @@
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.LoginForm;
 import com.flow.platform.api.domain.SwitchRoleRequest;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.service.UserService;
@@ -23,14 +24,8 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/login")
-    public String login(@RequestBody User user) {
-        if (user.getEmail() == null) {
-            // Use username to login
-            return userService.loginByUsername(user.getUsername(), user.getPassword());
-        } else {
-            // Use email to login
-            return userService.loginByEmail(user.getEmail(), user.getPassword());
-        }
+    public String login(@RequestBody LoginForm loginForm) {
+        return userService.login(loginForm);
     }
 
     @PostMapping("/register")
