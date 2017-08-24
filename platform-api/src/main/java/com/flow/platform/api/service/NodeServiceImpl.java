@@ -38,6 +38,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 
 /**
  * @author yh@firim
@@ -82,6 +86,9 @@ public class NodeServiceImpl implements NodeService {
 
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
+
+    @Autowired
+    private Path workspace;
 
     @Value(value = "${domain}")
     private String domain;
@@ -169,8 +176,15 @@ public class NodeServiceImpl implements NodeService {
         String rootPath = PathUtil.rootPath(path);
         Flow flow = findFlow(rootPath);
 
+        // delete flow
         flowDao.delete(flow);
+
+        // delete related yml storage
         ymlStorageDao.delete(new YmlStorage(flow.getPath(), null));
+
+        // delete local flow folder
+        Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);
+        FileSystemUtils.deleteRecursively(flowWorkspace.toFile());
 
         treeCache.invalidate(rootPath);
         return flow;

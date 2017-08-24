@@ -25,7 +25,9 @@ import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -201,6 +203,9 @@ public class NodeServiceTest extends TestBase {
 
         // then:
         Assert.assertNull(nodeService.find(root.getPath()));
+        Assert.assertEquals(false, Files.exists(NodeUtil.workspacePath(workspace, root)));
+
+        // then: should raise illegal parameter exception since flow doesn't exist
         nodeService.getYmlContent(root.getPath());
     }
 }
