@@ -263,7 +263,7 @@ public class NodeServiceImpl implements NodeService {
 
             String yml;
             try {
-                yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
+                yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE, null);
             } catch (Throwable e) {
                 Throwable rootCause = ExceptionUtil.findRootCause(e);
                 LOGGER.error("Unable to clone from git repo", rootCause);

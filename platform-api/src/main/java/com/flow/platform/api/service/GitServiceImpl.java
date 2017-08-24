@@ -18,6 +18,7 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
@@ -36,6 +37,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -58,11 +60,67 @@ public class GitServiceImpl implements GitService {
     }
 
     @Override
-    public String clone(Flow flow, String filePath) throws GitException {
-        String branch = flow.getEnv(GitEnvs.FLOW_GIT_BRANCH);
-        GitClient client = gitClientInstance(flow);
-        client.clone(branch, null, Sets.newHashSet(filePath));
+    public String clone(Node node, String filePath, ProgressListener progressListener) throws GitException {
+        String branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH);
+        GitClient client = gitClientInstance(node);
+
+        if (progressListener != null) {
+            progressListener.onStart();
+        }
+
+        client.clone(branch, null, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
+
+        if (progressListener != null) {
+            progressListener.onFinish();
+        }
+
         return fetch(client, filePath);
+    }
+
+    private static class GitCloneProgressMonitor implements ProgressMonitor {
+
+        private final ProgressListener progressListener;
+
+        private String currentTask;
+        private int currentTotalWork;
+
+        GitCloneProgressMonitor(ProgressListener progressListener) {
+            this.progressListener = progressListener;
+        }
+
+        @Override
+        public void start(int totalTasks) {
+
+        }
+
+        @Override
+        public void beginTask(String title, int totalWork) {
+            this.currentTask = title;
+            this.currentTotalWork = totalWork;
+
+            if (progressListener != null) {
+                progressListener.onStartTask(title);
+            }
+        }
+
+        @Override
+        public void update(int completed) {
+            if (progressListener != null) {
+                progressListener.onProgressing(currentTask, currentTotalWork, completed);
+            }
+        }
+
+        @Override
+        public void endTask() {
+            if (progressListener != null) {
+                progressListener.onFinishTask(currentTask);
+            }
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
     }
 
     /**
@@ -74,8 +132,8 @@ public class GitServiceImpl implements GitService {
      * - FLOW_GIT_SSH_PRIVATE_KEY
      * - FLOW_GIT_SSH_PUBLIC_KEY
      */
-    private GitClient gitClientInstance(Flow flow) {
-        GitSource source = GitSource.valueOf(flow.getEnv(GitEnvs.FLOW_GIT_SOURCE));
+    private GitClient gitClientInstance(Node node) {
+        GitSource source = GitSource.valueOf(node.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Class<? extends GitClientBuilder> builderClass = clientBuilderType.get(source);
         if (builderClass == null) {
             throw new UnsupportedException(String.format("Git source %s not supported yet", source));
@@ -85,7 +143,7 @@ public class GitServiceImpl implements GitService {
         try {
             builder = builderClass
                 .getConstructor(Flow.class, Path.class)
-                .newInstance(flow, gitSourcePath(flow));
+                .newInstance(node, gitSourcePath(node));
         } catch (Throwable e) {
             throw new IllegalStatusException("Fail to create GitClientBuilder instance: " + e.getMessage());
         }
@@ -98,8 +156,8 @@ public class GitServiceImpl implements GitService {
     /**
      * Get git source code folder path of flow workspace
      */
-    private Path gitSourcePath(Flow flow) throws IOException {
-        Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);
+    private Path gitSourcePath(Node node) throws IOException {
+        Path flowWorkspace = NodeUtil.workspacePath(workspace, node);
         Files.createDirectories(flowWorkspace);
         return Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
     }
