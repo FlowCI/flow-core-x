@@ -33,7 +33,7 @@ public interface GitService {
      * Fetch file content from git repo by git clone
      *
      * @param flow flow instance which includes git repo info
-     * @param filePath target file path
+     * @param filePath target file path in git repo
      * @return file content
      */
     String clone(Flow flow, String filePath) throws GitException;

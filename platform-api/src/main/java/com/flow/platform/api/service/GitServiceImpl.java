@@ -17,7 +17,6 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.git.GitClientBuilder;
@@ -53,9 +52,6 @@ public class GitServiceImpl implements GitService {
     @Autowired
     private Path workspace;
 
-    @Autowired
-    private FlowDao flowDao;
-
     @PostConstruct
     public void init() {
         clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
@@ -66,7 +62,7 @@ public class GitServiceImpl implements GitService {
         String branch = flow.getEnv(GitEnvs.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(flow);
         client.clone(branch, null, Sets.newHashSet(filePath));
-        return fetch(flow, filePath);
+        return fetch(client, filePath);
     }
 
     /**
@@ -111,16 +107,11 @@ public class GitServiceImpl implements GitService {
     /**
      * Get target file from local git repo folder
      */
-    private String fetch(Flow flow, String filePath) {
-        try {
-            Path gitSourcePath = gitSourcePath(flow);
-            Path targetPath = Paths.get(gitSourcePath.toString(), filePath);
+    private String fetch(GitClient gitClient, String filePath) {
+        Path targetPath = Paths.get(gitClient.targetPath().toString(), filePath);
 
-            if (Files.exists(targetPath)) {
-                return getContent(targetPath);
-            }
-        } catch (IOException warn) {
-            LOGGER.warn("Fail to create git source dir for node: %s, %s", flow.getPath(), warn.getMessage());
+        if (Files.exists(targetPath)) {
+            return getContent(targetPath);
         }
 
         return null;

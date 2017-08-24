@@ -18,6 +18,7 @@ package com.flow.platform.util.git;
 
 import com.flow.platform.util.git.model.GitCommit;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 import org.eclipse.jgit.lib.Ref;
@@ -26,6 +27,8 @@ import org.eclipse.jgit.lib.Ref;
  * @author yang
  */
 public interface GitClient {
+
+    Path targetPath();
 
     /**
      * Git clone from remote url

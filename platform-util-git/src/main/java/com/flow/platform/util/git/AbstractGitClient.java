@@ -38,11 +38,33 @@ public abstract class AbstractGitClient implements GitClient {
 
     protected String gitUrl;
 
-    protected Path targetDir; // target directory
+    protected Path targetDir; // target base directory
 
-    public AbstractGitClient(String gitUrl, Path targetDir) {
+    public AbstractGitClient(String gitUrl, Path baseDir) {
         this.gitUrl = gitUrl;
-        this.targetDir = targetDir;
+
+        // verify git url
+        int dotGitIndex = gitUrl.lastIndexOf(".git");
+        if (dotGitIndex == -1) {
+            throw new IllegalArgumentException("Illegal git url");
+        }
+
+        int lastSlashIndex = gitUrl.lastIndexOf('/');
+        if (lastSlashIndex == -1) {
+            throw new IllegalArgumentException("Illegal git url");
+        }
+
+        if (lastSlashIndex >= dotGitIndex) {
+            throw new IllegalArgumentException("Illegal git url");
+        }
+
+        String repoName = gitUrl.substring(lastSlashIndex + 1, dotGitIndex);
+        this.targetDir = Paths.get(baseDir.toString(), repoName);
+    }
+
+    @Override
+    public Path targetPath() {
+        return this.targetDir;
     }
 
     @Override
