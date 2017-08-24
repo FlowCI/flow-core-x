@@ -19,6 +19,7 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -29,8 +30,13 @@ import java.util.function.Consumer;
 public interface NodeService {
 
     /**
-     * Create or update from yml config file content
+     * Create or update tree from yml config file content
      * and persistent flow node and yml content
+     *
+     * It will set two env in the flow
+     *
+     * - FLOW_STATUS = READY
+     * - FLOW_YML_STATUS = FOUND or ERROR
      *
      * @param path any path
      * @param yml raw yml
@@ -46,6 +52,13 @@ public interface NodeService {
     Node find(String path);
 
     /**
+     * Delete root node
+     *
+     * @param path any path, will find root path
+     */
+    Node delete(String path);
+
+    /**
      * Verify yml format
      *
      * @param path any path
@@ -56,22 +69,30 @@ public interface NodeService {
 
     /**
      * Find raw yml file content by node path from
-     *  - yam storage
-     *  - flow workspace if yml storage not found
+     * - yam storage
+     * - flow workspace if yml storage not found
      *
      * @param path any node path
-     * @return yml content or null if not found
+     * @return <p> - yml content - empty string while loading </p>
+     * @throws com.flow.platform.core.exception.NotFoundException if FLOW_YML_STATUS is NOT_FOUND
+     * @throws com.flow.platform.api.exception.YmlException if FLOW_YML_STATUS is ERROR
+     * @throws IllegalStateException if FLOW_YML_STATUS is illegal
      */
     String getYmlContent(String path);
 
     /**
-     * Load yml content from git repo in async,
+     * Load yml content from git repo in async and create tree from yml,
      * Then call "getYmlContent" to get yml
      *
      * @param path any node path
      * @param callback method on yml loaded
      */
     void loadYmlContent(String path, Consumer<YmlStorage> callback);
+
+    /**
+     * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG
+     */
+    void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo);
 
     /**
      * To check flow name is existed
@@ -89,7 +110,7 @@ public interface NodeService {
     /**
      * Merge new env to flow node evn and sync to yml
      */
-    void setFlowEnv(String path, Map<String, String> envs);
+    Flow setFlowEnv(String path, Map<String, String> envs);
 
     /**
      * list current flows with path, name, created at and updated at

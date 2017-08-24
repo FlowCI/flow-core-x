@@ -38,28 +38,56 @@ public abstract class AbstractGitClient implements GitClient {
 
     protected String gitUrl;
 
-    protected Path targetDir; // target directory
+    protected Path targetDir; // target base directory
 
-    public AbstractGitClient(String gitUrl, Path targetDir) {
+    public AbstractGitClient(String gitUrl, Path baseDir) {
         this.gitUrl = gitUrl;
-        this.targetDir = targetDir;
+
+        // verify git url
+        int dotGitIndex = gitUrl.lastIndexOf(".git");
+        if (dotGitIndex == -1) {
+            throw new IllegalArgumentException("Illegal git url");
+        }
+
+        int lastSlashIndex = gitUrl.lastIndexOf('/');
+        if (lastSlashIndex == -1) {
+            throw new IllegalArgumentException("Illegal git url");
+        }
+
+        if (lastSlashIndex >= dotGitIndex) {
+            throw new IllegalArgumentException("Illegal git url");
+        }
+
+        String repoName = gitUrl.substring(lastSlashIndex + 1, dotGitIndex);
+        this.targetDir = Paths.get(baseDir.toString(), repoName);
     }
 
     @Override
-    public void pull(String branch, Integer depth) {
+    public Path targetPath() {
+        return this.targetDir;
+    }
+
+    @Override
+    public void pull(String branch, Integer depth, ProgressMonitor monitor) throws GitException {
         if (depth != null) {
             throw new GitException("JGit api doesn't support shallow clone");
         }
 
         try (Git git = gitOpen()) {
-            pullCommand(branch, git).setProgressMonitor(new DebugProgressMonitor()).call();
+            PullCommand pullCommand = pullCommand(branch, git);
+            if (monitor != null) {
+                pullCommand.setProgressMonitor(monitor);
+            } else {
+                pullCommand.setProgressMonitor(new DebugProgressMonitor());
+            }
+            pullCommand.call();
         } catch (Throwable e) {
             throw new GitException("Fail to pull with specific files", e);
         }
     }
 
     @Override
-    public Collection<Ref> branches() {
+    public Collection<Ref> branches() throws GitException {
         try (Git git = gitOpen()) {
             return git.branchList().call();
         } catch (GitAPIException e) {
@@ -68,7 +96,7 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
-    public Collection<Ref> tags() {
+    public Collection<Ref> tags() throws GitException {
         try (Git git = gitOpen()) {
             return git.tagList().call();
         } catch (GitAPIException e) {
@@ -80,7 +108,7 @@ public abstract class AbstractGitClient implements GitClient {
      * Get latest commit by ref name from local .git
      */
     @Override
-    public GitCommit commit(String refName) {
+    public GitCommit commit(String refName) throws GitException {
         try (Git git = gitOpen()) {
             Repository repo = git.getRepository();
             Ref head = repo.findRef(refName);
@@ -107,7 +135,7 @@ public abstract class AbstractGitClient implements GitClient {
         return git.pull().setRemoteBranchName(branch);
     }
 
-    protected Git gitOpen() {
+    Git gitOpen() throws GitException {
         try {
             return Git.open(getGitPath().toFile());
         } catch (IOException e) {
@@ -115,7 +143,7 @@ public abstract class AbstractGitClient implements GitClient {
         }
     }
 
-    protected Path getGitPath() {
+    Path getGitPath() {
         return Paths.get(targetDir.toString(), ".git");
     }
 

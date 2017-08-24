@@ -16,11 +16,12 @@
 
 package com.flow.platform.cc.controller;
 
-import com.flow.platform.util.DateUtil;
-import java.io.Serializable;
-import java.time.ZonedDateTime;
-import java.util.Date;
-import javax.annotation.PostConstruct;
+import com.flow.platform.core.service.SysInfoService;
+import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Category;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,34 +32,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/")
 public class WelcomeController {
 
-    public static class AppStatus implements Serializable {
+    @Autowired
+    private SystemInfo systemInfo;
 
-        private String status;
-        private ZonedDateTime startTime;
+    @Autowired
+    private SysInfoService sysInfoService;
 
-        AppStatus(String status, ZonedDateTime startTime) {
-            this.status = status;
-            this.startTime = startTime;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public ZonedDateTime getStartTime() {
-            return startTime;
-        }
+    @GetMapping("/index")
+    public SystemInfo index() {
+        return systemInfo;
     }
 
-    private ZonedDateTime startTime;
-
-    @PostConstruct
-    private void init() {
-        startTime = DateUtil.now();
-    }
-
-    @RequestMapping("/index")
-    public AppStatus heartbeat() {
-        return new AppStatus("OK", startTime);
+    @GetMapping("/sys/info/{type}")
+    public SystemInfo systemInfo(@PathVariable(required = false) String type) {
+        SystemInfo.Type targetType = SystemInfo.Type.valueOf(type.toUpperCase());
+        SystemInfo info = sysInfoService.get(Category.CC, targetType);
+        return info;
     }
 }

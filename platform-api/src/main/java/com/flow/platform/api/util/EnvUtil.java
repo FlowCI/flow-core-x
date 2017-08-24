@@ -69,15 +69,19 @@ public class EnvUtil {
         for (Entry<String, String> entry : sourceEnv.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
+            merge(key, value, targetEnv, overwrite);
+        }
+    }
 
-            if (targetEnv.containsKey(key)) {
-                if (overwrite) {
-                    targetEnv.put(key, value);
-                }
-                continue;
+    public static void merge(String key, String value, Map<String, String> targetEnv, boolean overwrite) {
+        if (targetEnv.containsKey(key)) {
+            if (overwrite) {
+                targetEnv.put(key, value);
             }
 
-            targetEnv.put(key, value);
+            return;
         }
+
+        targetEnv.put(key, value);
     }
 }

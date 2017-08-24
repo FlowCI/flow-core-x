@@ -17,6 +17,7 @@
 package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.util.DateUtil;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
@@ -78,7 +79,8 @@ public final class CmdExecutor {
         }
     }
 
-    private final static File DEFAULT_WORKING_DIR = new File(System.getProperty("user.home"));
+    private final static File DEFAULT_WORKING_DIR = new File(
+        System.getProperty("user.home", System.getProperty("user.dir")));
 
     // process timeout in seconds, default is 2 hour
     private final static Integer DEFAULT_TIMEOUT = new Integer(3600 * 2);
@@ -124,15 +126,14 @@ public final class CmdExecutor {
      * @param workingDir nullable, for set cmd working directory, default is user.dir
      * @param outputEnvFilter nullable, for start_with env to cmd result output
      * @param cmd exec cmd
-     * @throws FileNotFoundException throw when working dir defined but not found
      */
     public CmdExecutor(final ProcListener procListener,
-        final LogListener logListener,
-        final Map<String, String> inputs,
-        final String workingDir,
-        final String outputEnvFilter,
-        final Integer timeout,
-        final String... cmd) throws FileNotFoundException {
+                       final LogListener logListener,
+                       final Map<String, String> inputs,
+                       final String workingDir,
+                       final String outputEnvFilter,
+                       final Integer timeout,
+                       final List<String> cmds) {
 
         if (procListener != null) {
             this.procListener = procListener;
@@ -144,14 +145,14 @@ public final class CmdExecutor {
 
         this.outputEnvFilter = outputEnvFilter;
 
-        this.cmdList = Lists.newArrayList(cmd);
+        this.cmdList = cmds;
         this.pBuilder = new ProcessBuilder("/bin/bash").directory(DEFAULT_WORKING_DIR);
 
         // check and init working dir
         if (workingDir != null) {
             File dir = new File(workingDir);
             if (!dir.exists()) {
-                throw new FileNotFoundException(String.format("Cmd defined working dir '%s' not found", workingDir));
+                throw new IllegalArgumentException(String.format("Cmd defined working dir '%s' not found", workingDir));
             }
             this.pBuilder.directory(dir);
         }
@@ -169,11 +170,25 @@ public final class CmdExecutor {
         }
     }
 
+    public CmdExecutor(final String workingDir, final List<String> cmds) {
+        this(null, null, null, workingDir, null, null, cmds);
+    }
+
+    public void setProcListener(ProcListener procListener) {
+        this.procListener = procListener;
+    }
+
+    public void setLogListener(LogListener logListener) {
+        this.logListener = logListener;
+    }
+
+
+
     public CmdResult run() {
         outputResult = new CmdResult();
 
         long startTime = System.currentTimeMillis();
-        outputResult.setStartTime(ZonedDateTime.now());
+        outputResult.setStartTime(DateUtil.now());
 
         try {
             Process p = pBuilder.start();
@@ -199,7 +214,7 @@ public final class CmdExecutor {
                 outputResult.setExitValue(CmdResult.EXIT_VALUE_FOR_TIMEOUT);
             }
 
-            outputResult.setExecutedTime(ZonedDateTime.now());
+            outputResult.setExecutedTime(DateUtil.now());
             procListener.onExecuted(outputResult);
             System.out.println(String.format("====== 1. Process executed : %s ======", outputResult.getExitValue()));
 
@@ -212,14 +227,14 @@ public final class CmdExecutor {
                 executor.shutdownNow();
             }
 
-            outputResult.setFinishTime(ZonedDateTime.now());
+            outputResult.setFinishTime(DateUtil.now());
             procListener.onLogged(outputResult);
 
             System.out.println(String.format("====== 2. Logging executed ======"));
 
         } catch (Throwable e) {
             outputResult.getExceptions().add(e);
-            outputResult.setFinishTime(ZonedDateTime.now());
+            outputResult.setFinishTime(DateUtil.now());
             procListener.onException(outputResult);
             e.printStackTrace();
         } finally {

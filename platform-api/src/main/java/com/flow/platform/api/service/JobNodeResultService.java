@@ -18,6 +18,7 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.Job;
 import com.flow.platform.api.domain.NodeResult;
 import java.math.BigInteger;
+import java.util.List;
 
 /**
  * @author yh@firim
@@ -36,4 +37,5 @@ public interface JobNodeResultService {
 
     NodeResult update(NodeResult nodeResult);
 
+    List<NodeResult> list(Job job);
 }

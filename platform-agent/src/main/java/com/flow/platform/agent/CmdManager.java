@@ -23,6 +23,7 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.Logger;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import java.time.ZonedDateTime;
@@ -129,7 +130,7 @@ public class CmdManager {
             LOGGER.trace("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
-            CmdExecutor executor = new CmdExecutor(null, null, null, null, null, null, shutdownCmd);
+            CmdExecutor executor = new CmdExecutor(null, Lists.newArrayList(shutdownCmd));
             executor.run();
 
         } catch (Throwable e) {
@@ -165,6 +166,7 @@ public class CmdManager {
                     ProcEventHandler procEventHandler =
                         new ProcEventHandler(getCmd(), extraProcEventListeners, running, finished);
 
+
                     CmdExecutor executor;
                     try {
                         executor = new CmdExecutor(
@@ -174,7 +176,7 @@ public class CmdManager {
                             cmd.getWorkingDir(),
                             cmd.getOutputEnvFilter(),
                             cmd.getTimeout(),
-                            getCmd().getCmd());
+                            Lists.newArrayList(getCmd().getCmd()));
                     } catch (Throwable e) {
                         LOGGER.errorMarker("execute", "Cannot init CmdExecutor for cmd " + cmd, e);
 

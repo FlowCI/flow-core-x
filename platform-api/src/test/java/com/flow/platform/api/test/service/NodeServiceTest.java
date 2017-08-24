@@ -22,9 +22,12 @@ import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.NodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +55,7 @@ public class NodeServiceTest extends TestBase {
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
 
-        List children = root.getChildren();
+        List children = nodeService.find(root.getPath()).getChildren();
         Assert.assertNotNull(nodeService.find(((Node) children.get(0)).getPath()));
         Assert.assertNotNull(nodeService.find(((Node) children.get(1)).getPath()));
     }
@@ -96,6 +99,38 @@ public class NodeServiceTest extends TestBase {
     }
 
     @Test
+    public void should_yml_not_found_status_when_create_node_tree_from_empty_yml() throws Throwable {
+        // given:
+        Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        Map<String, String> flowEnv = new HashMap<>();
+        flowEnv.put("FLOW_YML_STATUS", "LOADING");
+        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+
+        // when:
+        nodeService.createOrUpdate(emptyFlow.getPath(), "");
+
+        // then: check FLOW_YML_STATUS
+        Node flow = nodeService.find(emptyFlow.getPath());
+        Assert.assertEquals("NOT_FOUND", flow.getEnv("FLOW_YML_STATUS"));
+    }
+
+    @Test
+    public void should_yml_error_status_when_create_node_tree_from_incorrect_yml() throws Throwable {
+        // given:
+        Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        Map<String, String> flowEnv = new HashMap<>();
+        flowEnv.put("FLOW_YML_STATUS", "LOADING");
+        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+
+        // when:
+        nodeService.createOrUpdate(emptyFlow.getPath(), "xxxx");
+
+        // then: check FLOW_YML_STATUS
+        Node flow = nodeService.find(emptyFlow.getPath());
+        Assert.assertEquals("ERROR", flow.getEnv("FLOW_YML_STATUS"));
+    }
+
+    @Test
     public void should_create_empty_flow_and_get_webhooks() {
         // when:
         String flowName = "default";
@@ -108,7 +143,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals(0, loaded.getChildren().size());
 
         String webhook = String.format("%s/hooks/git/%s", domain, loaded.getName());
-        Assert.assertEquals(FlowEnvs.Value.FLOW_STATUS_PENDING.value(), loaded.getEnv(FlowEnvs.FLOW_STATUS));
+        Assert.assertEquals("PENDING", loaded.getEnv(FlowEnvs.FLOW_STATUS));
         Assert.assertEquals(webhook, loaded.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
 
         // should with empty yml
@@ -140,36 +175,61 @@ public class NodeServiceTest extends TestBase {
         String webhook = String.format("%s/hooks/git/%s", domain, emptyFlow.getName());
 
         Node loaded = nodeService.find("/flow1");
-        Assert.assertEquals(7, loaded.getEnvs().size());
+        Assert.assertEquals(8, loaded.getEnvs().size());
         Assert.assertEquals("hello", loaded.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", loaded.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", loaded.getEnv("FLOW_NEW_3"));
         Assert.assertEquals("echo hello", loaded.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", loaded.getEnv("FLOW_VERSION"));
         Assert.assertEquals(webhook, loaded.getEnv("FLOW_GIT_WEBHOOK"));
-        Assert.assertEquals("PENDING", loaded.getEnv("FLOW_STATUS"));
+
+        Assert.assertEquals("READY", loaded.getEnv("FLOW_STATUS"));
+        Assert.assertEquals("FOUND", loaded.getEnv("FLOW_YML_STATUS"));
 
         // check env been sync with yml
         Flow flow = flowDao.get("/flow1");
-        Assert.assertEquals(7, flow.getEnvs().size());
+        Assert.assertEquals(8, flow.getEnvs().size());
         Assert.assertEquals("hello", flow.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", flow.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", flow.getEnv("FLOW_NEW_3"));
         Assert.assertEquals("echo hello", flow.getEnv("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", flow.getEnv("FLOW_VERSION"));
         Assert.assertEquals(webhook, flow.getEnv("FLOW_GIT_WEBHOOK"));
-        Assert.assertEquals("PENDING", flow.getEnv("FLOW_STATUS"));
+
+        Assert.assertEquals("READY", flow.getEnv("FLOW_STATUS"));
+        Assert.assertEquals("FOUND", loaded.getEnv("FLOW_YML_STATUS"));
+    }
+
+    @Test(expected = YmlException.class)
+    public void should_error_if_node_path_is_not_for_flow() throws Throwable {
+        Flow emptyFlow = nodeService.createEmptyFlow("flow-name-not-same");
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
+
+        // then: FLOW_YML_STATUS should be ERROR
+        Assert.assertEquals("ERROR", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
+
+        // then: should raise YmlException
+        nodeService.getYmlContent(root.getPath());
     }
 
     @Test(expected = IllegalParameterException.class)
-    public void should_error_if_node_path_is_not_for_flow() throws Throwable {
-        // given:
+    public void should_delete_flow() throws Throwable {
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
-        // when: set env with child path
-        List children = root.getChildren();
-        nodeService.setFlowEnv(((Node) children.get(0)).getPath(), new HashMap<>());
+        Assert.assertNotNull(nodeService.find(root.getPath()));
+        Assert.assertNotNull(nodeService.getYmlContent(root.getPath()));
+
+        // when:
+        nodeService.delete(root.getPath());
+
+        // then:
+        Assert.assertNull(nodeService.find(root.getPath()));
+        Assert.assertEquals(false, Files.exists(NodeUtil.workspacePath(workspace, root)));
+
+        // then: should raise illegal parameter exception since flow doesn't exist
+        nodeService.getYmlContent(root.getPath());
     }
 }

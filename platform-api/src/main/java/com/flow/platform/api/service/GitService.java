@@ -16,7 +16,8 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.Node;
+import com.flow.platform.util.git.GitException;
 
 /**
  * To fetch related git repo info
@@ -28,17 +29,26 @@ public interface GitService {
     // the folder in the flow workspace
     String SOURCE_FOLDER_NAME = "source";
 
-    /**
-     * Fetch file content from git repo in flow workspace
-     */
-    String fetch(Flow flow, String filePath);
+    interface ProgressListener {
+
+        void onStart();
+
+        void onStartTask(String task);
+
+        void onProgressing(String task, int total, int progress);
+
+        void onFinishTask(String task);
+
+        void onFinish();
+    }
 
     /**
      * Fetch file content from git repo by git clone
      *
-     * @param flow flow instance which includes git repo info
-     * @param filePath target file path
+     * @param node node instance which includes git repo info
+     * @param filePath target file path in git repo
+     * @param progress listener for git progress
      * @return file content
      */
-    String clone(Flow flow, String filePath);
+    String clone(Node node, String filePath, ProgressListener progress) throws GitException;
 }

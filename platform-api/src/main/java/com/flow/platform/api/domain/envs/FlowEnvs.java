@@ -21,9 +21,22 @@ package com.flow.platform.api.domain.envs;
  */
 public enum FlowEnvs implements EnvKey {
 
-    FLOW_STATUS;
+    /**
+     * Indicate flow is ready to run
+     */
+    FLOW_STATUS,
 
-    public enum Value implements EnvValue {
+    /**
+     * Indicate flow yml loading, ready
+     */
+    FLOW_YML_STATUS,
+
+    /**
+     * For yml error message while loading yml from git
+     */
+    FLOW_YML_ERROR_MSG;
+
+    public enum StatusValue implements EnvValue {
 
         FLOW_STATUS_READY("READY"),
 
@@ -31,7 +44,7 @@ public enum FlowEnvs implements EnvKey {
 
         private String value;
 
-        Value(String value) {
+        StatusValue(String value) {
             this.value = value;
         }
 
@@ -43,6 +56,43 @@ public enum FlowEnvs implements EnvKey {
         @Override
         public String toString() {
             return value;
+        }
+    }
+
+    public enum YmlStatusValue implements EnvValue {
+
+        NOT_FOUND("NOT_FOUND"),
+
+        GIT_CONNECTING("GIT_CONNECTING"),
+
+        GIT_CONNECTED("GIT_CONNECTED"),
+
+        GIT_LOADING("GIT_LOADING"),
+
+        GIT_LOADED("GIT_LOADED"),
+
+        FOUND("FOUND"),
+
+        ERROR("ERROR");
+
+        private String value;
+
+        YmlStatusValue(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String value() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
+        public static boolean isLoadingStatus(String value) {
+            return value.startsWith("GIT_");
         }
     }
 
