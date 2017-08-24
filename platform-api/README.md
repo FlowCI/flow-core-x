@@ -74,6 +74,18 @@
       }
   ```
   
+### GET Get flow environment variable
+  ```
+      Description: the root {key} is optional, return all envs if {key} not defined
+      Method: GET
+      Route: /flows/{flowname}/env/{key}
+      Response: {
+        FLOW_KEY: value,
+        FLOW_KEY: value
+        ....
+      } 
+  ```
+  
 ### GET Load flow yml content from repo
   ```
       Description: Async method, and then call 'Get flow yml content' periodically 
@@ -327,7 +339,9 @@
 
 **FLOW_STATUS**: READY | PENDING
 
-**FLOW_YML_STATUS**: NOT_FOUND | LOADING | FOUND | ERROR
+**FLOW_YML_STATUS**: NOT_FOUND | GIT_CONNECTING | GIT_CONNECTED | GIT_LOADING | GIT_LOADED | FOUND | ERROR
+
+**FLOW_YML_ERROR_MSG**: error message if FLOW_YML_STATUS = ERROR
 
 ### Git 
         

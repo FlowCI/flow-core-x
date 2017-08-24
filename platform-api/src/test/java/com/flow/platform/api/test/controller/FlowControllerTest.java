@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.response.ResponseError;
@@ -62,7 +61,7 @@ public class FlowControllerTest extends TestBase {
             .param("key", "FLOW_STATUS");
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
-        Assert.assertEquals("PENDING", result.getResponse().getContentAsString());
+        Assert.assertEquals("{\"FLOW_STATUS\":\"PENDING\"}", result.getResponse().getContentAsString());
     }
 
     @Test

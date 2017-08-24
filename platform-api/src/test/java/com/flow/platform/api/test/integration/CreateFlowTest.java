@@ -76,8 +76,7 @@ public class CreateFlowTest extends TestBase {
         Assert.assertNotNull(loaded);
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), loaded.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GIT_URL, loaded.getEnv(GitEnvs.FLOW_GIT_URL));
-        Assert.assertEquals(
-            FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_NOT_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals(FlowEnvs.YmlStatusValue.NOT_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // async to clone and return .flow.yml content
         final CountDownLatch latch = new CountDownLatch(1);
@@ -91,8 +90,7 @@ public class CreateFlowTest extends TestBase {
         latch.await(60, TimeUnit.SECONDS);
 
         loaded = (Flow) nodeService.find(flow.getPath());
-        Assert.assertEquals(
-            FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals(FlowEnvs.YmlStatusValue.FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         YmlStorage ymlStorage = ymlStorageDao.get(loaded.getPath());
         Assert.assertNotNull(ymlStorage);
@@ -120,7 +118,7 @@ public class CreateFlowTest extends TestBase {
         latch.await(60, TimeUnit.SECONDS);
 
         Node loadedFlow = nodeService.find(flow.getPath());
-        Assert.assertEquals(YmlStatusValue.FLOW_YML_STATUS_ERROR.value(), loadedFlow.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals(YmlStatusValue.ERROR.value(), loadedFlow.getEnv(FlowEnvs.FLOW_YML_STATUS));
         Assert.assertNotNull(loadedFlow.getEnv(FlowEnvs.FLOW_YML_ERROR_MSG));
     }
 

@@ -19,6 +19,7 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -87,6 +88,11 @@ public interface NodeService {
      * @param callback method on yml loaded
      */
     void loadYmlContent(String path, Consumer<YmlStorage> callback);
+
+    /**
+     * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG
+     */
+    void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo);
 
     /**
      * To check flow name is existed

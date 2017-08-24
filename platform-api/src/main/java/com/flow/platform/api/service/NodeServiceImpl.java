@@ -15,7 +15,6 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.Flow;
@@ -23,15 +22,17 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
+import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.task.CloneAndVerifyYmlTask;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -95,7 +96,7 @@ public class NodeServiceImpl implements NodeService {
     public Node createOrUpdate(final String path, final String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
         if (Strings.isNullOrEmpty(yml)) {
-            updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_NOT_FOUND, null);
+            updateYmlState(flow, FlowEnvs.YmlStatusValue.NOT_FOUND, null);
             return flow;
         }
 
@@ -103,12 +104,12 @@ public class NodeServiceImpl implements NodeService {
         try {
             rootFromYml = verifyYml(path, yml);
         } catch (IllegalParameterException | YmlException e) {
-            updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR, e.getMessage());
+            updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());
             return flow;
         }
 
         flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.StatusValue.FLOW_STATUS_READY);
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_FOUND);
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
 
         // persistent flow type node to flow table with env which from yml
         EnvUtil.merge(rootFromYml, flow, true);
@@ -210,13 +211,13 @@ public class NodeServiceImpl implements NodeService {
         // check FLOW_YML_STATUS
         String ymlStatus = flow.getEnv(FlowEnvs.FLOW_YML_STATUS);
 
-        // for LOADING status
-        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_LOADING.value())) {
+        // for LOADING status if FLOW_YML_STATUS start with GIT_xxx
+        if (YmlStatusValue.isLoadingStatus(ymlStatus)) {
             return "";
         }
 
         // for FOUND status
-        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_FOUND.value())) {
+        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FOUND.value())) {
 
             // load from database
             YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
@@ -226,12 +227,12 @@ public class NodeServiceImpl implements NodeService {
         }
 
         // for NOT_FOUND status
-        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_NOT_FOUND.value())) {
+        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.NOT_FOUND.value())) {
             throw new NotFoundException("Yml content not found");
         }
 
         // for ERROR status
-        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR.value())) {
+        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.ERROR.value())) {
             throw new YmlException("Illegal yml format");
         }
 
@@ -249,41 +250,28 @@ public class NodeServiceImpl implements NodeService {
             throw new IllegalParameterException("Missing required envs: FLOW_GIT_URL FLOW_GIT_SOURCE");
         }
 
-        if (Objects.equals(
-            flow.getEnv(FlowEnvs.FLOW_YML_STATUS),
-            FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_LOADING.value())) {
+        if (YmlStatusValue.isLoadingStatus(flow.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
             throw new IllegalStatusException("Yml file is loading");
         }
 
         // update FLOW_YML_STATUS to LOADING
-        updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_LOADING, null);
+        updateYmlState(flow, YmlStatusValue.GIT_CONNECTING, null);
 
         // async to load yml file
-        taskExecutor.execute(() -> {
+        taskExecutor.execute(new CloneAndVerifyYmlTask(flow, this, gitService, callback));
+    }
 
-            String yml;
-            try {
-                yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE, null);
-            } catch (Throwable e) {
-                Throwable rootCause = ExceptionUtil.findRootCause(e);
-                LOGGER.error("Unable to clone from git repo", rootCause);
-                updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR, rootCause.getMessage());
-                return;
-            }
+    @Override
+    public void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo) {
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
 
-            try {
-                createOrUpdate(path, yml);
-            } catch (Throwable e) {
-                LOGGER.warn("Fail to create or update yml in node");
-            }
+        if (!Strings.isNullOrEmpty(errorInfo)) {
+            flow.putEnv(FlowEnvs.FLOW_YML_ERROR_MSG, errorInfo);
+        } else {
+            flow.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
+        }
 
-            LOGGER.trace("Node %s FLOW_YML_STATUS is: %s", flow.getName(), flow.getEnv(FlowEnvs.FLOW_YML_STATUS));
-
-            // call consumer
-            if (callback != null) {
-                callback.accept(new YmlStorage(flow.getPath(), yml));
-            }
-        });
+        flowDao.update(flow);
     }
 
     @Override
@@ -301,8 +289,8 @@ public class NodeServiceImpl implements NodeService {
         }
 
         flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
-        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.StatusValue.FLOW_STATUS_PENDING);
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_NOT_FOUND);
+        flow.putEnv(FlowEnvs.FLOW_STATUS, StatusValue.FLOW_STATUS_PENDING);
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND);
         flow = flowDao.save(flow);
 
         return flow;
@@ -355,20 +343,5 @@ public class NodeServiceImpl implements NodeService {
         }
 
         return (Flow) node;
-    }
-
-    /**
-     * Update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG
-     */
-    private void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo) {
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
-
-        if (!Strings.isNullOrEmpty(errorInfo)) {
-            flow.putEnv(FlowEnvs.FLOW_YML_ERROR_MSG, errorInfo);
-        } else {
-            flow.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
-        }
-
-        flowDao.update(flow);
     }
 }
