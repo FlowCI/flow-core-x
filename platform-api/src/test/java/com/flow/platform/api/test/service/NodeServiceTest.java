@@ -143,7 +143,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals(0, loaded.getChildren().size());
 
         String webhook = String.format("%s/hooks/git/%s", domain, loaded.getName());
-        Assert.assertEquals(FlowEnvs.Value.FLOW_STATUS_PENDING.value(), loaded.getEnv(FlowEnvs.FLOW_STATUS));
+        Assert.assertEquals("PENDING", loaded.getEnv(FlowEnvs.FLOW_STATUS));
         Assert.assertEquals(webhook, loaded.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
 
         // should with empty yml
@@ -207,7 +207,7 @@ public class NodeServiceTest extends TestBase {
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
         // then: FLOW_YML_STATUS should be ERROR
-        Assert.assertEquals(FlowEnvs.Value.FLOW_YML_STATUS_ERROR.value(), root.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals("ERROR", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // then: should raise YmlException
         nodeService.getYmlContent(root.getPath());

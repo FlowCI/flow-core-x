@@ -97,7 +97,7 @@ public class NodeServiceImpl implements NodeService {
     public Node createOrUpdate(final String path, final String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
         if (Strings.isNullOrEmpty(yml)) {
-            updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_NOT_FOUND);
+            updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_NOT_FOUND);
             return flow;
         }
 
@@ -105,12 +105,12 @@ public class NodeServiceImpl implements NodeService {
         try {
             rootFromYml = verifyYml(path, yml);
         } catch (IllegalParameterException | YmlException e) {
-            updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
+            updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR);
             return flow;
         }
 
-        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.Value.FLOW_STATUS_READY);
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_FOUND);
+        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.StatusValue.FLOW_STATUS_READY);
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_FOUND);
 
         // persistent flow type node to flow table with env which from yml
         EnvUtil.merge(rootFromYml, flow, true);
@@ -213,12 +213,12 @@ public class NodeServiceImpl implements NodeService {
         String ymlStatus = flow.getEnv(FlowEnvs.FLOW_YML_STATUS);
 
         // for LOADING status
-        if (Objects.equals(ymlStatus, FlowEnvs.Value.FLOW_YML_STATUS_LOADING.value())) {
+        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_LOADING.value())) {
             return "";
         }
 
         // for FOUND status
-        if (Objects.equals(ymlStatus, FlowEnvs.Value.FLOW_YML_STATUS_FOUND.value())) {
+        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_FOUND.value())) {
 
             // load from database
             YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
@@ -228,12 +228,12 @@ public class NodeServiceImpl implements NodeService {
         }
 
         // for NOT_FOUND status
-        if (Objects.equals(ymlStatus, FlowEnvs.Value.FLOW_YML_STATUS_NOT_FOUND.value())) {
+        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_NOT_FOUND.value())) {
             throw new NotFoundException("Yml content not found");
         }
 
         // for ERROR status
-        if (Objects.equals(ymlStatus, FlowEnvs.Value.FLOW_YML_STATUS_ERROR.value())) {
+        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR.value())) {
             throw new YmlException("Illegal yml format");
         }
 
@@ -251,12 +251,14 @@ public class NodeServiceImpl implements NodeService {
             throw new IllegalParameterException("Missing required envs: FLOW_GIT_URL FLOW_GIT_SOURCE");
         }
 
-        if (Objects.equals(flow.getEnv(FlowEnvs.FLOW_YML_STATUS), FlowEnvs.Value.FLOW_YML_STATUS_LOADING.value())) {
+        if (Objects.equals(
+            flow.getEnv(FlowEnvs.FLOW_YML_STATUS),
+            FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_LOADING.value())) {
             throw new IllegalStatusException("Yml file is loading");
         }
 
         // update FLOW_YML_STATUS to LOADING
-        updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_LOADING);
+        updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_LOADING);
 
         // async to load yml file
         taskExecutor.execute(() -> {
@@ -266,7 +268,7 @@ public class NodeServiceImpl implements NodeService {
                 yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE);
             } catch (Throwable e) {
                 LOGGER.error("Unable to clone from git repo", e);
-                updateYmlState(flow, FlowEnvs.Value.FLOW_YML_STATUS_ERROR);
+                updateYmlState(flow, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_ERROR);
                 return;
             }
 
@@ -300,8 +302,8 @@ public class NodeServiceImpl implements NodeService {
         }
 
         flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
-        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.Value.FLOW_STATUS_PENDING);
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.Value.FLOW_YML_STATUS_NOT_FOUND);
+        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.StatusValue.FLOW_STATUS_PENDING);
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FLOW_YML_STATUS_NOT_FOUND);
         flow = flowDao.save(flow);
 
         return flow;
@@ -356,7 +358,7 @@ public class NodeServiceImpl implements NodeService {
         return (Flow) node;
     }
 
-    private void updateYmlState(Flow flow, FlowEnvs.Value state) {
+    private void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state) {
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
         flowDao.update(flow);
     }

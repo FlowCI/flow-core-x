@@ -29,14 +29,37 @@ public enum FlowEnvs implements EnvKey {
     /**
      * Indicate flow yml loading, ready
      */
-    FLOW_YML_STATUS;
+    FLOW_YML_STATUS,
 
-    public enum Value implements EnvValue {
+    /**
+     * For yml error message while loading yml from git
+     */
+    FLOW_YML_ERROR_MSG;
+
+    public enum StatusValue implements EnvValue {
 
         FLOW_STATUS_READY("READY"),
 
-        FLOW_STATUS_PENDING("PENDING"),
+        FLOW_STATUS_PENDING("PENDING");
 
+        private String value;
+
+        StatusValue(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String value() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
+
+    public enum YmlStatusValue implements EnvValue {
 
         FLOW_YML_STATUS_LOADING("LOADING"),
 
@@ -48,7 +71,7 @@ public enum FlowEnvs implements EnvKey {
 
         private String value;
 
-        Value(String value) {
+        YmlStatusValue(String value) {
             this.value = value;
         }
 
