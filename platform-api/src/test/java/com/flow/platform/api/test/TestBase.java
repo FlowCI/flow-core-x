@@ -106,10 +106,10 @@ public abstract class TestBase {
     protected JobNodeResultService jobNodeResultService;
 
     @Autowired
-    private WebApplicationContext webAppContext;
+    protected WebApplicationContext webAppContext;
 
     @Autowired
-    private Path workspace;
+    protected Path workspace;
 
     protected MockMvc mockMvc;
 

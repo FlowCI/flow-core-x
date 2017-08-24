@@ -100,18 +100,19 @@ public class CredentialServiceImpl implements CredentialService {
         JSch jsch = new JSch();
         try {
             KeyPair kpair = KeyPair.genKeyPair(jsch, type);
-            //私钥
+
+            // private key
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             kpair.writePrivateKey(baos);
             String privateKeyString = baos.toString();
-            //公钥
+
+            // public key
             baos = new ByteArrayOutputStream();
             kpair.writePublicKey(baos, comment);
             String publicKeyString = baos.toString();
             kpair.dispose();
-            // 得到公钥字符串
+
             keys.put("publicKey", publicKeyString);
-            // 得到私钥字符串
             keys.put("privateKey", privateKeyString);
         } catch (Exception e) {
             return null;
@@ -135,6 +136,4 @@ public class CredentialServiceImpl implements CredentialService {
         }
         return list;
     }
-
-
 }

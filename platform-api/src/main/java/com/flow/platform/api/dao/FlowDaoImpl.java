@@ -23,6 +23,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -39,17 +40,5 @@ public class FlowDaoImpl extends AbstractBaseDao<String, Flow> implements FlowDa
     @Override
     protected String getKeyName() {
         return "path";
-    }
-
-    @Override
-    public Path workspace(Path base, Flow flow) {
-        Path flowWorkingPath = Paths.get(base.toString(), flow.getName());
-        try {
-            return Files.createDirectories(flowWorkingPath);
-        } catch (FileAlreadyExistsException e) {
-            return flowWorkingPath;
-        } catch (Throwable e) {
-            throw new IllegalStatusException("Unable to get flow working path");
-        }
     }
 }

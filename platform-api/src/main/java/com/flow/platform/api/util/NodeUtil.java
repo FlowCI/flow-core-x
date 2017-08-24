@@ -22,6 +22,8 @@ import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.domain.Jsonable;
 import com.google.common.io.Files;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,13 @@ import org.yaml.snakeyaml.Yaml;
  * @author yh@firim
  */
 public class NodeUtil {
+
+    /**
+     * Get node workspace path
+     */
+    public static Path workspacePath(Path base, Node node) {
+        return Paths.get(base.toString(), node.getName());
+    }
 
     /**
      * Build node tree structure from yml file

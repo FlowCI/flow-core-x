@@ -67,7 +67,7 @@ public class GitSshClientTest {
         final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml", "README.md");
 
         // then:
-        File[] files = Paths.get(tmpPath).toFile().listFiles();
+        File[] files = gitClient.targetPath().toFile().listFiles();
         Assert.assertEquals(3, files.length);
         for (File file : files) {
             Assert.assertTrue(acceptedFiles.contains(file.getName()));

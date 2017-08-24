@@ -17,15 +17,16 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.UnsupportedException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
+import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -51,32 +52,17 @@ public class GitServiceImpl implements GitService {
     @Autowired
     private Path workspace;
 
-    @Autowired
-    private FlowDao flowDao;
-
     @PostConstruct
     public void init() {
         clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
     }
 
     @Override
-    public String fetch(Flow flow, String filePath) {
-        Path gitSourcePath = gitSourcePath(flow);
-        Path targetPath = Paths.get(gitSourcePath.toString(), filePath);
-
-        if (Files.exists(targetPath)) {
-            return getContent(targetPath);
-        }
-
-        return null;
-    }
-
-    @Override
-    public String clone(Flow flow, String filePath) {
+    public String clone(Flow flow, String filePath) throws GitException {
         String branch = flow.getEnv(GitEnvs.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(flow);
         client.clone(branch, null, Sets.newHashSet(filePath));
-        return fetch(flow, filePath);
+        return fetch(client, filePath);
     }
 
     /**
@@ -101,7 +87,7 @@ public class GitServiceImpl implements GitService {
                 .getConstructor(Flow.class, Path.class)
                 .newInstance(flow, gitSourcePath(flow));
         } catch (Throwable e) {
-            throw new IllegalStatusException("Fail to create GitClientBuilder instance");
+            throw new IllegalStatusException("Fail to create GitClientBuilder instance: " + e.getMessage());
         }
 
         GitClient client = builder.build();
@@ -112,9 +98,23 @@ public class GitServiceImpl implements GitService {
     /**
      * Get git source code folder path of flow workspace
      */
-    private Path gitSourcePath(Flow flow) {
-        Path flowWorkspace = flowDao.workspace(this.workspace, flow);
+    private Path gitSourcePath(Flow flow) throws IOException {
+        Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);
+        Files.createDirectories(flowWorkspace);
         return Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
+    }
+
+    /**
+     * Get target file from local git repo folder
+     */
+    private String fetch(GitClient gitClient, String filePath) {
+        Path targetPath = Paths.get(gitClient.targetPath().toString(), filePath);
+
+        if (Files.exists(targetPath)) {
+            return getContent(targetPath);
+        }
+
+        return null;
     }
 
     /**
