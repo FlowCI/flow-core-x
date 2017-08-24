@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
 import java.nio.file.Path;
@@ -48,6 +49,9 @@ public class CreateFlowTest extends TestBase {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private YmlService ymlService;
 
     @Autowired
     private Path workspace;
@@ -82,7 +86,7 @@ public class CreateFlowTest extends TestBase {
         final CountDownLatch latch = new CountDownLatch(1);
         final String[] ymlWrapper = {null};
 
-        nodeService.loadYmlContent(loaded.getPath(), ymlStorage -> {
+        ymlService.loadYmlContent(loaded.getPath(), ymlStorage -> {
             ymlWrapper[0] = ymlStorage.getFile();
             latch.countDown();
         });
@@ -110,7 +114,7 @@ public class CreateFlowTest extends TestBase {
         final CountDownLatch latch = new CountDownLatch(1);
         final String[] ymlWrapper = {null};
 
-        nodeService.loadYmlContent(flow.getPath(), ymlStorage -> {
+        ymlService.loadYmlContent(flow.getPath(), ymlStorage -> {
             ymlWrapper[0] = ymlStorage.getFile();
             latch.countDown();
         });

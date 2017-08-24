@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import java.util.Objects;
@@ -94,12 +95,7 @@ public class CloneAndVerifyYmlTask implements Runnable {
 
         @Override
         public void onStartTask(String task) {
-            String ymlStatus = flow.getEnv(FlowEnvs.FLOW_YML_STATUS);
 
-            if (!Objects.equals(ymlStatus, YmlStatusValue.GIT_LOADING.value())
-                || !Objects.equals(ymlStatus, YmlStatusValue.GIT_CONNECTED.value())) {
-                nodeService.updateYmlState(flow, YmlStatusValue.GIT_CONNECTED, null);
-            }
         }
 
         @Override
