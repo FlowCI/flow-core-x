@@ -38,6 +38,7 @@ import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
@@ -90,7 +91,10 @@ public class GitSshClient extends AbstractGitClient {
     }
 
     @Override
-    public File clone(String branch, Integer depth, Set<String> checkoutFiles) throws GitException {
+    public File clone(String branch,
+                      Integer depth,
+                      Set<String> checkoutFiles,
+                      ProgressMonitor monitor) throws GitException {
         checkGitUrl();
         File gitDir = getGitPath().toFile();
 
@@ -115,7 +119,7 @@ public class GitSshClient extends AbstractGitClient {
             }
         }
 
-        pull(branch, depth);
+        pull(branch, depth, monitor);
         return gitDir;
     }
 

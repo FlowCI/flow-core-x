@@ -21,7 +21,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs.Value;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.api.domain.Job;
@@ -117,7 +116,7 @@ public class GitWebhookTest extends TestBase {
 
         Assert.assertNotNull(loaded);
         Assert.assertEquals(7, loaded.getEnvs().size());
-        Assert.assertEquals(Value.FLOW_YML_STATUS_NOT_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals(FlowEnvs.YmlStatusValue.NOT_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
     }
 
     private Job push_trigger_from_git(RequestBuilder push) throws Throwable {
@@ -148,7 +147,7 @@ public class GitWebhookTest extends TestBase {
 
         // verify flow node yml status
         Node flowNode = nodeService.find(created.getNodePath());
-        Assert.assertEquals(Value.FLOW_YML_STATUS_FOUND.value(), flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals(FlowEnvs.YmlStatusValue.FOUND.value(), flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         return created;
     }

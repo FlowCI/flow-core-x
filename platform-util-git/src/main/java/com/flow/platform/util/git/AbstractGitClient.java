@@ -68,13 +68,19 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
-    public void pull(String branch, Integer depth) throws GitException {
+    public void pull(String branch, Integer depth, ProgressMonitor monitor) throws GitException {
         if (depth != null) {
             throw new GitException("JGit api doesn't support shallow clone");
         }
 
         try (Git git = gitOpen()) {
-            pullCommand(branch, git).setProgressMonitor(new DebugProgressMonitor()).call();
+            PullCommand pullCommand = pullCommand(branch, git);
+            if (monitor != null) {
+                pullCommand.setProgressMonitor(monitor);
+            } else {
+                pullCommand.setProgressMonitor(new DebugProgressMonitor());
+            }
+            pullCommand.call();
         } catch (Throwable e) {
             throw new GitException("Fail to pull with specific files", e);
         }

@@ -62,7 +62,7 @@ public class GitSshClientTest {
         String tmpPath = folder.getRoot().getAbsolutePath();
 
         GitSshClient gitClient = new GitSshClient(TEST_GIT_SSH_URL, Paths.get(tmpPath));
-        gitClient.clone("develop", null, Sets.newHashSet(".flow.yml"));
+        gitClient.clone("develop", null, Sets.newHashSet(".flow.yml"), null);
 
         final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml", "README.md");
 
