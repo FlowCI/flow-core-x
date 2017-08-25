@@ -25,7 +25,8 @@ import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
-import com.flow.platform.api.response.ResponseError;
+import com.flow.platform.api.domain.response.Existed;
+import com.flow.platform.api.domain.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.PathUtil;
 import org.junit.Assert;
@@ -72,7 +73,9 @@ public class FlowControllerTest extends TestBase {
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
 
         String body = result.getResponse().getContentAsString();
-        Assert.assertEquals(true, Boolean.parseBoolean(body));
+        Existed existed = Existed.parse(body, Existed.class);
+        Assert.assertNotNull(existed);
+        Assert.assertEquals(true, existed.isExisted());
     }
 
     @Test
@@ -108,8 +111,9 @@ public class FlowControllerTest extends TestBase {
 
         // then:
         String response = mvcResult.getResponse().getContentAsString();
-        Assert.assertNotNull(response);
-        Assert.assertEquals(false, Boolean.parseBoolean(response));
+        Existed existed = Existed.parse(response, Existed.class);
+        Assert.assertNotNull(existed);
+        Assert.assertEquals(false, existed.isExisted());
     }
 
     @Test
