@@ -27,7 +27,6 @@ import java.util.Map;
 
 public class Job extends EnvObject {
 
-    @Expose
     private BigInteger id;
 
     @Expose

@@ -27,7 +27,6 @@ import java.util.Map;
 
 public class NodeResult extends Jsonable {
 
-    @Expose
     private NodeResultKey nodeResultKey;
 
     @Expose
