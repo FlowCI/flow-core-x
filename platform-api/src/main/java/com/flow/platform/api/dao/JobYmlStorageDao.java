@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.JobYmlStorage;
+import com.flow.platform.api.domain.job.JobYmlStorage;
 import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
 

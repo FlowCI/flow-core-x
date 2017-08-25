@@ -15,11 +15,11 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeResult;
-import com.flow.platform.api.domain.NodeResultKey;
-import com.flow.platform.api.domain.NodeStatus;
-import com.flow.platform.api.domain.NodeTag;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.node.NodeResultKey;
+import com.flow.platform.api.domain.node.NodeStatus;
+import com.flow.platform.api.domain.node.NodeTag;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.math.BigInteger;
 import java.util.List;

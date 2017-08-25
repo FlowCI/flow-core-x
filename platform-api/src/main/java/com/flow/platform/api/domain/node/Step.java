@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.node;
 
 public class Step extends Node<Step> {
 

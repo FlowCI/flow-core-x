@@ -16,8 +16,8 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.JobYmlStorageDao;
-import com.flow.platform.api.domain.JobYmlStorage;
-import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.job.JobYmlStorage;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;

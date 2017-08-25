@@ -17,12 +17,12 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.CmdQueueItem;
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.NodeResult;
-import com.flow.platform.api.domain.NodeStatus;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.node.NodeStatus;
+import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Cmd;
@@ -55,7 +55,7 @@ public class JobServiceTest extends TestBase {
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Assert.assertNotNull(job.getId());
-        Assert.assertEquals(NodeStatus.ENQUEUE, job.getStatus());
+        Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
         Step step1 = (Step) nodeService.find("/flow1/step1");
         Step step2 = (Step) nodeService.find("/flow1/step2");
         Step step3 = (Step) nodeService.find("/flow1/step3");
@@ -77,7 +77,7 @@ public class JobServiceTest extends TestBase {
 
         jobService.callback(new CmdQueueItem(Jsonable.GSON_CONFIG.toJson(map), cmd));
         job = jobService.find(job.getId());
-        Assert.assertEquals(NodeStatus.RUNNING, job.getStatus());
+        Assert.assertEquals(NodeStatus.RUNNING, job.getResult().getStatus());
         job = jobService.find(job.getId());
         NodeResult jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
@@ -94,7 +94,7 @@ public class JobServiceTest extends TestBase {
         jobService.callback(new CmdQueueItem(Jsonable.GSON_CONFIG.toJson(map), cmd));
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, (jobNodeResultService.find(step2.getPath(), job.getId())).getStatus());
-        Assert.assertEquals(NodeStatus.FAILURE, job.getStatus());
+        Assert.assertEquals(NodeStatus.FAILURE, job.getResult().getStatus());
         jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
 
@@ -108,7 +108,7 @@ public class JobServiceTest extends TestBase {
         Job job = jobService.createJob(rootForFlow.getPath());
         Assert.assertEquals(true, jobService.stopJob(job.getNodeName(), job.getNumber()));
         job = jobService.find(job.getNodeName(), job.getNumber());
-        Assert.assertEquals(NodeStatus.STOPPED, job.getStatus());
+        Assert.assertEquals(NodeStatus.STOPPED, job.getResult().getStatus());
     }
 
     @Test

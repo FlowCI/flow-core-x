@@ -17,15 +17,14 @@
 package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.util.NodeUtil;
 import com.google.common.io.Files;
 import java.io.File;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;

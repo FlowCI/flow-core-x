@@ -1,4 +1,4 @@
-/*
+package com.flow.platform.api.dao.util;/*
  * Copyright 2017 flow.ci
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,29 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
-import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
-public interface JobNodeResultService {
+public class JobConvertUtil {
 
-    /**
-     * Create empty node results by job
-     */
-    void create(Job job);
+    public static List<Job> convert(List<Object[]> objects) {
+        List<Job> jobs = new ArrayList<>();
+        for (Object[] arr : objects) {
+            jobs.add(convert(arr));
+        }
+        return jobs;
+    }
 
-    /**
-     * find node by node path
-     */
-    NodeResult find(String path, BigInteger jobId);
+    public static Job convert(Object[] objects) {
+        if (objects == null) {
+            return null;
+        }
 
-    NodeResult update(NodeResult nodeResult);
+        if (objects.length == 0) {
+            return null;
+        }
+        
+        Job job = (Job) objects[0];
+        if (objects[1] == null) {
+            return job;
+        }
+        job.setResult((NodeResult) objects[1]);
+        return job;
+    }
 
-    List<NodeResult> list(Job job);
 }

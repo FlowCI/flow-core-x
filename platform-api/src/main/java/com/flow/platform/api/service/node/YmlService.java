@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.service.node;
 
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.YmlStorage;
 import java.util.function.Consumer;
 
 /**

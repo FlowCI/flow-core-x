@@ -16,8 +16,8 @@
 package com.flow.platform.api.util;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.domain.Jsonable;
 import com.google.common.io.Files;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.node;
 
 import com.google.gson.annotations.Expose;
 import java.io.Serializable;
