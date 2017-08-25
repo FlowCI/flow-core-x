@@ -14,51 +14,33 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
-import com.flow.platform.api.domain.adaptor.EnvAdaptor;
-import com.flow.platform.domain.Jsonable;
+package com.flow.platform.api.domain.job;
+
+import com.flow.platform.api.domain.EnvObject;
 import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.JsonAdapter;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
+
+/**
+ * @author yh@firim
+ */
 
 public class Job extends EnvObject {
 
-    @Expose
     private BigInteger id;
 
     @Expose
-    private Long duration = 0l;
-
-    @Expose
     private String nodePath;
-
-    private Integer exitCode;
 
     private String sessionId;
 
     private String cmdId;
 
     @Expose
-    private NodeStatus status;
-
-    @Expose
-    @JsonAdapter(EnvAdaptor.class)
-    private Map<String, String> outputs = new HashMap<>();
-
-    @Expose
     private String nodeName;
 
     @Expose
     private String branch;
-
-    @Expose
-    private ZonedDateTime startedAt;
-
-    @Expose
-    private ZonedDateTime finishedAt;
 
     @Expose
     private ZonedDateTime createdAt;
@@ -69,11 +51,22 @@ public class Job extends EnvObject {
     @Expose
     private Integer number;
 
-    public Job() {
-    }
+    @Expose
+    private NodeResult result;
 
     public Job(BigInteger id) {
         this.id = id;
+    }
+
+    public Job() {
+    }
+
+    public NodeResult getResult() {
+        return result;
+    }
+
+    public void setResult(NodeResult result) {
+        this.result = result;
     }
 
     public Integer getNumber() {
@@ -116,52 +109,12 @@ public class Job extends EnvObject {
         this.updatedAt = updatedAt;
     }
 
-    public Long getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Long duration) {
-        this.duration = duration;
-    }
-
-    public ZonedDateTime getFinishedAt() {
-        return finishedAt;
-    }
-
-    public void setFinishedAt(ZonedDateTime finishedAt) {
-        this.finishedAt = finishedAt;
-    }
-
-    public ZonedDateTime getStartedAt() {
-        return startedAt;
-    }
-
-    public void setStartedAt(ZonedDateTime startedAt) {
-        this.startedAt = startedAt;
-    }
-
-    public Integer getExitCode() {
-        return exitCode;
-    }
-
-    public void setExitCode(Integer exitCode) {
-        this.exitCode = exitCode;
-    }
-
     public String getNodePath() {
         return nodePath;
     }
 
     public void setNodePath(String nodePath) {
         this.nodePath = nodePath;
-    }
-
-    public NodeStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(NodeStatus status) {
-        this.status = status;
     }
 
     public String getCmdId() {
@@ -188,14 +141,6 @@ public class Job extends EnvObject {
         this.branch = branch;
     }
 
-    public Map<String, String> getOutputs() {
-        return outputs;
-    }
-
-    public void setOutputs(Map<String, String> outputs) {
-        this.outputs = outputs;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -219,12 +164,9 @@ public class Job extends EnvObject {
     public String toString() {
         return "Job{" +
             "id='" + id + '\'' +
-            ", duration=" + duration +
-            ", exitCode=" + exitCode +
             ", nodePath='" + nodePath + '\'' +
             ", sessionId='" + sessionId + '\'' +
             ", cmdId='" + cmdId + '\'' +
-            ", status=" + status +
             '}';
     }
 }

@@ -15,11 +15,11 @@
  */
 package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.NodeResult;
-import com.flow.platform.api.domain.NodeTag;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.node.NodeTag;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import java.io.IOException;

@@ -4,36 +4,20 @@
   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.api.domain">
-  <class name="Job" table="job">
+  <class name="com.flow.platform.api.domain.job.Job" table="job">
     <id name="id" type="big_integer">
       <column name="id" sql-type="decimal(25, 0)"/>
     </id>
 
-    <property name="number" type="integer"  column="number">
+    <property name="number" type="integer" column="number">
 
     </property>
     <property name="nodeName" column="node_name"/>
     <property name="nodePath" column="node_path"/>
-    <property name="duration" type="long" column="duration"/>
-    <property name="exitCode" type="integer" column="exit_code"/>
+
     <property name="cmdId" type="string" column="cmd_id"/>
     <property name="sessionId" type="string" column="session_id"/>
-    <property name="outputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="outputs"/>
-
-    <property name="status" column="status" length="10" not-null="true">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">com.flow.platform.api.domain.NodeStatus</param>
-        <param name="useNamed">true</param>
-      </type>
-    </property>
-
-    <property name="finishedAt" type="java.time.ZonedDateTime">
-      <column name="finished_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
-    </property>
-
-    <property name="startedAt" type="java.time.ZonedDateTime">
-      <column name="started_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
-    </property>
+    <property name="envs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="envs"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
@@ -42,10 +26,10 @@
     <property name="updatedAt" type="java.time.ZonedDateTime" update="false">
       <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
     </property>
+
   </class>
 
-
-  <class name="JobYmlStorage" table="job_yml_storage">
+  <class name="com.flow.platform.api.domain.job.JobYmlStorage" table="job_yml_storage">
     <id name="jobId" type="big_integer">
       <column name="job_id" sql-type="decimal(25, 0)"/>
     </id>

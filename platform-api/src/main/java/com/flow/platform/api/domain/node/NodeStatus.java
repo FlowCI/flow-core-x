@@ -14,14 +14,42 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.node;
 
-public class Flow extends Node<Step> {
+/**
+ * @author yh@firim
+ */
+public enum NodeStatus {
 
-    public Flow(String path, String name) {
-        super(path, name);
+    PENDING("PENDING", 0),
+
+    //enter queue
+    ENQUEUE("ENQUEUE", 1),
+
+    RUNNING("RUNNING", 2),
+
+    SUCCESS("SUCCESS", 3),
+
+    STOPPED("STOPPED", 3),
+
+    FAILURE("FAILURE", 3),
+
+    TIMEOUT("TIMEOUT", 3);
+
+    private String name;
+
+    public Integer getLevel() {
+        return level;
     }
 
-    public Flow() {
+    private Integer level;
+
+    NodeStatus(String name, Integer level) {
+        this.name = name;
+        this.level = level;
+    }
+
+    public String getName() {
+        return name;
     }
 }

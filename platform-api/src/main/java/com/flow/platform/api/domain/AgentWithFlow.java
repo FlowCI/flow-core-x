@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.domain;
 
+import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;

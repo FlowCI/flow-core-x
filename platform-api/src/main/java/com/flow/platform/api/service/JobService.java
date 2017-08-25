@@ -16,10 +16,9 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.CmdQueueItem;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.NodeResult;
-import com.flow.platform.domain.CmdBase;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.job.NodeResult;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -44,7 +43,7 @@ public interface JobService {
     /**
      * run node
      */
-    void run(Node node, BigInteger jobId);
+    void run(Node node, Job job);
 
     /**
      * find job by id

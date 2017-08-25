@@ -15,9 +15,9 @@
  */
 package com.flow.platform.api.test.util;
 
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
 import java.util.LinkedList;

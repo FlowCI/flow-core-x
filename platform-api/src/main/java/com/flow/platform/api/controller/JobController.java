@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.api.util.PathUtil;

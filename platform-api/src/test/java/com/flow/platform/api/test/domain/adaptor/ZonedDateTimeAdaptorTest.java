@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.test.domain.adaptor;
 
-import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Jsonable;
 import java.time.ZonedDateTime;

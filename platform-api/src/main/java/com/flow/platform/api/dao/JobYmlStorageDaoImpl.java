@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package com.flow.platform.api.dao;
-import com.flow.platform.api.domain.JobYmlStorage;
+import com.flow.platform.api.domain.job.JobYmlStorage;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.math.BigInteger;
 import org.springframework.stereotype.Repository;

@@ -17,15 +17,14 @@ package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.JobYmlStorageDao;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.JobYmlStorage;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobYmlStorage;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

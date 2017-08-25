@@ -18,13 +18,12 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.AgentWithFlow;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.NodeStatus;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;

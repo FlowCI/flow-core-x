@@ -21,11 +21,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.NodeStatus;
 import com.flow.platform.api.test.TestBase;
 
-import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.domain.Jsonable;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +49,6 @@ public class JobControllerTest extends TestBase {
 
         Map<String, String> map = new HashMap<>();
         map.put("FLOW_GIT_BRANCH", "a");
-        job.setOutputs(map);
 
         jobDao.update(job);
 
@@ -66,10 +65,8 @@ public class JobControllerTest extends TestBase {
 
         String response = mvcResult.getResponse().getContentAsString();
         Job returnedJob = Job.parse(response, Job.class);
-        Assert.assertEquals(returnedJob.getId(), job.getId());
 
         // those fields cannot exported
-        Assert.assertNull(returnedJob.getExitCode());
         Assert.assertNull(returnedJob.getSessionId());
         Assert.assertNull(returnedJob.getCmdId());
     }
@@ -84,7 +81,6 @@ public class JobControllerTest extends TestBase {
 
         Map<String, String> map = new HashMap<>();
         map.put("FLOW_GIT_BRANCH", "a");
-        job.setOutputs(map);
 
         jobDao.update(job);
 
@@ -115,6 +111,6 @@ public class JobControllerTest extends TestBase {
             .andReturn();
         String res = result.getResponse().getContentAsString();
         Job job1 = Job.parse(res, Job.class);
-        Assert.assertEquals(NodeStatus.STOPPED, job1.getStatus());
+        Assert.assertEquals(NodeStatus.STOPPED, job1.getResult().getStatus());
     }
 }

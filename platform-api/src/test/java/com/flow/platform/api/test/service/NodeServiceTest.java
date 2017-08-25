@@ -15,11 +15,11 @@
  */
 package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.node.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.exception.YmlException;

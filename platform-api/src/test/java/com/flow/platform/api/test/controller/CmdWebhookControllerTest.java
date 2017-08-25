@@ -20,12 +20,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.NodeResult;
-import com.flow.platform.api.domain.NodeStatus;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.node.NodeStatus;
+import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
@@ -76,7 +76,7 @@ public class CmdWebhookControllerTest extends TestBase {
         job = jobService.find(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(job.getStatus(), NodeStatus.ENQUEUE);
+        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.PENDING);
 
         Step step1 = (Step) nodeService.find("/flow1/step1");
         Step step2 = (Step) nodeService.find("/flow1/step2");
@@ -101,7 +101,7 @@ public class CmdWebhookControllerTest extends TestBase {
         job = jobService.find(job.getId());
         NodeResult jobStep1 = jobNodeResultService.find(step1.getPath(), job.getId());
         NodeResult jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
-        Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
+        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
 
@@ -127,7 +127,7 @@ public class CmdWebhookControllerTest extends TestBase {
         jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.SUCCESS);
         Assert.assertEquals((Integer) 0, jobStep1.getExitCode());
-        Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
+        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
 
         // run first step finish
@@ -153,7 +153,7 @@ public class CmdWebhookControllerTest extends TestBase {
         jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(jobStep2.getStatus(), NodeStatus.SUCCESS);
         Assert.assertEquals((Integer) 0, jobStep2.getExitCode());
-        Assert.assertEquals(job.getStatus(), NodeStatus.SUCCESS);
+        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.SUCCESS);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.SUCCESS);
     }
 
@@ -188,7 +188,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getCmdId());
         Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(NodeStatus.ENQUEUE, job.getStatus());
+        Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
 
         // run first step timeout
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
@@ -215,7 +215,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertNotNull(jobStep1.getCmdId());
         NodeResult jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
 
-        Assert.assertEquals(NodeStatus.FAILURE, job.getStatus());
+        Assert.assertEquals(NodeStatus.TIMEOUT, job.getResult().getStatus());
         Assert.assertEquals(NodeStatus.TIMEOUT, jobStep1.getStatus());
         Assert.assertEquals(NodeStatus.TIMEOUT, jobFlow.getStatus());
     }
@@ -247,7 +247,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getCmdId());
         Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(job.getStatus(), NodeStatus.ENQUEUE);
+        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.PENDING);
 
         Step step1 = (Step) nodeService.find("/flow1/step1");
         Step step2 = (Step) nodeService.find("/flow1/step2");
@@ -286,7 +286,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertNotNull(jobStep1.getCmdId());
         NodeResult jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
         job = jobService.find(job.getId());
-        Assert.assertEquals(job.getStatus(), NodeStatus.RUNNING);
+        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.RUNNING);
         Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
         Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
     }

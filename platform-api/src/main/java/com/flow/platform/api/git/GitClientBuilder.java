@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.git;
 
-import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.util.git.GitClient;
 import java.nio.file.Path;

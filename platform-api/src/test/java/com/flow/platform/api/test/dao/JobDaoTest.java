@@ -17,11 +17,18 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.dao.JobDao;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeStatus;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.node.NodeResultKey;
+import com.flow.platform.api.domain.node.NodeStatus;
+import com.flow.platform.api.domain.node.NodeTag;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +44,8 @@ public class JobDaoTest extends TestBase {
     @Test
     public void should_save_and_get_success() {
         Job job = new Job(CommonUtil.randomId());
-        job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
 
         Job job1 = jobDao.get(job.getId());
@@ -53,12 +56,8 @@ public class JobDaoTest extends TestBase {
     @Test
     public void should_update_success() {
         Job job = new Job(CommonUtil.randomId());
-        job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
 
         Job job1 = jobDao.get(job.getId());
@@ -73,12 +72,8 @@ public class JobDaoTest extends TestBase {
     @Test
     public void should_list_success() {
         Job job = new Job(CommonUtil.randomId());
-        job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
         Assert.assertEquals(1, jobDao.list().size());
     }
@@ -86,12 +81,8 @@ public class JobDaoTest extends TestBase {
     @Test
     public void should_delete_success() {
         Job job = new Job(CommonUtil.randomId());
-        job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
         Assert.assertEquals(1, jobDao.list().size());
         jobDao.delete(job);
@@ -102,13 +93,9 @@ public class JobDaoTest extends TestBase {
     public void should_get_max_number_success(){
         Job job = new Job(CommonUtil.randomId());
         job.setNumber(1);
-        job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
         job.setNodeName("test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
 
         jobDao.save(job);
 
@@ -116,5 +103,83 @@ public class JobDaoTest extends TestBase {
         Assert.assertNotNull(number);
 
         Assert.assertEquals((Integer)0, jobDao.maxBuildNumber("flows"));
+    }
+
+    @Test
+    public void should_list_session_status_success(){
+        Job job = new Job(CommonUtil.randomId());
+        job.setNumber(1);
+        job.setCmdId("1111");
+        job.setSessionId("11111111");
+        job.setNodePath("/flow/test");
+        job.setNodeName("test");
+        jobDao.save(job);
+
+        NodeResult nodeResult = new NodeResult();
+        nodeResult.setStatus(NodeStatus.SUCCESS);
+        nodeResult.setStartTime(ZonedDateTime.now());
+        nodeResult.setFinishTime(ZonedDateTime.now());
+        Map<String, String> outputs = new HashMap<>();
+        outputs.put("a", "a");
+        nodeResult.setDuration(10l);
+        nodeResult.setExitCode(10);
+        nodeResult.setOutputs(outputs);
+        nodeResult.setNodeTag(NodeTag.FLOW);
+        nodeResult.setNodeResultKey(new NodeResultKey(job.getId(), job.getNodePath()));
+        nodeResultDao.save(nodeResult);
+        job = jobDao.get(job.getId());
+        List<String> sessionIds = new ArrayList<>();
+        sessionIds.add(job.getSessionId());
+        List<Job> jobs = jobDao.list(sessionIds, NodeStatus.SUCCESS);
+        Assert.assertEquals(1, jobs.size());
+        Job job1 = jobs.get(0);
+        Assert.assertEquals(nodeResult.getStatus(), job1.getResult().getStatus());
+        Assert.assertNotNull(job1.getCreatedAt());
+        Assert.assertNotNull(job1.getUpdatedAt());
+    }
+
+
+    @Test
+    public void should_list_session_status_success_complex(){
+        Job job = new Job(CommonUtil.randomId());
+        job.setNumber(1);
+        job.setNodePath("/flow/test");
+        job.setNodeName("test");
+        job.setSessionId("11111111");
+        jobDao.save(job);
+
+        NodeResult nodeResult = new NodeResult();
+        nodeResult.setStatus(NodeStatus.SUCCESS);
+        nodeResult.setNodeTag(NodeTag.FLOW);
+        nodeResult.setNodeResultKey(new NodeResultKey(job.getId(), job.getNodePath()));
+        nodeResultDao.save(nodeResult);
+
+        List<String> sessionIds = new ArrayList<>();
+        sessionIds.add(job.getSessionId());
+        List<Job> jobs = jobDao.list(sessionIds, NodeStatus.SUCCESS);
+        Assert.assertEquals(1, jobs.size());
+        Job job1 = jobs.get(0);
+    }
+
+    @Test
+    public void should_get_job_success_number_and_name(){
+        Job job = new Job(CommonUtil.randomId());
+        job.setNumber(1);
+        job.setNodePath("/flow/test");
+        job.setNodeName("test");
+        job.setSessionId("11111111");
+        jobDao.save(job);
+
+        NodeResult nodeResult = new NodeResult();
+        nodeResult.setStatus(NodeStatus.SUCCESS);
+        nodeResult.setNodeTag(NodeTag.FLOW);
+        nodeResult.setNodeResultKey(new NodeResultKey(job.getId(), job.getNodePath()));
+        nodeResultDao.save(nodeResult);
+
+        List<String> sessionIds = new ArrayList<>();
+        sessionIds.add(job.getSessionId());
+
+        Job job1 = jobDao.get(job.getNodeName(), job.getNumber());
+        Assert.assertNotNull(job1);
     }
 }
