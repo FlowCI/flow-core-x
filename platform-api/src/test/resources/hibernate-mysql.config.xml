@@ -35,6 +35,7 @@
         <value>com/flow/platform/api/dao/hbm/flow.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/job.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/nodeResult.hbm.xml</value>
+        <value>com/flow/platform/api/dao/hbm/user.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/credentialStorage.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/messageSetting.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/mapping.hbm.xml</value>
