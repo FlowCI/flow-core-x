@@ -73,7 +73,9 @@ public class FlowControllerTest extends TestBase {
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
 
         String body = result.getResponse().getContentAsString();
-        Assert.assertEquals(true, Boolean.parseBoolean(body));
+        Existed existed = Existed.parse(body, Existed.class);
+        Assert.assertNotNull(existed);
+        Assert.assertEquals(true, existed.isExisted());
     }
 
     @Test
