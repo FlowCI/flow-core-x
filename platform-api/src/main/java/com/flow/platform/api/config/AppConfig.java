@@ -65,6 +65,11 @@ public class AppConfig extends AppConfigBase {
 
     private final static String THREAD_NAME_PREFIX = "async-task-";
 
+    public final static String ALLOW_SUFFIX = "p12,mobileprovision,jks,pem";
+
+    public final static long ALLOW_SIZE = 2 * 1024 * 1024;
+
+
     @Value("${api.workspace}")
     private String workspace;
 
