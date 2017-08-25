@@ -5,7 +5,7 @@
 
 <hibernate-mapping package="com.flow.platform.api.domain">
   <resultset name="MappingJobResult">
-    <return alias="job" class="Job"></return>
-    <return alias="nr" class="NodeResult"></return>
+    <return alias="job" class="com.flow.platform.api.domain.job.Job"></return>
+    <return alias="nr" class="com.flow.platform.api.domain.job.NodeResult"></return>
   </resultset>
 </hibernate-mapping>

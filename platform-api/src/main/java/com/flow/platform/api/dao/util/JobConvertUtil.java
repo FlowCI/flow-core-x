@@ -14,8 +14,8 @@ package com.flow.platform.api.dao.util;/*
  * limitations under the License.
  */
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import java.util.ArrayList;
 import java.util.List;
 

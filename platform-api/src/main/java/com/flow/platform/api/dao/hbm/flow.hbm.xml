@@ -4,7 +4,7 @@
   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.api.domain">
-  <class name="Flow" table="flow">
+  <class name="com.flow.platform.api.domain.node.Flow" table="flow">
     <id name="path" type="string" column="path"/>
 
     <property name="name" length="50" column="name"/>
@@ -19,7 +19,7 @@
     </property>
   </class>
 
-  <class name="YmlStorage" table="yml_storage">
+  <class name="com.flow.platform.api.domain.node.YmlStorage" table="yml_storage">
     <id name="nodePath" type="string" column="node_path"/>
     <property name="file" type="com.flow.platform.core.dao.adaptor.ByteAdaptor"/>
   </class>

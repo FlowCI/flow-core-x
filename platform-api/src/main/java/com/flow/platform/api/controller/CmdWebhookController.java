@@ -17,7 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.CmdQueueItem;
-import com.flow.platform.api.domain.Response;
+import com.flow.platform.api.domain.response.Response;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;

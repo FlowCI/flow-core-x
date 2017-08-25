@@ -14,35 +14,33 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.response;
 
-public class Step extends Node<Step> {
+import com.flow.platform.domain.Jsonable;
 
-    public Step(String path, String name) {
-        super(path, name);
+/**
+ * @author yh@firim
+ */
+public class Response extends Jsonable {
+
+    private String message;
+
+    public String getMessage() {
+        return message;
     }
 
-    public Step(){
-
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    private Boolean allowFailure = false;
-
-    private String plugin;
-
-    public Boolean getAllowFailure() {
-        return allowFailure;
+    public Response(String message) {
+        this.message = message;
     }
 
-    public void setAllowFailure(Boolean allowFailure) {
-        this.allowFailure = allowFailure;
-    }
-
-    public String getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(String plugin) {
-        this.plugin = plugin;
+    @Override
+    public String toString() {
+        return "Response{" +
+            "message='" + message + '\'' +
+            '}';
     }
 }

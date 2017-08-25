@@ -13,34 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.flow.platform.api.domain;
-
-import com.flow.platform.domain.Jsonable;
+package com.flow.platform.api.domain.node;
 
 /**
- * @author yh@firim
+ * @author lhl
  */
-public class Response extends Jsonable {
+public enum NodeTag {
 
-    private String message;
+    FLOW("FLOW", 0),
 
-    public String getMessage() {
-        return message;
+    STEP("STEP", 1);
+
+    private String name;
+
+    private int index;
+
+    NodeTag(String name, int index) {
+        this.name = name;
+        this.index = index;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public String getName() {
+        return name;
     }
 
-    public Response(String message) {
-        this.message = message;
+
+    public int getIndex() {
+        return index;
     }
 
-    @Override
-    public String toString() {
-        return "Response{" +
-            "message='" + message + '\'' +
-            '}';
-    }
 }

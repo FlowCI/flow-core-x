@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;

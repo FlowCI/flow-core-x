@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.job;
 
+import com.flow.platform.api.domain.node.NodeResultKey;
+import com.flow.platform.api.domain.node.NodeStatus;
+import com.flow.platform.api.domain.node.NodeTag;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.math.BigInteger;

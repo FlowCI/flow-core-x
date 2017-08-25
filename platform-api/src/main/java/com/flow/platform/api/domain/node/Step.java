@@ -13,33 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain;
 
-/**
- * @author lhl
- */
-public enum NodeTag {
+package com.flow.platform.api.domain.node;
 
-    FLOW("FLOW", 0),
+public class Step extends Node<Step> {
 
-    STEP("STEP", 1);
-
-    private String name;
-
-    private int index;
-
-    NodeTag(String name, int index) {
-        this.name = name;
-        this.index = index;
+    public Step(String path, String name) {
+        super(path, name);
     }
 
-    public String getName() {
-        return name;
+    public Step(){
+
     }
 
+    private Boolean allowFailure = false;
 
-    public int getIndex() {
-        return index;
+    private String plugin;
+
+    public Boolean getAllowFailure() {
+        return allowFailure;
     }
 
+    public void setAllowFailure(Boolean allowFailure) {
+        this.allowFailure = allowFailure;
+    }
+
+    public String getPlugin() {
+        return plugin;
+    }
+
+    public void setPlugin(String plugin) {
+        this.plugin = plugin;
+    }
 }

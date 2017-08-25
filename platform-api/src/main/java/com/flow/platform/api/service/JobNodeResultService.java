@@ -15,8 +15,8 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.NodeResult;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import java.math.BigInteger;
 import java.util.List;
 

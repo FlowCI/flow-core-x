@@ -16,9 +16,8 @@
 
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.core.dao.BaseDao;
-import java.nio.file.Path;
 
 /**
  * @author yh@firim

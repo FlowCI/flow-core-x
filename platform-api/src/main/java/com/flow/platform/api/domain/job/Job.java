@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.job;
 
-import com.flow.platform.api.domain.adaptor.EnvAdaptor;
-import com.flow.platform.core.dao.adaptor.MapAdaptor;
+import com.flow.platform.api.domain.EnvObject;
 import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.JsonAdapter;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
+
+/**
+ * @author yh@firim
+ */
 
 public class Job extends EnvObject {
 

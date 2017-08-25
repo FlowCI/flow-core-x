@@ -24,7 +24,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
-import com.flow.platform.api.domain.Response;
+import com.flow.platform.api.domain.response.Response;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Jsonable;

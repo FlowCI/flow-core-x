@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.node;
 
+import com.flow.platform.api.domain.EnvObject;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.time.ZonedDateTime;

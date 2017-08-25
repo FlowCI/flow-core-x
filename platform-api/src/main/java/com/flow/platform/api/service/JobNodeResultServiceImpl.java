@@ -17,12 +17,12 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.NodeResultDao;
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.NodeResult;
-import com.flow.platform.api.domain.NodeResultKey;
-import com.flow.platform.api.domain.NodeTag;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.node.NodeResultKey;
+import com.flow.platform.api.domain.node.NodeTag;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalStatusException;

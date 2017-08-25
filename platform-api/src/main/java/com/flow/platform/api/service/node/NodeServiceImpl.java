@@ -17,10 +17,10 @@ package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlStorageDao;
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Node;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.YmlStorage;
+import com.flow.platform.api.domain.node.YmlStorage;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;

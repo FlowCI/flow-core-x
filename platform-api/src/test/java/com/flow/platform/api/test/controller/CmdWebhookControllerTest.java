@@ -20,12 +20,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.Flow;
-import com.flow.platform.api.domain.Job;
-import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.NodeResult;
-import com.flow.platform.api.domain.NodeStatus;
-import com.flow.platform.api.domain.Step;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.node.NodeStatus;
+import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;

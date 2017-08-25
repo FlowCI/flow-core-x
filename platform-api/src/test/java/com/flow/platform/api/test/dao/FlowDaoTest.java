@@ -17,7 +17,7 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.dao.FlowDao;
-import com.flow.platform.api.domain.Flow;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.test.TestBase;
 import java.time.ZonedDateTime;
 import java.util.List;
