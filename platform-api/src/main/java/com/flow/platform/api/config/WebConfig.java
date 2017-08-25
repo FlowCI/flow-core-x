@@ -50,7 +50,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-    private final static int MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
+    private final static int MAX_UPLOAD_SIZE = 2 * 1024 * 1024;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {

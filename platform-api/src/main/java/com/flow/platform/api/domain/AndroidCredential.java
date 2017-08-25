@@ -15,18 +15,21 @@
  */
 package com.flow.platform.api.domain;
 
+import com.google.gson.annotations.Expose;
+
 /**
  * @author lhl
  */
 public class AndroidCredential extends Credential {
 
-    protected String[] fileNames;
+    @Expose
+    protected CredentialFile[] fileNames;
 
-    public String[] getFileNames() {
+    public CredentialFile[] getFileNames() {
         return fileNames;
     }
 
-    public void setFileNames(String[] fileNames) {
+    public void setFileNames(CredentialFile[] fileNames) {
         this.fileNames = fileNames;
     }
 }

@@ -114,9 +114,6 @@ public class CredentialController {
                 if (length == -1) {
                     throw new IllegalArgumentException("Please upload allowed file format");
                 }
-                if (file.getSize() > getAllowSize()) {
-                    throw new IllegalArgumentException("Please upload allowed file size");
-                }
                 String fileName = getFileNameNew() + "_" + file.getOriginalFilename();
                 file.transferTo(Paths.get(workspace.toString(), "uploads/", fileName).toFile());
                 return Paths.get(workspace.toString()).toString() + "/uploads/" + fileName;
