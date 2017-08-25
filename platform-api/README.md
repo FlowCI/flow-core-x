@@ -93,6 +93,13 @@
       Route: /flows/{flowname}/yml/load
   ```
 
+### GET Stop to load flow yml content from repo
+  ``` 
+      Method: GET
+      Route: /flows/{flowname}/yml/stop
+  ```
+
+
 ### POST Delete flow by name
   ```
       Method: POST
@@ -339,7 +346,7 @@
 
 **FLOW_STATUS**: READY | PENDING
 
-**FLOW_YML_STATUS**: NOT_FOUND | GIT_CONNECTING | GIT_CONNECTED | GIT_LOADING | GIT_LOADED | FOUND | ERROR
+**FLOW_YML_STATUS**: NOT_FOUND | GIT_CONNECTING | GIT_LOADING | GIT_LOADED | FOUND | ERROR
 
 **FLOW_YML_ERROR_MSG**: error message if FLOW_YML_STATUS = ERROR
 
