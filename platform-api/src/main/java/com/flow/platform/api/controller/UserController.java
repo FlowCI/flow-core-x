@@ -23,21 +23,123 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    /**
+     * @api {Post} /login User login
+     * @apiName UserLogin
+     * @apiGroup User
+     * @apiDescription Login by request information
+     *
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         "emailOrUsername" : "admin",
+     *         "password" : "admin"
+     *     }
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBmaXIuaW0iLCJleHAiOjE1MDM3MTk0NjF9.Lv3vSvQTv_qgpuFD8e59t60YbAWafZO6W5cjYMx5lcw
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400 Bad Request
+     *     {
+     *         "message": "Illegal login request parameter: username format false"
+     *     }
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 500 Internal Server Error
+     *     {
+     *         "message": "JSON parse error: java.io.EOFException: End of input at line 4 column 1 path $.password; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 4 column 1 path $.password"
+     *     }
+     */
     @PostMapping("/login")
     public String login(@RequestBody LoginForm loginForm) {
         return userService.login(loginForm);
     }
 
+    /**
+     * @api {Post} /register User register
+     * @apiName UserRegister
+     * @apiGroup User
+     * @apiDescription Register by request information
+     *
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         	"email" : "test1@fir.im",
+     *         	"username" : "test1",
+     *         	"password" : "test1",
+     *         	"roleId" : "developer"
+     *     }
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400 Bad Request
+     *     {
+     *         "message": "Illegal register request parameter: email already exist"
+     *     }
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 500 Internal Server Error
+     *     {
+     *         "message": "JSON parse error: java.io.EOFException: End of input at line 6 column 1 path $.roleId; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 6 column 1 path $.roleId"
+     *     }
+     */
     @PostMapping("/register")
     public void register(@RequestBody User user) {
         userService.register(user);
     }
 
+    /**
+     * @api {Post} /delete User delete
+     * @apiName UserDelete
+     * @apiGroup User
+     * @apiDescription Delete by request information
+     *
+     * @apiParamExample {json} Request-Example:
+     *     [
+     *         "test1@fir.im",
+     *         "test2@fir.im"
+     *     ]
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 500 Internal Server Error
+     *     {
+     *         "message": "JSON parse error: java.io.EOFException: End of input at line 4 column 1 path $[2]; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 4 column 1 path $[2]"
+     *     }
+     */
     @PostMapping("/delete")
     public void delete(@RequestBody List<String> emailList) {
         userService.delete(emailList);
     }
 
+    /**
+     * @api {Post} /role/switch User switch role
+     * @apiName UserSwitchRole
+     * @apiGroup User
+     * @apiDescription Switch role by request information
+     *
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         "emailList" : [
+     *             "test1@fir.im",
+     *             "test2@fir.im"
+     *             ],
+     *         "switchTo" : "developer"
+     *     }
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 500 Internal Server Error
+     *     {
+     *         "message": "JSON parse error: java.io.EOFException: End of input at line 7 column 1 path $.switchTo; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 7 column 1 path $.switchTo"
+     *     }
+     */
     @PostMapping("/role/switch")
     public void switchRole(@RequestBody SwitchRole switchRole) {
         List<String> emailList = switchRole.getUsers();
