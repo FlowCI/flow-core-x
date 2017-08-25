@@ -23,6 +23,7 @@ import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
+import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
@@ -85,7 +86,7 @@ public class AppConfig extends AppConfigBase {
 
     @Bean
     protected ThreadPoolTaskExecutor taskExecutor() {
-        return super.taskExecutor(ASYNC_POOL_SIZE, THREAD_NAME_PREFIX);
+        return ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
     }
 
     /**

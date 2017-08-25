@@ -13,49 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Flow;
+package com.flow.platform.api.service.node;
+
 import com.flow.platform.api.domain.Node;
-import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.YmlStorage;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public interface NodeService {
-
-    /**
-     * Create or update tree from yml config file content
-     * and persistent flow node and yml content
-     *
-     * It will set two env in the flow
-     *
-     * - FLOW_STATUS = READY
-     * - FLOW_YML_STATUS = FOUND or ERROR
-     *
-     * @param path any path
-     * @param yml raw yml
-     * @return root node
-     */
-    Node createOrUpdate(String path, String yml);
-
-    /**
-     * Find node by node path from yml
-     *
-     * @return node from path or null if not found
-     */
-    Node find(String path);
-
-    /**
-     * Delete root node
-     *
-     * @param path any path, will find root path
-     */
-    Node delete(String path);
+public interface YmlService {
 
     /**
      * Verify yml format
@@ -79,40 +47,22 @@ public interface NodeService {
      */
     String getYmlContent(String path);
 
+
     /**
      * Load yml content from git repo in async and create tree from yml,
      * Then call "getYmlContent" to get yml
      *
      * @param path any node path
      * @param callback method on yml loaded
+     * @return flow node instance
      */
-    void loadYmlContent(String path, Consumer<YmlStorage> callback);
+    Node loadYmlContent(String path, Consumer<YmlStorage> callback);
 
     /**
-     * To check flow name is existed
-     */
-    boolean exist(String path);
-
-    /**
-     * Create flow without any children
+     * Stop yml content loading thread
      *
-     * - FLOW_STATUS will be set to PENDING
-     * - FLOW_GIT_WEBHOOK will be created in env
+     * @param path
      */
-    Flow createEmptyFlow(String flowName);
+    void stopLoadYmlContent(String path);
 
-    /**
-     * Merge new env to flow node evn and sync to yml
-     */
-    Flow setFlowEnv(String path, Map<String, String> envs);
-
-    /**
-     * list current flows with path, name, created at and updated at
-     */
-    List<Flow> listFlows();
-
-    /**
-     * List webhooks for all flow
-     */
-    List<Webhook> listWebhooks();
 }

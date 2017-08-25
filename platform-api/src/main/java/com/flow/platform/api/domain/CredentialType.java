@@ -20,12 +20,13 @@ package com.flow.platform.api.domain;
  */
 public enum CredentialType {
     RSAkEYS("RSAKEYS", SSHKey.class),
-    USERNAME("USERNAME", CredentialUserName.class);
+    USERNAME("USERNAME", CredentialUserName.class),
+    IOS("IOS", IosCredential.class),
+    ANDROID("ANDROID", AndroidCredential.class);
 
     private Class<?> clazz;
 
     private String name;
-
 
     CredentialType(String name, Class<?> clazz) {
         this.name = name;

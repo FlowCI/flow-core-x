@@ -32,7 +32,7 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.service.JobNodeResultService;
 import com.flow.platform.api.service.JobService;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -133,7 +133,7 @@ public abstract class TestBase {
 
     public void setFlowToReady(Node flowNode) {
         Map<String, String> envs = new HashMap<>();
-        envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.Value.FLOW_STATUS_READY.value());
+        envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.StatusValue.READY.value());
         nodeService.setFlowEnv(flowNode.getPath(), envs);
     }
 

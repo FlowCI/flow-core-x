@@ -19,13 +19,12 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.Flow;
 import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.service.NodeService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,6 +39,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "/flows")
 public class FlowController extends NodeController {
+
+    @Autowired
+    private YmlService ymlService;
 
     @GetMapping
     public List<Flow> index() {
@@ -86,21 +88,26 @@ public class FlowController extends NodeController {
     @GetMapping("/{flowName}/yml")
     public String getRawYml(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
-        return nodeService.getYmlContent(PathUtil.build(flowName));
+        return ymlService.getYmlContent(PathUtil.build(flowName));
     }
 
     @GetMapping("/{flowName}/yml/load")
     public Node loadRawYmlFromGit(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
         String path = PathUtil.build(flowName);
-        nodeService.loadYmlContent(path, null);
-        return nodeService.find(path);
+        return ymlService.loadYmlContent(path, null);
+    }
+
+    @GetMapping("/{flowName}/yml/stop")
+    public void stopLoadYml(@PathVariable String flowName) {
+        PathUtil.validateName(flowName);
+        ymlService.stopLoadYmlContent(PathUtil.build(flowName));
     }
 
     @PostMapping("/{flowName}/yml/verify")
     public void ymlVerification(@PathVariable String flowName, @RequestBody String yml) {
         PathUtil.validateName(flowName);
-        nodeService.verifyYml(PathUtil.build(flowName), yml);
+        ymlService.verifyYml(PathUtil.build(flowName), yml);
     }
 
     @PostMapping("/{flowName}/yml/create")

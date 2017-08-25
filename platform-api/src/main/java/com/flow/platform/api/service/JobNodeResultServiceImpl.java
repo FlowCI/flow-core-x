@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.Node;
 import com.flow.platform.api.domain.NodeResult;
 import com.flow.platform.api.domain.NodeResultKey;
 import com.flow.platform.api.domain.NodeTag;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import java.math.BigInteger;

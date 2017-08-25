@@ -15,6 +15,9 @@
  */
 package com.flow.platform.api.service;
 
+import static com.flow.platform.api.config.AppConfig.ALLOW_SIZE;
+import static com.flow.platform.api.config.AppConfig.ALLOW_SUFFIX;
+
 import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.domain.Credential;
 import com.flow.platform.api.domain.CredentialStorage;
@@ -118,6 +121,14 @@ public class CredentialServiceImpl implements CredentialService {
             return null;
         }
         return keys;
+    }
+
+    public long getAllowSize(){
+        return ALLOW_SIZE;
+    }
+
+    public String allowSuffix(){
+        return ALLOW_SUFFIX;
     }
 
     private CredentialStorage findCredentialByName(String name) {

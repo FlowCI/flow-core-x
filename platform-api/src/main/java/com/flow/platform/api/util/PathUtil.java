@@ -38,6 +38,13 @@ public class PathUtil {
     }
 
     /**
+     * Check parameter is path or name
+     */
+    public static boolean isRootName(String pathOrName) {
+        return !pathOrName.contains(PATH_SEPARATOR);
+    }
+
+    /**
      * Build flow node path
      *
      * @param nameOrPaths node name or path, can be null or empty string

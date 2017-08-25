@@ -2,6 +2,7 @@
 *.iml
 .DS_Store
 
+apidoc/
 logs/
 target/
 pom.xml.tag

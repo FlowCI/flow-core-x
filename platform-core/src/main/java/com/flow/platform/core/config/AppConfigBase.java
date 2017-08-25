@@ -68,13 +68,4 @@ public abstract class AppConfigBase {
 
     abstract protected String getVersion();
 
-    protected ThreadPoolTaskExecutor taskExecutor(int asyncPoolSize, String threadNamePrefix) {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(asyncPoolSize / 3);
-        taskExecutor.setMaxPoolSize(asyncPoolSize);
-        taskExecutor.setQueueCapacity(100);
-        taskExecutor.setThreadNamePrefix(threadNamePrefix);
-        taskExecutor.setDaemon(true);
-        return taskExecutor;
-    }
 }

@@ -25,6 +25,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 
 /**
  * @author lhl
@@ -123,6 +124,26 @@ public class CredentialServiceTest extends TestBase {
         credentialStorageDao.save(credentialStorage);
 
         Assert.assertEquals(1, credentialService.listTypes("USERNAME").size());
+    }
+
+    @Test
+    public void should_limit_file_size(){
+        long allowSize = credentialService.getAllowSize();
+        byte[] mockData = "test".getBytes();
+        String originalFilename = "1.out.zip";
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", originalFilename, "", mockData);
+        Assert.assertEquals(true, allowSize > mockMultipartFile.getSize());
+    }
+
+    @Test
+    public void should_limit_file_suffix(){
+        String allowSuffix = credentialService.allowSuffix();
+        byte[] mockData = "test".getBytes();
+        String originalFilename = "1.zip";
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", originalFilename, "", mockData);
+        String suffix = mockMultipartFile.getOriginalFilename().substring(mockMultipartFile.getOriginalFilename().lastIndexOf(".") + 1);
+        int length = allowSuffix.indexOf(suffix);
+        Assert.assertEquals(true, length == -1);
     }
 
 }

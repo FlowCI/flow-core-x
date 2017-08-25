@@ -22,6 +22,7 @@ import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
+import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
@@ -60,9 +61,14 @@ public class AppConfig extends AppConfigBase {
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
-    private final static int ASYNC_POOL_SIZE = 100;
+    private final static int ASYNC_POOL_SIZE = 50;
 
     private final static String THREAD_NAME_PREFIX = "async-task-";
+
+    public final static String ALLOW_SUFFIX = "p12,mobileprovision,jks,pem";
+
+    public final static long ALLOW_SIZE = 2 * 1024 * 1024;
+
 
     @Value("${api.workspace}")
     private String workspace;
@@ -80,7 +86,7 @@ public class AppConfig extends AppConfigBase {
 
     @Bean
     public ThreadPoolTaskExecutor taskExecutor() {
-        return super.taskExecutor(ASYNC_POOL_SIZE, THREAD_NAME_PREFIX);
+        return ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
     }
 
     @Bean
