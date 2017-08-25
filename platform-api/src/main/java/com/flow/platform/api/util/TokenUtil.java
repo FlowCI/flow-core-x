@@ -54,7 +54,7 @@ public class TokenUtil {
             email = jws.getBody().getSubject();
             return email;
         } catch (ExpiredJwtException e) {
-            //expired token
+            // expired token
             throw new IllegalParameterException(errMsg + "expired token");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);

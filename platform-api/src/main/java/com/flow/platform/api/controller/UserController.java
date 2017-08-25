@@ -38,7 +38,7 @@ public class UserController {
         userService.delete(emailList);
     }
 
-    @PostMapping("/switch_role")
+    @PostMapping("/role/switch")
     public void switchRole(@RequestBody SwitchRoleRequest switchRoleRequest) {
         List<String> emailList = switchRoleRequest.getUsers();
         String roleId = switchRoleRequest.getSwitchTo();

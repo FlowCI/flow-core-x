@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
     public void register(User user) {
         String errMsg = "Illegal register request parameter: ";
 
-        //Check format
+        // Check format
         if (!checkEmailFormatIsPass(user.getEmail())) {
             throw new IllegalParameterException(errMsg + "email format false");
         }
@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalParameterException(errMsg + "password format false");
         }
 
-        //Validate database
+        // Validate database
         if (emailIsExist(user.getEmail())) {
             throw new IllegalParameterException(errMsg + "email already exist");
         }
@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalParameterException(errMsg + "username already exist");
         }
 
-        //Insert the user info into the database
+        // Insert the user info into the database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
         user.setPassword(passwordForMD5);
         userDao.save(user);
@@ -87,12 +87,12 @@ public class UserServiceImpl implements UserService {
     private String loginByEmail(String email, String password) {
         String errMsg = "Illegal login request parameter: ";
 
-        //Check format
+        // Check format
         if (!checkPasswordFormatIsPass(password)) {
             throw new IllegalParameterException(errMsg + "password format false");
         }
 
-        //Validate database
+        // Validate database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
         if (!emailIsExist(email)) {
             throw new IllegalParameterException(errMsg + "email is not exist");
@@ -101,12 +101,12 @@ public class UserServiceImpl implements UserService {
             throw new IllegalParameterException(errMsg + "password fault");
         }
 
-        //Login success, return token
+        // Login success, return token
         return TokenUtil.createToken(email, expirationDuration);
     }
 
     /**
-     * ogin by username
+     * Login by username
      *
      * @param username
      * @param password
@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
     private String loginByUsername(String username, String password) {
         String errMsg = "Illegal login request parameter: ";
 
-        //Check format
+        // Check format
         if (!checkUsernameFormatIsPass(username)) {
             throw new IllegalParameterException(errMsg + "username format false");
         }
@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalParameterException(errMsg + "password format false");
         }
 
-        //Validate database
+        // Validate database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
         if (!usernameIsExist(username)) {
             throw new IllegalParameterException(errMsg + "username is not exist");
@@ -132,7 +132,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalParameterException(errMsg + "password fault");
         }
 
-        //Login success, return token
+        // Login success, return token
         String email = userDao.getEmailBy("username", username);
         return TokenUtil.createToken(email, expirationDuration);
     }

@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.ZonedDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -53,7 +54,6 @@ public class UserServiceTest extends TestBase {
 
         loginForm.setEmailOrUsername("liangpengyv");
         Assert.assertTrue(msg.length() > 20);
-
     }
 
     @Test
@@ -81,9 +81,18 @@ public class UserServiceTest extends TestBase {
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
         Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
 
+        ZonedDateTime beforeUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
         List<String> emailList = new LinkedList<>();
         emailList.add("liangpengyv@fir.im");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         userService.switchRole(emailList, "admin");
+
+        ZonedDateTime afterUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
         Assert.assertEquals("admin", userDao.get("liangpengyv@fir.im").getRoleId());
+        Assert.assertTrue(beforeUpdateTime.isBefore(afterUpdateTime));
     }
 }

@@ -1,5 +1,6 @@
 package com.flow.platform.api.test.dao;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.UserDao;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.test.TestBase;
@@ -9,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,41 +29,40 @@ public class UserDaoTest extends TestBase {
         user = new User();
         user.setEmail("liangpengyv@fir.im");
         user.setUsername("liangpengyv");
-        user.setPassword(StringEncodeUtil.encodeByMD5("liangpengyv", "UTF-8"));
+        user.setPassword(StringEncodeUtil.encodeByMD5("liangpengyv", AppConfig.DEFAULT_CHARSET.name()));
         user.setRoleId("developer");
         userDao.save(user);
     }
 
     @Test
-    public void should_save_and_get_by_email() {
+    public void should_save_success() {
         // check whether can find user by email
-        Assert.assertNotNull(userDao.get(user.getEmail()));
-        Assert.assertEquals(user.getEmail(), userDao.get(user.getEmail()).getEmail());
+        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
+        Assert.assertEquals("liangpengyv@fir.im", userDao.get("liangpengyv@fir.im").getEmail());
     }
 
     @Test
-    public void should_return_null_if_email_not_exist() {
-        Assert.assertNull(userDao.get("xxx.com"));
+    public void should_return_false_if_email_not_exist() {
+        Assert.assertTrue(userDao.emailIsExist("liangpengyv@fir.im"));
+        Assert.assertFalse(userDao.emailIsExist("xxx@xxx.com"));
     }
 
     @Test
-    public void should_email_is_exist_success() {
-        Assert.assertEquals(true, userDao.emailIsExist(user.getEmail()));
+    public void should_return_false_if_username_not_exist() {
+        Assert.assertTrue((userDao.usernameIsExist("liangpengyv")));
+        Assert.assertFalse(userDao.usernameIsExist("xxxxxx"));
     }
 
     @Test
-    public void should_username_is_exist_success() {
-        Assert.assertEquals(true, userDao.usernameIsExist(user.getUsername()));
+    public void should_return_false_if_password_of_email_is_not_true() {
+        Assert.assertTrue(userDao.passwordOfEmailIsTrue("liangpengyv@fir.im", StringEncodeUtil.encodeByMD5("liangpengyv", AppConfig.DEFAULT_CHARSET.name())));
+        Assert.assertFalse(userDao.passwordOfEmailIsTrue("liangpengyv@fir.im", StringEncodeUtil.encodeByMD5("xxxxx", AppConfig.DEFAULT_CHARSET.name())));
     }
 
     @Test
-    public void should_password_of_email_is_true_success() {
-        Assert.assertEquals(true, userDao.passwordOfEmailIsTrue(user.getEmail(), user.getPassword()));
-    }
-
-    @Test
-    public void should_password_of_username_is_true_success() {
-        Assert.assertEquals(true, userDao.passwordOfUsernameIsTrue(user.getUsername(), user.getPassword()));
+    public void should_return_false_if_password_of_username_is_not_true() {
+        Assert.assertTrue(userDao.passwordOfUsernameIsTrue("liangpengyv", StringEncodeUtil.encodeByMD5("liangpengyv", AppConfig.DEFAULT_CHARSET.name())));
+        Assert.assertFalse(userDao.passwordOfUsernameIsTrue("liangpengyv", StringEncodeUtil.encodeByMD5("xxxxx", AppConfig.DEFAULT_CHARSET.name())));
     }
 
     @Test
@@ -83,9 +84,18 @@ public class UserDaoTest extends TestBase {
     public void should_switch_role_success() {
         Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
 
+        ZonedDateTime beforeUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
         List<String> emailList = new ArrayList<>();
         emailList.add("liangpengyv@fir.im");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         userDao.switchUserRoleIdTo(emailList, "admin");
+
+        ZonedDateTime afterUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
         Assert.assertEquals("admin", userDao.get("liangpengyv@fir.im").getRoleId());
+        Assert.assertTrue(beforeUpdateTime.isBefore(afterUpdateTime));
     }
 }
