@@ -13,33 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.node;
+package com.flow.platform.api.service.job;
+
+import com.flow.platform.api.domain.node.Node;
+import java.math.BigInteger;
 
 /**
  * @author lhl
  */
-public enum NodeTag {
+public interface JobNodeService {
 
-    FLOW("FLOW", 0),
-
-    STEP("STEP", 1);
-
-    private String name;
-
-    private int index;
-
-    NodeTag(String name, int index) {
-        this.name = name;
-        this.index = index;
-    }
-
-    public String getName() {
-        return name;
-    }
+    /**
+     * save yml to db
+     */
+    void save(BigInteger jobId, String yml);
 
 
-    public int getIndex() {
-        return index;
-    }
+    /**
+     * get node from node and jobId
+     */
+    Node get(BigInteger jobId, String path);
 
 }

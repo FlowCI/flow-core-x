@@ -19,7 +19,7 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.NodeStatus;
+import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Jsonable;
@@ -53,8 +53,7 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public List<AgentWithFlow> list() {
-        StringBuilder stringBuilder = new StringBuilder(agentUrl);
-        String res = HttpUtil.get(stringBuilder.toString());
+        String res = HttpUtil.get(agentUrl);
         if (res == null) {
             throw new RuntimeException("Get Agent List error");
         }
@@ -71,7 +70,7 @@ public class AgentServiceImpl implements AgentService {
         if (!sessionIds.isEmpty()) {
             jobs = jobDao.list(sessionIds, NodeStatus.RUNNING);
         }
-        LOGGER.trace(String.format("Job lenth %s", jobs.size()));
+        LOGGER.trace(String.format("Job length %s", jobs.size()));
 
         for (Agent agent : agents) {
             Job job = matchJobBySessionId(jobs, agent.getSessionId());
@@ -93,13 +92,11 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Boolean shutdown(String zone, String name, String password) {
-        String url = new StringBuilder(shutdownAgentUrl).append("?zone=" + zone).append("&name=" + name)
-            .append("&password=" + password).toString();
+        String url = shutdownAgentUrl + "?zone=" + zone + "&name=" + name + "&password=" + password;
 
         try {
             String body = HttpUtil.post(url, "");
-            Boolean res = Jsonable.GSON_CONFIG.fromJson(body, Boolean.class);
-            return res;
+            return Jsonable.GSON_CONFIG.fromJson(body, Boolean.class);
         } catch (Throwable throwable) {
             LOGGER.traceMarker("shutdown", String.format("exception - %s", throwable));
             return false;

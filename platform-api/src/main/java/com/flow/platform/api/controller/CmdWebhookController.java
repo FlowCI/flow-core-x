@@ -17,7 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.CmdQueueItem;
-import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.core.exception.IllegalParameterException;

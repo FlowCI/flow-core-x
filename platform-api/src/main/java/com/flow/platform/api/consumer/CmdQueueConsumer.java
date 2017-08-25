@@ -17,7 +17,7 @@
 package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.domain.CmdQueueItem;
-import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.core.consumer.QueueConsumerBase;
 import com.flow.platform.util.Logger;
 import java.util.concurrent.BlockingQueue;

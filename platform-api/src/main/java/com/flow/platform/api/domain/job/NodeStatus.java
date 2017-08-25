@@ -13,25 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.node.Node;
-import java.math.BigInteger;
+package com.flow.platform.api.domain.job;
 
 /**
- * @author lhl
+ * @author yh@firim
  */
-public interface JobNodeService {
+public enum NodeStatus {
 
-    /**
-     * save yml to db
-     */
-    void save(BigInteger jobId, String yml);
+    PENDING("PENDING", 0),
 
+    //enter queue
+    ENQUEUE("ENQUEUE", 1),
 
-    /**
-     * get node from node and jobId
-     */
-    Node get(BigInteger jobId, String path);
+    RUNNING("RUNNING", 2),
 
+    SUCCESS("SUCCESS", 3),
+
+    STOPPED("STOPPED", 3),
+
+    FAILURE("FAILURE", 3),
+
+    TIMEOUT("TIMEOUT", 3);
+
+    private String name;
+
+    public Integer getLevel() {
+        return level;
+    }
+
+    private Integer level;
+
+    NodeStatus(String name, Integer level) {
+        this.name = name;
+        this.level = level;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

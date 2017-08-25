@@ -21,8 +21,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
-import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
@@ -33,8 +31,8 @@ import com.flow.platform.api.dao.YmlStorageDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.service.JobNodeResultService;
-import com.flow.platform.api.service.JobService;
+import com.flow.platform.api.service.job.JobNodeResultService;
+import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
@@ -62,8 +60,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 
 /**

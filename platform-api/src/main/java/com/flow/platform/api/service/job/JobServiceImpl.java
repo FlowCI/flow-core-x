@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
+package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.NodeResultDao;
@@ -21,8 +21,8 @@ import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.node.NodeStatus;
-import com.flow.platform.api.domain.node.NodeTag;
+import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.service.node.NodeService;

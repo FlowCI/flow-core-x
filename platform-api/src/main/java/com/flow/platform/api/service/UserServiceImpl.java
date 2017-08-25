@@ -79,10 +79,6 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Login by email
-     *
-     * @param email
-     * @param password
-     * @return
      */
     private String loginByEmail(String email, String password) {
         String errMsg = "Illegal login request parameter: ";
@@ -107,10 +103,6 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Login by username
-     *
-     * @param username
-     * @param password
-     * @return
      */
     private String loginByUsername(String username, String password) {
         String errMsg = "Illegal login request parameter: ";
@@ -139,9 +131,6 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Check the format of the email
-     *
-     * @param email
-     * @return
      */
     private Boolean checkEmailFormatIsPass(String email) {
         if (email == null || email.trim().equals("")) {
@@ -155,9 +144,6 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Check the format of the username
-     *
-     * @param username
-     * @return
      */
     private Boolean checkUsernameFormatIsPass(String username) {
         if (username == null || username.trim().equals("")) {
@@ -171,9 +157,6 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Check the format of the password
-     *
-     * @param password
-     * @return
      */
     private Boolean checkPasswordFormatIsPass(String password) {
         if (password == null || password.trim().equals("")) {
@@ -187,9 +170,6 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Verify email is exist
-     *
-     * @param email
-     * @return
      */
     private Boolean emailIsExist(String email) {
         return userDao.emailIsExist(email);
@@ -197,9 +177,6 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Verify username is exist
-     *
-     * @param username
-     * @return
      */
     private Boolean usernameIsExist(String username) {
         return userDao.usernameIsExist(username);
@@ -207,10 +184,6 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Verify password of email
-     *
-     * @param email
-     * @param password
-     * @return
      */
     private Boolean passwordOfEmailIsTrue(String email, String password) {
         return userDao.passwordOfEmailIsTrue(email, password);
@@ -218,10 +191,6 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Verify password of username
-     *
-     * @param username
-     * @param password
-     * @return
      */
     private Boolean passwordOfUsernameIsTrue(String username, String password) {
         return userDao.passwordOfUsernameIsTrue(username, password);

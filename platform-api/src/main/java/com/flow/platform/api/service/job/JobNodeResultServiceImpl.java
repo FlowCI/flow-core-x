@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
+package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.node.NodeResultKey;
-import com.flow.platform.api.domain.node.NodeTag;
+import com.flow.platform.api.domain.job.NodeResultKey;
+import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalStatusException;

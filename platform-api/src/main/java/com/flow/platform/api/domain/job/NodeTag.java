@@ -13,43 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.flow.platform.api.domain.node;
+package com.flow.platform.api.domain.job;
 
 /**
- * @author yh@firim
+ * @author lhl
  */
-public enum NodeStatus {
+public enum NodeTag {
 
-    PENDING("PENDING", 0),
+    FLOW("FLOW", 0),
 
-    //enter queue
-    ENQUEUE("ENQUEUE", 1),
-
-    RUNNING("RUNNING", 2),
-
-    SUCCESS("SUCCESS", 3),
-
-    STOPPED("STOPPED", 3),
-
-    FAILURE("FAILURE", 3),
-
-    TIMEOUT("TIMEOUT", 3);
+    STEP("STEP", 1);
 
     private String name;
 
-    public Integer getLevel() {
-        return level;
-    }
+    private int index;
 
-    private Integer level;
-
-    NodeStatus(String name, Integer level) {
+    NodeTag(String name, int index) {
         this.name = name;
-        this.level = level;
+        this.index = index;
     }
 
     public String getName() {
         return name;
     }
+
+
+    public int getIndex() {
+        return index;
+    }
+
 }

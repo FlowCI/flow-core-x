@@ -49,7 +49,7 @@ public class CredentialServiceImpl implements CredentialService {
         CredentialStorage credentialStorage = new CredentialStorage(credential, ZonedDateTime.now(),
             ZonedDateTime.now());
         if(findCredentialByName(credential.getName()) != null){
-            throw new IllegalParameterException(String.format("name is already present"));
+            throw new IllegalParameterException("name is already present");
         } else {
             credentialStorageDao.save(credentialStorage);
             return credential;

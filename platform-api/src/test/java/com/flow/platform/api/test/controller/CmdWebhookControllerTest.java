@@ -24,7 +24,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.node.NodeStatus;
+import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.UrlUtil;
