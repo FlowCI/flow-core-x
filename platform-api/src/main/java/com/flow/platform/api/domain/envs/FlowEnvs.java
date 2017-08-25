@@ -63,6 +63,8 @@ public enum FlowEnvs implements EnvKey {
 
         NOT_FOUND("NOT_FOUND"),
 
+        GIT_CONNECTING("GIT_CONNECTING"),
+
         GIT_LOADING("GIT_LOADING"),
 
         GIT_LOADED("GIT_LOADED"),

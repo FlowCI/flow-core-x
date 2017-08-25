@@ -98,6 +98,12 @@ public class FlowController extends NodeController {
         return ymlService.loadYmlContent(path, null);
     }
 
+    @GetMapping("/{flowName}/yml/stop")
+    public void stopLoadYml(@PathVariable String flowName) {
+        PathUtil.validateName(flowName);
+        ymlService.stopLoadYmlContent(PathUtil.build(flowName));
+    }
+
     @PostMapping("/{flowName}/yml/verify")
     public void ymlVerification(@PathVariable String flowName, @RequestBody String yml) {
         PathUtil.validateName(flowName);

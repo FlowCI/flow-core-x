@@ -19,7 +19,12 @@ import com.flow.platform.api.domain.Credential;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +34,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author lhl
@@ -42,6 +48,9 @@ public class CredentialController {
 
     @Autowired
     private CredentialService credentialService;
+
+    @Autowired
+    private Path workspace;
 
     @GetMapping
     public List<Credential> index() {
@@ -81,5 +90,51 @@ public class CredentialController {
     @GetMapping(path = "{credentialType}/list")
     public Collection<Credential> credentialTypeList(@PathVariable String credentialType) {
         return credentialService.listTypes(credentialType);
+    }
+
+    @PostMapping("/fileUpload")
+    public List<String> filesUpload(MultipartFile[] files) {
+        List<String> list = new ArrayList<>();
+        if (files != null && files.length > 0) {
+            for (int i = 0; i < files.length; i++) {
+                MultipartFile file = files[i];
+                list.add(saveFile(file));
+            }
+            return list;
+        }
+        LOGGER.trace("upload files failure");
+        return null;
+    }
+
+    private String saveFile(MultipartFile file) {
+        if (!file.isEmpty()) {
+            try {
+                String suffix = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+                int length = getAllowSuffix().indexOf(suffix);
+                if (length == -1) {
+                    throw new IllegalArgumentException("Please upload allowed file format");
+                }
+                String fileName = getFileNameNew() + "_" + file.getOriginalFilename();
+                file.transferTo(Paths.get(workspace.toString(), "uploads/", fileName).toFile());
+                return Paths.get(workspace.toString()).toString() + "/uploads/" + fileName;
+            } catch (Exception e) {
+                LOGGER.trace("upload files failure");
+            }
+        }
+
+        return "save file failure";
+    }
+
+    private String getFileNameNew() {
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        return fmt.format(new Date());
+    }
+
+    private long getAllowSize() {
+        return credentialService.getAllowSize();
+    }
+
+    private String getAllowSuffix() {
+        return credentialService.allowSuffix();
     }
 }
