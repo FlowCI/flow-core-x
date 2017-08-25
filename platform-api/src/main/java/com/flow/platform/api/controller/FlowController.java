@@ -197,8 +197,6 @@ public class FlowController extends NodeController {
      * response empty yml content if it is loading from git repo
      *
      * @apiSuccessExample {yaml} Success-Response
-     *  Content-Type: application/vnd.yaml
-     *
      *  - flows
      *      - name: xx
      *      - steps:
@@ -207,7 +205,7 @@ public class FlowController extends NodeController {
      * @apiSuccessExample {yaml} GitLoading-Response
      *  Empty yml content
      */
-    @GetMapping(value = "/{flowName}/yml", produces = "application/vnd.yaml;charset=UTF-8")
+    @GetMapping(value = "/{flowName}/yml")
     public String getRawYml(@PathVariable String flowName) {
         PathUtil.validateName(flowName);
         return ymlService.getYmlContent(PathUtil.build(flowName));
