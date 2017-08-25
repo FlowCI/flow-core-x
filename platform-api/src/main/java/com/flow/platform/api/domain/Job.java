@@ -37,9 +37,6 @@ public class Job extends EnvObject {
 
     private String cmdId;
 
-//    @Expose
-    private NodeStatus status;
-
     @Expose
     private String nodeName;
 
@@ -54,10 +51,6 @@ public class Job extends EnvObject {
 
     @Expose
     private Integer number;
-
-    @Expose
-    @JsonAdapter(EnvAdaptor.class)
-    private Map<String, String> outputs = new HashMap<>();
 
     @Expose
     private NodeResult result;
@@ -125,14 +118,6 @@ public class Job extends EnvObject {
         this.nodePath = nodePath;
     }
 
-    public NodeStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(NodeStatus status) {
-        this.status = status;
-    }
-
     public String getCmdId() {
         return cmdId;
     }
@@ -155,14 +140,6 @@ public class Job extends EnvObject {
 
     public void setBranch(String branch) {
         this.branch = branch;
-    }
-
-    public Map<String, String> getOutputs() {
-        return outputs;
-    }
-
-    public void setOutputs(Map<String, String> outputs) {
-        this.outputs = outputs;
     }
 
     @Override
@@ -191,7 +168,6 @@ public class Job extends EnvObject {
             ", nodePath='" + nodePath + '\'' +
             ", sessionId='" + sessionId + '\'' +
             ", cmdId='" + cmdId + '\'' +
-            ", status=" + status +
             '}';
     }
 }

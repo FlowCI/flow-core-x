@@ -60,6 +60,10 @@ public class JobNodeResultServiceImpl implements JobNodeResultService {
             nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
             nodeResult.setOutputs(node.getEnvs());
             nodeResultDao.save(nodeResult);
+
+            if (node.equals(root)) {
+                job.setResult(nodeResult);
+            }
         });
     }
 

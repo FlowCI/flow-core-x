@@ -126,10 +126,10 @@ public class JobServiceImpl implements JobService {
 
         // create job
         Job job = new Job(CommonUtil.randomId());
-        job.setStatus(NodeStatus.PENDING);
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
+        job.setEnvs(root.getEnvs());
 
         //save job
         jobDao.save(job);
@@ -263,8 +263,6 @@ public class JobServiceImpl implements JobService {
             throw new IllegalStatusException("Unable to create session since cmd return null");
         }
 
-        //enter queue
-        job.setStatus(NodeStatus.ENQUEUE);
         job.setCmdId(cmd.getId());
         jobDao.update(job);
     }

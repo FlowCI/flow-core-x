@@ -49,7 +49,6 @@ public class JobControllerTest extends TestBase {
 
         Map<String, String> map = new HashMap<>();
         map.put("FLOW_GIT_BRANCH", "a");
-        job.setOutputs(map);
 
         jobDao.update(job);
 
@@ -83,7 +82,6 @@ public class JobControllerTest extends TestBase {
 
         Map<String, String> map = new HashMap<>();
         map.put("FLOW_GIT_BRANCH", "a");
-        job.setOutputs(map);
 
         jobDao.update(job);
 

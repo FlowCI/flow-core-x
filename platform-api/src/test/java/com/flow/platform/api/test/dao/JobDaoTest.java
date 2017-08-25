@@ -44,7 +44,6 @@ public class JobDaoTest extends TestBase {
     @Test
     public void should_save_and_get_success() {
         Job job = new Job(CommonUtil.randomId());
-        job.setStatus(NodeStatus.SUCCESS);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
         jobDao.save(job);
@@ -57,7 +56,6 @@ public class JobDaoTest extends TestBase {
     @Test
     public void should_update_success() {
         Job job = new Job(CommonUtil.randomId());
-        job.setStatus(NodeStatus.SUCCESS);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
         jobDao.save(job);
@@ -74,7 +72,6 @@ public class JobDaoTest extends TestBase {
     @Test
     public void should_list_success() {
         Job job = new Job(CommonUtil.randomId());
-        job.setStatus(NodeStatus.SUCCESS);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
         jobDao.save(job);
@@ -84,7 +81,6 @@ public class JobDaoTest extends TestBase {
     @Test
     public void should_delete_success() {
         Job job = new Job(CommonUtil.randomId());
-        job.setStatus(NodeStatus.SUCCESS);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
         jobDao.save(job);
@@ -97,7 +93,6 @@ public class JobDaoTest extends TestBase {
     public void should_get_max_number_success(){
         Job job = new Job(CommonUtil.randomId());
         job.setNumber(1);
-        job.setStatus(NodeStatus.SUCCESS);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
         job.setNodeName("test");
