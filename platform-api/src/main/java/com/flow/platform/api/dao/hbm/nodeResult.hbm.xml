@@ -48,5 +48,6 @@
     <property name="updatedAt" type="java.time.ZonedDateTime" update="false">
       <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
     </property>
+
   </class>
 </hibernate-mapping>

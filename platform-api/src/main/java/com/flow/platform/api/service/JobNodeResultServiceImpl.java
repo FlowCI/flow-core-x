@@ -58,6 +58,7 @@ public class JobNodeResultServiceImpl implements JobNodeResultService {
             NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
             nodeResult.setName(node.getName());
             nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+            nodeResult.setOutputs(node.getEnvs());
             nodeResultDao.save(nodeResult);
         });
     }

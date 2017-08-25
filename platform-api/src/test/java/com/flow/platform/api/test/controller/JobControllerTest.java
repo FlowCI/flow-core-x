@@ -69,7 +69,6 @@ public class JobControllerTest extends TestBase {
         Assert.assertEquals(returnedJob.getId(), job.getId());
 
         // those fields cannot exported
-        Assert.assertNull(returnedJob.getExitCode());
         Assert.assertNull(returnedJob.getSessionId());
         Assert.assertNull(returnedJob.getCmdId());
     }
@@ -115,6 +114,6 @@ public class JobControllerTest extends TestBase {
             .andReturn();
         String res = result.getResponse().getContentAsString();
         Job job1 = Job.parse(res, Job.class);
-        Assert.assertEquals(NodeStatus.STOPPED, job1.getStatus());
+        Assert.assertEquals(NodeStatus.STOPPED, job1.getResult().getStatus());
     }
 }

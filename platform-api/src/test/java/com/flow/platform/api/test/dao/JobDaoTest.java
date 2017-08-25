@@ -45,11 +45,8 @@ public class JobDaoTest extends TestBase {
     public void should_save_and_get_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
 
         Job job1 = jobDao.get(job.getId());
@@ -61,11 +58,8 @@ public class JobDaoTest extends TestBase {
     public void should_update_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
 
         Job job1 = jobDao.get(job.getId());
@@ -81,11 +75,8 @@ public class JobDaoTest extends TestBase {
     public void should_list_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
         Assert.assertEquals(1, jobDao.list().size());
     }
@@ -94,11 +85,8 @@ public class JobDaoTest extends TestBase {
     public void should_delete_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
         jobDao.save(job);
         Assert.assertEquals(1, jobDao.list().size());
         jobDao.delete(job);
@@ -110,12 +98,9 @@ public class JobDaoTest extends TestBase {
         Job job = new Job(CommonUtil.randomId());
         job.setNumber(1);
         job.setStatus(NodeStatus.SUCCESS);
-        job.setExitCode(0);
         job.setCmdId("1111");
         job.setNodePath("/flow/test");
         job.setNodeName("test");
-        job.setStartedAt(ZonedDateTime.now());
-        job.setFinishedAt(ZonedDateTime.now());
 
         jobDao.save(job);
 
@@ -147,18 +132,13 @@ public class JobDaoTest extends TestBase {
         nodeResult.setNodeTag(NodeTag.FLOW);
         nodeResult.setNodeResultKey(new NodeResultKey(job.getId(), job.getNodePath()));
         nodeResultDao.save(nodeResult);
-
+        job = jobDao.get(job.getId());
         List<String> sessionIds = new ArrayList<>();
         sessionIds.add(job.getSessionId());
         List<Job> jobs = jobDao.list(sessionIds, NodeStatus.SUCCESS);
         Assert.assertEquals(1, jobs.size());
         Job job1 = jobs.get(0);
-        Assert.assertEquals(nodeResult.getStatus(), job1.getStatus());
-        Assert.assertEquals(nodeResult.getOutputs(), job1.getOutputs());
-        Assert.assertEquals(nodeResult.getDuration(), job1.getDuration());
-        Assert.assertEquals(nodeResult.getExitCode(), job1.getExitCode());
-        Assert.assertNotNull(job1.getStartedAt());
-        Assert.assertNotNull(job1.getFinishedAt());
+        Assert.assertEquals(nodeResult.getStatus(), job1.getResult().getStatus());
         Assert.assertNotNull(job1.getCreatedAt());
         Assert.assertNotNull(job1.getUpdatedAt());
     }

@@ -17,14 +17,13 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.api.domain.adaptor.EnvAdaptor;
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.core.dao.adaptor.MapAdaptor;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.criteria.CriteriaBuilder.In;
 
 public class Job extends EnvObject {
 
@@ -32,35 +31,20 @@ public class Job extends EnvObject {
     private BigInteger id;
 
     @Expose
-    private Long duration = 0l;
-
-    @Expose
     private String nodePath;
-
-    private Integer exitCode;
 
     private String sessionId;
 
     private String cmdId;
 
-    @Expose
+//    @Expose
     private NodeStatus status;
-
-    @Expose
-    @JsonAdapter(EnvAdaptor.class)
-    private Map<String, String> outputs = new HashMap<>();
 
     @Expose
     private String nodeName;
 
     @Expose
     private String branch;
-
-    @Expose
-    private ZonedDateTime startedAt;
-
-    @Expose
-    private ZonedDateTime finishedAt;
 
     @Expose
     private ZonedDateTime createdAt;
@@ -71,28 +55,26 @@ public class Job extends EnvObject {
     @Expose
     private Integer number;
 
-    public Job(BigInteger id, Integer number, String nodeName, String nodePath, String sessionId,
-        ZonedDateTime startedAt, ZonedDateTime finishedAt, NodeStatus status, Integer exitCode,
-        Map<String, String> outputs, Long duration, String cmdId, ZonedDateTime createdAt, ZonedDateTime updatedAt) {
+    @Expose
+    @JsonAdapter(EnvAdaptor.class)
+    private Map<String, String> outputs = new HashMap<>();
 
-        this.id = id;
-        this.number = number;
-        this.nodeName = nodeName;
-        this.nodePath = nodePath;
-        this.sessionId = sessionId;
-        this.startedAt = startedAt;
-        this.finishedAt = finishedAt;
-        this.status = status;
-        this.exitCode = exitCode;
-        this.outputs = outputs;
-        this.duration = duration;
-        this.cmdId = cmdId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
+    @Expose
+    private NodeResult result;
 
     public Job(BigInteger id) {
         this.id = id;
+    }
+
+    public Job() {
+    }
+
+    public NodeResult getResult() {
+        return result;
+    }
+
+    public void setResult(NodeResult result) {
+        this.result = result;
     }
 
     public Integer getNumber() {
@@ -133,38 +115,6 @@ public class Job extends EnvObject {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public Long getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Long duration) {
-        this.duration = duration;
-    }
-
-    public ZonedDateTime getFinishedAt() {
-        return finishedAt;
-    }
-
-    public void setFinishedAt(ZonedDateTime finishedAt) {
-        this.finishedAt = finishedAt;
-    }
-
-    public ZonedDateTime getStartedAt() {
-        return startedAt;
-    }
-
-    public void setStartedAt(ZonedDateTime startedAt) {
-        this.startedAt = startedAt;
-    }
-
-    public Integer getExitCode() {
-        return exitCode;
-    }
-
-    public void setExitCode(Integer exitCode) {
-        this.exitCode = exitCode;
     }
 
     public String getNodePath() {
@@ -238,8 +188,6 @@ public class Job extends EnvObject {
     public String toString() {
         return "Job{" +
             "id='" + id + '\'' +
-            ", duration=" + duration +
-            ", exitCode=" + exitCode +
             ", nodePath='" + nodePath + '\'' +
             ", sessionId='" + sessionId + '\'' +
             ", cmdId='" + cmdId + '\'' +

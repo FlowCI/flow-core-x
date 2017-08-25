@@ -65,7 +65,17 @@ public class NodeResult extends Jsonable {
     @Expose
     private ZonedDateTime updatedAt;
 
+    private Job job;
+
     public NodeResult() {
+    }
+
+    public Job getJob() {
+        return job;
+    }
+
+    public void setJob(Job job) {
+        this.job = job;
     }
 
     public String getName() {

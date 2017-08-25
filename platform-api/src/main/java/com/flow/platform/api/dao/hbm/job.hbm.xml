@@ -28,7 +28,6 @@
 
   </class>
 
-
   <class name="JobYmlStorage" table="job_yml_storage">
     <id name="jobId" type="big_integer">
       <column name="job_id" sql-type="decimal(25, 0)"/>

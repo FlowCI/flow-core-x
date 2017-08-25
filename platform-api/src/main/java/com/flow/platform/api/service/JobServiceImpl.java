@@ -130,7 +130,6 @@ public class JobServiceImpl implements JobService {
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
-        job.setOutputs(root.getEnvs());
 
         //save job
         jobDao.save(job);
@@ -554,7 +553,8 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job find(String flowName, Integer number) {
-        return jobDao.get(flowName, number);
+        Job job =  jobDao.get(flowName, number);
+        return job;
     }
 
     @Override
@@ -575,12 +575,16 @@ public class JobServiceImpl implements JobService {
             throw new NotFoundException(String.format("running job not found name - %s", name));
         }
 
+        if (runningJob.getResult() == null) {
+            throw new NotFoundException(String.format("running job not found node result - %s", name));
+        }
+
         //job in create session status
-        if (runningJob.getStatus() == NodeStatus.ENQUEUE || runningJob.getStatus() == NodeStatus.PENDING) {
+        if (runningJob.getResult().getStatus() == NodeStatus.ENQUEUE || runningJob.getResult().getStatus() == NodeStatus.PENDING) {
             cmdId = runningJob.getCmdId();
 
             // job finish, stop job failure
-        } else if (runningJob.getStatus() == NodeStatus.SUCCESS || runningJob.getStatus() == NodeStatus.FAILURE) {
+        } else if (runningJob.getResult().getStatus() == NodeStatus.SUCCESS || runningJob.getResult().getStatus() == NodeStatus.FAILURE) {
             return false;
 
         } else { // running
@@ -591,9 +595,6 @@ public class JobServiceImpl implements JobService {
         String url = new StringBuilder(cmdStopUrl).append(cmdId).toString();
         LOGGER.traceMarker("stopJob", String.format("url - %s", url));
 
-        runningJob.setStatus(NodeStatus.STOPPED);
-
-        jobDao.update(runningJob);
         updateNodeResult(runningJob, NodeStatus.STOPPED);
 
         try {
