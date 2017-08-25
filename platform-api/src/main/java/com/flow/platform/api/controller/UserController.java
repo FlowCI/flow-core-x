@@ -24,7 +24,7 @@ public class UserController {
     private UserService userService;
 
     /**
-     * @api {Post} /login User login
+     * @api {Post} /login Login
      * @apiName UserLogin
      * @apiGroup User
      * @apiDescription Login by request information
@@ -57,7 +57,7 @@ public class UserController {
     }
 
     /**
-     * @api {Post} /register User register
+     * @api {Post} /register Register
      * @apiName UserRegister
      * @apiGroup User
      * @apiDescription Register by request information
@@ -91,7 +91,7 @@ public class UserController {
     }
 
     /**
-     * @api {Post} /delete User delete
+     * @api {Post} /delete Delete
      * @apiName UserDelete
      * @apiGroup User
      * @apiDescription Delete by request information
@@ -117,7 +117,7 @@ public class UserController {
     }
 
     /**
-     * @api {Post} /role/switch User switch role
+     * @api {Post} /role/switch Switch role
      * @apiName UserSwitchRole
      * @apiGroup User
      * @apiDescription Switch role by request information
