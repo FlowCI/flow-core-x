@@ -1,4 +1,4 @@
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.request;
 
 /**
  * @author liangpengyv

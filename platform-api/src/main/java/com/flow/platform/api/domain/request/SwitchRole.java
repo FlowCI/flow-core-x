@@ -1,11 +1,11 @@
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.request;
 
 import java.util.List;
 
 /**
  * @author liangpengyv
  */
-public class SwitchRoleRequest {
+public class SwitchRole {
 
     private List<String> emailList;
 

@@ -1,6 +1,6 @@
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.LoginForm;
+import com.flow.platform.api.domain.request.LoginForm;
 import com.flow.platform.api.domain.User;
 
 import java.util.List;

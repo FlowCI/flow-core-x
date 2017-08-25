@@ -1,7 +1,7 @@
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.LoginForm;
-import com.flow.platform.api.domain.SwitchRoleRequest;
+import com.flow.platform.api.domain.request.LoginForm;
+import com.flow.platform.api.domain.request.SwitchRole;
 import com.flow.platform.api.domain.User;
 import com.flow.platform.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +39,9 @@ public class UserController {
     }
 
     @PostMapping("/role/switch")
-    public void switchRole(@RequestBody SwitchRoleRequest switchRoleRequest) {
-        List<String> emailList = switchRoleRequest.getUsers();
-        String roleId = switchRoleRequest.getSwitchTo();
+    public void switchRole(@RequestBody SwitchRole switchRole) {
+        List<String> emailList = switchRole.getUsers();
+        String roleId = switchRole.getSwitchTo();
         userService.switchRole(emailList, roleId);
     }
 }
