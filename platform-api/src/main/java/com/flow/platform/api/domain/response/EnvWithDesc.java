@@ -21,7 +21,8 @@ import com.flow.platform.domain.Jsonable;
 /**
  * @author yh@firim
  */
-public class EnvWithDesc extends Jsonable{
+public class EnvWithDesc extends Jsonable {
+
     private String value;
 
     private String desc;

@@ -71,6 +71,7 @@ public interface NodeService {
      *
      * - FLOW_STATUS will be set to PENDING
      * - FLOW_GIT_WEBHOOK will be created in env
+     * - FLOW_YML_STATUS will be set to NOT_FOUND
      */
     Flow createEmptyFlow(String flowName);
 
