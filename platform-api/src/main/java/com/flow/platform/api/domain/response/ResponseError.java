@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.response;
 
 import com.flow.platform.domain.Jsonable;
+import com.google.gson.annotations.Expose;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public class Response extends Jsonable {
+public class ResponseError extends Jsonable {
 
+    @Expose
     private String message;
+
+    public ResponseError(String message) {
+        this.message = message;
+    }
 
     public String getMessage() {
         return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public Response(String message) {
-        this.message = message;
-    }
-
-    @Override
-    public String toString() {
-        return "Response{" +
-            "message='" + message + '\'' +
-            '}';
     }
 }

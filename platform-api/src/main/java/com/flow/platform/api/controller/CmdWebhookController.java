@@ -17,7 +17,6 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.CmdQueueItem;
-import com.flow.platform.api.domain.Response;
 import com.flow.platform.api.service.JobService;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.domain.Cmd;
@@ -46,7 +45,7 @@ public class CmdWebhookController {
     private JobService jobService;
 
     @PostMapping(path = "")
-    public Response execute(@RequestBody Cmd cmd, @RequestParam String identifier) {
+    public void execute(@RequestBody Cmd cmd, @RequestParam String identifier) {
         String decodedIdentifier = UrlUtil.urlDecoder(identifier);
 
         if (Strings.isNullOrEmpty(identifier)) {
@@ -62,6 +61,5 @@ public class CmdWebhookController {
                 cmd.getStatus()));
 
         jobService.enterQueue(new CmdQueueItem(decodedIdentifier, cmd));
-        return new Response("ok");
     }
 }

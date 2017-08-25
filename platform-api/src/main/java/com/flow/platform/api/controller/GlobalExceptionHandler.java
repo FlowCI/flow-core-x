@@ -16,8 +16,9 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.response.ResponseError;
+import com.flow.platform.api.domain.response.ResponseError;
 import com.flow.platform.core.exception.FlowException;
+import com.flow.platform.core.exception.NotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;

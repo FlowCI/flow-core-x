@@ -36,6 +36,18 @@ public abstract class NodeController {
     @Autowired
     protected NodeService nodeService;
 
+    /**
+     * @api {get} /flows/env Get Env
+     * @apiParam {String} pathOrName node path or name
+     * @apiParam {String} [key] env variable name
+     * @apiGroup Node
+     * @apiDescription Get node env by path or name
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      FLOW_ENV_VAR: xxx
+     *  }
+     */
     @GetMapping("/env")
     public Map<String, String> getEnv(@RequestParam String pathOrName, @RequestParam(required = false) String key) {
         String path = pathOrName;

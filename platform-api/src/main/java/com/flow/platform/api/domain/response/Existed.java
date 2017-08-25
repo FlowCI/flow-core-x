@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.response;
+package com.flow.platform.api.domain.response;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
@@ -22,16 +22,20 @@ import com.google.gson.annotations.Expose;
 /**
  * @author yang
  */
-public class ResponseError extends Jsonable {
+public class Existed extends Jsonable {
 
     @Expose
-    private String message;
+    private boolean existed;
 
-    public ResponseError(String message) {
-        this.message = message;
+    public Existed(boolean existed) {
+        this.existed = existed;
     }
 
-    public String getMessage() {
-        return message;
+    public boolean isExisted() {
+        return existed;
+    }
+
+    public void setExisted(boolean existed) {
+        this.existed = existed;
     }
 }
