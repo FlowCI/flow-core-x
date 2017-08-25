@@ -33,9 +33,14 @@ public class JobConvertUtil {
     }
 
     public static Job convert(Object[] objects) {
+        if (objects == null) {
+            return null;
+        }
+
         if (objects.length == 0) {
             return null;
         }
+        
         Job job = (Job) objects[0];
         if (objects[1] == null) {
             return job;

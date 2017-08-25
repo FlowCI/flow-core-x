@@ -17,6 +17,7 @@
 
     <property name="cmdId" type="string" column="cmd_id"/>
     <property name="sessionId" type="string" column="session_id"/>
+    <property name="envs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="envs"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
