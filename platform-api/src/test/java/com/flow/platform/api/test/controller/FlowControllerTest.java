@@ -56,10 +56,19 @@ public class FlowControllerTest extends TestBase {
     }
 
     @Test
+    public void should_get_flow_node_detail() throws Throwable {
+        MvcResult result = mockMvc.perform(get("/flows/" + flowName + "/show"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        Node flowNode = Flow.parse(result.getResponse().getContentAsString(), Flow.class);
+        Assert.assertNotNull(flowNode);
+        Assert.assertEquals(flowName, flowNode.getName());
+    }
+
+    @Test
     public void should_get_env_value() throws Throwable {
-        MockHttpServletRequestBuilder request = get("/flows/env")
-            .param("pathOrName", flowName)
-            .param("key", "FLOW_STATUS");
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/env/FLOW_STATUS");
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
         Assert.assertEquals("{\"FLOW_STATUS\":\"PENDING\"}", result.getResponse().getContentAsString());

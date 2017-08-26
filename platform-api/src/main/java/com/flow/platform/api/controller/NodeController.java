@@ -24,23 +24,44 @@ import com.flow.platform.core.exception.NotFoundException;
 import com.google.common.base.Strings;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
+ * Base node controller, the path of node path variable used with {root}/{child}
+ * using 'getNodePathFromUrl' to get node path instead of @PathVariable
+ *
  * @author yang
  */
-public abstract class NodeController {
+@RestController
+@RequestMapping(path = {
+    "/nodes/{root}",
+    "/nodes/{root}/{child}",
+})
+public class NodeController {
+
+    protected final static String PATH_VAR_ROOT = "root";
+
+    protected final static String PATH_VAR_CHILD = "child";
 
     @Autowired
     protected NodeService nodeService;
 
+    @Autowired
+    protected HttpServletRequest request;
+
     /**
-     * @api {get} /flows/env Get Env
-     * @apiParam {String} pathOrName node path or name
+     * @api {get} /nodes/:root/:child/env/:key Get Env
+     * @apiParam {String} root root node name
+     * @apiParam {String} [child] child node name
      * @apiParam {String} [key] env variable name
-     * @apiGroup Node
+     * @apiGroup Nodes
      * @apiDescription Get node env by path or name
      *
      * @apiSuccessExample {json} Success-Response
@@ -48,9 +69,9 @@ public abstract class NodeController {
      *      FLOW_ENV_VAR: xxx
      *  }
      */
-    @GetMapping("/env")
-    public Map<String, String> getEnv(@RequestParam String pathOrName, @RequestParam(required = false) String key) {
-        String path = pathOrName;
+    @GetMapping(path = "/env/{key}")
+    public Map<String, String> getEnv(@PathVariable(required = false) String key) {
+        String path = getNodePathFromUrl();
 
         // check is path for root name
         if (PathUtil.isRootName(path)) {
@@ -75,5 +96,15 @@ public abstract class NodeController {
         Map<String, String> singleEnv = new HashMap<>(1);
         singleEnv.put(key, env);
         return singleEnv;
+    }
+
+    protected String getNodePathFromUrl() {
+        Map<String, String> attributes =
+            (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+
+        String root = attributes.get(PATH_VAR_ROOT);
+        String child = attributes.get(PATH_VAR_CHILD);
+
+        return PathUtil.build(root, child);
     }
 }

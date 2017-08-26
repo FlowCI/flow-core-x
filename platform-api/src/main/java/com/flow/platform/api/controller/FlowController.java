@@ -50,8 +50,8 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {get} /flows/:flowname Show
-     * @apiParam {String} flowname flow node name
+     * @api {get} /flows/:root Show
+     * @apiParam {String} root flow node name
      * @apiGroup Flows
      *
      * @apiSuccessExample {json} Success-Response
@@ -66,19 +66,19 @@ public class FlowController extends NodeController {
      *      }
      *  }
      */
-    @GetMapping(path = "/{flowName}")
-    public Node show(@PathVariable String flowName) {
-        PathUtil.validateName(flowName);
-        Node node = nodeService.find(PathUtil.build(flowName));
+    @GetMapping(path = {"/{root}", "/{root}/show"})
+    public Node show() {
+        String path = getNodePathFromUrl();
+        Node node = nodeService.find(path);
         if (node == null) {
-            throw new IllegalParameterException(String.format("The flow name %s doesn't exist", flowName));
+            throw new IllegalParameterException(String.format("The flow name %s doesn't exist", path));
         }
         return node;
     }
 
     /**
-     * @api {post} /flows/:flowname Create
-     * @apiParam {String} flowname flow node name will be created
+     * @api {post} /flows/:root Create
+     * @apiParam {String} root flow node name will be created
      * @apiDescription Create empty flow node with default env variables
      * @apiGroup Flows
      *
@@ -95,15 +95,15 @@ public class FlowController extends NodeController {
      *      }
      *  }
      */
-    @PostMapping("/{flowName}")
-    public Node createEmptyFlow(@PathVariable String flowName) {
-        PathUtil.validateName(flowName);
-        return nodeService.createEmptyFlow(flowName);
+    @PostMapping(path = {"/{root}", "/{root}/create"})
+    public Node createEmptyFlow() {
+        String path = getNodePathFromUrl();
+        return nodeService.createEmptyFlow(path);
     }
 
     /**
-     * @api {post} /flows/:flowname/delete Delete
-     * @apiParam {String} flowname flow node name will be deleted
+     * @api {post} /flows/:root/delete Delete
+     * @apiParam {String} root flow node name will be deleted
      * @apiDescription Delete flow node by name and return flow node object
      * @apiGroup Flows
      *
@@ -119,15 +119,15 @@ public class FlowController extends NodeController {
      *      }
      *  }
      */
-    @PostMapping(path = "/{flowName}/delete")
-    public Node delete(@PathVariable String flowName) {
-        PathUtil.validateName(flowName);
-        return nodeService.delete(PathUtil.build(flowName));
+    @PostMapping(path = "/{root}/delete")
+    public Node delete() {
+        String path = getNodePathFromUrl();
+        return nodeService.delete(path);
     }
 
     /**
-     * @api {post} /flows/:flowname/env Set Env Variables
-     * @apiParam {String} flowname flow node name will be set env variables
+     * @api {post} /flows/:root/env Set Env Variables
+     * @apiParam {String} root flow node name will be set env variables
      * @apiParamExample {json} Request-Body:
      *  {
      *      FLOW_ENV_VAR_2: xxx,
@@ -148,15 +148,32 @@ public class FlowController extends NodeController {
      *      }
      *  }
      */
-    @PostMapping("/{flowName}/env")
-    public Node setFlowEnv(@PathVariable String flowName, @RequestBody Map<String, String> envs) {
-        PathUtil.validateName(flowName);
-        return nodeService.setFlowEnv(PathUtil.build(flowName), envs);
+    @PostMapping("/{root}/env")
+    public Node setFlowEnv(@RequestBody Map<String, String> envs) {
+        String path = getNodePathFromUrl();
+        return nodeService.setFlowEnv(path, envs);
     }
 
     /**
-     * @api {get} /flows/:flowname/exist IsExisted
-     * @apiParam {String} flowname flow node name to check
+     * @api {get} /flows/:rootenv/:key Get Env
+     * @apiParam {String} root root node name
+     * @apiParam {String} [key] env variable name
+     * @apiGroup Node
+     * @apiDescription Get node env by path or name
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      FLOW_ENV_VAR: xxx
+     *  }
+     */
+    @GetMapping(path = "/{root}/env/{key}")
+    public Map<String, String> getFlowEnv(@PathVariable(required = false) String key) {
+        return super.getEnv(key);
+    }
+
+    /**
+     * @api {get} /flows/:root/exist IsExisted
+     * @apiParam {String} root flow node name to check
      * @apiGroup Flows
      *
      * @apiSuccessExample {json} Success-Response
@@ -164,10 +181,10 @@ public class FlowController extends NodeController {
      *      existed: true
      *  }
      */
-    @GetMapping("/{flowName}/exist")
-    public Existed isFlowNameExist(@PathVariable String flowName) {
-        PathUtil.validateName(flowName);
-        boolean exist = nodeService.exist(PathUtil.build(flowName));
+    @GetMapping("/{root}/exist")
+    public Existed isFlowNameExist() {
+        String path = getNodePathFromUrl();
+        boolean exist = nodeService.exist(path);
         return new Existed(exist);
     }
 
@@ -190,8 +207,8 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {get} /flows/:flowname/yml Get
-     * @apiParam {String} flowname flow node name of yml
+     * @api {get} /flows/:root/yml Get
+     * @apiParam {String} root flow node name of yml
      * @apiGroup Flow Yml
      * @apiDescription Get flow node related yml content,
      * response empty yml content if it is loading from git repo
@@ -205,15 +222,15 @@ public class FlowController extends NodeController {
      * @apiSuccessExample {yaml} GitLoading-Response
      *  Empty yml content
      */
-    @GetMapping(value = "/{flowName}/yml")
-    public String getRawYml(@PathVariable String flowName) {
-        PathUtil.validateName(flowName);
-        return ymlService.getYmlContent(PathUtil.build(flowName));
+    @GetMapping(value = "/{root}/yml")
+    public String getRawYml() {
+        String path = getNodePathFromUrl();
+        return ymlService.getYmlContent(path);
     }
 
     /**
-     * @api {get} /flows/:flowname/yml/load Load
-     * @apiParam {String} flowname flow node name to load yml
+     * @api {get} /flows/:root/yml/load Load
+     * @apiParam {String} root flow node name to load yml
      * @apiGroup Flow Yml
      * @apiDescription Async to load yml content from git repo,
      * the env variable FLOW_GIT_SOURCE and FLOW_GIT_URL variables are required,
@@ -231,29 +248,28 @@ public class FlowController extends NodeController {
      *      }
      *  }
      */
-    @GetMapping("/{flowName}/yml/load")
-    public Node loadRawYmlFromGit(@PathVariable String flowName) {
-        PathUtil.validateName(flowName);
-        String path = PathUtil.build(flowName);
+    @GetMapping("/{root}/yml/load")
+    public Node loadRawYmlFromGit() {
+        String path = getNodePathFromUrl();
         return ymlService.loadYmlContent(path, null);
     }
 
     /**
-     * @api {get} /flows/:flowname/yml/stop Stop Load
-     * @apiParam {String} flowname flow node name for stop yml loading
+     * @api {get} /flows/:root/yml/stop Stop Load
+     * @apiParam {String} root flow node name for stop yml loading
      * @apiGroup Flow Yml
      * @apiDescription Stop current yml loading threads,
      * and reset FLOW_YML_STATUS to NOF_FOUND if on loading status
      */
-    @GetMapping("/{flowName}/yml/stop")
-    public void stopLoadYml(@PathVariable String flowName) {
-        PathUtil.validateName(flowName);
-        ymlService.stopLoadYmlContent(PathUtil.build(flowName));
+    @GetMapping("/{root}/yml/stop")
+    public void stopLoadYml() {
+        String path = getNodePathFromUrl();
+        ymlService.stopLoadYmlContent(path);
     }
 
     /**
-     * @api {post} /flows/:flowname/yml/verify Verify
-     * @apiParam {String} flowname flow node name to verify yml
+     * @api {post} /flows/:root/yml/verify Verify
+     * @apiParam {String} root flow node name to verify yml
      * @apiParamExample {Yaml} Request-Body
      *  - flows:
      *      - name: xxx
@@ -271,15 +287,15 @@ public class FlowController extends NodeController {
      *      message: xxxx
      *  }
      */
-    @PostMapping("/{flowName}/yml/verify")
-    public void ymlVerification(@PathVariable String flowName, @RequestBody String yml) {
-        PathUtil.validateName(flowName);
-        ymlService.verifyYml(PathUtil.build(flowName), yml);
+    @PostMapping("/{root}/yml/verify")
+    public void ymlVerification(@RequestBody String yml) {
+        String path = getNodePathFromUrl();
+        ymlService.verifyYml(path, yml);
     }
 
     /**
-     * @api {post} /flows/:flowname/yml/create Create
-     * @apiParam {String} flowname flow node name to set yml content
+     * @api {post} /flows/:root/yml/create Create
+     * @apiParam {String} root flow node name to set yml content
      * @apiParam Request-Body
      *  - flows:
      *      - name: xxx
@@ -301,9 +317,9 @@ public class FlowController extends NodeController {
      *      }
      *  }
      */
-    @PostMapping("/{flowName}/yml/create")
-    public Node createFromYml(@PathVariable String flowName, @RequestBody String yml) {
-        PathUtil.validateName(flowName);
-        return nodeService.createOrUpdate(PathUtil.build(flowName), yml);
+    @PostMapping("/{root}/yml/create")
+    public Node createFromYml(@RequestBody String yml) {
+        String path = getNodePathFromUrl();
+        return nodeService.createOrUpdate(path, yml);
     }
 }
