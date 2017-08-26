@@ -17,6 +17,7 @@ package com.flow.platform.api.test;/*
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.*;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -24,7 +25,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
-import com.flow.platform.api.dao.JobYmlStorageDao;
+import com.flow.platform.api.dao.JobYmlDao;
 import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlDao;
@@ -90,13 +91,13 @@ public abstract class TestBase {
     protected YmlDao ymlDao;
 
     @Autowired
-    protected JobYmlStorageDao jobYmlStorageDao;
+    protected JobYmlDao jobYmlDao;
 
     @Autowired
     protected NodeResultDao nodeResultDao;
 
     @Autowired
-    private CredentialStorageDao credentialStorageDao;
+    protected CredentialStorageDao credentialStorageDao;
 
     @Autowired
     protected MessageSettingDao messageSettingDao;
@@ -168,7 +169,7 @@ public abstract class TestBase {
         flowDao.deleteAll();
         jobDao.deleteAll();
         ymlDao.deleteAll();
-        jobYmlStorageDao.deleteAll();
+        jobYmlDao.deleteAll();
         nodeResultDao.deleteAll();
         userDao.deleteAll();
         credentialStorageDao.deleteAll();

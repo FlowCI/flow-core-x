@@ -15,13 +15,13 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.job.JobYmlStorage;
+import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
 
 /**
  * @author lhl
  */
-public interface JobYmlStorageDao extends BaseDao<BigInteger, JobYmlStorage> {
+public interface JobYmlDao extends BaseDao<BigInteger, JobYml> {
 
 }

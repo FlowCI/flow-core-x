@@ -29,7 +29,7 @@
 
   </class>
 
-  <class name="com.flow.platform.api.domain.job.JobYmlStorage" table="job_yml_storage">
+  <class name="com.flow.platform.api.domain.job.JobYml" table="job_yml_raw">
     <id name="jobId" type="big_integer">
       <column name="job_id" sql-type="decimal(25, 0)"/>
     </id>

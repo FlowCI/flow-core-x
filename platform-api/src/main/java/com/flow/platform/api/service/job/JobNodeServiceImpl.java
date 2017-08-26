@@ -15,12 +15,11 @@
  */
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.dao.JobYmlStorageDao;
-import com.flow.platform.api.domain.job.JobYmlStorage;
+import com.flow.platform.api.dao.JobYmlDao;
+import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -39,10 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class JobNodeServiceImpl implements JobNodeService {
 
-    private final Logger LOGGER = new Logger(JobYmlStorage.class);
+    private final Logger LOGGER = new Logger(JobYml.class);
 
     @Autowired
-    private JobYmlStorageDao jobYmlStorageDao;
+    private JobYmlDao jobYmlDao;
 
     // 1 day expire
     private Cache<BigInteger, NodeTree> nodeCache = CacheBuilder
@@ -52,8 +51,8 @@ public class JobNodeServiceImpl implements JobNodeService {
 
     @Override
     public void save(final BigInteger jobId, final String yml) {
-        JobYmlStorage jobYmlStorage = new JobYmlStorage(jobId, yml);
-        jobYmlStorageDao.saveOrUpdate(jobYmlStorage);
+        JobYml jobYmlStorage = new JobYml(jobId, yml);
+        jobYmlDao.saveOrUpdate(jobYmlStorage);
         nodeCache.invalidate(jobId);
     }
 
@@ -61,7 +60,7 @@ public class JobNodeServiceImpl implements JobNodeService {
     public Node get(final BigInteger jobId, final String path) {
         try {
             NodeTree tree = nodeCache.get(jobId, () -> {
-                JobYmlStorage jobYmlStorage = jobYmlStorageDao.get(jobId);
+                JobYml jobYmlStorage = jobYmlDao.get(jobId);
                 if (jobYmlStorage == null) {
                     throw new NotFoundException(String.format("Job node of job '%s' not found", jobId));
                 }

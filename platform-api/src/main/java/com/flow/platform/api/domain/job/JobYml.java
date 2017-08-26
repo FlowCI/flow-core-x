@@ -21,7 +21,7 @@ import java.math.BigInteger;
 /**
  * @author yh@firim
  */
-public class JobYmlStorage {
+public class JobYml {
 
     private BigInteger jobId;
 
@@ -43,12 +43,12 @@ public class JobYmlStorage {
         this.file = file;
     }
 
-    public JobYmlStorage(BigInteger jobId, String file) {
+    public JobYml(BigInteger jobId, String file) {
         this.jobId = jobId;
         this.file = file;
     }
 
-    public JobYmlStorage() {
+    public JobYml() {
     }
 
     @Override
@@ -60,7 +60,7 @@ public class JobYmlStorage {
             return false;
         }
 
-        JobYmlStorage that = (JobYmlStorage) o;
+        JobYml that = (JobYml) o;
 
         return jobId != null ? jobId.equals(that.jobId) : that.jobId == null;
     }
