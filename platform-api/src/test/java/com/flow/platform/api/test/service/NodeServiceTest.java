@@ -19,7 +19,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.node.YmlStorage;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.exception.YmlException;
@@ -97,7 +97,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertNotNull("222", root.getEnvs().get("FLOW_SP_2"));
 
         // then:
-        YmlStorage yaml = ymlStorageDao.get(root.getPath());
+        Yml yaml = ymlDao.get(root.getPath());
         Assert.assertNotNull(yaml);
         Assert.assertEquals(resourceContent, yaml.getFile());
     }
@@ -151,7 +151,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals(webhook, loaded.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
 
         // should with empty yml
-        Assert.assertNull(ymlStorageDao.get(loaded.getPath()));
+        Assert.assertNull(ymlDao.get(loaded.getPath()));
 
         // when:
         List<Webhook> hooks = nodeService.listWebhooks();

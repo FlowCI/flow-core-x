@@ -18,7 +18,7 @@ package com.flow.platform.api.task;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.YmlStorage;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.service.GitService;
@@ -47,12 +47,12 @@ public class CloneAndVerifyYmlTask implements Runnable {
 
     private final GitService gitService;
 
-    private final Consumer<YmlStorage> callback;
+    private final Consumer<Yml> callback;
 
     public CloneAndVerifyYmlTask(Flow flow,
                                  NodeService nodeService,
                                  GitService gitService,
-                                 Consumer<YmlStorage> callback) {
+                                 Consumer<Yml> callback) {
         this.flow = flow;
         this.nodeService = nodeService;
         this.gitService = gitService;
@@ -84,7 +84,7 @@ public class CloneAndVerifyYmlTask implements Runnable {
 
         // call consumer
         if (callback != null) {
-            callback.accept(new YmlStorage(flow.getPath(), yml));
+            callback.accept(new Yml(flow.getPath(), yml));
         }
     }
 

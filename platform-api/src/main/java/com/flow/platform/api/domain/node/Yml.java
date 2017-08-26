@@ -17,9 +17,11 @@
 package com.flow.platform.api.domain.node;
 
 /**
+ * Yml raw content
+ *
  * @author yh@firim
  */
-public class YmlStorage {
+public class Yml {
 
     private String nodePath;
 
@@ -41,12 +43,12 @@ public class YmlStorage {
         this.file = file;
     }
 
-    public YmlStorage(String nodePath, String file) {
+    public Yml(String nodePath, String file) {
         this.nodePath = nodePath;
         this.file = file;
     }
 
-    public YmlStorage() {
+    public Yml() {
     }
 
     @Override
@@ -58,7 +60,7 @@ public class YmlStorage {
             return false;
         }
 
-        YmlStorage that = (YmlStorage) o;
+        Yml that = (Yml) o;
 
         return nodePath != null ? nodePath.equals(that.nodePath) : that.nodePath == null;
     }
@@ -72,7 +74,7 @@ public class YmlStorage {
 
     @Override
     public String toString() {
-        return "YmlStorage{" +
+        return "Yml{" +
             "nodePath='" + nodePath + '\'' +
             ", file='" + file + '\'' +
             '}';

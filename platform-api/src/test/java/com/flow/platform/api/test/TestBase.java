@@ -27,7 +27,7 @@ import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.NodeResultDao;
-import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
@@ -87,7 +87,7 @@ public abstract class TestBase {
     private UserDao userDao;
 
     @Autowired
-    protected YmlStorageDao ymlStorageDao;
+    protected YmlDao ymlDao;
 
     @Autowired
     protected JobYmlStorageDao jobYmlStorageDao;
@@ -167,7 +167,7 @@ public abstract class TestBase {
     private void cleanDatabase() {
         flowDao.deleteAll();
         jobDao.deleteAll();
-        ymlStorageDao.deleteAll();
+        ymlDao.deleteAll();
         jobYmlStorageDao.deleteAll();
         nodeResultDao.deleteAll();
         userDao.deleteAll();

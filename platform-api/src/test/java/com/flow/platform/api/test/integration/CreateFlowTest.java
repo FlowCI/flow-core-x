@@ -18,7 +18,7 @@ package com.flow.platform.api.test.integration;
 
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.YmlStorage;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
@@ -96,7 +96,7 @@ public class CreateFlowTest extends TestBase {
         loaded = (Flow) nodeService.find(flow.getPath());
         Assert.assertEquals(FlowEnvs.YmlStatusValue.FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
-        YmlStorage ymlStorage = ymlStorageDao.get(loaded.getPath());
+        Yml ymlStorage = ymlDao.get(loaded.getPath());
         Assert.assertNotNull(ymlStorage);
         Assert.assertEquals(ymlWrapper[0], ymlStorage.getFile());
     }

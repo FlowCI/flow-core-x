@@ -17,8 +17,8 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.dao.YmlStorageDao;
-import com.flow.platform.api.domain.node.YmlStorage;
+import com.flow.platform.api.dao.YmlDao;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.test.TestBase;
 import com.google.common.io.Files;
 import java.io.File;
@@ -31,56 +31,53 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author yh@firim
  */
-public class YmlStorageDaoTest extends TestBase {
-
-    @Autowired
-    private YmlStorageDao ymlStorageDao;
+public class YmlDaoTest extends TestBase {
 
     @Test
     public void should_save_and_get_success() {
-        YmlStorage ymlStorage = new YmlStorage("/flow", "YML config");
-        ymlStorageDao.save(ymlStorage);
+        Yml ymlStorage = new Yml("/flow", "YML config");
+        ymlDao.save(ymlStorage);
 
-        YmlStorage ymlStorage1 = ymlStorageDao.get(ymlStorage.getNodePath());
+        Yml ymlStorage1 = ymlDao.get(ymlStorage.getNodePath());
         Assert.assertNotNull(ymlStorage1);
         Assert.assertEquals("YML config", ymlStorage1.getFile());
 
         ymlStorage.setFile(null);
-        ymlStorageDao.update(ymlStorage);
-        ymlStorage1 = ymlStorageDao.get(ymlStorage.getNodePath());
+        ymlDao.update(ymlStorage);
+        ymlStorage1 = ymlDao.get(ymlStorage.getNodePath());
         Assert.assertEquals(null, ymlStorage1.getFile());
 
         ymlStorage.setFile("");
-        ymlStorageDao.update(ymlStorage);
-        ymlStorage1 = ymlStorageDao.get(ymlStorage.getNodePath());
+        ymlDao.update(ymlStorage);
+        ymlStorage1 = ymlDao.get(ymlStorage.getNodePath());
         Assert.assertEquals("", ymlStorage1.getFile());
     }
 
     @Test
     public void should_save_and_get_yml_success() throws IOException {
-        ClassLoader classLoader = YmlStorageDaoTest.class.getClassLoader();
+        ClassLoader classLoader = YmlDaoTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         File path = new File(resource.getFile());
         String ymlString = Files.toString(path, AppConfig.DEFAULT_CHARSET);
-        YmlStorage storage = new YmlStorage("/flow", ymlString);
-        ymlStorageDao.save(storage);
+        Yml storage = new Yml("/flow", ymlString);
+        ymlDao.save(storage);
 
-        YmlStorage storage1 = ymlStorageDao.get(storage.getNodePath());
+        Yml storage1 = ymlDao.get(storage.getNodePath());
         Assert.assertNotNull(storage1);
         Assert.assertEquals(ymlString, storage1.getFile());
     }
 
     @Test
     public void should_update_success() {
-        YmlStorage storage = new YmlStorage("/flow", "Yml Body");
-        ymlStorageDao.save(storage);
-        YmlStorage ymlStorage = ymlStorageDao.get(storage.getNodePath());
+        Yml storage = new Yml("/flow", "Yml Body");
+        ymlDao.save(storage);
+        Yml ymlStorage = ymlDao.get(storage.getNodePath());
         Assert.assertNotNull(ymlStorage);
 
         storage.setFile("Yml");
-        ymlStorageDao.update(storage);
+        ymlDao.update(storage);
 
-        ymlStorage = ymlStorageDao.get(storage.getNodePath());
+        ymlStorage = ymlDao.get(storage.getNodePath());
         Assert.assertEquals(storage.getFile(), ymlStorage.getFile());
     }
 
@@ -88,11 +85,11 @@ public class YmlStorageDaoTest extends TestBase {
     public void should_delete_success() {
         String path = "/flow";
 
-        YmlStorage storage = new YmlStorage(path, "Yml Body");
-        ymlStorageDao.save(storage);
-        Assert.assertNotNull(ymlStorageDao.get(path));
+        Yml storage = new Yml(path, "Yml Body");
+        ymlDao.save(storage);
+        Assert.assertNotNull(ymlDao.get(path));
 
-        ymlStorageDao.delete(new YmlStorage(path, null));
-        Assert.assertEquals(null, ymlStorageDao.get(storage.getNodePath()));
+        ymlDao.delete(new Yml(path, null));
+        Assert.assertEquals(null, ymlDao.get(storage.getNodePath()));
     }
 }

@@ -19,7 +19,7 @@
     </property>
   </class>
 
-  <class name="com.flow.platform.api.domain.node.YmlStorage" table="yml_storage">
+  <class name="com.flow.platform.api.domain.node.Yml" table="yml_raw">
     <id name="nodePath" type="string" column="node_path"/>
     <property name="file" type="com.flow.platform.core.dao.adaptor.ByteAdaptor"/>
   </class>

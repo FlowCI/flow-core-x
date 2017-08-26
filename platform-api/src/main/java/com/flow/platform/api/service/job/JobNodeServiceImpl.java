@@ -18,6 +18,7 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.domain.job.JobYmlStorage;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;
@@ -44,8 +45,10 @@ public class JobNodeServiceImpl implements JobNodeService {
     private JobYmlStorageDao jobYmlStorageDao;
 
     // 1 day expire
-    private Cache<BigInteger, Cache<String, Node>> nodeCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(3600 * 24, TimeUnit.SECONDS).maximumSize(1000).build();
+    private Cache<BigInteger, NodeTree> nodeCache = CacheBuilder
+        .newBuilder()
+        .expireAfterAccess(3600 * 24, TimeUnit.SECONDS)
+        .maximumSize(1000).build();
 
     @Override
     public void save(final BigInteger jobId, final String yml) {
@@ -57,20 +60,16 @@ public class JobNodeServiceImpl implements JobNodeService {
     @Override
     public Node get(final BigInteger jobId, final String path) {
         try {
-            Cache<String, Node> jobNodeCache = nodeCache.get(jobId, () -> {
+            NodeTree tree = nodeCache.get(jobId, () -> {
                 JobYmlStorage jobYmlStorage = jobYmlStorageDao.get(jobId);
                 if (jobYmlStorage == null) {
                     throw new NotFoundException(String.format("Job node of job '%s' not found", jobId));
                 }
 
-                Cache<String, Node> treeCache = CacheBuilder.newBuilder().build();
-
-                Node root = NodeUtil.buildFromYml(jobYmlStorage.getFile());
-                NodeUtil.recurse(root, node -> treeCache.put(node.getPath(), node));
-                return treeCache;
+                return new NodeTree(jobYmlStorage.getFile());
             });
 
-            return jobNodeCache.getIfPresent(path);
+            return tree.find(path);
         } catch (ExecutionException e) {
             LOGGER.warn(String.format("get yaml from jobYamlService error - %s", e));
             return null;

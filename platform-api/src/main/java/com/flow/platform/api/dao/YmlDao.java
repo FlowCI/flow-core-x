@@ -16,12 +16,12 @@
 
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.node.YmlStorage;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.core.dao.BaseDao;
 
 /**
  * @author yh@firim
  */
-public interface YmlStorageDao extends BaseDao<String, YmlStorage> {
+public interface YmlDao extends BaseDao<String, Yml> {
 
 }
