@@ -57,7 +57,7 @@ public class NodeUtilYmlTest {
         // verify flow
         Assert.assertTrue(node instanceof Flow);
         Assert.assertEquals("flow1", node.getName());
-        Assert.assertEquals("/flow1", node.getPath());
+        Assert.assertEquals("flow1", node.getPath());
 
         // verify flow envs
         Assert.assertEquals(2, node.getEnvs().size());
@@ -70,14 +70,14 @@ public class NodeUtilYmlTest {
         Assert.assertEquals(2, steps.size());
 
         Assert.assertEquals("step1", steps.get(0).getName());
-        Assert.assertEquals("/flow1/step1", steps.get(0).getPath());
+        Assert.assertEquals("flow1/step1", steps.get(0).getPath());
 
         Step step1 = steps.get(0);
         Assert.assertEquals("echo step", step1.getEnvs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo step version", step1.getEnvs().get("FLOW_VERSION"));
 
         Assert.assertEquals("step2", steps.get(1).getName());
-        Assert.assertEquals("/flow1/step2", steps.get(1).getPath());
+        Assert.assertEquals("flow1/step2", steps.get(1).getPath());
 
         // verify parent node relationship
         Assert.assertEquals(root, steps.get(0).getParent());

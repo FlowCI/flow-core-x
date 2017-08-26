@@ -52,23 +52,24 @@ public class PathUtilTest {
     }
 
     @Test(expected = IllegalParameterException.class)
-    public void should_raise_exception_if_path_end_with_slash() {
-        PathUtil.validatePath("/hello/");
+    public void should_raise_exception_if_path_over_max_depth() {
+        PathUtil.validatePath("hello/hello/hello/hello/hello/hello/hello/hello/hello/hello/hello/hello");
     }
 
-    @Test(expected = IllegalParameterException.class)
-    public void should_raise_exception_if_path_over_max_depth() {
-        PathUtil.validatePath("/hello/hello/hello/hello/hello/hello/hello/hello/hello/hello/hello");
+    @Test
+    public void should_pass_validation_of_path() {
+        PathUtil.validatePath("hello/hello/hello/hello/hello/hello/hello/hello/hello/hello");
+        PathUtil.validatePath("/hello/hello/hello/hello/hello/hello/hello/hello/hello/hello/");
     }
 
     @Test
     public void should_build_node_path_and_get_right_info() {
         // verify single node path
         String path = PathUtil.build("root");
-        Assert.assertEquals("/root", path);
+        Assert.assertEquals("root", path);
 
         Assert.assertEquals("root", PathUtil.rootName(path));
-        Assert.assertEquals("/root", PathUtil.rootPath(path));
+        Assert.assertEquals("root", PathUtil.rootPath(path));
 
         Assert.assertEquals("", PathUtil.parentName(path));
         Assert.assertEquals("", PathUtil.parentPath(path));
@@ -76,31 +77,31 @@ public class PathUtilTest {
         Assert.assertEquals("root", PathUtil.currentName(path));
 
         // verify multiple node path
-        path = PathUtil.build("root", "/child", "sub");
-        Assert.assertEquals("/root/child/sub", path);
+        path = PathUtil.build("root", "/child", "sub/");
+        Assert.assertEquals("root/child/sub", path);
 
         Assert.assertEquals("root", PathUtil.rootName(path));
-        Assert.assertEquals("/root", PathUtil.rootPath(path));
+        Assert.assertEquals("root", PathUtil.rootPath(path));
 
         Assert.assertEquals("child", PathUtil.parentName(path));
-        Assert.assertEquals("/root/child", PathUtil.parentPath(path));
+        Assert.assertEquals("root/child", PathUtil.parentPath(path));
 
         Assert.assertEquals("sub", PathUtil.currentName(path));
 
         // verify unformatted path build
         path = PathUtil.build("/root/child/", "sub");
-        Assert.assertEquals("/root/child/sub", path);
+        Assert.assertEquals("root/child/sub", path);
 
         path = PathUtil.build("root/child/", "/sub/");
-        Assert.assertEquals("/root/child/sub", path);
+        Assert.assertEquals("root/child/sub", path);
 
         path = PathUtil.build("", "/sub/");
-        Assert.assertEquals("/sub", path);
+        Assert.assertEquals("sub", path);
 
         path = PathUtil.build(null, "/sub/");
-        Assert.assertEquals("/sub", path);
+        Assert.assertEquals("sub", path);
 
         path = PathUtil.build("sub", null, null);
-        Assert.assertEquals("/sub", path);
+        Assert.assertEquals("sub", path);
     }
 }

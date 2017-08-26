@@ -78,8 +78,8 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(job.getResult().getStatus(), NodeStatus.PENDING);
 
-        Step step1 = (Step) nodeService.find("/flow1/step1");
-        Step step2 = (Step) nodeService.find("/flow1/step2");
+        Step step1 = (Step) nodeService.find("flow1/step1");
+        Step step2 = (Step) nodeService.find("flow1/step2");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
         // run first step running
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
@@ -164,8 +164,8 @@ public class CmdWebhookControllerTest extends TestBase {
         setFlowToReady(rootForFlow);
 
         Job job = jobService.createJob(rootForFlow.getPath());
-        Step step2 = (Step) nodeService.find("/flow1/step2");
-        Step step1 = (Step) nodeService.find("/flow1/step1");
+        Step step2 = (Step) nodeService.find("flow1/step2");
+        Step step1 = (Step) nodeService.find("flow1/step1");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
 
         // create session
@@ -249,8 +249,8 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(job.getResult().getStatus(), NodeStatus.PENDING);
 
-        Step step1 = (Step) nodeService.find("/flow1/step1");
-        Step step2 = (Step) nodeService.find("/flow1/step2");
+        Step step1 = (Step) nodeService.find("flow1/step1");
+        Step step2 = (Step) nodeService.find("flow1/step2");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
         // run first step timeout
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());

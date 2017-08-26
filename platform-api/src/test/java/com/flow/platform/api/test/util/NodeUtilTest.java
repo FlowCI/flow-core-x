@@ -95,10 +95,10 @@ public class NodeUtilTest extends TestBase {
         NodeUtil.buildNodeRelation(root);
 
         // then: verify path of nodes
-        Assert.assertEquals("/root", root.getPath());
-        Assert.assertEquals("/root/child-1", childFirst.getPath());
-        Assert.assertEquals("/root/child-2", childSecond.getPath());
-        Assert.assertEquals("/root/child-2/child-2-1", subOfChildSecond.getPath());
+        Assert.assertEquals("root", root.getPath());
+        Assert.assertEquals("root/child-1", childFirst.getPath());
+        Assert.assertEquals("root/child-2", childSecond.getPath());
+        Assert.assertEquals("root/child-2/child-2-1", subOfChildSecond.getPath());
 
         // then: verify relation
         Assert.assertEquals(childSecond, subOfChildSecond.getParent());
@@ -127,13 +127,13 @@ public class NodeUtilTest extends TestBase {
     public void should_recurse() {
         Node node = initNodes();
         List<Node> nodeList = new LinkedList<>();
-        NodeUtil.recurse(node, item -> {
-            nodeList.add(item);
-        });
-        StringBuffer out = new StringBuffer("");
+        NodeUtil.recurse(node, nodeList::add);
+
+        StringBuilder out = new StringBuilder("");
         for (Node iNode : nodeList) {
             out.append(iNode.getName()).append(";");
         }
+
         Assert.assertEquals("step3;step7;step8;step4;step1;step5;step6;step2;flow;", out.toString());
     }
 

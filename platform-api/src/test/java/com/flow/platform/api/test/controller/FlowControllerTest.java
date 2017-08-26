@@ -58,7 +58,7 @@ public class FlowControllerTest extends TestBase {
     @Test
     public void should_get_env_value() throws Throwable {
         MockHttpServletRequestBuilder request = get("/flows/env")
-            .param("pathOrName", "/" + flowName)
+            .param("pathOrName", flowName)
             .param("key", "FLOW_STATUS");
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();

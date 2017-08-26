@@ -22,12 +22,15 @@ import com.google.common.collect.Range;
 
 /**
  * Node path builder
+ * Path format ex : {root name}/{child name}/{child name}
  *
  * @author yang
  */
 public class PathUtil {
 
     private final static String PATH_SEPARATOR = "/";
+
+    private final static char PATH_SEPARATOR_CHAR = PATH_SEPARATOR.charAt(0);
 
     private final static int MAX_DEPTH = 10;
 
@@ -82,15 +85,27 @@ public class PathUtil {
             validateName(name);
             builder.append(PATH_SEPARATOR).append(name);
         }
+
+        // remove first slash
+        if (builder.charAt(0) == PATH_SEPARATOR_CHAR) {
+            builder.deleteCharAt(0);
+        }
+
+        // remove last slash
+        if (builder.charAt(builder.length() - 1) == PATH_SEPARATOR_CHAR) {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+
         return builder.toString();
     }
 
     public static String rootName(String path) {
-        return path.split(PATH_SEPARATOR)[1]; // 0 is empty string
+        return path.split(PATH_SEPARATOR)[0];
     }
 
     public static String rootPath(String path) {
-        return build(rootName(path)); // 0 is empty string
+        path = build(path); // format path
+        return rootName(path);
     }
 
     /**
@@ -100,7 +115,11 @@ public class PathUtil {
      */
     public static String parentName(String path) {
         String[] names = path.split(PATH_SEPARATOR);
-        return names[names.length - 2];
+        try {
+            return names[names.length - 2];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return "";
+        }
     }
 
     /**
@@ -110,7 +129,7 @@ public class PathUtil {
      */
     public static String parentPath(String path) {
         int lastSeparatorIndex = path.lastIndexOf(PATH_SEPARATOR);
-        if (lastSeparatorIndex == 0) {
+        if (lastSeparatorIndex <= 0) {
             return "";
         }
         return path.substring(0, lastSeparatorIndex);
@@ -148,11 +167,6 @@ public class PathUtil {
         String errMsg = "Illegal node path";
 
         if (Strings.isNullOrEmpty(path)) {
-            throw new IllegalParameterException(errMsg);
-        }
-
-        // path must start with / and cannot end with /
-        if (!path.startsWith(PATH_SEPARATOR) || path.endsWith(PATH_SEPARATOR)) {
             throw new IllegalParameterException(errMsg);
         }
 

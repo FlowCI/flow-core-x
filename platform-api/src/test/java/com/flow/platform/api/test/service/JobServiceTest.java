@@ -56,9 +56,9 @@ public class JobServiceTest extends TestBase {
 
         Assert.assertNotNull(job.getId());
         Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
-        Step step1 = (Step) nodeService.find("/flow1/step1");
-        Step step2 = (Step) nodeService.find("/flow1/step2");
-        Step step3 = (Step) nodeService.find("/flow1/step3");
+        Step step1 = (Step) nodeService.find("flow1/step1");
+        Step step2 = (Step) nodeService.find("flow1/step2");
+        Step step3 = (Step) nodeService.find("flow1/step3");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId("11111111");

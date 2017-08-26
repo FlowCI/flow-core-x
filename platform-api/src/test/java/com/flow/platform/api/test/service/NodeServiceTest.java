@@ -83,14 +83,14 @@ public class NodeServiceTest extends TestBase {
         Assert.assertTrue(nodeService.exist(root.getPath()));
         Assert.assertEquals(root, saved);
         Assert.assertEquals("flow1", saved.getName());
-        Assert.assertEquals("/flow1", saved.getPath());
+        Assert.assertEquals("flow1", saved.getPath());
 
         // then: check root node can be loaded from node service
         root = nodeService.find(saved.getPath());
         Step step1 = (Step) root.getChildren().get(0);
-        Assert.assertEquals("/flow1/step1", step1.getPath());
+        Assert.assertEquals("flow1/step1", step1.getPath());
         Step step2 = (Step) root.getChildren().get(1);
-        Assert.assertEquals("/flow1/step2", step2.getPath());
+        Assert.assertEquals("flow1/step2", step2.getPath());
 
         // then: check env is merged from flow dao
         Assert.assertNotNull("111", root.getEnvs().get("FLOW_SP_1"));
@@ -178,7 +178,7 @@ public class NodeServiceTest extends TestBase {
         // then:
         String webhook = String.format("%s/hooks/git/%s", domain, emptyFlow.getName());
 
-        Node loaded = nodeService.find("/flow1");
+        Node loaded = nodeService.find("flow1");
         Assert.assertEquals(8, loaded.getEnvs().size());
         Assert.assertEquals("hello", loaded.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", loaded.getEnv("FLOW_NEW_2"));
@@ -191,7 +191,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("FOUND", loaded.getEnv("FLOW_YML_STATUS"));
 
         // check env been sync with yml
-        Flow flow = flowDao.get("/flow1");
+        Flow flow = flowDao.get("flow1");
         Assert.assertEquals(8, flow.getEnvs().size());
         Assert.assertEquals("hello", flow.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", flow.getEnv("FLOW_NEW_2"));
