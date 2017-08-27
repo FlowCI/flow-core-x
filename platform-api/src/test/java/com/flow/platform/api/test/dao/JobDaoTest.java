@@ -106,7 +106,7 @@ public class JobDaoTest extends TestBase {
         Job job = new Job(CommonUtil.randomId());
         job.setNumber(1);
         job.setCmdId("1111");
-        job.setNodePath("/flow/test");
+        job.setNodePath("flow/test");
         job.setNodeName("test");
 
         jobDao.save(job);
@@ -123,7 +123,7 @@ public class JobDaoTest extends TestBase {
         job.setNumber(1);
         job.setCmdId("1111");
         job.setSessionId("11111111");
-        job.setNodePath("/flow/test");
+        job.setNodePath("flow/test");
         job.setNodeName("test");
         jobDao.save(job);
 
@@ -156,7 +156,7 @@ public class JobDaoTest extends TestBase {
     public void should_list_session_status_success_complex(){
         Job job = new Job(CommonUtil.randomId());
         job.setNumber(1);
-        job.setNodePath("/flow/test");
+        job.setNodePath("flow/test");
         job.setNodeName("test");
         job.setSessionId("11111111");
         jobDao.save(job);
@@ -178,7 +178,7 @@ public class JobDaoTest extends TestBase {
     public void should_get_job_success_number_and_name(){
         Job job = new Job(CommonUtil.randomId());
         job.setNumber(1);
-        job.setNodePath("/flow/test");
+        job.setNodePath("flow/test");
         job.setNodeName("test");
         job.setSessionId("11111111");
         jobDao.save(job);

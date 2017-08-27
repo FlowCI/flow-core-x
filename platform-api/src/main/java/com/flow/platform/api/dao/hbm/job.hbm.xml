@@ -11,11 +11,18 @@
       <column name="id" sql-type="decimal(25, 0)"/>
     </id>
 
-    <property name="number" type="integer" column="number" not-null="true"/>
+    <property name="nodePath">
+      <column name="node_path"
+        index="idx_job_node_path"
+        unique-key="idx_job_node_path_build_number"
+        not-null="true"/>
+    </property>
 
-    <property name="nodeName" column="node_name" not-null="true"/>
+    <property name="number" type="integer">
+      <column name="build_number" unique-key="idx_job_node_path_build_number" not-null="true"/>
+    </property>
 
-    <property name="nodePath" column="node_path" not-null="true"/>
+    <property name="nodeName" column="node_name" length="50" not-null="true"/>
 
     <property name="status" column="job_status" length="20" not-null="true">
       <type name="org.hibernate.type.EnumType">

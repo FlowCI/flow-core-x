@@ -134,10 +134,10 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 "select * from job as job left join node_result as nr"
                     + "  on job.node_path=nr.node_path and job.id=nr.job_id"
                     + "  where "
-                    + "    job.node_name=:name and job.number=:number"
+                    + "    job.node_name=:name and job.build_number=:build_number"
             )
                 .setParameter("name", flowName)
-                .setParameter("number", number)
+                .setParameter("build_number", number)
                 .setResultSetMapping("MappingJobResult");
             Object[] objects = (Object[]) nativeQuery.uniqueResult();
             return JobConvertUtil.convert(objects);
@@ -147,11 +147,16 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public Integer maxBuildNumber(String flowName) {
         return execute((Session session) -> {
-            String select = String.format("select max(number) from Job where node_name='%s'", flowName);
-            Integer integer = (Integer) session.createQuery(select).uniqueResult();
+            String select = "select max(build_number) from job where node_path=:node_path";
+            Integer integer = (Integer) session
+                .createNativeQuery(select)
+                .setParameter("node_path", flowName)
+                .uniqueResult();
+
             if (integer == null) {
                 integer = 0;
             }
+
             return integer;
         });
     }
