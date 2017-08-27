@@ -24,7 +24,9 @@ import com.flow.platform.domain.CmdBase;
 public class CmdQueueItem {
 
     private String identifier;
+
     private CmdBase cmdBase;
+
     private Integer retryTimes = 0;
 
     public CmdQueueItem(String identifier, CmdBase cmdBase) {

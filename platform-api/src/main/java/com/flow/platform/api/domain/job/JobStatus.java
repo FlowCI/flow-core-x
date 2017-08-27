@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.node.NodeTree;
-import java.math.BigInteger;
+package com.flow.platform.api.domain.job;
 
 /**
- * @author lhl
+ * @author yang
  */
-public interface JobNodeService {
+public enum JobStatus {
 
-    /**
-     * save yml to db
-     */
-    void save(BigInteger jobId, String yml);
+    CREATED,
 
+    SESSION_CREATING, // creating agent session
 
-    /**
-     * get node tree by job
-     */
-    NodeTree get(BigInteger jobId);
+    RUNNING, // executing node tree
+
+    DONE, // finished
+
+    ERROR // finished with error
 
 }

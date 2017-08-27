@@ -28,7 +28,18 @@ import java.util.List;
 public interface JobService {
 
     /**
-     * create job
+     * find job by id
+     */
+    Job find(BigInteger id);
+
+    /**
+     * find by flow name and number
+     */
+    Job find(String flowName, Integer number);
+
+    /**
+     * create job from node path, copy yml to job yml
+     * request agent session from control center
      *
      * @param path any node path
      * @return job
@@ -44,16 +55,6 @@ public interface JobService {
      * run node
      */
     void run(Node node, Job job);
-
-    /**
-     * find job by id
-     */
-    Job find(BigInteger id);
-
-    /**
-     * find by flow name and number
-     */
-    Job find(String flowName, Integer number);
 
     /**
      * list all jobs

@@ -103,9 +103,12 @@ public class JobServiceTest extends TestBase {
     @Test
     public void should_stop_success() throws IOException {
         stubDemo();
+
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
+        Assert.assertNotNull(job.getCmdId());
+
         Assert.assertEquals(true, jobService.stopJob(job.getNodeName(), job.getNumber()));
         job = jobService.find(job.getNodeName(), job.getNumber());
         Assert.assertEquals(NodeStatus.STOPPED, job.getResult().getStatus());

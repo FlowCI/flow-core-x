@@ -32,6 +32,9 @@ public class Job extends EnvObject {
     @Expose
     private String nodePath;
 
+    @Expose
+    private Integer number;
+
     private String sessionId;
 
     private String cmdId;
@@ -40,16 +43,13 @@ public class Job extends EnvObject {
     private String nodeName;
 
     @Expose
-    private String branch;
+    private JobStatus status = JobStatus.CREATED;
 
     @Expose
     private ZonedDateTime createdAt;
 
     @Expose
     private ZonedDateTime updatedAt;
-
-    @Expose
-    private Integer number;
 
     @Expose
     private NodeResult result;
@@ -85,6 +85,14 @@ public class Job extends EnvObject {
         this.sessionId = sessionId;
     }
 
+    public String getCmdId() {
+        return cmdId;
+    }
+
+    public void setCmdId(String cmdId) {
+        this.cmdId = cmdId;
+    }
+
     public BigInteger getId() {
         return id;
     }
@@ -117,14 +125,6 @@ public class Job extends EnvObject {
         this.nodePath = nodePath;
     }
 
-    public String getCmdId() {
-        return cmdId;
-    }
-
-    public void setCmdId(String cmdId) {
-        this.cmdId = cmdId;
-    }
-
     public String getNodeName() {
         return nodeName;
     }
@@ -133,12 +133,12 @@ public class Job extends EnvObject {
         this.nodeName = nodeName;
     }
 
-    public String getBranch() {
-        return branch;
+    public JobStatus getStatus() {
+        return status;
     }
 
-    public void setBranch(String branch) {
-        this.branch = branch;
+    public void setStatus(JobStatus status) {
+        this.status = status;
     }
 
     @Override
@@ -166,7 +166,6 @@ public class Job extends EnvObject {
             "id='" + id + '\'' +
             ", nodePath='" + nodePath + '\'' +
             ", sessionId='" + sessionId + '\'' +
-            ", cmdId='" + cmdId + '\'' +
             '}';
     }
 }

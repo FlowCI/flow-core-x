@@ -65,7 +65,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 "select * from job as job left join node_result as nr"
                     + "  on job.node_path=nr.node_path and job.id=nr.job_id"
                     + "  where "
-                    + "    job.session_id in (:sessionIds) and nr.status=:status"
+                    + "    job.session_id in (:sessionIds) and nr.node_status=:status"
             )
                 .setParameter("sessionIds", sessionIds)
                 .setParameter("status", nodeStatus.getName())
@@ -91,6 +91,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         });
     }
 
+    // TODO: parameter change to node paths
     @Override
     public List<Job> listLatest(List<String> nodeNames) {
         return execute((Session session) -> {
@@ -111,7 +112,6 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public List<Job> list(String nodePath) {
         return execute((Session session) -> {
-
 
             NativeQuery nativeQuery = session.createNativeQuery(
                 "select * from job as job left join node_result as nr"

@@ -13,25 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.node.NodeTree;
-import java.math.BigInteger;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.Node;
 
 /**
- * @author lhl
+ * Control center cmd service
+ *
+ * @author yang
  */
-public interface JobNodeService {
+public interface CmdService {
 
     /**
-     * save yml to db
+     * Send create session cmd job async
+     *
+     * @return cmd id for create session
      */
-    void save(BigInteger jobId, String yml);
-
+    String createSession(Job job);
 
     /**
-     * get node tree by job
+     * Send delete session cmd by job
      */
-    NodeTree get(BigInteger jobId);
+    void deleteSession(Job job);
 
+    /**
+     * Send run shell cmd by node for job
+     *
+     * @return cmd id
+     */
+    String runShell(Job job, Node node);
 }

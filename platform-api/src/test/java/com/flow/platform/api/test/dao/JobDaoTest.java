@@ -45,35 +45,43 @@ public class JobDaoTest extends TestBase {
     public void should_save_and_get_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setCmdId("1111");
-        job.setNodePath("/flow/test");
+        job.setNodePath("flow/test");
+        job.setNodeName("test");
+        job.setNumber(1);
         jobDao.save(job);
 
-        Job job1 = jobDao.get(job.getId());
-        Assert.assertNotNull(job1);
-        Assert.assertEquals(job.getNodePath(), job1.getNodePath());
+        Job loaded = jobDao.get(job.getId());
+        Assert.assertNotNull(loaded);
+        Assert.assertEquals(job.getNodePath(), loaded.getNodePath());
     }
 
     @Test
     public void should_update_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setCmdId("1111");
-        job.setNodePath("/flow/test");
+        job.setNodePath("flow/test");
+        job.setNodeName("test");
+        job.setNumber(1);
         jobDao.save(job);
 
-        Job job1 = jobDao.get(job.getId());
-        job.setNodePath("/flow/sss");
+        Job loaded = jobDao.get(job.getId());
+        loaded.setNodePath("flow/sss");
+        loaded.setNodeName("sss");
         jobDao.update(job);
 
-        Job job2 = jobDao.get(job.getId());
-        Assert.assertEquals(job1.getId(), job2.getId());
-        Assert.assertNotEquals(job1.getNodePath(), job2.getNodePath());
+        Job updated = jobDao.get(job.getId());
+        Assert.assertEquals(loaded.getId(), updated.getId());
+        Assert.assertNotEquals(loaded.getNodePath(), updated.getNodePath());
     }
 
     @Test
     public void should_list_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setCmdId("1111");
-        job.setNodePath("/flow/test");
+        job.setNodePath("flow/test");
+        job.setNodeName("test");
+        job.setNumber(1);
+
         jobDao.save(job);
         Assert.assertEquals(1, jobDao.list().size());
     }
@@ -82,9 +90,13 @@ public class JobDaoTest extends TestBase {
     public void should_delete_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setCmdId("1111");
-        job.setNodePath("/flow/test");
+        job.setNodePath("flow/test");
+        job.setNodeName("test");
+        job.setNumber(1);
+
         jobDao.save(job);
         Assert.assertEquals(1, jobDao.list().size());
+
         jobDao.delete(job);
         Assert.assertEquals(0, jobDao.list().size());
     }
@@ -130,6 +142,7 @@ public class JobDaoTest extends TestBase {
         job = jobDao.get(job.getId());
         List<String> sessionIds = new ArrayList<>();
         sessionIds.add(job.getSessionId());
+
         List<Job> jobs = jobDao.list(sessionIds, NodeStatus.SUCCESS);
         Assert.assertEquals(1, jobs.size());
         Job job1 = jobs.get(0);
