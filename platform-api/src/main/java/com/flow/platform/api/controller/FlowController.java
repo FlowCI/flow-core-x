@@ -158,7 +158,7 @@ public class FlowController extends NodeController {
      * @api {get} /flows/:rootenv/:key Get Env
      * @apiParam {String} root root node name
      * @apiParam {String} [key] env variable name
-     * @apiGroup Node
+     * @apiGroup Flows
      * @apiDescription Get node env by path or name
      *
      * @apiSuccessExample {json} Success-Response
