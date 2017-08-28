@@ -20,30 +20,20 @@ import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
-import com.flow.platform.core.sysinfo.PropertySystemInfo;
-import com.flow.platform.core.sysinfo.SystemInfo;
-import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.core.util.ThreadUtil;
-import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
  * @author yang
@@ -109,7 +99,7 @@ public class AppConfig extends AppConfigBase {
     }
 
     @Bean
-    public PlatformURL platformURL(){
+    public PlatformURL platformURL() {
         return new PlatformURL(platFormBaseURL);
     }
 }
