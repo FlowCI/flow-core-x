@@ -275,6 +275,10 @@
 ``` 
         Method: Post
         Route: /agents/shutdown
+        Params:
+          - zone
+          - name
+          - password
         Response:
             true or false
   ```  

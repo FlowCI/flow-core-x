@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.sysinfo.GroupSystemInfo;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.core.service.SysInfoServiceImplBase;
@@ -29,7 +30,7 @@ import com.flow.platform.core.sysinfo.SystemInfoLoader;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -42,8 +43,8 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
     private final Map<Category, Map<Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);
 
-    @Value("${platform.sysinfo.url}") // http://localhost:8080/sys/info
-    private String sysInfoUrl;
+    @Autowired
+    private PlatformURL platformURL;
 
     @PostConstruct
     public void init() {
@@ -78,7 +79,7 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
         @Override
         public SystemInfo load() {
-            String response = HttpUtil.get(sysInfoUrl + "/" + type.name().toLowerCase());
+            String response = HttpUtil.get(platformURL.getSysinfoUrl() + "/" + type.name().toLowerCase());
             if (response == null) {
                 return null;
             }
