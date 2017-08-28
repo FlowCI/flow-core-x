@@ -27,8 +27,10 @@ public interface JobNodeResultService {
 
     /**
      * Create empty node results by job
+     *
+     * @return NodeResult for root node
      */
-    void create(Job job);
+    NodeResult create(Job job);
 
     /**
      * find node by node path

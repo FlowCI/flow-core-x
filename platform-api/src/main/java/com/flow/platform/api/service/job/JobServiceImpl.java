@@ -161,7 +161,8 @@ public class JobServiceImpl implements JobService {
         jobNodeService.save(job.getId(), yml);
 
         // init for node result
-        jobNodeResultService.create(job);
+        NodeResult rootResult = jobNodeResultService.create(job);
+        job.setResult(rootResult);
 
         // to create agent session for job
         String createSessionCmdId = cmdService.createSession(job);

@@ -23,10 +23,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.test.TestBase;
 
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.domain.Jsonable;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
@@ -96,8 +96,8 @@ public class JobControllerTest extends TestBase {
             .andReturn();
 
         String response = mvcResult.getResponse().getContentAsString();
-        Boolean t = Jsonable.GSON_CONFIG.fromJson(response, Boolean.class);
-        Assert.assertEquals(true, t);
+        BooleanValue t = BooleanValue.parse(response, BooleanValue.class);
+        Assert.assertEquals(true, t.getValue());
 
         StringBuilder string = new StringBuilder("/jobs/");
 
@@ -109,6 +109,7 @@ public class JobControllerTest extends TestBase {
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
+
         String res = result.getResponse().getContentAsString();
         Job job1 = Job.parse(res, Job.class);
         Assert.assertEquals(NodeStatus.STOPPED, job1.getResult().getStatus());

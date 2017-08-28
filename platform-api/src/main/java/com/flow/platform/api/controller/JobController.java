@@ -18,9 +18,9 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
-import com.flow.platform.api.util.PathUtil;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
@@ -60,12 +60,60 @@ public class JobController extends NodeController {
         }
     }
 
+    /**
+     * @api {post} /jobs/:root Create
+     * @apiParam {String} root flow node path
+     * @apiGroup Jobs
+     * @apiDescription Create job by flow node path,
+     * FLOW_STATUS must be READY and YML contnet must be provided
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      nodePath: xx/xx/xx,
+     *      number: 1,
+     *      nodeName: xx,
+     *      status: CREATED,
+     *      createdAt: 154123211,
+     *      updatedAt: 154123211,
+     *      result: {
+     *          outputs: {
+     *              FLOW_ENV_OUT_1: xxxx,
+     *              FLOW_ENV_OUT_2: xxxx
+     *          },
+     *          duration: 0,
+     *          status: PENDING,
+     *          cmdId: xxxx,
+     *          nodeTag: FLOW,
+     *          startTime: 154123211,
+     *          finishTime: 154123211,
+     *          createdAt: 154123211,
+     *          updatedAt: 154123211
+     *      }
+     *  }
+     */
     @PostMapping(path = "/{root}")
     public Job create() {
         String path = getNodePathFromUrl();
         return jobService.createJob(path);
     }
 
+    /**
+     * @api {get} /jobs/:root List
+     * @apiParam {String} [root] flow node path, return all jobs if not presented
+     * @apiGroup Jobs
+     * @apiDescription Get jobs by node path or list all jobs
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  [
+     *      {
+     *          Job response json see Create response
+     *      },
+     *
+     *      {
+     *          ...
+     *      }
+     *  ]
+     */
     @GetMapping(path = "/{root}")
     public Collection<Job> index() {
         String path = getNodePathFromUrl();
@@ -78,26 +126,97 @@ public class JobController extends NodeController {
         return jobService.list(paths, false);
     }
 
+    /**
+     * @api {get} /jobs/:root/:buildNumber Show
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiGroup Jobs
+     * @apiDescription Get job by path and build number
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      Job response json see Create response
+     *  }
+     */
     @GetMapping(path = "/{root}/{buildNumber}")
     public Job show(@PathVariable Integer buildNumber) {
         String path = getNodePathFromUrl();
         return jobService.find(path, buildNumber);
     }
 
+    /**
+     * @api {get} /jobs/:root/:buildNumber/nodes List Nodes
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiGroup Jobs
+     * @apiDescription Get all sub node results
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  [
+     *      {
+     *          outputs: {
+     *              FLOW_ENV_OUT_1: xxxx,
+     *              FLOW_ENV_OUT_2: xxxx
+     *          },
+     *          duration: 0,
+     *          status: PENDING,
+     *          cmdId: xxxx,
+     *          nodeTag: FLOW,
+     *          startTime: 154123211,
+     *          finishTime: 154123211,
+     *          createdAt: 154123211,
+     *          updatedAt: 154123211
+     *      },
+     *
+     *      {
+     *          ...
+     *      }
+     *  ]
+     */
     @GetMapping(path = "/{root}/{buildNumber}/nodes")
     public List<NodeResult> indexNodeResults(@PathVariable Integer buildNumber) {
         String path = getNodePathFromUrl();
         return jobService.listNodeResult(path, buildNumber);
     }
 
+    /**
+     * @api {post} /jobs/:root/:buildNumber/stop Stop
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiGroup Jobs
+     * @apiDescription Stop job by node path and build number
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      value: true
+     *  }
+     */
+    @PostMapping(path = "/{root}/{buildNumber}/stop")
+    public BooleanValue stopJob(@PathVariable Integer buildNumber) {
+        String path = getNodePathFromUrl();
+        boolean value = jobService.stopJob(path, buildNumber);
+        return new BooleanValue(value);
+    }
+
+    /**
+     * @api {post} /jobs/status/latest Latest
+     * @apiParam {Array} paths List of flow node path
+     * @apiGroup Jobs
+     * @apiDescription Get latest job for flow nodes
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  [
+     *      {
+     *          Job response json see Create response
+     *      },
+     *
+     *      {
+     *          ..
+     *      }
+     *  ]
+     */
     @PostMapping(path = "/status/latest")
     public Collection<Job> latestStatus(@RequestBody List<String> paths) {
         return jobService.list(paths, true);
-    }
-
-    @PostMapping(path = "/{root}/{buildNumber}/stop")
-    public Boolean stopJob(@PathVariable Integer buildNumber) {
-        String path = getNodePathFromUrl();
-        return jobService.stopJob(path, buildNumber);
     }
 }

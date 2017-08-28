@@ -46,13 +46,15 @@ public class JobNodeResultServiceImpl implements JobNodeResultService {
     private NodeService nodeService;
 
     @Override
-    public void create(Job job) {
+    public NodeResult create(Job job) {
         String nodePath = job.getNodePath();
         Node root = nodeService.find(nodePath);
 
         if (root == null) {
             throw new IllegalStatusException("Job related node is empty, please check");
         }
+
+        final NodeResult[] rootResult = {null};
 
         // save all empty node result to db
         NodeUtil.recurse(root, node -> {
@@ -63,9 +65,11 @@ public class JobNodeResultServiceImpl implements JobNodeResultService {
             nodeResultDao.save(nodeResult);
 
             if (node.equals(root)) {
-                job.setResult(nodeResult);
+                rootResult[0] = nodeResult;
             }
         });
+
+        return rootResult[0];
     }
 
     @Override
