@@ -17,6 +17,7 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.core.sysinfo.PropertySystemInfo;
@@ -73,6 +74,9 @@ public class AppConfig extends AppConfigBase {
     @Value("${api.workspace}")
     private String workspace;
 
+    @Value("${platform.url}")
+    private String platFormBaseURL;
+
     @Bean
     public Path workspace() {
         try {
@@ -102,5 +106,10 @@ public class AppConfig extends AppConfigBase {
     @Override
     protected String getVersion() {
         return VERSION;
+    }
+
+    @Bean
+    public PlatformURL platformURL(){
+        return new PlatformURL(platFormBaseURL);
     }
 }

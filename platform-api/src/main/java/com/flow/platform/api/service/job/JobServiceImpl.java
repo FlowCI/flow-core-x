@@ -29,7 +29,7 @@ import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.api.util.PlatformUrlUtil;
+import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -99,7 +99,7 @@ public class JobServiceImpl implements JobService {
     private String zone;
 
     @Autowired
-    private PlatformUrlUtil platformUrlUtil;
+    private PlatformURL platformURL;
 
     @Override
     public Job createJob(String path) {
@@ -206,10 +206,10 @@ public class JobServiceImpl implements JobService {
         LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
 
         try {
-            String res = HttpUtil.post(platformUrlUtil.getCmdUrl(), cmdInfo.toJson());
+            String res = HttpUtil.post(platformURL.getCmdUrl(), cmdInfo.toJson());
 
             if (res == null) {
-                LOGGER.warn(String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", platformUrlUtil.getCmdUrl(), cmdInfo.toJson()));
+                LOGGER.warn(String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", platformURL.getCmdUrl(), cmdInfo.toJson()));
                 throw new HttpException(
                     String.format("Post Cmd Error, Node Name - %s, CmdInfo - %s", node.getName(), cmdInfo.toJson()));
             }
@@ -284,7 +284,7 @@ public class JobServiceImpl implements JobService {
      */
     private Cmd sendToQueue(CmdInfo cmdInfo) {
         Cmd cmd = null;
-        StringBuilder stringBuilder = new StringBuilder(platformUrlUtil.getQueueUrl());
+        StringBuilder stringBuilder = new StringBuilder(platformURL.getQueueUrl());
         stringBuilder.append("?priority=1&retry=5");
         try {
             String res = HttpUtil.post(stringBuilder.toString(), cmdInfo.toJson());
@@ -595,7 +595,7 @@ public class JobServiceImpl implements JobService {
             cmdId = runningNodeResult.getCmdId();
         }
 
-        String url = new StringBuilder(platformUrlUtil.getCmdStopUrl()).append(cmdId).toString();
+        String url = new StringBuilder(platformURL.getCmdStopUrl()).append(cmdId).toString();
         LOGGER.traceMarker("stopJob", String.format("url - %s", url));
 
         updateNodeResult(runningJob, NodeStatus.STOPPED);

@@ -16,19 +16,11 @@
 
 package com.flow.platform.api.util;
 
-import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 /**
  * @author yh@firim
  */
 
-@Component(value = "platformUrlUtil")
-public class PlatformUrlUtil {
-
-    @Value(value = "${platform.url}")
-    private String baseUrl;
+public class PlatformURL {
 
     private String cmdUrl;
     private String queueUrl;
@@ -37,14 +29,13 @@ public class PlatformUrlUtil {
     private String agentShutdownUrl;
     private String sysinfoUrl;
 
-    @PostConstruct
-    private void init() {
-        cmdUrl = String.format("%s%s", baseUrl, "cmd/send");
-        queueUrl = String.format("%s%s", baseUrl, "cmd/queue/send");
-        cmdStopUrl = String.format("%s%s", baseUrl, "cmd/stop/");
-        agentUrl = String.format("%s%s", baseUrl, "agent/list");
-        agentShutdownUrl = String.format("%s%s", baseUrl, "agent/shutdown");
-        sysinfoUrl = String.format("%s%s", baseUrl, "sys/info");
+    public PlatformURL(String baseURL) {
+        cmdUrl = String.format("%s%s", baseURL, "cmd/send");
+        queueUrl = String.format("%s%s", baseURL, "cmd/queue/send");
+        cmdStopUrl = String.format("%s%s", baseURL, "cmd/stop/");
+        agentUrl = String.format("%s%s", baseURL, "agent/list");
+        agentShutdownUrl = String.format("%s%s", baseURL, "agent/shutdown");
+        sysinfoUrl = String.format("%s%s", baseURL, "sys/info");
     }
 
     public String getCmdUrl() {

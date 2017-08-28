@@ -20,7 +20,7 @@ import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.util.PlatformUrlUtil;
+import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Jsonable;
@@ -47,11 +47,11 @@ public class AgentServiceImpl implements AgentService {
     private JobDao jobDao;
 
     @Autowired
-    private PlatformUrlUtil platformUrlUtil;
+    private PlatformURL platformURL;
 
     @Override
     public List<AgentWithFlow> list() {
-        String res = HttpUtil.get(platformUrlUtil.getAgentUrl());
+        String res = HttpUtil.get(platformURL.getAgentUrl());
         if (res == null) {
             throw new RuntimeException("Get Agent List error");
         }
@@ -90,7 +90,7 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Boolean shutdown(String zone, String name, String password) {
-        String url = platformUrlUtil.getAgentShutdownUrl() + "?zone=" + zone + "&name=" + name + "&password=" + password;
+        String url = platformURL.getAgentShutdownUrl() + "?zone=" + zone + "&name=" + name + "&password=" + password;
 
         try {
             String body = HttpUtil.post(url, "");
