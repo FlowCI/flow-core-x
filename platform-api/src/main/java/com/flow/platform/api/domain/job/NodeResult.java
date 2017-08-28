@@ -33,7 +33,7 @@ public class NodeResult extends Jsonable {
     private Map<String, String> outputs = new HashMap<>();
 
     @Expose
-    private Long duration = 0l;
+    private Long duration = 0L;
 
     @Expose
     private Integer exitCode;
@@ -56,7 +56,7 @@ public class NodeResult extends Jsonable {
     @Expose
     private ZonedDateTime finishTime;
 
-    private String name;
+    private String name; // node name
 
     @Expose
     private ZonedDateTime createdAt;
@@ -64,17 +64,15 @@ public class NodeResult extends Jsonable {
     @Expose
     private ZonedDateTime updatedAt;
 
-    private Job job;
-
     public NodeResult() {
     }
 
-    public Job getJob() {
-        return job;
+    public NodeResult(BigInteger jobId, String path) {
+        this(new NodeResultKey(jobId, path));
     }
 
-    public void setJob(Job job) {
-        this.job = job;
+    public NodeResult(NodeResultKey nodeResultKey) {
+        this.nodeResultKey = nodeResultKey;
     }
 
     public String getName() {
@@ -99,14 +97,6 @@ public class NodeResult extends Jsonable {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public NodeResult(BigInteger jobId, String path) {
-        this(new NodeResultKey(jobId, path));
-    }
-
-    public NodeResult(NodeResultKey nodeResultKey) {
-        this.nodeResultKey = nodeResultKey;
     }
 
     public NodeResultKey getNodeResultKey() {

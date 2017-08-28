@@ -33,9 +33,22 @@ public interface JobService {
     Job find(BigInteger id);
 
     /**
-     * find by flow name and number
+     * find by node path and number
      */
-    Job find(String flowName, Integer number);
+    Job find(String path, Integer number);
+
+    /**
+     * List all jobs by given path
+     *
+     * @param paths job node path
+     * @param latestOnly is only load latest job
+     */
+    List<Job> list(List<String> paths, boolean latestOnly);
+
+    /**
+     * list node results
+     */
+    List<NodeResult> listNodeResult(String path, Integer number);
 
     /**
      * create job from node path, copy yml to job yml
@@ -57,16 +70,6 @@ public interface JobService {
     void run(Node node, Job job);
 
     /**
-     * list all jobs
-     */
-    List<Job> listJobs(String flowPath, List<String> flowPaths);
-
-    /**
-     * list node results
-     */
-    List<NodeResult> listNodeResult(String flowName, Integer number);
-
-    /**
      * send cmd to queue
      */
     void enterQueue(CmdQueueItem cmdQueueItem);
@@ -74,5 +77,5 @@ public interface JobService {
     /**
      * stop job
      */
-    Boolean stopJob(String name, Integer buildNumber);
+    Boolean stopJob(String path, Integer buildNumber);
 }

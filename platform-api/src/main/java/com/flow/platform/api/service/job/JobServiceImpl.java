@@ -105,8 +105,23 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job find(String flowName, Integer number) {
-        return jobDao.get(flowName, number);
+    public Job find(String path, Integer number) {
+        return jobDao.get(path, number);
+    }
+
+    @Override
+    public List<NodeResult> listNodeResult(String path, Integer number) {
+        Job job = find(path, number);
+        return jobNodeResultService.list(job);
+    }
+
+    @Override
+    public List<Job> list(List<String> paths, boolean latestOnly) {
+        if (latestOnly) {
+            jobDao.latestByPath(paths);
+        }
+
+        return jobDao.listByPath(paths);
     }
 
     @Override
@@ -136,7 +151,7 @@ public class JobServiceImpl implements JobService {
         Job job = new Job(CommonUtil.randomId());
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
-        job.setNumber(jobDao.maxBuildNumber(job.getNodeName()) + 1);
+        job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
         job.setEnvs(root.getEnvs());
 
         //save job
@@ -461,22 +476,6 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<Job> listJobs(String flowName, List<String> flowNames) {
-        if (flowName == null && flowNames == null) {
-            return jobDao.list();
-        }
-
-        if (flowNames != null) {
-            return jobDao.listLatest(flowNames);
-        }
-
-        if (flowName != null) {
-            return jobDao.list(flowName);
-        }
-        return null;
-    }
-
-    @Override
     public void enterQueue(CmdQueueItem cmdQueueItem) {
         try {
             cmdBaseBlockingQueue.put(cmdQueueItem);
@@ -486,16 +485,16 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Boolean stopJob(String name, Integer buildNumber) {
+    public Boolean stopJob(String path, Integer buildNumber) {
         String cmdId;
-        Job runningJob = find(name, buildNumber);
+        Job runningJob = find(path, buildNumber);
 
         if (runningJob == null) {
-            throw new NotFoundException(String.format("running job not found name - %s", name));
+            throw new NotFoundException(String.format("running job not found by path - %s", path));
         }
 
         if (runningJob.getResult() == null) {
-            throw new NotFoundException(String.format("running job not found node result - %s", name));
+            throw new NotFoundException(String.format("running job not found node result - %s", path));
         }
 
         //job in create session status
@@ -539,11 +538,5 @@ public class JobServiceImpl implements JobService {
                 jobNodeResultService.update(result);
             }
         }
-    }
-
-    @Override
-    public List<NodeResult> listNodeResult(String flowName, Integer number) {
-        Job job = find(flowName, number);
-        return jobNodeResultService.list(job);
     }
 }

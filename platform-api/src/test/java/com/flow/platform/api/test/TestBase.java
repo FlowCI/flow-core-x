@@ -85,7 +85,7 @@ public abstract class TestBase {
     protected JobDao jobDao;
 
     @Autowired
-    private UserDao userDao;
+    protected UserDao userDao;
 
     @Autowired
     protected YmlDao ymlDao;

@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,14 +34,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
 /**
  * @author yh@firim
  */
-
 @RestController
 @RequestMapping(path = "/jobs")
-public class JobController {
+public class JobController extends NodeController {
 
     @Autowired
     private JobService jobService;
@@ -61,33 +60,44 @@ public class JobController {
         }
     }
 
-    @PostMapping(path = "/{flowName}")
-    public Job create(@PathVariable String flowName) {
-        return jobService.createJob(PathUtil.build(flowName));
+    @PostMapping(path = "/{root}")
+    public Job create() {
+        String path = getNodePathFromUrl();
+        return jobService.createJob(path);
     }
 
-    @GetMapping
-    public Collection<Job> index(@RequestParam(required = false) String flowName) {
-        return jobService.listJobs(flowName, null);
+    @GetMapping(path = "/{root}")
+    public Collection<Job> index() {
+        String path = getNodePathFromUrl();
+
+        List<String> paths = null;
+        if (path != null) {
+            paths = Lists.newArrayList(path);
+        }
+
+        return jobService.list(paths, false);
     }
 
-    @GetMapping(path = "/{flowName}/{buildNumber}")
-    public Job show(@PathVariable String flowName, @PathVariable Integer buildNumber) {
-        return jobService.find(flowName, buildNumber);
+    @GetMapping(path = "/{root}/{buildNumber}")
+    public Job show(@PathVariable Integer buildNumber) {
+        String path = getNodePathFromUrl();
+        return jobService.find(path, buildNumber);
     }
 
-    @GetMapping(path = "/{flowName}/{buildNumber}/nodes")
-    public List<NodeResult> indexNodeResults(@PathVariable String flowName, @PathVariable Integer buildNumber) {
-        return jobService.listNodeResult(flowName, buildNumber);
+    @GetMapping(path = "/{root}/{buildNumber}/nodes")
+    public List<NodeResult> indexNodeResults(@PathVariable Integer buildNumber) {
+        String path = getNodePathFromUrl();
+        return jobService.listNodeResult(path, buildNumber);
     }
 
     @PostMapping(path = "/status/latest")
-    public Collection<Job> latestStatus(@RequestBody List<String> flowPaths) {
-        return jobService.listJobs(null, flowPaths);
+    public Collection<Job> latestStatus(@RequestBody List<String> paths) {
+        return jobService.list(paths, true);
     }
 
-    @PostMapping(path = "/{flowName}/{buildNumber}/stop")
-    public Boolean stopJob(@PathVariable String flowName, @PathVariable Integer buildNumber) {
-        return jobService.stopJob(flowName, buildNumber);
+    @PostMapping(path = "/{root}/{buildNumber}/stop")
+    public Boolean stopJob(@PathVariable Integer buildNumber) {
+        String path = getNodePathFromUrl();
+        return jobService.stopJob(path, buildNumber);
     }
 }
