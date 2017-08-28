@@ -45,9 +45,6 @@ public class SysInfoServiceTest extends TestBase {
     @Autowired
     private SysInfoService sysInfoService;
 
-    @Value("${platform.sysinfo.url}")
-    private String sysInfoUrl;
-
     @Value("${jdbc.url}")
     private String jdbcUrl;
 

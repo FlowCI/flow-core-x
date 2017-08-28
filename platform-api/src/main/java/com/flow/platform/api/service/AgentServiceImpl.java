@@ -20,6 +20,7 @@ import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.util.PlatformUrlUtil;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Jsonable;
@@ -39,21 +40,18 @@ public class AgentServiceImpl implements AgentService {
 
     private final Logger LOGGER = new Logger(AgentService.class);
 
-    @Value(value = "${platform.agent.url}")
-    private String agentUrl;
-
-    @Value(value = "${platform.agent.shutdown.url}")
-    private String shutdownAgentUrl;
-
     @Value(value = "${platform.zone}")
     private String zone;
 
     @Autowired
     private JobDao jobDao;
 
+    @Autowired
+    private PlatformUrlUtil platformUrlUtil;
+
     @Override
     public List<AgentWithFlow> list() {
-        String res = HttpUtil.get(agentUrl);
+        String res = HttpUtil.get(platformUrlUtil.getAgentUrl());
         if (res == null) {
             throw new RuntimeException("Get Agent List error");
         }
@@ -92,7 +90,7 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Boolean shutdown(String zone, String name, String password) {
-        String url = shutdownAgentUrl + "?zone=" + zone + "&name=" + name + "&password=" + password;
+        String url = platformUrlUtil.getAgentShutdownUrl() + "?zone=" + zone + "&name=" + name + "&password=" + password;
 
         try {
             String body = HttpUtil.post(url, "");
