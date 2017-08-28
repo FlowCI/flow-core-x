@@ -34,15 +34,12 @@ import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.core.exception.FlowException;
-import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
-import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
@@ -51,7 +48,6 @@ import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -176,10 +172,10 @@ public class JobServiceImpl implements JobService {
     @Override
     public void callback(CmdQueueItem cmdQueueItem) {
         String id = cmdQueueItem.getIdentifier();
-        CmdBase cmdBase = cmdQueueItem.getCmdBase();
+        Cmd cmd = cmdQueueItem.getCmd();
         Job job;
 
-        if (cmdBase.getType() == CmdType.CREATE_SESSION) {
+        if (cmd.getType() == CmdType.CREATE_SESSION) {
 
             // TODO: refactor to find(id, timeout)
             job = find(new BigInteger(id));
@@ -199,18 +195,19 @@ public class JobServiceImpl implements JobService {
                 LOGGER.warn(String.format("job not found, jobId: %s", id));
                 throw new NotFoundException("job not found");
             }
-            sessionCallback(job, cmdBase);
+
+            sessionCallback(job, cmd);
             return;
         }
 
-        if (cmdBase.getType() == CmdType.RUN_SHELL) {
+        if (cmd.getType() == CmdType.RUN_SHELL) {
             Map<String, String> map = Jsonable.GSON_CONFIG.fromJson(id, Map.class);
             job = find(new BigInteger(map.get("jobId")));
-            nodeCallback(map.get("path"), cmdBase, job);
+            nodeCallback(map.get("path"), cmd, job);
             return;
         }
 
-        LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmdBase.getType().toString()));
+        LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmd.getType().toString()));
         throw new NotFoundException("not found cmdType");
     }
 
@@ -242,9 +239,9 @@ public class JobServiceImpl implements JobService {
     /**
      * session success callback
      */
-    private void sessionCallback(Job job, CmdBase cmdBase) {
-        if (cmdBase.getStatus() != CmdStatus.SENT) {
-            LOGGER.warn(String.format("Create Session Error Session Status - %s", cmdBase.getStatus().getName()));
+    private void sessionCallback(Job job, Cmd cmd) {
+        if (cmd.getStatus() != CmdStatus.SENT) {
+            LOGGER.warn(String.format("Create Session Error Session Status - %s", cmd.getStatus().getName()));
             job.setStatus(JobStatus.ERROR);
             jobDao.update(job);
             return;
@@ -258,7 +255,7 @@ public class JobServiceImpl implements JobService {
 
         // start run flow
         job.setStatus(JobStatus.RUNNING);
-        job.setSessionId(cmdBase.getSessionId());
+        job.setSessionId(cmd.getSessionId());
         jobDao.update(job);
 
         run(NodeUtil.first(tree.root()), job);
@@ -267,24 +264,24 @@ public class JobServiceImpl implements JobService {
     /**
      * step success callback
      */
-    private void nodeCallback(String nodePath, CmdBase cmdBase, Job job) {
+    private void nodeCallback(String nodePath, Cmd cmd, Job job) {
         NodeTree tree = jobNodeService.get(job.getId());
         Node node = tree.find(nodePath);
         NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
 
-        NodeStatus nodeStatus = handleStatus(cmdBase);
+        NodeStatus newStatus = NodeStatus.transfer(cmd);
 
         // keep job step status sorted
-        if (nodeResult.getStatus().getLevel() >= nodeStatus.getLevel()) {
+        if (nodeResult.getStatus().getLevel() >= newStatus.getLevel()) {
             return;
         }
 
         //update job step status
-        nodeResult.setStatus(nodeStatus);
+        nodeResult.setStatus(newStatus);
         jobNodeResultService.update(nodeResult);
 
         //update node status
-        updateNodeStatus(node, cmdBase, job);
+        updateNodeStatus(node, cmd, job);
     }
 
     /**
@@ -316,16 +313,16 @@ public class JobServiceImpl implements JobService {
     /**
      * update node status
      */
-    private void updateNodeStatus(Node node, CmdBase cmdBase, Job job) {
+    private void updateNodeStatus(Node node, Cmd cmd, Job job) {
+
         NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
-        //update jobNode
-        nodeResult.setUpdatedAt(ZonedDateTime.now());
-        nodeResult.setStatus(handleStatus(cmdBase));
-        CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
+        nodeResult.setStatus(NodeStatus.transfer(cmd));
+        CmdResult cmdResult = ((Cmd) cmd).getCmdResult();
 
         Node parent = node.getParent();
         Node prev = node.getPrev();
         Node next = node.getNext();
+
         switch (nodeResult.getStatus()) {
             case PENDING:
             case RUNNING:
@@ -336,7 +333,7 @@ public class JobServiceImpl implements JobService {
                 if (parent != null) {
                     // first node running update parent node running
                     if (prev == null) {
-                        updateNodeStatus(node.getParent(), cmdBase, job);
+                        updateNodeStatus(node.getParent(), cmd, job);
                     }
                 }
                 break;
@@ -348,7 +345,7 @@ public class JobServiceImpl implements JobService {
                 if (parent != null) {
                     // last node running update parent node running
                     if (next == null) {
-                        updateNodeStatus(node.getParent(), cmdBase, job);
+                        updateNodeStatus(node.getParent(), cmd, job);
                     } else {
                         run(NodeUtil.next(node), job);
                     }
@@ -363,13 +360,13 @@ public class JobServiceImpl implements JobService {
                 //update parent node if next is not null, if allow failure is false
                 if (parent != null && (((Step) node).getAllowFailure())) {
                     if (next == null) {
-                        updateNodeStatus(node.getParent(), cmdBase, job);
+                        updateNodeStatus(node.getParent(), cmd, job);
                     }
                 }
 
                 //update parent node if next is not null, if allow failure is false
                 if (parent != null && !((Step) node).getAllowFailure()) {
-                    updateNodeStatus(node.getParent(), cmdBase, job);
+                    updateNodeStatus(node.getParent(), cmd, job);
                 }
 
                 //next node not null, run next node
@@ -383,7 +380,7 @@ public class JobServiceImpl implements JobService {
         updateJobStatus(nodeResult);
 
         //update node info
-        updateNodeInfo(node, cmdBase, job);
+        updateNodeInfo(node, cmd, job);
 
         //save
         jobNodeResultService.update(nodeResult);
@@ -432,48 +429,6 @@ public class JobServiceImpl implements JobService {
             //save
             jobNodeResultService.update(nodeResult);
         }
-    }
-
-    /**
-     * transfer cmdStatus to Job status
-     */
-    private NodeStatus handleStatus(CmdBase cmdBase) {
-        NodeStatus nodeStatus = null;
-        switch (cmdBase.getStatus()) {
-            case SENT:
-            case PENDING:
-                nodeStatus = NodeStatus.PENDING;
-                break;
-
-            case RUNNING:
-            case EXECUTED:
-                nodeStatus = NodeStatus.RUNNING;
-                break;
-
-                case LOGGED:
-                CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
-                if (cmdResult != null && cmdResult.getExitValue() == 0) {
-                    nodeStatus = NodeStatus.SUCCESS;
-                } else {
-                    nodeStatus = NodeStatus.FAILURE;
-                }
-                break;
-
-            case KILLED:
-            case EXCEPTION:
-            case REJECTED:
-                nodeStatus = NodeStatus.FAILURE;
-                break;
-
-            case STOPPED:
-                nodeStatus = NodeStatus.STOPPED;
-                break;
-
-            case TIMEOUT_KILL:
-                nodeStatus = NodeStatus.TIMEOUT;
-                break;
-        }
-        return nodeStatus;
     }
 
     @Override

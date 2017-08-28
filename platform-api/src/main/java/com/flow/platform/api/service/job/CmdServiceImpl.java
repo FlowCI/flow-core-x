@@ -60,7 +60,7 @@ public class CmdServiceImpl implements CmdService {
         LOGGER.traceMarker("createSession", String.format("jobId - %s", job.getId()));
 
         // create session
-        Cmd cmd = sendToQueue(cmdInfo);
+        Cmd cmd = sendToQueue(cmdInfo, 5);
         if (cmd == null) {
             throw new IllegalStatusException("Unable to create session since cmd return null");
         }
@@ -79,7 +79,7 @@ public class CmdServiceImpl implements CmdService {
         LOGGER.traceMarker("deleteSession", String.format("sessionId - %s", job.getSessionId()));
 
         // delete session
-        sendToQueue(cmdInfo);
+        sendToQueue(cmdInfo, 5);
     }
 
     @Override
@@ -112,10 +112,10 @@ public class CmdServiceImpl implements CmdService {
     /**
      * send cmd to control center cmd queue
      */
-    private Cmd sendToQueue(CmdInfo cmdInfo) {
-        Cmd cmd = null;
-        StringBuilder stringBuilder = new StringBuilder(queueUrl);
-        stringBuilder.append("?priority=1&retry=5");
+    private Cmd sendToQueue(CmdInfo cmdInfo, Integer retry) {
+        final StringBuilder stringBuilder = new StringBuilder(queueUrl);
+        stringBuilder.append("?priority=1&retry=").append(retry);
+
         try {
             String res = HttpUtil.post(stringBuilder.toString(), cmdInfo.toJson());
 
@@ -128,11 +128,11 @@ public class CmdServiceImpl implements CmdService {
                 throw new HttpException(message);
             }
 
-            cmd = Jsonable.parse(res, Cmd.class);
+            return Jsonable.parse(res, Cmd.class);
         } catch (Throwable ignore) {
             LOGGER.warn("run step UnsupportedEncodingException", ignore);
+            return null;
         }
-        return cmd;
     }
 
     /**

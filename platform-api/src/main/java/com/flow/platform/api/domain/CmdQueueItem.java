@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.domain;
 
-import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.Cmd;
 
 /**
  * @author yh@firim
@@ -25,13 +25,13 @@ public class CmdQueueItem {
 
     private String identifier;
 
-    private CmdBase cmdBase;
+    private Cmd cmd;
 
     private Integer retryTimes = 0;
 
-    public CmdQueueItem(String identifier, CmdBase cmdBase) {
+    public CmdQueueItem(String identifier, Cmd cmd) {
         this.identifier = identifier;
-        this.cmdBase = cmdBase;
+        this.cmd = cmd;
     }
 
     public String getIdentifier() {
@@ -42,12 +42,12 @@ public class CmdQueueItem {
         this.identifier = identifier;
     }
 
-    public CmdBase getCmdBase() {
-        return cmdBase;
+    public Cmd getCmd() {
+        return cmd;
     }
 
-    public void setCmdBase(CmdBase cmdBase) {
-        this.cmdBase = cmdBase;
+    public void setCmd(Cmd cmd) {
+        this.cmd = cmd;
     }
 
     /**
@@ -71,13 +71,13 @@ public class CmdQueueItem {
         if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) {
             return false;
         }
-        return cmdBase != null ? cmdBase.equals(that.cmdBase) : that.cmdBase == null;
+        return cmd != null ? cmd.equals(that.cmd) : that.cmd == null;
     }
 
     @Override
     public int hashCode() {
         int result = identifier != null ? identifier.hashCode() : 0;
-        result = 31 * result + (cmdBase != null ? cmdBase.hashCode() : 0);
+        result = 31 * result + (cmd != null ? cmd.hashCode() : 0);
         return result;
     }
 
@@ -85,7 +85,7 @@ public class CmdQueueItem {
     public String toString() {
         return "CmdQueueItem{" +
             "identifier='" + identifier + '\'' +
-            ", cmdBase=" + cmdBase +
+            ", cmd=" + cmd +
             '}';
     }
 
