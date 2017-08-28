@@ -556,7 +556,10 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job find(String flowName, Integer number) {
-        Job job =  jobDao.get(flowName, number);
+        Job job = jobDao.get(flowName, number);
+        if (job == null) {
+            throw new NotFoundException("job is not found");
+        }
         return job;
     }
 
@@ -583,11 +586,13 @@ public class JobServiceImpl implements JobService {
         }
 
         //job in create session status
-        if (runningJob.getResult().getStatus() == NodeStatus.ENQUEUE || runningJob.getResult().getStatus() == NodeStatus.PENDING) {
+        if (runningJob.getResult().getStatus() == NodeStatus.ENQUEUE
+            || runningJob.getResult().getStatus() == NodeStatus.PENDING) {
             cmdId = runningJob.getCmdId();
 
             // job finish, stop job failure
-        } else if (runningJob.getResult().getStatus() == NodeStatus.SUCCESS || runningJob.getResult().getStatus() == NodeStatus.FAILURE) {
+        } else if (runningJob.getResult().getStatus() == NodeStatus.SUCCESS
+            || runningJob.getResult().getStatus() == NodeStatus.FAILURE) {
             return false;
 
         } else { // running
