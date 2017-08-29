@@ -18,27 +18,27 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Step;
-import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.api.util.PlatformURL;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
@@ -209,7 +209,8 @@ public class JobServiceImpl implements JobService {
             String res = HttpUtil.post(platformURL.getCmdUrl(), cmdInfo.toJson());
 
             if (res == null) {
-                LOGGER.warn(String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", platformURL.getCmdUrl(), cmdInfo.toJson()));
+                LOGGER.warn(String
+                    .format("post cmd error, cmdUrl: %s, cmdInfo: %s", platformURL.getCmdUrl(), cmdInfo.toJson()));
                 throw new HttpException(
                     String.format("Post Cmd Error, Node Name - %s, CmdInfo - %s", node.getName(), cmdInfo.toJson()));
             }
@@ -568,7 +569,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Boolean stopJob(String name, Integer buildNumber) {
+    public Job stopJob(String name, Integer buildNumber) {
         String cmdId;
         Job runningJob = find(name, buildNumber);
 
@@ -588,7 +589,7 @@ public class JobServiceImpl implements JobService {
             // job finish, stop job failure
         } else if (runningJob.getResult().getStatus() == NodeStatus.SUCCESS
             || runningJob.getResult().getStatus() == NodeStatus.FAILURE) {
-            return false;
+            throw new IllegalParameterException("can not stop, job finish");
 
         } else { // running
             NodeResult runningNodeResult = nodeResultDao.get(runningJob.getId(), NodeStatus.RUNNING, NodeTag.STEP);
@@ -601,15 +602,12 @@ public class JobServiceImpl implements JobService {
         updateNodeResult(runningJob, NodeStatus.STOPPED);
 
         try {
-            String res = HttpUtil.post(url, "");
-            if (Strings.isNullOrEmpty(res)) {
-                return false;
-            }
-            return true;
+            HttpUtil.post(url, "");
         } catch (Throwable throwable) {
             LOGGER.traceMarker("stopJob", String.format("stop job error - %s", throwable));
-            return false;
+            throw new IllegalParameterException(String.format("stop job error - %s", throwable));
         }
+        return runningJob;
     }
 
     private void updateNodeResult(Job job, NodeStatus status) {
@@ -618,6 +616,10 @@ public class JobServiceImpl implements JobService {
             if (result.getStatus() != NodeStatus.SUCCESS) {
                 result.setStatus(status);
                 jobNodeResultService.update(result);
+
+                if (job.getNodePath().equals(result.getPath())) {
+                    job.setResult(result);
+                }
             }
         }
     }

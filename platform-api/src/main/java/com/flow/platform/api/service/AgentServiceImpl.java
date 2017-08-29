@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.util.PlatformURL;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Jsonable;
@@ -92,12 +93,17 @@ public class AgentServiceImpl implements AgentService {
     public Boolean shutdown(String zone, String name, String password) {
         String url = platformURL.getAgentShutdownUrl() + "?zone=" + zone + "&name=" + name + "&password=" + password;
 
+        Boolean flag;
         try {
             String body = HttpUtil.post(url, "");
-            return Jsonable.GSON_CONFIG.fromJson(body, Boolean.class);
+            flag = Jsonable.GSON_CONFIG.fromJson(body, Boolean.class);
         } catch (Throwable throwable) {
             LOGGER.traceMarker("shutdown", String.format("exception - %s", throwable));
-            return false;
+            throw new IllegalParameterException(String.format("exception - %s", throwable));
         }
+        if (flag == false) {
+            throw new IllegalParameterException("shut down machine error");
+        }
+        return flag;
     }
 }

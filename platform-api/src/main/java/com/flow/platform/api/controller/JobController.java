@@ -301,10 +301,9 @@ public class JobController {
      *
      * @apiSuccessExample {String} Success-Response:
      *     HTTP/1.1 200 OK
-     *     true or false
      */
     @PostMapping(path = "/{flowName}/{buildNumber}/stop")
-    public Boolean stopJob(@PathVariable String flowName, @PathVariable Integer buildNumber) {
+    public Job stopJob(@PathVariable String flowName, @PathVariable Integer buildNumber) {
         return jobService.stopJob(flowName, buildNumber);
     }
 }

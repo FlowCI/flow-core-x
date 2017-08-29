@@ -73,5 +73,5 @@ public interface JobService {
     /**
      * stop job
      */
-    Boolean stopJob(String name, Integer buildNumber);
+    Job stopJob(String name, Integer buildNumber);
 }

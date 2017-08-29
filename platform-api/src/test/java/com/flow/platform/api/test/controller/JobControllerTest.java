@@ -29,6 +29,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.domain.Jsonable;
 import java.util.HashMap;
 import java.util.Map;
+import jdk.nashorn.internal.scripts.JO;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.MediaType;
@@ -96,8 +97,8 @@ public class JobControllerTest extends TestBase {
             .andReturn();
 
         String response = mvcResult.getResponse().getContentAsString();
-        Boolean t = Jsonable.GSON_CONFIG.fromJson(response, Boolean.class);
-        Assert.assertEquals(true, t);
+        Job t = Jsonable.GSON_CONFIG.fromJson(response, Job.class);
+        Assert.assertNotNull(t);
 
         StringBuilder string = new StringBuilder("/jobs/");
 
