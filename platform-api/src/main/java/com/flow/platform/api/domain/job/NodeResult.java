@@ -16,16 +16,27 @@
 
 package com.flow.platform.api.domain.job;
 
+import static com.flow.platform.api.domain.job.NodeStatus.*;
+
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class NodeResult extends Jsonable {
+
+    public final static EnumSet<NodeStatus> RUNNING_STATUS = EnumSet.of(PENDING, RUNNING, ENQUEUE);
+
+    public final static EnumSet<NodeStatus> SUCCESS_STATUS = EnumSet.of(SUCCESS);
+
+    public final static EnumSet<NodeStatus> FAILURE_STATUS = EnumSet.of(TIMEOUT, FAILURE);
+
+    public final static EnumSet<NodeStatus> STOP_STATUS = EnumSet.of(STOPPED);
 
     private NodeResultKey key;
 
@@ -42,7 +53,7 @@ public class NodeResult extends Jsonable {
     private List<String> logPaths = new ArrayList<>();
 
     @Expose
-    private NodeStatus status = NodeStatus.PENDING;
+    private NodeStatus status = PENDING;
 
     @Expose
     private String cmdId;
@@ -195,6 +206,22 @@ public class NodeResult extends Jsonable {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public boolean isRunning() {
+        return RUNNING_STATUS.contains(status);
+    }
+
+    public boolean isSucess() {
+        return SUCCESS_STATUS.contains(status);
+    }
+
+    public boolean isFailure() {
+        return FAILURE_STATUS.contains(status);
+    }
+
+    public boolean isStop() {
+        return STOP_STATUS.contains(status);
     }
 
     @Override

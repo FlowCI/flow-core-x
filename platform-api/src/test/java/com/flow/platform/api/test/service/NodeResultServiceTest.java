@@ -50,7 +50,7 @@ public class NodeResultServiceTest extends TestBase {
         nodeResultDao.save(nodeResult);
 
         nodeResult.setNodeTag(NodeTag.STEP);
-        nodeResultService.update(nodeResult);
+        nodeResultService.save(nodeResult);
         Assert.assertEquals(nodeResult.getNodeTag(), NodeTag.STEP);
     }
 }

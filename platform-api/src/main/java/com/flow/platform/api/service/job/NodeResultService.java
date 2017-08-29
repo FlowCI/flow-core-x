@@ -18,6 +18,8 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.domain.Cmd;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -38,7 +40,18 @@ public interface NodeResultService {
      */
     NodeResult find(String path, BigInteger jobId);
 
-    void update(NodeResult nodeResult);
-
+    /**
+     * List all node results for job
+     */
     List<NodeResult> list(Job job);
+
+    /**
+     * Save node result to db
+     */
+    void save(NodeResult result);
+
+    /**
+     * Update node result and recursive bottom up update parent node result by cmd
+     */
+    NodeResult update(Job job, Node node, Cmd cmd);
 }

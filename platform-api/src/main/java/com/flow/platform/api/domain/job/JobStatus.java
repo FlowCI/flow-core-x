@@ -29,6 +29,7 @@ public enum JobStatus {
 
     SUCCESS, // finished without error
 
-    ERROR // finished with error
+    ERROR, // finished with error
 
+    STOPPED; // manual stop the job
 }

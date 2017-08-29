@@ -81,8 +81,7 @@ public enum NodeStatus {
             case LOGGED:
                 CmdResult cmdResult = cmd.getCmdResult();
                 if (cmdResult != null) {
-                    Integer exitCode = cmdResult.getExitValue();
-                    if (exitCode != null && exitCode == 0) {
+                    if (isSuccess(cmdResult)) {
                         return NodeStatus.SUCCESS;
                     }
                 }
@@ -102,5 +101,10 @@ public enum NodeStatus {
         }
 
         throw new IllegalStatusException("Unsupported cmd status " + status + " transfer to node status");
+    }
+
+    private static boolean isSuccess(CmdResult result) {
+        Integer exitCode = result.getExitValue();
+        return exitCode != null && exitCode == 0;
     }
 }

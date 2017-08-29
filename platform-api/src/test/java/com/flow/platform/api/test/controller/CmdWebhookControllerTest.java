@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
@@ -54,107 +55,104 @@ public class CmdWebhookControllerTest extends TestBase {
 
     @Test
     public void should_callback_session_success() throws Exception {
+        // given: flow with two steps , step1 and step2
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
         setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
+        final String sessionId = "1111111";
 
-        // create session
+        // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
-        String sessionId = "1111111";
         cmd.setSessionId(sessionId);
 
-        CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
+        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
-            .content(cmdBase.toJson());
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
+            .content(cmd.toJson())
+        ).andExpect(status().isOk()).andReturn();
         Thread.sleep(1000);
+
+        // then: verify job status and root node status
         job = jobService.find(job.getId());
-        Assert.assertNotNull(job.getSessionId());
         Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.PENDING);
+        Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
+        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
 
         Step step1 = (Step) nodeService.find("flow1/step1");
         Step step2 = (Step) nodeService.find("flow1/step2");
-        Flow flow = (Flow) nodeService.find(job.getNodePath());
-        // run first step running
+
+        // when: first step callback with running status
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
 
-        cmdBase = cmd;
         Map<String, String> map = new HashMap<>();
         map.put("path", step1.getPath());
         map.put("jobId", job.getId().toString());
 
-        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
-            .content(cmdBase.toJson());
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
+            .content(cmd.toJson())
+        ).andExpect(status().isOk()).andReturn();
         Thread.sleep(1000);
-        job = jobService.find(job.getId());
-        NodeResult jobStep1 = nodeResultService.find(step1.getPath(), job.getId());
-        NodeResult jobFlow = nodeResultService.find(flow.getPath(), job.getId());
-        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.RUNNING);
-        Assert.assertEquals(jobStep1.getStatus(), NodeStatus.RUNNING);
-        Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
 
-        // run first step finish
+        // then: verify node status
+        job = jobService.find(job.getId());
+        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+
+        NodeResult resultForStep1 = nodeResultService.find(step1.getPath(), job.getId());
+        Assert.assertEquals(NodeStatus.RUNNING, resultForStep1.getStatus());
+
+        NodeResult resultForRoot = nodeResultService.find(job.getNodePath(), job.getId());
+        Assert.assertEquals(NodeStatus.RUNNING, resultForRoot.getStatus());
+
+        // when: first step callback with logged status
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.LOGGED);
-        CmdResult cmdResult = new CmdResult();
-        cmdResult.setExitValue(0);
+        CmdResult cmdResult = new CmdResult(0);
         cmdResult.setDuration(100L);
         cmd.setCmdResult(cmdResult);
 
-        cmdBase = cmd;
-        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson());
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
+            .content(cmd.toJson())
+        ).andExpect(status().isOk()).andReturn();
         Thread.sleep(1000);
-        job = jobService.find(job.getId());
-        jobStep1 = nodeResultService.find(step1.getPath(), job.getId());
-        jobFlow = nodeResultService.find(flow.getPath(), job.getId());
-        Assert.assertEquals(jobStep1.getStatus(), NodeStatus.SUCCESS);
-        Assert.assertEquals((Integer) 0, jobStep1.getExitCode());
-        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.RUNNING);
-        Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
 
-        // run first step finish
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        // then: verify job and node status
+        job = jobService.find(job.getId());
+        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+
+        resultForStep1 = nodeResultService.find(step1.getPath(), job.getId());
+        Assert.assertEquals(NodeStatus.SUCCESS, resultForStep1.getStatus());
+        Assert.assertEquals(0, resultForStep1.getExitCode().intValue());
+
+        resultForRoot = nodeResultService.find(job.getNodePath(), job.getId());
+        Assert.assertEquals(NodeStatus.RUNNING, resultForRoot.getStatus());
+
+        // when: second step callback with logged status
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step2.getScript());
         cmd.setStatus(CmdStatus.LOGGED);
-        cmdResult = new CmdResult();
-        cmdResult.setExitValue(0);
+        cmdResult = new CmdResult(0);
         cmdResult.setDuration(100L);
         cmd.setCmdResult(cmdResult);
 
-        cmdBase = cmd;
         map.put("path", step2.getPath());
-        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson());
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
+            .content(cmd.toJson())
+        ).andExpect(status().isOk()).andReturn();
         Thread.sleep(1000);
+
+        // then: verify job and node status
         job = jobService.find(job.getId());
-        NodeResult jobStep2 = nodeResultService.find(step2.getPath(), job.getId());
-        jobFlow = nodeResultService.find(flow.getPath(), job.getId());
-        Assert.assertEquals(jobStep2.getStatus(), NodeStatus.SUCCESS);
-        Assert.assertEquals((Integer) 0, jobStep2.getExitCode());
-        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.SUCCESS);
-        Assert.assertEquals(jobFlow.getStatus(), NodeStatus.SUCCESS);
+        Assert.assertEquals(JobStatus.SUCCESS, job.getStatus());
+
+        NodeResult resultForStep2 = nodeResultService.find(step2.getPath(), job.getId());
+        Assert.assertEquals(NodeStatus.SUCCESS, resultForStep2.getStatus());
+        Assert.assertEquals(0, resultForStep2.getExitCode().intValue());
+
+        resultForRoot = nodeResultService.find(job.getNodePath(), job.getId());
+        Assert.assertEquals(NodeStatus.SUCCESS, resultForRoot.getStatus());
     }
 
     @Test
@@ -174,7 +172,8 @@ public class CmdWebhookControllerTest extends TestBase {
         String sessionId = "1111111";
         cmd.setSessionId(sessionId);
 
-        MockHttpServletRequestBuilder content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
+        MockHttpServletRequestBuilder content = post(
+            "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
         this.mockMvc.perform(content)
@@ -225,69 +224,67 @@ public class CmdWebhookControllerTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
         setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
+        final String sessionId = "1111111";
 
-        // create session
+        // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
-        String sessionId = "1111111";
         cmd.setSessionId(sessionId);
 
-        CmdBase cmdBase = cmd;
-        MockHttpServletRequestBuilder content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
+        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
-            .content(cmdBase.toJson());
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
-
+            .content(cmd.toJson())
+        ).andExpect(status().isOk()).andReturn();
         Thread.sleep(1000);
 
+        // then: check job session id
         job = jobService.find(job.getId());
-        Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getCmdId());
         Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.PENDING);
+        Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
 
         Step step1 = (Step) nodeService.find("flow1/step1");
-        Step step2 = (Step) nodeService.find("flow1/step2");
-        Flow flow = (Flow) nodeService.find(job.getNodePath());
-        // run first step timeout
+
+        // when: mock running status from agent
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd.setSessionId(sessionId);
         cmd.setStatus(CmdStatus.RUNNING);
 
         Map<String, String> map = new HashMap<>();
         map.put("path", step1.getPath());
         map.put("jobId", job.getId().toString());
 
-        cmdBase = cmd;
-        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
-            .content(cmdBase.toJson());
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
-
+            .content(cmd.toJson())
+        ).andExpect(status().isOk()).andReturn();
         Thread.sleep(1000);
+
+        // then: check root node result status should be RUNNING
+        job = jobService.find(job.getId());
+        Assert.assertEquals(NodeStatus.RUNNING, job.getResult().getStatus());
+
+        // mock timeout kill status from agent
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
 
-        cmdBase = cmd;
-        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
+        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
             .contentType(MediaType.APPLICATION_JSON)
-            .content(cmdBase.toJson());
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
+            .content(cmd.toJson())
+        ).andExpect(status().isOk()).andReturn();
         Thread.sleep(1000);
-        NodeResult jobStep1 = nodeResultService.find(step1.getPath(), job.getId());
-        Assert.assertNotNull(jobStep1.getCmdId());
-        NodeResult jobFlow = nodeResultService.find(flow.getPath(), job.getId());
+
+        // then: check step node status should be timeout
+        NodeResult stepResult = nodeResultService.find(step1.getPath(), job.getId());
+        Assert.assertNotNull(stepResult.getCmdId());
+        Assert.assertEquals(NodeStatus.TIMEOUT, stepResult.getStatus());
+
+        // then: check root node status should be timeout as well
+        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
+        Assert.assertEquals(NodeStatus.RUNNING, rootResult.getStatus());
+
+        // then: check job status should be running since time out allow failure
         job = jobService.find(job.getId());
-        Assert.assertEquals(job.getResult().getStatus(), NodeStatus.RUNNING);
-        Assert.assertEquals(jobStep1.getStatus(), NodeStatus.TIMEOUT);
-        Assert.assertEquals(jobFlow.getStatus(), NodeStatus.RUNNING);
+        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
     }
 }

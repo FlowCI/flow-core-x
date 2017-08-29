@@ -236,11 +236,11 @@ public class JobServiceImpl implements JobService {
 
         // record cmd id
         nodeResult.setCmdId(cmdId);
-        nodeResultService.update(nodeResult);
+        nodeResultService.save(nodeResult);
     }
 
     /**
-     * session success callback
+     * Create session callback
      */
     private void onCreateSessionCallback(Job job, Cmd cmd) {
         if (cmd.getStatus() != CmdStatus.SENT) {
@@ -265,181 +265,40 @@ public class JobServiceImpl implements JobService {
     }
 
     /**
-     * step success callback
+     * Run shell callback
      */
     private void onRunShellCallback(String path, Cmd cmd, Job job) {
         NodeTree tree = jobNodeService.get(job.getId());
         Node node = tree.find(path);
-        NodeResult nodeResult = nodeResultService.find(path, job.getId());
 
-        NodeStatus newStatus = NodeStatus.transfer(cmd);
+        NodeResult nodeResult = nodeResultService.update(job, node, cmd);
 
-        // keep job step status sorted
-        if (nodeResult.getStatus().getLevel() >= newStatus.getLevel()) {
+        // no more node to run or manual stop node, update job data
+        Node next = tree.next(path);
+        if (next == null || nodeResult.getStatus() == NodeStatus.STOPPED) {
+            String rootPath = PathUtil.rootPath(path);
+            NodeResult rootResult = nodeResultService.find(rootPath, job.getId());
+
+            updateJobStatus(job, rootResult);
+            LOGGER.debug("The node tree '%s' been executed with %s status", rootPath, rootResult.getStatus());
             return;
         }
 
-        //update job step status
-        nodeResult.setStatus(newStatus);
-        nodeResultService.update(nodeResult);
-
-        //update node status
-        updateNodeStatus(node, cmd, job);
-    }
-
-    /**
-     * update job flow status
-     */
-    private void updateJobStatus(NodeResult nodeResult) {
-        BigInteger jobId = nodeResult.getKey().getJobId();
-        String path = nodeResult.getKey().getPath();
-
-        Node node = jobNodeService.get(jobId).find(path);
-        Job job = find(jobId);
-
-        if (node instanceof Step) {
+        // continue to run if on success status
+        if (NodeResult.SUCCESS_STATUS.contains(nodeResult.getStatus())) {
+            run(next, job);
             return;
         }
 
-        NodeStatus nodeStatus = nodeResult.getStatus();
-
-        if (nodeStatus == NodeStatus.TIMEOUT || nodeStatus == NodeStatus.FAILURE) {
-            nodeStatus = NodeStatus.FAILURE;
-            job.setStatus(JobStatus.ERROR);
-        }
-
-        if (nodeStatus == NodeStatus.SUCCESS) {
-            job.setStatus(JobStatus.SUCCESS);
-        }
-
-        //delete session
-        if (nodeStatus == NodeStatus.FAILURE || nodeStatus == NodeStatus.SUCCESS) {
-            cmdService.deleteSession(job);
-        }
-
-        jobDao.update(job);
-    }
-
-    /**
-     * update node status
-     */
-    private void updateNodeStatus(Node node, Cmd cmd, Job job) {
-        NodeTree tree = jobNodeService.get(job.getId());
-        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
-        nodeResult.setStatus(NodeStatus.transfer(cmd));
-        CmdResult cmdResult = cmd.getCmdResult();
-
-        Node parent = node.getParent();
-        Node prev = node.getPrev();
-        Node next = node.getNext();
-
-        switch (nodeResult.getStatus()) {
-            case PENDING:
-            case RUNNING:
-                if (cmdResult != null) {
-                    nodeResult.setStartTime(cmdResult.getStartTime());
+        // continue to run if allow failure on failure status
+        if (NodeResult.FAILURE_STATUS.contains(nodeResult.getStatus())) {
+            if (node instanceof Step) {
+                Step step = (Step) node;
+                if (step.getAllowFailure()) {
+                    run(next, job);
                 }
-
-                if (parent != null) {
-                    // first node running update parent node running
-                    if (prev == null) {
-                        updateNodeStatus(node.getParent(), cmd, job);
-                    }
-                }
-                break;
-            case SUCCESS:
-                if (cmdResult != null) {
-                    nodeResult.setFinishTime(cmdResult.getFinishTime());
-                }
-
-                if (parent != null) {
-                    // last node running update parent node running
-                    if (next == null) {
-                        updateNodeStatus(node.getParent(), cmd, job);
-                    } else {
-                        run(tree.next(node.getPath()), job);
-                    }
-                }
-                break;
-            case TIMEOUT:
-            case FAILURE:
-                if (cmdResult != null) {
-                    nodeResult.setFinishTime(cmdResult.getFinishTime());
-                }
-
-                //update parent node if next is not null, if allow failure is false
-                if (parent != null && (((Step) node).getAllowFailure())) {
-                    if (next == null) {
-                        updateNodeStatus(node.getParent(), cmd, job);
-                    }
-                }
-
-                //update parent node if next is not null, if allow failure is false
-                if (parent != null && !((Step) node).getAllowFailure()) {
-                    updateNodeStatus(node.getParent(), cmd, job);
-                }
-
-                //next node not null, run next node
-                if (next != null && ((Step) node).getAllowFailure()) {
-                    run(tree.next(node.getPath()), job);
-                }
-                break;
+            }
         }
-
-        //update job status
-        updateJobStatus(nodeResult);
-
-        //update node info
-        updateNodeInfo(node, cmd, job);
-
-        //save
-        nodeResultService.update(nodeResult);
-    }
-
-    /**
-     * update node info outputs duration start time
-     */
-    private boolean updateNodeInfo(Node node, Cmd cmd, Job job) {
-        CmdResult cmdResult = cmd.getCmdResult();
-        if (cmdResult == null) {
-            return false;
-        }
-
-        NodeTree tree = jobNodeService.get(job.getId());
-        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
-        nodeResult.setExitCode(cmdResult.getExitValue());
-
-        if (tree.canRun(node.getPath())) {
-            nodeResult.setLogPaths(cmd.getLogPaths());
-        }
-
-        // setting start time
-        if (nodeResult.getStartTime() == null) {
-            nodeResult.setStartTime(cmdResult.getStartTime());
-        }
-
-        // setting finish time
-        if (cmd.getFinishedDate() != null) {
-            nodeResult.setFinishTime(cmd.getFinishedDate());
-        }
-
-        //setting duration from endTime - startTime
-        if (nodeResult.getFinishTime() != null) {
-            Long duration =
-                nodeResult.getFinishTime().toEpochSecond() - nodeResult.getStartTime().toEpochSecond();
-            nodeResult.setDuration(duration);
-        }
-
-        // merge envs
-        EnvUtil.merge(cmdResult.getOutput(), nodeResult.getOutputs(), false);
-
-        if (node.getParent() != null) {
-            updateNodeInfo(node.getParent(), cmd, job);
-        }
-
-        //save
-        nodeResultService.update(nodeResult);
-        return true;
     }
 
     @Override
@@ -496,12 +355,28 @@ public class JobServiceImpl implements JobService {
         }
     }
 
+    private void updateJobStatus(Job job, NodeResult rootResult) {
+        if (rootResult.isFailure()) {
+            job.setStatus(JobStatus.ERROR);
+        }
+
+        if (rootResult.isSucess()) {
+            job.setStatus(JobStatus.SUCCESS);
+        }
+
+        if (rootResult.isStop()) {
+            job.setStatus(JobStatus.STOPPED);
+        }
+
+        jobDao.update(job);
+    }
+
     private void updateNodeResult(Job job, NodeStatus status) {
         List<NodeResult> results = nodeResultService.list(job);
         for (NodeResult result : results) {
             if (result.getStatus() != NodeStatus.SUCCESS) {
                 result.setStatus(status);
-                nodeResultService.update(result);
+                nodeResultService.save(result);
             }
         }
     }
