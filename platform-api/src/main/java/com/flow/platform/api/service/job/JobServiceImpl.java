@@ -588,11 +588,15 @@ public class JobServiceImpl implements JobService {
 
             // job finish, stop job failure
         } else if (runningJob.getResult().getStatus() == NodeStatus.SUCCESS
-            || runningJob.getResult().getStatus() == NodeStatus.FAILURE) {
+            || runningJob.getResult().getStatus() == NodeStatus.FAILURE
+            || runningJob.getResult().getStatus() == NodeStatus.STOPPED) {
             throw new IllegalParameterException("can not stop, job finish");
 
         } else { // running
             NodeResult runningNodeResult = nodeResultDao.get(runningJob.getId(), NodeStatus.RUNNING, NodeTag.STEP);
+            if (runningNodeResult == null) {
+                throw new IllegalParameterException("can not stop, running step not found");
+            }
             cmdId = runningNodeResult.getCmdId();
         }
 
