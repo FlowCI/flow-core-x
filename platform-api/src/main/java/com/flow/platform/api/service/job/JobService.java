@@ -65,11 +65,6 @@ public interface JobService {
     void callback(CmdQueueItem cmdQueueItem);
 
     /**
-     * run node
-     */
-    void run(Node node, Job job);
-
-    /**
      * send cmd to queue
      */
     void enterQueue(CmdQueueItem cmdQueueItem);

@@ -21,13 +21,13 @@ package com.flow.platform.api.domain.job;
  */
 public enum JobStatus {
 
-    CREATED,
+    CREATED, // default status
 
     SESSION_CREATING, // creating agent session
 
     RUNNING, // executing node tree
 
-    DONE, // finished
+    SUCCESS, // finished without error
 
     ERROR // finished with error
 

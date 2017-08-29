@@ -32,7 +32,6 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.util.HttpUtil;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -214,16 +213,22 @@ public class JobServiceImpl implements JobService {
      *
      * @param node job node's script and record cmdId and sync send http
      */
-    @Override
-    public void run(Node node, Job job) {
-        if (!NodeUtil.canRun(node)) {
+    private void run(Node node, Job job) {
+        if (node == null) {
+            throw new IllegalParameterException("Cannot run node with null value");
+        }
+
+        NodeTree tree = jobNodeService.get(job.getId());
+
+        if (!tree.canRun(node.getPath())) {
             // run next node
-            run(NodeUtil.next(node), job);
+            Node next = tree.next(node.getPath());
+            run(next, job);
             return;
         }
 
         // pass root env to child node
-        Node flow = NodeUtil.findRootNode(node);
+        Node flow = tree.root();
         EnvUtil.merge(flow, node, false);
 
         String cmdId = cmdService.runShell(job, node);
@@ -256,16 +261,16 @@ public class JobServiceImpl implements JobService {
         job.setSessionId(cmd.getSessionId());
         jobDao.update(job);
 
-        run(NodeUtil.first(tree.root()), job);
+        run(tree.first(), job);
     }
 
     /**
      * step success callback
      */
-    private void onRunShellCallback(String nodePath, Cmd cmd, Job job) {
+    private void onRunShellCallback(String path, Cmd cmd, Job job) {
         NodeTree tree = jobNodeService.get(job.getId());
-        Node node = tree.find(nodePath);
-        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+        Node node = tree.find(path);
+        NodeResult nodeResult = nodeResultService.find(path, job.getId());
 
         NodeStatus newStatus = NodeStatus.transfer(cmd);
 
@@ -300,18 +305,26 @@ public class JobServiceImpl implements JobService {
 
         if (nodeStatus == NodeStatus.TIMEOUT || nodeStatus == NodeStatus.FAILURE) {
             nodeStatus = NodeStatus.FAILURE;
+            job.setStatus(JobStatus.ERROR);
+        }
+
+        if (nodeStatus == NodeStatus.SUCCESS) {
+            job.setStatus(JobStatus.SUCCESS);
         }
 
         //delete session
         if (nodeStatus == NodeStatus.FAILURE || nodeStatus == NodeStatus.SUCCESS) {
             cmdService.deleteSession(job);
         }
+
+        jobDao.update(job);
     }
 
     /**
      * update node status
      */
     private void updateNodeStatus(Node node, Cmd cmd, Job job) {
+        NodeTree tree = jobNodeService.get(job.getId());
         NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
         nodeResult.setStatus(NodeStatus.transfer(cmd));
         CmdResult cmdResult = cmd.getCmdResult();
@@ -344,7 +357,7 @@ public class JobServiceImpl implements JobService {
                     if (next == null) {
                         updateNodeStatus(node.getParent(), cmd, job);
                     } else {
-                        run(NodeUtil.next(node), job);
+                        run(tree.next(node.getPath()), job);
                     }
                 }
                 break;
@@ -368,7 +381,7 @@ public class JobServiceImpl implements JobService {
 
                 //next node not null, run next node
                 if (next != null && ((Step) node).getAllowFailure()) {
-                    run(NodeUtil.next(node), job);
+                    run(tree.next(node.getPath()), job);
                 }
                 break;
         }
@@ -392,10 +405,11 @@ public class JobServiceImpl implements JobService {
             return false;
         }
 
+        NodeTree tree = jobNodeService.get(job.getId());
         NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
         nodeResult.setExitCode(cmdResult.getExitValue());
 
-        if (NodeUtil.canRun(node)) {
+        if (tree.canRun(node.getPath())) {
             nodeResult.setLogPaths(cmd.getLogPaths());
         }
 

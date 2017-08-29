@@ -17,12 +17,15 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.CmdQueueItem;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Cmd;
@@ -31,15 +34,21 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author yh@firim
  */
 public class JobServiceTest extends TestBase {
+
+    @Autowired
+    private JobNodeService jobNodeService;
 
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
@@ -97,7 +106,80 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(NodeStatus.FAILURE, job.getResult().getStatus());
         jobFlow = nodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
+    }
 
+    @Test
+    public void should_run_job_with_success_status() throws Throwable {
+        // given:
+        final String sessionId = "session-id-1";
+        stubDemo();
+        Node root = createRootFlow("flow-run-job", "for_job_service_run_job.yaml");
+        setFlowToReady(root);
+
+        // when: create job and job should be SESSION_CREATING
+        Job job = jobService.createJob(root.getPath());
+        Assert.assertNotNull(job);
+        Assert.assertNotNull(job.getCmdId());
+        Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
+
+        // when: simulate cc callback for create session
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setSessionId(sessionId);
+        cmd.setStatus(CmdStatus.SENT);
+        CmdQueueItem createSessionItem = new CmdQueueItem(job.getId().toString(), cmd);
+        jobService.callback(createSessionItem);
+
+        // then: check job status should be running
+        job = jobService.find(job.getId());
+        Assert.assertEquals(sessionId, job.getSessionId());
+        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+
+        // then: check job tree data is correct
+        NodeTree tree = jobNodeService.get(job.getId());
+        List<Node> steps = tree.ordered();
+        Assert.assertEquals(7, steps.size());
+
+        // when: simulate callback for all steps
+        for (Node step : steps) {
+            NodeResult stepResult = nodeResultService.find(step.getPath(), job.getId());
+
+            // check step root status should be success
+            if (!tree.canRun(step.getPath())) {
+                Assert.assertEquals(NodeStatus.SUCCESS, stepResult.getStatus());
+                Assert.assertEquals(60L, stepResult.getDuration().longValue());
+
+                continue;
+            }
+
+            Assert.assertEquals(NodeStatus.PENDING, stepResult.getStatus());
+
+            // simulate callback with success executed
+            Cmd stepCmd = new Cmd("default", null, CmdType.RUN_SHELL, step.getScript());
+            stepCmd.setSessionId(sessionId);
+            stepCmd.setStatus(CmdStatus.LOGGED);
+            stepCmd.setCmdResult(new CmdResult(0));
+
+            // set start and finish time for 30 seconds of every steps
+            ZonedDateTime start = ZonedDateTime.now();
+            ZonedDateTime finish = start.plusSeconds(30);
+            stepCmd.getCmdResult().setStartTime(start);
+            stepCmd.getCmdResult().setFinishTime(finish);
+
+            // build mock identifier
+            Map<String, String> map = new HashMap<>();
+            map.put("path", step.getPath());
+            map.put("jobId", job.getId().toString());
+            String identifier = Jsonable.GSON_CONFIG.toJson(map);
+
+            CmdQueueItem runStepShellItem = new CmdQueueItem(identifier, stepCmd);
+            jobService.callback(runStepShellItem);
+            stepResult = nodeResultService.find(step.getPath(), job.getId());
+            Assert.assertEquals(NodeStatus.SUCCESS, stepResult.getStatus());
+        }
+
+        job = jobService.find(job.getId());
+        Assert.assertEquals(JobStatus.SUCCESS, job.getStatus());
+        Assert.assertEquals(NodeStatus.SUCCESS, job.getResult().getStatus());
     }
 
     @Test
@@ -113,35 +195,4 @@ public class JobServiceTest extends TestBase {
         job = jobService.find(job.getNodeName(), job.getNumber());
         Assert.assertEquals(NodeStatus.STOPPED, job.getResult().getStatus());
     }
-
-    @Test
-    public void should_show_list_success() {
-        stubDemo();
-
-        Flow flow = new Flow("/flow", "flow");
-
-        Step step1 = new Step("/flow/step1", "step1");
-        Step step2 = new Step("/flow/step2", "step2");
-
-        step1.setPlugin("step1");
-        step1.setAllowFailure(true);
-        step2.setPlugin("step2");
-        step2.setAllowFailure(true);
-
-        flow.getChildren().add(step1);
-        flow.getChildren().add(step2);
-
-        step1.setParent(flow);
-        step2.setParent(flow);
-        step1.setNext(step2);
-        step2.setParent(step1);
-
-        // TODO: write yml converter
-
-//        nodeService.create(flow);
-//        Job job = jobService.createJob(flow.getPath());
-//        List<JobStep> jobSteps = jobService.listJobStep(job.getId());
-//        Assert.assertEquals(2, jobSteps.size());
-    }
-
 }

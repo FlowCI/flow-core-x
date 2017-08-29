@@ -29,7 +29,7 @@ import org.junit.Test;
 /**
  * @author lhl
  */
-public class JobNodeResultServiceTest extends TestBase {
+public class NodeResultServiceTest extends TestBase {
 
     @Test
     public void should_save_job_node_by_job() throws IOException {
