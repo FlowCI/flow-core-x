@@ -163,7 +163,7 @@ public abstract class TestBase {
         Cmd cmdRes = new Cmd();
         cmdRes.setId(UUID.randomUUID().toString());
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
                 .withBody(cmdRes.toJson())));
 
