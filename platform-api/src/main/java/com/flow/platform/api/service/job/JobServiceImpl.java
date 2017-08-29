@@ -270,12 +270,12 @@ public class JobServiceImpl implements JobService {
     private void onRunShellCallback(String path, Cmd cmd, Job job) {
         NodeTree tree = jobNodeService.get(job.getId());
         Node node = tree.find(path);
+        Node next = tree.next(path);
 
         NodeResult nodeResult = nodeResultService.update(job, node, cmd);
 
         // no more node to run or manual stop node, update job data
-        Node next = tree.next(path);
-        if (next == null || nodeResult.getStatus() == NodeStatus.STOPPED) {
+        if (next == null || nodeResult.isStop()) {
             String rootPath = PathUtil.rootPath(path);
             NodeResult rootResult = nodeResultService.find(rootPath, job.getId());
 
@@ -285,13 +285,13 @@ public class JobServiceImpl implements JobService {
         }
 
         // continue to run if on success status
-        if (NodeResult.SUCCESS_STATUS.contains(nodeResult.getStatus())) {
+        if (nodeResult.isSucess()) {
             run(next, job);
             return;
         }
 
         // continue to run if allow failure on failure status
-        if (NodeResult.FAILURE_STATUS.contains(nodeResult.getStatus())) {
+        if (nodeResult.isFailure()) {
             if (node instanceof Step) {
                 Step step = (Step) node;
                 if (step.getAllowFailure()) {
