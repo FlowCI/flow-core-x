@@ -2,8 +2,8 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.request.LoginForm;
 import com.flow.platform.api.domain.request.SwitchRole;
-import com.flow.platform.api.domain.User;
-import com.flow.platform.api.service.UserService;
+import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

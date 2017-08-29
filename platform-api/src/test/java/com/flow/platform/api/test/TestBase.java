@@ -16,7 +16,7 @@ package com.flow.platform.api.test;/*
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
-import com.flow.platform.api.dao.*;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -28,6 +28,11 @@ import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.dao.user.PermissionDao;
+import com.flow.platform.api.dao.user.RoleDao;
+import com.flow.platform.api.dao.user.RolesPermissionsDao;
+import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UsersRolesDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
@@ -114,6 +119,18 @@ public abstract class TestBase {
     protected WebApplicationContext webAppContext;
 
     @Autowired
+    protected RoleDao roleDao;
+
+    @Autowired
+    protected PermissionDao permissionDao;
+
+    @Autowired
+    protected UsersRolesDao usersRolesDao;
+
+    @Autowired
+    protected RolesPermissionsDao rolesPermissionsDao;
+
+    @Autowired
     protected Path workspace;
 
     protected MockMvc mockMvc;
@@ -173,6 +190,10 @@ public abstract class TestBase {
         userDao.deleteAll();
         credentialStorageDao.deleteAll();
         messageSettingDao.deleteAll();
+        roleDao.deleteAll();
+        permissionDao.deleteAll();
+        usersRolesDao.deleteAll();
+        rolesPermissionsDao.deleteAll();
     }
 
     @Rule

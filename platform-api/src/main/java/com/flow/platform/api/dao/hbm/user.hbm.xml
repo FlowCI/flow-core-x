@@ -4,7 +4,7 @@
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.api.domain">
-    <class name="User" table="user">
+    <class name="com.flow.platform.api.domain.user.User" table="user">
         <id name="email" type="string" column="email"/>
 
         <property name="username" type="string" column="username" unique="true"/>

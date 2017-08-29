@@ -4,12 +4,15 @@
   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.api.domain">
-  <class name="com.flow.platform.api.domain.credential.CredentialStorage" table="credential_storage">
+  <class name="com.flow.platform.api.domain.user.Role" table="roles">
+
     <id name="id" type="integer">
       <generator class="increment"></generator>
     </id>
 
-    <property name="content" type="com.flow.platform.api.dao.adaptor.CredentialAdaptor" column="content"></property>
+    <property name="name" type="string" column="name"/>
+    <property name="description" type="string" column="description"/>
+    <property name="createBy" type="string" column="create_by"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>

@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
+package com.flow.platform.api.dao.user;
 
-import com.flow.platform.api.domain.credential.CredentialStorage;
-import com.flow.platform.api.domain.credential.CredentialType;
-import com.flow.platform.core.dao.BaseDao;
-import java.util.List;
+import com.flow.platform.api.domain.user.Permission;
+import com.flow.platform.core.dao.AbstractBaseDao;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author lhl
  */
-public interface CredentialStorageDao extends BaseDao<String, CredentialStorage> {
 
-    List<CredentialStorage> list(CredentialType... types);
+@Repository(value = "permissionDao")
+public class PermissoinDaoImpl extends AbstractBaseDao<String, Permission>  implements  PermissionDao{
+
+    @Override
+    protected Class<Permission> getEntityClass() {
+        return Permission.class;
+    }
+
+    @Override
+    protected String getKeyName() {
+        return "action";
+    }
+
 }

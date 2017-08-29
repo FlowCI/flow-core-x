@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.domain.credential.Credential;
 import java.util.List;
 import java.util.Map;
 

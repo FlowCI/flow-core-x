@@ -39,6 +39,10 @@
         <value>com/flow/platform/api/dao/hbm/credentialStorage.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/messageSetting.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/mapping.hbm.xml</value>
+        <value>com/flow/platform/api/dao/hbm/role.hbm.xml</value>
+        <value>com/flow/platform/api/dao/hbm/permission.hbm.xml</value>
+        <value>com/flow/platform/api/dao/hbm/usersRoles.hbm.xml</value>
+        <value>com/flow/platform/api/dao/hbm/rolesPermissions.hbm.xml</value>
       </list>
     </property>
     <property name="hibernateProperties">

@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.dao.adaptor;
 
-import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.core.dao.adaptor.BaseAdaptor;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;

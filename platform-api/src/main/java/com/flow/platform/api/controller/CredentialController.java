@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.Credential;
+import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;

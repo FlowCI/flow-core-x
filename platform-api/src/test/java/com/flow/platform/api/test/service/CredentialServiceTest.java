@@ -16,9 +16,9 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.dao.CredentialStorageDao;
-import com.flow.platform.api.domain.CredentialStorage;
-import com.flow.platform.api.domain.CredentialType;
-import com.flow.platform.api.domain.CredentialUserName;
+import com.flow.platform.api.domain.credential.CredentialStorage;
+import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.credential.CredentialUserName;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.test.TestBase;
 import java.util.Map;

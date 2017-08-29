@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
+package com.flow.platform.api.dao.user;
 
-import com.flow.platform.api.domain.credential.CredentialStorage;
-import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.user.RolePermissionKey;
+import com.flow.platform.api.domain.user.RolesPermissions;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -26,34 +26,32 @@ import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
-
 /**
  * @author lhl
  */
-
-@Repository(value = "credentialDao")
-public class CredentialStorageDaoImpl extends AbstractBaseDao<String, CredentialStorage> implements CredentialStorageDao {
+@Repository(value = "rolesPermissionsDao")
+public class RolesPermissionsDaoImpl extends AbstractBaseDao<RolePermissionKey, RolesPermissions> implements
+    RolesPermissionsDao {
 
     @Override
-    protected Class<CredentialStorage> getEntityClass() {
-        return CredentialStorage.class;
+    protected Class<RolesPermissions> getEntityClass() {
+        return RolesPermissions.class;
     }
 
     @Override
     protected String getKeyName() {
-        return "id";
+        return "rolePermissionKey";
     }
 
     @Override
-    public List<CredentialStorage> list(CredentialType... types) {
+    public List<RolesPermissions> list(Integer roleId){
         return execute((Session session) -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<CredentialStorage> select = builder.createQuery(CredentialStorage.class);
-            Root<CredentialStorage> credentialRoot = select.from(CredentialStorage.class);
-            Predicate condition = credentialRoot.get("content").get("credentialType").in(types);
+            CriteriaQuery<RolesPermissions> select = builder.createQuery(RolesPermissions.class);
+            Root<RolesPermissions> rolesPermissionsRoot= select.from(RolesPermissions.class);
+            Predicate condition = rolesPermissionsRoot.get("rolePermissionKey").get("roleId").in(roleId);
             select.where(condition);
             return session.createQuery(select).list();
         });
     }
 }
-

@@ -16,10 +16,10 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.dao.CredentialStorageDao;
-import com.flow.platform.api.domain.Credential;
-import com.flow.platform.api.domain.CredentialStorage;
-import com.flow.platform.api.domain.CredentialType;
-import com.flow.platform.api.domain.SSHKey;
+import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.CredentialStorage;
+import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.credential.SSHKey;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.test.TestBase;
 import org.junit.Assert;

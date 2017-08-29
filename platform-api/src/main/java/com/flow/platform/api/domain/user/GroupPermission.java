@@ -13,17 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
-
-import com.flow.platform.api.domain.credential.CredentialStorage;
-import com.flow.platform.api.domain.credential.CredentialType;
-import com.flow.platform.core.dao.BaseDao;
-import java.util.List;
+package com.flow.platform.api.domain.user;
 
 /**
  * @author lhl
  */
-public interface CredentialStorageDao extends BaseDao<String, CredentialStorage> {
+public enum GroupPermission {
 
-    List<CredentialStorage> list(CredentialType... types);
+    DEFAULT("DEFAULT", 0),
+    SUPERADMIN("SUPERADMIN", 1),
+    ADMIN("ADMIN", 2),
+    MANAGER("MANAGER", 3),
+    USER("USER", 4);
+
+    private String name;
+
+    private int index;
+
+    GroupPermission(String name, int index) {
+        this.name = name;
+        this.index = index;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getIndex() {
+        return index;
+    }
 }

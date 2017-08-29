@@ -19,9 +19,9 @@ import static com.flow.platform.api.config.AppConfig.ALLOW_SIZE;
 import static com.flow.platform.api.config.AppConfig.ALLOW_SUFFIX;
 
 import com.flow.platform.api.dao.CredentialStorageDao;
-import com.flow.platform.api.domain.Credential;
-import com.flow.platform.api.domain.CredentialStorage;
-import com.flow.platform.api.domain.CredentialType;
+import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.CredentialStorage;
+import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.KeyPair;

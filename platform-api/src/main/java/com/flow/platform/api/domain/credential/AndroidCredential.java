@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
+package com.flow.platform.api.domain.credential;
 
-import com.flow.platform.api.domain.credential.CredentialStorage;
-import com.flow.platform.api.domain.credential.CredentialType;
-import com.flow.platform.core.dao.BaseDao;
-import java.util.List;
+import com.google.gson.annotations.Expose;
 
 /**
  * @author lhl
  */
-public interface CredentialStorageDao extends BaseDao<String, CredentialStorage> {
+public class AndroidCredential extends Credential {
 
-    List<CredentialStorage> list(CredentialType... types);
+    @Expose
+    protected CredentialFile[] fileNames;
+
+    public CredentialFile[] getFileNames() {
+        return fileNames;
+    }
+
+    public void setFileNames(CredentialFile[] fileNames) {
+        this.fileNames = fileNames;
+    }
 }

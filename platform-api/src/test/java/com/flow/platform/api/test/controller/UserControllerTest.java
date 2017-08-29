@@ -1,8 +1,8 @@
 package com.flow.platform.api.test.controller;
 
-import com.flow.platform.api.dao.UserDao;
-import com.flow.platform.api.domain.User;
-import com.flow.platform.api.service.UserService;
+import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
 import org.junit.Assert;
 import org.junit.Before;

@@ -1,10 +1,10 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.dao.UserDao;
+import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.request.LoginForm;
-import com.flow.platform.api.domain.User;
-import com.flow.platform.api.service.UserService;
+import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.StringEncodeUtil;
 import org.junit.Assert;

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
+package com.flow.platform.api.dao.user;
 
-import com.flow.platform.api.domain.credential.CredentialStorage;
-import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.user.UserRoleKey;
+import com.flow.platform.api.domain.user.UsersRoles;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -26,34 +26,33 @@ import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
-
 /**
  * @author lhl
  */
 
-@Repository(value = "credentialDao")
-public class CredentialStorageDaoImpl extends AbstractBaseDao<String, CredentialStorage> implements CredentialStorageDao {
+@Repository(value = "usersRolesDao")
+public class UsersRolesDaoImpl extends AbstractBaseDao<UserRoleKey, UsersRoles> implements UsersRolesDao{
 
     @Override
-    protected Class<CredentialStorage> getEntityClass() {
-        return CredentialStorage.class;
+    protected Class<UsersRoles> getEntityClass() {
+        return UsersRoles.class;
     }
 
     @Override
     protected String getKeyName() {
-        return "id";
+        return "userRoleKey";
     }
 
     @Override
-    public List<CredentialStorage> list(CredentialType... types) {
+    public List<UsersRoles> list(String email){
         return execute((Session session) -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<CredentialStorage> select = builder.createQuery(CredentialStorage.class);
-            Root<CredentialStorage> credentialRoot = select.from(CredentialStorage.class);
-            Predicate condition = credentialRoot.get("content").get("credentialType").in(types);
+            CriteriaQuery<UsersRoles> select = builder.createQuery(UsersRoles.class);
+            Root<UsersRoles> usersRolesRoot = select.from(UsersRoles.class);
+            Predicate condition = usersRolesRoot.get("userRoleKey").get("email").in(email);
             select.where(condition);
             return session.createQuery(select).list();
         });
     }
-}
 
+}

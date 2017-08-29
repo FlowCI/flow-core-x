@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
+package com.flow.platform.api.service.user;
 
-import com.flow.platform.api.domain.credential.CredentialStorage;
-import com.flow.platform.api.domain.credential.CredentialType;
-import com.flow.platform.core.dao.BaseDao;
+import com.flow.platform.api.domain.user.Permission;
 import java.util.List;
 
 /**
  * @author lhl
  */
-public interface CredentialStorageDao extends BaseDao<String, CredentialStorage> {
+public interface PermissionService {
 
-    List<CredentialStorage> list(CredentialType... types);
+    Permission create(Permission permission);
+
+    Permission update(Permission permission);
+
+    void delete(String action);
+
+    List<Permission> listPermissions();
 }

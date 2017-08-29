@@ -13,17 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
-
-import com.flow.platform.api.domain.credential.CredentialStorage;
-import com.flow.platform.api.domain.credential.CredentialType;
-import com.flow.platform.core.dao.BaseDao;
-import java.util.List;
+package com.flow.platform.api.domain.credential;
 
 /**
  * @author lhl
  */
-public interface CredentialStorageDao extends BaseDao<String, CredentialStorage> {
+public enum CredentialType {
+    RSAkEYS("RSAKEYS", SSHKey.class),
+    USERNAME("USERNAME", CredentialUserName.class),
+    IOS("IOS", IosCredential.class),
+    ANDROID("ANDROID", AndroidCredential.class);
 
-    List<CredentialStorage> list(CredentialType... types);
+    private Class<?> clazz;
+
+    private String name;
+
+    CredentialType(String name, Class<?> clazz) {
+        this.name = name;
+        this.clazz = clazz;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Class<?> getClazz() {
+        return clazz;
+    }
+
 }
