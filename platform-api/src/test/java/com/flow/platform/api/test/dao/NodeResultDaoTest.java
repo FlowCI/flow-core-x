@@ -21,7 +21,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
-import com.flow.platform.api.service.job.JobNodeResultService;
+import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import java.time.ZonedDateTime;
@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class NodeResultDaoTest extends TestBase {
 
     @Autowired
-    private JobNodeResultService nodeResultService;
+    private NodeResultService nodeResultService;
 
     @Autowired
     private NodeResultDao nodeResultDao;

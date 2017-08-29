@@ -67,7 +67,7 @@ public class JobServiceImpl implements JobService {
     private Integer RETRY_TIMEs = 5;
 
     @Autowired
-    private JobNodeResultService jobNodeResultService;
+    private NodeResultService nodeResultService;
 
     @Autowired
     private JobNodeService jobNodeService;
@@ -106,7 +106,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<NodeResult> listNodeResult(String path, Integer number) {
         Job job = find(path, number);
-        return jobNodeResultService.list(job);
+        return nodeResultService.list(job);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class JobServiceImpl implements JobService {
         jobNodeService.save(job.getId(), yml);
 
         // init for node result
-        NodeResult rootResult = jobNodeResultService.create(job);
+        NodeResult rootResult = nodeResultService.create(job);
         job.setResult(rootResult);
 
         // to create agent session for job
@@ -227,11 +227,11 @@ public class JobServiceImpl implements JobService {
         EnvUtil.merge(flow, node, false);
 
         String cmdId = cmdService.runShell(job, node);
-        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
+        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
 
         // record cmd id
         nodeResult.setCmdId(cmdId);
-        jobNodeResultService.update(nodeResult);
+        nodeResultService.update(nodeResult);
     }
 
     /**
@@ -265,7 +265,7 @@ public class JobServiceImpl implements JobService {
     private void onRunShellCallback(String nodePath, Cmd cmd, Job job) {
         NodeTree tree = jobNodeService.get(job.getId());
         Node node = tree.find(nodePath);
-        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
+        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
 
         NodeStatus newStatus = NodeStatus.transfer(cmd);
 
@@ -276,7 +276,7 @@ public class JobServiceImpl implements JobService {
 
         //update job step status
         nodeResult.setStatus(newStatus);
-        jobNodeResultService.update(nodeResult);
+        nodeResultService.update(nodeResult);
 
         //update node status
         updateNodeStatus(node, cmd, job);
@@ -312,7 +312,7 @@ public class JobServiceImpl implements JobService {
      * update node status
      */
     private void updateNodeStatus(Node node, Cmd cmd, Job job) {
-        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
+        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
         nodeResult.setStatus(NodeStatus.transfer(cmd));
         CmdResult cmdResult = cmd.getCmdResult();
 
@@ -380,7 +380,7 @@ public class JobServiceImpl implements JobService {
         updateNodeInfo(node, cmd, job);
 
         //save
-        jobNodeResultService.update(nodeResult);
+        nodeResultService.update(nodeResult);
     }
 
     /**
@@ -392,7 +392,7 @@ public class JobServiceImpl implements JobService {
             return false;
         }
 
-        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
+        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
         nodeResult.setExitCode(cmdResult.getExitValue());
 
         if (NodeUtil.canRun(node)) {
@@ -424,7 +424,7 @@ public class JobServiceImpl implements JobService {
         }
 
         //save
-        jobNodeResultService.update(nodeResult);
+        nodeResultService.update(nodeResult);
         return true;
     }
 
@@ -483,11 +483,11 @@ public class JobServiceImpl implements JobService {
     }
 
     private void updateNodeResult(Job job, NodeStatus status) {
-        List<NodeResult> results = jobNodeResultService.list(job);
+        List<NodeResult> results = nodeResultService.list(job);
         for (NodeResult result : results) {
             if (result.getStatus() != NodeStatus.SUCCESS) {
                 result.setStatus(status);
-                jobNodeResultService.update(result);
+                nodeResultService.update(result);
             }
         }
     }

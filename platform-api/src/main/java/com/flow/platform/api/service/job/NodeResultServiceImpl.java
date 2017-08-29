@@ -17,7 +17,6 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.NodeResultDao;
-import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
@@ -38,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class JobNodeResultServiceImpl implements JobNodeResultService {
+public class NodeResultServiceImpl implements NodeResultService {
 
     @Autowired
     private NodeResultDao nodeResultDao;

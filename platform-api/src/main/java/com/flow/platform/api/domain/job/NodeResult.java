@@ -58,6 +58,8 @@ public class NodeResult extends Jsonable {
 
     private String name; // node name
 
+    private int order;
+
     @Expose
     private ZonedDateTime createdAt;
 
@@ -185,6 +187,14 @@ public class NodeResult extends Jsonable {
 
     public void setFinishTime(ZonedDateTime finishTime) {
         this.finishTime = finishTime;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
     }
 
     @Override

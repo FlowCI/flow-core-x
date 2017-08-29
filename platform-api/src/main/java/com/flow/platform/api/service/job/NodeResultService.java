@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author yh@firim
  */
-public interface JobNodeResultService {
+public interface NodeResultService {
 
     /**
      * Create all empty nodes results by job

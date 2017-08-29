@@ -39,7 +39,7 @@ public class JobNodeResultServiceTest extends TestBase {
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Flow flow = (Flow) nodeService.find(job.getNodePath());
-        Assert.assertEquals(job.getId(), jobNodeResultService.find(flow.getPath(), job.getId()).getJobId());
+        Assert.assertEquals(job.getId(), nodeResultService.find(flow.getPath(), job.getId()).getJobId());
     }
 
     @Test
@@ -50,7 +50,7 @@ public class JobNodeResultServiceTest extends TestBase {
         nodeResultDao.save(nodeResult);
 
         nodeResult.setNodeTag(NodeTag.STEP);
-        jobNodeResultService.update(nodeResult);
+        nodeResultService.update(nodeResult);
         Assert.assertEquals(nodeResult.getNodeTag(), NodeTag.STEP);
     }
 }

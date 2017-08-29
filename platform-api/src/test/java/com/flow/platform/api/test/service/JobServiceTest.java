@@ -79,7 +79,7 @@ public class JobServiceTest extends TestBase {
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, job.getResult().getStatus());
         job = jobService.find(job.getId());
-        NodeResult jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
+        NodeResult jobFlow = nodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
 
         cmd.setStatus(CmdStatus.LOGGED);
@@ -93,9 +93,9 @@ public class JobServiceTest extends TestBase {
 
         jobService.callback(new CmdQueueItem(Jsonable.GSON_CONFIG.toJson(map), cmd));
         job = jobService.find(job.getId());
-        Assert.assertEquals(NodeStatus.FAILURE, (jobNodeResultService.find(step2.getPath(), job.getId())).getStatus());
+        Assert.assertEquals(NodeStatus.FAILURE, (nodeResultService.find(step2.getPath(), job.getId())).getStatus());
         Assert.assertEquals(NodeStatus.FAILURE, job.getResult().getStatus());
-        jobFlow = jobNodeResultService.find(flow.getPath(), job.getId());
+        jobFlow = nodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
 
     }
