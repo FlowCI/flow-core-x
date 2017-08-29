@@ -57,7 +57,7 @@
 
   <!--Node Result Class-->
   <class name="com.flow.platform.api.domain.job.NodeResult" table="node_result">
-    <composite-id name="nodeResultKey" class="com.flow.platform.api.domain.job.NodeResultKey">
+    <composite-id name="key" class="com.flow.platform.api.domain.job.NodeResultKey">
       <key-property name="jobId">
         <column name="job_id" sql-type="decimal(25, 0)"/>
       </key-property>

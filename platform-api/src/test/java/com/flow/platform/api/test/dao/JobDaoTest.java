@@ -64,7 +64,7 @@ public class JobDaoTest extends TestBase {
 
         // then: check job is correct
         Assert.assertEquals(job.getNodePath(), loaded.getNodePath());
-        Assert.assertEquals(nodeResult.getNodeResultKey(), loaded.getResult().getNodeResultKey());
+        Assert.assertEquals(nodeResult.getKey(), loaded.getResult().getKey());
 
         // then: check job list data
         Assert.assertEquals(job, jobDao.list().get(0));

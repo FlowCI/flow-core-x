@@ -55,7 +55,7 @@ public class NodeResultDaoTest extends TestBase {
         NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
         NodeResult job_node = nodeResultDao.get(nodeResultKey);
         Assert.assertNotNull(job_node);
-        Assert.assertEquals("/flow1", job_node.getNodeResultKey().getPath());
+        Assert.assertEquals("/flow1", job_node.getKey().getPath());
         Assert.assertEquals(NodeTag.FLOW, job_node.getNodeTag());
     }
 
@@ -79,8 +79,7 @@ public class NodeResultDaoTest extends TestBase {
         job_node1.setCmdId("22222");
         nodeResultDao.update(job_node1);
 
-        Assert.assertEquals(job_node.getNodeResultKey().getPath(), job_node1.getNodeResultKey().getPath());
-
+        Assert.assertEquals(job_node.getKey().getPath(), job_node1.getKey().getPath());
     }
 
     @Test

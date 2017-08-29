@@ -50,7 +50,7 @@ public class JobNodeResultServiceTest extends TestBase {
         nodeResultDao.save(nodeResult);
 
         nodeResult.setNodeTag(NodeTag.STEP);
-        NodeResult nodeResult1 = jobNodeResultService.update(nodeResult);
-        Assert.assertEquals(nodeResult1.getNodeTag(), NodeTag.STEP);
+        jobNodeResultService.update(nodeResult);
+        Assert.assertEquals(nodeResult.getNodeTag(), NodeTag.STEP);
     }
 }

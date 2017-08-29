@@ -17,6 +17,7 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.job.NodeStatus;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -26,7 +27,7 @@ import java.util.List;
 public interface JobNodeResultService {
 
     /**
-     * Create empty node results by job
+     * Create all empty nodes results by job
      *
      * @return NodeResult for root node
      */
@@ -37,7 +38,7 @@ public interface JobNodeResultService {
      */
     NodeResult find(String path, BigInteger jobId);
 
-    NodeResult update(NodeResult nodeResult);
+    void update(NodeResult nodeResult);
 
     List<NodeResult> list(Job job);
 }

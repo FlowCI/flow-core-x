@@ -39,7 +39,6 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
@@ -47,7 +46,6 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -196,14 +194,14 @@ public class JobServiceImpl implements JobService {
                 throw new NotFoundException("job not found");
             }
 
-            sessionCallback(job, cmd);
+            onCreateSessionCallback(job, cmd);
             return;
         }
 
         if (cmd.getType() == CmdType.RUN_SHELL) {
             Map<String, String> map = Jsonable.GSON_CONFIG.fromJson(id, Map.class);
             job = find(new BigInteger(map.get("jobId")));
-            nodeCallback(map.get("path"), cmd, job);
+            onRunShellCallback(map.get("path"), cmd, job);
             return;
         }
 
@@ -239,7 +237,7 @@ public class JobServiceImpl implements JobService {
     /**
      * session success callback
      */
-    private void sessionCallback(Job job, Cmd cmd) {
+    private void onCreateSessionCallback(Job job, Cmd cmd) {
         if (cmd.getStatus() != CmdStatus.SENT) {
             LOGGER.warn(String.format("Create Session Error Session Status - %s", cmd.getStatus().getName()));
             job.setStatus(JobStatus.ERROR);
@@ -264,7 +262,7 @@ public class JobServiceImpl implements JobService {
     /**
      * step success callback
      */
-    private void nodeCallback(String nodePath, Cmd cmd, Job job) {
+    private void onRunShellCallback(String nodePath, Cmd cmd, Job job) {
         NodeTree tree = jobNodeService.get(job.getId());
         Node node = tree.find(nodePath);
         NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
@@ -288,8 +286,8 @@ public class JobServiceImpl implements JobService {
      * update job flow status
      */
     private void updateJobStatus(NodeResult nodeResult) {
-        BigInteger jobId = nodeResult.getNodeResultKey().getJobId();
-        String path = nodeResult.getNodeResultKey().getPath();
+        BigInteger jobId = nodeResult.getKey().getJobId();
+        String path = nodeResult.getKey().getPath();
 
         Node node = jobNodeService.get(jobId).find(path);
         Job job = find(jobId);
@@ -314,10 +312,9 @@ public class JobServiceImpl implements JobService {
      * update node status
      */
     private void updateNodeStatus(Node node, Cmd cmd, Job job) {
-
         NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
         nodeResult.setStatus(NodeStatus.transfer(cmd));
-        CmdResult cmdResult = ((Cmd) cmd).getCmdResult();
+        CmdResult cmdResult = cmd.getCmdResult();
 
         Node parent = node.getParent();
         Node prev = node.getPrev();
@@ -389,46 +386,46 @@ public class JobServiceImpl implements JobService {
     /**
      * update node info outputs duration start time
      */
-    private void updateNodeInfo(Node node, CmdBase cmdBase, Job job) {
-        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
-        //update jobNode
-        nodeResult.setUpdatedAt(ZonedDateTime.now());
-
-        CmdResult cmdResult = ((Cmd) cmdBase).getCmdResult();
-
-        if (cmdResult != null) {
-            nodeResult.setExitCode(cmdResult.getExitValue());
-            if (NodeUtil.canRun(node)) {
-                nodeResult.setLogPaths(((Cmd) cmdBase).getLogPaths());
-            }
-
-            // setting start time
-            if (nodeResult.getStartTime() == null) {
-                nodeResult.setStartTime(cmdResult.getStartTime());
-            }
-
-            // setting finish time
-            if (((Cmd) cmdBase).getFinishedDate() != null) {
-                nodeResult.setFinishTime(((Cmd) cmdBase).getFinishedDate());
-            }
-
-            //setting duration from endTime - startTime
-            if (nodeResult.getFinishTime() != null) {
-                Long duration =
-                    nodeResult.getFinishTime().toEpochSecond() - nodeResult.getStartTime().toEpochSecond();
-                nodeResult.setDuration(duration);
-            }
-
-            // merge envs
-            EnvUtil.merge(cmdResult.getOutput(), nodeResult.getOutputs(), false);
-
-            if (node.getParent() != null) {
-                updateNodeInfo(node.getParent(), cmdBase, job);
-            }
-
-            //save
-            jobNodeResultService.update(nodeResult);
+    private boolean updateNodeInfo(Node node, Cmd cmd, Job job) {
+        CmdResult cmdResult = cmd.getCmdResult();
+        if (cmdResult == null) {
+            return false;
         }
+
+        NodeResult nodeResult = jobNodeResultService.find(node.getPath(), job.getId());
+        nodeResult.setExitCode(cmdResult.getExitValue());
+
+        if (NodeUtil.canRun(node)) {
+            nodeResult.setLogPaths(cmd.getLogPaths());
+        }
+
+        // setting start time
+        if (nodeResult.getStartTime() == null) {
+            nodeResult.setStartTime(cmdResult.getStartTime());
+        }
+
+        // setting finish time
+        if (cmd.getFinishedDate() != null) {
+            nodeResult.setFinishTime(cmd.getFinishedDate());
+        }
+
+        //setting duration from endTime - startTime
+        if (nodeResult.getFinishTime() != null) {
+            Long duration =
+                nodeResult.getFinishTime().toEpochSecond() - nodeResult.getStartTime().toEpochSecond();
+            nodeResult.setDuration(duration);
+        }
+
+        // merge envs
+        EnvUtil.merge(cmdResult.getOutput(), nodeResult.getOutputs(), false);
+
+        if (node.getParent() != null) {
+            updateNodeInfo(node.getParent(), cmd, job);
+        }
+
+        //save
+        jobNodeResultService.update(nodeResult);
+        return true;
     }
 
     @Override
@@ -485,7 +482,6 @@ public class JobServiceImpl implements JobService {
         }
     }
 
-    // TODO: batch update...
     private void updateNodeResult(Job job, NodeStatus status) {
         List<NodeResult> results = jobNodeResultService.list(job);
         for (NodeResult result : results) {

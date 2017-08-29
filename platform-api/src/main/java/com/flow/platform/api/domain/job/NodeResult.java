@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class NodeResult extends Jsonable {
 
-    private NodeResultKey nodeResultKey;
+    private NodeResultKey key;
 
     @Expose
     private Map<String, String> outputs = new HashMap<>();
@@ -71,8 +71,8 @@ public class NodeResult extends Jsonable {
         this(new NodeResultKey(jobId, path));
     }
 
-    public NodeResult(NodeResultKey nodeResultKey) {
-        this.nodeResultKey = nodeResultKey;
+    public NodeResult(NodeResultKey key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -99,20 +99,20 @@ public class NodeResult extends Jsonable {
         this.updatedAt = updatedAt;
     }
 
-    public NodeResultKey getNodeResultKey() {
-        return nodeResultKey;
+    public NodeResultKey getKey() {
+        return key;
     }
 
-    public void setNodeResultKey(NodeResultKey nodeResultKey) {
-        this.nodeResultKey = nodeResultKey;
+    public void setKey(NodeResultKey key) {
+        this.key = key;
     }
 
     public BigInteger getJobId() {
-        return this.nodeResultKey.getJobId();
+        return this.key.getJobId();
     }
 
     public String getPath() {
-        return this.nodeResultKey.getPath();
+        return this.key.getPath();
     }
 
     public Map<String, String> getOutputs() {
@@ -198,11 +198,11 @@ public class NodeResult extends Jsonable {
 
         NodeResult that = (NodeResult) o;
 
-        return nodeResultKey.equals(that.nodeResultKey);
+        return key.equals(that.key);
     }
 
     @Override
     public int hashCode() {
-        return this.getNodeResultKey().hashCode();
+        return this.getKey().hashCode();
     }
 }

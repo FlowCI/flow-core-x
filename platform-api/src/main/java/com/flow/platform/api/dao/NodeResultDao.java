@@ -15,7 +15,6 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;
@@ -29,7 +28,18 @@ import java.util.List;
  */
 public interface NodeResultDao extends BaseDao<NodeResultKey, NodeResult> {
 
+    /**
+     * Get node result by job id, status and node tag
+     */
     NodeResult get(BigInteger jobId, NodeStatus status, NodeTag tag);
 
-    List<NodeResult> list(Job job);
+    /**
+     * List node result for job
+     */
+    List<NodeResult> list(BigInteger jobId);
+
+    /**
+     * Update status to all node result by job id
+     */
+    int update(BigInteger jobId, NodeStatus target);
 }
