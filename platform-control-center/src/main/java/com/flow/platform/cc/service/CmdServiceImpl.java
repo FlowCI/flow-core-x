@@ -119,19 +119,23 @@ public class CmdServiceImpl implements CmdService {
             throw new IllegalParameterException("Illegal zone name : " + info.getZoneName());
         }
 
-        String cmdId = UUID.randomUUID().toString();
         Cmd cmd = Cmd.convert(info);
-        cmd.setId(cmdId);
-        cmd.setCreatedDate(DateUtil.utcNow());
-        cmd.setUpdatedDate(DateUtil.utcNow());
+        cmd.setId(UUID.randomUUID().toString());
+        cmd.setCreatedDate(ZonedDateTime.now());
+        cmd.setUpdatedDate(ZonedDateTime.now());
 
         // set default cmd timeout from zone setting if not defined
         if (info.getTimeout() == null) {
             cmd.setTimeout(zone.getDefaultCmdTimeout());
         }
 
-        cmdDao.save(cmd);
-        return cmd;
+        // auto create session id when create cmd
+        if (cmd.getType() == CmdType.CREATE_SESSION) {
+            cmd.setSessionId(UUID.randomUUID().toString());
+            LOGGER.traceMarker("create", "Create session id when cmd created: %s", cmd.getSessionId());
+        }
+
+        return cmdDao.save(cmd);
     }
 
     @Override
@@ -191,6 +195,7 @@ public class CmdServiceImpl implements CmdService {
         try {
             // find agent
             Agent target = selectAgent(cmd);
+            LOGGER.traceMarker("send", "Agent been selected: %s with status %s", target.getPath(), target.getStatus());
 
             // set cmd path and save since some of cmd not defined agent name
             cmd.setAgentPath(target.getPath());
@@ -276,6 +281,7 @@ public class CmdServiceImpl implements CmdService {
         }
 
         CmdResult cmdResult = cmdResultDao.get(cmd.getId());
+
         // compare exiting cmd result and update
         CmdResult inputResult = statusItem.getCmdResult();
         if (inputResult != null) {
@@ -288,6 +294,7 @@ public class CmdServiceImpl implements CmdService {
             }
         }
         cmd.setCmdResult(cmdResult);
+
         // update cmd status
         if (cmd.addStatus(statusItem.getStatus())) {
             cmdDao.update(cmd);
@@ -433,15 +440,12 @@ public class CmdServiceImpl implements CmdService {
                 break;
 
             case CREATE_SESSION:
+
                 // add reject status since unable to create session for agent
-                String sessionId = agentService.createSession(target);
+                String sessionId = agentService.createSession(target, cmd.getSessionId());
                 if (sessionId == null) {
                     throw new AgentErr.NotAvailableException(target.getName());
                 }
-
-                // set session id to cmd and save
-                cmd.setSessionId(sessionId);
-                cmdDao.update(cmd);
 
                 break;
 
@@ -471,6 +475,7 @@ public class CmdServiceImpl implements CmdService {
         }
 
         // update agent property
+        LOGGER.debug("Target status record: %s %s", target.getPath(), target.getSessionId());
         agentDao.update(target);
     }
 
