@@ -18,7 +18,6 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.util.UrlUtil;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.util.HttpUtil;
@@ -34,6 +33,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
+ * Response for send cmd to control center
+ *
  * @author yang
  */
 @Service
@@ -56,8 +57,8 @@ public class CmdServiceImpl implements CmdService {
     @Override
     public String createSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
-        cmdInfo.setWebhook(getJobHook(job));
-        LOGGER.traceMarker("createSession", String.format("jobId - %s", job.getId()));
+        cmdInfo.setWebhook(buildCmdWebhook(job));
+        LOGGER.traceMarker("CreateSession", "job id - %s", job.getId());
 
         // create session
         Cmd cmd = sendToQueue(cmdInfo, 5);
@@ -76,7 +77,7 @@ public class CmdServiceImpl implements CmdService {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.DELETE_SESSION, null);
         cmdInfo.setSessionId(job.getSessionId());
 
-        LOGGER.traceMarker("deleteSession", String.format("sessionId - %s", job.getSessionId()));
+        LOGGER.traceMarker("DeleteSession", "sessionId - %s", job.getSessionId());
 
         // delete session
         sendToQueue(cmdInfo, 5);
@@ -86,17 +87,17 @@ public class CmdServiceImpl implements CmdService {
     public String runShell(Job job, Node node) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setInputs(node.getEnvs());
-        cmdInfo.setWebhook(getNodeHook(node, job.getId()));
+        cmdInfo.setWebhook(buildCmdWebhook(job));
         cmdInfo.setOutputEnvFilter("FLOW_");
         cmdInfo.setSessionId(job.getSessionId());
-
-        LOGGER.traceMarker("run", String.format("stepName - %s, nodePath - %s", node.getName(), node.getPath()));
+        cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
 
         try {
+            LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());
             String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
 
             if (res == null) {
-                LOGGER.warn(String.format("post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson()));
+                LOGGER.warn("Post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson());
                 throw new HttpException(
                     String.format("Post Cmd Error, Node Name - %s, CmdInfo - %s", node.getName(), cmdInfo.toJson()));
             }
@@ -104,7 +105,7 @@ public class CmdServiceImpl implements CmdService {
             Cmd cmd = Jsonable.parse(res, Cmd.class);
             return cmd.getId();
         } catch (Throwable ignore) {
-            LOGGER.warn("run step UnsupportedEncodingException", ignore);
+            LOGGER.warnMarker("RunShell", "Unexpected exception", ignore);
             return null;
         }
     }
@@ -121,8 +122,7 @@ public class CmdServiceImpl implements CmdService {
 
             if (res == null) {
                 String message = String
-                    .format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuilder.toString(),
-                        cmdInfo.toJson());
+                    .format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuilder, cmdInfo.toJson());
 
                 LOGGER.warn(message);
                 throw new HttpException(message);
@@ -130,25 +130,15 @@ public class CmdServiceImpl implements CmdService {
 
             return Jsonable.parse(res, Cmd.class);
         } catch (Throwable ignore) {
-            LOGGER.warn("run step UnsupportedEncodingException", ignore);
+            LOGGER.warnMarker("SendToQueue", "Unexpected exception", ignore);
             return null;
         }
     }
 
     /**
-     * get job callback
+     * Build cmd callback webhook url with job id as identifier
      */
-    private String getJobHook(Job job) {
-        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString());
-    }
-
-    /**
-     * get node callback
-     */
-    private String getNodeHook(Node node, BigInteger jobId) {
-        Map<String, String> map = new HashMap<>();
-        map.put("path", node.getPath());
-        map.put("jobId", jobId.toString());
-        return domain + "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map));
+    private String buildCmdWebhook(Job job) {
+        return domain + "/hooks/cmd?identifier=" + HttpUtil.urlEncode(job.getId().toString());
     }
 }

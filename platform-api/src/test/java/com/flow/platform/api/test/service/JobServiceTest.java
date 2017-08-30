@@ -69,42 +69,44 @@ public class JobServiceTest extends TestBase {
         Step step2 = (Step) nodeService.find("flow1/step2");
         Step step3 = (Step) nodeService.find("flow1/step3");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
+
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId("11111111");
         cmd.setStatus(CmdStatus.SENT);
-        jobService.callback(new CmdQueueItem(job.getId().toString(), cmd));
+
+        jobService.callback(new CmdQueueItem(job.getId(), cmd));
 
         job = jobService.find(job.getId());
         Assert.assertEquals("11111111", job.getSessionId());
 
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setType(CmdType.RUN_SHELL);
+        cmd.setExtra(step1.getPath());
 
-        Map<String, String> map = new HashMap<>();
-        map.put("path", step1.getPath());
-        map.put("jobId", job.getId().toString());
-
-        jobService.callback(new CmdQueueItem(Jsonable.GSON_CONFIG.toJson(map), cmd));
+        jobService.callback(new CmdQueueItem(job.getId(), cmd));
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, job.getResult().getStatus());
         job = jobService.find(job.getId());
         NodeResult jobFlow = nodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
 
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.LOGGED);
-        cmd.setType(CmdType.RUN_SHELL);
+        cmd.setExtra(step2.getPath());
+
         CmdResult cmdResult = new CmdResult();
         cmdResult.setExitValue(1);
         cmdResult.setDuration(10l);
         cmd.setCmdResult(cmdResult);
 
-        map.put("path", step2.getPath());
-
-        jobService.callback(new CmdQueueItem(Jsonable.GSON_CONFIG.toJson(map), cmd));
+        jobService.callback(new CmdQueueItem(job.getId(), cmd));
         job = jobService.find(job.getId());
+
         Assert.assertEquals(NodeStatus.FAILURE, (nodeResultService.find(step2.getPath(), job.getId())).getStatus());
         Assert.assertEquals(NodeStatus.FAILURE, job.getResult().getStatus());
         jobFlow = nodeResultService.find(flow.getPath(), job.getId());
+
         Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
     }
 
@@ -126,7 +128,7 @@ public class JobServiceTest extends TestBase {
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId(sessionId);
         cmd.setStatus(CmdStatus.SENT);
-        CmdQueueItem createSessionItem = new CmdQueueItem(job.getId().toString(), cmd);
+        CmdQueueItem createSessionItem = new CmdQueueItem(job.getId(), cmd);
         jobService.callback(createSessionItem);
 
         // then: check job status should be running
@@ -158,6 +160,7 @@ public class JobServiceTest extends TestBase {
             stepCmd.setSessionId(sessionId);
             stepCmd.setStatus(CmdStatus.LOGGED);
             stepCmd.setCmdResult(new CmdResult(0));
+            stepCmd.setExtra(step.getPath());
 
             // set start and finish time for 30 seconds of every steps
             ZonedDateTime start = ZonedDateTime.now();
@@ -166,12 +169,8 @@ public class JobServiceTest extends TestBase {
             stepCmd.getCmdResult().setFinishTime(finish);
 
             // build mock identifier
-            Map<String, String> map = new HashMap<>();
-            map.put("path", step.getPath());
-            map.put("jobId", job.getId().toString());
-            String identifier = Jsonable.GSON_CONFIG.toJson(map);
 
-            CmdQueueItem runStepShellItem = new CmdQueueItem(identifier, stepCmd);
+            CmdQueueItem runStepShellItem = new CmdQueueItem(job.getId(), stepCmd);
             jobService.callback(runStepShellItem);
             stepResult = nodeResultService.find(step.getPath(), job.getId());
             Assert.assertEquals(NodeStatus.SUCCESS, stepResult.getStatus());

@@ -168,20 +168,19 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public void callback(CmdQueueItem cmdQueueItem) {
-        String id = cmdQueueItem.getIdentifier();
+        BigInteger jobId = cmdQueueItem.getJobId();
         Cmd cmd = cmdQueueItem.getCmd();
-        Job job;
+        Job job = find(jobId);
 
         if (cmd.getType() == CmdType.CREATE_SESSION) {
 
             // TODO: refactor to find(id, timeout)
-            job = find(new BigInteger(id));
             if (job == null) {
                 if (cmdQueueItem.getRetryTimes() < RETRY_TIMEs) {
                     try {
                         Thread.sleep(1000);
-                        LOGGER.traceMarker("callback", String
-                            .format("job not found, retry times - %s jobId - %s", cmdQueueItem.getRetryTimes(), id));
+                        LOGGER.traceMarker("Callback", "Job not found, retry times - %s jobId - %s",
+                            cmdQueueItem.getRetryTimes(), jobId);
                     } catch (Throwable throwable) {
                     }
 
@@ -189,7 +188,8 @@ public class JobServiceImpl implements JobService {
                     enterQueue(cmdQueueItem);
                     return;
                 }
-                LOGGER.warn(String.format("job not found, jobId: %s", id));
+
+                LOGGER.warn(String.format("job not found, jobId: %s", jobId));
                 throw new NotFoundException("job not found");
             }
 
@@ -198,9 +198,12 @@ public class JobServiceImpl implements JobService {
         }
 
         if (cmd.getType() == CmdType.RUN_SHELL) {
-            Map<String, String> map = Jsonable.GSON_CONFIG.fromJson(id, Map.class);
-            job = find(new BigInteger(map.get("jobId")));
-            onRunShellCallback(map.get("path"), cmd, job);
+            String path = cmd.getExtra();
+            if (Strings.isNullOrEmpty(path)) {
+                throw new IllegalParameterException("Node path is required for cmd RUN_SHELL callback");
+            }
+
+            onRunShellCallback(path, cmd, job);
             return;
         }
 

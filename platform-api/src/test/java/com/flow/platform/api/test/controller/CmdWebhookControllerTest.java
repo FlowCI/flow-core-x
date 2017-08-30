@@ -28,7 +28,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.UrlUtil;
+import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdResult;
@@ -41,6 +41,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
@@ -54,7 +55,7 @@ public class CmdWebhookControllerTest extends TestBase {
     }
 
     @Test
-    public void should_callback_session_success() throws Exception {
+    public void should_callback_session_success() throws Throwable {
         // given: flow with two steps , step1 and step2
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
         setFlowToReady(rootForFlow);
@@ -66,10 +67,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
 
-        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson())
-        ).andExpect(status().isOk()).andReturn();
+        performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
         // then: verify job status and root node status
@@ -84,15 +82,9 @@ public class CmdWebhookControllerTest extends TestBase {
         // when: first step callback with running status
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
+        cmd.setExtra(step1.getPath());
 
-        Map<String, String> map = new HashMap<>();
-        map.put("path", step1.getPath());
-        map.put("jobId", job.getId().toString());
-
-        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson())
-        ).andExpect(status().isOk()).andReturn();
+        performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
         // then: verify node status
@@ -108,14 +100,13 @@ public class CmdWebhookControllerTest extends TestBase {
         // when: first step callback with logged status
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.LOGGED);
+        cmd.setExtra(step1.getPath());
+
         CmdResult cmdResult = new CmdResult(0);
         cmdResult.setDuration(100L);
         cmd.setCmdResult(cmdResult);
 
-        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson())
-        ).andExpect(status().isOk()).andReturn();
+        performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
         // then: verify job and node status
@@ -132,15 +123,13 @@ public class CmdWebhookControllerTest extends TestBase {
         // when: second step callback with logged status
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step2.getScript());
         cmd.setStatus(CmdStatus.LOGGED);
+        cmd.setExtra(step2.getPath());
+
         cmdResult = new CmdResult(0);
         cmdResult.setDuration(100L);
         cmd.setCmdResult(cmdResult);
 
-        map.put("path", step2.getPath());
-        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson())
-        ).andExpect(status().isOk()).andReturn();
+        performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
         // then: verify job and node status
@@ -156,7 +145,7 @@ public class CmdWebhookControllerTest extends TestBase {
     }
 
     @Test
-    public void should_callback_failure() throws Exception {
+    public void should_callback_failure() throws Throwable {
         // init
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
         setFlowToReady(rootForFlow);
@@ -167,20 +156,12 @@ public class CmdWebhookControllerTest extends TestBase {
         Flow flow = (Flow) nodeService.find(job.getNodePath());
 
         // create session
-        CmdBase cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
         String sessionId = "1111111";
         cmd.setSessionId(sessionId);
 
-        MockHttpServletRequestBuilder content = post(
-            "/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson());
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
-
+        performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
         job = jobService.find(job.getId());
@@ -192,20 +173,9 @@ public class CmdWebhookControllerTest extends TestBase {
         // run first step timeout
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
+        cmd.setExtra(step1.getPath());
 
-        Map<String, String> map = new HashMap<>();
-        map.put("path", step1.getPath());
-        map.put("jobId", job.getId().toString());
-
-        content = post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson());
-
-        this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
-
+        performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
         job = jobService.find(job.getId());
@@ -220,7 +190,7 @@ public class CmdWebhookControllerTest extends TestBase {
     }
 
     @Test
-    public void should_callback_timeout_allow_failure() throws Exception {
+    public void should_callback_timeout_allow_failure() throws Throwable {
         Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
         setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
@@ -231,10 +201,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
 
-        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(job.getId().toString()))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson())
-        ).andExpect(status().isOk()).andReturn();
+        performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
         // then: check job session id
@@ -249,15 +216,9 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setSessionId(sessionId);
         cmd.setStatus(CmdStatus.RUNNING);
+        cmd.setExtra(step1.getPath());
 
-        Map<String, String> map = new HashMap<>();
-        map.put("path", step1.getPath());
-        map.put("jobId", job.getId().toString());
-
-        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson())
-        ).andExpect(status().isOk()).andReturn();
+        performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
         // then: check root node result status should be RUNNING
@@ -267,11 +228,9 @@ public class CmdWebhookControllerTest extends TestBase {
         // mock timeout kill status from agent
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
+        cmd.setExtra(step1.getPath());
 
-        this.mockMvc.perform(post("/hooks/cmd?identifier=" + UrlUtil.urlEncoder(Jsonable.GSON_CONFIG.toJson(map)))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson())
-        ).andExpect(status().isOk()).andReturn();
+        performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
         // then: check step node status should be timeout
@@ -286,5 +245,17 @@ public class CmdWebhookControllerTest extends TestBase {
         // then: check job status should be running since time out allow failure
         job = jobService.find(job.getId());
         Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+    }
+
+    private MvcResult performMockHttpRequest(Cmd cmd, Job job) throws Throwable {
+        MockHttpServletRequestBuilder content = post(
+            "/hooks/cmd?identifier=" + HttpUtil.urlEncode(job.getId().toString()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(cmd.toJson());
+
+        return this.mockMvc.perform(content)
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
     }
 }

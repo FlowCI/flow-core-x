@@ -17,37 +17,41 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Cmd;
+import java.math.BigInteger;
 
 /**
  * @author yh@firim
  */
 public class CmdQueueItem {
 
-    private String identifier;
+    private final BigInteger jobId;
 
-    private Cmd cmd;
+    private final String path; // node path
+
+    private final Cmd cmd;
 
     private Integer retryTimes = 0;
 
-    public CmdQueueItem(String identifier, Cmd cmd) {
-        this.identifier = identifier;
+    public CmdQueueItem(BigInteger jobId, Cmd cmd) {
+        this.jobId = jobId;
         this.cmd = cmd;
+        this.path = cmd.getExtra();
     }
 
-    public String getIdentifier() {
-        return identifier;
+    public BigInteger getJobId() {
+        return jobId;
     }
 
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public String getPath() {
+        return path;
     }
 
     public Cmd getCmd() {
         return cmd;
     }
 
-    public void setCmd(Cmd cmd) {
-        this.cmd = cmd;
+    public Integer getRetryTimes() {
+        return retryTimes;
     }
 
     /**
@@ -58,42 +62,10 @@ public class CmdQueueItem {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        CmdQueueItem that = (CmdQueueItem) o;
-
-        if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) {
-            return false;
-        }
-        return cmd != null ? cmd.equals(that.cmd) : that.cmd == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = identifier != null ? identifier.hashCode() : 0;
-        result = 31 * result + (cmd != null ? cmd.hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public String toString() {
         return "CmdQueueItem{" +
-            "identifier='" + identifier + '\'' +
+            "jobId='" + jobId + '\'' +
             ", cmd=" + cmd +
             '}';
-    }
-
-    public Integer getRetryTimes() {
-        return retryTimes;
-    }
-
-    public void setRetryTimes(Integer retryTimes) {
-        this.retryTimes = retryTimes;
     }
 }
