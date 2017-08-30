@@ -450,6 +450,11 @@ public class CmdServiceImpl implements CmdService {
                 break;
 
             case DELETE_SESSION:
+                // send kill cmd to zookeeper
+                String agentNodePath = ZKHelper.buildPath(target.getPath());
+                CmdInfo killCmd = new CmdInfo(target.getPath(), CmdType.KILL, null);
+                zkClient.setData(agentNodePath, killCmd.toBytes());
+
                 agentService.deleteSession(target);
                 break;
 

@@ -492,6 +492,12 @@ public class CmdServiceTest extends TestBase {
         cmdToDelSession.setSessionId(cmd.getSessionId());
         cmd = cmdService.send(cmdToDelSession);
 
+        // then: verify kill cmd been sent to agent
+        CmdInfo killCmd = CmdInfo.parse(zkClient.getData(ZKHelper.buildPath(zoneName, agentName)), CmdInfo.class);
+        Assert.assertNotNull(killCmd);
+        Assert.assertEquals(CmdType.KILL, killCmd.getType());
+
+        // then: verify agent status
         Agent sessionShouldReleased = agentService.find(cmd.getAgentPath());
         Assert.assertNull(sessionShouldReleased.getSessionId());
         Assert.assertEquals(AgentStatus.IDLE, sessionShouldReleased.getStatus());
