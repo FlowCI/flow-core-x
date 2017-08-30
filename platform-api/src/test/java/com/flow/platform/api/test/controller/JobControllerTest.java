@@ -68,7 +68,6 @@ public class JobControllerTest extends TestBase {
 
         // those fields cannot exported
         Assert.assertNull(returnedJob.getSessionId());
-        Assert.assertNull(returnedJob.getCmdId());
     }
 
 

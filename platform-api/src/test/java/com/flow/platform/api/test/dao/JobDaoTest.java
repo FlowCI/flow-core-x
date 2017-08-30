@@ -42,7 +42,6 @@ public class JobDaoTest extends TestBase {
     @Before
     public void before() {
         job = new Job(CommonUtil.randomId());
-        job.setCmdId("1111");
         job.setNodePath("flow/test");
         job.setNodeName("test");
         job.setNumber(1);
@@ -105,7 +104,6 @@ public class JobDaoTest extends TestBase {
     public void should_list_latest_job_by_path() {
         // given: job
         Job newJob = new Job(CommonUtil.randomId());
-        newJob.setCmdId("1111");
         newJob.setNodePath(job.getNodePath());
         newJob.setNodeName(job.getNodeName());
         newJob.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);

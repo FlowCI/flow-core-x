@@ -29,7 +29,7 @@ public interface CmdService {
     /**
      * Send create session cmd job async
      *
-     * @return cmd id for create session
+     * @return session id
      */
     String createSession(Job job);
 

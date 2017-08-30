@@ -149,7 +149,6 @@ public class GitWebhookTest extends TestBase {
         Job created = wrapper.getInstance();
         Assert.assertEquals(flowPath, created.getNodePath());
         Assert.assertEquals(1, created.getNumber().intValue());
-        Assert.assertNotNull(created.getCmdId());
 
         // verify flow node yml status
         Node flowNode = nodeService.find(created.getNodePath());

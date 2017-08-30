@@ -121,7 +121,7 @@ public class JobServiceTest extends TestBase {
         // when: create job and job should be SESSION_CREATING
         Job job = jobService.createJob(root.getPath());
         Assert.assertNotNull(job);
-        Assert.assertNotNull(job.getCmdId());
+        Assert.assertNotNull(job.getSessionId());
         Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
 
         // when: simulate cc callback for create session
@@ -188,7 +188,7 @@ public class JobServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
-        Assert.assertNotNull(job.getCmdId());
+        Assert.assertNotNull(job.getSessionId());
 
         Assert.assertEquals(true, jobService.stopJob(job.getNodeName(), job.getNumber()));
         job = jobService.find(job.getNodeName(), job.getNumber());

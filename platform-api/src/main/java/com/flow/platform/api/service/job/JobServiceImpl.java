@@ -158,8 +158,8 @@ public class JobServiceImpl implements JobService {
         job.setResult(rootResult);
 
         // to create agent session for job
-        String createSessionCmdId = cmdService.createSession(job);
-        job.setCmdId(createSessionCmdId);
+        String sessionId = cmdService.createSession(job);
+        job.setSessionId(sessionId);
         job.setStatus(JobStatus.SESSION_CREATING);
         jobDao.update(job);
 
@@ -315,42 +315,25 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Boolean stopJob(String path, Integer buildNumber) {
-        String cmdId;
         Job runningJob = find(path, buildNumber);
+        NodeResult result = runningJob.getResult();
 
         if (runningJob == null) {
-            throw new NotFoundException(String.format("running job not found by path - %s", path));
+            throw new NotFoundException("running job not found by path - " + path);
         }
 
-        if (runningJob.getResult() == null) {
-            throw new NotFoundException(String.format("running job not found node result - %s", path));
+        if (result == null) {
+            throw new NotFoundException("running job not found node result - " + path);
         }
 
-        //job in create session status
-        if (runningJob.getResult().getStatus() == NodeStatus.ENQUEUE
-            || runningJob.getResult().getStatus() == NodeStatus.PENDING) {
-            cmdId = runningJob.getCmdId();
-
-            // job finish, stop job failure
-        } else if (runningJob.getResult().getStatus() == NodeStatus.SUCCESS
-            || runningJob.getResult().getStatus() == NodeStatus.FAILURE) {
-            return false;
-
-        } else { // running
-            NodeResult runningNodeResult = nodeResultDao.get(runningJob.getId(), NodeStatus.RUNNING, NodeTag.STEP);
-            cmdId = runningNodeResult.getCmdId();
+        // do not handle job since it is not in running status
+        if (!result.isRunning()) {
+            return true;
         }
-
-        String url = new StringBuilder(cmdStopUrl).append(cmdId).toString();
-        LOGGER.traceMarker("stopJob", String.format("url - %s", url));
-
-        updateNodeResult(runningJob, NodeStatus.STOPPED);
 
         try {
-            String res = HttpUtil.post(url, "");
-            if (Strings.isNullOrEmpty(res)) {
-                return false;
-            }
+            cmdService.deleteSession(runningJob);
+            updateNodeResult(runningJob, NodeStatus.STOPPED);
             return true;
         } catch (Throwable throwable) {
             LOGGER.traceMarker("stopJob", String.format("stop job error - %s", throwable));

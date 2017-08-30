@@ -166,7 +166,6 @@ public class CmdWebhookControllerTest extends TestBase {
 
         job = jobService.find(job.getId());
         Assert.assertNotNull(job.getSessionId());
-        Assert.assertNotNull(job.getCmdId());
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
 
@@ -206,7 +205,6 @@ public class CmdWebhookControllerTest extends TestBase {
 
         // then: check job session id
         job = jobService.find(job.getId());
-        Assert.assertNotNull(job.getCmdId());
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
 

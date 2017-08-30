@@ -144,20 +144,21 @@ public abstract class TestBase {
     }
 
     public void stubDemo() {
-        Cmd cmdRes = new Cmd();
-        cmdRes.setId(UUID.randomUUID().toString());
+        Cmd mockCmdResponse = new Cmd();
+        mockCmdResponse.setId(UUID.randomUUID().toString());
+        mockCmdResponse.setSessionId(UUID.randomUUID().toString());
 
         stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
+                .withBody(mockCmdResponse.toJson())));
 
         stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
             .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
+                .withBody(mockCmdResponse.toJson())));
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/stop/" + cmdRes.getId()))
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/stop/" + mockCmdResponse.getId()))
             .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
+                .withBody(mockCmdResponse.toJson())));
 
         stubFor(com.github.tomakehurst.wiremock.client.WireMock
             .post(urlEqualTo("/agent/shutdown?zone=default&name=machine&password=123456"))

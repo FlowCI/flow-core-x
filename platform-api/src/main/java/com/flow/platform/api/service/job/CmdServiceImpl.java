@@ -26,6 +26,8 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +68,11 @@ public class CmdServiceImpl implements CmdService {
             throw new IllegalStatusException("Unable to create session since cmd return null");
         }
 
-        return cmd.getId();
+        if (Strings.isNullOrEmpty(cmd.getSessionId())) {
+            throw new IllegalStatusException("Invalid session id");
+        }
+
+        return cmd.getSessionId();
     }
 
     /**
@@ -77,10 +83,12 @@ public class CmdServiceImpl implements CmdService {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.DELETE_SESSION, null);
         cmdInfo.setSessionId(job.getSessionId());
 
-        LOGGER.traceMarker("DeleteSession", "sessionId - %s", job.getSessionId());
-
-        // delete session
-        sendToQueue(cmdInfo, 5);
+        try {
+            LOGGER.traceMarker("DeleteSession", "sessionId - %s", job.getSessionId());
+            sendDirectly(cmdInfo);
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.warnMarker("DeleteSession", "Encoding error: %s", e.getMessage());
+        }
     }
 
     @Override
@@ -94,15 +102,7 @@ public class CmdServiceImpl implements CmdService {
 
         try {
             LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());
-            String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
-
-            if (res == null) {
-                LOGGER.warn("Post cmd error, cmdUrl: %s, cmdInfo: %s", cmdUrl, cmdInfo.toJson());
-                throw new HttpException(
-                    String.format("Post Cmd Error, Node Name - %s, CmdInfo - %s", node.getName(), cmdInfo.toJson()));
-            }
-
-            Cmd cmd = Jsonable.parse(res, Cmd.class);
+            Cmd cmd = sendDirectly(cmdInfo);
             return cmd.getId();
         } catch (Throwable ignore) {
             LOGGER.warnMarker("RunShell", "Unexpected exception", ignore);
@@ -111,7 +111,21 @@ public class CmdServiceImpl implements CmdService {
     }
 
     /**
-     * send cmd to control center cmd queue
+     * Send cmd to control center directly
+     */
+    private Cmd sendDirectly(CmdInfo cmdInfo) throws UnsupportedEncodingException {
+        String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
+
+        if (res == null) {
+            LOGGER.warn("Error on send cmd: %s - %s", cmdUrl, cmdInfo);
+            throw new HttpException(String.format("Error on send cmd: %s - %s", cmdInfo.getExtra(), cmdInfo));
+        }
+
+        return Jsonable.parse(res, Cmd.class);
+    }
+
+    /**
+     * Send cmd to control center cmd queue
      */
     private Cmd sendToQueue(CmdInfo cmdInfo, Integer retry) {
         final StringBuilder stringBuilder = new StringBuilder(queueUrl);

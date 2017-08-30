@@ -31,8 +31,6 @@
       </type>
     </property>
 
-    <property name="cmdId" type="string" column="cmd_id"/>
-
     <property name="sessionId" type="string" column="session_id" index="true"/>
 
     <property name="envs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="envs"/>

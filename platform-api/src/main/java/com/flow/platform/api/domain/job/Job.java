@@ -37,8 +37,6 @@ public class Job extends EnvObject {
 
     private String sessionId;
 
-    private String cmdId;
-
     @Expose
     private String nodeName;
 
@@ -83,14 +81,6 @@ public class Job extends EnvObject {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
-    }
-
-    public String getCmdId() {
-        return cmdId;
-    }
-
-    public void setCmdId(String cmdId) {
-        this.cmdId = cmdId;
     }
 
     public BigInteger getId() {
