@@ -24,17 +24,20 @@ import com.flow.platform.util.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
+import org.springframework.stereotype.Service;
 
 /**
  * @author lhl
  */
-public class UserDetailService implements UserDetailsService {
 
-    private final static Logger LOGGER = new Logger(UserDetailService.class);
+@Service
+public class MyUserDetailService implements UserDetailsService {
+
+    private final static Logger LOGGER = new Logger(MyUserDetailService.class);
 
     @Autowired
     private UserService userService;
@@ -45,24 +48,19 @@ public class UserDetailService implements UserDetailsService {
     @Autowired
     private RoleDao roleDao;
 
-
-
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userService.findByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("no user");
         }
 
-
         List<UsersRoles> resources= usersRolesService.listUsersRolesByEmail(user.getEmail());
-        List<String> list = new ArrayList<>();
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         for (UsersRoles u : resources){
-            list.add(roleDao.get(u.getRoleId()).getName());
+            authorities.add(new SimpleGrantedAuthority(roleDao.get(u.getRoleId()).getName()));
         }
-
-        return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
-            .password(user.getPassword())
-            .build();
+        return new org.springframework.security.core.userdetails.User(user.getUsername(),
+            user.getPassword(), authorities);
     }
 }
 

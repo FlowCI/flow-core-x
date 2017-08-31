@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,6 +53,7 @@ public class CredentialController {
     @Autowired
     private Path workspace;
 
+    //    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping
     public List<Credential> index() {
         return credentialService.listCredentials();
@@ -63,29 +65,6 @@ public class CredentialController {
         return credential.toJson();
     }
 
-    /**
-     *
-     * {
-     "name": "test10",
-     "credentialType": "IOS",
-     "fileNames":[
-     {
-     "path": "123/1",
-     "p12Password": "123456",
-     "type": "pem"
-
-     },
-     {
-     "path": "321",
-     "keyStorePassword": "123321",
-     "keyStoreAlias": "ssssss",
-     "keyStoreAliasPassword": "azazaza",
-     "type": "jsk"
-
-
-     }]
-     }
-     */
 
     @PostMapping
     public Object create(@RequestBody String credentialJson) {

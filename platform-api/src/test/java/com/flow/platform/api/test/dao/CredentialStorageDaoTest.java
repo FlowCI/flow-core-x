@@ -43,7 +43,7 @@ public class CredentialStorageDaoTest extends TestBase {
         SSHKey sshKey = new SSHKey();
         String publicKey = credentialService.getKeyMap().get("publicKey");
         sshKey.setPublicKey(publicKey);
-        sshKey.setCredentialType(CredentialType.RSAkEYS);
+        sshKey.setCredentialType(CredentialType.RSAKEYS);
         sshKey.setName("test");
         credentialStorage.setContent(sshKey);
         credentialStorageDao.save(credentialStorage);
@@ -57,7 +57,7 @@ public class CredentialStorageDaoTest extends TestBase {
         SSHKey sshKey = new SSHKey();
         String publicKey = credentialService.getKeyMap().get("publicKey");
         sshKey.setPublicKey(publicKey);
-        sshKey.setCredentialType(CredentialType.RSAkEYS);
+        sshKey.setCredentialType(CredentialType.RSAKEYS);
         sshKey.setName("test");
         credentialStorage.setContent(sshKey);
         credentialStorageDao.save(credentialStorage);
@@ -76,7 +76,7 @@ public class CredentialStorageDaoTest extends TestBase {
         SSHKey sshKey = new SSHKey();
         String publicKey = credentialService.getKeyMap().get("publicKey");
         sshKey.setPublicKey(publicKey);
-        sshKey.setCredentialType(CredentialType.RSAkEYS);
+        sshKey.setCredentialType(CredentialType.RSAKEYS);
         sshKey.setName("test");
         credentialStorageDao.save(credentialStorage);
         credentialStorageDao.delete(credentialStorage);

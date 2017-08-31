@@ -94,4 +94,9 @@ public class WelcomeController {
             throw new IllegalParameterException(String.format("Cannot load system info of %s - %s", system, type));
         }
     }
+
+    @RequestMapping("/403")
+    public String forbidden(){
+        return "403";
+    }
 }

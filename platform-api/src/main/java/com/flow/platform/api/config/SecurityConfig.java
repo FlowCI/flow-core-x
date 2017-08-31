@@ -15,13 +15,9 @@
  */
 package com.flow.platform.api.config;
 
-import com.flow.platform.api.security.UserDetailService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.flow.platform.api.security.MyUserDetailService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,48 +32,39 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled=true, prePostEnabled=true)
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    @Bean
-    public AuthenticationManager configureGlobalSecurity(AuthenticationManagerBuilder auth, AuthenticationProvider provider) throws Exception {
-        auth.userDetailsService(userDetailsService());
-        auth.authenticationProvider(provider);
-        return authenticationManager();
-    }
-
+    @Override
     @Bean
     public UserDetailsService userDetailsService() {
-//        return null;
-        return new UserDetailService();
+        return new MyUserDetailService();
     }
 
-    @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setUserDetailsService(userDetailsService());
-        return daoAuthenticationProvider;
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth)
+        throws Exception {
+        auth.userDetailsService(userDetailsService());
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-            .antMatchers( "/", "/register").permitAll()
-            .anyRequest().authenticated();
+        http
+            .authorizeRequests()
+            .antMatchers("/", "/register").permitAll()
+            .anyRequest().authenticated().
+            and()
+            .formLogin()
+            .loginPage("/login")
+            .permitAll()
+            .and()
+            .logout()
+            .permitAll();
 
-        http.authorizeRequests()
-            .antMatchers("/register").not().authenticated()
+        http
+            .authorizeRequests()
             .antMatchers("/credentials").hasAnyRole("ADMIN", "USER")
             .anyRequest().authenticated()
-            .and().formLogin()
-
-            .loginProcessingUrl("/login")
-            .defaultSuccessUrl("/credentials", true)
-            .usernameParameter("username")
-            .passwordParameter("password").permitAll()
-
-            .and().logout().permitAll()
             .and().csrf().disable();
     }
 
