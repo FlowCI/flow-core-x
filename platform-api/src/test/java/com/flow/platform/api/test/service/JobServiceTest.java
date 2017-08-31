@@ -32,12 +32,9 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Jsonable;
 import java.io.IOException;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,7 +94,7 @@ public class JobServiceTest extends TestBase {
 
         CmdResult cmdResult = new CmdResult();
         cmdResult.setExitValue(1);
-        cmdResult.setDuration(10l);
+        cmdResult.setDuration(10L);
         cmd.setCmdResult(cmdResult);
 
         jobService.callback(new CmdQueueItem(job.getId(), cmd));
@@ -190,8 +187,8 @@ public class JobServiceTest extends TestBase {
         Job job = jobService.createJob(rootForFlow.getPath());
         Assert.assertNotNull(job.getSessionId());
 
-        Assert.assertEquals(true, jobService.stopJob(job.getNodeName(), job.getNumber()));
-        job = jobService.find(job.getNodeName(), job.getNumber());
-        Assert.assertEquals(NodeStatus.STOPPED, job.getResult().getStatus());
+        Job stoppedJob = jobService.stopJob(job.getNodeName(), job.getNumber());
+        Assert.assertNotNull(stoppedJob);
+        Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getResult().getStatus());
     }
 }

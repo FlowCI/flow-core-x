@@ -39,21 +39,105 @@ public class MessageController {
     @Autowired
     private MessageService messageService;
 
+    /**
+     * @api {Post} /message/email/settings create
+     * @apiExample Example usage:
+     *     endpoint: http://localhost/message/email/settings
+     *
+     *     body:
+     *     {
+     *       "smtpUrl": "",
+     *       "smtpPort": "22",
+     *       "username": xxx,
+     *       "password": xxxx,
+     *       "sender": xxxx
+     *     }
+     *
+     * @apiName CreateEmail
+     * @apiGroup EmailSetting
+     * @apiDescription create email settings
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "smtpUrl": "",
+     *       "smtpPort": "22",
+     *       "username": xxx,
+     *       "password": xxxx,
+     *       "sender": xxxx
+     *     }
+     */
     @PostMapping(path = "/email/settings")
     public EmailSettingContent createEmailSetting(@RequestBody EmailSettingContent emailSetting) {
         return (EmailSettingContent) messageService.save(emailSetting);
     }
 
+    /**
+     * @api {Get} /message/email/settings Get
+     * @apiName GetEmail
+     * @apiGroup EmailSetting
+     * @apiDescription Get email settings
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "smtpUrl": "",
+     *       "smtpPort": "22",
+     *       "username": xxx,
+     *       "password": xxxx,
+     *       "sender": xxxx
+     *     }
+     */
     @GetMapping(path = "/email/settings")
     public EmailSettingContent showEmailSetting() {
         return (EmailSettingContent) messageService.find(MessageType.EMAIl);
     }
 
+    /**
+     * @api {Patch} /message/email/settings update
+     * @apiExample Example usage:
+     *     endpoint: http://localhost/message/email/settings
+     *
+     *     body:
+     *     {
+     *       "smtpUrl": "",
+     *       "smtpPort": "22",
+     *       "username": xxx,
+     *       "password": xxxx,
+     *       "sender": xxxx
+     *     }
+     *
+     * @apiName UpdateEmail
+     * @apiGroup EmailSetting
+     * @apiDescription update email settings
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "smtpUrl": "",
+     *       "smtpPort": "22",
+     *       "username": xxx,
+     *       "password": xxxx,
+     *       "sender": xxxx
+     *     }
+     */
     @PatchMapping(path = "/email/settings")
     public EmailSettingContent updateEmailSetting(@RequestBody EmailSettingContent emailSetting) {
         return (EmailSettingContent) messageService.update(emailSetting);
     }
 
+    /**
+     * @api {Post} /message/email/settings/auth auth
+     * @apiName AuthEmailSetting
+     * @apiGroup EmailSetting
+     * @apiDescription Auth email settings
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *          "aut": true
+     *     }
+     */
     @PostMapping(path = "/email/settings/auth")
     public SmtpAuthResponse authEmailSetting(@RequestBody EmailSettingContent emailSetting) {
         if (messageService.authEmailSetting(emailSetting)) {

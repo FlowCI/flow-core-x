@@ -18,6 +18,7 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.dao.NodeResultDao;
 import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Node;
@@ -26,17 +27,18 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
-import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.core.util.HttpUtil;
+import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
@@ -89,8 +91,8 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private YmlService ymlService;
 
-    @Value(value = "${platform.cmd.stop.url}")
-    private String cmdStopUrl;
+    @Autowired
+    private PlatformURL platformURL;
 
     @Override
     public Job find(BigInteger id) {
@@ -98,8 +100,12 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job find(String path, Integer number) {
-        return jobDao.get(path, number);
+    public Job find(String flowName, Integer number) {
+        Job job = jobDao.get(flowName, number);
+        if (job == null) {
+            throw new NotFoundException("job is not found");
+        }
+        return job;
     }
 
     @Override
@@ -314,7 +320,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Boolean stopJob(String path, Integer buildNumber) {
+    public Job stopJob(String path, Integer buildNumber) {
         Job runningJob = find(path, buildNumber);
         NodeResult result = runningJob.getResult();
 
@@ -327,18 +333,18 @@ public class JobServiceImpl implements JobService {
         }
 
         // do not handle job since it is not in running status
-        if (!result.isRunning()) {
-            return true;
+        if (result.isRunning()) {
+            try {
+                cmdService.deleteSession(runningJob);
+                updateNodeResult(runningJob, NodeStatus.STOPPED);
+                updateJobStatus(runningJob, result);
+            } catch (Throwable throwable) {
+                LOGGER.traceMarker("stopJob", String.format("stop job error - %s", throwable));
+                throw new IllegalParameterException(String.format("stop job error - %s", throwable));
+            }
         }
 
-        try {
-            cmdService.deleteSession(runningJob);
-            updateNodeResult(runningJob, NodeStatus.STOPPED);
-            return true;
-        } catch (Throwable throwable) {
-            LOGGER.traceMarker("stopJob", String.format("stop job error - %s", throwable));
-            return false;
-        }
+        return runningJob;
     }
 
     private void updateJobStatus(Job job, NodeResult rootResult) {
@@ -363,6 +369,10 @@ public class JobServiceImpl implements JobService {
             if (result.getStatus() != NodeStatus.SUCCESS) {
                 result.setStatus(status);
                 nodeResultService.save(result);
+
+                if (job.getNodePath().equals(result.getPath())) {
+                    job.setResult(result);
+                }
             }
         }
     }

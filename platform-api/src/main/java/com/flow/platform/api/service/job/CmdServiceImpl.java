@@ -18,6 +18,7 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.util.HttpUtil;
@@ -31,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -44,17 +46,14 @@ public class CmdServiceImpl implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
 
+    @Autowired
+    private PlatformURL platformURL;
+
     @Value(value = "${platform.zone}")
     private String zone;
 
     @Value(value = "${domain}")
     private String domain;
-
-    @Value(value = "${platform.queue.url}")
-    private String queueUrl;
-
-    @Value(value = "${platform.cmd.url}")
-    private String cmdUrl;
 
     @Override
     public String createSession(Job job) {
@@ -114,6 +113,7 @@ public class CmdServiceImpl implements CmdService {
      * Send cmd to control center directly
      */
     private Cmd sendDirectly(CmdInfo cmdInfo) throws UnsupportedEncodingException {
+        String cmdUrl = platformURL.getCmdUrl();
         String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
 
         if (res == null) {
@@ -128,7 +128,7 @@ public class CmdServiceImpl implements CmdService {
      * Send cmd to control center cmd queue
      */
     private Cmd sendToQueue(CmdInfo cmdInfo, Integer retry) {
-        final StringBuilder stringBuilder = new StringBuilder(queueUrl);
+        final StringBuilder stringBuilder = new StringBuilder(platformURL.getQueueUrl());
         stringBuilder.append("?priority=1&retry=").append(retry);
 
         try {

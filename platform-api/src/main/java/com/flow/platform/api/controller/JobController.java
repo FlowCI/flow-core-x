@@ -192,10 +192,9 @@ public class JobController extends NodeController {
      *  }
      */
     @PostMapping(path = "/{root}/{buildNumber}/stop")
-    public BooleanValue stopJob(@PathVariable Integer buildNumber) {
+    public Job stopJob(@PathVariable Integer buildNumber) {
         String path = getNodePathFromUrl();
-        boolean value = jobService.stopJob(path, buildNumber);
-        return new BooleanValue(value);
+        return jobService.stopJob(path, buildNumber);
     }
 
     /**

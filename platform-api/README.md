@@ -4,7 +4,6 @@
 - NodeStatus --> bottom up transfer to --> Parent Node Status --> Root Node Status
 - Root Node Status --> transfer to --> Job Status
 
-
 ## Environments Description
 
 ### Flow
