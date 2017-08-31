@@ -50,10 +50,14 @@ public class CredentialController {
     @Autowired
     private CredentialService credentialService;
 
+//    @Autowired
+//    private SecurityService securityService;
+
     @Autowired
     private Path workspace;
 
     //    @PreAuthorize("hasAnyRole('admin', 'user')")
+    //    @PreAuthorize(securityService.hasPermissions(User user, "index" ))
     @GetMapping
     public List<Credential> index() {
         return credentialService.listCredentials();

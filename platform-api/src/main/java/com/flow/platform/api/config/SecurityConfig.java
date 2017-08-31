@@ -32,7 +32,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
@@ -63,7 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
             .authorizeRequests()
-            .antMatchers("/credentials").hasAnyRole("ADMIN", "USER")
+            .antMatchers("/credentials").hasAnyAuthority("show", "index")
             .anyRequest().authenticated()
             .and().csrf().disable();
     }
