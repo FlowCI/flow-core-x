@@ -50,6 +50,7 @@ public class MyUserDetailService implements UserDetailsService {
     @Autowired
     private RolesPermissionsService rolesPermissionsService;
 
+    @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userService.findByUsername(username);
         if (user == null) {

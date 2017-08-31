@@ -58,11 +58,69 @@ public class CredentialController {
 
     //    @PreAuthorize("hasAnyRole('admin', 'user')")
     //    @PreAuthorize(securityService.hasPermissions(User user, "index" ))
+
+    /**
+     * @api {Get} /credentials
+     * @apiName CredentialList
+     * @apiGroup Credentials
+     * @apiDescription get credentials list
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *
+     *     [
+     *       {
+     *         "publicKey": "aaaaaa",
+     *         "name": "test5",
+     *         "credentialType": "RSAkEYS"
+     *
+     *       },
+     *
+     *       {
+     *          "userName": "bbbbbb",
+     *          "name": "test6",
+     *          "credentialType": "USERNAME"
+     *       },
+     *
+     *
+     *       {
+     *          "fileNames": [
+     *         {
+     *            "path": "aa/aa/aa",
+     *           "type": "pem"
+     *      },
+     *           {
+     *              "path": "aa/aa/ab",
+     *             "type": "pem1"
+     *        }
+     *       ],
+     *      "name": "test111",
+     *     "credentialType": "IOS"
+     *      }]
+     *
+     */
     @GetMapping
     public List<Credential> index() {
         return credentialService.listCredentials();
     }
 
+
+    /**
+     * @api {Get} /credentials/:name
+     * @apiName CredentialShow
+     * @apiGroup Credentials
+     * @apiDescription get credential
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *
+     *
+     *       {
+     *         "publicKey": "aaaaaa",
+     *         "name": "test5",
+     *         "credentialType": "RSAkEYS"
+     *
+     *       }
+     *
+     */
     @GetMapping(path = "/{name}")
     public String show(@PathVariable String name) {
         Credential credential = credentialService.find(name);
@@ -70,6 +128,22 @@ public class CredentialController {
     }
 
 
+
+    /**
+     * @api {Post} /credentials
+     * @apiName createCredential
+     * @apiGroup Credentials
+     * @apiDescription create credential
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *
+     *       {
+     *         "publicKey": "aaaaaa",
+     *         "name": "test5",
+     *         "credentialType": "RSAkEYS"
+     *
+     *       }
+     */
     @PostMapping
     public Object create(@RequestBody String credentialJson) {
         Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
@@ -82,6 +156,21 @@ public class CredentialController {
         credentialService.delete(name);
     }
 
+    /**
+     * @api {Post} /credentials/:name/update
+     * @apiName updateCredential
+     * @apiGroup Credentials
+     * @apiDescription update credential
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *
+     *       {
+     *         "publicKey": "aaaaaa",
+     *         "name": "test5",
+     *         "credentialType": "RSAkEYS"
+     *
+     *       }
+     */
     @PostMapping(path = "/{name}/update")
     public Object reportStatus(@RequestBody String credentialJson) {
         Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
@@ -89,16 +178,71 @@ public class CredentialController {
         return credentialService.update((Credential) o);
     }
 
+    /**
+     * @api {Post} /credentials/ssh/keys
+     * @apiName generate_keys
+     * @apiGroup Credentials
+     * @apiDescription  generate_keys
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *
+     *       {
+     *         "privateKey": "-----BEGIN RSA PRIVATE KEY-----
+     *         MIICXAIBAAKBgQChwUWVAx/yQjKfZjXB5EOJWuWDw6LDzazGDM85aqaPmF+Mz1ZW
+     *         KHimkhiJqfwYQPJn5osh41/mWrwUewTs07gr7wzK+tTejIjvoMFP2X95GWxAD5fa
+     *          L7BS/ra+srpHS0N5mAxsFLcSfjCMFT6fdXsauPcZXpWoDXDqVTfZ2wwuFQIDAQAB
+                   -----END RSA PRIVATE KEY-----"
+     *         "publicKey": "ssh-rsa AAAAA...== FLOWCI",
+     *       }
+     */
+
     @GetMapping(path = "/ssh/keys")
     public Map<String, String> getKeys() {
         return credentialService.getKeyMap();
     }
 
+    /**
+     * @api {Get} /credentials/:credentialType/list
+     * @apiName CredentialTypeList
+     * @apiGroup Credentials
+     * @apiDescription get credentials list by credentialType
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *
+     *     [
+     *       {
+     *          "fileNames": [
+     *         {
+     *            "path": "aa/aa/aa",
+     *           "type": "pem"
+     *      },
+     *           {
+     *              "path": "aa/aa/ab",
+     *             "type": "pem1"
+     *        }
+     *       ],
+     *      "name": "test111",
+     *     "credentialType": "IOS"
+     *      }]
+     *
+     */
     @GetMapping(path = "{credentialType}/list")
     public Collection<Credential> credentialTypeList(@PathVariable String credentialType) {
         return credentialService.listTypes(credentialType);
     }
 
+    /**
+     * @api {Post} /credentials/fileUpload
+     * @apiName uploadFile
+     * @apiGroup Credentials
+     * @apiDescription upload files
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *
+     *       {
+     *         "/aa/a/aa/a"
+     *       }
+     */
     @PostMapping("/fileUpload")
     public List<String> filesUpload(MultipartFile[] files) {
         List<String> list = new ArrayList<>();

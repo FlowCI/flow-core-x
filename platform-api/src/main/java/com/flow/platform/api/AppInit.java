@@ -21,6 +21,7 @@ import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
 import org.springframework.core.io.support.ResourcePropertySource;
+import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -34,10 +35,10 @@ import javax.servlet.ServletRegistration;
  *
  * @Copyright fir.im
  */
-public class AppInit implements WebApplicationInitializer {
+public class AppInit extends AbstractSecurityWebApplicationInitializer {
 
     @Override
-    public void onStartup(ServletContext servletContext) throws ServletException {
+    public void afterSpringSecurityFilterChain(javax.servlet.ServletContext servletContext) {
         AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext();
 
         applicationContext.register(WebConfig.class);
