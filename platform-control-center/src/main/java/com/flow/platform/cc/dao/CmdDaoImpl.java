@@ -45,6 +45,19 @@ public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
     }
 
     @Override
+    public List<Cmd> list(String sessionId) {
+        return execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery select = builder.createQuery(getEntityClass());
+
+            Root<Cmd> root = select.from(getEntityClass());
+            select.where(builder.equal(root.get("sessionId"), sessionId));
+
+            return session.createQuery(select).getResultList();
+        });
+    }
+
+    @Override
     public List<Cmd> list(AgentPath agentPath, Set<CmdType> types, Set<CmdStatus> status) {
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();

@@ -22,7 +22,6 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
@@ -34,7 +33,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -99,7 +97,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public List<Agent> onlineList(String zone) {
+    public List<Agent> listForOnline(String zone) {
         return agentDao.list(zone, "createdDate", AgentStatus.IDLE, AgentStatus.BUSY);
     }
 
@@ -108,7 +106,12 @@ public class AgentServiceImpl implements AgentService {
         if (Strings.isNullOrEmpty(zone)) {
             return agentDao.list();
         }
-        return onlineList(zone);
+        return listForOnline(zone);
+    }
+
+    @Override
+    public void save(Agent agent) {
+        agentDao.update(agent);
     }
 
     @Override
@@ -119,47 +122,6 @@ public class AgentServiceImpl implements AgentService {
         }
         exist.setStatus(status);
         agentDao.update(exist);
-    }
-
-    @Override
-    public String createSession(Agent agent, String existSessionId) {
-        if (!agent.isAvailable()) {
-            return null;
-        }
-
-        // set session id to agent if session id not set from outside
-        if (Strings.isNullOrEmpty(existSessionId)) {
-            existSessionId = UUID.randomUUID().toString();
-            LOGGER.traceMarker("createSession", "Create since no input session id %s", agent.getSessionId());
-        }
-
-        agent.setSessionId(existSessionId);
-        agent.setSessionDate(ZonedDateTime.now());
-        agent.setStatus(AgentStatus.BUSY);
-
-        LOGGER.debug("Target status record: %s %s", agent.getPath(), agent.getSessionId());
-        agentDao.update(agent);
-
-        return agent.getSessionId();
-    }
-
-    @Override
-    public void deleteSession(Agent agent) {
-        boolean hasCurrentCmd = false;
-        List<Cmd> agentCmdList = cmdService.listByAgentPath(agent.getPath());
-        for (Cmd cmdItem : agentCmdList) {
-            if (cmdItem.getType() == CmdType.RUN_SHELL && cmdItem.isCurrent()) {
-                hasCurrentCmd = true;
-                break;
-            }
-        }
-
-        if (!hasCurrentCmd) {
-            agent.setStatus(AgentStatus.IDLE);
-        }
-
-        agent.setSessionId(null); // release session from target
-        agentDao.update(agent);
     }
 
     @Override
@@ -184,7 +146,7 @@ public class AgentServiceImpl implements AgentService {
         ZonedDateTime now = DateUtil.utcNow();
 
         for (Zone zone : zoneService.getZones()) {
-            Collection<Agent> agents = onlineList(zone.getName());
+            Collection<Agent> agents = listForOnline(zone.getName());
             for (Agent agent : agents) {
                 if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
                     CmdInfo cmdInfo = new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null);
@@ -195,21 +157,5 @@ public class AgentServiceImpl implements AgentService {
         }
 
         LOGGER.traceMarker("sessionTimeoutTask", "end");
-    }
-
-    // TODO: to be deleted
-    @Override
-    public Boolean shutdown(AgentPath agentPath, String password) {
-        Agent agent = find(agentPath);
-        String sessionId = createSession(agent, null);
-        CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SHUTDOWN, String.format("%s", password));
-        cmdInfo.setSessionId(sessionId);
-        Cmd cmd = cmdService.create(cmdInfo);
-        try {
-            cmdService.send(cmd.getId(), false);
-        } catch (Throwable throwable) {
-            return false;
-        }
-        return true;
     }
 }

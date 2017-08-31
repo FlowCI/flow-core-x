@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public interface CmdService {
 
-     Integer DEFAULT_CMD_TIMEOUT = 600; // in seconds 10 mins
+    Integer DEFAULT_CMD_TIMEOUT = 600; // in seconds 10 mins
 
     /**
      * Create command from CmdInfo
@@ -39,6 +39,11 @@ public interface CmdService {
      * @return Cmd objc with id
      */
     Cmd create(CmdInfo cmd);
+
+    /**
+     * Save cmd properties
+     */
+    void save(Cmd cmd);
 
     /**
      * Find cmd obj by id
@@ -56,6 +61,11 @@ public interface CmdService {
      * List cmd by zone, order by cmd create date
      */
     List<Cmd> listByZone(String zone);
+
+    /**
+     * List cmd by session id
+     */
+    List<Cmd> listBySession(String sessionId);
 
     /**
      * List cmd result by ids

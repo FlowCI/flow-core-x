@@ -172,6 +172,11 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
+    public void save(Cmd cmd) {
+        cmdDao.update(cmd);
+    }
+
+    @Override
     public Cmd find(String cmdId) {
         return cmdDao.get(cmdId);
     }
@@ -184,6 +189,11 @@ public class CmdServiceImpl implements CmdService {
     @Override
     public List<Cmd> listByZone(String zone) {
         return cmdDao.list(new AgentPath(zone, null), null, null);
+    }
+
+    @Override
+    public List<Cmd> listBySession(String sessionId) {
+        return cmdDao.list(sessionId);
     }
 
     @Override
@@ -472,32 +482,13 @@ public class CmdServiceImpl implements CmdService {
                 target.setStatus(AgentStatus.BUSY);
                 break;
 
-            case CREATE_SESSION:
-
-                // add reject status since unable to create session for agent
-                String sessionId = agentService.createSession(target, cmd.getSessionId());
-                if (sessionId == null) {
-                    throw new AgentErr.NotAvailableException(target.getName());
-                }
-
-                break;
-
-            case DELETE_SESSION:
-                // send kill cmd to zookeeper
-                String agentNodePath = ZKHelper.buildPath(target.getPath());
-                CmdInfo killCmd = new CmdInfo(target.getPath(), CmdType.KILL, null);
-                zkClient.setData(agentNodePath, killCmd.toBytes());
-
-                agentService.deleteSession(target);
-                break;
-
             case KILL:
                 // DO NOT handle it, agent status from cmd update
                 break;
 
             case STOP:
-                agentService.deleteSession(target);
-                target.setStatus(AgentStatus.OFFLINE);
+//                agentService.deleteSession(target);
+//                target.setStatus(AgentStatus.OFFLINE);
                 break;
 
             case SHUTDOWN:
@@ -507,8 +498,8 @@ public class CmdServiceImpl implements CmdService {
                         "For SHUTDOWN action, password of 'sudo' must be provided");
                 }
 
-                agentService.deleteSession(target);
-                target.setStatus(AgentStatus.OFFLINE);
+//                agentService.deleteSession(target);
+//                target.setStatus(AgentStatus.OFFLINE);
                 break;
         }
 

@@ -16,25 +16,25 @@
 
 package com.flow.platform.cc.service;
 
-import static com.flow.platform.domain.CmdType.*;
-
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import com.google.common.base.Strings;
-import java.util.EnumSet;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,7 +48,7 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
     private final static Logger LOGGER = new Logger(CmdDispatchService.class);
 
     @Autowired
-    private CmdDao cmdDao;
+    private CmdService cmdService;
 
     @Autowired
     private AgentService agentService;
@@ -56,9 +56,23 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
     @Autowired
     protected ZKClient zkClient;
 
+    private final Map<CmdType, CmdHandler> handler = new HashMap<>(CmdType.values().length);
+
+    @PostConstruct
+    public void init() {
+        CreateSessionCmdHandler createSessionHandler = new CreateSessionCmdHandler();
+        handler.put(createSessionHandler.handleType(), createSessionHandler);
+
+        DeleteSessionCmdHandler deleteSessionHandler = new DeleteSessionCmdHandler();
+        handler.put(deleteSessionHandler.handleType(), deleteSessionHandler);
+
+        RunShellCmdHandler runShellHandler = new RunShellCmdHandler();
+        handler.put(runShellHandler.handleType(), runShellHandler);
+    }
+
     @Override
     public Cmd dispatch(String cmdId, boolean reset) {
-        Cmd cmd = cmdDao.get(cmdId);
+        Cmd cmd = cmdService.find(cmdId);
         if (cmd == null) {
             throw new IllegalParameterException(String.format("Cmd '%s' does not exist", cmdId));
         }
@@ -73,8 +87,10 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         cmd.setAgentPath(target.getPath());
         LOGGER.traceMarker("dispatch", "Agent been selected %s with status %s", target.getPath(), target.getStatus());
 
-        // finally update cmd
-        cmdDao.update(cmd);
+        handler.get(cmd.getType()).exec(target, cmd);
+
+        // finally update cmd and send to agent
+        cmdService.save(cmd);
 
         if (cmd.isAgentCmd()) {
             sendCmdToAgent(target, cmd);
@@ -89,7 +105,6 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
      *
      * @return Agent or null
      * @throws AgentErr.NotAvailableException no idle agent in zone
-     * @throws AgentErr.AgentMustBeSpecified name must for operation cmd type
      * @throws AgentErr.NotFoundException target agent not found
      */
     private Agent selectAgent(Cmd cmd) {
@@ -125,16 +140,6 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         return target;
     }
 
-
-
-    private boolean isValidAgentPath(CmdBase cmd, AgentPath agentPath) {
-        if (cmd.getType() == CREATE_SESSION || cmd.getType() == DELETE_SESSION) {
-            return true;
-        }
-
-        return agentPath.getName() == null && cmd.getType() != RUN_SHELL;
-    }
-
     /**
      * Send cmd to agent via zookeeper
      */
@@ -145,5 +150,102 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         }
 
         zkClient.setData(agentNodePath, cmd.toBytes());
+    }
+
+    /**
+     * Interface to handle different cmd type exec logic
+     */
+    private interface CmdHandler {
+
+        CmdType handleType();
+
+        void exec(Agent target, Cmd cmd);
+    }
+
+    private class CreateSessionCmdHandler implements CmdHandler {
+
+        private final Logger logger = new Logger(CreateSessionCmdHandler.class);
+
+        @Override
+        public CmdType handleType() {
+            return CmdType.CREATE_SESSION;
+        }
+
+        @Override
+        public void exec(Agent target, Cmd cmd) {
+            if (!target.isAvailable()) {
+                throw new AgentErr.NotAvailableException(target.getName());
+            }
+
+            String existSessionId = cmd.getSessionId();
+
+            // set session id to agent if session id does not from cmd
+            if (Strings.isNullOrEmpty(existSessionId)) {
+                existSessionId = UUID.randomUUID().toString();
+            }
+
+            target.setSessionId(existSessionId);
+            target.setSessionDate(ZonedDateTime.now());
+            target.setStatus(AgentStatus.BUSY);
+            agentService.save(target);
+            logger.debug("Agent session been created: %s %s", target.getPath(), target.getSessionId());
+        }
+    }
+
+    private class DeleteSessionCmdHandler implements CmdHandler {
+
+        @Override
+        public CmdType handleType() {
+            return CmdType.DELETE_SESSION;
+        }
+
+        @Override
+        public void exec(Agent target, Cmd cmd) {
+            if (hasRunningCmd(target.getSessionId())) {
+                // send kill cmd
+                Cmd killCmd = cmdService.create(new CmdInfo(target.getPath(), CmdType.KILL, null));
+                sendCmdToAgent(target, killCmd);
+            }
+
+            // release session from target
+            target.setStatus(AgentStatus.IDLE);
+            target.setSessionId(null);
+            agentService.save(target);
+        }
+
+        private boolean hasRunningCmd(String sessionId) {
+            List<Cmd> cmdsInSession = cmdService.listBySession(sessionId);
+            for (Cmd cmd : cmdsInSession) {
+                if (cmd.isCurrent() && cmd.getType() == CmdType.RUN_SHELL) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    private class RunShellCmdHandler implements CmdHandler {
+
+        @Override
+        public CmdType handleType() {
+            return CmdType.RUN_SHELL;
+        }
+
+        @Override
+        public void exec(Agent target, Cmd cmd) {
+            // FIXME: agent maybe really busy
+            if (cmd.hasSession()) {
+                sendCmdToAgent(target, cmd);
+                return;
+            }
+
+            // add reject status since busy
+            if (!target.isAvailable()) {
+                throw new AgentErr.NotAvailableException(target.getName());
+            }
+
+            target.setStatus(AgentStatus.BUSY);
+            agentService.save(target);
+        }
     }
 }

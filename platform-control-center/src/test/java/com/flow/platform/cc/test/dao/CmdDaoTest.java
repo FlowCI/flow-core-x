@@ -120,4 +120,28 @@ public class CmdDaoTest extends TestBase {
         Assert.assertEquals(1, result.size());
         Assert.assertEquals(cmd1, result.get(0));
     }
+
+    @Test
+    public void should_get_cmd_list_by_session() throws Throwable {
+        // given:
+        final String sessionId = UUID.randomUUID().toString();
+        Cmd cmd = new Cmd("zone-1", "agent-1", CmdType.CREATE_SESSION, "hello");
+        cmd.setStatus(CmdStatus.KILLED);
+        cmd.setSessionId(sessionId);
+        cmd.setId(UUID.randomUUID().toString());
+        cmdDao.save(cmd);
+
+        cmd = new Cmd("zone-1", "agent-1", CmdType.RUN_SHELL, "hello");
+        cmd.setStatus(CmdStatus.RUNNING);
+        cmd.setSessionId(sessionId);
+        cmd.setId(UUID.randomUUID().toString());
+        cmdDao.save(cmd);
+
+        // when:
+        List<Cmd> list = cmdDao.list(sessionId);
+        Assert.assertNotNull(list);
+
+        // then:
+        Assert.assertEquals(2, list.size());
+    }
 }
