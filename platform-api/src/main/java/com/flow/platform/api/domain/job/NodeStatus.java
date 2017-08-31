@@ -16,6 +16,12 @@
 
 package com.flow.platform.api.domain.job;
 
+import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
+
 /**
  * @author yh@firim
  */
@@ -51,5 +57,54 @@ public enum NodeStatus {
 
     public String getName() {
         return name;
+    }
+
+    /**
+     * Transfer cmd to node status
+     */
+    public static NodeStatus transfer(Cmd cmd) {
+        if (cmd == null || cmd.getStatus() == null) {
+            throw new IllegalParameterException("Cannot transfer null cmd or null cmd status to node status");
+        }
+
+        CmdStatus status = cmd.getStatus();
+
+        switch (status) {
+            case SENT:
+            case PENDING:
+                return NodeStatus.PENDING;
+
+            case RUNNING:
+            case EXECUTED:
+                return NodeStatus.RUNNING;
+
+            case LOGGED:
+                CmdResult cmdResult = cmd.getCmdResult();
+                if (cmdResult != null) {
+                    if (isSuccess(cmdResult)) {
+                        return NodeStatus.SUCCESS;
+                    }
+                }
+
+                return NodeStatus.FAILURE;
+
+            case KILLED:
+            case EXCEPTION:
+            case REJECTED:
+                return NodeStatus.FAILURE;
+
+            case STOPPED:
+                return NodeStatus.STOPPED;
+
+            case TIMEOUT_KILL:
+                return NodeStatus.TIMEOUT;
+        }
+
+        throw new IllegalStatusException("Unsupported cmd status " + status + " transfer to node status");
+    }
+
+    private static boolean isSuccess(CmdResult result) {
+        Integer exitCode = result.getExitValue();
+        return exitCode != null && exitCode == 0;
     }
 }

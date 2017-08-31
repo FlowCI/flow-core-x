@@ -13,26 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
-import com.flow.platform.api.domain.job.JobYmlStorage;
-import com.flow.platform.core.dao.AbstractBaseDao;
-import java.math.BigInteger;
-import org.springframework.stereotype.Repository;
+
+package com.flow.platform.api.service.job;
+
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.node.Node;
 
 /**
- * @author lhl
+ * Control center cmd service
+ *
+ * @author yang
  */
+public interface CmdService {
 
-@Repository(value = "jobYmlStorageDao")
-public class JobYmlStorageDaoImpl extends AbstractBaseDao<BigInteger, JobYmlStorage> implements JobYmlStorageDao {
+    /**
+     * Send create session cmd job async
+     *
+     * @return session id
+     */
+    String createSession(Job job);
 
-    @Override
-    protected Class<JobYmlStorage> getEntityClass() {
-        return JobYmlStorage.class;
-    }
+    /**
+     * Send delete session cmd by job
+     */
+    void deleteSession(Job job);
 
-    @Override
-    protected String getKeyName() {
-        return "jobId";
-    }
+    /**
+     * Send run shell cmd by node for job
+     *
+     * @return cmd id
+     */
+    String runShell(Job job, Node node);
 }

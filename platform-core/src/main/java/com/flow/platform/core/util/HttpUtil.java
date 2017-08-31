@@ -19,6 +19,8 @@ package com.flow.platform.core.util;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -45,6 +47,25 @@ public class HttpUtil {
 
     private final static Logger LOGGER = new Logger(HttpUtil.class);
 
+    public static String urlEncode(String str) {
+        try {
+            return URLEncoder.encode(str, "UTF-8");
+        } catch (Throwable ignore) {
+            return null;
+        }
+    }
+
+    public static String urlDecode(String str) {
+        try {
+            return URLDecoder.decode(str, "UTF-8");
+        } catch (Throwable ignore) {
+            return null;
+        }
+    }
+
+    /**
+     * Build basic http authorization header by user and pass
+     */
     public static Map<String, String> buildHttpBasicAuthHeader(final String user, final String pass) {
         byte[] encodedBytes = Base64.encodeBase64((user + ":" + pass).getBytes());
         String userPass = new String(encodedBytes);

@@ -1,0 +1,37 @@
+flow:
+  - name: flow-run-job
+    script: "echo 'hello world'"
+    envs:
+      FLOW_WORKSPACE: "echo hello"
+      FLOW_VERSION: "echo version"
+
+    steps:
+     - name: step-1
+       allowFailure: true
+       script: "echo 1"
+
+       steps:
+        - name: step-1-1
+          allowFailure: true
+          script: "echo 1-1"
+
+        - name: step-1-2
+          allowFailure: true
+          script: "echo 1-2"
+
+     - name: step-2
+       allowFailure: false
+       script: "echo 2"
+
+       steps:
+        - name: step-2-1
+          allowFailure: true
+          script: "echo 2-1"
+
+        - name: step-2-2
+          allowFailure: true
+          script: "echo 2-2"
+
+     - name: step-end
+       allowFailure: true
+       script: "echo end"

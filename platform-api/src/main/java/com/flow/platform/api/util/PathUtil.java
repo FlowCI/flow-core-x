@@ -51,7 +51,7 @@ public class PathUtil {
      * Build flow node path
      *
      * @param nameOrPaths node name or path, can be null or empty string
-     * @return node path
+     * @return node path or null
      */
     public static String build(String... nameOrPaths) {
         StringBuilder builder = new StringBuilder();
@@ -87,16 +87,20 @@ public class PathUtil {
         }
 
         // remove first slash
-        if (builder.charAt(0) == PATH_SEPARATOR_CHAR) {
-            builder.deleteCharAt(0);
+        if (builder.length() > 0) {
+            if (builder.charAt(0) == PATH_SEPARATOR_CHAR) {
+                builder.deleteCharAt(0);
+            }
+
+            // remove last slash
+            if (builder.charAt(builder.length() - 1) == PATH_SEPARATOR_CHAR) {
+                builder.deleteCharAt(builder.length() - 1);
+            }
+
+            return builder.toString();
         }
 
-        // remove last slash
-        if (builder.charAt(builder.length() - 1) == PATH_SEPARATOR_CHAR) {
-            builder.deleteCharAt(builder.length() - 1);
-        }
-
-        return builder.toString();
+        return null;
     }
 
     public static String rootName(String path) {

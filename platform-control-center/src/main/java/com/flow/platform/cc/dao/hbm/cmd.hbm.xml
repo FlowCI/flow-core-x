@@ -30,6 +30,7 @@
 
     <property name="cmd" type="text" column="cmd"/>
     <property name="timeout" column="timeout"/>
+    <property name="sessionId" column="session_id" length="36"/>
     <property name="workingDir" type="string" column="working_dir"/>
     <property name="outputEnvFilter" type="string" column="output_env_filter" length="50"/>
     <property name="logPaths" type="com.flow.platform.core.dao.adaptor.list.ListAdaptor" column="log_paths"/>

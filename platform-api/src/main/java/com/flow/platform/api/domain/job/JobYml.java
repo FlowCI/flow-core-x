@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
+package com.flow.platform.api.domain.job;
+
+import java.math.BigInteger;
 
 /**
  * @author yh@firim
  */
-public class YmlStorage {
+public class JobYml {
 
-    private String nodePath;
+    private BigInteger jobId;
 
     private String file;
 
-    public String getNodePath() {
-        return nodePath;
+    public BigInteger getJobId() {
+        return jobId;
     }
 
-    public void setNodePath(String nodePath) {
-        this.nodePath = nodePath;
+    public void setJobId(BigInteger jobId) {
+        this.jobId = jobId;
     }
 
     public String getFile() {
@@ -41,12 +43,12 @@ public class YmlStorage {
         this.file = file;
     }
 
-    public YmlStorage(String nodePath, String file) {
-        this.nodePath = nodePath;
+    public JobYml(BigInteger jobId, String file) {
+        this.jobId = jobId;
         this.file = file;
     }
 
-    public YmlStorage() {
+    public JobYml() {
     }
 
     @Override
@@ -58,23 +60,15 @@ public class YmlStorage {
             return false;
         }
 
-        YmlStorage that = (YmlStorage) o;
+        JobYml that = (JobYml) o;
 
-        return nodePath != null ? nodePath.equals(that.nodePath) : that.nodePath == null;
+        return jobId != null ? jobId.equals(that.jobId) : that.jobId == null;
     }
 
     @Override
     public int hashCode() {
-        int result = nodePath != null ? nodePath.hashCode() : 0;
+        int result = jobId != null ? jobId.hashCode() : 0;
         result = 31 * result + (file != null ? file.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return "YmlStorage{" +
-            "nodePath='" + nodePath + '\'' +
-            ", file='" + file + '\'' +
-            '}';
     }
 }

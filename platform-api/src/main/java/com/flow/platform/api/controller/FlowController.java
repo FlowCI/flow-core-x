@@ -19,9 +19,8 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.response.Existed;
+import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.service.node.YmlService;
-import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
 import java.util.Map;
@@ -178,14 +177,14 @@ public class FlowController extends NodeController {
      *
      * @apiSuccessExample {json} Success-Response
      *  {
-     *      existed: true
+     *      value: true
      *  }
      */
     @GetMapping("/{root}/exist")
-    public Existed isFlowNameExist() {
+    public BooleanValue isFlowNameExist() {
         String path = getNodePathFromUrl();
         boolean exist = nodeService.exist(path);
-        return new Existed(exist);
+        return new BooleanValue(exist);
     }
 
     /**

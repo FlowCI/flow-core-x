@@ -22,20 +22,20 @@ import com.google.gson.annotations.Expose;
 /**
  * @author yang
  */
-public class Existed extends Jsonable {
+public class BooleanValue extends Jsonable {
 
     @Expose
-    private boolean existed;
+    private boolean value;
 
-    public Existed(boolean existed) {
-        this.existed = existed;
+    public BooleanValue(boolean existed) {
+        this.value = existed;
     }
 
-    public boolean isExisted() {
-        return existed;
+    public boolean getValue() {
+        return value;
     }
 
-    public void setExisted(boolean existed) {
-        this.existed = existed;
+    public void setValue(boolean value) {
+        this.value = value;
     }
 }

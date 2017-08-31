@@ -15,31 +15,13 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.job.NodeResultKey;
-import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.job.NodeTag;
+import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
-import java.util.List;
 
 /**
  * @author lhl
  */
-public interface NodeResultDao extends BaseDao<NodeResultKey, NodeResult> {
+public interface JobYmlDao extends BaseDao<BigInteger, JobYml> {
 
-    /**
-     * Get node result by job id, status and node tag
-     */
-    NodeResult get(BigInteger jobId, NodeStatus status, NodeTag tag);
-
-    /**
-     * List node result for job
-     */
-    List<NodeResult> list(BigInteger jobId);
-
-    /**
-     * Update status to all node result by job id
-     */
-    int update(BigInteger jobId, NodeStatus target);
 }

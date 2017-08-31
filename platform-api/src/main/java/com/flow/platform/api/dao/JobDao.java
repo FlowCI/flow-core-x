@@ -30,25 +30,27 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     List<Job> list(List<String> sessionId, NodeStatus nodeStatus);
 
     /**
+     * get jobs from node paths
+     *
+     * @param paths node path or null
+     */
+    List<Job> listByPath(List<String> paths);
+
+    /**
      * get latest job by flow path
      *
-     * @return List<Job>
+     * @param paths node path or null for all latest jobs
      */
-    List<Job> listLatest(List<String> nodePaths);
+    List<Job> latestByPath(List<String> paths);
 
     /**
-     * get jobs from nodeName
+     * get job from node path and number
      */
-    List<Job> list(String nodeName);
+    Job get(String path, Integer number);
 
     /**
-     * get job from node name and number
+     * get max build number for node path
      */
-    Job get(String flowName, Integer number);
-
-    /**
-     * get max number
-     */
-    Integer maxBuildNumber(String flowName);
+    Integer maxBuildNumber(String path);
 
 }

@@ -18,11 +18,12 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.api.util.UrlUtil;
+import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,9 +47,9 @@ public class CmdWebhookController {
 
     @PostMapping(path = "")
     public void execute(@RequestBody Cmd cmd, @RequestParam String identifier) {
-        String decodedIdentifier = UrlUtil.urlDecoder(identifier);
+        String jobIdStr = HttpUtil.urlDecode(identifier);
 
-        if (Strings.isNullOrEmpty(identifier)) {
+        if (Strings.isNullOrEmpty(jobIdStr)) {
             throw new IllegalParameterException("Invalid 'identifier' parameter");
         }
 
@@ -56,10 +57,12 @@ public class CmdWebhookController {
             throw new IllegalParameterException("Invalid cmd request data");
         }
 
-        LOGGER.trace(String
-            .format("Webhook Comming Url: %s CmdType: %s CmdStatus: %s", cmd.getWebhook(), cmd.getType(),
-                cmd.getStatus()));
-
-        jobService.enterQueue(new CmdQueueItem(decodedIdentifier, cmd));
+        try {
+            BigInteger jobId = new BigInteger(jobIdStr);
+            LOGGER.trace("Cmd {%s:%s} webhook received with identifier: '%s'", cmd.getType(), cmd.getId(), identifier);
+            jobService.enterQueue(new CmdQueueItem(jobId, cmd));
+        } catch (NumberFormatException warn) {
+            LOGGER.warn("Invalid job id format");
+        }
     }
 }

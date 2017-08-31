@@ -21,7 +21,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
-import com.flow.platform.api.service.job.JobNodeResultService;
+import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import java.time.ZonedDateTime;
@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class NodeResultDaoTest extends TestBase {
 
     @Autowired
-    private JobNodeResultService nodeResultService;
+    private NodeResultService nodeResultService;
 
     @Autowired
     private NodeResultDao nodeResultDao;
@@ -55,7 +55,7 @@ public class NodeResultDaoTest extends TestBase {
         NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
         NodeResult job_node = nodeResultDao.get(nodeResultKey);
         Assert.assertNotNull(job_node);
-        Assert.assertEquals("/flow1", job_node.getNodeResultKey().getPath());
+        Assert.assertEquals("/flow1", job_node.getKey().getPath());
         Assert.assertEquals(NodeTag.FLOW, job_node.getNodeTag());
     }
 
@@ -79,8 +79,7 @@ public class NodeResultDaoTest extends TestBase {
         job_node1.setCmdId("22222");
         nodeResultDao.update(job_node1);
 
-        Assert.assertEquals(job_node.getNodeResultKey().getPath(), job_node1.getNodeResultKey().getPath());
-
+        Assert.assertEquals(job_node.getKey().getPath(), job_node1.getKey().getPath());
     }
 
     @Test

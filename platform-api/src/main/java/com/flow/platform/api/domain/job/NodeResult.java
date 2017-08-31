@@ -16,24 +16,35 @@
 
 package com.flow.platform.api.domain.job;
 
+import static com.flow.platform.api.domain.job.NodeStatus.*;
+
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class NodeResult extends Jsonable {
 
-    private NodeResultKey nodeResultKey;
+    public final static EnumSet<NodeStatus> RUNNING_STATUS = EnumSet.of(PENDING, RUNNING, ENQUEUE);
+
+    public final static EnumSet<NodeStatus> SUCCESS_STATUS = EnumSet.of(SUCCESS);
+
+    public final static EnumSet<NodeStatus> FAILURE_STATUS = EnumSet.of(TIMEOUT, FAILURE);
+
+    public final static EnumSet<NodeStatus> STOP_STATUS = EnumSet.of(STOPPED);
+
+    private NodeResultKey key;
 
     @Expose
     private Map<String, String> outputs = new HashMap<>();
 
     @Expose
-    private Long duration = 0l;
+    private Long duration = 0L;
 
     @Expose
     private Integer exitCode;
@@ -42,7 +53,7 @@ public class NodeResult extends Jsonable {
     private List<String> logPaths = new ArrayList<>();
 
     @Expose
-    private NodeStatus status = NodeStatus.PENDING;
+    private NodeStatus status = PENDING;
 
     @Expose
     private String cmdId;
@@ -56,7 +67,9 @@ public class NodeResult extends Jsonable {
     @Expose
     private ZonedDateTime finishTime;
 
-    private String name;
+    private String name; // node name
+
+    private int order;
 
     @Expose
     private ZonedDateTime createdAt;
@@ -64,17 +77,15 @@ public class NodeResult extends Jsonable {
     @Expose
     private ZonedDateTime updatedAt;
 
-    private Job job;
-
     public NodeResult() {
     }
 
-    public Job getJob() {
-        return job;
+    public NodeResult(BigInteger jobId, String path) {
+        this(new NodeResultKey(jobId, path));
     }
 
-    public void setJob(Job job) {
-        this.job = job;
+    public NodeResult(NodeResultKey key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -101,28 +112,20 @@ public class NodeResult extends Jsonable {
         this.updatedAt = updatedAt;
     }
 
-    public NodeResult(BigInteger jobId, String path) {
-        this(new NodeResultKey(jobId, path));
+    public NodeResultKey getKey() {
+        return key;
     }
 
-    public NodeResult(NodeResultKey nodeResultKey) {
-        this.nodeResultKey = nodeResultKey;
-    }
-
-    public NodeResultKey getNodeResultKey() {
-        return nodeResultKey;
-    }
-
-    public void setNodeResultKey(NodeResultKey nodeResultKey) {
-        this.nodeResultKey = nodeResultKey;
+    public void setKey(NodeResultKey key) {
+        this.key = key;
     }
 
     public BigInteger getJobId() {
-        return this.nodeResultKey.getJobId();
+        return this.key.getJobId();
     }
 
     public String getPath() {
-        return this.nodeResultKey.getPath();
+        return this.key.getPath();
     }
 
     public Map<String, String> getOutputs() {
@@ -197,6 +200,30 @@ public class NodeResult extends Jsonable {
         this.finishTime = finishTime;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    public boolean isRunning() {
+        return RUNNING_STATUS.contains(status);
+    }
+
+    public boolean isSucess() {
+        return SUCCESS_STATUS.contains(status);
+    }
+
+    public boolean isFailure() {
+        return FAILURE_STATUS.contains(status);
+    }
+
+    public boolean isStop() {
+        return STOP_STATUS.contains(status);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -208,11 +235,11 @@ public class NodeResult extends Jsonable {
 
         NodeResult that = (NodeResult) o;
 
-        return nodeResultKey.equals(that.nodeResultKey);
+        return key.equals(that.key);
     }
 
     @Override
     public int hashCode() {
-        return this.getNodeResultKey().hashCode();
+        return this.getKey().hashCode();
     }
 }

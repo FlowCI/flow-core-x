@@ -16,36 +16,42 @@
 
 package com.flow.platform.api.domain;
 
-import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.Cmd;
+import java.math.BigInteger;
 
 /**
  * @author yh@firim
  */
 public class CmdQueueItem {
 
-    private String identifier;
-    private CmdBase cmdBase;
+    private final BigInteger jobId;
+
+    private final String path; // node path
+
+    private final Cmd cmd;
+
     private Integer retryTimes = 0;
 
-    public CmdQueueItem(String identifier, CmdBase cmdBase) {
-        this.identifier = identifier;
-        this.cmdBase = cmdBase;
+    public CmdQueueItem(BigInteger jobId, Cmd cmd) {
+        this.jobId = jobId;
+        this.cmd = cmd;
+        this.path = cmd.getExtra();
     }
 
-    public String getIdentifier() {
-        return identifier;
+    public BigInteger getJobId() {
+        return jobId;
     }
 
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public String getPath() {
+        return path;
     }
 
-    public CmdBase getCmdBase() {
-        return cmdBase;
+    public Cmd getCmd() {
+        return cmd;
     }
 
-    public void setCmdBase(CmdBase cmdBase) {
-        this.cmdBase = cmdBase;
+    public Integer getRetryTimes() {
+        return retryTimes;
     }
 
     /**
@@ -56,42 +62,10 @@ public class CmdQueueItem {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        CmdQueueItem that = (CmdQueueItem) o;
-
-        if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) {
-            return false;
-        }
-        return cmdBase != null ? cmdBase.equals(that.cmdBase) : that.cmdBase == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = identifier != null ? identifier.hashCode() : 0;
-        result = 31 * result + (cmdBase != null ? cmdBase.hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public String toString() {
         return "CmdQueueItem{" +
-            "identifier='" + identifier + '\'' +
-            ", cmdBase=" + cmdBase +
+            "jobId='" + jobId + '\'' +
+            ", cmd=" + cmd +
             '}';
-    }
-
-    public Integer getRetryTimes() {
-        return retryTimes;
-    }
-
-    public void setRetryTimes(Integer retryTimes) {
-        this.retryTimes = retryTimes;
     }
 }

@@ -16,9 +16,8 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.dao.JobYmlStorageDao;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.job.JobYmlStorage;
+import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.google.common.io.Files;
@@ -27,36 +26,32 @@ import java.io.IOException;
 import java.net.URL;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author lhl
  */
-public class JobYmlStorageDaoTest extends TestBase {
-
-    @Autowired
-    JobYmlStorageDao jobYmlStorageDao;
+public class JobYmlDaoTest extends TestBase {
 
     @Test
     public void should_create_job_yml_storage() {
         Job job = new Job(CommonUtil.randomId());
-        JobYmlStorage jobYmlStorage = new JobYmlStorage(job.getId(), "file");
-        jobYmlStorageDao.save(jobYmlStorage);
+        JobYml jobYmlStorage = new JobYml(job.getId(), "file");
+        jobYmlDao.save(jobYmlStorage);
         Assert.assertEquals(job.getId(), jobYmlStorage.getJobId());
-        JobYmlStorage job_yml = jobYmlStorageDao.get(jobYmlStorage.getJobId());
+        JobYml job_yml = jobYmlDao.get(jobYmlStorage.getJobId());
         Assert.assertEquals("file", job_yml.getFile());
     }
 
     @Test
     public void should_save_and_get_yml_success() throws IOException {
         Job job = new Job(CommonUtil.randomId());
-        ClassLoader classLoader = JobYmlStorageDaoTest.class.getClassLoader();
+        ClassLoader classLoader = JobYmlDaoTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         File path = new File(resource.getFile());
         String ymlString = Files.toString(path, AppConfig.DEFAULT_CHARSET);
-        JobYmlStorage jys = new JobYmlStorage(job.getId(), ymlString);
-        jobYmlStorageDao.save(jys);
-        JobYmlStorage storage = jobYmlStorageDao.get(jys.getJobId());
+        JobYml jys = new JobYml(job.getId(), ymlString);
+        jobYmlDao.save(jys);
+        JobYml storage = jobYmlDao.get(jys.getJobId());
         Assert.assertNotNull(storage);
         Assert.assertEquals(ymlString, storage.getFile());
     }
@@ -64,20 +59,20 @@ public class JobYmlStorageDaoTest extends TestBase {
     @Test
     public void should_update_job_yml_storage_success() {
         Job job = new Job(CommonUtil.randomId());
-        JobYmlStorage jobYmlStorage = new JobYmlStorage(job.getId(), "file1");
-        jobYmlStorageDao.save(jobYmlStorage);
-        JobYmlStorage job_yml = jobYmlStorageDao.get(jobYmlStorage.getJobId());
+        JobYml jobYmlStorage = new JobYml(job.getId(), "file1");
+        jobYmlDao.save(jobYmlStorage);
+        JobYml job_yml = jobYmlDao.get(jobYmlStorage.getJobId());
         job_yml.setFile("update_file");
-        jobYmlStorageDao.update(job_yml);
+        jobYmlDao.update(job_yml);
         Assert.assertEquals("update_file", job_yml.getFile());
     }
 
     @Test
     public void should_delete_job_yml_storge_success() {
         Job job = new Job(CommonUtil.randomId());
-        JobYmlStorage jobYmlStorage = new JobYmlStorage(job.getId(), "file2");
-        jobYmlStorageDao.save(jobYmlStorage);
-        jobYmlStorageDao.delete(jobYmlStorage);
-        Assert.assertEquals(null, jobYmlStorageDao.get(jobYmlStorage.getJobId()));
+        JobYml jobYmlStorage = new JobYml(job.getId(), "file2");
+        jobYmlDao.save(jobYmlStorage);
+        jobYmlDao.delete(jobYmlStorage);
+        Assert.assertEquals(null, jobYmlDao.get(jobYmlStorage.getJobId()));
     }
 }

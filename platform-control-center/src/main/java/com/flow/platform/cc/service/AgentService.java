@@ -69,11 +69,14 @@ public interface AgentService {
     List<Agent> findAvailable(String zone);
 
     /**
-     * Create agent session
+     * Create agent session, set existed session id to agent
+     * It will auto create session id if existedSessionId is null
      *
+     * @param agent target agent
+     * @param existSessionId the session id set to agent or null
      * @return session id or null if unable to create session
      */
-    String createSession(Agent agent);
+    String createSession(Agent agent, String existSessionId);
 
     /**
      * Check has running cmd and delete agent session

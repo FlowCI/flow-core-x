@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.dao.util.JobConvertUtil;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
@@ -32,6 +33,9 @@ import org.springframework.stereotype.Repository;
 @Repository(value = "jobDao")
 public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobDao {
 
+    private final static String JOB_QUERY = "select * from job as job left join node_result as nr "
+        + "on job.node_path=nr.node_path and job.id=nr.job_id";
+
     @Override
     protected Class<Job> getEntityClass() {
         return Job.class;
@@ -42,17 +46,10 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         return "id";
     }
 
-    private final static String TEMPLATE = " job.*, nr.* ";
-
-
     @Override
     public List<Job> list() {
         return execute((Session session) -> {
-            NativeQuery nativeQuery = session.createNativeQuery(
-                "select * from job as job left join node_result as nr"
-                    + "  on job.node_path=nr.node_path and job.id=nr.job_id"
-            )
-                .setResultSetMapping("MappingJobResult");
+            NativeQuery nativeQuery = session.createNativeQuery(JOB_QUERY).setResultSetMapping("MappingJobResult");
             List<Object[]> objects = nativeQuery.list();
             return JobConvertUtil.convert(objects);
         });
@@ -62,14 +59,11 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public List<Job> list(List<String> sessionIds, NodeStatus nodeStatus) {
         return execute((Session session) -> {
             NativeQuery nativeQuery = session.createNativeQuery(
-                "select * from job as job left join node_result as nr"
-                    + "  on job.node_path=nr.node_path and job.id=nr.job_id"
-                    + "  where "
-                    + "    job.session_id in (:sessionIds) and nr.status=:status"
-            )
+                JOB_QUERY + " where job.session_id in (:sessionIds) and nr.node_status=:status")
                 .setParameter("sessionIds", sessionIds)
                 .setParameter("status", nodeStatus.getName())
                 .setResultSetMapping("MappingJobResult");
+
             List<Object[]> objects = nativeQuery.list();
             return JobConvertUtil.convert(objects);
         });
@@ -78,66 +72,62 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public Job get(BigInteger key) {
         return execute((Session session) -> {
-            NativeQuery nativeQuery = session.createNativeQuery(
-                "select * from job as job left join node_result as nr"
-                    + "  on job.node_path=nr.node_path and job.id=nr.job_id"
-                    + "  where "
-                    + "    job.id=:id"
-            )
+            NativeQuery nativeQuery = session.createNativeQuery(JOB_QUERY + " where job.id=:id")
                 .setParameter("id", key)
                 .setResultSetMapping("MappingJobResult");
+
             Object[] objects = (Object[]) nativeQuery.uniqueResult();
             return JobConvertUtil.convert(objects);
         });
     }
 
     @Override
-    public List<Job> listLatest(List<String> nodeNames) {
+    public List<Job> latestByPath(List<String> paths) {
         return execute((Session session) -> {
-            NativeQuery nativeQuery = session.createNativeQuery(
-                "select * from job as job left join node_result as nr"
-                    + "  on job.node_path=nr.node_path and job.id=nr.job_id"
-                    + "  where "
-                    + "    id in (select max(id) from Job where nodeName in (:names) group by nodePath)"
-            )
-                .setParameter("names", nodeNames)
+            final StringBuilder query = new StringBuilder(JOB_QUERY);
+            if (hasCollection(paths)) {
+                query.append(" where id in (select max(id) from job where node_path in (:paths) group by node_path)");
+            } else {
+                query.append(" where id in (select max(id) from job group by node_path)");
+            }
+
+            NativeQuery nativeQuery = session.createNativeQuery(query.toString())
                 .setResultSetMapping("MappingJobResult");
-            List<Object[]> objects = nativeQuery.list();
-            return JobConvertUtil.convert(objects);
-        });
-    }
+            if (hasCollection(paths)) {
+                nativeQuery.setParameterList("paths", paths);
+            }
 
-
-    @Override
-    public List<Job> list(String nodePath) {
-        return execute((Session session) -> {
-
-
-            NativeQuery nativeQuery = session.createNativeQuery(
-                "select * from job as job left join node_result as nr"
-                    + "  on job.node_path=nr.node_path and job.id=nr.job_id"
-                    + "  where "
-                    + "    job.node_path=:path"
-            )
-                .setParameter("path", nodePath)
-                .setResultSetMapping("MappingJobResult");
             List<Object[]> objects = nativeQuery.list();
             return JobConvertUtil.convert(objects);
         });
     }
 
     @Override
-    public Job get(String flowName, Integer number) {
+    public List<Job> listByPath(final List<String> paths) {
         return execute((Session session) -> {
+            final StringBuilder query = new StringBuilder(JOB_QUERY);
+            if (hasCollection(paths)) {
+                query.append(" where job.node_path in (:paths)");
+            }
 
+            NativeQuery nativeQuery = session.createNativeQuery(query.toString())
+                .setResultSetMapping("MappingJobResult");
+            if (hasCollection(paths)) {
+                nativeQuery.setParameterList("paths", paths);
+            }
+
+            List<Object[]> objects = nativeQuery.list();
+            return JobConvertUtil.convert(objects);
+        });
+    }
+
+    @Override
+    public Job get(String path, Integer number) {
+        return execute((Session session) -> {
             NativeQuery nativeQuery = session.createNativeQuery(
-                "select * from job as job left join node_result as nr"
-                    + "  on job.node_path=nr.node_path and job.id=nr.job_id"
-                    + "  where "
-                    + "    job.node_name=:name and job.number=:number"
-            )
-                .setParameter("name", flowName)
-                .setParameter("number", number)
+                JOB_QUERY + " where job.node_path=:name and job.build_number=:build_number")
+                .setParameter("name", path)
+                .setParameter("build_number", number)
                 .setResultSetMapping("MappingJobResult");
             Object[] objects = (Object[]) nativeQuery.uniqueResult();
             return JobConvertUtil.convert(objects);
@@ -145,14 +135,23 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
-    public Integer maxBuildNumber(String flowName) {
+    public Integer maxBuildNumber(String path) {
         return execute((Session session) -> {
-            String select = String.format("select max(number) from Job where node_name='%s'", flowName);
-            Integer integer = (Integer) session.createQuery(select).uniqueResult();
+            String select = "select max(build_number) from job where node_path=:node_path";
+            Integer integer = (Integer) session
+                .createNativeQuery(select)
+                .setParameter("node_path", path)
+                .uniqueResult();
+
             if (integer == null) {
                 integer = 0;
             }
+
             return integer;
         });
+    }
+
+    private static boolean hasCollection(final Collection<String> data) {
+        return data != null && data.size() > 0;
     }
 }

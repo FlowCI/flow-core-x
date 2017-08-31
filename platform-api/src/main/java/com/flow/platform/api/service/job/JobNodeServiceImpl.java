@@ -15,11 +15,10 @@
  */
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.dao.JobYmlStorageDao;
-import com.flow.platform.api.domain.job.JobYmlStorage;
-import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.dao.JobYmlDao;
+import com.flow.platform.api.domain.job.JobYml;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -38,39 +37,35 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class JobNodeServiceImpl implements JobNodeService {
 
-    private final Logger LOGGER = new Logger(JobYmlStorage.class);
+    private final Logger LOGGER = new Logger(JobYml.class);
 
     @Autowired
-    private JobYmlStorageDao jobYmlStorageDao;
+    private JobYmlDao jobYmlDao;
 
     // 1 day expire
-    private Cache<BigInteger, Cache<String, Node>> nodeCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(3600 * 24, TimeUnit.SECONDS).maximumSize(1000).build();
+    private Cache<BigInteger, NodeTree> nodeCache = CacheBuilder
+        .newBuilder()
+        .expireAfterAccess(3600 * 24, TimeUnit.SECONDS)
+        .maximumSize(1000).build();
 
     @Override
     public void save(final BigInteger jobId, final String yml) {
-        JobYmlStorage jobYmlStorage = new JobYmlStorage(jobId, yml);
-        jobYmlStorageDao.saveOrUpdate(jobYmlStorage);
+        JobYml jobYmlStorage = new JobYml(jobId, yml);
+        jobYmlDao.saveOrUpdate(jobYmlStorage);
         nodeCache.invalidate(jobId);
     }
 
     @Override
-    public Node get(final BigInteger jobId, final String path) {
+    public NodeTree get(final BigInteger jobId) {
         try {
-            Cache<String, Node> jobNodeCache = nodeCache.get(jobId, () -> {
-                JobYmlStorage jobYmlStorage = jobYmlStorageDao.get(jobId);
+            return nodeCache.get(jobId, () -> {
+                JobYml jobYmlStorage = jobYmlDao.get(jobId);
                 if (jobYmlStorage == null) {
                     throw new NotFoundException(String.format("Job node of job '%s' not found", jobId));
                 }
 
-                Cache<String, Node> treeCache = CacheBuilder.newBuilder().build();
-
-                Node root = NodeUtil.buildFromYml(jobYmlStorage.getFile());
-                NodeUtil.recurse(root, node -> treeCache.put(node.getPath(), node));
-                return treeCache;
+                return new NodeTree(jobYmlStorage.getFile());
             });
-
-            return jobNodeCache.getIfPresent(path);
         } catch (ExecutionException e) {
             LOGGER.warn(String.format("get yaml from jobYamlService error - %s", e));
             return null;

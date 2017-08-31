@@ -127,6 +127,21 @@ public class CmdServiceTest extends TestBase {
     }
 
     @Test
+    public void should_create_cmd_with_session_id() {
+        // given:
+        String zoneName = defaultZones.get(0).getName();
+        CmdInfo cmdForCreateSession = new CmdInfo(zoneName, "test-agent", CmdType.CREATE_SESSION, null);
+
+        // when:
+        Cmd cmd = cmdService.create(cmdForCreateSession);
+        Assert.assertNotNull(cmd);
+
+        // then: session id will be created on create cmd stage
+        Assert.assertNotNull(cmd.getId());
+        Assert.assertNotNull(cmd.getSessionId());
+    }
+
+    @Test
     public void should_report_cmd_status() throws Throwable {
         // given:
         String zoneName = defaultZones.get(0).getName();
@@ -477,6 +492,12 @@ public class CmdServiceTest extends TestBase {
         cmdToDelSession.setSessionId(cmd.getSessionId());
         cmd = cmdService.send(cmdToDelSession);
 
+        // then: verify kill cmd been sent to agent
+        CmdInfo killCmd = CmdInfo.parse(zkClient.getData(ZKHelper.buildPath(zoneName, agentName)), CmdInfo.class);
+        Assert.assertNotNull(killCmd);
+        Assert.assertEquals(CmdType.KILL, killCmd.getType());
+
+        // then: verify agent status
         Agent sessionShouldReleased = agentService.find(cmd.getAgentPath());
         Assert.assertNull(sessionShouldReleased.getSessionId());
         Assert.assertEquals(AgentStatus.IDLE, sessionShouldReleased.getStatus());

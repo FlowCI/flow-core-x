@@ -115,11 +115,12 @@ public class NodeUtilTest extends TestBase {
     @Test
     public void should_flat() {
         List<Node> nodes = NodeUtil.flat(initNodes());
-        StringBuffer out = new StringBuffer("");
+        StringBuilder out = new StringBuilder("");
 
         for (Node node : nodes) {
             out.append(node.getName()).append(";");
         }
+
         Assert.assertEquals("step3;step7;step8;step4;step1;step5;step6;step2;flow;", out.toString());
     }
 
@@ -208,11 +209,13 @@ public class NodeUtilTest extends TestBase {
         step5.setNext(step6);
         step6.setPrev(step5);
 
-        Assert.assertEquals(null, NodeUtil.prev(step3));
-        Assert.assertEquals(step3, NodeUtil.prev(step7));
-        Assert.assertEquals(step4, NodeUtil.prev(step1));
-        Assert.assertEquals(step1, NodeUtil.prev(step5));
-        Assert.assertEquals(step6, NodeUtil.prev(step2));
+        List<Node> ordered = NodeUtil.flat(flow);
+
+        Assert.assertEquals(null, NodeUtil.prev(step3, ordered));
+        Assert.assertEquals(step3, NodeUtil.prev(step7, ordered));
+        Assert.assertEquals(step4, NodeUtil.prev(step1, ordered));
+        Assert.assertEquals(step1, NodeUtil.prev(step5, ordered));
+        Assert.assertEquals(step6, NodeUtil.prev(step2, ordered));
     }
 
     @Test
@@ -231,26 +234,33 @@ public class NodeUtilTest extends TestBase {
         step1.setParent(flow);
         step2.setParent(flow);
 
-        Assert.assertEquals(null, NodeUtil.next(step2));
-        Assert.assertEquals(step1, NodeUtil.first(flow));
-        Assert.assertEquals(step2, NodeUtil.next(step1));
+        List<Node> ordered = NodeUtil.flat(flow);
+        ordered.remove(flow);
+
+        Assert.assertEquals(null, NodeUtil.next(step2, ordered));
+        Assert.assertEquals(step1, ordered.get(0));
+        Assert.assertEquals(step2, NodeUtil.next(step1, ordered));
     }
 
     @Test
     public void should_equal_next_one_node() {
         Flow flow = new Flow("flow", "/flow");
+        List<Node> ordered = NodeUtil.flat(flow);
 
-        Assert.assertEquals(null, NodeUtil.next(flow));
-        Assert.assertEquals(null, NodeUtil.prev(flow));
+        Assert.assertEquals(null, NodeUtil.next(flow, ordered));
+        Assert.assertEquals(null, NodeUtil.prev(flow, ordered));
 
         Step step1 = new Step("step1", "/flow/step1");
 
         flow.getChildren().add(step1);
         step1.setParent(flow);
 
-        Assert.assertEquals(step1, NodeUtil.first(flow));
-        Assert.assertEquals(null, NodeUtil.prev(flow));
-        Assert.assertEquals(null, NodeUtil.next(step1));
-        Assert.assertEquals(null, NodeUtil.prev(step1));
+        ordered = NodeUtil.flat(flow);
+        ordered.remove(flow);
+
+        Assert.assertEquals(step1, ordered.get(0));
+        Assert.assertEquals(null, NodeUtil.prev(flow, ordered));
+        Assert.assertEquals(null, NodeUtil.next(step1, ordered));
+        Assert.assertEquals(null, NodeUtil.prev(step1, ordered));
     }
 }
