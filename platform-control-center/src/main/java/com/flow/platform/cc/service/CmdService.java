@@ -31,6 +31,8 @@ import java.util.Set;
  */
 public interface CmdService {
 
+     Integer DEFAULT_CMD_TIMEOUT = 600; // in seconds 10 mins
+
     /**
      * Create command from CmdInfo
      *

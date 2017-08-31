@@ -107,7 +107,10 @@ public class CmdServiceTest extends TestBase {
     public void should_create_cmd() {
         // given:
         String zoneName = defaultZones.get(0).getName();
-        CmdInfo base = new CmdInfo(zoneName, "test-agent", CmdType.KILL, null);
+        String agentName = "test-agent";
+        agentDao.save(new Agent(zoneName, agentName));
+
+        CmdInfo base = new CmdInfo(zoneName, agentName, CmdType.KILL, null);
         base.setWebhook("http://hooks.com");
 
         // when:
@@ -124,6 +127,33 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(loaded);
         Assert.assertEquals(cmd.getId(), loaded.getId());
         Assert.assertEquals(base.getWebhook(), cmd.getWebhook());
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_if_zone_not_present_for_create_session_cmd() {
+        CmdInfo cmdInfo = new CmdInfo(null, null, CmdType.CREATE_SESSION, null);
+        cmdService.create(cmdInfo);
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_if_zone_not_found_for_create_session_cmd() {
+        CmdInfo cmdInfo = new CmdInfo("not-found-zone", null, CmdType.CREATE_SESSION, null);
+        cmdService.create(cmdInfo);
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_if_agent_full_path_not_present_for_stop() {
+        String zoneName = defaultZones.get(0).getName();
+        CmdInfo cmdInfo = new CmdInfo(zoneName, null, CmdType.STOP, null);
+        cmdService.create(cmdInfo);
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_if_invalid_session_id() {
+        String zoneName = defaultZones.get(0).getName();
+        CmdInfo cmdInfo = new CmdInfo(zoneName, null, CmdType.RUN_SHELL, null);
+        cmdInfo.setSessionId("invalid-session-id");
+        cmdService.create(cmdInfo);
     }
 
     @Test

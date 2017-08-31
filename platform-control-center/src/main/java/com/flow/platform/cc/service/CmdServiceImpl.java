@@ -16,6 +16,13 @@
 
 package com.flow.platform.cc.service;
 
+import static com.flow.platform.domain.CmdType.CREATE_SESSION;
+import static com.flow.platform.domain.CmdType.DELETE_SESSION;
+import static com.flow.platform.domain.CmdType.KILL;
+import static com.flow.platform.domain.CmdType.RUN_SHELL;
+import static com.flow.platform.domain.CmdType.SHUTDOWN;
+import static com.flow.platform.domain.CmdType.STOP;
+
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
@@ -52,11 +59,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
+import javax.annotation.PostConstruct;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -111,28 +122,50 @@ public class CmdServiceImpl implements CmdService {
     @Autowired
     protected ZKClient zkClient;
 
+    private final Map<EnumSet<CmdType>, CmdValidator> cmdValidators = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        CmdValidatorForZoneRequired zoneRequired = new CmdValidatorForZoneRequired();
+        cmdValidators.put(zoneRequired.targets(), zoneRequired);
+
+        CmdValidatorForSessionRequired sessionRequired = new CmdValidatorForSessionRequired();
+        cmdValidators.put(sessionRequired.targets(), sessionRequired);
+
+        CmdValidatorForZoneAndNameRequired zoneAndNameRequired = new CmdValidatorForZoneAndNameRequired();
+        cmdValidators.put(zoneAndNameRequired.targets(), zoneAndNameRequired);
+
+        CmdValidatorForValidSession validSession = new CmdValidatorForValidSession();
+        cmdValidators.put(validSession.targets(), validSession);
+    }
+
     @Override
     public Cmd create(CmdInfo info) {
-        // verify zone name
-        Zone zone = zoneService.getZone(info.getZoneName());
-        if (zone == null) {
-            throw new IllegalParameterException("Illegal zone name : " + info.getZoneName());
-        }
-
         Cmd cmd = Cmd.convert(info);
         cmd.setId(UUID.randomUUID().toString());
         cmd.setCreatedDate(ZonedDateTime.now());
         cmd.setUpdatedDate(ZonedDateTime.now());
 
-        // set default cmd timeout from zone setting if not defined
-        if (info.getTimeout() == null) {
-            cmd.setTimeout(zone.getDefaultCmdTimeout());
+        // validate input cmd
+        for (Map.Entry<EnumSet<CmdType>, CmdValidator> entry : cmdValidators.entrySet()) {
+            EnumSet<CmdType> types = entry.getKey();
+            CmdValidator validator = entry.getValue();
+
+            if (types.contains(cmd.getType())) {
+                if (!validator.validate(cmd)) {
+                    throw new IllegalParameterException("Invalid cmd: " + validator.errorMessage);
+                }
+            }
         }
 
         // auto create session id when create cmd
         if (cmd.getType() == CmdType.CREATE_SESSION) {
             cmd.setSessionId(UUID.randomUUID().toString());
             LOGGER.traceMarker("create", "Create session id when cmd created: %s", cmd.getSessionId());
+        }
+
+        if (cmd.getTimeout() == null) {
+            cmd.setTimeout(DEFAULT_CMD_TIMEOUT);
         }
 
         return cmdDao.save(cmd);
@@ -523,5 +556,148 @@ public class CmdServiceImpl implements CmdService {
         }
 
         agentService.updateStatus(agentPath, isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
+    }
+
+    /**
+     * Interface to validate cmd is valid
+     */
+    private abstract class CmdValidator {
+
+        protected final String ERR_MISSING_ZONE = "Missing agent zone definition";
+
+        protected final String ERR_MISSING_NAME = "Missing agent name definition";
+
+        abstract EnumSet<CmdType> targets();
+
+        abstract boolean doValidation(Cmd cmd);
+
+        protected String errorMessage;
+
+        boolean validate(Cmd cmd) {
+            if (!targets().contains(cmd.getType())) {
+                errorMessage = "Cmd validator type does not match";
+                return false;
+            }
+
+            // verify input cmd status is in finished status
+            if (!cmd.isCurrent()) {
+                errorMessage = "Cmd cannot be proceeded since status is: " + cmd.getStatus();
+                return false;
+            }
+
+            AgentPath agentPath = cmd.getAgentPath();
+            return agentPath != null && doValidation(cmd);
+        }
+
+        String error() {
+            return errorMessage;
+        }
+    }
+
+    /**
+     * Path validator of only zone name required
+     */
+    private class CmdValidatorForZoneRequired extends CmdValidator {
+
+        private final EnumSet<CmdType> targets = EnumSet.of(CREATE_SESSION, RUN_SHELL);
+
+        @Override
+        public EnumSet<CmdType> targets() {
+            return targets;
+        }
+
+        @Override
+        boolean doValidation(Cmd cmd) {
+            if (Strings.isNullOrEmpty(cmd.getZoneName())) {
+                errorMessage = ERR_MISSING_ZONE;
+                return false;
+            }
+
+            Zone zone = zoneService.getZone(cmd.getZoneName());
+            if (zone == null) {
+                errorMessage = "Zone name not found: " + cmd.getZoneName();
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    private class CmdValidatorForSessionRequired extends CmdValidator {
+
+        private final EnumSet<CmdType> targets = EnumSet.of(DELETE_SESSION);
+
+        @Override
+        public EnumSet<CmdType> targets() {
+            return targets;
+        }
+
+        @Override
+        boolean doValidation(Cmd cmd) {
+            if (Strings.isNullOrEmpty(cmd.getSessionId())) {
+                errorMessage = "Missing session id";
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    private class CmdValidatorForValidSession extends CmdValidator {
+
+        private final EnumSet<CmdType> targets = EnumSet.of(DELETE_SESSION, RUN_SHELL);
+
+        @Override
+        EnumSet<CmdType> targets() {
+            return targets;
+        }
+
+        @Override
+        boolean doValidation(Cmd cmd) {
+            final String sessionId = cmd.getSessionId();
+            if (Strings.isNullOrEmpty(sessionId)) {
+                return true;
+            }
+
+            Agent agent = agentService.find(sessionId);
+            if (agent == null) {
+                errorMessage = "Agent not found for session: " + sessionId;
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    private class CmdValidatorForZoneAndNameRequired extends CmdValidator {
+
+        private final EnumSet<CmdType> targets = EnumSet.of(STOP, KILL, SHUTDOWN);
+
+        @Override
+        public EnumSet<CmdType> targets() {
+            return targets;
+        }
+
+        @Override
+        public boolean doValidation(Cmd cmd) {
+            AgentPath path = cmd.getAgentPath();
+            if (Strings.isNullOrEmpty(path.getZone())) {
+                errorMessage = ERR_MISSING_ZONE;
+                return false;
+            }
+
+            if (Strings.isNullOrEmpty(path.getName())) {
+                errorMessage = ERR_MISSING_NAME;
+                return false;
+            }
+
+            Agent agent = agentService.find(path);
+            if (agent == null) {
+                errorMessage = "Agent not found: " + cmd.getAgentPath();
+                return false;
+            }
+
+            return true;
+        }
     }
 }
