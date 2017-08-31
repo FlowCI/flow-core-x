@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.api.domain.user.UsersRoles;
 import com.flow.platform.api.service.user.UsersRolesService;
 import com.flow.platform.api.test.TestBase;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,6 +95,12 @@ public class UsersRolesServiceTest extends TestBase {
         UsersRoles usersRoles = new UsersRoles(userRoleKey);
 
         usersRolesService.create(usersRoles);
+        List<UsersRoles> list = usersRolesService.listUsersRolesByEmail("liuhailiang@126.com");
+
+        for (UsersRoles u : list){
+          roleDao.get(u.getRoleId()).getName();
+        }
+
         Assert.assertEquals(1, usersRolesService.listUsersRolesByEmail("liuhailiang@126.com").size());
     }
 

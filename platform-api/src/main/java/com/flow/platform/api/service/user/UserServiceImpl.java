@@ -77,6 +77,11 @@ public class UserServiceImpl implements UserService {
         userDao.switchUserRoleIdTo(emailList, roleId);
     }
 
+    @Override
+    public User findByUsername(String email){
+        return userDao.get(email);
+    }
+
     /**
      * Login by email
      */
@@ -100,6 +105,8 @@ public class UserServiceImpl implements UserService {
         // Login success, return token
         return TokenUtil.createToken(email, expirationDuration);
     }
+
+
 
     /**
      * Login by username

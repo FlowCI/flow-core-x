@@ -39,7 +39,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author yang
  */
 @Configuration
-@Import({DatabaseConfig.class})
+@Import({
+    DatabaseConfig.class,
+    SecurityConfig.class
+})
+
 public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "flow-api";

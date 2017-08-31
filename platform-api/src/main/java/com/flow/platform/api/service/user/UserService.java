@@ -25,6 +25,8 @@ public interface UserService {
      */
     void register(User user);
 
+    User findByUsername(String email);
+
     /**
      * Delete a user
      *

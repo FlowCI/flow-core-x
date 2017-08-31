@@ -47,7 +47,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.context",
     "com.flow.platform.api.util",
     "com.flow.platform.api.consumer",
-    "com.flow.platform.api.context"})
+    "com.flow.platform.api.context",})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 

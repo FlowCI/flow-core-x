@@ -63,6 +63,30 @@ public class CredentialController {
         return credential.toJson();
     }
 
+    /**
+     *
+     * {
+     "name": "test10",
+     "credentialType": "IOS",
+     "fileNames":[
+     {
+     "path": "123/1",
+     "p12Password": "123456",
+     "type": "pem"
+
+     },
+     {
+     "path": "321",
+     "keyStorePassword": "123321",
+     "keyStoreAlias": "ssssss",
+     "keyStoreAliasPassword": "azazaza",
+     "type": "jsk"
+
+
+     }]
+     }
+     */
+
     @PostMapping
     public Object create(@RequestBody String credentialJson) {
         Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
