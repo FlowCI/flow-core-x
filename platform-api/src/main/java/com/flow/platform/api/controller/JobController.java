@@ -18,9 +18,10 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
-import com.flow.platform.api.util.PathUtil;
+import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,14 +34,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
 /**
  * @author yh@firim
  */
-
 @RestController
 @RequestMapping(path = "/jobs")
-public class JobController {
+public class JobController extends NodeController {
 
     @Autowired
     private JobService jobService;
@@ -62,248 +61,161 @@ public class JobController {
     }
 
     /**
-     * @api {Post} /jobs/:flowName create
-     * @apiName CreateJob
-     * @apiParam {String} [flowName] flow name
-     * @apiGroup Job
-     * @apiDescription run job and create job
+     * @api {post} /jobs/:root Create
+     * @apiParam {String} root flow node path
+     * @apiGroup Jobs
+     * @apiDescription Create job by flow node path,
+     * FLOW_STATUS must be READY and YML contnet must be provided
      *
-     * @apiSuccessExample {String} Success-Response:
-     *     HTTP/1.1 200 OK
-     *
+     * @apiSuccessExample {json} Success-Response
      *  {
-     *       "nodePath": "Fflow",
-     *       "nodeName": "Fflow",
-     *       "createdAt": 1503884024,
-     *       "updatedAt": 1503884024,
-     *       "number": 8,
-     *       "result": {
-     *          "outputs": {
-     *              "FLOW_WORKSPACE": "~/flow-platform/test/id/1/1/3",
-     *              "FLOW_VERSION": "1.0.0.0.0",
-     *              "FLOW_YML_STATUS": "FOUND",
-     *              "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/Fflow",
-     *              "FLOW_STATUS": "READY",
-     *              "FLOW_GIT_COMMIT_ID": "1234",
-     *              "FLOW_GIT_CHANGELOG": "test",
-     *              "FLOW_GIT_COMPARE_ID": "1234..12121",
-     *              "FLOW_GIT_BRANCH": "master",
-     *              "FLOW_GIT_COMMITER": "WILL"
+     *      nodePath: xx/xx/xx,
+     *      number: 1,
+     *      nodeName: xx,
+     *      status: CREATED,
+     *      createdAt: 154123211,
+     *      updatedAt: 154123211,
+     *      result: {
+     *          outputs: {
+     *              FLOW_ENV_OUT_1: xxxx,
+     *              FLOW_ENV_OUT_2: xxxx
      *          },
-     *          "duration": 9,
-     *          "exitCode": 0,
-     *          "logPaths": [
-     *
-     *          ],
-     *          "status": "SUCCESS",
-     *          "cmdId": "c1ff44c3-f047-4ba6-a39d-9e0c7c0682fd",
-     *          "nodeTag": "FLOW",
-     *          "startTime": 1503884025,
-     *          "finishTime": 1503884034,
-     *          "createdAt": 1503884024,
-     *          "updatedAt": 1503884024
-     *       },
-     *       "envs": {
-     *          "FLOW_WORKSPACE": "~/flow-platform/test/id/1/1/3",
-     *          "FLOW_VERSION": "1.0.0.0.0",
-     *          "FLOW_YML_STATUS": "FOUND",
-     *          "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/Fflow",
-     *          "FLOW_STATUS": "READY"
-     *       }
-     *   }
+     *          duration: 0,
+     *          status: PENDING,
+     *          cmdId: xxxx,
+     *          nodeTag: FLOW,
+     *          startTime: 154123211,
+     *          finishTime: 154123211,
+     *          createdAt: 154123211,
+     *          updatedAt: 154123211
+     *      }
+     *  }
      */
-    @PostMapping(path = "/{flowName}")
-    public Job create(@PathVariable String flowName) {
-        return jobService.createJob(PathUtil.build(flowName));
+    @PostMapping(path = "/{root}")
+    public Job create() {
+        String path = getNodePathFromUrl();
+        return jobService.createJob(path);
     }
 
     /**
-     * @api {Get} /jobs/:flowName list
-     * @apiName ListJobs
-     * @apiParam {String} [flowName] flow name
-     * @apiGroup Job
-     * @apiDescription get jobs from flowName
+     * @api {get} /jobs/:root List
+     * @apiParam {String} [root] flow node path, return all jobs if not presented
+     * @apiGroup Jobs
+     * @apiDescription Get jobs by node path or list all jobs
      *
-     * @apiSuccessExample {String} Success-Response:
-     *     HTTP/1.1 200 OK
+     * @apiSuccessExample {json} Success-Response
+     *  [
+     *      {
+     *          Job response json see Create response
+     *      },
      *
-     *  [{
-     *       "nodePath": "Fflow",
-     *       "nodeName": "Fflow",
-     *       "createdAt": 1503884024,
-     *       "updatedAt": 1503884024,
-     *       "number": 8,
-     *       "result": {
-     *          "outputs": {
-     *              "FLOW_WORKSPACE": "~/flow-platform/test/id/1/1/3",
-     *              "FLOW_VERSION": "1.0.0.0.0",
-     *              "FLOW_YML_STATUS": "FOUND",
-     *              "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/Fflow",
-     *              "FLOW_STATUS": "READY",
-     *              "FLOW_GIT_COMMIT_ID": "1234",
-     *              "FLOW_GIT_CHANGELOG": "test",
-     *              "FLOW_GIT_COMPARE_ID": "1234..12121",
-     *              "FLOW_GIT_BRANCH": "master",
-     *              "FLOW_GIT_COMMITER": "WILL"
-     *          },
-     *          "duration": 9,
-     *          "exitCode": 0,
-     *          "logPaths": [
-     *
-     *          ],
-     *          "status": "SUCCESS",
-     *          "cmdId": "c1ff44c3-f047-4ba6-a39d-9e0c7c0682fd",
-     *          "nodeTag": "FLOW",
-     *          "startTime": 1503884025,
-     *          "finishTime": 1503884034,
-     *          "createdAt": 1503884024,
-     *          "updatedAt": 1503884024
-     *       },
-     *       "envs": {
-     *          "FLOW_WORKSPACE": "~/flow-platform/test/id/1/1/3",
-     *          "FLOW_VERSION": "1.0.0.0.0",
-     *          "FLOW_YML_STATUS": "FOUND",
-     *          "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/Fflow",
-     *          "FLOW_STATUS": "READY"
-     *       }
-     *   }]
+     *      {
+     *          ...
+     *      }
+     *  ]
      */
-    @GetMapping
-    public Collection<Job> index(@RequestParam(required = false) String flowName) {
-        return jobService.listJobs(flowName, null);
+    @GetMapping(path = "/{root}")
+    public Collection<Job> index() {
+        String path = getNodePathFromUrl();
+
+        List<String> paths = null;
+        if (path != null) {
+            paths = Lists.newArrayList(path);
+        }
+
+        return jobService.list(paths, false);
     }
 
     /**
-     * @api {get} /jobs/:flowName/:buildNumber get
-     * @apiName GetJob
-     * @apiParam {String} [flowName] flow name
-     * @apiParam {String} [buildNumber] build number
-     * @apiGroup Job
-     * @apiDescription get job from flowName and buildNumber
+     * @api {get} /jobs/:root/:buildNumber Show
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiGroup Jobs
+     * @apiDescription Get job by path and build number
      *
-     * @apiSuccessExample {String} Success-Response:
-     *     HTTP/1.1 200 OK
-     *
+     * @apiSuccessExample {json} Success-Response
      *  {
-     *       "nodePath": "Fflow",
-     *       "nodeName": "Fflow",
-     *       "createdAt": 1503884024,
-     *       "updatedAt": 1503884024,
-     *       "number": 8,
-     *       "result": {
-     *          "outputs": {
-     *              "FLOW_WORKSPACE": "~/flow-platform/test/id/1/1/3",
-     *              "FLOW_VERSION": "1.0.0.0.0",
-     *              "FLOW_YML_STATUS": "FOUND",
-     *              "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/Fflow",
-     *              "FLOW_STATUS": "READY",
-     *              "FLOW_GIT_COMMIT_ID": "1234",
-     *              "FLOW_GIT_CHANGELOG": "test",
-     *              "FLOW_GIT_COMPARE_ID": "1234..12121",
-     *              "FLOW_GIT_BRANCH": "master",
-     *              "FLOW_GIT_COMMITER": "WILL"
-     *          },
-     *          "duration": 9,
-     *          "exitCode": 0,
-     *          "logPaths": [
-     *
-     *          ],
-     *          "status": "SUCCESS",
-     *          "cmdId": "c1ff44c3-f047-4ba6-a39d-9e0c7c0682fd",
-     *          "nodeTag": "FLOW",
-     *          "startTime": 1503884025,
-     *          "finishTime": 1503884034,
-     *          "createdAt": 1503884024,
-     *          "updatedAt": 1503884024
-     *       },
-     *       "envs": {
-     *          "FLOW_WORKSPACE": "~/flow-platform/test/id/1/1/3",
-     *          "FLOW_VERSION": "1.0.0.0.0",
-     *          "FLOW_YML_STATUS": "FOUND",
-     *          "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/Fflow",
-     *          "FLOW_STATUS": "READY"
-     *       }
-     *   }
+     *      Job response json see Create response
+     *  }
      */
-    @GetMapping(path = "/{flowName}/{buildNumber}")
-    public Job show(@PathVariable String flowName, @PathVariable Integer buildNumber) {
-        return jobService.find(flowName, buildNumber);
-    }
-
-    @GetMapping(path = "/{flowName}/{buildNumber}/nodes")
-    public List<NodeResult> indexNodeResults(@PathVariable String flowName, @PathVariable Integer buildNumber) {
-        return jobService.listNodeResult(flowName, buildNumber);
+    @GetMapping(path = "/{root}/{buildNumber}")
+    public Job show(@PathVariable Integer buildNumber) {
+        String path = getNodePathFromUrl();
+        return jobService.find(path, buildNumber);
     }
 
     /**
-     * @api {Get} /jobs/status/latest latestJob
-     * @apiName GetLatestJob
-     * @apiParam {String} [flowPaths] flow paths
-     * @apiGroup Job
-     * @apiDescription get latest jobs with flowPaths
+     * @api {get} /jobs/:root/:buildNumber/nodes List Nodes
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiGroup Jobs
+     * @apiDescription Get all sub node results
      *
-     * @apiSuccessExample {String} Success-Response:
-     *     HTTP/1.1 200 OK
-     *
-     *  [{
-     *       "nodePath": "Fflow",
-     *       "nodeName": "Fflow",
-     *       "createdAt": 1503884024,
-     *       "updatedAt": 1503884024,
-     *       "number": 8,
-     *       "result": {
-     *          "outputs": {
-     *              "FLOW_WORKSPACE": "~/flow-platform/test/id/1/1/3",
-     *              "FLOW_VERSION": "1.0.0.0.0",
-     *              "FLOW_YML_STATUS": "FOUND",
-     *              "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/Fflow",
-     *              "FLOW_STATUS": "READY",
-     *              "FLOW_GIT_COMMIT_ID": "1234",
-     *              "FLOW_GIT_CHANGELOG": "test",
-     *              "FLOW_GIT_COMPARE_ID": "1234..12121",
-     *              "FLOW_GIT_BRANCH": "master",
-     *              "FLOW_GIT_COMMITER": "WILL"
+     * @apiSuccessExample {json} Success-Response
+     *  [
+     *      {
+     *          outputs: {
+     *              FLOW_ENV_OUT_1: xxxx,
+     *              FLOW_ENV_OUT_2: xxxx
      *          },
-     *          "duration": 9,
-     *          "exitCode": 0,
-     *          "logPaths": [
+     *          duration: 0,
+     *          status: PENDING,
+     *          cmdId: xxxx,
+     *          nodeTag: FLOW,
+     *          startTime: 154123211,
+     *          finishTime: 154123211,
+     *          createdAt: 154123211,
+     *          updatedAt: 154123211
+     *      },
      *
-     *          ],
-     *          "status": "SUCCESS",
-     *          "cmdId": "c1ff44c3-f047-4ba6-a39d-9e0c7c0682fd",
-     *          "nodeTag": "FLOW",
-     *          "startTime": 1503884025,
-     *          "finishTime": 1503884034,
-     *          "createdAt": 1503884024,
-     *          "updatedAt": 1503884024
-     *       },
-     *       "envs": {
-     *          "FLOW_WORKSPACE": "~/flow-platform/test/id/1/1/3",
-     *          "FLOW_VERSION": "1.0.0.0.0",
-     *          "FLOW_YML_STATUS": "FOUND",
-     *          "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/Fflow",
-     *          "FLOW_STATUS": "READY"
-     *       }
-     *   }]
+     *      {
+     *          ...
+     *      }
+     *  ]
+     */
+    @GetMapping(path = "/{root}/{buildNumber}/nodes")
+    public List<NodeResult> indexNodeResults(@PathVariable Integer buildNumber) {
+        String path = getNodePathFromUrl();
+        return jobService.listNodeResult(path, buildNumber);
+    }
+
+    /**
+     * @api {post} /jobs/:root/:buildNumber/stop Stop
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiGroup Jobs
+     * @apiDescription Stop job by node path and build number
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      value: true
+     *  }
+     */
+    @PostMapping(path = "/{root}/{buildNumber}/stop")
+    public Job stopJob(@PathVariable Integer buildNumber) {
+        String path = getNodePathFromUrl();
+        return jobService.stopJob(path, buildNumber);
+    }
+
+    /**
+     * @api {post} /jobs/status/latest Latest
+     * @apiParam {Array} paths List of flow node path
+     * @apiGroup Jobs
+     * @apiDescription Get latest job for flow nodes
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  [
+     *      {
+     *          Job response json see Create response
+     *      },
+     *
+     *      {
+     *          ..
+     *      }
+     *  ]
      */
     @PostMapping(path = "/status/latest")
-    public Collection<Job> latestStatus(@RequestBody List<String> flowPaths) {
-        return jobService.listJobs(null, flowPaths);
-    }
-
-    /**
-     * @api {Post} /jobs/:flowName/:buildNumber/stop stop
-     * @apiName StopJob
-     * @apiParam {String} [flowName] flow name
-     * @apiParam {String} [buildNumber] build number
-     * @apiGroup Job
-     * @apiDescription stop job from flowName and buildNumber
-     *
-     * @apiSuccessExample {String} Success-Response:
-     *     HTTP/1.1 200 OK
-     */
-    @PostMapping(path = "/{flowName}/{buildNumber}/stop")
-    public Job stopJob(@PathVariable String flowName, @PathVariable Integer buildNumber) {
-        return jobService.stopJob(flowName, buildNumber);
+    public Collection<Job> latestStatus(@RequestBody List<String> paths) {
+        return jobService.list(paths, true);
     }
 }

@@ -160,6 +160,9 @@ public abstract class CmdBase extends Jsonable {
     }
 
     public boolean hasSession() {
+        if (type == CmdType.CREATE_SESSION) {
+            return false;
+        }
         return sessionId != null;
     }
 

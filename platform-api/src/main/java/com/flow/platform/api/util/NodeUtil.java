@@ -131,19 +131,19 @@ public class NodeUtil {
     /**
      * get prev node from flow
      */
-    public static Node prev(Node node) {
-        Node root = findRootNode(node);
-        List<Node> nodes = flat(root);
+    public static Node prev(Node node, List<Node> ordered) {
         Integer index = -1;
         Node target = null;
-        for (int i = 0; i < nodes.size(); i++) {
-            Node item = nodes.get(i);
+
+        for (int i = 0; i < ordered.size(); i++) {
+            Node item = ordered.get(i);
             if (item.equals(node)) {
                 index = i;
             }
         }
-        if (index >= 1 && index != -1 && index < nodes.size() - 1) {
-            target = nodes.get(index - 1);
+
+        if (index >= 1 && index != -1 && index < ordered.size() - 1) {
+            target = ordered.get(index - 1);
         }
 
         return target;
@@ -153,22 +153,16 @@ public class NodeUtil {
      * get next node compare root
      *
      * @param node current node
-     * @return target node
+     * @param ordered ordered and flatted node tree
+     * @return next node of current
      */
-    public static Node next(Node node) {
-        Node root = findRootNode(node);
-        List<Node> nodes = flat(root);
+    public static Node next(Node node, List<Node> ordered) {
         Integer index = -1;
         Node target = null;
 
-        // last node is flow node
-        if (nodes.size() > 0) {
-            nodes.remove(nodes.size() - 1);
-        }
-
         //find node
-        for (int i = 0; i < nodes.size(); i++) {
-            Node item = nodes.get(i);
+        for (int i = 0; i < ordered.size(); i++) {
+            Node item = ordered.get(i);
             if (item.equals(node)) {
                 index = i;
                 break;
@@ -178,7 +172,7 @@ public class NodeUtil {
         // find node
         if (index != -1) {
             try {
-                target = nodes.get(index + 1);
+                target = ordered.get(index + 1);
             } catch (Throwable ignore) {
                 //not found ignore
                 target = null;
@@ -186,32 +180,6 @@ public class NodeUtil {
         }
 
         return target;
-    }
-
-    /**
-     * node can run or not
-     *
-     * @return true or false
-     */
-    public static Boolean canRun(Node node) {
-        if (node.getChildren().size() == 0) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * find first node of flow
-     */
-    public static Node first(Node root) {
-        List<Node> nodes = flat(root);
-
-        // last node is flow node
-        if (nodes.size() > 0) {
-            nodes.remove(nodes.size() - 1);
-        }
-
-        return nodes.get(0);
     }
 
     /**

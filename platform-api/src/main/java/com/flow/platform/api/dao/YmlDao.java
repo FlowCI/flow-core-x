@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.job.JobYmlStorage;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.core.dao.BaseDao;
-import java.math.BigInteger;
 
 /**
- * @author lhl
+ * @author yh@firim
  */
-public interface JobYmlStorageDao extends BaseDao<BigInteger, JobYmlStorage> {
+public interface YmlDao extends BaseDao<String, Yml> {
 
 }

@@ -15,7 +15,6 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;
@@ -25,9 +24,9 @@ import java.math.BigInteger;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -44,16 +43,16 @@ public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult
 
     @Override
     protected String getKeyName() {
-        return "nodeResultKey";
+        return "key";
     }
 
     @Override
     public NodeResult get(BigInteger jobId, NodeStatus status, NodeTag tag) {
-        return execute((Session session) -> {
+        return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
             CriteriaQuery<NodeResult> select = builder.createQuery(NodeResult.class);
             Root<NodeResult> nodeResultRoot = select.from(NodeResult.class);
-            Predicate aCondition = builder.equal(nodeResultRoot.get("nodeResultKey").get("jobId"), jobId);
+            Predicate aCondition = builder.equal(nodeResultRoot.get("key").get("jobId"), jobId);
             Predicate bCondition = builder.equal(nodeResultRoot.get("status"), status);
             Predicate cCondition = builder.equal(nodeResultRoot.get("nodeTag"), tag);
             select.where(builder.and(aCondition, bCondition, cCondition));
@@ -62,15 +61,29 @@ public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult
     }
 
     @Override
-    public List<NodeResult> list(Job job) {
-        return execute((Session session) -> {
+    public List<NodeResult> list(BigInteger jobId) {
+        return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
             CriteriaQuery<NodeResult> select = builder.createQuery(NodeResult.class);
             Root<NodeResult> nodeResultRoot = select.from(NodeResult.class);
-            Predicate aCondition = builder.equal(nodeResultRoot.get("nodeResultKey").get("jobId"), job.getId());
+            Predicate aCondition = builder.equal(nodeResultRoot.get("key").get("jobId"), jobId);
             select.where(aCondition);
             select.orderBy(builder.desc(nodeResultRoot.get("createdAt")));
             return session.createQuery(select).list();
+        });
+    }
+
+    @Override
+    public int update(BigInteger jobId, NodeStatus target) {
+        return execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaUpdate<NodeResult> update = builder.createCriteriaUpdate(NodeResult.class);
+            Root<NodeResult> root = update.getRoot();
+
+            update.set(root.get("status"), target);
+            update.where(builder.equal(root.get("key").get("jobId"), jobId));
+
+            return session.createQuery(update).executeUpdate();
         });
     }
 }

@@ -13,29 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.job.NodeResult;
-import java.math.BigInteger;
-import java.util.List;
+package com.flow.platform.api.domain.job;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public interface JobNodeResultService {
+public enum JobStatus {
 
-    /**
-     * Create empty node results by job
-     */
-    void create(Job job);
+    CREATED, // default status
 
-    /**
-     * find node by node path
-     */
-    NodeResult find(String path, BigInteger jobId);
+    SESSION_CREATING, // creating agent session
 
-    NodeResult update(NodeResult nodeResult);
+    RUNNING, // executing node tree
 
-    List<NodeResult> list(Job job);
+    SUCCESS, // finished without error
+
+    ERROR, // finished with error
+
+    STOPPED; // manual stop the job
 }

@@ -13,33 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
+package com.flow.platform.api.service.job;
 
+import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.job.NodeTag;
-import com.flow.platform.core.dao.BaseDao;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.domain.Cmd;
 import java.math.BigInteger;
 import java.util.List;
 
 /**
- * @author lhl
+ * @author yh@firim
  */
-public interface NodeResultDao extends BaseDao<NodeResultKey, NodeResult> {
+public interface NodeResultService {
 
     /**
-     * Get node result by job id, status and node tag
+     * Create all empty nodes results by job
+     *
+     * @return NodeResult for root node
      */
-    NodeResult get(BigInteger jobId, NodeStatus status, NodeTag tag);
+    NodeResult create(Job job);
 
     /**
-     * List node result for job
+     * find node by node path
      */
-    List<NodeResult> list(BigInteger jobId);
+    NodeResult find(String path, BigInteger jobId);
 
     /**
-     * Update status to all node result by job id
+     * List all node results for job
      */
-    int update(BigInteger jobId, NodeStatus target);
+    List<NodeResult> list(Job job);
+
+    /**
+     * Save node result to db
+     */
+    void save(NodeResult result);
+
+    /**
+     * Update node result and recursive bottom up update parent node result by cmd
+     */
+    NodeResult update(Job job, Node node, Cmd cmd);
 }

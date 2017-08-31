@@ -4,6 +4,7 @@ flow:
     envs:
       FLOW_WORKSPACE: "echo hello"
       FLOW_VERSION: "echo version"
+
     steps:
      - name: step1
        isAllowFailure: false

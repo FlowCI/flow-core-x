@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
 import java.math.BigInteger;
 
 /**
@@ -30,8 +30,8 @@ public interface JobNodeService {
 
 
     /**
-     * get node from node and jobId
+     * get node tree by job
      */
-    Node get(BigInteger jobId, String path);
+    NodeTree get(BigInteger jobId);
 
 }

@@ -17,7 +17,7 @@
 package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.YmlStorage;
+import com.flow.platform.api.domain.node.Yml;
 import java.util.function.Consumer;
 
 /**
@@ -56,7 +56,7 @@ public interface YmlService {
      * @param callback method on yml loaded
      * @return flow node instance
      */
-    Node loadYmlContent(String path, Consumer<YmlStorage> callback);
+    Node loadYmlContent(String path, Consumer<Yml> callback);
 
     /**
      * Stop yml content loading thread

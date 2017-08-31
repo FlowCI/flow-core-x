@@ -16,10 +16,10 @@
 
 package com.flow.platform.api.service.node;
 
-import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.YmlStorage;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
@@ -76,7 +76,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     private NodeService nodeService;
 
     @Autowired
-    private YmlStorageDao ymlStorageDao;
+    private YmlDao ymlDao;
 
     @Override
     public void start() {
@@ -124,7 +124,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FOUND.value())) {
 
             // load from database
-            YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
+            Yml ymlStorage = ymlDao.get(rootPath);
             if (ymlStorage != null) {
                 return ymlStorage.getFile();
             }
@@ -145,7 +145,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
-    public Node loadYmlContent(final String path, final Consumer<YmlStorage> callback) {
+    public Node loadYmlContent(final String path, final Consumer<Yml> callback) {
         final String rootPath = PathUtil.rootPath(path);
         final Flow flow = nodeService.findFlow(rootPath);
         final Set<String> requiredEnvSet = Sets.newHashSet(GitEnvs.FLOW_GIT_URL.name(), GitEnvs.FLOW_GIT_SOURCE.name());

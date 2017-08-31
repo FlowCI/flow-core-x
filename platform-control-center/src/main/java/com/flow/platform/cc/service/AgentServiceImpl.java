@@ -122,18 +122,25 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public String createSession(Agent agent) {
+    public String createSession(Agent agent, String existSessionId) {
         if (!agent.isAvailable()) {
             return null;
         }
 
-        String sessionId = UUID.randomUUID().toString();
-        agent.setSessionId(sessionId); // set session id to agent
+        // set session id to agent if session id not set from outside
+        if (Strings.isNullOrEmpty(existSessionId)) {
+            existSessionId = UUID.randomUUID().toString();
+            LOGGER.traceMarker("createSession", "Create since no input session id %s", agent.getSessionId());
+        }
+
+        agent.setSessionId(existSessionId);
         agent.setSessionDate(ZonedDateTime.now());
         agent.setStatus(AgentStatus.BUSY);
+
+        LOGGER.debug("Target status record: %s %s", agent.getPath(), agent.getSessionId());
         agentDao.update(agent);
 
-        return sessionId;
+        return agent.getSessionId();
     }
 
     @Override
@@ -190,10 +197,11 @@ public class AgentServiceImpl implements AgentService {
         LOGGER.traceMarker("sessionTimeoutTask", "end");
     }
 
+    // TODO: to be deleted
     @Override
     public Boolean shutdown(AgentPath agentPath, String password) {
         Agent agent = find(agentPath);
-        String sessionId = createSession(agent);
+        String sessionId = createSession(agent, null);
         CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SHUTDOWN, String.format("%s", password));
         cmdInfo.setSessionId(sessionId);
         Cmd cmd = cmdService.create(cmdInfo);

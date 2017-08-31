@@ -17,6 +17,7 @@ package com.flow.platform.api.test;/*
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.*;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -24,14 +25,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.JobDao;
-import com.flow.platform.api.dao.JobYmlStorageDao;
+import com.flow.platform.api.dao.JobYmlDao;
 import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.NodeResultDao;
-import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.service.job.JobNodeResultService;
+import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
@@ -84,19 +85,19 @@ public abstract class TestBase {
     protected JobDao jobDao;
 
     @Autowired
-    private UserDao userDao;
+    protected UserDao userDao;
 
     @Autowired
-    protected YmlStorageDao ymlStorageDao;
+    protected YmlDao ymlDao;
 
     @Autowired
-    protected JobYmlStorageDao jobYmlStorageDao;
+    protected JobYmlDao jobYmlDao;
 
     @Autowired
     protected NodeResultDao nodeResultDao;
 
     @Autowired
-    private CredentialStorageDao credentialStorageDao;
+    protected CredentialStorageDao credentialStorageDao;
 
     @Autowired
     protected MessageSettingDao messageSettingDao;
@@ -108,7 +109,7 @@ public abstract class TestBase {
     protected JobService jobService;
 
     @Autowired
-    protected JobNodeResultService jobNodeResultService;
+    protected NodeResultService nodeResultService;
 
     @Autowired
     protected WebApplicationContext webAppContext;
@@ -143,20 +144,21 @@ public abstract class TestBase {
     }
 
     public void stubDemo() {
-        Cmd cmdRes = new Cmd();
-        cmdRes.setId(UUID.randomUUID().toString());
+        Cmd mockCmdResponse = new Cmd();
+        mockCmdResponse.setId(UUID.randomUUID().toString());
+        mockCmdResponse.setSessionId(UUID.randomUUID().toString());
 
         stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
+                .withBody(mockCmdResponse.toJson())));
 
         stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
             .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
+                .withBody(mockCmdResponse.toJson())));
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/stop/" + cmdRes.getId()))
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/stop/" + mockCmdResponse.getId()))
             .willReturn(aResponse()
-                .withBody(cmdRes.toJson())));
+                .withBody(mockCmdResponse.toJson())));
 
         stubFor(com.github.tomakehurst.wiremock.client.WireMock
             .post(urlEqualTo("/agent/shutdown?zone=default&name=machine&password=123456"))
@@ -167,8 +169,8 @@ public abstract class TestBase {
     private void cleanDatabase() {
         flowDao.deleteAll();
         jobDao.deleteAll();
-        ymlStorageDao.deleteAll();
-        jobYmlStorageDao.deleteAll();
+        ymlDao.deleteAll();
+        jobYmlDao.deleteAll();
         nodeResultDao.deleteAll();
         userDao.deleteAll();
         credentialStorageDao.deleteAll();

@@ -16,11 +16,12 @@
 package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.dao.FlowDao;
-import com.flow.platform.api.dao.YmlStorageDao;
+import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.node.YmlStorage;
+import com.flow.platform.api.domain.node.NodeTree;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
@@ -62,7 +63,7 @@ public class NodeServiceImpl implements NodeService {
     private final static int INIT_NODE_CACHE_NUM = 10;
 
     // To cache key is root node (flow) path, value is flatted tree as map
-    private Cache<String, Cache<String, Node>> treeCache = CacheBuilder
+    private Cache<String, NodeTree> treeCache = CacheBuilder
         .newBuilder()
         .expireAfterAccess(TREE_CACHE_EXPIRE_SECOND, TimeUnit.SECONDS)
         .maximumSize(MAX_TREE_CACHE_NUM)
@@ -75,7 +76,7 @@ public class NodeServiceImpl implements NodeService {
     private FlowDao flowDao;
 
     @Autowired
-    private YmlStorageDao ymlStorageDao;
+    private YmlDao ymlDao;
 
     @Autowired
     private Path workspace;
@@ -106,8 +107,8 @@ public class NodeServiceImpl implements NodeService {
         EnvUtil.merge(rootFromYml, flow, true);
         flowDao.update(flow);
 
-        YmlStorage ymlStorage = new YmlStorage(flow.getPath(), yml);
-        ymlStorageDao.saveOrUpdate(ymlStorage);
+        Yml ymlStorage = new Yml(flow.getPath(), yml);
+        ymlDao.saveOrUpdate(ymlStorage);
 
         // reset cache
         treeCache.invalidate(flow.getPath());
@@ -122,17 +123,15 @@ public class NodeServiceImpl implements NodeService {
 
         try {
             // load tree from tree cache
-            Cache<String, Node> tree = treeCache.get(rootPath, () -> {
+            NodeTree tree = treeCache.get(rootPath, () -> {
 
-                YmlStorage ymlStorage = ymlStorageDao.get(rootPath);
+                Yml ymlStorage = ymlDao.get(rootPath);
                 Flow flow = flowDao.get(path);
-
-                Cache<String, Node> cache = CacheBuilder.newBuilder().initialCapacity(INIT_NODE_CACHE_NUM).build();
 
                 // has related yml
                 if (ymlStorage != null) {
-                    Node root = NodeUtil.buildFromYml(ymlStorage.getFile());
-                    NodeUtil.recurse(root, node -> cache.put(node.getPath(), node));
+                    NodeTree newTree = new NodeTree(ymlStorage.getFile());
+                    Node root = newTree.root();
 
                     // should merge env from flow dao and yml
                     EnvUtil.merge(flow, root, false);
@@ -143,19 +142,18 @@ public class NodeServiceImpl implements NodeService {
                         root.setUpdatedAt(flow.getUpdatedAt());
                     }
 
-                    return cache;
+                    return newTree;
                 }
 
                 if (flow != null) {
-                    cache.put(flow.getPath(), flow);
-                    return cache;
+                    return new NodeTree(flow);
                 }
 
                 // root path not exist
                 return null;
             });
 
-            return tree.getIfPresent(path);
+            return tree.find(path);
         } catch (ExecutionException | InvalidCacheLoadException ignore) {
             // not not found or unable to load from cache
             return null;
@@ -192,7 +190,7 @@ public class NodeServiceImpl implements NodeService {
         flowDao.delete(flow);
 
         // delete related yml storage
-        ymlStorageDao.delete(new YmlStorage(flow.getPath(), null));
+        ymlDao.delete(new Yml(flow.getPath(), null));
 
         // delete local flow folder
         Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);

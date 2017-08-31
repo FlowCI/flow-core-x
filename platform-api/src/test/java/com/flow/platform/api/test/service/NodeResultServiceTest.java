@@ -29,7 +29,7 @@ import org.junit.Test;
 /**
  * @author lhl
  */
-public class JobNodeResultServiceTest extends TestBase {
+public class NodeResultServiceTest extends TestBase {
 
     @Test
     public void should_save_job_node_by_job() throws IOException {
@@ -39,7 +39,7 @@ public class JobNodeResultServiceTest extends TestBase {
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Flow flow = (Flow) nodeService.find(job.getNodePath());
-        Assert.assertEquals(job.getId(), jobNodeResultService.find(flow.getPath(), job.getId()).getJobId());
+        Assert.assertEquals(job.getId(), nodeResultService.find(flow.getPath(), job.getId()).getJobId());
     }
 
     @Test
@@ -50,7 +50,7 @@ public class JobNodeResultServiceTest extends TestBase {
         nodeResultDao.save(nodeResult);
 
         nodeResult.setNodeTag(NodeTag.STEP);
-        NodeResult nodeResult1 = jobNodeResultService.update(nodeResult);
-        Assert.assertEquals(nodeResult1.getNodeTag(), NodeTag.STEP);
+        nodeResultService.save(nodeResult);
+        Assert.assertEquals(nodeResult.getNodeTag(), NodeTag.STEP);
     }
 }
