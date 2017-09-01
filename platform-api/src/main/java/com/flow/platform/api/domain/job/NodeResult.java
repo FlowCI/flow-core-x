@@ -212,7 +212,7 @@ public class NodeResult extends Jsonable {
         return RUNNING_STATUS.contains(status);
     }
 
-    public boolean isSucess() {
+    public boolean isSuccess() {
         return SUCCESS_STATUS.contains(status);
     }
 

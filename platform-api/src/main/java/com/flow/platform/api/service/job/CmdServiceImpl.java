@@ -80,6 +80,7 @@ public class CmdServiceImpl implements CmdService {
     public void deleteSession(Job job) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.DELETE_SESSION, null);
         cmdInfo.setSessionId(job.getSessionId());
+        cmdInfo.setWebhook(buildCmdWebhook(job));
 
         try {
             LOGGER.traceMarker("DeleteSession", "Send delete session for session id %s", job.getSessionId());

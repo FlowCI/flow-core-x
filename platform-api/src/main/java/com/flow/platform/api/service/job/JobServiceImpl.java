@@ -24,35 +24,28 @@ import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -215,7 +208,7 @@ public class JobServiceImpl implements JobService {
         }
 
         if (cmd.getType() == CmdType.DELETE_SESSION) {
-            LOGGER.trace("Session been deleted for job: %s" + cmdQueueItem.getJobId());
+            LOGGER.trace("Session been deleted for job: %s", cmdQueueItem.getJobId());
             return;
         }
 
@@ -299,12 +292,14 @@ public class JobServiceImpl implements JobService {
             LOGGER.debug("The node tree '%s' been executed with %s status", rootPath, rootResult.getStatus());
 
             // send to delete session
-            cmdService.deleteSession(job);
+            if (!nodeResult.isRunning()) {
+                cmdService.deleteSession(job);
+            }
             return;
         }
 
         // continue to run if on success status
-        if (nodeResult.isSucess()) {
+        if (nodeResult.isSuccess()) {
             run(next, job);
             return;
         }
@@ -363,7 +358,7 @@ public class JobServiceImpl implements JobService {
             job.setStatus(JobStatus.ERROR);
         }
 
-        if (rootResult.isSucess()) {
+        if (rootResult.isSuccess()) {
             job.setStatus(JobStatus.SUCCESS);
         }
 
