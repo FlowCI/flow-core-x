@@ -88,7 +88,7 @@ public class AgentServiceTest extends TestBase {
         // given:
         String zoneName = "ut-test-zone-1";
         zoneService.createZone(new Zone(zoneName, MOCK_PROVIDER_NAME));
-        Assert.assertEquals(0, agentService.onlineList(zoneName).size());
+        Assert.assertEquals(0, agentService.listForOnline(zoneName).size());
 
         String agentName = "test-agent-001";
         String path = ZKHelper.buildPath(zoneName, agentName);
@@ -98,8 +98,8 @@ public class AgentServiceTest extends TestBase {
 
         // then:
         Thread.sleep(1000);
-        Assert.assertEquals(1, agentService.onlineList(zoneName).size());
-        Assert.assertTrue(agentService.onlineList(zoneName).contains(new Agent(zoneName, agentName)));
+        Assert.assertEquals(1, agentService.listForOnline(zoneName).size());
+        Assert.assertTrue(agentService.listForOnline(zoneName).contains(new Agent(zoneName, agentName)));
     }
 
     @Test
@@ -137,7 +137,7 @@ public class AgentServiceTest extends TestBase {
         Thread.sleep(2000); // waiting for watcher call
 
         // then: should has three online agent in zone-1
-        Assert.assertEquals(3, agentService.onlineList(zone_1).size());
+        Assert.assertEquals(3, agentService.listForOnline(zone_1).size());
 
         // when: agent online to zone-2
         AgentPath agent2 = new AgentPath(zone_2, "agent-1");
@@ -145,18 +145,18 @@ public class AgentServiceTest extends TestBase {
         Thread.sleep(1000); // waiting for watcher call
 
         // then: should has one online agent in zone-2
-        Assert.assertEquals(1, agentService.onlineList(zone_2).size());
+        Assert.assertEquals(1, agentService.listForOnline(zone_2).size());
 
         // then: still has three online agent in zone-1
-        Assert.assertEquals(3, agentService.onlineList(zone_1).size());
+        Assert.assertEquals(3, agentService.listForOnline(zone_1).size());
 
         // when: there is one agent offline in zone-1
         zkClient.delete(ZKHelper.buildPath(agent12), true);
         Thread.sleep(1000); // waiting for watcher call
 
         // then: should left two agent in zone-1
-        Assert.assertEquals(2, agentService.onlineList(zone_1).size());
-        Agent agent11Loaded = (Agent) agentService.onlineList(zone_1).toArray()[0];
+        Assert.assertEquals(2, agentService.listForOnline(zone_1).size());
+        Agent agent11Loaded = (Agent) agentService.listForOnline(zone_1).toArray()[0];
         Assert.assertEquals(agent11, agent11Loaded.getPath());
     }
 

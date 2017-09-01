@@ -78,11 +78,12 @@ public class CmdQueueConsumerTest extends TestBase {
     public void should_retry_cmd_in_queue() throws Throwable {
         // given:
         String url = "/node/test-for-retry/callback";
-        CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
-        mockCmd.setWebhook("http://localhost:8088" + url);
         stubFor(post(urlEqualTo(url)).willReturn(aResponse().withStatus(200)));
 
         // when: send to queue and waiting for retry 3 times
+        CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
+        mockCmd.setWebhook("http://localhost:8088" + url);
+
         Cmd cmd = cmdService.queue(mockCmd, 1, 3);
         Assert.assertNotNull(cmdService.find(cmd.getId()));
 

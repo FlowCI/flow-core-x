@@ -19,6 +19,7 @@ package com.flow.platform.cc.consumer;
 import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
+import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -59,6 +60,9 @@ public class CmdQueueConsumer {
     private CmdService cmdService;
 
     @Autowired
+    private CmdDispatchService cmdDispatchService;
+
+    @Autowired
     private AgentService agentService;
 
     @Autowired
@@ -75,7 +79,7 @@ public class CmdQueueConsumer {
         LOGGER.trace("Receive a cmd queue item: %s", item);
 
         try {
-            cmdService.send(cmdId, false);
+            cmdDispatchService.dispatch(cmdId, false);
         } catch (IllegalParameterException e) {
             LOGGER.warn("Illegal cmd id: %s", e.getMessage());
         } catch (IllegalStatusException e) {

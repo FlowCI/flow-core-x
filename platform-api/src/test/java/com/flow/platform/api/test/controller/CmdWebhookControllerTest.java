@@ -58,7 +58,6 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_callback_session_success() throws Throwable {
         // given: flow with two steps , step1 and step2
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
-        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
         final String sessionId = "1111111";
 
@@ -148,7 +147,6 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_callback_failure() throws Throwable {
         // init
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
-        setFlowToReady(rootForFlow);
 
         Job job = jobService.createJob(rootForFlow.getPath());
         Step step2 = (Step) nodeService.find("flow1/step2");
@@ -191,7 +189,6 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_timeout_allow_failure() throws Throwable {
         Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
-        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
         final String sessionId = "1111111";
 

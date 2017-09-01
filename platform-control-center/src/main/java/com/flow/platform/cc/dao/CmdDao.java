@@ -31,6 +31,11 @@ import java.util.Set;
 public interface CmdDao extends BaseDao<String, Cmd> {
 
     /**
+     * List cmd by session id
+     */
+    List<Cmd> list(String sessionId);
+
+    /**
      * List cmd by agent path, cmd type and cmd status
      *
      * @param agentPath nullable, zone or agent name also nullable

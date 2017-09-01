@@ -231,7 +231,7 @@ public abstract class CmdBase extends Jsonable {
             " zone=" + (agentPath == null ? "null" : agentPath.getZone()) +
             ", agent=" + (agentPath == null ? "null" : agentPath.getName()) +
             ", status=" + status +
-            ", webhook=" + webhook +
+            ", type=" + type +
             '}';
     }
 }
