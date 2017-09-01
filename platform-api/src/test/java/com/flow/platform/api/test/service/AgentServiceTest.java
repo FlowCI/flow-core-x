@@ -16,8 +16,25 @@
 
 package com.flow.platform.api.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
+import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.Jsonable;
+import com.google.common.collect.Lists;
+import java.util.List;
+import org.junit.Assert;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -27,5 +44,61 @@ public class AgentServiceTest extends TestBase {
 
     @Autowired
     private AgentService agentService;
+
+    private Integer jobNumber = 1;
+
+    @Test
+    public void should_list_agent_for_job() throws Throwable {
+        // given: 3 jobs, 2 of them with running status
+        final String sessionId = "123-456";
+
+        List<Agent> mockAgentList = Lists.newArrayList(createMockAgent(sessionId));
+
+        stubFor(get(urlEqualTo("/agent/list"))
+            .willReturn(aResponse()
+                .withBody(Jsonable.GSON_CONFIG.toJson(mockAgentList))));
+
+        createMockJobWithResult(sessionId, NodeStatus.TIMEOUT);
+        createMockJobWithResult(sessionId, NodeStatus.TIMEOUT);
+        createMockJobWithResult(sessionId, NodeStatus.TIMEOUT);
+
+        // when:
+        List<AgentWithFlow> list = agentService.list();
+        Assert.assertNotNull(list);
+        Assert.assertEquals(1, list.size());
+
+        // then: no flow info since no job in running status
+        Assert.assertNull(list.get(0).getFlowName());
+
+        // when: set a job in running status
+        createMockJobWithResult(sessionId, NodeStatus.RUNNING);
+        list = agentService.list();
+        Assert.assertNotNull(list);
+
+        // then: should has flow info
+        Assert.assertNotNull(list.get(0).getFlowName());
+    }
+
+    private Agent createMockAgent(String sessionId) {
+        Agent agent = new Agent("zone", "name");
+        agent.setSessionId(sessionId);
+        return agent;
+    }
+
+    private Job createMockJobWithResult(String sessionId, NodeStatus status) {
+        Job job = new Job(CommonUtil.randomId());
+        job.setSessionId(sessionId);
+        job.setNodePath("path");
+        job.setNodeName("name");
+        job.setNumber(jobNumber++);
+        jobDao.save(job);
+
+        NodeResult res = new NodeResult(job.getId(), "path");
+        res.setStatus(status);
+        res.setNodeTag(NodeTag.FLOW);
+        nodeResultDao.save(res);
+
+        return job;
+    }
 
 }
