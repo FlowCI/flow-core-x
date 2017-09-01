@@ -16,7 +16,8 @@
 
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.dao.CmdDao;
+import com.flow.platform.cc.config.TaskConfig;
+import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -25,10 +26,12 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
+import com.flow.platform.util.zk.ZkException.NotExitException;
 import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -37,15 +40,21 @@ import java.util.Map;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author yang
  */
 @Service
+@Transactional
 public class CmdDispatchServiceImpl implements CmdDispatchService {
 
     private final static Logger LOGGER = new Logger(CmdDispatchService.class);
+
+    @Autowired
+    private TaskConfig taskConfig;
 
     @Autowired
     private CmdService cmdService;
@@ -68,9 +77,19 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
 
         RunShellCmdHandler runShellHandler = new RunShellCmdHandler();
         handler.put(runShellHandler.handleType(), runShellHandler);
+
+        KillCmdHandler killHandler = new KillCmdHandler();
+        handler.put(killHandler.handleType(), killHandler);
+
+        StopCmdHandler stopHandler = new StopCmdHandler();
+        handler.put(stopHandler.handleType(), stopHandler);
+
+        ShutdownCmdHandler shutdownHandler = new ShutdownCmdHandler();
+        handler.put(shutdownHandler.handleType(), shutdownHandler);
     }
 
     @Override
+    @Transactional(noRollbackFor = {Throwable.class})
     public Cmd dispatch(String cmdId, boolean reset) {
         Cmd cmd = cmdService.find(cmdId);
         if (cmd == null) {
@@ -82,21 +101,64 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
             cmd.setStatus(CmdStatus.PENDING);
         }
 
-        // get target agent
-        Agent target = selectAgent(cmd);
-        cmd.setAgentPath(target.getPath());
-        LOGGER.traceMarker("dispatch", "Agent been selected %s with status %s", target.getPath(), target.getStatus());
+        try {
+            // get target agent
+            Agent target = selectAgent(cmd);
+            cmd.setAgentPath(target.getPath());
+            cmdService.save(cmd);
+            LOGGER.traceMarker("dispatch", "Agent been selected %s %s", target.getPath(), target.getStatus());
 
-        handler.get(cmd.getType()).exec(target, cmd);
+            handler.get(cmd.getType()).exec(target, cmd);
+            cmd = cmdService.find(cmd.getId());
+            return cmd;
 
-        // finally update cmd and send to agent
-        cmdService.save(cmd);
+        } catch (AgentErr.NotAvailableException e) {
+            CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
+            cmdService.updateStatus(statusItem, false);
 
-        if (cmd.isAgentCmd()) {
-            sendCmdToAgent(target, cmd);
+            // TODO: broadcast event
+//                zoneService.keepIdleAgentTask();
+            throw e;
+
+        } catch (NotExitException e) {
+            CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
+            cmdService.updateStatus(statusItem, false);
+            throw new AgentErr.NotFoundException(cmd.getAgentName());
+
+        } catch (Throwable e) {
+            CmdResult result = new CmdResult();
+            result.getExceptions().add(e);
+
+            CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
+            cmdService.updateStatus(statusItem, false);
+            throw e;
+        }
+    }
+
+    @Override
+    @Scheduled(fixedDelay = 300 * 1000)
+    public void checkTimeoutTask() {
+        if (!taskConfig.isEnableCmdExecTimeoutTask()) {
+            return;
+        }
+        LOGGER.traceMarker("checkTimeoutTask", "start");
+
+        // find all running status cmd
+        List<Cmd> workingCmdList = cmdService.listWorkingCmd(null);
+
+        for (Cmd cmd : workingCmdList) {
+            if (cmd.isCmdTimeout()) {
+                Cmd killCmd = cmdService.create(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
+                dispatch(killCmd.getId(), false);
+                LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
+
+                // update cmd status via queue
+                CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.TIMEOUT_KILL, null, true, true);
+                cmdService.updateStatus(statusItem, true);
+            }
         }
 
-        return cmd;
+        LOGGER.traceMarker("checkTimeoutTask", "end");
     }
 
     /**
@@ -152,17 +214,31 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         zkClient.setData(agentNodePath, cmd.toBytes());
     }
 
+    private Cmd createDeleteSessionCmd(Agent target) {
+        CmdInfo param = new CmdInfo(target.getPath(), CmdType.DELETE_SESSION, null);
+        param.setSessionId(target.getSessionId());
+        return cmdService.create(param);
+    }
+
     /**
      * Interface to handle different cmd type exec logic
      */
-    private interface CmdHandler {
+    private abstract class CmdHandler {
 
-        CmdType handleType();
+        abstract CmdType handleType();
 
-        void exec(Agent target, Cmd cmd);
+        abstract void doExec(Agent target, Cmd cmd);
+
+        void exec(Agent target, Cmd cmd) {
+            doExec(target, cmd);
+
+            // update cmd status to SENT
+            CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.SENT, null, false, true);
+            cmdService.updateStatus(statusItem, false);
+        }
     }
 
-    private class CreateSessionCmdHandler implements CmdHandler {
+    private class CreateSessionCmdHandler extends CmdHandler {
 
         private final Logger logger = new Logger(CreateSessionCmdHandler.class);
 
@@ -172,7 +248,7 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         }
 
         @Override
-        public void exec(Agent target, Cmd cmd) {
+        public void doExec(Agent target, Cmd cmd) {
             if (!target.isAvailable()) {
                 throw new AgentErr.NotAvailableException(target.getName());
             }
@@ -192,7 +268,7 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         }
     }
 
-    private class DeleteSessionCmdHandler implements CmdHandler {
+    private class DeleteSessionCmdHandler extends CmdHandler {
 
         @Override
         public CmdType handleType() {
@@ -200,11 +276,11 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         }
 
         @Override
-        public void exec(Agent target, Cmd cmd) {
+        public void doExec(Agent target, Cmd cmd) {
             if (hasRunningCmd(target.getSessionId())) {
                 // send kill cmd
                 Cmd killCmd = cmdService.create(new CmdInfo(target.getPath(), CmdType.KILL, null));
-                sendCmdToAgent(target, killCmd);
+                handler.get(CmdType.KILL).exec(target, killCmd);
             }
 
             // release session from target
@@ -224,7 +300,7 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         }
     }
 
-    private class RunShellCmdHandler implements CmdHandler {
+    private class RunShellCmdHandler extends CmdHandler {
 
         @Override
         public CmdType handleType() {
@@ -232,20 +308,87 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         }
 
         @Override
-        public void exec(Agent target, Cmd cmd) {
+        public void doExec(Agent target, Cmd cmd) {
             // FIXME: agent maybe really busy
-            if (cmd.hasSession()) {
-                sendCmdToAgent(target, cmd);
-                return;
+
+            // check agent status if without session
+            if (!cmd.hasSession()) {
+                if (!target.isAvailable()) {
+                    throw new AgentErr.NotAvailableException(target.getName());
+                }
+
+                target.setStatus(AgentStatus.BUSY);
+                agentService.save(target);
             }
 
-            // add reject status since busy
-            if (!target.isAvailable()) {
-                throw new AgentErr.NotAvailableException(target.getName());
+            sendCmdToAgent(target, cmd);
+        }
+    }
+
+    private class KillCmdHandler extends CmdHandler {
+
+        @Override
+        public CmdType handleType() {
+            return CmdType.KILL;
+        }
+
+        @Override
+        public void doExec(Agent target, Cmd cmd) {
+            sendCmdToAgent(target, cmd);
+        }
+    }
+
+    private class StopCmdHandler extends CmdHandler {
+
+        @Override
+        public CmdType handleType() {
+            return CmdType.STOP;
+        }
+
+        @Override
+        public void doExec(Agent target, Cmd cmd) {
+            if (target.getSessionId() != null) {
+                handler.get(CmdType.DELETE_SESSION).exec(target, createDeleteSessionCmd(target));
             }
 
-            target.setStatus(AgentStatus.BUSY);
+            // set agent to offline
+            target.setStatus(AgentStatus.OFFLINE);
             agentService.save(target);
+        }
+    }
+
+    private class ShutdownCmdHandler extends CmdHandler {
+
+        private final Logger logger = new Logger(ShutdownCmdHandler.class);
+
+        @Override
+        public CmdType handleType() {
+            return CmdType.SHUTDOWN;
+        }
+
+        @Override
+        public void doExec(Agent target, Cmd cmd) {
+            // in shutdown action, cmd content is sudo password
+            if (cmd.getCmd() == null) {
+                throw new IllegalParameterException("For SHUTDOWN action, password of 'sudo' must be provided");
+            }
+
+            // delete session if session existed
+            if (target.getSessionId() != null) {
+                handler.get(CmdType.DELETE_SESSION).exec(target, createDeleteSessionCmd(target));
+                logger.trace("Delete session before shutdown: %s %s", target.getPath(), target.getSessionId());
+            }
+
+            // otherwise kill cmd before shutdown
+            else {
+                Cmd killCmd = cmdService.create(new CmdInfo(target.getPath(), CmdType.KILL, null));
+                handler.get(CmdType.KILL).exec(target, killCmd);
+            }
+
+            // set agent to offline
+            target.setStatus(AgentStatus.OFFLINE);
+            agentService.save(target);
+            logger.trace("Agent been shutdown: %s", target.getPath());
         }
     }
 }

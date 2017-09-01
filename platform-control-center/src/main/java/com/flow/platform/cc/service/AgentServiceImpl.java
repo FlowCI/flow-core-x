@@ -22,6 +22,7 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
@@ -54,6 +55,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private CmdService cmdService;
+
+    @Autowired
+    private CmdDispatchService cmdDispatchService;
 
     @Autowired
     private AgentDao agentDao;
@@ -149,8 +153,8 @@ public class AgentServiceImpl implements AgentService {
             Collection<Agent> agents = listForOnline(zone.getName());
             for (Agent agent : agents) {
                 if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
-                    CmdInfo cmdInfo = new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null);
-                    cmdService.send(cmdInfo);
+                    Cmd delSessionCmd = cmdService.create(new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null));
+                    cmdDispatchService.dispatch(delSessionCmd.getId(), false);
                     LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
                 }
             }

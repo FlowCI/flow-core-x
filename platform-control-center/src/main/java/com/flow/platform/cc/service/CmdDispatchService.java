@@ -32,4 +32,9 @@ public interface CmdDispatchService {
      */
     Cmd dispatch(String cmdId, boolean reset);
 
+    /**
+     * Task to check cmd is executing timeout
+     */
+    void checkTimeoutTask();
+
 }

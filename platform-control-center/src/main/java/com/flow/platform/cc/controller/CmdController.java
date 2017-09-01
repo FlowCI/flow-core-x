@@ -17,6 +17,7 @@
 package com.flow.platform.cc.controller;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.*;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -26,7 +27,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -45,6 +53,9 @@ public class CmdController {
     @Autowired
     private CmdService cmdService;
 
+    @Autowired
+    private CmdDispatchService cmdDispatchService;
+
     @GetMapping(path = "/types")
     public CmdType[] getCmdTypes() {
         return CmdType.values();
@@ -55,7 +66,8 @@ public class CmdController {
      */
     @PostMapping(path = "/send", consumes = "application/json")
     public Cmd sendCommand(@RequestBody CmdInfo cmd) {
-        return cmdService.send(cmd);
+        Cmd cmdToExec = cmdService.create(cmd);
+        return cmdDispatchService.dispatch(cmdToExec.getId(), false);
     }
 
     @PostMapping(path = "/queue/send", consumes = "application/json")

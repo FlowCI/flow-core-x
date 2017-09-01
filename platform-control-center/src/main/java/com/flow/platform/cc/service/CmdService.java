@@ -68,44 +68,21 @@ public interface CmdService {
     List<Cmd> listBySession(String sessionId);
 
     /**
+     * List cmd for working status of RUN_SHELL type
+     *
+     * @param agentPath target agent, or null to get all working cmd
+     */
+    List<Cmd> listWorkingCmd(AgentPath agentPath);
+
+    /**
      * List cmd result by ids
      */
     List<CmdResult> listResult(Set<String> cmdIds);
 
     /**
-     * Send cmd id to agent and update cmd target agent path
-     * - AgentPath,
-     * - 'zone' field is required
-     * - 'name' field is optional
-     * - which mean system will automatic select idle agent to send
-     * throw AgentErr.NotAvailableException if no idle agent and update cmd status to CmdStatus.Reject
-     *
-     * @param cmdId cmd id it will load from dao
-     * @param shouldResetStatus should reset cmd status to PENDING
-     * @return command objc with id
-     * @throws AgentErr.NotAvailableException if agent busy
-     * @throws com.flow.platform.util.zk.ZkException.NotExitException if no zk node exist
-     * @throws IllegalParameterException if cmd not found
-     * @throws IllegalStatusException if cmd status is in finished status
-     */
-    Cmd send(String cmdId, boolean shouldResetStatus);
-
-    /**
-     * Wrapper of send(cmdId), it includes create cmd by CmdInfo
-     */
-    Cmd send(CmdInfo cmdInfo);
-
-    /**
      * Send cmd info to queue
      */
     Cmd queue(CmdInfo cmdInfo, int priority, int retry);
-
-    /**
-     * Check cmd is timeout
-     *
-     * @return timeout or not
-     */
-    boolean isTimeout(Cmd cmd);
 
     /**
      * Update cmd status and result, send cmd webhook if existed
@@ -126,9 +103,4 @@ public interface CmdService {
      * Invoke webhook url to report Cmd
      */
     void webhookCallback(CmdBase cmdBase);
-
-    /**
-     * Check timeout cmd by created date for all busy agent
-     */
-    void checkTimeoutTask();
 }

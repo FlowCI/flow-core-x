@@ -153,8 +153,7 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
-    public int batchUpdateStatus(final String zone, final AgentStatus status, final Set<String> agents,
-        final boolean isNot) {
+    public int batchUpdateStatus(String zone, AgentStatus status, Set<String> agents, boolean isNot) {
 
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
