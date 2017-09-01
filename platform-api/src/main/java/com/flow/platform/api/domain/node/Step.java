@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.domain.node;
 
+import com.flow.platform.yml.parser.annotations.YmlSerializer;
+
 public class Step extends Node<Step> {
 
     public Step(String path, String name) {
@@ -26,6 +28,7 @@ public class Step extends Node<Step> {
 
     }
 
+    @YmlSerializer(required = false)
     private Boolean allowFailure = false;
 
     private String plugin;

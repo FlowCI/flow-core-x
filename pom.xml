@@ -21,6 +21,7 @@
     <module>platform-util-zk</module>
     <module>platform-util-git</module>
     <module>platform-core</module>
+    <module>platform-yml-parser</module>
   </modules>
 
   <properties>

@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
+/**
+ * @author gyfirim
+ */
 
-import com.flow.platform.yml.parser.adaptor.CollectionAdaptor;
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import java.util.List;
+public class TestBase {
 
-public class Flow extends Node<Step> {
+    public void test(){
 
-    @YmlSerializer(value = Step.class, adaptor = CollectionAdaptor.class, isPrimitive = false, required = false, name = "children")
-    @Override
-    public void setChildren(List<Step> children) {
-        super.setChildren(children);
-    }
-
-    public Flow(String path, String name) {
-        super(path, name);
-    }
-
-    public Flow() {
     }
 }
