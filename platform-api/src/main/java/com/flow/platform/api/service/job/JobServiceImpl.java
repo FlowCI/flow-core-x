@@ -235,9 +235,8 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        // pass root env to child node
-        Node flow = tree.root();
-        EnvUtil.merge(flow, node, false);
+        // pass job env to node
+        EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
 
         String cmdId = cmdService.runShell(job, node);
         NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());

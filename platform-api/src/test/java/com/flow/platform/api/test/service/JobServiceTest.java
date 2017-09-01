@@ -67,10 +67,8 @@ public class JobServiceTest extends TestBase {
     @Test
     public void should_create_node_success() throws IOException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath());
+        Job job = createMockJob(rootForFlow.getPath());
 
-        Assert.assertNotNull(job.getId());
-        Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
         Step step1 = (Step) nodeService.find("flow1/step1");
         Step step2 = (Step) nodeService.find("flow1/step2");
         Step step3 = (Step) nodeService.find("flow1/step3");
@@ -123,10 +121,7 @@ public class JobServiceTest extends TestBase {
         Node root = createRootFlow("flow-run-job", "for_job_service_run_job.yaml");
 
         // when: create job and job should be SESSION_CREATING
-        Job job = jobService.createJob(root.getPath());
-        Assert.assertNotNull(job);
-        Assert.assertNotNull(job.getSessionId());
-        Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
+        Job job = createMockJob(root.getPath());
 
         // then: check cmd request to create session
         CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
@@ -197,11 +192,22 @@ public class JobServiceTest extends TestBase {
     @Test
     public void should_stop_success() throws IOException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath());
-        Assert.assertNotNull(job.getSessionId());
+        Job job = createMockJob(rootForFlow.getPath());
 
         Job stoppedJob = jobService.stopJob(job.getNodeName(), job.getNumber());
         Assert.assertNotNull(stoppedJob);
         Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getResult().getStatus());
+    }
+
+    private Job createMockJob(String nodePath) {
+        Job job = jobService.createJob(nodePath);
+        Assert.assertNotNull(job.getId());
+        Assert.assertNotNull(job.getSessionId());
+        Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
+
+        Assert.assertNotNull(job.getResult());
+        Assert.assertTrue(job.getResult().getOutputs().isEmpty());
+        Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
+        return job;
     }
 }
