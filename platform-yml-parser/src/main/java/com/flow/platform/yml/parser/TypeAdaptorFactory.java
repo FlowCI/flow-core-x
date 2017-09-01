@@ -17,21 +17,20 @@
 package com.flow.platform.yml.parser;
 
 import com.flow.platform.yml.parser.adaptor.ArrayAdaptor;
-import com.flow.platform.yml.parser.adaptor.CollectionAdaptor;
-import com.flow.platform.yml.parser.adaptor.PrimitiveAdapor;
+import com.flow.platform.yml.parser.adaptor.PrimitiveAdaptor;
 import com.flow.platform.yml.parser.adaptor.ReflectTypeAdaptor;
 import com.flow.platform.yml.parser.adaptor.TypeAdaptor;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 
 /**
- * @author gyfirim
+ * @author yh@firim
  */
 public class TypeAdaptorFactory {
 
     public static TypeAdaptor getTypeAdaptor(YmlSerializer ymlSerializer) {
 
         if (ymlSerializer.isPrimitive()) {
-            return new PrimitiveAdapor();
+            return new PrimitiveAdaptor();
         } else {
             try {
                 return (TypeAdaptor) ymlSerializer.adaptor().newInstance();
@@ -44,11 +43,11 @@ public class TypeAdaptorFactory {
         return null;
     }
 
-    public static <T> TypeAdaptor getTypeAdaptor(T t){
-        if(((Class) t).isArray()){
-            return new ArrayAdaptor(((Class<?>)t).getComponentType());
+    public static <T> TypeAdaptor getTypeAdaptor(T t) {
+        if (((Class) t).isArray()) {
+            return new ArrayAdaptor(((Class<?>) t).getComponentType());
         }
-        if(Object.class.isAssignableFrom((Class<?>) t)){
+        if (Object.class.isAssignableFrom((Class<?>) t)) {
             return new ReflectTypeAdaptor();
         }
         return null;

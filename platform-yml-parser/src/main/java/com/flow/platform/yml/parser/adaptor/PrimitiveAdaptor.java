@@ -17,9 +17,9 @@
 package com.flow.platform.yml.parser.adaptor;
 
 /**
- * @author gyfirim
+ * @author yh@firim
  */
-public class PrimitiveAdapor extends TypeAdaptor {
+public class PrimitiveAdaptor extends TypeAdaptor {
 
     @Override
     public <T> void write(Object o, Class<T> clazz) {

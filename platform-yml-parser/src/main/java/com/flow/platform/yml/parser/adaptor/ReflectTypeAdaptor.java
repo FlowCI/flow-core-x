@@ -16,7 +16,7 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
-import com.flow.platform.yml.parser.YmlParser;
+import com.flow.platform.yml.parser.util.ClazzUtil;
 
 /**
  * @author yh@firim
@@ -29,6 +29,6 @@ public class ReflectTypeAdaptor extends TypeAdaptor {
 
     @Override
     public <T> Object read(Object o, Class<T> clazz) {
-        return YmlParser.build(o, clazz);
+        return ClazzUtil.build(o, clazz);
     }
 }

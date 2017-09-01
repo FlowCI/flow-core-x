@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * @author gyfirim
+ * @author yh@firim
  */
 public class ArrayAdaptor<E> extends TypeAdaptor {
 

@@ -16,7 +16,7 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
-import com.flow.platform.yml.parser.YmlParser;
+import com.flow.platform.yml.parser.util.ClazzUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author yh@firim
  */
-public class CollectionAdaptor extends TypeAdaptor{
+public class CollectionAdaptor extends TypeAdaptor {
 
     @Override
     public <T> void write(Object o, Class<T> clazz) {
@@ -35,8 +35,8 @@ public class CollectionAdaptor extends TypeAdaptor{
     public <T> Object read(Object o, Class<T> clazz) {
         List<T> list = new ArrayList<>();
 
-        ((Collection)o).forEach(action -> {
-            list.add(YmlParser.build(action, clazz));
+        ((Collection) o).forEach(action -> {
+            list.add(ClazzUtil.build(action, clazz));
         });
 
         return list;
