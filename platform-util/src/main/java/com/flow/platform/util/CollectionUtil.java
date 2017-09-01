@@ -18,9 +18,9 @@ package com.flow.platform.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,8 +29,12 @@ import java.util.Map;
  */
 public class CollectionUtil {
 
-    public static <T> boolean isNullOrEmpty(final Collection<T> collection) {
+    public static boolean isNullOrEmpty(final Collection collection) {
         return collection == null || collection.size() == 0;
+    }
+
+    public static boolean isNullOrEmpty(final Map map) {
+        return map == null || map.size() == 0;
     }
 
     /**
@@ -41,8 +45,8 @@ public class CollectionUtil {
      * @param <R> Root class type
      * @param <T> Property class type
      */
-    public static <R, T> List<T> toPropertyList(final String property, final Collection<R> collection) {
-        List<T> propertyCollection = new ArrayList<>(collection.size());
+    public static <R, T> List<T> toPropertyList(final String property, final R... collection) {
+        List<T> propertyCollection = new LinkedList<>();
         Method getterMethod = null;
 
         try {
@@ -62,8 +66,8 @@ public class CollectionUtil {
         }
     }
 
-    public static <R, T> List<T> toPropertyList(final String property, final R... array) {
-        return toPropertyList(property, array);
+    public static <R, T> List<T> toPropertyList(final String property, final Collection<R> collection) {
+        return toPropertyList(property, collection.toArray());
     }
 
     public static <R, T> Map<T, R> toPropertyMap(final String property, final Collection<R> collection) {

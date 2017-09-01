@@ -25,9 +25,13 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -58,35 +62,41 @@ public class AgentServiceImpl implements AgentService {
         }
 
         Agent[] agents = Jsonable.GSON_CONFIG.fromJson(res, Agent[].class);
-        List<AgentWithFlow> agentWithFlows = new ArrayList<>();
-        List<String> sessionIds = new ArrayList<>();
-        for (Agent agent : agents) {
-            if (agent.getSessionId() != null) {
-                sessionIds.add(agent.getSessionId());
-            }
-        }
-        List<Job> jobs = new ArrayList<>();
-        if (!sessionIds.isEmpty()) {
+
+        // get all session id from agent collection
+        List<String> sessionIds = CollectionUtil.toPropertyList("sessionId", agents);
+
+        // get all running jobs from agent sessions
+        List<Job> jobs = new ArrayList<>(0);
+        if (!CollectionUtil.isNullOrEmpty(sessionIds)) {
             jobs = jobDao.list(sessionIds, NodeStatus.RUNNING);
         }
-        LOGGER.trace(String.format("Job length %s", jobs.size()));
 
+        // convert to session - job map
+        Map<String, Job> sessionJobMap = CollectionUtil.toPropertyMap("sessionId", jobs);
+        if (CollectionUtil.isNullOrEmpty(sessionJobMap)) {
+            sessionJobMap = new HashMap<>(0);
+        }
+
+        // build result list
+        List<AgentWithFlow> agentWithFlows = new ArrayList<>(agents.length);
         for (Agent agent : agents) {
-            Job job = matchJobBySessionId(jobs, agent.getSessionId());
+            String sessionIdFromAgent = agent.getSessionId();
+
+            if (Strings.isNullOrEmpty(sessionIdFromAgent)) {
+                agentWithFlows.add(new AgentWithFlow(agent, null));
+                continue;
+            }
+
+            Job job = sessionJobMap.get(sessionIdFromAgent);
+            if (job == null) {
+                agentWithFlows.add(new AgentWithFlow(agent, null));
+                continue;
+            }
+
             agentWithFlows.add(new AgentWithFlow(agent, job));
         }
         return agentWithFlows;
-    }
-
-    private Job matchJobBySessionId(List<Job> jobs, String sessionId) {
-        Job j = null;
-        for (Job job : jobs) {
-            if (job.getSessionId().equals(sessionId)) {
-                j = job;
-                break;
-            }
-        }
-        return j;
     }
 
     @Override
