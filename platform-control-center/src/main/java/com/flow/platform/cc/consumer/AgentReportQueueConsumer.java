@@ -16,14 +16,14 @@
 
 package com.flow.platform.cc.consumer;
 
-import com.flow.platform.cc.context.ContextEvent;
 import com.flow.platform.cc.dao.AgentDao;
+import com.flow.platform.core.consumer.QueueConsumerBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author yang
  */
 @Component
-public class AgentReportQueueConsumer implements ContextEvent {
+public class AgentReportQueueConsumer extends QueueConsumerBase<AgentPath> {
 
     private final static Logger LOGGER = new Logger(AgentReportQueueConsumer.class);
 
@@ -50,27 +50,28 @@ public class AgentReportQueueConsumer implements ContextEvent {
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
-    private volatile boolean shouldStop = false;
-
     @Override
-    public void start() {
-        taskExecutor.execute(() -> {
-            while (!shouldStop) {
-                try {
-                    AgentPath path = agentReportQueue.poll(1L, TimeUnit.SECONDS);
-                    if (path != null) {
-                        reportOnline(path);
-                    }
-                } catch (InterruptedException ignore) {
-                    LOGGER.warn("InterruptedException when consuming agent report queue");
-                }
-            }
-        });
+    public ThreadPoolTaskExecutor getTaskExecutor() {
+        return taskExecutor;
     }
 
     @Override
-    public void stop() {
-        shouldStop = true;
+    public BlockingQueue<AgentPath> getQueue() {
+        return agentReportQueue;
+    }
+
+    @Override
+    public void onQueueItem(AgentPath path) {
+        if (path == null) {
+            return;
+        }
+
+        try {
+            LOGGER.debug(Thread.currentThread().getName() + ": " + path.toString());
+            reportOnline(path);
+        } catch (Throwable e) {
+            LOGGER.warn("Error on report online of agent %s info: %s", path, e.getMessage());
+        }
     }
 
     /**
@@ -78,13 +79,14 @@ public class AgentReportQueueConsumer implements ContextEvent {
      */
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void reportOnline(AgentPath key) {
-        LOGGER.debug(Thread.currentThread().getName() + " : " + key.toString());
-        Agent exist = agentDao.find(key);
+        Agent exist = agentDao.get(key);
 
         // create new agent with idle status
         if (exist == null) {
             try {
                 Agent agent = new Agent(key);
+                agent.setCreatedDate(DateUtil.now());
+                agent.setUpdatedDate(DateUtil.now());
                 agent.setStatus(AgentStatus.IDLE);
                 agentDao.save(agent);
             } catch (DataIntegrityViolationException ignore) {

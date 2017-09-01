@@ -29,7 +29,9 @@ import java.util.Map;
 public class CmdResult extends Jsonable {
 
     public static final Integer EXIT_VALUE_FOR_KILL = 143; // auto set while kill process
+
     public static final Integer EXIT_VALUE_FOR_REJECT = -100;
+
     public static final Integer EXIT_VALUE_FOR_TIMEOUT = -200;
 
     /**
@@ -86,6 +88,13 @@ public class CmdResult extends Jsonable {
      * Exception while cmd running
      */
     private List<Throwable> exceptions = new ArrayList<>(5);
+
+    public CmdResult() {
+    }
+
+    public CmdResult(Integer exitValue) {
+        this.exitValue = exitValue;
+    }
 
     public String getCmdId() {
         return cmdId;

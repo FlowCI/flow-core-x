@@ -12,12 +12,11 @@ flow-platform
 
 ## Getting Start
  
-### Build
+### Build by maven
 
 Using standard maven `mvn clean install -DskipTests=true` to generate packages
 
-
-### Installation
+####Installation####
 
 In build phase will generate three packages:
 
@@ -27,19 +26,21 @@ In build phase will generate three packages:
 | control-center | flow-control-center.war | tomcat 8.5 |
 | agent | flow-agent-{version}.jar |  |
 
-### API
+**flow api**
+
+Dependencies: 
 
 - Mysql 5.6
-- RabbitMQ 3.6.10
 
-#### Control-Center
+**flow control center**
 
-##### Dependency
+Dependencies:
 
 - Apache zookeeper 3.4.10
 - Mysql 5.6
 - RabbitMQ 3.6.10
-##### Configuration
+
+**Configuration**
 
 Configuration file can be loaded by sequence:
 - System envrionment variable: `FLOW_CONFIG_PATH`
@@ -50,11 +51,25 @@ The sample properites file in :
 
 `platform-control-center/app-example.properties`
 
-### Agent
+**Agent**
 
 Start agent by following command:
 
 `java -jar flow-platform-agent-{version}.jar {zookeeper address} {zone name} $HOSTNAME`
+
+
+### Build by docker
+
+Run `./build-docker.sh` will generate required docker images and images for flow.ci `flow.ci.backend` and `flow.ci.agent`.
+
+**To start flow.ci backend services**
+
+`docker-compose up`
+
+**To start flow.ci agent** 
+
+`docker run --network=host -e FLOW_ZOOKEEPER_HOST=127.0.0.1:2181 -e FLOW_AGENT_ZONE=default -e FLOW_AGENT_NAME={agent name you want} flow.ci.agent`
+
 
 
 ## License

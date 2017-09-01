@@ -53,13 +53,28 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-messaging</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-websocket</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.amqp</groupId>
+      <artifactId>spring-rabbit</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.apache.zookeeper</groupId>
-      <artifactId>zookeeper</artifactId>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-recipes</artifactId>
     </dependency>
 
     <dependency>
@@ -70,11 +85,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.rabbitmq</groupId>
-      <artifactId>amqp-client</artifactId>
     </dependency>
 
     <dependency>
@@ -122,13 +132,19 @@
 
     <dependency>
       <groupId>com.flow.platform</groupId>
-      <artifactId>platform-exception</artifactId>
+      <artifactId>platform-cloud</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>com.flow.platform</groupId>
-      <artifactId>platform-cloud</artifactId>
+      <artifactId>platform-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.flow.platform</groupId>
+      <artifactId>platform-util-resource</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -145,8 +161,26 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jmockit</groupId>
-      <artifactId>jmockit</artifactId>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-websocket</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito2</artifactId>
       <scope>test</scope>
     </dependency>
 

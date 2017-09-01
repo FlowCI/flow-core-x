@@ -37,9 +37,14 @@ public interface AgentService {
     void reportOnline(String zone, Set<String> agents);
 
     /**
+     * List agent by zone name
+     */
+    List<Agent> list(String zone);
+
+    /**
      * Get online agent set by zone
      */
-    List<Agent> onlineList(String zone);
+    List<Agent> listForOnline(String zone);
 
     /**
      * Find agent by zone and agent name from online list
@@ -62,16 +67,9 @@ public interface AgentService {
     List<Agent> findAvailable(String zone);
 
     /**
-     * Create agent session
-     *
-     * @return session id or null if unable to create session
+     * Save agent properties
      */
-    String createSession(Agent agent);
-
-    /**
-     * Check has running cmd and delete agent session
-     */
-    void deleteSession(Agent agent);
+    void save(Agent agent);
 
     /**
      * Update agent status

@@ -16,16 +16,23 @@
 
 package com.flow.platform.cc.test.controller;
 
-import com.flow.platform.cc.controller.WelcomeController;
-import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.cc.util.ZkHelper;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.test.web.servlet.MvcResult;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.core.sysinfo.DBInfoLoader.DBGroupName;
+import com.flow.platform.core.sysinfo.GroupSystemInfo;
+import com.flow.platform.core.sysinfo.JvmLoader.JvmGroup;
+import com.flow.platform.core.sysinfo.MQLoader.MQGroup;
+import com.flow.platform.core.sysinfo.PropertySystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Status;
+import com.flow.platform.core.sysinfo.ZooKeeperLoader.ZooKeeperGroup;
+import java.util.Map;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * @author gy@fir.im
@@ -33,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class WelcomeControllerTest extends TestBase {
 
     @Test
-    public void should_get_ok_on_index() throws Exception {
+    public void should_get_ok_on_index() throws Throwable {
         // when:
         MvcResult result = this.mockMvc.perform(get("/index"))
                 .andDo(print())
@@ -42,12 +49,86 @@ public class WelcomeControllerTest extends TestBase {
 
         // then:
         String content = result.getResponse().getContentAsString();
-        WelcomeController.AppStatus appStatus = gsonConfig.fromJson(content, WelcomeController.AppStatus.class);
-
-        Assert.assertNotNull(appStatus);
-        Assert.assertEquals("OK", appStatus.getStatus());
-        Assert.assertEquals(ZkHelper.ZkStatus.OK, appStatus.getZkInfo().getStatus());
-        Assert.assertEquals(1, appStatus.getZkHistory().get("flow-agents").size());
+        PropertySystemInfo ccInfo = SystemInfo.parse(content, PropertySystemInfo.class);
+        Assert.assertNotNull(ccInfo);
+        Assert.assertNotNull(ccInfo.getInfo());
+        Assert.assertTrue(ccInfo.getInfo().size() > 1);
     }
 
+    @Test
+    public void should_load_system_jvm_info() throws Throwable {
+        // when: load jvm info
+        MvcResult result = this.mockMvc.perform(get("/sys/info/jvm"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then:
+        String content = result.getResponse().getContentAsString();
+        GroupSystemInfo jvmInfo = GroupSystemInfo.parse(content, GroupSystemInfo.class);
+
+        Map<String, String> jvmOsInfo = jvmInfo.get(JvmGroup.OS);
+        Assert.assertNotNull(jvmOsInfo);
+        Assert.assertEquals(6, jvmOsInfo.size());
+
+        Map<String, String> jvmGeneralInfo = jvmInfo.get(JvmGroup.GENERAL);
+        Assert.assertNotNull(jvmGeneralInfo);
+        Assert.assertEquals(5, jvmGeneralInfo.size());
+
+        Map<String, String> jvmMemoryInfo = jvmInfo.get(JvmGroup.MEMORY);
+        Assert.assertNotNull(jvmMemoryInfo);
+        Assert.assertEquals(3, jvmMemoryInfo.size());
+    }
+
+    @Test
+    public void should_load_system_db_info() throws Throwable {
+        // when: load db info
+        MvcResult result = this.mockMvc.perform(get("/sys/info/db"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then:
+        String content = result.getResponse().getContentAsString();
+        GroupSystemInfo dbInfo = SystemInfo.parse(content, GroupSystemInfo.class);
+
+        Map<String, String> mysqlInfo = dbInfo.get(DBGroupName.MYSQL);
+        Assert.assertNotNull(mysqlInfo);
+        Assert.assertEquals(5, mysqlInfo.size());
+    }
+
+    @Test
+    public void should_load_zookeeper_info() throws Throwable {
+        // when: load zookeeper info
+        MvcResult result = this.mockMvc.perform(get("/sys/info/zk"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then:
+        String content = result.getResponse().getContentAsString();
+        GroupSystemInfo zkInfo = SystemInfo.parse(content, GroupSystemInfo.class);
+        Assert.assertNotNull(zkInfo);
+        Assert.assertEquals(SystemInfo.Status.RUNNING, zkInfo.getStatus());
+
+        Map<String, String> conf = zkInfo.get(ZooKeeperGroup.CONF);
+        Assert.assertEquals(8, conf.size());
+
+        Map<String, String> srvr = zkInfo.get(ZooKeeperGroup.SRVR);
+        Assert.assertEquals(8, srvr.size());
+    }
+
+    @Test
+    public void should_load_rabbitmq_info() throws Throwable {
+        // when: load zookeeper info
+        MvcResult result = this.mockMvc.perform(get("/sys/info/mq"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then:
+        String content = result.getResponse().getContentAsString();
+        GroupSystemInfo mqInfo = SystemInfo.parse(content, GroupSystemInfo.class);
+        Assert.assertNotNull(mqInfo);
+
+        Assert.assertNotNull(mqInfo.getName());
+        Assert.assertEquals(Status.RUNNING, mqInfo.getStatus());
+        Assert.assertEquals(3, mqInfo.get(MQGroup.RABBITMQ).size());
+    }
 }

@@ -16,16 +16,14 @@
 
 package com.flow.platform.cc.controller;
 
-import com.flow.platform.cc.util.ZkHelper;
+import com.flow.platform.core.service.SysInfoService;
+import com.flow.platform.core.sysinfo.SystemInfo;
+import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.annotation.PostConstruct;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author gy@fir.im
@@ -34,54 +32,21 @@ import java.util.Map;
 @RequestMapping("/")
 public class WelcomeController {
 
-    public static class AppStatus implements Serializable {
-        private String status;
-        private Date startTime;
-        private ZkHelper.ZkInfo zkInfo;
-        private Map<String, List<String>> zkHistory;
-
-        AppStatus(String status,
-                  Date startTime,
-                  ZkHelper.ZkInfo zkInfo,
-                  Map<String, List<String>> zkHistory) {
-            this.status = status;
-            this.startTime = startTime;
-            this.zkInfo = zkInfo;
-            this.zkHistory = zkHistory;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public Date getStartTime() {
-            return startTime;
-        }
-
-        public ZkHelper.ZkInfo getZkInfo() {
-            return zkInfo;
-        }
-
-        public Map<String, List<String>> getZkHistory() {
-            return zkHistory;
-        }
-    }
+    @Autowired
+    private SystemInfo systemInfo;
 
     @Autowired
-    private ZkHelper zkHelper;
+    private SysInfoService sysInfoService;
 
-    private Date startTime;
-
-    @PostConstruct
-    private void init() {
-        startTime = new Date();
+    @GetMapping("/index")
+    public SystemInfo index() {
+        return systemInfo;
     }
 
-    @RequestMapping("/index")
-    public AppStatus heartbeat() {
-        return new AppStatus("OK",
-                startTime,
-                zkHelper.getInfo(),
-                zkHelper.getZkHistory());
+    @GetMapping("/sys/info/{type}")
+    public SystemInfo systemInfo(@PathVariable(required = false) String type) {
+        SystemInfo.Type targetType = SystemInfo.Type.valueOf(type.toUpperCase());
+        SystemInfo info = sysInfoService.get(Category.CC, targetType);
+        return info;
     }
 }

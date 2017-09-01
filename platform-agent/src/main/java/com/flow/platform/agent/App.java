@@ -1,36 +1,43 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.agent;
 
 import com.flow.platform.util.Logger;
 
 /**
- * Created by gy@fir.im on 03/05/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
 public class App {
 
     private final static Logger LOGGER = new Logger(App.class);
 
-    private final static String ZK_HOME = "54.222.129.38:2181";
-    private final static String AGENT_ZONE = "firmac";
-    private final static String AGENT_NAME = "test-001";
-
     public static void main(String args[]) {
-        String zkHome; // zookeeper address
-        String zone; // agent zone
-        String name; // agent name
+        String zkHome = null; // zookeeper address
+        String zone = null; // agent zone
+        String name = null; // agent name
 
         if (args.length != 3) {
-            zkHome = ZK_HOME;
-            zone = AGENT_ZONE;
-            name = AGENT_NAME;
+            System.out.println("Missing arguments: please specify zookeeper host, working zone and agent name");
+            System.out.println("Cmd: java -jar {zookeeper host} {working zone} {agent name}");
+            Runtime.getRuntime().exit(1);
         } else {
             zkHome = args[0];
             zone = args[1];
             name = args[2];
-
-            LOGGER.info(zkHome);
-            LOGGER.info(zone);
-            LOGGER.info(name);
         }
 
         LOGGER.trace("========= Run agent =========");
@@ -39,17 +46,17 @@ public class App {
         try {
             LOGGER.trace("========= Init config =========");
 
-            Config.AGENT_CONFIG = Config.loadAgentConfig(zkHome, Config.zkTimeout(), zone, 5);
-            LOGGER.trace(" -- Agent Config: %s", Config.agentConfig());
+            Config.AGENT_SETTINGS = Config.loadAgentConfig(zkHome, zone, 5);
+            LOGGER.trace(" -- Settings: %s", Config.agentSettings());
 
             Config.ZK_URL = zkHome;
-            LOGGER.trace(" -- Zookeeper Url: %s", Config.zkUrl());
+            LOGGER.trace(" -- Zookeeper host: %s", Config.zkUrl());
 
             Config.ZONE = zone;
-            LOGGER.trace(" -- Zone Name: %s", Config.zone());
+            LOGGER.trace(" -- Working zone: %s", Config.zone());
 
             Config.NAME = name;
-            LOGGER.trace(" -- Agent Name: %s", Config.name());
+            LOGGER.trace(" -- Agent agent: %s", Config.name());
 
             LOGGER.trace("========= Config initialized =========");
         } catch (Throwable e) {

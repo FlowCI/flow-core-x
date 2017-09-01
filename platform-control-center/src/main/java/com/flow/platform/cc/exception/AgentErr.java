@@ -16,7 +16,7 @@
 
 package com.flow.platform.cc.exception;
 
-import com.flow.platform.exception.FlowException;
+import com.flow.platform.core.exception.FlowException;
 
 /**
  * @author gy@fir.im

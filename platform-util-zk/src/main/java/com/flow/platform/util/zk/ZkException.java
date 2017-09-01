@@ -19,34 +19,37 @@ package com.flow.platform.util.zk;
 /**
  * @author gy@fir.im
  */
-public class ZkException {
+public class ZkException extends RuntimeException {
 
-    public static class WatchingException extends AbstractZkException {
+    public ZkException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-        public WatchingException(Exception raw, String path) {
-            super(raw, "Cannot watch path: " + path);
+    public static class WatchingException extends ZkException {
+
+        public WatchingException(String path, Throwable raw) {
+            super("Cannot watch path: " + path, raw);
         }
     }
 
-    public static class ConnectionException extends AbstractZkException {
+    public static class ConnectionException extends ZkException {
 
-        public ConnectionException(Exception raw) {
-            super(raw, "Zookeeper server connection error");
+        public ConnectionException(Throwable raw) {
+            super("Zookeeper server connection error", raw);
         }
     }
 
-    public static class NotExitException extends AbstractZkException {
+    public static class NotExitException extends ZkException {
 
-        public NotExitException(Exception raw, String path) {
-            super(raw, String.format("Node not exist: %s", path));
+        public NotExitException(String path, Throwable raw) {
+            super(String.format("Node not exist: %s", path), raw);
         }
     }
 
-    public static class BadVersion extends AbstractZkException {
+    public static class BadVersion extends ZkException {
 
-        public BadVersion(Exception raw) {
-            super(raw, "Bad data version");
+        public BadVersion(Throwable raw) {
+            super("Bad data version", raw);
         }
     }
-
 }

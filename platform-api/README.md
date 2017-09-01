@@ -1,70 +1,33 @@
-### 创建 flows
-```
-   Method: Post
-   Routes: /flows
-   params: 
-        - name # uniq
-        - language
-        - prev # allow null
-        - next # allow null
-```
+## Node Status Transmission
 
-### 删除 flows
-```
-   Method: Delete
-   Routes: /flows/:id
-```
+- CmdStatus and Exit Value --> transfer to --> NodeStatus
+- NodeStatus --> bottom up transfer to --> Parent Node Status --> Root Node Status
+- Root Node Status --> transfer to --> Job Status
 
-### Get flow
-```
-   Method: Get
-   Routes: /flows/:id
-   Routes: /flow_name
-   Response:
-       {
-          name: "flow",
-          language: "ruby"
-       }
-```
+## Environments Description
 
-### 创建 steps
-```
-   Method: Post
-   Routes: /steps
-   params: 
-        - name # uniq
-        - plugin
-        - flowName
-        - action # before or after
-        - prev # allow null
-        - next # allow null
-```
+### Flow
 
-### Get steps
-```
-   Method: Get
-   Routes: /steps/:id
-   Routes: /:flowName/:stepName
-   Response:
-        { 
-          name: "a",
-          plugin: "next"
-        }
-```
+**FLOW_STATUS**: READY | PENDING
 
+**FLOW_YML_STATUS**: NOT_FOUND | GIT_CONNECTING | GIT_LOADING | GIT_LOADED | FOUND | ERROR
 
-### Delete steps
-```
-   Method: Delete
-   Routes: /steps/:id
-```
+**FLOW_YML_ERROR_MSG**: error message if FLOW_YML_STATUS = ERROR
 
+### Git 
+        
+**FLOW_GIT_SOURCE**: UNDEFINED_SSH | UNDEFINED_HTTP | GITLAB | GITHUB| CODING| OSCHINA | BITBUCKET 
 
-### 跑任务
-```
-   Method: Post
-   Routes: /flows/:name/trigger
-   params: 
-        - envs
-        - name
-```
+**FLOW_GIT_URL**: Git repo url
+
+**FLOW_GIT_BRANCH**: Git repo branch to check
+
+**FLOW_GIT_WEBHOOK**: readonly, output webhook url of flow
+
+**FLOW_GIT_CHANGELOG**: readonly
+
+**FLOW_GIT_EVENT_TYPE**: readonly
+
+**FLOW_GIT_SSH_PRIVATE_KEY**: readonly
+
+**FLOW_GIT_SSH_PUBLIC_KEY**: readonly

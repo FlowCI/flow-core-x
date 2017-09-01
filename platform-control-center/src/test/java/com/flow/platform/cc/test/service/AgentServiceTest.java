@@ -20,21 +20,23 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
-import com.flow.platform.cc.util.SpringContextUtil;
+import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.AgentStatus;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
-import com.flow.platform.util.zk.ZkNodeHelper;
-import com.flow.platform.util.zk.ZkPathBuilder;
 import java.time.ZonedDateTime;
+import java.util.List;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author gy@fir.im
@@ -50,23 +52,54 @@ public class AgentServiceTest extends TestBase {
     @Autowired
     private ZoneService zoneService;
 
+    @Autowired
+    private List<Zone> defaultZones;
+
+    @Value("${agent.config.cmd_rt_log_url}")
+    private String cmdRtLogUrl; // web socket url
+
+    @Value("${agent.config.cmd_report_url}")
+    private String cmdReportUrl;
+
+    @Value("${agent.config.cmd_log_url}")
+    private String cmdLogUrl;
+
+    @Test
+    public void should_has_agent_config_in_zone_data() throws Throwable {
+        // given:
+        String zoneName = "test-zone-00";
+        zoneService.createZone(new Zone(zoneName, "test"));
+        Thread.sleep(1000);
+
+        // when:
+        String zonePath = ZKHelper.buildPath(zoneName, null);
+        byte[] raw = zkClient.getData(zonePath);
+
+        // then:
+        AgentSettings config = Jsonable.parse(raw, AgentSettings.class);
+        Assert.assertNotNull(config);
+        Assert.assertEquals(cmdRtLogUrl, config.getWebSocketUrl());
+        Assert.assertEquals(cmdReportUrl, config.getCmdStatusUrl());
+        Assert.assertEquals(cmdLogUrl, config.getCmdLogUrl());
+    }
+
     @Test
     public void should_agent_initialized() throws InterruptedException, KeeperException {
         // given:
         String zoneName = "ut-test-zone-1";
         zoneService.createZone(new Zone(zoneName, MOCK_PROVIDER_NAME));
-        Assert.assertEquals(0, agentService.onlineList(zoneName).size());
+        Assert.assertEquals(0, agentService.listForOnline(zoneName).size());
 
         String agentName = "test-agent-001";
-        ZkPathBuilder builder = zkHelper.buildZkPath(zoneName, agentName);
+        String path = ZKHelper.buildPath(zoneName, agentName);
 
         // when: simulate to create agent
-        ZkNodeHelper.createEphemeralNode(zkClient, builder.path(), "");
+        zkClient.createEphemeral(path, null);
 
         // then:
         Thread.sleep(1000);
-        Assert.assertEquals(1, agentService.onlineList(zoneName).size());
-        Assert.assertTrue(agentService.onlineList(zoneName).contains(new Agent(zoneName, agentName)));
+        Assert.assertEquals(1, agentService.listForOnline(zoneName).size());
+        Assert.assertTrue(agentService.listForOnline(zoneName).contains(new Agent(zoneName, agentName)));
     }
 
     @Test
@@ -79,56 +112,61 @@ public class AgentServiceTest extends TestBase {
 
         // when: agents online to zone-1
         AgentPath agent11 = new AgentPath(zone_1, "agent-1");
-        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent11), "");
+        zkClient.createEphemeral(ZKHelper.buildPath(agent11), null);
 
-        Thread.sleep(100); // mock network delay
+
+        Thread.sleep(1000); // mock network delay
 
         AgentPath agent12 = new AgentPath(zone_1, "agent-2");
-        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent12), "");
+        zkClient.createEphemeral(ZKHelper.buildPath(agent12), null);
+
+        Thread.sleep(1000); // mock network delay
 
         /* mock agent13 with exit offline status */
         AgentPath agent13 = new AgentPath(zone_1, "agent-3");
         Agent agentWithOffline = new Agent(agent13);
+        agentWithOffline.setCreatedDate(DateUtil.now());
+        agentWithOffline.setUpdatedDate(DateUtil.now());
         agentWithOffline.setStatus(AgentStatus.OFFLINE);
         agentDao.save(agentWithOffline);
         Assert.assertNotNull(agentService.find(agent13));
 
         /* make agent13 online again */
-        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent13), "");
+        zkClient.createEphemeral(ZKHelper.buildPath(agent13), null);
 
         Thread.sleep(2000); // waiting for watcher call
 
         // then: should has three online agent in zone-1
-        Assert.assertEquals(3, agentService.onlineList(zone_1).size());
+        Assert.assertEquals(3, agentService.listForOnline(zone_1).size());
 
         // when: agent online to zone-2
         AgentPath agent2 = new AgentPath(zone_2, "agent-1");
-        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agent2), "");
+        zkClient.createEphemeral(ZKHelper.buildPath(agent2), null);
         Thread.sleep(1000); // waiting for watcher call
 
         // then: should has one online agent in zone-2
-        Assert.assertEquals(1, agentService.onlineList(zone_2).size());
+        Assert.assertEquals(1, agentService.listForOnline(zone_2).size());
 
         // then: still has three online agent in zone-1
-        Assert.assertEquals(3, agentService.onlineList(zone_1).size());
+        Assert.assertEquals(3, agentService.listForOnline(zone_1).size());
 
         // when: there is one agent offline in zone-1
-        ZkNodeHelper.deleteNode(zkClient, zkHelper.getZkPath(agent12));
+        zkClient.delete(ZKHelper.buildPath(agent12), true);
         Thread.sleep(1000); // waiting for watcher call
 
         // then: should left two agent in zone-1
-        Assert.assertEquals(2, agentService.onlineList(zone_1).size());
-        Agent agent11Loaded = (Agent) agentService.onlineList(zone_1).toArray()[0];
+        Assert.assertEquals(2, agentService.listForOnline(zone_1).size());
+        Agent agent11Loaded = (Agent) agentService.listForOnline(zone_1).toArray()[0];
         Assert.assertEquals(agent11, agent11Loaded.getPath());
     }
 
     @Test
     public void should_report_agent_status() throws InterruptedException {
         // given: init zk agent
-        String zoneName = zkHelper.getDefaultZones().get(0).getName();
+        String zoneName = defaultZones.get(0).getName();
         String agentName = "test-agent-for-status";
-        String agentPath = zkHelper.buildZkPath(zoneName, agentName).path();
-        ZkNodeHelper.createEphemeralNode(zkClient, agentPath, "");
+        String agentPath = ZKHelper.buildPath(zoneName, agentName);
+        zkClient.createEphemeral(agentPath, null);
         Thread.sleep(500);
 
         // when: report status
@@ -142,7 +180,7 @@ public class AgentServiceTest extends TestBase {
 
     @Test(expected = AgentErr.NotFoundException.class)
     public void should_raise_not_found_exception_when_report_status() {
-        String zoneName = zkHelper.getDefaultZones().get(0).getName();
+        String zoneName = defaultZones.get(0).getName();
         String agentName = "test-agent-for-status-exception";
 
         AgentPath pathObj = new AgentPath(zoneName, agentName);

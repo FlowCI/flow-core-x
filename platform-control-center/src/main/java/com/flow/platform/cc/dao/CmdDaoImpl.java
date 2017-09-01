@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.dao;
 
+import com.flow.platform.core.dao.AbstractBaseDao;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
@@ -34,21 +35,25 @@ import java.util.Set;
 public class CmdDaoImpl extends AbstractBaseDao<String, Cmd> implements CmdDao {
 
     @Override
-    Class getEntityClass() {
+    protected Class getEntityClass() {
         return Cmd.class;
     }
 
     @Override
-    String getKeyName() {
+    protected String getKeyName() {
         return "id";
     }
 
     @Override
-    public void update(Cmd obj) {
-        execute(session -> {
-            obj.setUpdatedDate(DateUtil.now());
-            session.update(obj);
-            return null;
+    public List<Cmd> list(String sessionId) {
+        return execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery select = builder.createQuery(getEntityClass());
+
+            Root<Cmd> root = select.from(getEntityClass());
+            select.where(builder.equal(root.get("sessionId"), sessionId));
+
+            return session.createQuery(select).getResultList();
         });
     }
 

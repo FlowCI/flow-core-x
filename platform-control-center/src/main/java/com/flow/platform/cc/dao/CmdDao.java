@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.dao;
 
+import com.flow.platform.core.dao.BaseDao;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
@@ -28,6 +29,11 @@ import java.util.Set;
  * @author Will
  */
 public interface CmdDao extends BaseDao<String, Cmd> {
+
+    /**
+     * List cmd by session id
+     */
+    List<Cmd> list(String sessionId);
 
     /**
      * List cmd by agent path, cmd type and cmd status

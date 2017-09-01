@@ -17,20 +17,24 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.util.Logger;
-import com.rabbitmq.client.BuiltinExchangeType;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * RabbitMQ configuration file
@@ -38,96 +42,72 @@ import java.util.concurrent.TimeoutException;
  * @author gy@fir.im
  */
 @Configuration
+@EnableRabbit
 public class MQConfig {
 
     private final static Logger LOGGER = new Logger(MQConfig.class);
 
-    private final static int MAX_PRIORITY = 10;
-    private final static int MAX_LENGTH = 100;
+    private final static int CMD_QUEUE_MAX_PRIORITY = 10;
+    private final static int CMD_QUEUE_MAX_LENGTH = 100;
 
     @Value("${mq.host}")
-    private String host;
+    private String host; // amqp://guest:guest@localhost:5672
 
-    @Value("${mq.exchange.name}")
-    private String cmdExchangeName;
+    @Value("${mq.management.host}")
+    private String mgrHost; // http://localhost:15672
 
-    // MQ connection
-    private Connection rabbitMqConn;
+    @Value("${mq.queue.cmd.name}")
+    private String cmdQueueName; // receive cmd from upstream
 
-    // define send and consume channel for cmd
-    private Channel cmdSendChannel;
-    private Channel cmdConsumeChannel;
-    private String cmdConsumeQueue;
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor; // from AppConfig
 
     @PostConstruct
     public void init() {
-        try {
-            rabbitMqConn = createChannel(host);
-            LOGGER.trace("RabbitMQ connection created : %s", rabbitMqConn.toString());
-
-            cmdSendChannel = rabbitMqConn.createChannel();
-            cmdSendChannel.exchangeDeclare(cmdExchangeName, BuiltinExchangeType.FANOUT);
-            LOGGER.trace("RabbitMQ cmd send channel created : %s", cmdSendChannel.toString());
-
-            Map<String, Object> args = new HashMap<>();
-            args.put("x-max-length", MAX_LENGTH);
-            args.put("x-max-priority", MAX_PRIORITY);
-
-            cmdConsumeChannel = rabbitMqConn.createChannel();
-            cmdConsumeQueue = cmdConsumeChannel.queueDeclare("", false, false, false, args).getQueue();
-            cmdConsumeChannel.queueBind(cmdConsumeQueue, cmdExchangeName, "");
-            LOGGER.trace("RabbitMQ cmd consume channel created : %s", cmdConsumeQueue);
-
-        } catch (Throwable e) {
-            LOGGER.error(String.format("Fail to init MQ for host: %s with exchange name: %s", host, cmdExchangeName), e);
-        }
+        LOGGER.trace("Host: %s", host);
+        LOGGER.trace("Management Host: %s", mgrHost);
+        LOGGER.trace("Cmd queue name: %s", cmdQueueName);
     }
 
     @Bean
-    public Channel cmdSendChannel() {
-        return cmdSendChannel;
+    public SimpleRabbitListenerContainerFactory cmdQueueContainerFactory() {
+        return createContainerFactory(1);
     }
 
     @Bean
-    public Channel cmdConsumeChannel() {
-        return cmdConsumeChannel;
+    public RabbitTemplate cmdQueueTemplate() {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory());
+        template.setQueue(cmdQueueName);
+        return template;
     }
 
     @Bean
-    public String cmdConsumeQueue() {
-        return cmdConsumeQueue;
+    public AmqpAdmin amqpAdmin() {
+        Map<String, Object> cmdQueueArgs = new HashMap<>();
+        cmdQueueArgs.put("x-max-length", CMD_QUEUE_MAX_LENGTH);
+        cmdQueueArgs.put("x-max-priority", CMD_QUEUE_MAX_PRIORITY);
+        Queue cmdQueue = new Queue(cmdQueueName, true, false, false, cmdQueueArgs);
+
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory());
+        rabbitAdmin.declareQueue(cmdQueue);
+        return rabbitAdmin;
     }
 
-    @PreDestroy
-    public void preDestroy() {
-        closeChannel(cmdSendChannel);
-        closeChannel(cmdConsumeChannel);
-        closeConnection(rabbitMqConn);
-    }
-
-    private static void closeChannel(Channel channel) {
+    @Bean
+    public ConnectionFactory connectionFactory() {
         try {
-            if (channel != null && channel.isOpen()) {
-                channel.close();
-            }
-        } catch (Throwable e) {
-            LOGGER.error("Err on close channel", e);
+            return new CachingConnectionFactory(new URI(host));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private static void closeConnection(Connection conn) {
-        try {
-            if (conn != null && conn.isOpen()) {
-                conn.close();
-            }
-        } catch (Throwable e) {
-            LOGGER.error("Err on close connection", e);
-        }
-    }
-
-    private static Connection createChannel(String host) throws IOException, TimeoutException {
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(host);
-        return factory.newConnection();
+    private SimpleRabbitListenerContainerFactory createContainerFactory(final int consumer) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory());
+        factory.setConcurrentConsumers(consumer);
+        factory.setMaxConcurrentConsumers(consumer);
+        factory.setTaskExecutor(taskExecutor);
+        return factory;
     }
 }

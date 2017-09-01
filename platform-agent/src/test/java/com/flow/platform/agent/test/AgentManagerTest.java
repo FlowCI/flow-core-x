@@ -1,133 +1,112 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.AgentManager;
+import com.flow.platform.agent.Config;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.zk.ZkEventAdaptor;
-import com.flow.platform.util.zk.ZkLocalServer;
-import com.flow.platform.util.zk.ZkNodeHelper;
-import org.apache.zookeeper.*;
-import org.apache.zookeeper.server.ServerCnxnFactory;
-import org.junit.*;
+import com.flow.platform.util.zk.ZKClient;
+import org.apache.curator.test.TestingServer;
+import org.apache.curator.utils.ZKPaths;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
- * Created by gy@fir.im on 03/05/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AgentManagerTest extends TestBase {
 
-    private static final String ZK_HOST = "127.0.0.1:2181";
+    private static final String ZK_ROOT = "/flow-agents";
     private static final String ZONE = "ali";
     private static final String MACHINE = "f-cont-f11f827bd8af1";
 
-    private static ZooKeeper zkClient;
-    private static ServerCnxnFactory zkFactory;
+    private static TestingServer server;
+
+    private ZKClient zkClient;
 
     @BeforeClass
-    public static void init() throws IOException, InterruptedException, KeeperException {
-        zkFactory = ZkLocalServer.start();
-        zkClient = new ZooKeeper(ZK_HOST, 20000, null);
+    public static void init() throws Throwable {
+        System.setProperty(Config.PROP_ENABLE_REALTIME_AGENT_LOG, "false");
+        System.setProperty(Config.PROP_UPLOAD_AGENT_LOG, "false");
+        System.setProperty(Config.PROP_REPORT_STATUS, "false");
 
-        ZkNodeHelper.createNode(zkClient, "/flow-agents", "");
-        ZkNodeHelper.createNode(zkClient, "/flow-agents/ali", "");
+        server = new TestingServer();
+        server.start();
     }
-
-    private CountDownLatch waitState;
 
     @Before
     public void beforeEach() {
-        waitState = new CountDownLatch(1);
+        zkClient = new ZKClient(server.getConnectString(), 1000, 1);
+        zkClient.start();
+
+        zkClient.create(ZK_ROOT, null);
+        zkClient.create(ZKPaths.makePath(ZK_ROOT, ZONE), null);
     }
 
     @Test
-    public void should_agent_registered() throws IOException, KeeperException, InterruptedException {
-        AgentManager agent = new AgentManager(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
-            @Override
-            public void onConnected(WatchedEvent event, String path) {
-                assertEquals("/flow-agents/ali/" + MACHINE, path);
-
-                try {
-                    // when
-                    byte[] data = ZkNodeHelper.getNodeData(zkClient, path, null);
-
-                    // then
-                    assertEquals("", new String(data));
-                } finally {
-                    waitState.countDown();
-                }
-            }
-        });
-
+    public void should_agent_registered() throws Throwable {
+        // when: start agent in thread
+        AgentManager agent = new AgentManager(server.getConnectString(), 20000, ZONE, MACHINE);
         new Thread(agent).start();
-        waitState.await();
+        Thread.sleep(5000); // wait for agent registration
+
+        // when:
+        String agentNodePath = ZKPaths.makePath(ZK_ROOT, ZONE, MACHINE);
+        Assert.assertEquals(true, zkClient.exist(agentNodePath));
+        agent.stop();
     }
 
     @Test
-    public void should_receive_command() throws InterruptedException, IOException {
-        final CountDownLatch waitForConnect = new CountDownLatch(1);
-        final CountDownLatch waitForCommandStart = new CountDownLatch(1);
-        final CountDownLatch waitForBusyStatusRemoved = new CountDownLatch(1);
-
-        AgentManager client = new AgentManager(ZK_HOST, 20000, ZONE, MACHINE, new ZkEventAdaptor() {
-            @Override
-            public void onConnected(WatchedEvent event, String path) {
-                waitForConnect.countDown();
-            }
-
-            @Override
-            public void onDataChanged(WatchedEvent event, byte[] raw) {
-                try {
-                    // when
-                    waitForCommandStart.countDown();
-                    Cmd cmd = Jsonable.parse(raw, Cmd.class);
-
-                    // then
-                    assertEquals(new Cmd(ZONE, MACHINE, CmdType.RUN_SHELL, "~/test.sh"), cmd);
-
-                    // simulate cmd running need 5 seconds
-                    Thread.sleep(2000);
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    waitState.countDown();
-                }
-            }
-
-            @Override
-            public void afterOnDataChanged(WatchedEvent event) {
-                waitForBusyStatusRemoved.countDown();
-            }
-        });
-
-        new Thread(client).start();
-        waitForConnect.await();
+    public void should_receive_command() throws Throwable {
+        AgentManager agent = new AgentManager(server.getConnectString(), 20000, ZONE, MACHINE);
+        new Thread(agent).start();
+        Thread.sleep(5000); // waitting for node created
 
         // when: send command to agent
-        Cmd cmd = new Cmd(ZONE, MACHINE, CmdType.RUN_SHELL, "~/test.sh");
-        ZkNodeHelper.setNodeData(zkClient, client.getNodePath(), cmd.toJson());
+        Cmd cmd = new Cmd(ZONE, MACHINE, CmdType.RUN_SHELL, "echo hello");
+        cmd.setId("mock-cmd-id");
+        zkClient.setData(agent.getNodePath(), cmd.toBytes());
+        Thread.sleep(2000); // waitting for cmd recieved
 
         // then: check agent status when command received
-        waitForCommandStart.await();
+        Assert.assertEquals(1, agent.getCmdHistory().size());
+        Assert.assertEquals(cmd, agent.getCmdHistory().get(0));
+        agent.stop();
+    }
 
-        // when: wait for command executed
-        waitState.await();
+    @After
+    public void after() throws Throwable {
+        zkClient.close();
     }
 
     @AfterClass
-    public static void done() throws KeeperException, InterruptedException {
-        zkFactory.closeAll();
-        zkFactory.shutdown();
+    public static void done() throws Throwable {
+        server.stop();
     }
 }

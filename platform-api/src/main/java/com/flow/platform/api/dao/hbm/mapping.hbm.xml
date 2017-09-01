@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.api.domain">
+  <resultset name="MappingJobResult">
+    <return alias="job" class="com.flow.platform.api.domain.job.Job"/>
+    <return alias="nr" class="com.flow.platform.api.domain.job.NodeResult"/>
+  </resultset>
+</hibernate-mapping>

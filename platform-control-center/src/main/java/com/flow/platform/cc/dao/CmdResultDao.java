@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.dao;
 
+import com.flow.platform.core.dao.BaseDao;
 import com.flow.platform.domain.CmdResult;
 
 import java.util.Collection;

@@ -16,15 +16,23 @@
 
 package com.flow.platform.api.config;
 
+import com.flow.platform.api.resource.PropertyResourceLoader;
+import com.flow.platform.api.util.GsonHttpExposeConverter;
 import com.flow.platform.domain.Jsonable;
-import com.google.gson.Gson;
+import com.flow.platform.util.resource.AppResourceLoader;
+import java.io.IOException;
 import java.util.List;
+import javax.annotation.Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -33,34 +41,49 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @EnableWebMvc
 @EnableScheduling
 @ComponentScan({
-        "com.flow.platform.api.controller",
-        "com.flow.platform.api.service",
-        "com.flow.platform.api.dao",
-        "com.flow.platform.api.util"})
+    "com.flow.platform.api.controller",
+    "com.flow.platform.api.service",
+    "com.flow.platform.api.dao",
+    "com.flow.platform.api.context",
+    "com.flow.platform.api.util",
+    "com.flow.platform.api.consumer",
+    "com.flow.platform.api.context"})
+@Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
+
+    private final static int MAX_UPLOAD_SIZE = 2 * 1024 * 1024;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedMethods("GET", "POST")
-                .allowCredentials(true)
-                .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate");
+            .allowedOrigins("*")
+            .allowedMethods("*")
+            .allowCredentials(true)
+            .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate", "library");
     }
 
     @Bean
-    public Gson gsonConfig() {
-        return Jsonable.GSON_CONFIG;
+    public PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() throws IOException {
+        AppResourceLoader propertyLoader = new PropertyResourceLoader();
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+        configurer.setIgnoreResourceNotFound(Boolean.FALSE);
+        configurer.setLocation(propertyLoader.find());
+        return configurer;
+    }
+
+    @Bean(name = "multipartResolver")
+    public MultipartResolver multipartResolver() throws IOException {
+        CommonsMultipartResolver resolver = new CommonsMultipartResolver();
+        resolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
+        return resolver;
     }
 
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        for (HttpMessageConverter converter : converters) {
-            // customize gson http message converter
-            if (converter instanceof GsonHttpMessageConverter) {
-                GsonHttpMessageConverter gsonConverter = (GsonHttpMessageConverter) converter;
-                gsonConverter.setGson(gsonConfig());
-            }
-        }
+        converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
+        GsonHttpExposeConverter gsonHttpExposeConverter = new GsonHttpExposeConverter();
+        gsonHttpExposeConverter.setGson(Jsonable.GSON_CONFIG);
+        converters.add(gsonHttpExposeConverter);
     }
+
 }

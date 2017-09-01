@@ -17,30 +17,29 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
-import com.flow.platform.cc.context.ContextEvent;
-import com.flow.platform.cc.util.SpringContextUtil;
+import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.cloud.InstanceManager;
+import com.flow.platform.core.context.ContextEvent;
+import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentConfig;
-import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Instance;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.zk.ZkEventHelper;
-import com.flow.platform.util.zk.ZkNodeHelper;
+import com.flow.platform.util.zk.ZKClient;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -52,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service(value = "zoneService")
 @Transactional(isolation = Isolation.REPEATABLE_READ)
-public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, ContextEvent {
+public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
     private final static Logger LOGGER = new Logger(ZoneService.class);
 
@@ -63,18 +62,27 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, Conte
     private CmdService cmdService;
 
     @Autowired
-    private AgentConfig agentConfig;
+    private CmdDispatchService cmdDispatchService;
+
+    @Autowired
+    private AgentSettings agentSettings;
 
     @Autowired
     private Executor taskExecutor;
 
     @Autowired
-    private SpringContextUtil springContextUtil;
+    private SpringContext springContext;
 
     @Autowired
     private TaskConfig taskConfig;
 
-    private final Map<Zone, ZoneEventWatcher> zoneEventWatchers = new HashMap<>();
+    @Autowired
+    private List<Zone> defaultZones;
+
+    @Autowired
+    protected ZKClient zkClient;
+
+    private final Map<Zone, ZoneEventListener> zoneEventWatchers = new HashMap<>();
 
     @Override
     public void start() {
@@ -83,7 +91,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, Conte
         LOGGER.trace("Root zookeeper node initialized: %s", path);
 
         // init zone nodes
-        for (Zone zone : zkHelper.getDefaultZones()) {
+        for (Zone zone : defaultZones) {
             path = createZone(zone);
             LOGGER.trace("Zone zookeeper node initialized: %s", path);
         }
@@ -96,27 +104,25 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, Conte
 
     @Override
     public String createRoot() {
-        String rootPath = zkHelper.buildZkPath(null, null).path();
-        return ZkNodeHelper.createNode(zkClient, rootPath, "");
+        String rootPath = ZKHelper.buildPath(null, null);
+        return zkClient.create(rootPath, null);
     }
 
     @Override
     public String createZone(Zone zone) {
-        final String zonePath = zkHelper.buildZkPath(zone.getName(), null).path();
+        final String zonePath = ZKHelper.buildPath(zone.getName(), null);
+        zone.setPath(zonePath);
 
-        // zone node not exited
-        if (ZkNodeHelper.exist(zkClient, zonePath) == null) {
-            ZkNodeHelper.createNode(zkClient, zonePath, agentConfig.toJson());
-        } else {
-            ZkNodeHelper.setNodeData(zkClient, zonePath, agentConfig.toJson());
-            List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
+        zkClient.create(zonePath, agentSettings.toBytes());
+
+        List<String> agents = zkClient.getChildren(zonePath);
+
+        if (!agents.isEmpty()) {
             agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
         }
 
-        ZoneEventWatcher zoneEventWatcher =
-            zoneEventWatchers.computeIfAbsent(zone, z -> new ZoneEventWatcher(z, zonePath));
-
-        ZkNodeHelper.watchChildren(zkClient, zonePath, zoneEventWatcher, 5);
+        ZoneEventListener zoneEventWatcher = zoneEventWatchers.computeIfAbsent(zone, ZoneEventListener::new);
+        zkClient.watchChildren(zonePath, zoneEventWatcher);
         return zonePath;
     }
 
@@ -141,7 +147,7 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, Conte
             return null;
         }
         String beanName = String.format("%sInstanceManager", zone.getCloudProvider());
-        return (InstanceManager) springContextUtil.getBean(beanName);
+        return (InstanceManager) springContext.getBean(beanName);
     }
 
     /**
@@ -179,8 +185,8 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, Conte
                 Agent idleAgent = agentList.get(i);
 
                 // send shutdown cmd
-                CmdInfo cmdInfo = new CmdInfo(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci");
-                cmdService.send(cmdInfo);
+                Cmd shutdown = cmdService.create(new CmdInfo(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci"));
+                cmdDispatchService.dispatch(shutdown.getId(), false);
                 LOGGER.traceMarker("keepIdleAgentMaxSize", "Send SHUTDOWN to idle agent: %s", idleAgent);
 
                 // add instance to cleanup list
@@ -222,32 +228,22 @@ public class ZoneServiceImpl extends ZkServiceBase implements ZoneService, Conte
         LOGGER.traceMarker("keepIdleAgentTask", "end");
     }
 
-    /**
-     * To handle zk events on zone level
-     */
-    private class ZoneEventWatcher implements Watcher {
+    private class ZoneEventListener implements PathChildrenCacheListener {
 
         private final Zone zone;
-        private final String zonePath;
 
-        ZoneEventWatcher(Zone zone, String zonePath) {
+        ZoneEventListener(Zone zone) {
             this.zone = zone;
-            this.zonePath = zonePath;
         }
 
-        public void process(WatchedEvent event) {
-            zkHelper.recordEvent(zonePath, event);
-            LOGGER.traceMarker("ZookeeperZoneEventHandler", "Zookeeper event received %s", event.toString());
+        @Override
+        public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+            // TODO: should optimize by event type
 
-            // continue to watch zone path
-            ZkNodeHelper.watchChildren(zkClient, zonePath, this, 5);
-
-            if (ZkEventHelper.isChildrenChanged(event)) {
-                taskExecutor.execute(() -> {
-                    List<String> agents = ZkNodeHelper.getChildrenNodes(zkClient, zonePath);
-                    agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
-                });
-            }
+            taskExecutor.execute(() -> {
+                List<String> agents = zkClient.getChildren(zone.getPath());
+                agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
+            });
         }
     }
 }

@@ -22,17 +22,15 @@ import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.resource.PropertyResourceLoader;
-import com.flow.platform.cc.util.ZkHelper;
+import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.util.zk.ZkLocalServer;
-import com.flow.platform.util.zk.ZkNodeHelper;
+import com.flow.platform.util.zk.ZKClient;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.stream.Stream;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.curator.test.TestingServer;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -40,6 +38,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -60,8 +59,9 @@ public abstract class TestBase {
             System.setProperty("flow.cc.env", "local");
             System.setProperty("flow.cc.task.keep_idle_agent", "false");
 
-            ZkLocalServer.start();
-        } catch (IOException | InterruptedException e) {
+            TestingServer server = new TestingServer(2181);
+            server.start();
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
@@ -71,12 +71,16 @@ public abstract class TestBase {
 
         @Override
         public void initialize(ConfigurableApplicationContext applicationContext) {
-            new PropertyResourceLoader().register(applicationContext);
+            try {
+                applicationContext
+                    .getEnvironment()
+                    .getPropertySources()
+                    .addFirst(new ResourcePropertySource(new PropertyResourceLoader().find()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
-
-    @Autowired
-    protected ZkHelper zkHelper;
 
     @Autowired
     private WebApplicationContext webAppContext;
@@ -93,14 +97,14 @@ public abstract class TestBase {
     @Autowired
     protected CmdResultDao cmdResultDao;
 
-    protected ZooKeeper zkClient;
+    @Autowired
+    protected ZKClient zkClient;
 
     protected MockMvc mockMvc;
 
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
-        zkClient = zkHelper.getClient();
     }
 
     @After
@@ -125,18 +129,14 @@ public abstract class TestBase {
 
     protected AgentPath createMockAgent(String zone, String agent) {
         AgentPath agentPath = new AgentPath(zone, agent);
-        ZkNodeHelper.createEphemeralNode(zkClient, zkHelper.getZkPath(agentPath), "");
+        zkClient.create(ZKHelper.buildPath(agentPath), null);
         return agentPath;
     }
 
-    protected void cleanZookeeperChilderenNode(String node) {
-        if (ZkNodeHelper.exist(zkClient, node) == null) {
+    protected void cleanZookeeperChildrenNode(String node) {
+        if (zkClient.exist(node)) {
             return;
         }
-
-        List<String> children = ZkNodeHelper.getChildrenNodes(zkClient, node);
-        for (String child : children) {
-            ZkNodeHelper.deleteNode(zkClient, node + "/" + child);
-        }
+        zkClient.delete(node, true);
     }
 }

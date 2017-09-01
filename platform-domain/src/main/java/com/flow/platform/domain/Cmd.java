@@ -16,9 +16,9 @@
 
 package com.flow.platform.domain;
 
-import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -75,6 +75,7 @@ public class Cmd extends CmdBase {
      */
     private ZonedDateTime finishedDate;
 
+    private CmdResult cmdResult;
 
     public Cmd() {
     }
@@ -105,11 +106,6 @@ public class Cmd extends CmdBase {
 
         if (this.status.getLevel() < status.getLevel()) {
             this.status = status;
-
-            if (!isCurrent()) {
-                this.finishedDate = DateUtil.utcNow();
-            }
-
             return true;
         }
 
@@ -140,6 +136,14 @@ public class Cmd extends CmdBase {
         this.updatedDate = updatedDate;
     }
 
+    public CmdResult getCmdResult() {
+        return cmdResult;
+    }
+
+    public void setCmdResult(CmdResult cmdResult) {
+        this.cmdResult = cmdResult;
+    }
+
     public ZonedDateTime getFinishedDate() {
         return finishedDate;
     }
@@ -154,6 +158,21 @@ public class Cmd extends CmdBase {
 
     public Boolean isAgentCmd() {
         return AGENT_CMD_TYPE.contains(type);
+    }
+
+    public boolean isCmdTimeout() {
+        if (type != CmdType.RUN_SHELL) {
+            return false;
+        }
+
+        // not timeout since cmd is executed
+        if (!isCurrent()) {
+            return false;
+        }
+
+        ZonedDateTime createdAt = getCreatedDate();
+        final long runningInSeconds = ChronoUnit.SECONDS.between(createdAt, ZonedDateTime.now());
+        return runningInSeconds >= getTimeout();
     }
 
     @Override
@@ -185,8 +204,6 @@ public class Cmd extends CmdBase {
         return "Cmd{" +
             "id='" + id + '\'' +
             ", info=" + super.toString() +
-            ", createdDate=" + createdDate +
-            ", updatedDate=" + updatedDate +
             '}';
     }
 
@@ -203,7 +220,6 @@ public class Cmd extends CmdBase {
         cmd.inputs = base.getInputs();
         cmd.workingDir = base.getWorkingDir();
         cmd.sessionId = base.getSessionId();
-        cmd.priority = base.getPriority();
         cmd.outputEnvFilter = base.getOutputEnvFilter();
         cmd.webhook = base.getWebhook();
         cmd.extra = base.getExtra();

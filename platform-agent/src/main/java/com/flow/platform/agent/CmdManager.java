@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.agent;
 
 import com.flow.platform.cmd.CmdExecutor;
@@ -7,6 +23,7 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.Logger;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import java.time.ZonedDateTime;
@@ -19,8 +36,8 @@ import java.util.concurrent.*;
 /**
  * Singleton class to handle command
  * <p>
- * Created by gy@fir.im on 16/05/2017.
- * Copyright fir.im
+ *
+ * @author gy@fir.im
  */
 public class CmdManager {
 
@@ -113,7 +130,7 @@ public class CmdManager {
             LOGGER.trace("Shutdown command: " + shutdownCmd);
 
             // exec shutdown command
-            CmdExecutor executor = new CmdExecutor(null, null, null, null, null, null, shutdownCmd);
+            CmdExecutor executor = new CmdExecutor(null, Lists.newArrayList(shutdownCmd));
             executor.run();
 
         } catch (Throwable e) {
@@ -126,7 +143,7 @@ public class CmdManager {
      *
      * @param cmd Cmd object
      */
-    public synchronized void execute(final Cmd cmd) {
+    public void execute(final Cmd cmd) {
         if (cmd.getType() == CmdType.RUN_SHELL) {
             // check max concurrent proc
             int max = cmdExecutor.getMaximumPoolSize();
@@ -142,9 +159,13 @@ public class CmdManager {
             cmdExecutor.execute(new TaskRunner(cmd) {
                 @Override
                 public void run() {
+                    LOGGER.debug("start cmd ...");
+
                     LogEventHandler logListener = new LogEventHandler(getCmd());
-                    ProcEventHandler procEventHandler = new ProcEventHandler(getCmd(),
-                        extraProcEventListeners, running, finished);
+
+                    ProcEventHandler procEventHandler =
+                        new ProcEventHandler(getCmd(), extraProcEventListeners, running, finished);
+
 
                     CmdExecutor executor;
                     try {
@@ -155,7 +176,7 @@ public class CmdManager {
                             cmd.getWorkingDir(),
                             cmd.getOutputEnvFilter(),
                             cmd.getTimeout(),
-                            getCmd().getCmd());
+                            Lists.newArrayList(getCmd().getCmd()));
                     } catch (Throwable e) {
                         LOGGER.errorMarker("execute", "Cannot init CmdExecutor for cmd " + cmd, e);
 

@@ -12,7 +12,7 @@
   <artifactId>platform-agent</artifactId>
 
   <properties>
-    <client.version>0.0.6</client.version>
+    <client.version>0.0.7</client.version>
   </properties>
 
   <dependencies>
@@ -41,8 +41,13 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.zookeeper</groupId>
-      <artifactId>zookeeper</artifactId>
+      <groupId>org.glassfish.tyrus</groupId>
+      <artifactId>tyrus-server</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-recipes</artifactId>
     </dependency>
 
     <dependency>
@@ -66,11 +71,6 @@
     </dependency>
 
     <dependency>
-      <groupId>com.jcabi</groupId>
-      <artifactId>jcabi-ssh</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -79,6 +79,12 @@
     <dependency>
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-test</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

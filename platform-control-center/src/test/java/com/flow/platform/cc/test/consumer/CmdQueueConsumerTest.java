@@ -23,10 +23,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
+import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
+import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -44,7 +46,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.CannotAcquireLockException;
 
 /**
@@ -67,13 +68,30 @@ public class CmdQueueConsumerTest extends TestBase {
     @Autowired
     private CmdService cmdService;
 
-    @Value("${mq.exchange.name}")
-    private String cmdExchangeName;
-
     @Before
-    public void before() {
-        cleanZookeeperChilderenNode(zkHelper.buildZkPath(ZONE, null).path());
+    public void before() throws Throwable {
+        cleanZookeeperChildrenNode(ZKHelper.buildPath(ZONE, null));
         zoneService.createZone(new Zone(ZONE, "mock-cloud-provider"));
+    }
+
+    @Test
+    public void should_retry_cmd_in_queue() throws Throwable {
+        // given:
+        String url = "/node/test-for-retry/callback";
+        stubFor(post(urlEqualTo(url)).willReturn(aResponse().withStatus(200)));
+
+        // when: send to queue and waiting for retry 3 times
+        CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
+        mockCmd.setWebhook("http://localhost:8088" + url);
+
+        Cmd cmd = cmdService.queue(mockCmd, 1, 3);
+        Assert.assertNotNull(cmdService.find(cmd.getId()));
+
+        Thread.sleep(10000); // wait for retrying.
+
+        // then: check num of request
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 3);
+        verify(countStrategy, postRequestedFor(urlEqualTo(url)));
     }
 
     @Test
@@ -94,7 +112,7 @@ public class CmdQueueConsumerTest extends TestBase {
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088/node/callback");
 
-        Cmd mockCmdInstance = cmdService.queue(mockCmd);
+        Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 0);
         Assert.assertNotNull(mockCmdInstance.getId());
 
         Thread.sleep(1000);
@@ -103,7 +121,7 @@ public class CmdQueueConsumerTest extends TestBase {
         verify(1, postRequestedFor(urlEqualTo("/node/callback")));
 
         // then: cmd should received in zookeeper agent node
-        byte[] raw = zkClient.getData(zkHelper.getZkPath(agentPath), false, null);
+        byte[] raw = zkClient.getData(ZKHelper.buildPath(agentPath));
         Cmd received = Cmd.parse(raw, Cmd.class);
         Assert.assertNotNull(received);
         Assert.assertNotNull(received.getId());
@@ -114,26 +132,28 @@ public class CmdQueueConsumerTest extends TestBase {
     public void should_re_enqueue_if_no_agent() throws Throwable {
         // given:
         String testUrl = "/node/path-of-node/callback";
+        String agentName = "agent-for-retry-queue-test";
         stubFor(post(urlEqualTo(testUrl)).willReturn(aResponse().withStatus(200)));
 
         // when: send cmd without available agent
-        CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
+        CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088" + testUrl);
-        Cmd mockCmdInstance = cmdService.queue(mockCmd);
+        Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 5);
         Assert.assertNotNull(mockCmdInstance.getId());
 
         // wait for send webhook
-        Thread.sleep(1000);
+        Thread.sleep(500);
 
         // then: should invoke cmd webhook for status REJECT
-        verify(1, postRequestedFor(urlEqualTo(testUrl)));
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 1);
+        verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
 
         // when:
-        createMockAgent(ZONE, "agent-for-retry-queue-test");
+        createMockAgent(ZONE, agentName);
         Thread.sleep(5000); // wait for enqueue again
 
         // then:
-        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
+        countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
         verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
     }
 
@@ -146,26 +166,28 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: send cmd without available agent
         CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088" + testUrl);
-        Cmd mockCmdInstance = cmdService.queue(mockCmd);
+        Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 5);
 
         Assert.assertNotNull(mockCmdInstance.getId());
         Assert.assertNotNull(cmdDao.get(mockCmdInstance.getId()));
 
         // wait for send webhook
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // then: verify has webhook callback if no available agent found
-        verify(1, postRequestedFor(urlEqualTo(testUrl)));
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 1);
+        verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
 
         // when: set cmd to stop status
         try {
-            cmdService.updateStatus(mockCmdInstance.getId(), CmdStatus.STOPPED, null, false, true);
+            CmdStatusItem statusItem = new CmdStatusItem(mockCmdInstance.getId(), CmdStatus.STOPPED, null, false, true);
+            cmdService.updateStatus(statusItem, false);
 
             // wait for send webhook
             Thread.sleep(1000);
 
             // then:
-            CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
+            countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
             verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
         } catch (CannotAcquireLockException acquireLockException) {
             // may raise the exception when this cmd is processing, in api level should return stop cmd failure

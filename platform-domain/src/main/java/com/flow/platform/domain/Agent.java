@@ -16,7 +16,6 @@
 
 package com.flow.platform.domain;
 
-import com.flow.platform.util.DateUtil;
 import java.time.ZonedDateTime;
 
 /**
@@ -68,8 +67,6 @@ public class Agent extends Jsonable {
 
     public Agent(AgentPath path) {
         this.path = path;
-        this.createdDate = DateUtil.now();
-        this.updatedDate = DateUtil.now();
     }
 
     public AgentPath getPath() {

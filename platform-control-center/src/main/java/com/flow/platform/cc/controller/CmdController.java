@@ -16,12 +16,25 @@
 
 package com.flow.platform.cc.controller;
 
+import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.domain.*;
+import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
+import com.google.common.collect.Range;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -40,6 +53,9 @@ public class CmdController {
     @Autowired
     private CmdService cmdService;
 
+    @Autowired
+    private CmdDispatchService cmdDispatchService;
+
     @GetMapping(path = "/types")
     public CmdType[] getCmdTypes() {
         return CmdType.values();
@@ -50,26 +66,39 @@ public class CmdController {
      */
     @PostMapping(path = "/send", consumes = "application/json")
     public Cmd sendCommand(@RequestBody CmdInfo cmd) {
-        return cmdService.send(cmd);
+        Cmd cmdToExec = cmdService.create(cmd);
+        return cmdDispatchService.dispatch(cmdToExec.getId(), false);
     }
 
     @PostMapping(path = "/queue/send", consumes = "application/json")
-    public Cmd sendCommandToQueue(@RequestBody CmdInfo cmd) {
-        return cmdService.send(cmd);
+    public Cmd sendCommandToQueue(@RequestBody CmdInfo cmd, @RequestParam int priority, @RequestParam int retry) {
+        if (!Range.closed(1, 255).contains(priority)) {
+            throw new IllegalParameterException("Illegal priority value should between (1 - 255)");
+        }
+
+        if (!Range.closed(0, 100).contains(retry)) {
+            throw new IllegalParameterException("Illegal retry value should between (0 - 100)");
+        }
+
+        return cmdService.queue(cmd, priority, retry);
     }
 
     /**
      * Set cmd status to STOPPED
-     *
-     * @param cmdId
      */
-    @PostMapping("/cmd/stop/{cmdId}")
+    @PostMapping("/stop/{cmdId}")
     public void stopCommand(@PathVariable String cmdId) {
-        cmdService.updateStatus(cmdId, CmdStatus.STOPPED, null, true, true);
+        try {
+            CmdStatusItem statusItem = new CmdStatusItem(cmdId, CmdStatus.STOPPED, null, true, true);
+            cmdService.updateStatus(statusItem, false);
+        } catch (CannotAcquireLockException e) {
+            // since cmd been locked, cannot change its status
+            throw new IllegalStatusException("Cmd been processed, cannot stop it");
+        }
     }
 
     /**
-     * For agent report cmd status
+     * For agent report cmd status send to queue
      *
      * @param reportData only need id, status and result
      */
@@ -78,7 +107,10 @@ public class CmdController {
         if (reportData.getId() == null || reportData.getStatus() == null || reportData.getResult() == null) {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
         }
-        cmdService.updateStatus(reportData.getId(), reportData.getStatus(), reportData.getResult(), true, true);
+
+        CmdStatusItem statusItem =
+            new CmdStatusItem(reportData.getId(), reportData.getStatus(), reportData.getResult(), true, true);
+        cmdService.updateStatus(statusItem, true);
     }
 
     /**
@@ -108,8 +140,8 @@ public class CmdController {
      */
     @GetMapping(path = "/log/download", produces = "application/zip")
     public Resource downloadFullLog(@RequestParam String cmdId,
-        @RequestParam Integer index,
-        HttpServletResponse httpResponse) {
+                                    @RequestParam Integer index,
+                                    HttpServletResponse httpResponse) {
 
         Cmd cmd = cmdService.find(cmdId);
         if (cmd == null) {

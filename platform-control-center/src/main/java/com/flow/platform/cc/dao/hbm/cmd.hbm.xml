@@ -13,43 +13,33 @@
       <property name="zone" column="agent_zone" length="50"></property>
       <property name="name" column="agent_name" length="100"></property>
     </component>
-
-    <property name="type" column="type" length="20">
+    <property name="type" column="type" length="20" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">com.flow.platform.domain.CmdType</param>
         <param name="useNamed">true</param>
       </type>
     </property>
-
-    <property name="status" column="status" length="20">
+    <property name="status" column="status" length="20" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">com.flow.platform.domain.CmdStatus</param>
         <param name="useNamed">true</param>
       </type>
     </property>
-
     <property name="cmd" type="text" column="cmd"/>
-    <property name="timeout" column="timeout"/>
-    <property name="priority" column="priority"/>
+    <property name="timeout" type="integer" column="timeout"/>
+    <property name="sessionId" column="session_id" length="36"/>
     <property name="workingDir" type="string" column="working_dir"/>
     <property name="outputEnvFilter" type="string" column="output_env_filter" length="50"/>
-    <property name="logPaths" type="com.flow.platform.cc.dao.adaptor.list.ListAdaptor" column="log_paths"/>
-    <property name="inputs" type="com.flow.platform.cc.dao.adaptor.MapAdaptor" column="inputs"/>
+    <property name="logPaths" type="com.flow.platform.core.dao.adaptor.list.ListAdaptor" column="log_paths"/>
+    <property name="inputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="inputs"/>
     <property name="webhook" type="string" column="webhook"/>
     <property name="extra" type="string" column="extra"/>
-
-    <property name="createdDate"
-      column="created_date"
-      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
-
-    <property name="updatedDate"
-      column="updated_date"
-      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
-
-    <property name="finishedDate"
-      column="finished_date"
-      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
-
+    <property name="createdDate" type="java.time.ZonedDateTime">
+      <column name="created_date" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+    <property name="updatedDate" type="java.time.ZonedDateTime" update="false">
+      <column name="updated_date" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    </property>
   </class>
 
   <!--for cmd result definition-->
@@ -58,27 +48,14 @@
       <generator class="assigned"/>
     </id>
 
-    <property name="processId" not-null="false" column="process_id"/>
-    <property name="exitValue" not-null="false" column="exit_value"/>
-    <property name="duration" not-null="false" column="duration"/>
-    <property name="totalDuration" not-null="false" column="total_duration"/>
-    <property name="startTime"
-      not-null="false"
-      column="start_time"
-      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
-
-    <property name="executedTime"
-      not-null="false"
-      column="executed_time"
-      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
-
-    <property name="finishTime"
-      not-null="false"
-      column="finish_time"
-      type="com.flow.platform.cc.dao.adaptor.ZonedDateTimeAdaptor"/>
-
-    <property name="output" not-null="false" type="com.flow.platform.cc.dao.adaptor.MapAdaptor" column="output"/>
-    <property name="exceptions" not-null="false" type="com.flow.platform.cc.dao.adaptor.list.ListThrowableAdaptor"
-      column="exceptions"/>
+    <property name="processId" column="process_id"/>
+    <property name="exitValue" column="exit_value"/>
+    <property name="duration" column="duration"/>
+    <property name="totalDuration" column="total_duration"/>
+    <property name="startTime" column="start_time"/>
+    <property name="executedTime" column="executed_time"/>
+    <property name="finishTime" column="finish_time"/>
+    <property name="output" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="output"/>
+    <property name="exceptions" type="com.flow.platform.core.dao.adaptor.list.ListThrowableAdaptor" column="exceptions"/>
   </class>
 </hibernate-mapping>

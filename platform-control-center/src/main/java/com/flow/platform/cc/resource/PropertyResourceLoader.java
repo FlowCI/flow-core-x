@@ -16,20 +16,18 @@
 
 package com.flow.platform.cc.resource;
 
-import java.io.IOException;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.io.support.ResourcePropertySource;
+import com.flow.platform.util.resource.AppResourceLoader;
 
 /**
  * @author gy@fir.im
  */
 public class PropertyResourceLoader extends AppResourceLoader {
 
-    private final static String ENV_FLOW_CONFIG_PATH = "FLOW_CONFIG_PATH";
+    private final static String ENV_FLOW_CONFIG_PATH = "FLOW_CC_CONFIG_PATH";
 
-    private final static String PROP_FLOW_CONFIG_PATH = "config.path";
+    private final static String PROP_FLOW_CONFIG_PATH = "flow.cc.config.path";
 
-    private final static String DEFAULT_CONFIG_PATH = "/etc/flow.ci/config/app.properties";
+    private final static String DEFAULT_CONFIG_PATH = "/etc/flow.ci/config/app-cc.properties";
 
     private final static String CLASSPATH = "app-test.properties";
 
@@ -58,16 +56,5 @@ public class PropertyResourceLoader extends AppResourceLoader {
     @Override
     public String getDefault() {
         return DEFAULT_CLASSPATH;
-    }
-
-    @Override
-    public void register(ConfigurableApplicationContext context) {
-        try {
-            context.getEnvironment()
-                .getPropertySources()
-                .addFirst(new ResourcePropertySource(find()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

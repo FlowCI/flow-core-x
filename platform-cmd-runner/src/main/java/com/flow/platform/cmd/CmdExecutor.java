@@ -25,9 +25,13 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author gy@fir.im
@@ -38,6 +42,7 @@ public final class CmdExecutor {
      * Class for null proc listener
      */
     private final class NullProcListener implements ProcListener {
+
         @Override
         public void onStarted(CmdResult result) {
 
@@ -62,6 +67,7 @@ public final class CmdExecutor {
      * Class for null log listener
      */
     private final class NullLogListener implements LogListener {
+
         @Override
         public void onLog(Log log) {
 
@@ -73,32 +79,53 @@ public final class CmdExecutor {
         }
     }
 
-    private final static File DEFAULT_WORKING_DIR = new File(System.getProperty("user.home"));
+    private final static File DEFAULT_WORKING_DIR = new File(
+        System.getProperty("user.home", System.getProperty("user.dir")));
 
-    private final CountDownLatch logLath = new CountDownLatch(1);
-    private final Queue<Log> loggingQueue = new LinkedList<>();
-    private final AtomicInteger loggingQueueSize = new AtomicInteger(0);
+    // process timeout in seconds, default is 2 hour
+    private final static Integer DEFAULT_TIMEOUT = new Integer(3600 * 2);
 
-    private final AtomicInteger stdCounter = new AtomicInteger(2); // std, stderr
+    // 1 mb buffer for std reader
+    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024 * 1;
+
+    private final static int DEFAULT_LOGGING_WAITTING_SECONDS = 30;
+
+    private final static int DEFAULT_SHUTDING_WATTING_SECONDS = 30;
+
+    private final ConcurrentLinkedQueue<Log> loggingQueue = new ConcurrentLinkedQueue<>();
+
     private final String endTerm = String.format("=====EOF-%s=====", UUID.randomUUID());
-    private final int bufferSize = 1024 * 1024 * 5; // 5 mb buffer
+
+    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(),
+        new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = Executors.defaultThreadFactory().newThread(r);
+                t.setDaemon(true);
+                return t;
+            }
+        }
+    );
+
+    private final CountDownLatch stdThreadCountDown = new CountDownLatch(2);
+    private final CountDownLatch logThreadCountDown = new CountDownLatch(1);
 
     private ProcessBuilder pBuilder;
     private ProcListener procListener = new NullProcListener();
     private LogListener logListener = new NullLogListener();
-    private Integer timeout = new Integer(3600 * 2); // process timeout in seconds, default is 2 hour
     private List<String> cmdList;
     private String outputEnvFilter;
     private CmdResult outputResult;
+    private Integer timeout;
 
     /**
-     * @param procListener    nullable
-     * @param logListener     nullable
-     * @param inputs          nullable input env
-     * @param workingDir      nullable, for set cmd working directory, default is user.dir
+     * @param procListener nullable
+     * @param logListener nullable
+     * @param inputs nullable input env
+     * @param workingDir nullable, for set cmd working directory, default is user.dir
      * @param outputEnvFilter nullable, for start_with env to cmd result output
-     * @param cmd             exec cmd
-     * @throws FileNotFoundException throw when working dir defined but not found
+     * @param cmd exec cmd
      */
     public CmdExecutor(final ProcListener procListener,
                        final LogListener logListener,
@@ -106,7 +133,7 @@ public final class CmdExecutor {
                        final String workingDir,
                        final String outputEnvFilter,
                        final Integer timeout,
-                       final String... cmd) throws FileNotFoundException {
+                       final List<String> cmds) {
 
         if (procListener != null) {
             this.procListener = procListener;
@@ -117,36 +144,51 @@ public final class CmdExecutor {
         }
 
         this.outputEnvFilter = outputEnvFilter;
-        cmdList = Lists.newArrayList(cmd);
-        pBuilder = new ProcessBuilder("/bin/bash");
+
+        this.cmdList = cmds;
+        this.pBuilder = new ProcessBuilder("/bin/bash").directory(DEFAULT_WORKING_DIR);
 
         // check and init working dir
-        if (workingDir == null) {
-            pBuilder.directory(DEFAULT_WORKING_DIR);
-        } else {
+        if (workingDir != null) {
             File dir = new File(workingDir);
             if (!dir.exists()) {
-                throw new FileNotFoundException(String.format("Cmd defined working dir '%s' not found", workingDir));
+                throw new IllegalArgumentException(String.format("Cmd defined working dir '%s' not found", workingDir));
             }
-            pBuilder.directory(dir);
+            this.pBuilder.directory(dir);
         }
 
         // init inputs env
         if (inputs != null && inputs.size() > 0) {
-            pBuilder.environment().putAll(inputs);
+            this.pBuilder.environment().putAll(inputs);
         }
 
         // init timeout
-        if (timeout != null) {
+        if (timeout == null) {
+            this.timeout = DEFAULT_TIMEOUT;
+        } else {
             this.timeout = timeout;
         }
     }
+
+    public CmdExecutor(final String workingDir, final List<String> cmds) {
+        this(null, null, null, workingDir, null, null, cmds);
+    }
+
+    public void setProcListener(ProcListener procListener) {
+        this.procListener = procListener;
+    }
+
+    public void setLogListener(LogListener logListener) {
+        this.logListener = logListener;
+    }
+
+
 
     public CmdResult run() {
         outputResult = new CmdResult();
 
         long startTime = System.currentTimeMillis();
-        outputResult.setStartTime(ZonedDateTime.now());
+        outputResult.setStartTime(DateUtil.now());
 
         try {
             Process p = pBuilder.start();
@@ -155,25 +197,15 @@ public final class CmdExecutor {
 
             procListener.onStarted(outputResult);
 
-            Thread cmdRun = new Thread(createCmdListExec(p.getOutputStream(), cmdList));
-            cmdRun.setDaemon(true);
+            // thread to send cmd list to bash
+            executor.execute(createCmdListExec(p.getOutputStream(), cmdList));
 
-            // thread to read stdout and stderr stream and enqueue
-            Thread stdout = new Thread(createStdStreamReader(Log.Type.STDOUT, p.getInputStream()));
-            stdout.setDaemon(true);
+            // thread to read stdout and stderr stream and put log to logging queue
+            executor.execute(createStdStreamReader(Log.Type.STDOUT, p.getInputStream()));
+            executor.execute(createStdStreamReader(Log.Type.STDERR, p.getErrorStream()));
 
-
-            Thread stderr = new Thread(createStdStreamReader(Log.Type.STDERR, p.getErrorStream()));
-            stderr.setDaemon(true);
-
-            // thread to make dequeue operation
-            Thread logging = new Thread(createCmdLoggingReader());
-            logging.setDaemon(true);
-
-            cmdRun.start();
-            stdout.start();
-            stderr.start();
-            logging.start();
+            // thread to make consume logging queue
+            executor.execute(createCmdLoggingReader());
 
             // wait for max process timeout
             if (p.waitFor(timeout.longValue(), TimeUnit.SECONDS)) {
@@ -182,23 +214,29 @@ public final class CmdExecutor {
                 outputResult.setExitValue(CmdResult.EXIT_VALUE_FOR_TIMEOUT);
             }
 
-            outputResult.setExecutedTime(ZonedDateTime.now());
+            outputResult.setExecutedTime(DateUtil.now());
+            procListener.onExecuted(outputResult);
             System.out.println(String.format("====== 1. Process executed : %s ======", outputResult.getExitValue()));
 
-            procListener.onExecuted(outputResult);
+            // wait for log thread with max 30 seconds to continue upload log
+            logThreadCountDown.await(DEFAULT_LOGGING_WAITTING_SECONDS, TimeUnit.SECONDS);
+            executor.shutdown();
 
-            logLath.await(30, TimeUnit.SECONDS); // wait max 30 seconds
-            outputResult.setFinishTime(ZonedDateTime.now());
+            // try to shutdown all threads with max 30 seconds waitting time
+            if (!executor.awaitTermination(DEFAULT_SHUTDING_WATTING_SECONDS, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
 
+            outputResult.setFinishTime(DateUtil.now());
             procListener.onLogged(outputResult);
 
-            System.out.println(String.format("====== 2. Logging executed : %s ======", logLath.getCount()));
+            System.out.println(String.format("====== 2. Logging executed ======"));
 
         } catch (Throwable e) {
             outputResult.getExceptions().add(e);
-            outputResult.setFinishTime(ZonedDateTime.now());
-
+            outputResult.setFinishTime(DateUtil.now());
             procListener.onException(outputResult);
+            e.printStackTrace();
         } finally {
             System.out.println("====== 3. Process Done ======");
         }
@@ -208,9 +246,6 @@ public final class CmdExecutor {
 
     /**
      * Get process id
-     *
-     * @param process
-     * @return
      */
     private int getPid(Process process) {
         try {
@@ -227,10 +262,6 @@ public final class CmdExecutor {
 
     /**
      * Make runnable to exec each cmd
-     *
-     * @param outputStream
-     * @param cmdList
-     * @return
      */
     private Runnable createCmdListExec(final OutputStream outputStream, final List<String> cmdList) {
 
@@ -251,7 +282,7 @@ public final class CmdExecutor {
                     }
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Exception on write cmd: " + e.getMessage());
                 }
             }
         };
@@ -263,7 +294,7 @@ public final class CmdExecutor {
             public void run() {
                 try {
                     while (true) {
-                        if (stdCounter.get() == 0 && loggingQueueSize.get() <= 0) {
+                        if (stdThreadCountDown.getCount() == 0 && loggingQueue.size() == 0) {
                             break;
                         }
 
@@ -275,12 +306,11 @@ public final class CmdExecutor {
                             }
                         } else {
                             logListener.onLog(log);
-                            loggingQueueSize.getAndDecrement();
                         }
                     }
                 } finally {
                     logListener.onFinish();
-                    logLath.countDown();
+                    logThreadCountDown.countDown();
                     System.out.println(" ===== Logging Reader Thread Finish =====");
                 }
             }
@@ -291,7 +321,7 @@ public final class CmdExecutor {
         return new Runnable() {
             @Override
             public void run() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is), bufferSize)) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is), DEFAULT_BUFFER_SIZE)) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (Objects.equals(line, endTerm)) {
@@ -302,12 +332,11 @@ public final class CmdExecutor {
                         }
 
                         loggingQueue.add(new Log(type, line));
-                        loggingQueueSize.getAndIncrement();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (IOException ignore) {
+
                 } finally {
-                    stdCounter.decrementAndGet();
+                    stdThreadCountDown.countDown();
                     System.out.println(String.format(" ===== %s Stream Reader Thread Finish =====", type));
                 }
             }
@@ -317,15 +346,10 @@ public final class CmdExecutor {
     /**
      * Start when find log match 'endTerm', and load all env,
      * put env item which match 'start with filter' to CmdResult.output map
-     *
-     * @param reader
-     * @param output
-     * @param filter
-     * @throws IOException
      */
     private void readEnv(final BufferedReader reader,
-                         final Map<String, String> output,
-                         final String filter) throws IOException {
+        final Map<String, String> output,
+        final String filter) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith(filter)) {

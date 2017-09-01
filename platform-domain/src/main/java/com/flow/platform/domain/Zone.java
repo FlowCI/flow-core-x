@@ -28,9 +28,13 @@ public class Zone extends Jsonable {
 
     /**
      * Zone name, unique
-     * Zone zk node path is /{root name}/{zone name}
      */
     private String name;
+
+    /**
+     * Zone zk node path is /{root name}/{zone name}
+     */
+    private String path;
 
     /**
      * Cloud provider for manager instance
@@ -86,6 +90,14 @@ public class Zone extends Jsonable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public String getCloudProvider() {

@@ -28,12 +28,12 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -55,6 +55,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private CmdService cmdService;
+
+    @Autowired
+    private CmdDispatchService cmdDispatchService;
 
     @Autowired
     private AgentDao agentDao;
@@ -84,12 +87,12 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Agent find(AgentPath key) {
-        return agentDao.find(key);
+        return agentDao.get(key);
     }
 
     @Override
     public Agent find(String sessionId) {
-        return agentDao.find(sessionId);
+        return agentDao.get(sessionId);
     }
 
     @Override
@@ -98,8 +101,21 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public List<Agent> onlineList(String zone) {
+    public List<Agent> listForOnline(String zone) {
         return agentDao.list(zone, "createdDate", AgentStatus.IDLE, AgentStatus.BUSY);
+    }
+
+    @Override
+    public List<Agent> list(String zone) {
+        if (Strings.isNullOrEmpty(zone)) {
+            return agentDao.list();
+        }
+        return listForOnline(zone);
+    }
+
+    @Override
+    public void save(Agent agent) {
+        agentDao.update(agent);
     }
 
     @Override
@@ -110,40 +126,6 @@ public class AgentServiceImpl implements AgentService {
         }
         exist.setStatus(status);
         agentDao.update(exist);
-    }
-
-    @Override
-    public String createSession(Agent agent) {
-        if (!agent.isAvailable()) {
-            return null;
-        }
-
-        String sessionId = UUID.randomUUID().toString();
-        agent.setSessionId(sessionId); // set session id to agent
-        agent.setSessionDate(ZonedDateTime.now());
-        agent.setStatus(AgentStatus.BUSY);
-        agentDao.update(agent);
-
-        return sessionId;
-    }
-
-    @Override
-    public void deleteSession(Agent agent) {
-        boolean hasCurrentCmd = false;
-        List<Cmd> agentCmdList = cmdService.listByAgentPath(agent.getPath());
-        for (Cmd cmdItem : agentCmdList) {
-            if (cmdItem.getType() == CmdType.RUN_SHELL && cmdItem.isCurrent()) {
-                hasCurrentCmd = true;
-                break;
-            }
-        }
-
-        if (!hasCurrentCmd) {
-            agent.setStatus(AgentStatus.IDLE);
-        }
-
-        agent.setSessionId(null); // release session from target
-        agentDao.update(agent);
     }
 
     @Override
@@ -168,11 +150,11 @@ public class AgentServiceImpl implements AgentService {
         ZonedDateTime now = DateUtil.utcNow();
 
         for (Zone zone : zoneService.getZones()) {
-            Collection<Agent> agents = onlineList(zone.getName());
+            Collection<Agent> agents = listForOnline(zone.getName());
             for (Agent agent : agents) {
                 if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
-                    CmdInfo cmdInfo = new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null);
-                    cmdService.send(cmdInfo);
+                    Cmd delSessionCmd = cmdService.create(new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null));
+                    cmdDispatchService.dispatch(delSessionCmd.getId(), false);
                     LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
                 }
             }

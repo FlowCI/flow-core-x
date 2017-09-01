@@ -2,6 +2,8 @@
 *.iml
 .DS_Store
 
+node_modules/
+apidoc/
 logs/
 target/
 pom.xml.tag

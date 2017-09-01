@@ -1,59 +1,89 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.agent.test;
 
 import com.flow.platform.agent.Config;
-import com.flow.platform.domain.AgentConfig;
-import com.flow.platform.util.zk.ZkLocalServer;
-import com.flow.platform.util.zk.ZkNodeHelper;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.server.ServerCnxnFactory;
+import com.flow.platform.domain.AgentSettings;
+import com.flow.platform.util.zk.ZKClient;
+import org.apache.curator.test.TestingServer;
+import org.apache.curator.utils.ZKPaths;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
 
 /**
- * Created by gy@fir.im on 25/05/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
 public class ConfigTest extends TestBase {
 
-    private static ZooKeeper zkClient;
-    private static ServerCnxnFactory zkFactory;
+    private final static String ROOT_PATH = "/flow-agents";
+
+    private static TestingServer server;
+
+    private ZKClient zkClient;
 
     @BeforeClass
-    public static void init() throws IOException, InterruptedException, KeeperException {
-        zkFactory = ZkLocalServer.start();
-        zkClient = new ZooKeeper("localhost:2181", 20000, null);
-        ZkNodeHelper.createNode(zkClient, "/flow-agents", ""); // create root node
+    public static void init() throws Throwable {
+        server = new TestingServer();
+        server.start();
+    }
+
+    @Before
+    public void before() throws Throwable {
+        zkClient = new ZKClient(server.getConnectString());
+        zkClient.start();
+
+        String path = zkClient.create(ROOT_PATH, null);
+        Assert.assertEquals(ROOT_PATH, path);
+        Assert.assertEquals(true, zkClient.exist(path));
     }
 
     @Test
     public void should_load_agent_config() throws IOException, InterruptedException {
         // given:
-        String loggingUrl = "http://localhost:3000/agent";
+        String wsUrl = "ws://localhost:8080/logging";
         String cmdStatusUrl = "http://localhost:8080/cmd/report";
         String cmdLogUrl = "http://localhost:8080/cmd/log/upload";
-        AgentConfig config = new AgentConfig(loggingUrl, cmdStatusUrl, cmdLogUrl);
+        AgentSettings config = new AgentSettings(wsUrl, cmdStatusUrl, cmdLogUrl);
 
         // when: create zone with agent config
-        String zonePath = "/flow-agents/ali";
-        ZkNodeHelper.createNode(zkClient, zonePath, config.toJson().getBytes()); // create zone node
-        Thread.sleep(500);
+        String zonePath = ZKPaths.makePath(ROOT_PATH, "ali");
+        zkClient.createEphemeral(zonePath, config.toBytes());
 
         // then:
-        Config.AGENT_CONFIG = Config.loadAgentConfig("localhost:2181", 20000, "ali", 5);
-        Assert.assertNotNull(Config.agentConfig());
-        Assert.assertEquals(loggingUrl, Config.agentConfig().getLoggingUrl());
-        Assert.assertEquals(cmdStatusUrl, Config.agentConfig().getCmdStatusUrl());
-        Assert.assertEquals(cmdLogUrl, Config.agentConfig().getCmdLogUrl());
+        Config.AGENT_SETTINGS = Config.loadAgentConfig(server.getConnectString(), "ali", 5);
+        Assert.assertNotNull(Config.agentSettings());
+        Assert.assertEquals(wsUrl, Config.agentSettings().getWebSocketUrl());
+        Assert.assertEquals(cmdStatusUrl, Config.agentSettings().getCmdStatusUrl());
+        Assert.assertEquals(cmdLogUrl, Config.agentSettings().getCmdLogUrl());
+    }
+
+    @After
+    public void after() throws Throwable {
+        zkClient.close();
     }
 
     @AfterClass
-    public static void done() throws KeeperException, InterruptedException {
-        zkFactory.closeAll();
-        zkFactory.shutdown();
+    public static void done() throws Throwable {
+        server.stop();
     }
 }

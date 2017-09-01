@@ -1,21 +1,40 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.agent;
 
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.*;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.utils.ZKPaths;
 
 /**
- * Created by gy@fir.im on 03/05/2017.
- * Copyright fir.im
+ * @author gy@fir.im
  */
-
-public class AgentManager implements Runnable, Watcher {
+public class AgentManager implements Runnable, TreeCacheListener {
 
     private final static Logger LOGGER = new Logger(AgentManager.class);
 
@@ -25,8 +44,7 @@ public class AgentManager implements Runnable, Watcher {
 
     private String zkHost;
     private int zkTimeout;
-    private ZooKeeper zk;
-    private ZkEventListener zkEventListener;
+    private ZKClient zkClient;
 
     private String zone; // agent running zone
     private String name; // agent name, can be machine name
@@ -34,35 +52,25 @@ public class AgentManager implements Runnable, Watcher {
     private String zonePath;    // zone path, /flow-agents/{zone}
     private String nodePath;    // zk node path, /flow-agents/{zone}/{name}
 
+    private List<Cmd> cmdHistory = new LinkedList<>();
+
     public AgentManager(String zkHost, int zkTimeout, String zone, String name) throws IOException {
         this.zkHost = zkHost;
         this.zkTimeout = zkTimeout;
 
-        this.zk = new ZooKeeper(zkHost, zkTimeout, this);
+        this.zkClient = new ZKClient(zkHost);
         this.zone = zone;
         this.name = name;
-
-        ZkPathBuilder pathBuilder = ZkPathBuilder.create(Config.ZK_ROOT).append(this.zone);
-        this.zonePath = pathBuilder.path();
-        pathBuilder.append(this.name);
-        this.nodePath = pathBuilder.path();
-
-        this.zkEventListener = new EventListener(); // using default event listener
-    }
-
-    /**
-     * Init AgentService with ZkEventListener
-     *
-     * @param listener the onDataChanged of ZkEventListener is async, run on thread
-     */
-    public AgentManager(String zkHost, int zkTimeout, String zone, String name,
-        ZkEventListener listener) throws IOException {
-        this(zkHost, zkTimeout, zone, name);
-        this.zkEventListener = listener; // using input listener
+        this.zonePath = ZKPaths.makePath(Config.ZK_ROOT, this.zone);
+        this.nodePath = ZKPaths.makePath(this.zonePath, this.name);
     }
 
     public String getNodePath() {
         return nodePath;
+    }
+
+    public List<Cmd> getCmdHistory() {
+        return cmdHistory;
     }
 
     /**
@@ -76,6 +84,10 @@ public class AgentManager implements Runnable, Watcher {
 
     @Override
     public void run() {
+        // init zookeeper
+        zkClient.start();
+        registerZkNodeAndWatch();
+
         synchronized (STATUS_LOCKER) {
             try {
                 STATUS_LOCKER.wait();
@@ -86,84 +98,57 @@ public class AgentManager implements Runnable, Watcher {
     }
 
     @Override
-    public void process(WatchedEvent event) {
-        LOGGER.trace("Agent receive zookeeper event %s", event.toString());
+    public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        ChildData eventData = event.getData();
 
-        try {
-            if (ZkEventHelper.isConnectToServer(event)) {
-                onConnected(event);
-                return;
-            }
+        if (event.getType() == Type.INITIALIZED) {
+            LOGGER.trace("========= Connected to zookeeper server =========");
+            return;
+        }
 
-            if (ZkEventHelper.isDataChangedOnPath(event, nodePath)) {
-                ZkNodeHelper.watchNode(zk, nodePath, this, 5);
-                onDataChanged(event);
-                return;
-            }
+        if (event.getType() == Type.NODE_ADDED) {
+            LOGGER.trace("========= Node been created: %s =========", eventData.getPath());
+            return;
+        }
 
-            if (ZkEventHelper.isDeletedOnPath(event, nodePath)) {
-                onDeleted(event);
-            }
-
-            if (ZkEventHelper.isSessionExpired(event)) {
-                onReconnect(event);
-            }
-        } catch (Throwable e) {
-            LOGGER.error("Unexpected error", e);
-
-            // TODO: to handle zookeeper exception for reconnection, delete only temp solution
-            onDeleted(event);
+        if (event.getType() == Type.NODE_UPDATED) {
+            onDataChanged(eventData.getPath());
+            return;
         }
     }
 
     /**
      * Force to exit current agent
      */
-    private void onDeleted(WatchedEvent event) {
+    private void onDeleted() {
         try {
-            if (zkEventListener != null) {
-                zkEventListener.onDeleted(event);
-            }
+            CmdManager.getInstance().shutdown(null);
+            LOGGER.trace("========= Agent been deleted =========");
+
             stop();
         } finally {
             Runtime.getRuntime().exit(1);
         }
     }
 
-    private void onConnected(WatchedEvent event) {
-        String path = register();
-        if (zkEventListener != null) {
-            zkEventListener.onConnected(event, path);
-        }
-    }
-
-    private void onDataChanged(WatchedEvent event) {
+    private void onDataChanged(String path) {
         final Cmd cmd;
 
         try {
-            final byte[] rawData = ZkNodeHelper.getNodeData(zk, nodePath, null);
-            cmd = Jsonable.parse(rawData, Cmd.class);
-
-            // fire onDataChanged in thread
-            if (zkEventListener != null) {
-                zkEventListener.onDataChanged(event, rawData);
+            final byte[] rawData = zkClient.getData(path);
+            if (rawData == null) {
+                LOGGER.warn("Zookeeper node data is null");
+                return;
             }
 
+            cmd = Jsonable.parse(rawData, Cmd.class);
+            cmdHistory.add(cmd);
+
+            LOGGER.trace("Received command: " + cmd.toString());
+            CmdManager.getInstance().execute(cmd);
         } catch (Throwable e) {
             LOGGER.error("Invalid cmd from server", e);
             // TODO: should report agent status directly...
-        } finally {
-            if (zkEventListener != null) {
-                zkEventListener.afterOnDataChanged(event);
-            }
-        }
-    }
-
-    private void onReconnect(WatchedEvent event) {
-        try {
-            this.zk = new ZooKeeper(zkHost, zkTimeout, this);
-        } catch (IOException e) {
-            LOGGER.error("Network failure while reconnect to zookeeper server", e);
         }
     }
 
@@ -173,33 +158,9 @@ public class AgentManager implements Runnable, Watcher {
      *
      * @return path of zookeeper or null if failure
      */
-    private String register() {
-        String path = ZkNodeHelper.createEphemeralNode(zk, nodePath, "");
-        ZkNodeHelper.watchNode(zk, nodePath, this, 5);
+    private String registerZkNodeAndWatch() {
+        String path = zkClient.createEphemeral(nodePath, null);
+        zkClient.watchTree(path, this);
         return path;
-    }
-
-    /**
-     * Class to handle customized zk event
-     */
-    private class EventListener extends ZkEventAdaptor {
-
-        @Override
-        public void onConnected(WatchedEvent event, String path) {
-            LOGGER.trace("========= Agent connected to server =========");
-        }
-
-        @Override
-        public void onDataChanged(WatchedEvent event, byte[] raw) {
-            Cmd cmd = Jsonable.parse(raw, Cmd.class);
-            LOGGER.trace("Received command: " + cmd.toString());
-            CmdManager.getInstance().execute(cmd);
-        }
-
-        @Override
-        public void onDeleted(WatchedEvent event) {
-            CmdManager.getInstance().shutdown(null);
-            LOGGER.trace("========= Agent been deleted =========");
-        }
     }
 }

@@ -27,13 +27,9 @@
     </dependency>
 
     <dependency>
-      <groupId>io.socket</groupId>
-      <artifactId>socket.io-client</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

@@ -20,9 +20,11 @@ import com.flow.platform.domain.CmdBase;
 import com.flow.platform.util.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
@@ -65,17 +67,19 @@ public final class CmdWebhookTask implements Runnable {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpEntity entity = new StringEntity(cmd.toJson());
             HttpPost post = new HttpPost(cmd.getWebhook());
+            post.addHeader("Content-Type", "application/json;charset=utf-8");
             post.setEntity(entity);
             CloseableHttpResponse response = httpclient.execute(post);
-
+            ResponseHandler<String> handler = new BasicResponseHandler();
+            LOGGER.trace("Cmd webhook response - %s", handler.handleResponse(response));
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200) {
                 LOGGER.trace("Cmd webhook been reported : %s, %s ", cmd, cmd.getWebhook());
                 return;
             }
 
-            LOGGER.trace("Cmd webhook response %s, retry %s after %s seconds",
-                statusCode, nextRetry, nextRetryWaitTime / 1000);
+            LOGGER.trace(
+                "Cmd webhook response %s, retry %s after %s seconds", statusCode, nextRetry, nextRetryWaitTime / 1000);
             shouldRetry = true;
         } catch (UnsupportedEncodingException | ClientProtocolException e) {
             // JSON data or http protocol exception, exit directly

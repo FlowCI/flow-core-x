@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.agent;
 
 import com.flow.platform.domain.CmdReport;
@@ -23,10 +39,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * To report
+ * For reporting status
  * <p>
- * Created by gy@fir.im on 25/05/2017.
- * Copyright fir.im
+ *
+ * @author gy@fir.im
  */
 public class ReportManager {
 
@@ -48,9 +64,7 @@ public class ReportManager {
     /**
      * Report cmd status with result in async
      */
-    public void cmdReport(final String cmdId,
-        final CmdStatus status,
-        final CmdResult result) {
+    public void cmdReport(final String cmdId, final CmdStatus status, final CmdResult result) {
         executor.execute(() -> {
             cmdReportSync(cmdId, status, result);
         });
@@ -59,9 +73,7 @@ public class ReportManager {
     /**
      * Report cmd status in sync
      */
-    public boolean cmdReportSync(final String cmdId,
-        final CmdStatus status,
-        final CmdResult result) {
+    public boolean cmdReportSync(final String cmdId, final CmdStatus status, final CmdResult result) {
         try {
             cmdReportSync(cmdId, status, result, 5);
             return true;
@@ -88,9 +100,9 @@ public class ReportManager {
     }
 
     private void cmdReportSync(final String cmdId,
-        final CmdStatus status,
-        final CmdResult result,
-        final int retry) throws IOException {
+                               final CmdStatus status,
+                               final CmdResult result,
+                               final int retry) throws IOException {
 
         if (!Config.isReportCmdStatus()) {
             LOGGER.trace("Cmd report toggle is disabled");
@@ -100,19 +112,18 @@ public class ReportManager {
         // build post body
         CmdReport postCmd = new CmdReport(cmdId, status, result);
 
-        String url = Config.agentConfig().getCmdStatusUrl();
+        String url = Config.agentSettings().getCmdStatusUrl();
         HttpPost post = new HttpPost(url);
 
         StringEntity entity = new StringEntity(postCmd.toJson(), ContentType.APPLICATION_JSON);
         post.setEntity(entity);
 
-        String successMsg = String.format("Fail to report cmd status to : %s", url);
-        String failMsg = String.format("Cmd %s report status %s", cmdId, status);
+        String successMsg = String.format("Cmd %s report status %s", cmdId, status);
+        String failMsg = String.format("Fail to report cmd status to : %s", url);
         httpSend(post, retry, successMsg, failMsg);
     }
 
-    private void cmdLogUploadSync(final String cmdId, final Path logPath, final int retry)
-        throws IOException {
+    private void cmdLogUploadSync(final String cmdId, final Path logPath, final int retry) throws IOException {
         if (!Config.isUploadLog()) {
             LOGGER.trace("Log upload toggle is disabled");
             return;
@@ -125,25 +136,28 @@ public class ReportManager {
             .setContentType(ContentType.MULTIPART_FORM_DATA)
             .build();
 
-        String url = Config.agentConfig().getCmdLogUrl();
+        String url = Config.agentSettings().getCmdLogUrl();
         HttpPost post = new HttpPost(url);
         post.setEntity(entity);
 
-        String successMsg = String.format("Fail to upload zipped cmd log to : %s ", url);
-        String failMsg = String.format("Zipped cmd log uploaded %s", logPath);
+        String successMsg = String.format("Zipped cmd log uploaded %s", logPath);
+        String failMsg = String.format("Fail to upload zipped cmd log to : %s ", url);
         httpSend(post, retry, successMsg, failMsg);
     }
 
     private static HttpResponse httpSend(final HttpUriRequest request,
-        final int retry,
-        final String successMsg,
-        final String failMsg) {
+                                         final int retry,
+                                         final String successMsg,
+                                         final String failMsg) {
+
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpResponse response = client.execute(request);
             int code = response.getStatusLine().getStatusCode();
             if (code != HttpStatus.SC_OK) {
                 throw new RuntimeException(failMsg);
             }
+
+            LOGGER.trace(successMsg);
             return response;
         } catch (Throwable e) {
             if (retry > 0) {

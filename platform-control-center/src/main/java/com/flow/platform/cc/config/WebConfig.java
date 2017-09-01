@@ -16,10 +16,11 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.cc.resource.AppResourceLoader;
 import com.flow.platform.cc.resource.PropertyResourceLoader;
+import com.flow.platform.core.http.converter.RawGsonMessageConverter;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.resource.AppResourceLoader;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.List;
@@ -71,6 +72,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setIgnoreResourceNotFound(Boolean.FALSE);
         configurer.setLocation(propertyLoader.find());
+
         return configurer;
     }
 
@@ -91,8 +93,9 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
 
         // add default json converter
-        GsonHttpMessageConverter jsonConverter = new GsonHttpMessageConverter();
+        RawGsonMessageConverter jsonConverter = new RawGsonMessageConverter();
         jsonConverter.setGson(gsonConfig());
+        jsonConverter.setIgnoreType(true);
         converters.add(jsonConverter);
     }
 

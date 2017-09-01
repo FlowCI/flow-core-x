@@ -1,43 +1,59 @@
+/*
+ * Copyright 2017 flow.ci
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flow.platform.agent;
 
 import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
-import com.flow.platform.domain.AgentConfig;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.Logger;
-import io.socket.client.IO;
-import io.socket.client.Socket;
-
+import com.google.common.base.Strings;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.*;
+import java.net.URI;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
+import org.glassfish.tyrus.client.ClientManager;
 
 /**
  * Record log to $HOME/agent-log/{cmd id}.out.zip
- * Send log via socket io if socket.io url provided
+ * Send log via web socket if real time log enabled and ws url provided
  * <p>
- * Created by gy@fir.im on 29/05/2017.
- * Copyright fir.im
+ *
+ * @author gy@fir.im
  */
 public class LogEventHandler implements LogListener {
 
     private final static Logger LOGGER = new Logger(LogEventHandler.class);
 
-    private final static String SOCKET_EVENT_TYPE = "agent-logging";
-    private final static int SOCKET_CONN_TIMEOUT = 10; // 10 seconds
-
     private final static Path DEFAULT_LOG_PATH = Config.logDir();
 
     private final Cmd cmd;
-    private final CountDownLatch initLatch = new CountDownLatch(1);
-
-    private Socket socket;
-    private boolean socketEnabled = false;
 
     private Path stdoutLogPath;
     private FileOutputStream stdoutLogStream;
@@ -46,6 +62,8 @@ public class LogEventHandler implements LogListener {
     private Path stderrLogPath;
     private FileOutputStream stderrLogStream;
     private ZipOutputStream stderrLogZipStream;
+
+    private Session wsSession;
 
     public LogEventHandler(Cmd cmd) {
         this.cmd = cmd;
@@ -57,27 +75,18 @@ public class LogEventHandler implements LogListener {
             LOGGER.error("Fail to init cmd log file", e);
         }
 
-        AgentConfig config = Config.agentConfig();
+        AgentSettings config = Config.agentSettings();
 
-        if (config == null || config.getLoggingUrl() == null) {
+        if (config == null || !Config.enableRealtimeLog() || Strings.isNullOrEmpty(config.getWebSocketUrl())) {
             return;
         }
 
-        // init socket io logging server
+        // init rabbit queue
         try {
-            socket = IO.socket(config.getLoggingUrl());
-            socket.on(Socket.EVENT_CONNECT, objects -> initLatch.countDown());
-            socket.connect();
-
-            // wait socket connection and set socket enable to true
-            initLatch.await(SOCKET_CONN_TIMEOUT, TimeUnit.SECONDS);
-            if (initLatch.getCount() <= 0 && socket.connected()) {
-                socketEnabled = true;
-                LOGGER.trace("Init socket io successfully : %s", config.getLoggingUrl());
-            }
-
-        } catch (URISyntaxException | InterruptedException e) {
-            LOGGER.error("Fail to connect socket io server: " + config.getLoggingUrl(), e);
+            initWebSocketSession(config.getWebSocketUrl(), 10);
+        } catch (Throwable warn) {
+            wsSession = null;
+            LOGGER.warn("Fail to web socket: " + config.getWebSocketUrl() + ": " + warn.getMessage());
         }
     }
 
@@ -85,7 +94,7 @@ public class LogEventHandler implements LogListener {
     public void onLog(Log log) {
         LOGGER.debug(log.toString());
 
-        writeSocketIo(log);
+        sendRealTimeLog(log);
 
         // write stdout & stderr
         writeZipStream(stdoutLogZipStream, log.getContent());
@@ -96,18 +105,24 @@ public class LogEventHandler implements LogListener {
         }
     }
 
-    private void writeSocketIo(Log log) {
-        if (socketEnabled) {
-            String format = socketIoLogFormat(log);
-            socket.emit(SOCKET_EVENT_TYPE, format);
-            LOGGER.debugMarker("SocketIO", "Message sent : %s", format);
+    private void sendRealTimeLog(Log log) {
+        if (wsSession == null) {
+            return;
+        }
+
+        try {
+            String format = websocketLogFormat(log);
+            wsSession.getBasicRemote().sendText(format);
+            LOGGER.debugMarker("Logging", "Message sent : %s", format);
+        } catch (Throwable e) {
+            LOGGER.warn("Fail to send real time log to queue");
         }
     }
 
     @Override
     public void onFinish() {
         // close socket io
-        closeSocketIo();
+        closeWebSocket();
 
         if (closeZipAndFileStream(stdoutLogZipStream, stdoutLogStream)) {
             renameAndUpload(stdoutLogPath, Log.Type.STDOUT);
@@ -118,10 +133,29 @@ public class LogEventHandler implements LogListener {
         }
     }
 
-    public String socketIoLogFormat(Log log) {
+    public String websocketLogFormat(Log log) {
         return String.format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
             log.getContent());
     }
+
+    private void initWebSocketSession(String url, int wsConnectionTimeout) throws Exception {
+        CountDownLatch wsLatch = new CountDownLatch(1);
+        ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+        ClientManager client = ClientManager.createClient();
+
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfig endpointConfig) {
+                wsSession = session;
+                wsLatch.countDown();
+            }
+        }, cec, new URI(url));
+
+        if (!wsLatch.await(wsConnectionTimeout, TimeUnit.SECONDS)) {
+            throw new TimeoutException("Web socket connection timeout");
+        }
+    }
+
 
     private void renameAndUpload(Path logPath, Log.Type logType) {
         // rename xxx.out.tmp to xxx.out.zip and renameAndUpload to server
@@ -136,14 +170,13 @@ public class LogEventHandler implements LogListener {
                 if (reportManager.cmdLogUploadSync(cmd.getId(), target) && Config.isDeleteLog()) {
                     Files.deleteIfExists(target);
                 }
-            } catch (IOException e) {
-                LOGGER.error("Exception while move update log name from temp", e);
+            } catch (IOException warn) {
+                LOGGER.warn("Exception while move update log name from temp: %s", warn.getMessage());
             }
         }
     }
 
-    private boolean closeZipAndFileStream(final ZipOutputStream zipStream,
-        final FileOutputStream fileStream) {
+    private boolean closeZipAndFileStream(final ZipOutputStream zipStream, final FileOutputStream fileStream) {
         try {
             if (zipStream != null) {
                 zipStream.flush();
@@ -165,15 +198,13 @@ public class LogEventHandler implements LogListener {
         return false;
     }
 
-    private void closeSocketIo() {
-        if (socket == null) {
-            return;
-        }
-
-        try {
-            socket.close();
-        } catch (Throwable e) {
-            LOGGER.error("Exception while close socket io", e);
+    private void closeWebSocket() {
+        if (wsSession != null) {
+            try {
+                wsSession.close();
+            } catch (IOException e) {
+                LOGGER.warn("Exception while close web socket session");
+            }
         }
     }
 
