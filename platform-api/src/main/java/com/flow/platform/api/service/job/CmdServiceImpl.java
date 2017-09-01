@@ -22,16 +22,15 @@ import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.util.HttpUtil;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -104,8 +103,20 @@ public class CmdServiceImpl implements CmdService {
             Cmd cmd = sendDirectly(cmdInfo);
             return cmd.getId();
         } catch (Throwable ignore) {
-            LOGGER.warnMarker("RunShell", "Unexpected exception", ignore);
+            String rootCause = ExceptionUtil.findRootCause(ignore).getMessage();
+            LOGGER.warnMarker("RunShell", "Unexpected exception", rootCause);
             return null;
+        }
+    }
+
+    @Override
+    public void shutdown(AgentPath path, String password) {
+        CmdInfo cmdInfo = new CmdInfo(path, CmdType.SHUTDOWN, password);
+        try {
+            sendDirectly(cmdInfo);
+        } catch (Throwable e) {
+            String rootCause = ExceptionUtil.findRootCause(e).getMessage();
+            throw new IllegalStatusException("Unable to shutdown since: " + rootCause);
         }
     }
 
