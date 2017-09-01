@@ -54,6 +54,7 @@ public class NodeServiceTest extends TestBase {
     @Test
     public void should_find_any_node() throws Throwable {
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        setFlowToReady(emptyFlow);
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
@@ -68,6 +69,7 @@ public class NodeServiceTest extends TestBase {
     public void should_create_node_by_yml() throws Throwable {
         // when: create empty flow and set special env for flow
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        setFlowToReady(emptyFlow);
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_SP_1", "111");
         flowEnv.put("FLOW_SP_2", "222");
@@ -106,6 +108,8 @@ public class NodeServiceTest extends TestBase {
     public void should_yml_not_found_status_when_create_node_tree_from_empty_yml() throws Throwable {
         // given:
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        setFlowToReady(emptyFlow);
+
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_YML_STATUS", "LOADING");
         nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
@@ -122,6 +126,8 @@ public class NodeServiceTest extends TestBase {
     public void should_yml_error_status_when_create_node_tree_from_incorrect_yml() throws Throwable {
         // given:
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        setFlowToReady(emptyFlow);
+
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_YML_STATUS", "LOADING");
         nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
@@ -163,6 +169,8 @@ public class NodeServiceTest extends TestBase {
     public void should_save_node_env() throws Throwable {
         // given:
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        setFlowToReady(emptyFlow);
+
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
         Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
@@ -207,6 +215,8 @@ public class NodeServiceTest extends TestBase {
     @Test(expected = YmlException.class)
     public void should_error_if_node_path_is_not_for_flow() throws Throwable {
         Flow emptyFlow = nodeService.createEmptyFlow("flow-name-not-same");
+        setFlowToReady(emptyFlow);
+
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
@@ -220,6 +230,8 @@ public class NodeServiceTest extends TestBase {
     @Test(expected = IllegalParameterException.class)
     public void should_delete_flow() throws Throwable {
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
+        setFlowToReady(emptyFlow);
+
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 

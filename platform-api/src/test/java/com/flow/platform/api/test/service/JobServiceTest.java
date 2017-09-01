@@ -16,6 +16,10 @@
 
 package com.flow.platform.api.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+
 import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
@@ -32,10 +36,12 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,17 +53,20 @@ public class JobServiceTest extends TestBase {
     @Autowired
     private JobNodeService jobNodeService;
 
+    @Before
+    public void init() {
+        stubDemo();
+    }
+
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
-        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Flow rootForFlow = nodeService.createEmptyFlow("flow1");
         jobService.createJob(rootForFlow.getPath());
     }
 
     @Test
     public void should_create_node_success() throws IOException {
-        stubDemo();
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
-        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Assert.assertNotNull(job.getId());
@@ -111,15 +120,17 @@ public class JobServiceTest extends TestBase {
     public void should_run_job_with_success_status() throws Throwable {
         // given:
         final String sessionId = "session-id-1";
-        stubDemo();
         Node root = createRootFlow("flow-run-job", "for_job_service_run_job.yaml");
-        setFlowToReady(root);
 
         // when: create job and job should be SESSION_CREATING
         Job job = jobService.createJob(root.getPath());
         Assert.assertNotNull(job);
         Assert.assertNotNull(job.getSessionId());
         Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
+
+        // then: check cmd request to create session
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
+        verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         // when: simulate cc callback for create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -173,6 +184,11 @@ public class JobServiceTest extends TestBase {
             Assert.assertEquals(NodeStatus.SUCCESS, stepResult.getStatus());
         }
 
+        // then: check num of cmd request to run shell, 5 steps + 1 del session requests
+        countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 6);
+        verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/send")));
+
+        // then: check job status
         job = jobService.find(job.getId());
         Assert.assertEquals(JobStatus.SUCCESS, job.getStatus());
         Assert.assertEquals(NodeStatus.SUCCESS, job.getResult().getStatus());
@@ -180,10 +196,7 @@ public class JobServiceTest extends TestBase {
 
     @Test
     public void should_stop_success() throws IOException {
-        stubDemo();
-
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
-        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
         Assert.assertNotNull(job.getSessionId());
 

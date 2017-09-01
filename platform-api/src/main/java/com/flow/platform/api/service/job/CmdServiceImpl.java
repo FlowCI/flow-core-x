@@ -74,7 +74,7 @@ public class CmdServiceImpl implements CmdService {
     }
 
     /**
-     * delete sessionId
+     * Delete job session
      */
     @Override
     public void deleteSession(Job job) {
@@ -82,7 +82,7 @@ public class CmdServiceImpl implements CmdService {
         cmdInfo.setSessionId(job.getSessionId());
 
         try {
-            LOGGER.traceMarker("DeleteSession", "sessionId - %s", job.getSessionId());
+            LOGGER.traceMarker("DeleteSession", "Send delete session for session id %s", job.getSessionId());
             sendDirectly(cmdInfo);
         } catch (UnsupportedEncodingException e) {
             LOGGER.warnMarker("DeleteSession", "Encoding error: %s", e.getMessage());
@@ -113,6 +113,7 @@ public class CmdServiceImpl implements CmdService {
     public void shutdown(AgentPath path, String password) {
         CmdInfo cmdInfo = new CmdInfo(path, CmdType.SHUTDOWN, password);
         try {
+            LOGGER.traceMarker("Shutdown", "Send shutdown for %s with pass '%s'", path, password);
             sendDirectly(cmdInfo);
         } catch (Throwable e) {
             String rootCause = ExceptionUtil.findRootCause(e).getMessage();

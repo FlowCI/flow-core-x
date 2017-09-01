@@ -35,7 +35,6 @@ public class NodeResultServiceTest extends TestBase {
     public void should_save_job_node_by_job() throws IOException {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Flow flow = (Flow) nodeService.find(job.getNodePath());

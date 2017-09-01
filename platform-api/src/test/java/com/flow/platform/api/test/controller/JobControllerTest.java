@@ -30,7 +30,6 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.domain.Jsonable;
 import java.util.HashMap;
 import java.util.Map;
-import jdk.nashorn.internal.scripts.JO;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.MediaType;
@@ -46,7 +45,6 @@ public class JobControllerTest extends TestBase {
     public void should_show_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Map<String, String> map = new HashMap<>();
@@ -77,7 +75,6 @@ public class JobControllerTest extends TestBase {
     public void should_stop_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        setFlowToReady(rootForFlow);
         Job job = jobService.createJob(rootForFlow.getPath());
 
         Map<String, String> map = new HashMap<>();

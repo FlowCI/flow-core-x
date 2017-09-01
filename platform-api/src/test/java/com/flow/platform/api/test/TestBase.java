@@ -136,6 +136,7 @@ public abstract class TestBase {
 
     public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
         Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+        setFlowToReady(emptyFlow);
         String yml = getResourceContent(ymlResourceName);
         return nodeService.createOrUpdate(emptyFlow.getPath(), yml);
     }
