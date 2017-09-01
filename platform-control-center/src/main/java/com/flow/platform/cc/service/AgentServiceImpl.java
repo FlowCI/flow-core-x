@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author gy@fir.im
  */
-@Service(value = "agentService")
+@Service
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 public class AgentServiceImpl implements AgentService {
 
