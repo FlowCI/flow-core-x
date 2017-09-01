@@ -87,12 +87,12 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public Agent find(AgentPath key) {
-        return agentDao.find(key);
+        return agentDao.get(key);
     }
 
     @Override
     public Agent find(String sessionId) {
-        return agentDao.find(sessionId);
+        return agentDao.get(sessionId);
     }
 
     @Override

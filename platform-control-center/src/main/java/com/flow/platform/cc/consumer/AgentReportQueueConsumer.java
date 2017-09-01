@@ -79,7 +79,7 @@ public class AgentReportQueueConsumer extends QueueConsumerBase<AgentPath> {
      */
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void reportOnline(AgentPath key) {
-        Agent exist = agentDao.find(key);
+        Agent exist = agentDao.get(key);
 
         // create new agent with idle status
         if (exist == null) {
