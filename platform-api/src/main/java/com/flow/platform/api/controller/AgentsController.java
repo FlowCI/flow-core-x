@@ -62,8 +62,7 @@ public class AgentsController {
     public List<AgentWithFlow> index(){
         return agentService.list();
     }
-
-
+    
     /**
      * @api {Post} /agents/shutdown shutdown
      * @apiName AgentShutdown
@@ -78,8 +77,9 @@ public class AgentsController {
      *      true or false
      */
     @PostMapping(path = "/shutdown")
-    public boolean shutDown(@RequestParam String zone, @RequestParam String name,
-        @RequestParam(required = false) String password) {
+    public boolean shutDown(@RequestParam String zone,
+                            @RequestParam String name,
+                            @RequestParam(required = false) String password) {
         if(Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name)){
             throw new IllegalParameterException("require zone or name not found");
         }
