@@ -73,7 +73,8 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author gy@fir.im
  */
-@Service(value = "cmdService")
+
+@Service
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 public class CmdServiceImpl implements CmdService {
 

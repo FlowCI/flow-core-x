@@ -14,36 +14,31 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.service;
+package com.flow.platform.cc.consumer;
 
+import com.flow.platform.cc.event.NoAvailableResourceEvent;
+import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.zk.ZKClient;
-import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
 
 /**
  * @author yang
  */
-@Service
-public class ZooKeeperServiceImpl implements ZooKeeperService {
+@Component
+public class NoAvailbleResourceEventHandler implements ApplicationListener<NoAvailableResourceEvent> {
 
-    private final static Logger LOGGER = new Logger(ZooKeeperService.class);
+    private final static Logger LOGGER = new Logger(NoAvailbleResourceEventHandler.class);
 
     @Autowired
-    private ZKClient client;
+    private ZoneService zoneService;
 
     @Override
-    public void start() {
-        // not start since ZKClient been started in zookeeper config
-    }
+    public void onApplicationEvent(NoAvailableResourceEvent event) {
+        String zone = event.getZone();
+        LOGGER.trace("Event received for zone: %s", zone);
 
-    @Override
-    public void stop() {
-        try {
-            client.close();
-        } catch (IOException e) {
-            LOGGER.warn("Fail to close zk client connection: %s", e.getMessage());
-        }
+        zoneService.keepIdleAgentTask();
     }
 }

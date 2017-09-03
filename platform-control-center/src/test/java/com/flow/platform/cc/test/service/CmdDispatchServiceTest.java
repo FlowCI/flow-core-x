@@ -16,7 +16,10 @@
 
 package com.flow.platform.cc.test.service;
 
+import static org.junit.Assert.fail;
+
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.cc.event.NoAvailableResourceEvent;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdDispatchService;
@@ -33,12 +36,15 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
 
 /**
  * @author yang
@@ -84,10 +90,17 @@ public class CmdDispatchServiceTest extends TestBase {
         Assert.assertEquals(cmd.getSessionId(), target.getSessionId());
     }
 
-    @Test(expected = AgentErr.NotAvailableException.class)
+    @Test
     public void should_raise_exception_if_create_session_again() throws Throwable {
         Cmd cmdToFail = cmdService.create(new CmdInfo(agentPath, CmdType.CREATE_SESSION, null));
-        cmdDispatchService.dispatch(cmdToFail.getId(), false);
+
+        // should throw agent not available exception
+        try {
+            cmdDispatchService.dispatch(cmdToFail.getId(), false);
+            fail();
+        } catch (Throwable e) {
+            Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
+        }
     }
 
     @Test

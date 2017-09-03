@@ -37,14 +37,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.ResourcePropertySource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.support.StandardServletEnvironment;
@@ -75,6 +79,9 @@ public class AppConfig extends AppConfigBase {
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
+    private final static ThreadPoolTaskExecutor executor =
+        ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100,THREAD_NAME_PREFIX);
+
     @PostConstruct
     public void init() {
         try {
@@ -84,9 +91,16 @@ public class AppConfig extends AppConfigBase {
         }
     }
 
+    @Bean(name = "applicationEventMulticaster")
+    public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
+        SimpleApplicationEventMulticaster eventMulticaster = new SimpleApplicationEventMulticaster();
+        eventMulticaster.setTaskExecutor(executor);
+        return eventMulticaster;
+    }
+
     @Bean
     protected ThreadPoolTaskExecutor taskExecutor() {
-        return ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
+        return executor;
     }
 
     /**
