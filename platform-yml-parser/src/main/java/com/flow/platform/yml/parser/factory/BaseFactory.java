@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.yml.parser;
+package com.flow.platform.yml.parser.factory;
 
+import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
 import com.flow.platform.yml.parser.util.TypeToken;
-import java.lang.reflect.Type;
 
 /**
- * @author yh@firim
+ * @author gyfirim
  */
-public class YmlParser {
-
-    public static <T> T fromObject(Object o, Type typeOfT) {
-        TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
-
-        return (T) TypeAdaptorFactory.getAdaptor(typeToken).read(o);
-    }
-
-    public static <T> Object toObject(T t) {
-        return null;
-    }
-
+public interface BaseFactory {
+    <T> BaseAdaptor<T> create(TypeToken<T> token);
 }

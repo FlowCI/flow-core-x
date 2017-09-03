@@ -16,7 +16,13 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
+import com.flow.platform.yml.parser.TypeAdaptorFactory;
+import com.flow.platform.yml.parser.factory.BaseFactory;
+import com.flow.platform.yml.parser.util.$Gson$Types;
 import com.flow.platform.yml.parser.util.ClazzUtil;
+import com.flow.platform.yml.parser.util.TypeToken;
+import com.sun.xml.internal.rngom.parse.host.Base;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,21 +30,52 @@ import java.util.List;
 /**
  * @author yh@firim
  */
-public class CollectionAdaptor extends TypeAdaptor {
+public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
 
-    @Override
-    public <T> void write(Object o, Class<T> clazz) {
+    public final static BaseFactory FACTORY = new BaseFactory() {
 
+        @Override
+        public <T> BaseAdaptor<T> create(TypeToken<T> typeToken) {
+            Type type = typeToken.getType();
+            Class<? super T> rawType = typeToken.getRawType();
+            if(!Collection.class.isAssignableFrom(rawType)){
+                return null;
+            }
+
+            Type elementType = $Gson$Types.getCollectionElementType(type, rawType);
+            BaseAdaptor<?> elementTypeAdapter = TypeAdaptorFactory.getAdaptor(TypeToken.get(elementType));
+
+            return new CollectionAdaptor(rawType, elementTypeAdapter);
+        }
+    };
+
+
+    private Class<E> componentClazz;
+
+    private BaseAdaptor<E> typeAdaptor;
+
+    public CollectionAdaptor(Class<E> componentClazz, BaseAdaptor<E> typeAdaptor) {
+        this.componentClazz = componentClazz;
+        this.typeAdaptor = typeAdaptor;
     }
 
     @Override
-    public <T> Object read(Object o, Class<T> clazz) {
-        List<T> list = new ArrayList<>();
+    public Object read(Object o) {
+        List<E> list = new ArrayList<>();
+
+//        ((Collection) o).forEach(action -> {
+//            list.add(ClazzUtil.build(action, componentClazz));
+//        });
 
         ((Collection) o).forEach(action -> {
-            list.add(ClazzUtil.build(action, clazz));
+            list.add(typeAdaptor.read(action));
         });
 
         return list;
+    }
+
+    @Override
+    public void write(Object o, Object object) {
+
     }
 }

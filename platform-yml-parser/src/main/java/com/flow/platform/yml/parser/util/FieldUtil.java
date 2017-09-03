@@ -18,6 +18,7 @@ package com.flow.platform.yml.parser.util;
 
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 

@@ -17,6 +17,7 @@
 package com.flow.platform.api.domain.node;
 
 import com.flow.platform.api.domain.EnvObject;
+import com.flow.platform.yml.parser.adaptor.CollectionAdaptor;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -43,6 +44,7 @@ public class Node<T extends Node> extends EnvObject {
 
     protected Node parent;
 
+    @YmlSerializer(required = false, name = "children")
     @SerializedName("steps")
     protected List<T> children = new LinkedList<>();
 

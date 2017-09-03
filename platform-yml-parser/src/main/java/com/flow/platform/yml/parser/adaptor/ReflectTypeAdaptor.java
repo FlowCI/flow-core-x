@@ -16,19 +16,44 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
+import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.ClazzUtil;
+import com.flow.platform.yml.parser.util.TypeToken;
 
 /**
  * @author yh@firim
  */
-public class ReflectTypeAdaptor extends TypeAdaptor {
+public class ReflectTypeAdaptor<E> extends BaseAdaptor<Object> {
 
-    @Override
-    public <T> void write(Object o, Class<T> clazz) {
+    public final static BaseFactory FACTORY = new BaseFactory() {
+
+        @Override
+        public <T> BaseAdaptor<T> create(TypeToken<T> token) {
+            Class<?> type = token.getRawType();
+
+            if (!Object.class.isAssignableFrom(type)) {
+                return null;
+            }
+            return new ReflectTypeAdaptor(type);
+        }
+    };
+
+    private Class<E> componentClazz;
+
+    public ReflectTypeAdaptor(Class<E> componentClazz) {
+        this.componentClazz = componentClazz;
     }
 
     @Override
-    public <T> Object read(Object o, Class<T> clazz) {
-        return ClazzUtil.build(o, clazz);
+    public Object read(Object o) {
+        // 假如o是Clazz的子类就直接赋值就行了
+        if(componentClazz.isAssignableFrom(o.getClass())){
+            return o;
+        }
+        return ClazzUtil.build(o, componentClazz);
+    }
+
+    @Override
+    public void write(Object o, Object object) {
     }
 }

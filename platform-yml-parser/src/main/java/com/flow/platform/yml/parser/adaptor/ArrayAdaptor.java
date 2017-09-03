@@ -17,7 +17,12 @@
 package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.TypeAdaptorFactory;
+import com.flow.platform.yml.parser.factory.BaseFactory;
+import com.flow.platform.yml.parser.util.$Gson$Types;
+import com.flow.platform.yml.parser.util.TypeToken;
 import java.lang.reflect.Array;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,24 +30,36 @@ import java.util.List;
 /**
  * @author yh@firim
  */
-public class ArrayAdaptor<E> extends TypeAdaptor {
+public class ArrayAdaptor<E> extends BaseAdaptor<Object> {
+
+    public final static BaseFactory FACTORY = new BaseFactory() {
+        @Override
+        public <T> BaseAdaptor<T> create(TypeToken<T> typeToken) {
+            Type type = typeToken.getType();
+            if (!(type instanceof GenericArrayType || type instanceof Class && ((Class<?>) type).isArray())) {
+                return null;
+            }
+            Type componentType = $Gson$Types.getArrayComponentType(type);
+            BaseAdaptor<?> componentTypeAdapter = TypeAdaptorFactory.getAdaptor(TypeToken.get(componentType));
+
+            return new ArrayAdaptor($Gson$Types.getRawType(componentType), componentTypeAdapter);
+        }
+    };
 
     private Class<E> componentType;
 
-    public ArrayAdaptor(Class<E> eClass) {
-        this.componentType = eClass;
+    private BaseAdaptor<E> baseAdaptor;
+
+    public ArrayAdaptor(Class<E> componentType, BaseAdaptor<E> baseAdaptor) {
+        this.componentType = componentType;
+        this.baseAdaptor = baseAdaptor;
     }
 
     @Override
-    public <T> void write(Object o, Class<T> clazz) {
-
-    }
-
-    @Override
-    public <T> Object read(Object o, Class<T> clazz) {
+    public Object read(Object o) {
         List<E> list = new ArrayList<>();
         ((Collection)o).forEach(action -> {
-            list.add((E) TypeAdaptorFactory.getTypeAdaptor(componentType).read(action, componentType));
+            list.add(baseAdaptor.read(action));
         });
 
         Object array = Array.newInstance(componentType, list.size());
@@ -50,5 +67,10 @@ public class ArrayAdaptor<E> extends TypeAdaptor {
             Array.set(array, i, list.get(i));
         }
         return array;
+    }
+
+    @Override
+    public void write(Object o, Object object) {
+
     }
 }

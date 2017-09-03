@@ -17,39 +17,69 @@
 package com.flow.platform.yml.parser;
 
 import com.flow.platform.yml.parser.adaptor.ArrayAdaptor;
+import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
+import com.flow.platform.yml.parser.adaptor.CollectionAdaptor;
 import com.flow.platform.yml.parser.adaptor.PrimitiveAdaptor;
 import com.flow.platform.yml.parser.adaptor.ReflectTypeAdaptor;
-import com.flow.platform.yml.parser.adaptor.TypeAdaptor;
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
+import com.flow.platform.yml.parser.factory.BaseFactory;
+import com.flow.platform.yml.parser.util.TypeToken;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author yh@firim
  */
 public class TypeAdaptorFactory {
 
-    public static TypeAdaptor getTypeAdaptor(YmlSerializer ymlSerializer) {
+//    public static TypeAdaptor getTypeAdaptor(YmlSerializer ymlSerializer) {
+//
+//        if (ymlSerializer.isPrimitive()) {
+//            return new PrimitiveAdaptor();
+//        } else {
+//            try {
+//                return (TypeAdaptor) ymlSerializer.adaptor().newInstance();
+//            } catch (InstantiationException e) {
+//                e.printStackTrace();
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return null;
+//    }
+//
+//    public static <T> TypeAdaptor getTypeAdaptor(T t) {
+//        if (((Class) t).isArray()) {
+//            return new ArrayAdaptor(((Class<?>) t).getComponentType());
+//        }
+//        if (Object.class.isAssignableFrom((Class<?>) t)) {
+//            return new ReflectTypeAdaptor();
+//        }
+//        return null;
+//    }
 
-        if (ymlSerializer.isPrimitive()) {
-            return new PrimitiveAdaptor();
-        } else {
-            try {
-                return (TypeAdaptor) ymlSerializer.adaptor().newInstance();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+    public static List<BaseFactory> factories = new ArrayList<>();
+
+    static {
+        factories.add(PrimitiveAdaptor.FACTORY);
+        factories.add(CollectionAdaptor.FACTORY);
+        factories.add(ArrayAdaptor.FACTORY);
+        factories.add(ReflectTypeAdaptor.FACTORY);
+    }
+
+
+    public static <T> BaseAdaptor getAdaptor(TypeToken<T> token) {
+        for (BaseFactory factory : factories) {
+            BaseAdaptor adaptor = factory.create(token);
+            if (adaptor != null) {
+                return adaptor;
             }
         }
-        return null;
+
+        throw new RuntimeException("Not found adaptor");
     }
 
-    public static <T> TypeAdaptor getTypeAdaptor(T t) {
-        if (((Class) t).isArray()) {
-            return new ArrayAdaptor(((Class<?>) t).getComponentType());
-        }
-        if (Object.class.isAssignableFrom((Class<?>) t)) {
-            return new ReflectTypeAdaptor();
-        }
-        return null;
-    }
+//    public static BaseAdaptor getTypeAdaptor(YmlSerializer ymlSerializer) {
+//        ymlSerializer.getClass();
+//        return null;
+//    }
 }
