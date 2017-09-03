@@ -63,10 +63,6 @@ public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
     public Object read(Object o) {
         List<E> list = new ArrayList<>();
 
-//        ((Collection) o).forEach(action -> {
-//            list.add(ClazzUtil.build(action, componentClazz));
-//        });
-
         ((Collection) o).forEach(action -> {
             list.add(typeAdaptor.read(action));
         });

@@ -35,31 +35,6 @@ public class ClazzUtil {
 
             T instance = clazz.newInstance();
 
-//            //过滤带有注释的field
-//            FieldUtil.filterAnnotationField(clazz).forEach((s, field) -> {
-//                // 获取 field 对应的值
-//                YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
-//
-//                Object obj = ((Map) o).get(getAnnotationMappingName(s, ymlSerializer));
-//
-//                // 必须的属性
-//                if (FieldUtil.requiredField(field)) {
-//                    if (obj == null) {
-//                        throw new RuntimeException("required field");
-//                    }
-//                }
-//
-//                if (obj != null) {
-//                    field.setAccessible(true);
-//                    try {
-//                        field.set(instance,
-//                            TypeAdaptorFactory.getAdaptor(field.getType()).read(obj));
-//                    } catch (IllegalAccessException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            });
-
             TypeToken<?> type = TypeToken.get(clazz);
             Class<?> raw = clazz;
 
@@ -68,12 +43,11 @@ public class ClazzUtil {
                 for (Field field : fields) {
                     // 获取 field 对应的值
                     YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
+                    Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
 
-                    if (ymlSerializer == null) {
+                    if (FieldUtil.noAnnotationField(field)) {
                         continue;
                     }
-
-                    Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
 
                     if (obj == null) {
                         continue;
@@ -85,6 +59,7 @@ public class ClazzUtil {
                             throw new RuntimeException("required field");
                         }
                     }
+
                     field.setAccessible(true);
                     Type fieldType = $Gson$Types.resolve(type.getType(), raw, field.getGenericType());
                     try {
@@ -98,32 +73,6 @@ public class ClazzUtil {
                 type = TypeToken.get($Gson$Types.resolve(type.getType(), raw, raw.getGenericSuperclass()));
                 raw = type.getRawType();
             }
-
-//            //过滤带有注释的方法
-//            MethodUtil.filterAnnotationMethods(clazz).forEach((s, method) -> {
-//                YmlSerializer ymlSerializer = method.getAnnotation(YmlSerializer.class);
-//                // 获取 field 对应的值
-//                Object obj = ((Map) o).get(getAnnotationMappingName(s, ymlSerializer));
-//
-//                // 必须的属性
-//                if (MethodUtil.requiredMethod(method)) {
-//                    if (obj == null) {
-//                        throw new RuntimeException("required field");
-//                    }
-//                }
-//
-//                if (obj != null) {
-//                    method.setAccessible(true);
-//                    try {
-//                        method.invoke(instance,
-//                            TypeAdaptorFactory.getAdaptor(ymlSerializer.value()).read(obj));
-//                    } catch (IllegalAccessException e) {
-//                        e.printStackTrace();
-//                    } catch (InvocationTargetException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            });
 
             return instance;
 
@@ -142,4 +91,5 @@ public class ClazzUtil {
             return ymlSerializer.name();
         }
     }
+
 }

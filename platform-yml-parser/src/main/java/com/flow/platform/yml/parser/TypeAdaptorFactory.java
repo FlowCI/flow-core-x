@@ -31,32 +31,6 @@ import java.util.List;
  */
 public class TypeAdaptorFactory {
 
-//    public static TypeAdaptor getTypeAdaptor(YmlSerializer ymlSerializer) {
-//
-//        if (ymlSerializer.isPrimitive()) {
-//            return new PrimitiveAdaptor();
-//        } else {
-//            try {
-//                return (TypeAdaptor) ymlSerializer.adaptor().newInstance();
-//            } catch (InstantiationException e) {
-//                e.printStackTrace();
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        return null;
-//    }
-//
-//    public static <T> TypeAdaptor getTypeAdaptor(T t) {
-//        if (((Class) t).isArray()) {
-//            return new ArrayAdaptor(((Class<?>) t).getComponentType());
-//        }
-//        if (Object.class.isAssignableFrom((Class<?>) t)) {
-//            return new ReflectTypeAdaptor();
-//        }
-//        return null;
-//    }
-
     public static List<BaseFactory> factories = new ArrayList<>();
 
     static {
@@ -78,8 +52,4 @@ public class TypeAdaptorFactory {
         throw new RuntimeException("Not found adaptor");
     }
 
-//    public static BaseAdaptor getTypeAdaptor(YmlSerializer ymlSerializer) {
-//        ymlSerializer.getClass();
-//        return null;
-//    }
 }

@@ -41,6 +41,15 @@ public class FieldUtil {
         return false;
     }
 
+    public static Boolean noAnnotationField(Field field){
+        YmlSerializer annotation = field.getAnnotation(YmlSerializer.class);
+        if(annotation == null){
+            return true;
+        }
+
+        return false;
+    }
+
     //过滤有标识的field
     public static Map<String, Field> filterAnnotationField(Class<?> clazz) {
         Map<String, Field> fieldMap = new HashMap<>();
