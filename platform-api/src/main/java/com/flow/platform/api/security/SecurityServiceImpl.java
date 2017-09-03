@@ -15,7 +15,6 @@
  */
 package com.flow.platform.api.security;
 
-import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.RolesPermissions;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.domain.user.UsersRoles;
@@ -39,7 +38,6 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Autowired
     private RolesPermissionsService rolesPermissionsService;
-
 
     @Override
     public boolean hasPermissions(User user, String action) {

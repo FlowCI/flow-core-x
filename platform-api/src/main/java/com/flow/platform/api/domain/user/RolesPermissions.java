@@ -22,7 +22,7 @@ import java.time.ZonedDateTime;
 /**
  * @author lhl
  */
-public class RolesPermissions extends Jsonable{
+public class RolesPermissions extends Jsonable {
 
     @Expose
     private RolePermissionKey rolePermissionKey;

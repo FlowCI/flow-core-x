@@ -17,7 +17,6 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.test.TestBase;
 import com.google.common.io.Files;
@@ -26,7 +25,6 @@ import java.io.IOException;
 import java.net.URL;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author yh@firim

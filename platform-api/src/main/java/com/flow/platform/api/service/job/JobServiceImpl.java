@@ -15,8 +15,8 @@
  */
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.dao.JobDao;
-import com.flow.platform.api.dao.NodeResultDao;
+import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.job.Job;

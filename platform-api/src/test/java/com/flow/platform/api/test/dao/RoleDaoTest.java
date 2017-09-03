@@ -25,13 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author lhl
  */
-public class RoleDaoTest extends TestBase{
+public class RoleDaoTest extends TestBase {
 
     @Autowired
     private RoleDao roleDao;
 
     @Test
-    public void should_create_role_success(){
+    public void should_create_role_success() {
         Role role = new Role();
         role.setName("test");
         role.setDescription("test desc");
@@ -43,7 +43,7 @@ public class RoleDaoTest extends TestBase{
     }
 
     @Test
-    public void should_update_role_success(){
+    public void should_update_role_success() {
         Role role = new Role();
         role.setName("test");
         role.setDescription("test desc");
@@ -55,7 +55,7 @@ public class RoleDaoTest extends TestBase{
     }
 
     @Test
-    public void should_delete_role_success(){
+    public void should_delete_role_success() {
         Role role = new Role();
         role.setName("test");
         role.setDescription("test desc");

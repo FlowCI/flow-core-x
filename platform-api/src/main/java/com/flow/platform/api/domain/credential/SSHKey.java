@@ -28,7 +28,6 @@ public class SSHKey extends Credential {
     @Expose
     protected String privateKey;
 
-
     public SSHKey(String name) {
         super(name);
     }

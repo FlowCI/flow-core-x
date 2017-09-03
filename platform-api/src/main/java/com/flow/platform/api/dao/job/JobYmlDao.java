@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
+package com.flow.platform.api.dao.job;
+
 import com.flow.platform.api.domain.job.JobYml;
-import com.flow.platform.core.dao.AbstractBaseDao;
+import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author lhl
  */
+public interface JobYmlDao extends BaseDao<BigInteger, JobYml> {
 
-@Repository(value = "jobYmlDao")
-public class JobYmlDaoImpl extends AbstractBaseDao<BigInteger, JobYml> implements JobYmlDao {
-
-    @Override
-    protected Class<JobYml> getEntityClass() {
-        return JobYml.class;
-    }
-
-    @Override
-    protected String getKeyName() {
-        return "jobId";
-    }
 }

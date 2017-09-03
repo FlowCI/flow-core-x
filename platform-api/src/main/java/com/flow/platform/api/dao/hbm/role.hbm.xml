@@ -7,10 +7,10 @@
   <class name="com.flow.platform.api.domain.user.Role" table="roles">
 
     <id name="id" type="integer">
-      <generator class="increment"></generator>
+      <generator class="increment"/>
     </id>
 
-    <property name="name" type="string" column="name"/>
+    <property name="name" type="string" column="name" unique="true" length="100"/>
     <property name="description" type="string" column="description"/>
     <property name="createBy" type="string" column="create_by"/>
 

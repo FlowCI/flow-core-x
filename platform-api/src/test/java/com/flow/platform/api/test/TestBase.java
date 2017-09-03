@@ -22,10 +22,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.dao.FlowDao;
-import com.flow.platform.api.dao.JobDao;
-import com.flow.platform.api.dao.JobYmlDao;
+import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.MessageSettingDao;
-import com.flow.platform.api.dao.NodeResultDao;
+import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.RolesPermissionsDao;
