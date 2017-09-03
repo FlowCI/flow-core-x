@@ -32,7 +32,7 @@ public class AgentPath implements Serializable {
     private String name;
 
     public AgentPath(String zone, String name) {
-        if (zone.contains(RESERVED_CHAR)) {
+        if (zone != null && zone.contains(RESERVED_CHAR)) {
             throw new IllegalArgumentException("Agent key not valid");
         }
 
@@ -66,12 +66,18 @@ public class AgentPath implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         AgentPath agentPath = (AgentPath) o;
 
-        if (!zone.equals(agentPath.zone)) return false;
+        if (!zone.equals(agentPath.zone)) {
+            return false;
+        }
         return name != null ? name.equals(agentPath.name) : agentPath.name == null;
     }
 

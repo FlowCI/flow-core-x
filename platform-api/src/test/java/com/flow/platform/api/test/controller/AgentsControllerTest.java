@@ -19,6 +19,7 @@ package com.flow.platform.api.test.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.test.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,6 +40,9 @@ public class AgentsControllerTest extends TestBase {
             .param("password", "123456");
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
-        Assert.assertEquals("true", result.getResponse().getContentAsString());
+        String contentAsString = result.getResponse().getContentAsString();
+
+        BooleanValue booleanValue = BooleanValue.parse(contentAsString, BooleanValue.class);
+        Assert.assertEquals(true, booleanValue.getValue());
     }
 }

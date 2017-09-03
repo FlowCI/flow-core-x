@@ -22,6 +22,7 @@ import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
+import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
@@ -59,6 +60,9 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private CmdService cmdService;
+
+    @Autowired
+    private CmdDispatchService cmdDispatchService;
 
     @Autowired
     private AgentService agentService;
@@ -107,7 +111,10 @@ public class CmdServiceTest extends TestBase {
     public void should_create_cmd() {
         // given:
         String zoneName = defaultZones.get(0).getName();
-        CmdInfo base = new CmdInfo(zoneName, "test-agent", CmdType.KILL, null);
+        String agentName = "test-agent";
+        agentDao.save(new Agent(zoneName, agentName));
+
+        CmdInfo base = new CmdInfo(zoneName, agentName, CmdType.KILL, null);
         base.setWebhook("http://hooks.com");
 
         // when:
@@ -124,6 +131,33 @@ public class CmdServiceTest extends TestBase {
         Assert.assertNotNull(loaded);
         Assert.assertEquals(cmd.getId(), loaded.getId());
         Assert.assertEquals(base.getWebhook(), cmd.getWebhook());
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_if_zone_not_present_for_create_session_cmd() {
+        CmdInfo cmdInfo = new CmdInfo(null, null, CmdType.CREATE_SESSION, null);
+        cmdService.create(cmdInfo);
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_if_zone_not_found_for_create_session_cmd() {
+        CmdInfo cmdInfo = new CmdInfo("not-found-zone", null, CmdType.CREATE_SESSION, null);
+        cmdService.create(cmdInfo);
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_if_agent_full_path_not_present_for_stop() {
+        String zoneName = defaultZones.get(0).getName();
+        CmdInfo cmdInfo = new CmdInfo(zoneName, null, CmdType.STOP, null);
+        cmdService.create(cmdInfo);
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_if_invalid_session_id() {
+        String zoneName = defaultZones.get(0).getName();
+        CmdInfo cmdInfo = new CmdInfo(zoneName, null, CmdType.RUN_SHELL, null);
+        cmdInfo.setSessionId("invalid-session-id");
+        cmdService.create(cmdInfo);
     }
 
     @Test
@@ -211,22 +245,22 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(500);
 
         // when: send cmd
-        Cmd cmd = cmdService.send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "test"));
+        Cmd cmd = send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "test"));
         cmd.setTimeout(600);
         Assert.assertTrue(cmd.isCurrent());
 
         // then: check should not timeout
-        Assert.assertEquals(false, cmdService.isTimeout(cmd));
+        Assert.assertEquals(false, cmd.isCmdTimeout());
 
         // when: mock cmd timeout
-        ZonedDateTime timeoutDate = ZonedDateTime.now().minusSeconds(cmd.getTimeout() + 10);
+        ZonedDateTime timeoutDate = ZonedDateTime.now().minusSeconds(cmd.getTimeout() + 100);
         cmd.setCreatedDate(timeoutDate);
         cmd.setStatus(CmdStatus.RUNNING);
         cmdDao.update(cmd);
 
         // then: should timeout and status should be TIMEOUT_KILL
-        Assert.assertEquals(true, cmdService.isTimeout(cmd));
-        cmdService.checkTimeoutTask();
+        Assert.assertEquals(true, cmd.isCmdTimeout());
+        cmdDispatchService.checkTimeoutTask();
         Thread.sleep(500); // wait for cmd status update queue to process
         Assert.assertEquals(CmdStatus.TIMEOUT_KILL, cmdService.find(cmd.getId()).getStatus());
     }
@@ -245,7 +279,7 @@ public class CmdServiceTest extends TestBase {
 
             // when: send cmd status and mock to report cmd status
             CmdInfo base = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, null);
-            Cmd current = cmdService.send(base);
+            Cmd current = send(base);
 
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
@@ -266,7 +300,7 @@ public class CmdServiceTest extends TestBase {
 
             // when: send cmd status and mock to report cmd status
             CmdInfo base = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, null);
-            Cmd current = cmdService.send(base);
+            Cmd current = send(base);
 
             Agent relatedAgent = agentService.find(base.getAgentPath());
             Assert.assertEquals(AgentStatus.BUSY, relatedAgent.getStatus());
@@ -299,32 +333,29 @@ public class CmdServiceTest extends TestBase {
 
         // when: send command
         CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
-        Cmd cmdInfo = cmdService.send(cmd);
+        Cmd cmdInfo = send(cmd);
 
-        // then:
-
-        // check cmd status
+        // then: check cmd status
         Assert.assertNotNull(cmdInfo.getId());
-        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.SENT));
+        Assert.assertEquals(CmdStatus.SENT, cmdInfo.getStatus());
         Assert.assertEquals(zoneName, cmdInfo.getZoneName());
         Assert.assertEquals(agentName, cmdInfo.getAgentName());
 
-        // check cmd been recorded
+        // then: check cmd been recorded
         Assert.assertTrue(cmdService.listByAgentPath(cmd.getAgentPath()).contains(cmdInfo));
 
-        // check agent status
+        // then: check agent status
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(cmd.getAgentPath()).getStatus());
 
-        // check zk node received the same cmd
+        // then: check zk node received the same cmd
         byte[] raw = zkClient.getData(agentPath);
         Cmd loaded = Jsonable.parse(raw, Cmd.class);
         Assert.assertEquals(cmdInfo, loaded);
-
         Thread.sleep(1000); // mock network delay
 
-        // when: send command again to the same agent
+        // when: send run shell cmd again to the same agent
         try {
-            cmdService.send(cmd);
+            send(cmd);
             fail();
         } catch (Throwable e) {
             Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
@@ -333,7 +364,7 @@ public class CmdServiceTest extends TestBase {
         // then:
         List<Cmd> cmdList = cmdService.listByAgentPath(cmd.getAgentPath());
         Assert.assertEquals(2, cmdList.size());
-        Assert.assertTrue(cmdList.get(1).getStatus().equals(CmdStatus.REJECTED));
+        Assert.assertEquals(CmdStatus.REJECTED, cmdList.get(1).getStatus());
     }
 
     @Test(expected = IllegalParameterException.class)
@@ -347,7 +378,7 @@ public class CmdServiceTest extends TestBase {
 
         // when: send shutdown command
         CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.SHUTDOWN, null);
-        cmdService.send(cmd);
+        send(cmd);
     }
 
     @Test
@@ -367,7 +398,7 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(2000);
 
         // report busy status
-        cmdService.send(new CmdInfo(agentBusy1, CmdType.RUN_SHELL, "echo \"hello\""));
+        send(new CmdInfo(agentBusy1, CmdType.RUN_SHELL, "echo \"hello\""));
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentBusy1).getStatus());
 
         // set idle agent 1 date, before idle agent 2
@@ -376,7 +407,7 @@ public class CmdServiceTest extends TestBase {
 
         // when: send cmd to zone
 
-        Cmd cmdForIdle1 = cmdService.send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
+        Cmd cmdForIdle1 = send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
 
         // then: should select agent idle 1 as target
         Assert.assertEquals(agentIdle1, cmdForIdle1.getAgentPath());
@@ -384,13 +415,13 @@ public class CmdServiceTest extends TestBase {
 
         // when: send cmd to make all agent to busy
 
-        Cmd cmdForIdle2 = cmdService.send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
+        Cmd cmdForIdle2 = send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
         Assert.assertEquals(agentIdle2, cmdForIdle2.getAgentPath());
         Assert.assertEquals(AgentStatus.BUSY, agentService.find(agentIdle2).getStatus());
 
         // then: should raise NotAvailableException
         try {
-            cmdService.send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
+            send(new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo \"hello\""));
             fail();
         } catch (Throwable e) {
             Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
@@ -405,7 +436,7 @@ public class CmdServiceTest extends TestBase {
 
         // then: send command immediately should raise AgentErr.NotFoundException
         CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
-        cmdService.send(cmd);
+        send(cmd);
     }
 
     @Test(expected = AgentErr.NotAvailableException.class)
@@ -419,10 +450,10 @@ public class CmdServiceTest extends TestBase {
         Thread.sleep(1000);
 
         CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
-        cmdService.send(cmd);
+        send(cmd);
 
         // then: send command to agent again should raise AgentErr.BusyException.class
-        cmdService.send(cmd);
+        send(cmd);
     }
 
     @Test
@@ -445,61 +476,9 @@ public class CmdServiceTest extends TestBase {
         Assert.assertTrue(Files.exists(Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename)));
     }
 
-    @Test
-    public void should_create_session_and_send_cmd_with_session() throws Throwable {
-        // given:
-        String zoneName = defaultZones.get(0).getName();
-        String agentName = "test-agent-006";
-        zkClient.createEphemeral(ZKHelper.buildPath(zoneName, agentName), null);
-        Thread.sleep(1000);
-
-        // when: send cmd for create agent session
-        Cmd cmd = cmdService.send(new CmdInfo(zoneName, agentName, CmdType.CREATE_SESSION, null));
-        Assert.assertNotNull(cmd.getSessionId());
-
-        // then: check agent is locked by session
-        Agent target = agentService.find(cmd.getAgentPath());
-        Assert.assertEquals(AgentStatus.BUSY, target.getStatus());
-        Assert.assertNotNull(target.getSessionId());
-        Assert.assertEquals(cmd.getSessionId(), target.getSessionId());
-
-        // when: send cmd to create agent session again should fail since agent not available
-        try {
-            cmdService.send(new CmdInfo(zoneName, agentName, CmdType.CREATE_SESSION, null));
-            fail();
-        } catch (Throwable e) {
-            Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
-        }
-
-        // when: send cmd with session id
-        CmdInfo cmdWithSession = new CmdInfo(zoneName, null, CmdType.RUN_SHELL, "echo hello");
-        cmdWithSession.setSessionId(target.getSessionId());
-        cmd = cmdService.send(cmdWithSession);
-
-        // then: check target is found correctly by session id
-        Agent sessionAgent = agentService.find(cmd.getAgentPath());
-        Assert.assertEquals(target, sessionAgent);
-        Assert.assertEquals(target.getSessionId(), sessionAgent.getSessionId());
-        Assert.assertEquals(AgentStatus.BUSY, sessionAgent.getStatus());
-        Assert.assertNotNull(sessionAgent.getSessionDate());
-
-        // then: mock cmd been executed
-        CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.LOGGED, new CmdResult(), true, true);
-        cmdService.updateStatus(statusItem, false);
-
-        // when: delete session
-        CmdInfo cmdToDelSession = new CmdInfo(zoneName, null, CmdType.DELETE_SESSION, null);
-        cmdToDelSession.setSessionId(cmd.getSessionId());
-        cmd = cmdService.send(cmdToDelSession);
-
-        // then: verify kill cmd been sent to agent
-        CmdInfo killCmd = CmdInfo.parse(zkClient.getData(ZKHelper.buildPath(zoneName, agentName)), CmdInfo.class);
-        Assert.assertNotNull(killCmd);
-        Assert.assertEquals(CmdType.KILL, killCmd.getType());
-
-        // then: verify agent status
-        Agent sessionShouldReleased = agentService.find(cmd.getAgentPath());
-        Assert.assertNull(sessionShouldReleased.getSessionId());
-        Assert.assertEquals(AgentStatus.IDLE, sessionShouldReleased.getStatus());
+    private Cmd send(CmdInfo info) {
+        Cmd cmd = cmdService.create(info);
+        cmdDispatchService.dispatch(cmd.getId(), false);
+        return cmdService.find(cmd.getId());
     }
 }

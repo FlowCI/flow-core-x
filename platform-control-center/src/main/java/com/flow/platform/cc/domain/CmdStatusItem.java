@@ -37,8 +37,11 @@ public class CmdStatusItem implements Serializable {
 
     private boolean callWebhook;
 
-    public CmdStatusItem(String cmdId, CmdStatus status, CmdResult cmdResult, boolean updateAgentStatus,
-        boolean callWebhook) {
+    public CmdStatusItem(String cmdId,
+                         CmdStatus status,
+                         CmdResult cmdResult,
+                         boolean updateAgentStatus,
+                         boolean callWebhook) {
         this.cmdId = cmdId;
         this.status = status;
         this.cmdResult = cmdResult;

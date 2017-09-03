@@ -20,14 +20,20 @@ import com.flow.platform.api.dao.JobDao;
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.util.PlatformURL;
-import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -50,6 +56,9 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private PlatformURL platformURL;
 
+    @Autowired
+    private CmdService cmdService;
+
     @Override
     public List<AgentWithFlow> list() {
         String res = HttpUtil.get(platformURL.getAgentUrl());
@@ -58,52 +67,51 @@ public class AgentServiceImpl implements AgentService {
         }
 
         Agent[] agents = Jsonable.GSON_CONFIG.fromJson(res, Agent[].class);
-        List<AgentWithFlow> agentWithFlows = new ArrayList<>();
-        List<String> sessionIds = new ArrayList<>();
-        for (Agent agent : agents) {
-            if (agent.getSessionId() != null) {
-                sessionIds.add(agent.getSessionId());
-            }
-        }
-        List<Job> jobs = new ArrayList<>();
-        if (!sessionIds.isEmpty()) {
+
+        // get all session id from agent collection
+        List<String> sessionIds = CollectionUtil.toPropertyList("sessionId", agents);
+
+        // get all running jobs from agent sessions
+        List<Job> jobs = new ArrayList<>(0);
+        if (!CollectionUtil.isNullOrEmpty(sessionIds)) {
             jobs = jobDao.list(sessionIds, NodeStatus.RUNNING);
         }
-        LOGGER.trace(String.format("Job length %s", jobs.size()));
 
+        // convert to session - job map
+        Map<String, Job> sessionJobMap = CollectionUtil.toPropertyMap("sessionId", jobs);
+        if (CollectionUtil.isNullOrEmpty(sessionJobMap)) {
+            sessionJobMap = new HashMap<>(0);
+        }
+
+        // build result list
+        List<AgentWithFlow> agentWithFlows = new ArrayList<>(agents.length);
         for (Agent agent : agents) {
-            Job job = matchJobBySessionId(jobs, agent.getSessionId());
+            String sessionIdFromAgent = agent.getSessionId();
+
+            if (Strings.isNullOrEmpty(sessionIdFromAgent)) {
+                agentWithFlows.add(new AgentWithFlow(agent, null));
+                continue;
+            }
+
+            Job job = sessionJobMap.get(sessionIdFromAgent);
+            if (job == null) {
+                agentWithFlows.add(new AgentWithFlow(agent, null));
+                continue;
+            }
+
             agentWithFlows.add(new AgentWithFlow(agent, job));
         }
         return agentWithFlows;
     }
 
-    private Job matchJobBySessionId(List<Job> jobs, String sessionId) {
-        Job j = null;
-        for (Job job : jobs) {
-            if (job.getSessionId().equals(sessionId)) {
-                j = job;
-                break;
-            }
-        }
-        return j;
-    }
-
     @Override
     public Boolean shutdown(String zone, String name, String password) {
-        String url = platformURL.getAgentShutdownUrl() + "?zone=" + zone + "&name=" + name + "&password=" + password;
-
-        Boolean flag;
         try {
-            String body = HttpUtil.post(url, "");
-            flag = Jsonable.GSON_CONFIG.fromJson(body, Boolean.class);
-        } catch (Throwable throwable) {
-            LOGGER.traceMarker("shutdown", String.format("exception - %s", throwable));
-            throw new IllegalParameterException(String.format("exception - %s", throwable));
+            cmdService.shutdown(new AgentPath(zone, name), password);
+            return true;
+        } catch (IllegalStatusException e) {
+            LOGGER.warnMarker("shutdown", "Illegal shutdown state : " + e.getMessage());
+            return false;
         }
-        if (flag == false) {
-            throw new IllegalParameterException("shut down machine error");
-        }
-        return flag;
     }
 }

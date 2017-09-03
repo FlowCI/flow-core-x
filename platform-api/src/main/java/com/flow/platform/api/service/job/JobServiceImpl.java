@@ -24,34 +24,28 @@ import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -195,7 +189,7 @@ public class JobServiceImpl implements JobService {
                     return;
                 }
 
-                LOGGER.warn(String.format("job not found, jobId: %s", jobId));
+                LOGGER.warn("job not found, jobId: %s", jobId);
                 throw new NotFoundException("job not found");
             }
 
@@ -213,7 +207,12 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        LOGGER.warn(String.format("not found cmdType, cmdType: %s", cmd.getType().toString()));
+        if (cmd.getType() == CmdType.DELETE_SESSION) {
+            LOGGER.trace("Session been deleted for job: %s", cmdQueueItem.getJobId());
+            return;
+        }
+
+        LOGGER.warn("not found cmdType, cmdType: %s", cmd.getType().toString());
         throw new NotFoundException("not found cmdType");
     }
 
@@ -236,9 +235,8 @@ public class JobServiceImpl implements JobService {
             return;
         }
 
-        // pass root env to child node
-        Node flow = tree.root();
-        EnvUtil.merge(flow, node, false);
+        // pass job env to node
+        EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
 
         String cmdId = cmdService.runShell(job, node);
         NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
@@ -253,7 +251,7 @@ public class JobServiceImpl implements JobService {
      */
     private void onCreateSessionCallback(Job job, Cmd cmd) {
         if (cmd.getStatus() != CmdStatus.SENT) {
-            LOGGER.warn(String.format("Create Session Error Session Status - %s", cmd.getStatus().getName()));
+            LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
             job.setStatus(JobStatus.ERROR);
             jobDao.update(job);
             return;
@@ -262,7 +260,7 @@ public class JobServiceImpl implements JobService {
         // run step
         NodeTree tree = jobNodeService.get(job.getId());
         if (tree == null) {
-            throw new NotFoundException(String.format("Cannot fond related node tree for job: %s", job.getId()));
+            throw new NotFoundException("Cannot fond related node tree for job: " + job.getId());
         }
 
         // start run flow
@@ -288,13 +286,19 @@ public class JobServiceImpl implements JobService {
             String rootPath = PathUtil.rootPath(path);
             NodeResult rootResult = nodeResultService.find(rootPath, job.getId());
 
+            // update job status
             updateJobStatus(job, rootResult);
             LOGGER.debug("The node tree '%s' been executed with %s status", rootPath, rootResult.getStatus());
+
+            // send to delete session
+            if (!nodeResult.isRunning()) {
+                cmdService.deleteSession(job);
+            }
             return;
         }
 
         // continue to run if on success status
-        if (nodeResult.isSucess()) {
+        if (nodeResult.isSuccess()) {
             run(next, job);
             return;
         }
@@ -315,7 +319,7 @@ public class JobServiceImpl implements JobService {
         try {
             cmdBaseBlockingQueue.put(cmdQueueItem);
         } catch (Throwable throwable) {
-            LOGGER.warnMarker("enterQueue", String.format("exception - %s", throwable));
+            LOGGER.warnMarker("enterQueue", "exception - %s", throwable);
         }
     }
 
@@ -339,8 +343,9 @@ public class JobServiceImpl implements JobService {
                 updateNodeResult(runningJob, NodeStatus.STOPPED);
                 updateJobStatus(runningJob, result);
             } catch (Throwable throwable) {
-                LOGGER.traceMarker("stopJob", String.format("stop job error - %s", throwable));
-                throw new IllegalParameterException(String.format("stop job error - %s", throwable));
+                String message = "stop job error - " + ExceptionUtil.findRootCause(throwable);
+                LOGGER.traceMarker("stopJob", message);
+                throw new IllegalParameterException(message);
             }
         }
 
@@ -352,7 +357,7 @@ public class JobServiceImpl implements JobService {
             job.setStatus(JobStatus.ERROR);
         }
 
-        if (rootResult.isSucess()) {
+        if (rootResult.isSuccess()) {
             job.setStatus(JobStatus.SUCCESS);
         }
 

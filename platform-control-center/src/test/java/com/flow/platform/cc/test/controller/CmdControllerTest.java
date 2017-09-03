@@ -95,6 +95,7 @@ public class CmdControllerTest extends TestBase {
 
         AgentPath path = new AgentPath(zone, agent);
         agentService.reportOnline(zone, Sets.newHashSet(agent));
+        Thread.sleep(1000);
 
         CmdInfo base = new CmdInfo(zone, agent, CmdType.STOP, null);
         Cmd cmd = cmdService.create(base);
@@ -118,12 +119,13 @@ public class CmdControllerTest extends TestBase {
     @Test
     public void should_send_cmd_to_agent() throws Throwable {
         // given:
-        String zoneName = "test-zone-02";
+        final String zoneName = "test-zone-02";
+        final String agentName = "act-002";
+        final String path = ZKHelper.buildPath(zoneName, agentName);
+
         zoneService.createZone(new Zone(zoneName, "mock-cloud-provider-name"));
         Thread.sleep(1000);
 
-        String agentName = "act-002";
-        String path = ZKHelper.buildPath(zoneName, agentName);
         zkClient.createEphemeral(path, null);
         Thread.sleep(1000);
 
@@ -133,11 +135,9 @@ public class CmdControllerTest extends TestBase {
         cmd.getInputs().put("FLOW_P_2", "flow-2");
         cmd.setWorkingDir("/user/flow");
 
-        gsonConfig.toJson(cmd);
-
         MockHttpServletRequestBuilder content = post("/cmd/send")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(gsonConfig.toJson(cmd));
+            .content(cmd.toJson());
 
         // then: check response data
         MvcResult result = this.mockMvc.perform(content)
@@ -147,7 +147,7 @@ public class CmdControllerTest extends TestBase {
 
         Cmd cmdInfo = gsonConfig.fromJson(result.getResponse().getContentAsString(), Cmd.class);
         Assert.assertNotNull(cmdInfo);
-        Assert.assertTrue(cmdInfo.getStatus().equals(CmdStatus.SENT));
+        Assert.assertEquals(CmdStatus.SENT, cmdInfo.getStatus());
         Assert.assertEquals(zoneName, cmdInfo.getZoneName());
         Assert.assertEquals(agentName, cmdInfo.getAgentName());
         Assert.assertEquals(agentName, agentService.find(cmdInfo.getAgentPath()).getName());

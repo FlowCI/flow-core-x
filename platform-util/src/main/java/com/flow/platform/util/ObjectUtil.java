@@ -53,7 +53,7 @@ public class ObjectUtil {
             Method method = getDeclaredMethod(aClass, setterMethodName, field);
             method.invoke(bean, convertType(field, value));
             return true;
-        } catch (Throwable e) {
+        } catch (ReflectiveOperationException e) {
             return false;
         }
     }
@@ -155,7 +155,7 @@ public class ObjectUtil {
 
                 notNullFields.put(field, value);
 
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            } catch (ReflectiveOperationException e) {
                 continue;
             }
         }
@@ -182,7 +182,7 @@ public class ObjectUtil {
         }
     }
 
-    private static String fieldNameForSetterGetter(String fieldName) {
+    public static String fieldNameForSetterGetter(String fieldName) {
         return Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     }
 }

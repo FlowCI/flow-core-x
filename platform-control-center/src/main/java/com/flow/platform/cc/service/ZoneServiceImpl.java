@@ -17,12 +17,14 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
+import com.flow.platform.cc.event.NoAvailableResourceEvent;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.cloud.InstanceManager;
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentSettings;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Instance;
@@ -48,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author gy@fir.im
  */
-@Service(value = "zoneService")
+@Service
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
@@ -59,6 +61,9 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
     @Autowired
     private CmdService cmdService;
+
+    @Autowired
+    private CmdDispatchService cmdDispatchService;
 
     @Autowired
     private AgentSettings agentSettings;
@@ -181,8 +186,8 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
                 Agent idleAgent = agentList.get(i);
 
                 // send shutdown cmd
-                CmdInfo cmdInfo = new CmdInfo(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci");
-                cmdService.send(cmdInfo);
+                Cmd shutdown = cmdService.create(new CmdInfo(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci"));
+                cmdDispatchService.dispatch(shutdown.getId(), false);
                 LOGGER.traceMarker("keepIdleAgentMaxSize", "Send SHUTDOWN to idle agent: %s", idleAgent);
 
                 // add instance to cleanup list

@@ -40,20 +40,12 @@ public interface AgentDao extends BaseDao<AgentPath, Agent> {
     List<Agent> list(String zone, String orderByField, AgentStatus... status);
 
     /**
-     * Find agent by path
-     *
-     * @param agentPath AgentPath object
-     * @return Agent instance
-     */
-    Agent find(AgentPath agentPath);
-
-    /**
      * Find agent by session id
      *
      * @param sessionId session id
      * @return Agent instance
      */
-    Agent find(String sessionId);
+    Agent get(String sessionId);
 
     /**
      * Batch update agent status by zone
