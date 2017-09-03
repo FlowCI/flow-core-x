@@ -18,16 +18,12 @@ package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.yml.parser.YmlParser;
 import com.google.common.io.Files;
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -47,15 +43,21 @@ public class YmlUtilTest extends TestBase{
 
         Flow flow = null;
         Flow[] flows;
-        try {
-            String ymlString = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
+        String ymlString = null;
+//        try {
+            try {
+                ymlString = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
+
+            }catch (Exception e){
+
+            }
             result = (Map) yaml.load(ymlString);
             Object o = result.get("flow");
 //            Object f = ((ArrayList)o).get(0);
             flows = YmlParser.fromObject(o, Flow[].class);
-        } catch (Throwable e) {
-            throw new YmlException("Illegal yml definition");
-        }
+//        } catch (Throwable e) {
+//            throw new YmlException("Illegal yml definition");
+//        }
 
 //        Step step = new Step("/flow1/step", "step");
 //        Step step1 = new Step("/flow1/step1", "step1");

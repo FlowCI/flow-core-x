@@ -43,11 +43,12 @@ public class ClazzUtil {
                 for (Field field : fields) {
                     // 获取 field 对应的值
                     YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
-                    Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
 
                     if (FieldUtil.noAnnotationField(field)) {
                         continue;
                     }
+
+                    Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
 
                     if (obj == null) {
                         continue;

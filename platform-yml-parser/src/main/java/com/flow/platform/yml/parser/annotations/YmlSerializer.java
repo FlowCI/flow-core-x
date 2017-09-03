@@ -33,13 +33,6 @@ public @interface YmlSerializer {
 
     public boolean required() default true;
 
-    public boolean isPrimitive() default true;
-
-    // class
-    public Class<?> value() default Void.class;
-
-    public Class<?> adaptor() default Void.class;
-
     public String name() default "";
 
 }
