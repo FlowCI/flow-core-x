@@ -18,6 +18,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.cc.event.NoAvailableResourceEvent;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +66,9 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
 
     @Autowired
     protected ZKClient zkClient;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     private final Map<CmdType, CmdHandler> handler = new HashMap<>(CmdType.values().length);
 
@@ -116,8 +121,9 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
             CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
             cmdService.updateStatus(statusItem, false);
 
-            // TODO: broadcast event
-//                zoneService.keepIdleAgentTask();
+            // broadcast NoAvailableResourceEvent with zone name
+            String zone = cmd.getAgentPath().getZone();
+            applicationEventPublisher.publishEvent(new NoAvailableResourceEvent(this, zone));
             throw e;
 
         } catch (NotExitException e) {

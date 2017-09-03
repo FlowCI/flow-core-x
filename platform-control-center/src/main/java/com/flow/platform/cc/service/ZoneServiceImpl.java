@@ -17,6 +17,7 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
+import com.flow.platform.cc.event.NoAvailableResourceEvent;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.cloud.InstanceManager;
 import com.flow.platform.core.context.ContextEvent;
@@ -49,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author gy@fir.im
  */
-@Service(value = "zoneService")
+@Service
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
