@@ -13,14 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao.user;
-
-import com.flow.platform.api.domain.user.Permission;
-import com.flow.platform.core.dao.BaseDao;
+package com.flow.platform.api.domain.user;
 
 /**
  * @author lhl
  */
-public interface PermissionDao extends BaseDao<String, Permission> {
+public enum ActionGroup {
 
+    DEFAULT("DEFAULT", 0),
+
+    SUPERADMIN("SUPERADMIN", 1),
+
+    ADMIN("ADMIN", 2),
+
+    MANAGER("MANAGER", 3),
+
+    USER("USER", 4);
+
+    private String name;
+
+    private int index;
+
+    ActionGroup(String name, int index) {
+        this.name = name;
+        this.index = index;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getIndex() {
+        return index;
+    }
 }

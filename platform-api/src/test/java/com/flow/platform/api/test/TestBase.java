@@ -26,7 +26,7 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
-import com.flow.platform.api.dao.user.PermissionDao;
+import com.flow.platform.api.dao.user.ActionDao;
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.RolesPermissionsDao;
 import com.flow.platform.api.dao.user.UserDao;
@@ -64,7 +64,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
 
 /**
  * @author yh@fir.im
@@ -121,7 +120,7 @@ public abstract class TestBase {
     protected RoleDao roleDao;
 
     @Autowired
-    protected PermissionDao permissionDao;
+    protected ActionDao actionDao;
 
     @Autowired
     protected UserRoleDao userRoleDao;
@@ -195,7 +194,7 @@ public abstract class TestBase {
         credentialStorageDao.deleteAll();
         messageSettingDao.deleteAll();
         roleDao.deleteAll();
-        permissionDao.deleteAll();
+        actionDao.deleteAll();
         userRoleDao.deleteAll();
         rolesPermissionsDao.deleteAll();
     }

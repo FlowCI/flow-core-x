@@ -4,15 +4,15 @@
   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.api.domain">
-  <class name="com.flow.platform.api.domain.user.Permission" table="permissions">
-    <id name="action" type="string" column="action" length="100"/>
+  <class name="com.flow.platform.api.domain.user.Action" table="action">
+    <id name="name" type="string" column="name" length="100"/>
 
-    <property name="name" type="string" column="name" length="100"/>
+    <property name="alias" type="string" column="alias" length="100"/>
     <property name="description" type="string" column="description"/>
 
     <property name="tag" column="tag" length="10" not-null="true">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">com.flow.platform.api.domain.user.GroupPermission</param>
+        <param name="enumClass">com.flow.platform.api.domain.user.ActionGroup</param>
         <param name="useNamed">true</param>
       </type>
     </property>

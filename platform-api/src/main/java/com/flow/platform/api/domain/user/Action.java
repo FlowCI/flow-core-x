@@ -21,13 +21,13 @@ import com.google.gson.annotations.Expose;
 /**
  * @author lhl
  */
-public class Permission extends CreateUpdateObject {
-
-    @Expose
-    private String action;
+public class Action extends CreateUpdateObject {
 
     @Expose
     private String name;
+
+    @Expose
+    private String alias;
 
     @Expose
     private String description;
@@ -36,7 +36,20 @@ public class Permission extends CreateUpdateObject {
     private String createBy;
 
     @Expose
-    private GroupPermission tag = GroupPermission.DEFAULT;
+    private ActionGroup tag = ActionGroup.DEFAULT;
+
+    public Action() {
+    }
+
+    public Action(String name) {
+        this.name = name;
+    }
+
+    public Action(String name, String alias, String description) {
+        this.name = name;
+        this.alias = alias;
+        this.description = description;
+    }
 
     public String getName() {
         return name;
@@ -44,6 +57,14 @@ public class Permission extends CreateUpdateObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
     public String getDescription() {
@@ -54,19 +75,11 @@ public class Permission extends CreateUpdateObject {
         this.description = description;
     }
 
-    public String getAction() {
-        return action;
-    }
-
-    public void setAction(String action) {
-        this.action = action;
-    }
-
-    public GroupPermission getTag() {
+    public ActionGroup getTag() {
         return tag;
     }
 
-    public void setTag(GroupPermission tag) {
+    public void setTag(ActionGroup tag) {
         this.tag = tag;
     }
 
@@ -87,22 +100,20 @@ public class Permission extends CreateUpdateObject {
             return false;
         }
 
-        Permission that = (Permission) o;
-
-        return action != null ? action.equals(that.action) : that.action == null;
+        Action action = (Action) o;
+        return name.equals(action.name);
     }
 
     @Override
     public int hashCode() {
-        return action != null ? action.hashCode() : 0;
+        return name.hashCode();
     }
 
     @Override
     public String toString() {
-        return "Permission{" +
-            "action='" + action + '\'' +
-            ", name='" + name + '\'' +
-            ", description='" + description + '\'' +
-            '}';
+        return "Action{" +
+            "name='" + name + '\'' +
+            ", alias='" + alias + '\'' +
+            "} ";
     }
 }

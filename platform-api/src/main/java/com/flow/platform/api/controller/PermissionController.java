@@ -15,10 +15,11 @@
  */
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.user.Permission;
-import com.flow.platform.api.service.user.PermissionService;
-import com.flow.platform.util.Logger;
+import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.service.user.ActionService;
+import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,29 +36,31 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/permissions")
 public class PermissionController {
 
-    private final static Logger LOGGER = new Logger(RoleController.class);
-
     @Autowired
-    private PermissionService permissionService;
+    private ActionService actionService;
 
     @GetMapping
-    public List<Permission> index() {
-        return permissionService.listPermissions();
+    public List<Action> index() {
+        return actionService.list();
     }
 
     @PostMapping
-    public Permission create(@RequestBody Permission permission){
-        return permissionService.create(permission);
+    public Action create(@RequestBody Action action){
+        return actionService.create(action);
     }
 
-    @GetMapping(path = "/{action}/delete")
+    @PostMapping(path = "/{action}/delete")
     public void delete(@PathVariable String action) {
-        permissionService.delete(action);
+        actionService.delete(action);
     }
 
     @PostMapping(path = "/{action}/update")
-    public Permission update(@RequestBody Permission permission){
-        return permissionService.update(permission);
-    }
+    public void update(@PathVariable String action, @RequestBody Action body){
+        if (Objects.equals(action, body.getName())) {
+            actionService.update(body);
+            return;
+        }
 
+        throw new IllegalParameterException("The action path doesn't match");
+    }
 }

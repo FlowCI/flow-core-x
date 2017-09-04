@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.dao.user;
 
-import com.flow.platform.api.domain.user.Permission;
+import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import org.springframework.stereotype.Repository;
 
@@ -23,17 +23,17 @@ import org.springframework.stereotype.Repository;
  * @author lhl
  */
 
-@Repository(value = "permissionDao")
-public class PermissoinDaoImpl extends AbstractBaseDao<String, Permission>  implements  PermissionDao{
+@Repository
+public class ActionDaoImpl extends AbstractBaseDao<String, Action>  implements ActionDao {
 
     @Override
-    protected Class<Permission> getEntityClass() {
-        return Permission.class;
+    protected Class<Action> getEntityClass() {
+        return Action.class;
     }
 
     @Override
     protected String getKeyName() {
-        return "action";
+        return "name";
     }
 
 }
