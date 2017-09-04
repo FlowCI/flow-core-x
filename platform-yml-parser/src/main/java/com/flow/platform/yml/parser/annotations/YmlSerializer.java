@@ -21,6 +21,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import sun.invoke.empty.Empty;
 
 /**
  * @author yh@firim
@@ -31,7 +32,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface YmlSerializer {
 
-    public boolean required() default true;
+    boolean required() default true;
 
-    public String name() default "";
+    String name() default "";
+
+    Class<?> adaptor() default Empty.class;
 }

@@ -17,6 +17,7 @@
 package com.flow.platform.yml.parser.util;
 
 import com.flow.platform.yml.parser.TypeAdaptorFactory;
+import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.flow.platform.yml.parser.exception.YmlException;
 import com.google.common.base.Strings;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import jdk.nashorn.internal.parser.TokenType;
+import sun.invoke.empty.Empty;
 
 /**
  * @author yh@firim
@@ -45,6 +47,7 @@ public class ClazzUtil {
             while (raw != Object.class) {
                 Field[] fields = raw.getDeclaredFields();
                 for (Field field : fields) {
+
                     // 获取 field 对应的值
                     YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
 
@@ -54,25 +57,22 @@ public class ClazzUtil {
 
                     Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
 
+                    // 必须的属性
+                    if (FieldUtil.requiredField(field)) {
+                        if (obj == null) {
+                            throw new YmlException("required field");
+                        }
+                    }
+
                     if (obj == null) {
                         continue;
                     }
 
-                    // 必须的属性
-                    if (FieldUtil.requiredField(field)) {
-                        if (obj == null) {
-                            throw new RuntimeException("required field");
-                        }
-                    }
-
                     field.setAccessible(true);
-                    Type fieldType = MethodUtil.getClazz(field, clazz);
-                    if (fieldType == null) {
-                        fieldType = field.getGenericType();
-                    }
+
                     try {
                         field.set(instance,
-                            TypeAdaptorFactory.getAdaptor(fieldType).read(obj));
+                            read(field, obj, clazz));
                     } catch (Throwable throwable) {
                         throw new YmlException("field set value error", throwable);
                     }
@@ -86,6 +86,31 @@ public class ClazzUtil {
         } catch (Throwable throwable) {
             throw new YmlException("ym error", throwable);
         }
+    }
+
+    public static Object read(Field field, Object obj, Class<?> clazz) {
+        YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
+
+        Type fieldType = MethodUtil.getClazz(field, clazz);
+        if (fieldType == null) {
+            fieldType = field.getGenericType();
+        }
+
+        if (ymlSerializer.adaptor() == Empty.class) {
+            return TypeAdaptorFactory.getAdaptor(fieldType).read(obj);
+        }
+
+        //采用 adaptor
+        if (ymlSerializer.adaptor() != Empty.class) {
+            try {
+                BaseAdaptor instance = (BaseAdaptor) ymlSerializer.adaptor().newInstance();
+                return instance.read(obj);
+            } catch (Throwable throwable) {
+                throw new YmlException("create instance adaptor", throwable);
+            }
+        }
+
+        return null;
     }
 
     public static <T> Object write(T clazz) {
@@ -106,12 +131,9 @@ public class ClazzUtil {
                     }
 
                     field.setAccessible(true);
-                    Type fieldType = MethodUtil.getClazz(field, clazz.getClass());
-                    if (fieldType == null) {
-                        fieldType = field.getGenericType();
-                    }
+
                     map.put(getAnnotationMappingName(field.getName(), ymlSerializer),
-                        TypeAdaptorFactory.getAdaptor(fieldType).write(field.get(clazz)));
+                        write(field, clazz));
                 }
 
                 raw = raw.getSuperclass();
@@ -120,6 +142,35 @@ public class ClazzUtil {
         } catch (Throwable throwable) {
             throw new YmlException("write yml error", throwable);
         }
+    }
+
+    public static <T> Object write(Field field, T t) {
+        YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
+
+        Type fieldType = MethodUtil.getClazz(field, t.getClass());
+        if (fieldType == null) {
+            fieldType = field.getGenericType();
+        }
+
+        if (ymlSerializer.adaptor() == Empty.class) {
+            try {
+                return TypeAdaptorFactory.getAdaptor(fieldType).write(field.get(t));
+            } catch (Throwable throwable) {
+                throw new YmlException("field get error", throwable);
+            }
+        }
+
+        //采用 adaptor
+        if (ymlSerializer.adaptor() != Empty.class) {
+            try {
+                BaseAdaptor instance = (BaseAdaptor) ymlSerializer.adaptor().newInstance();
+                return instance.write(field.get(t));
+            } catch (Throwable throwable) {
+                throw new YmlException("create instance adaptor", throwable);
+            }
+        }
+
+        return null;
     }
 
     private static String getAnnotationMappingName(String s, YmlSerializer ymlSerializer) {
