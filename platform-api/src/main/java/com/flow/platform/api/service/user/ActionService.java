@@ -32,6 +32,8 @@ public interface ActionService {
 
     /**
      * Create action by name, alias, and desc
+     *
+     * @throws com.flow.platform.core.exception.IllegalParameterException if action name not presented or existed
      */
     Action create(Action action);
 
@@ -44,6 +46,7 @@ public interface ActionService {
      * Delete action
      *
      * @param name action name
+     * @throws com.flow.platform.core.exception.IllegalParameterException if action name doesn't existed
      * @throws com.flow.platform.core.exception.IllegalStatusException if has role assigned to action
      */
     void delete(String name);
