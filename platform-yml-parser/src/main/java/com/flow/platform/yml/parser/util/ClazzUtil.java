@@ -18,6 +18,7 @@ package com.flow.platform.yml.parser.util;
 
 import com.flow.platform.yml.parser.TypeAdaptorFactory;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
+import com.flow.platform.yml.parser.exception.YmlException;
 import com.google.common.base.Strings;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -33,7 +34,7 @@ import jdk.nashorn.internal.parser.TokenType;
  */
 public class ClazzUtil {
 
-    public static <T> T build(Object o, Class<T> clazz) {
+    public static <T> T read(Object o, Class<T> clazz) {
 
         try {
 
@@ -66,14 +67,14 @@ public class ClazzUtil {
 
                     field.setAccessible(true);
                     Type fieldType = MethodUtil.getClazz(field, clazz);
-                    if(fieldType == null){
+                    if (fieldType == null) {
                         fieldType = field.getGenericType();
                     }
                     try {
                         field.set(instance,
                             TypeAdaptorFactory.getAdaptor(fieldType).read(obj));
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                    } catch (Throwable throwable) {
+                        throw new YmlException("field set value error", throwable);
                     }
                 }
 
@@ -82,12 +83,9 @@ public class ClazzUtil {
 
             return instance;
 
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (Throwable throwable) {
+            throw new YmlException("ym error", throwable);
         }
-        return null;
     }
 
 
@@ -110,7 +108,7 @@ public class ClazzUtil {
 
                     field.setAccessible(true);
                     Type fieldType = MethodUtil.getClazz(field, clazz.getClass());
-                    if(fieldType == null){
+                    if (fieldType == null) {
                         fieldType = field.getGenericType();
                     }
                     map.put(getAnnotationMappingName(field.getName(), ymlSerializer),
@@ -120,11 +118,9 @@ public class ClazzUtil {
                 raw = raw.getSuperclass();
             }
             return map;
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (Throwable throwable) {
+            throw new YmlException("write yml error", throwable);
         }
-
-        return null;
     }
 
     private static String getAnnotationMappingName(String s, YmlSerializer ymlSerializer) {

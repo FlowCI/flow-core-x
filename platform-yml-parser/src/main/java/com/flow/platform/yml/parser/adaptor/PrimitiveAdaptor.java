@@ -18,7 +18,6 @@ package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.TypeUtil;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -37,28 +36,24 @@ public class PrimitiveAdaptor<E> extends BaseAdaptor<Object> {
     }
 
 
-    public final static BaseFactory FACTORY = new BaseFactory() {
+    public final static BaseFactory FACTORY = type -> {
 
-        @Override
-        public BaseAdaptor create(Type type) {
+        Class<?> rawType = TypeUtil.getRawType(type);
 
-            Class<?> rawType = TypeUtil.getRawType(type);
-
-            // 判断是基本数据类型
-            if (rawType.isPrimitive()) {
-                return new PrimitiveAdaptor(rawType);
-            }
-
-            if(isWrapperType(rawType)){
-                return new PrimitiveAdaptor(rawType);
-            }
-
-            if(rawType == String.class){
-                return new PrimitiveAdaptor(rawType);
-            }
-
-            return null;
+        // 判断是基本数据类型
+        if (rawType.isPrimitive()) {
+            return new PrimitiveAdaptor(rawType);
         }
+
+        if(isWrapperType(rawType)){
+            return new PrimitiveAdaptor(rawType);
+        }
+
+        if(rawType == String.class){
+            return new PrimitiveAdaptor(rawType);
+        }
+
+        return null;
     };
 
     private Class<E> componentType;

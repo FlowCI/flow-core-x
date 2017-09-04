@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package com.flow.platform.yml.parser.factory;
-
-import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
-import java.lang.reflect.Type;
+package com.flow.platform.yml.parser.exception;
 
 /**
  * @author yh@firim
  */
-public interface BaseFactory {
-    BaseAdaptor create(Type type);
+public class YmlException extends RuntimeException{
+
+    public YmlException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public YmlException(String message) {
+        super(message);
+    }
 }

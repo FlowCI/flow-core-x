@@ -31,21 +31,13 @@ import java.util.List;
  */
 public class ArrayAdaptor<E> extends BaseAdaptor<Object> {
 
-    public final static BaseFactory FACTORY = new BaseFactory() {
-
-        @Override
-        public BaseAdaptor create(Type type) {
-            if (!(type instanceof GenericArrayType || type instanceof Class && ((Class<?>) type).isArray())) {
-                return null;
-            }
-
-            Type componentType = TypeUtil.getArrayComponentType(type);
-            BaseAdaptor<?> componentTypeAdapter = TypeAdaptorFactory.getAdaptor(componentType);
-
-            return new ArrayAdaptor(TypeUtil.getRawType(componentType), componentTypeAdapter);
-
+    public final static BaseFactory FACTORY = type -> {
+        if (!(type instanceof GenericArrayType || type instanceof Class && ((Class<?>) type).isArray())) {
+            return null;
         }
-
+        Type componentType = TypeUtil.getArrayComponentType(type);
+        BaseAdaptor<?> componentTypeAdapter = TypeAdaptorFactory.getAdaptor(componentType);
+        return new ArrayAdaptor(TypeUtil.getRawType(componentType), componentTypeAdapter);
     };
 
     private Class<E> componentType;
@@ -60,7 +52,7 @@ public class ArrayAdaptor<E> extends BaseAdaptor<Object> {
     @Override
     public Object read(Object o) {
         List<E> list = new ArrayList<>();
-        ((Collection)o).forEach(action -> {
+        ((Collection) o).forEach(action -> {
             list.add(baseAdaptor.read(action));
         });
 

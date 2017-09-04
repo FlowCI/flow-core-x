@@ -29,21 +29,16 @@ import java.util.List;
  */
 public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
 
-    public final static BaseFactory FACTORY = new BaseFactory() {
+    public final static BaseFactory FACTORY = type -> {
 
-        @Override
-        public BaseAdaptor create(Type type) {
-
-            Class<?> rawType = (Class<?>) TypeUtil.getRawType(type);
-            if(!Collection.class.isAssignableFrom(rawType)){
-                return null;
-            }
-
-            Type elementType = TypeUtil.getCollectionElementType(type);
-            BaseAdaptor<?> elementTypeAdapter = TypeAdaptorFactory.getAdaptor(elementType);
-
-            return new CollectionAdaptor(rawType, elementTypeAdapter);
+        Class<?> rawType = TypeUtil.getRawType(type);
+        if(!Collection.class.isAssignableFrom(rawType)){
+            return null;
         }
+
+        Type elementType = TypeUtil.getCollectionElementType(type);
+        BaseAdaptor<?> elementTypeAdapter = TypeAdaptorFactory.getAdaptor(elementType);
+        return new CollectionAdaptor(rawType, elementTypeAdapter);
     };
 
 

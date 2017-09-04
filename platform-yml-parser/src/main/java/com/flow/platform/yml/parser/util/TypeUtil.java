@@ -51,8 +51,6 @@ public class TypeUtil {
         return null;
     }
 
-
-
     public static Type getArrayComponentType(Type array) {
         return array instanceof GenericArrayType
             ? ((GenericArrayType) array).getGenericComponentType()

@@ -18,7 +18,6 @@ package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.TypeUtil;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,17 +27,13 @@ import java.util.Map;
  */
 public class MapAdaptor extends BaseAdaptor<Object> {
 
-    public final static BaseFactory FACTORY = new BaseFactory() {
+    public final static BaseFactory FACTORY = type -> {
+        Class<?> rawType = TypeUtil.getRawType(type);
 
-        @Override
-        public BaseAdaptor create(Type type) {
-            Class<?> rawType = TypeUtil.getRawType(type);
-
-            if (!Map.class.isAssignableFrom(rawType)) {
-                return null;
-            }
-            return new MapAdaptor();
+        if (!Map.class.isAssignableFrom(rawType)) {
+            return null;
         }
+        return new MapAdaptor();
     };
 
     @Override

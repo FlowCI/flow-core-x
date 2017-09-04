@@ -19,24 +19,19 @@ package com.flow.platform.yml.parser.adaptor;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.ClazzUtil;
 import com.flow.platform.yml.parser.util.TypeUtil;
-import java.lang.reflect.Type;
 
 /**
  * @author yh@firim
  */
 public class ReflectTypeAdaptor<E> extends BaseAdaptor<Object> {
 
-    public final static BaseFactory FACTORY = new BaseFactory() {
+    public final static BaseFactory FACTORY = type -> {
+        Class<?> rawType = TypeUtil.getRawType(type);
 
-        @Override
-        public BaseAdaptor create(Type type) {
-            Class<?> rawType = TypeUtil.getRawType(type);
-
-            if (!Object.class.isAssignableFrom(rawType)) {
-                return null;
-            }
-            return new ReflectTypeAdaptor(rawType);
+        if (!Object.class.isAssignableFrom(rawType)) {
+            return null;
         }
+        return new ReflectTypeAdaptor(rawType);
     };
 
     private Class<E> componentClazz;
@@ -47,7 +42,7 @@ public class ReflectTypeAdaptor<E> extends BaseAdaptor<Object> {
 
     @Override
     public Object read(Object o) {
-        return ClazzUtil.build(o, componentClazz);
+        return ClazzUtil.read(o, componentClazz);
     }
 
     @Override
