@@ -19,11 +19,14 @@ package com.flow.platform.yml.parser.adaptor;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.ClazzUtil;
 import com.flow.platform.yml.parser.util.TypeToken;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author yh@firim
  */
-public class ReflectTypeAdaptor<E> extends BaseAdaptor<Object> {
+public class MapAdaptor extends BaseAdaptor<Object> {
 
     public final static BaseFactory FACTORY = new BaseFactory() {
 
@@ -31,30 +34,21 @@ public class ReflectTypeAdaptor<E> extends BaseAdaptor<Object> {
         public <T> BaseAdaptor<T> create(TypeToken<T> token) {
             Class<?> type = token.getRawType();
 
-            if (!Object.class.isAssignableFrom(type)) {
+            if (!Map.class.isAssignableFrom(type)) {
                 return null;
             }
-            return new ReflectTypeAdaptor(type);
+            return (BaseAdaptor<T>) new MapAdaptor();
         }
     };
 
-    private Class<E> componentClazz;
-
-    public ReflectTypeAdaptor(Class<E> componentClazz) {
-        this.componentClazz = componentClazz;
-    }
-
     @Override
     public Object read(Object o) {
-//        // 假如o是Clazz的子类就直接赋值就行了
-//        if (componentClazz.isAssignableFrom(o.getClass())) {
-//            return o;
-//        }Flow.class
-        return ClazzUtil.build(o, componentClazz);
+        return o;
     }
 
     @Override
     public Object write(Object object) {
-        return ClazzUtil.write(object);
+        LinkedHashMap<String, String> linkedHashMap = new LinkedHashMap<>((HashMap)object);
+        return linkedHashMap;
     }
 }

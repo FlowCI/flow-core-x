@@ -76,7 +76,7 @@ public class PrimitiveAdaptor<E> extends BaseAdaptor<Object> {
     }
 
     @Override
-    public void write(Object o, Object object) {
-
+    public Object write(Object o) {
+        return o;
     }
 }

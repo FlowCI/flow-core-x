@@ -69,8 +69,16 @@ public class ArrayAdaptor<E> extends BaseAdaptor<Object> {
         return array;
     }
 
-    @Override
-    public void write(Object o, Object object) {
 
+    @Override
+    public Object write(Object array) {
+        List<Object> objects = new ArrayList<>();
+
+        for (int i = 0, length = Array.getLength(array); i < length; i++) {
+            E value = (E) Array.get(array, i);
+            objects.add(baseAdaptor.write(value));
+        }
+
+        return objects;
     }
 }

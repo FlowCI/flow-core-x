@@ -24,6 +24,7 @@ import com.flow.platform.yml.parser.YmlParser;
 import com.google.common.io.Files;
 import java.io.File;
 import java.net.URL;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -53,8 +54,17 @@ public class YmlUtilTest extends TestBase{
             }
             result = (Map) yaml.load(ymlString);
             Object o = result.get("flow");
-//            Object f = ((ArrayList)o).get(0);
+////            Object f = ((ArrayList)o).get(0);
             flows = YmlParser.fromObject(o, Flow[].class);
+//
+            Object toObject = YmlParser.toObject(flows);
+//
+//            String yml = yaml.dump(toObject);
+
+        Flow[] flow1 = YmlParser.fromYml(ymlString, Flow[].class);
+        String yml = YmlParser.toYml(flow1);
+
+        Flow[] flow2 = YmlParser.fromYml(yml, Flow[].class);
 //        } catch (Throwable e) {
 //            throw new YmlException("Illegal yml definition");
 //        }

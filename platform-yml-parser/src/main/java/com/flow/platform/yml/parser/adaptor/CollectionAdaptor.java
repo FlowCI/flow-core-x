@@ -71,7 +71,12 @@ public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
     }
 
     @Override
-    public void write(Object o, Object object) {
+    public Object write(Object object) {
+        List<Object> objects = new ArrayList<>();
+        for (E e : (Collection<E>) object) {
+            objects.add(typeAdaptor.write(e));
+        }
 
+        return objects;
     }
 }

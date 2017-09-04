@@ -19,6 +19,7 @@ package com.flow.platform.yml.parser;
 import com.flow.platform.yml.parser.adaptor.ArrayAdaptor;
 import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
 import com.flow.platform.yml.parser.adaptor.CollectionAdaptor;
+import com.flow.platform.yml.parser.adaptor.MapAdaptor;
 import com.flow.platform.yml.parser.adaptor.PrimitiveAdaptor;
 import com.flow.platform.yml.parser.adaptor.ReflectTypeAdaptor;
 import com.flow.platform.yml.parser.factory.BaseFactory;
@@ -34,6 +35,7 @@ public class TypeAdaptorFactory {
     public static List<BaseFactory> factories = new ArrayList<>();
 
     static {
+        factories.add(MapAdaptor.FACTORY);
         factories.add(PrimitiveAdaptor.FACTORY);
         factories.add(CollectionAdaptor.FACTORY);
         factories.add(ArrayAdaptor.FACTORY);

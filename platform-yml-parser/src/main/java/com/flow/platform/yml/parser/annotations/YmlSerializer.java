@@ -16,6 +16,8 @@
 
 package com.flow.platform.yml.parser.annotations;
 
+import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
+import com.flow.platform.yml.parser.factory.BaseFactory;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -35,4 +37,5 @@ public @interface YmlSerializer {
 
     public String name() default "";
 
+    //step.class Adaptor: CollctionAdaptor
 }

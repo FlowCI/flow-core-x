@@ -23,5 +23,5 @@ public abstract class BaseAdaptor<T>
 {
     public abstract T read(Object o);
 
-    public abstract void write(Object o, T t);
+    public abstract Object write(T t);
 }

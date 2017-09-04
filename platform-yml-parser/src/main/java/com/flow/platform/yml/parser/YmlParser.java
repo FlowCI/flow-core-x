@@ -18,6 +18,9 @@ package com.flow.platform.yml.parser;
 
 import com.flow.platform.yml.parser.util.TypeToken;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author yh@firim
@@ -31,7 +34,21 @@ public class YmlParser {
     }
 
     public static <T> Object toObject(T t) {
-        return null;
+        TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(t.getClass());
+        return TypeAdaptorFactory.getAdaptor(typeToken).write(t);
     }
 
+    public static <T> T fromYml(String str, Type typeOfT) {
+        Yaml yaml = new Yaml();
+        Map result = (Map) yaml.load(str);
+        return fromObject(result.get("flow"), typeOfT);
+    }
+
+    public static <T> String toYml(T t) {
+        Map<String, Object> map = new HashMap<>();
+        Object o = toObject(t);
+        map.put("flow", o);
+        Yaml yaml = new Yaml();
+        return yaml.dump(map);
+    }
 }
