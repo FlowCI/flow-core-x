@@ -29,7 +29,7 @@ public class ReflectTypeAdaptor<E> extends BaseAdaptor<Object> {
     public final static BaseFactory FACTORY = new BaseFactory() {
 
         @Override
-        public <T> BaseAdaptor<T> create(Type type) {
+        public BaseAdaptor create(Type type) {
             Class<?> rawType = TypeUtil.getRawType(type);
 
             if (!Object.class.isAssignableFrom(rawType)) {

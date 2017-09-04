@@ -16,7 +16,6 @@
 
 package com.flow.platform.yml.parser;
 
-import com.flow.platform.yml.parser.util.TypeToken;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,13 +27,10 @@ import org.yaml.snakeyaml.Yaml;
 public class YmlParser {
 
     public static <T> T fromObject(Object o, Type typeOfT) {
-//        TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
-
         return (T) TypeAdaptorFactory.getAdaptor(typeOfT).read(o);
     }
 
     public static <T> Object toObject(T t) {
-//        TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(t.getClass());
         return TypeAdaptorFactory.getAdaptor(t.getClass()).write(t);
     }
 

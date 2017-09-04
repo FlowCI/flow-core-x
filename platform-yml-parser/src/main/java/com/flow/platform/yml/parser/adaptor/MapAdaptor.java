@@ -31,13 +31,13 @@ public class MapAdaptor extends BaseAdaptor<Object> {
     public final static BaseFactory FACTORY = new BaseFactory() {
 
         @Override
-        public <T> BaseAdaptor<T> create(Type type) {
+        public BaseAdaptor create(Type type) {
             Class<?> rawType = TypeUtil.getRawType(type);
 
             if (!Map.class.isAssignableFrom(rawType)) {
                 return null;
             }
-            return (BaseAdaptor<T>) new MapAdaptor();
+            return new MapAdaptor();
         }
     };
 

@@ -32,9 +32,9 @@ public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
     public final static BaseFactory FACTORY = new BaseFactory() {
 
         @Override
-        public <T> BaseAdaptor<T> create(Type type) {
+        public BaseAdaptor create(Type type) {
 
-            Class<? super T> rawType = (Class<? super T>) TypeUtil.getRawType(type);
+            Class<?> rawType = (Class<?>) TypeUtil.getRawType(type);
             if(!Collection.class.isAssignableFrom(rawType)){
                 return null;
             }

@@ -36,6 +36,4 @@ public @interface YmlSerializer {
     public boolean required() default true;
 
     public String name() default "";
-
-    //step.class Adaptor: CollctionAdaptor
 }

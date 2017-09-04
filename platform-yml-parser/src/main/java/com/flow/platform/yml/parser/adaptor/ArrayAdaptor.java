@@ -34,7 +34,7 @@ public class ArrayAdaptor<E> extends BaseAdaptor<Object> {
     public final static BaseFactory FACTORY = new BaseFactory() {
 
         @Override
-        public <T> BaseAdaptor<T> create(Type type) {
+        public BaseAdaptor create(Type type) {
             if (!(type instanceof GenericArrayType || type instanceof Class && ((Class<?>) type).isArray())) {
                 return null;
             }
