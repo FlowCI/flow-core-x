@@ -32,14 +32,26 @@ public class RoleDaoTest extends TestBase {
 
     @Test
     public void should_create_role_success() {
+        // when:
         Role role = new Role();
         role.setName("test");
         role.setDescription("test desc");
         roleDao.save(role);
+        Assert.assertNotNull(role.getId());
 
+        // then: check find role by id
+        role = roleDao.get(role.getId());
+        Assert.assertNotNull(role.getCreatedAt());
+        Assert.assertNotNull(role.getCreatedAt());
         Assert.assertEquals("test", role.getName());
         Assert.assertEquals("test desc", role.getDescription());
-        Assert.assertEquals(1, roleDao.list().size());
+
+        // then: check find role by name
+        role = roleDao.get("test");
+        Assert.assertNotNull(role.getCreatedAt());
+        Assert.assertNotNull(role.getCreatedAt());
+        Assert.assertEquals("test", role.getName());
+        Assert.assertEquals("test desc", role.getDescription());
     }
 
     @Test

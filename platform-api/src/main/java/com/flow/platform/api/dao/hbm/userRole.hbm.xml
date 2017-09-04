@@ -4,9 +4,9 @@
   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.api.domain">
-  <class name="com.flow.platform.api.domain.user.UsersRoles" table="users_roles">
+  <class name="com.flow.platform.api.domain.user.UserRole" table="user_role">
 
-    <composite-id name="userRoleKey" class="com.flow.platform.api.domain.user.UserRoleKey">
+    <composite-id name="key" class="com.flow.platform.api.domain.user.UserRoleKey">
       <key-property name="roleId" type="integer" column="role_id"/>
       <key-property name="email" type="string" length="100" column="user_email"/>
     </composite-id>

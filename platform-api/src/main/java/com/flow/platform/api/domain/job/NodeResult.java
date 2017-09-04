@@ -18,6 +18,7 @@ package com.flow.platform.api.domain.job;
 
 import static com.flow.platform.api.domain.job.NodeStatus.*;
 
+import com.flow.platform.api.domain.CreateUpdateObject;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.math.BigInteger;
@@ -28,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NodeResult extends Jsonable {
+public class NodeResult extends CreateUpdateObject {
 
     public final static EnumSet<NodeStatus> RUNNING_STATUS = EnumSet.of(PENDING, RUNNING, ENQUEUE);
 
@@ -71,12 +72,6 @@ public class NodeResult extends Jsonable {
 
     private int order;
 
-    @Expose
-    private ZonedDateTime createdAt;
-
-    @Expose
-    private ZonedDateTime updatedAt;
-
     public NodeResult() {
     }
 
@@ -94,22 +89,6 @@ public class NodeResult extends Jsonable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public NodeResultKey getKey() {

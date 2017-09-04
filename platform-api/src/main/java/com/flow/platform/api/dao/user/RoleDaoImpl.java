@@ -36,4 +36,10 @@ public class RoleDaoImpl extends AbstractBaseDao<Integer, Role> implements RoleD
         return "id";
     }
 
+    @Override
+    public Role get(final String name) {
+        return execute(session -> session.createQuery("from Role r where r.name = ?", getEntityClass())
+            .setParameter(0, name)
+            .uniqueResult());
+    }
 }

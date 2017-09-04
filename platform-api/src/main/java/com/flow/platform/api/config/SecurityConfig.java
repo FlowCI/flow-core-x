@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.config;
 
-import com.flow.platform.api.security.MyUserDetailService;
+import com.flow.platform.api.security.UserSecurityService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -38,7 +38,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     @Bean
     public UserDetailsService userDetailsService() {
-        return new MyUserDetailService();
+        return new UserSecurityService();
     }
 
     @Override

@@ -30,7 +30,7 @@ import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.RolesPermissionsDao;
 import com.flow.platform.api.dao.user.UserDao;
-import com.flow.platform.api.dao.user.UsersRolesDao;
+import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
@@ -124,7 +124,7 @@ public abstract class TestBase {
     protected PermissionDao permissionDao;
 
     @Autowired
-    protected UsersRolesDao usersRolesDao;
+    protected UserRoleDao userRoleDao;
 
     @Autowired
     protected RolesPermissionsDao rolesPermissionsDao;
@@ -196,7 +196,7 @@ public abstract class TestBase {
         messageSettingDao.deleteAll();
         roleDao.deleteAll();
         permissionDao.deleteAll();
-        usersRolesDao.deleteAll();
+        userRoleDao.deleteAll();
         rolesPermissionsDao.deleteAll();
     }
 

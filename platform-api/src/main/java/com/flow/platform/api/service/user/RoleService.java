@@ -16,6 +16,7 @@
 package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.domain.user.Role;
+import com.flow.platform.api.domain.user.User;
 import java.util.List;
 
 /**
@@ -23,12 +24,44 @@ import java.util.List;
  */
 public interface RoleService {
 
-    Role create(Role role);
 
-    Role update(Role role);
+    Role find(String name);
 
-    void delete(String name);
+    /**
+     * Create role by name and desc
+     *
+     * @param role role unique name
+     * @param desc role description, can be null
+     */
+    Role create(String role, String desc);
 
-    List<Role> listRoles();
+    /**
+     * Update role name or desc
+     */
+    void update(Role role);
 
+    /**
+     * Delete role
+     */
+    void delete(String role);
+
+    /**
+     * List all roles
+     */
+    List<Role> list();
+
+    /**
+     * Assign user to role
+     */
+    void assign(User user, String role);
+
+    /**
+     * Un-assign a user form role
+     */
+    void unAssign(User user, String role);
+
+    /**
+     * List users for role
+     */
+    List<User> list(String role);
 }

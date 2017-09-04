@@ -30,7 +30,6 @@ public class UserDaoTest extends TestBase {
         user.setEmail("liangpengyv@fir.im");
         user.setUsername("liangpengyv");
         user.setPassword(StringEncodeUtil.encodeByMD5("liangpengyv", AppConfig.DEFAULT_CHARSET.name()));
-        user.setRoleId("developer");
         userDao.save(user);
     }
 
@@ -82,8 +81,6 @@ public class UserDaoTest extends TestBase {
 
     @Test
     public void should_switch_role_success() {
-        Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
-
         ZonedDateTime beforeUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
         List<String> emailList = new ArrayList<>();
         emailList.add("liangpengyv@fir.im");
@@ -95,7 +92,6 @@ public class UserDaoTest extends TestBase {
         userDao.switchUserRoleIdTo(emailList, "admin");
 
         ZonedDateTime afterUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
-        Assert.assertEquals("admin", userDao.get("liangpengyv@fir.im").getRoleId());
         Assert.assertTrue(beforeUpdateTime.isBefore(afterUpdateTime));
     }
 }

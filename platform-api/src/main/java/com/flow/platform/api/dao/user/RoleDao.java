@@ -23,4 +23,5 @@ import com.flow.platform.core.dao.BaseDao;
  */
 public interface RoleDao extends BaseDao<Integer, Role> {
 
+    Role get(String name);
 }

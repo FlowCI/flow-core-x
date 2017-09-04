@@ -50,14 +50,8 @@ public class CredentialController {
     @Autowired
     private CredentialService credentialService;
 
-//    @Autowired
-//    private SecurityService securityService;
-
     @Autowired
     private Path workspace;
-
-    //    @PreAuthorize("hasAnyRole('admin', 'user')")
-    //    @PreAuthorize(securityService.hasPermissions(User user, "index" ))
 
     /**
      * @api {Get} /credentials
@@ -108,7 +102,7 @@ public class CredentialController {
      * @api {Get} /credentials/:name
      * @apiName CredentialShow
      * @apiGroup Credentials
-     * @apiDescription get credential
+     * @apiDescription find credential
      *
      * @apiSuccessExample {json} Success-Response:
      *
@@ -205,7 +199,7 @@ public class CredentialController {
      * @api {Get} /credentials/:credentialType/list
      * @apiName CredentialTypeList
      * @apiGroup Credentials
-     * @apiDescription get credentials list by credentialType
+     * @apiDescription find credentials list by credentialType
      *
      * @apiSuccessExample {json} Success-Response:
      *

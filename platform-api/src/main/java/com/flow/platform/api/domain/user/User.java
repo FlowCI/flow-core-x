@@ -1,11 +1,11 @@
 package com.flow.platform.api.domain.user;
 
-import java.time.ZonedDateTime;
+import com.flow.platform.api.domain.CreateUpdateObject;
 
 /**
  * @author liangpengyv
  */
-public class User {
+public class User extends CreateUpdateObject {
 
     private String email;
 
@@ -15,11 +15,14 @@ public class User {
 
     private String flowAuth;
 
-    private String roleId;
+    public User(String email, String username, String password) {
+        this.email = email;
+        this.username = username;
+        this.password = password;
+    }
 
-    private ZonedDateTime createdAt;
-
-    private ZonedDateTime updatedAt;
+    public User() {
+    }
 
     public String getEmail() {
         return email;
@@ -53,36 +56,31 @@ public class User {
         this.flowAuth = flowAuth;
     }
 
-    public String getRoleId() {
-        return roleId;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        User user = (User) o;
+
+        return email != null ? email.equals(user.email) : user.email == null;
     }
 
-    public void setRoleId(String roleId) {
-        this.roleId = roleId;
+    @Override
+    public int hashCode() {
+        return email != null ? email.hashCode() : 0;
     }
 
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public User(String email, String username, String password) {
-        this.email = email;
-        this.username = username;
-        this.password = password;
-    }
-
-    public User() {
+    @Override
+    public String toString() {
+        return "User{" +
+            "email='" + email + '\'' +
+            ", username='" + username + '\'' +
+            ", password='" + password + '\'' +
+            "} ";
     }
 }

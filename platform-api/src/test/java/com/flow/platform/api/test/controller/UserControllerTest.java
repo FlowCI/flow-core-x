@@ -34,7 +34,6 @@ public class UserControllerTest extends TestBase {
         user.setEmail("liangpengyv@fir.im");
         user.setUsername("liangpengyv");
         user.setPassword("liangpengyv");
-        user.setRoleId("developer");
         userService.register(user);
         user.setPassword("liangpengyv");
     }
@@ -133,14 +132,11 @@ public class UserControllerTest extends TestBase {
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
         MvcResult mvcResult;
 
-        Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
-
         // update success: response 200; userinfo is updated from database
         requestContent = "{ \"emailList\" : [ \"liangpengyv@fir.im\" ], \"switchTo\" : \"admin\" }";
         mockHttpServletRequestBuilder = post("/user/role/switch").contentType(MediaType.APPLICATION_JSON).content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         mvcResult.getResponse().getContentAsString();
-        Assert.assertEquals("admin", userDao.get("liangpengyv@fir.im").getRoleId());
 
         // update failed: response 500; return error description message
         requestContent = "abcdefg";

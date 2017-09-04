@@ -16,56 +16,105 @@
 package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.dao.user.RoleDao;
+import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.user.Role;
+import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.domain.user.UserRole;
+import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.util.CollectionUtil;
+import com.google.common.base.Strings;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author lhl
  */
 
-@Service(value = "roleService")
+@Service
+@Transactional
 public class RoleServiceImpl implements RoleService {
+
+    @Autowired
+    private UserDao userDao;
 
     @Autowired
     private RoleDao roleDao;
 
-    @Override
-    public List<Role> listRoles() {
-        return roleDao.list();
-    }
+    @Autowired
+    private UserRoleDao userRoleDao;
 
     @Override
-    public Role create(Role role) {
-        if (findRoleByName(role.getName()) != null) {
-            throw new IllegalParameterException(String.format("name is already present"));
-        } else {
-            roleDao.save(role);
-            return role;
+    public Role find(String name) {
+        Role role = roleDao.get(name);
+        if (role == null) {
+            throw new IllegalParameterException(String.format("The name of role '%s' is doesn't existed", name));
         }
-    }
-
-    @Override
-    public Role update(Role role) {
-        roleDao.update(role);
         return role;
     }
 
     @Override
+    public Role create(String name, String desc) {
+        if (Strings.isNullOrEmpty(name)) {
+            throw new IllegalParameterException("The name of role must be provided");
+        }
+
+        Role role = roleDao.get(name);
+        if (role != null) {
+            throw new IllegalParameterException("The name of role is already presented");
+        }
+
+        return roleDao.save(new Role(name, desc));
+    }
+
+    @Override
+    public void update(Role role) {
+        roleDao.update(role);
+    }
+
+    @Override
     public void delete(String name) {
-        Role role = findRoleByName(name);
+        Role role = find(name);
+        Long numOfUser = userRoleDao.numOfUser(role.getId());
+
+        if (numOfUser > 0L) {
+            final String err = String.format("Cannot delete role '%s' since has '%s' assigned", name, numOfUser);
+            throw new IllegalStatusException(err);
+        }
+
         roleDao.delete(role);
     }
 
-    private Role findRoleByName(String name) {
-        for (Role role : roleDao.list()) {
-            if (role.getName().equals(name)) {
-                return role;
-            }
-        }
-        return null;
+    @Override
+    public List<Role> list() {
+        return roleDao.list();
     }
 
+    @Override
+    public void assign(User user, String role) {
+        Role roleObj = find(role);
+        UserRole userRole = new UserRole(roleObj.getId(), user.getEmail());
+        userRoleDao.save(userRole);
+    }
+
+    @Override
+    public void unAssign(User user, String role) {
+        Role roleObj = find(role);
+        UserRole userRole = userRoleDao.get(new UserRoleKey(roleObj.getId(), user.getEmail()));
+        if (userRole != null) {
+            userRoleDao.delete(userRole);
+        }
+    }
+
+    @Override
+    public List<User> list(String role) {
+        Role roleObj = find(role);
+        List<String> userEmails = userRoleDao.list(roleObj.getId());
+        return userDao.list(userEmails);
+    }
 }

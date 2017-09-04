@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.domain.user;
 
+import com.flow.platform.api.domain.CreateUpdateObject;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
@@ -22,59 +23,37 @@ import java.time.ZonedDateTime;
 /**
  * @author lhl
  */
-public class UsersRoles extends Jsonable {
+public class UserRole extends CreateUpdateObject {
 
     @Expose
-    private UserRoleKey userRoleKey;
+    private UserRoleKey key;
 
-    @Expose
-    private ZonedDateTime createdAt;
-
-    @Expose
-    private ZonedDateTime updatedAt;
-
-    public UserRoleKey getUserRoleKey() {
-        return userRoleKey;
+    public UserRoleKey getKey() {
+        return key;
     }
 
-    public void setUserRoleKey(UserRoleKey userRoleKey) {
-        this.userRoleKey = userRoleKey;
+    public void setKey(UserRoleKey key) {
+        this.key = key;
     }
 
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
+    public UserRole() {
     }
 
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public UsersRoles() {
-    }
-
-    public UsersRoles(Integer roleId, String email) {
+    public UserRole(Integer roleId, String email) {
         this(new UserRoleKey(roleId, email));
     }
 
-    public UsersRoles(UserRoleKey userRoleKey) {
-        this.userRoleKey = userRoleKey;
+    public UserRole(UserRoleKey userRoleKey) {
+        this.key = userRoleKey;
     }
 
 
     public Integer getRoleId() {
-        return this.userRoleKey.getRoleId();
+        return this.key.getRoleId();
     }
 
     public String getEmail() {
-        return this.userRoleKey.getEmail();
+        return this.key.getEmail();
     }
 
     @Override
@@ -86,20 +65,20 @@ public class UsersRoles extends Jsonable {
             return false;
         }
 
-        UsersRoles that = (UsersRoles) o;
+        UserRole that = (UserRole) o;
 
-        return userRoleKey.equals(that.userRoleKey);
+        return key.equals(that.key);
     }
 
     @Override
     public int hashCode() {
-        return userRoleKey.hashCode();
+        return key.hashCode();
     }
 
     @Override
     public String toString() {
         return "UsersRoles{" +
-            "userRoleKey=" + userRoleKey +
+            "key=" + key +
             '}';
     }
 }

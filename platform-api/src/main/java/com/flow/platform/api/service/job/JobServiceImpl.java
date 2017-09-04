@@ -136,7 +136,7 @@ public class JobServiceImpl implements JobService {
                 throw new IllegalStatusException("Yml is loading for path " + path);
             }
         } catch (FlowException e) {
-            LOGGER.error("Fail to get yml content", e);
+            LOGGER.error("Fail to find yml content", e);
             throw e;
         }
 

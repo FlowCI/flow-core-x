@@ -15,14 +15,13 @@
  */
 package com.flow.platform.api.domain.user;
 
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
-import java.time.ZonedDateTime;
 
 /**
  * @author lhl
  */
-public class Role extends Jsonable {
+public class Role extends CreateUpdateObject {
 
     @Expose
     private Integer id;
@@ -36,11 +35,14 @@ public class Role extends Jsonable {
     @Expose
     private String createBy;
 
-    @Expose
-    private ZonedDateTime createdAt;
 
-    @Expose
-    private ZonedDateTime updatedAt;
+    public Role() {
+    }
+
+    public Role(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
 
     public Integer getId() {
         return id;
@@ -74,24 +76,6 @@ public class Role extends Jsonable {
         this.createBy = createBy;
     }
 
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Role() {
-    }
     @Override
     public boolean equals(Object o) {
         if (this == o) {

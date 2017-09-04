@@ -11,34 +11,27 @@ import java.util.List;
 public interface UserService {
 
     /**
+     * Find user by email
+     */
+    User findByEmail(String email);
+
+    /**
      * Login
-     *
-     * @param loginForm
-     * @return
      */
     String login(LoginForm loginForm);
 
     /**
      * Register
-     *
-     * @param user
      */
     void register(User user);
 
-    User findByUsername(String email);
-
     /**
      * Delete a user
-     *
-     * @param emailList
      */
     void delete(List<String> emailList);
 
     /**
      * Update role_id of user
-     *
-     * @param emailList
-     * @param roleId
      */
     void switchRole(List<String> emailList, String roleId);
 }

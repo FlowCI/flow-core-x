@@ -15,18 +15,11 @@
  */
 package com.flow.platform.api.security;
 
-import com.flow.platform.api.dao.user.RoleDao;
-import com.flow.platform.api.domain.user.RolesPermissions;
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.api.domain.user.UsersRoles;
 import com.flow.platform.api.service.user.RolesPermissionsService;
 import com.flow.platform.api.service.user.UserService;
-import com.flow.platform.api.service.user.UsersRolesService;
 import com.flow.platform.util.Logger;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -37,46 +30,45 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class MyUserDetailService implements UserDetailsService {
+public class UserSecurityService implements UserDetailsService {
 
-    private final static Logger LOGGER = new Logger(MyUserDetailService.class);
+    private final static Logger LOGGER = new Logger(UserSecurityService.class);
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private UsersRolesService usersRolesService;
 
     @Autowired
     private RolesPermissionsService rolesPermissionsService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userService.findByUsername(username);
+        String email = username;
+        User user = userService.findByEmail(email);
         if (user == null) {
-            throw new UsernameNotFoundException("no user");
+            throw new UsernameNotFoundException("Cannot find user by email: " + email);
         }
 
+        return null;
 
-        List<UsersRoles> resources= usersRolesService.listUsersRolesByEmail(user.getEmail());
-
-        List<Integer> roleIds = new ArrayList<>();
-
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-
-        for (UsersRoles u : resources) {
-            roleIds.add(u.getRoleId());
-        }
-
-        for (Integer roleId : roleIds) {
-            List<RolesPermissions> rolesPermissions = rolesPermissionsService.listRolesPermissionsByRoleId(roleId);
-            for (RolesPermissions rp : rolesPermissions) {
-                authorities.add(new SimpleGrantedAuthority(rp.getAction()));
-            }
-        }
-
-        return new org.springframework.security.core.userdetails.User(user.getUsername(),
-            user.getPassword(), authorities);
+//        List<UserRole> resources= usersRolesService.listUsersRolesByEmail(user.getEmail());
+//
+//        List<Integer> roleIds = new ArrayList<>();
+//
+//        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+//
+//        for (UserRole u : resources) {
+//            roleIds.add(u.getRoleId());
+//        }
+//
+//        for (Integer roleId : roleIds) {
+//            List<RolesPermissions> rolesPermissions = rolesPermissionsService.listRolesPermissionsByRoleId(roleId);
+//            for (RolesPermissions rp : rolesPermissions) {
+//                authorities.add(new SimpleGrantedAuthority(rp.getAction()));
+//            }
+//        }
+//
+//        return new org.springframework.security.core.userdetails.User(user.getUsername(),
+//            user.getPassword(), authorities);
     }
 }
 

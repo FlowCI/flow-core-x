@@ -42,12 +42,13 @@ public class RoleController {
 
     @GetMapping
     public List<Role> index() {
-        return roleService.listRoles();
+//        return roleService.listRoles();
+        return null;
     }
 
     @PostMapping
     public Role create(@RequestBody Role role){
-        return roleService.create(role);
+        return roleService.create(role.getName(), role.getDescription());
     }
 
     @GetMapping(path = "/{name}/delete")
@@ -57,6 +58,7 @@ public class RoleController {
 
     @PostMapping(path = "/{id}/update")
     public Role update(@RequestBody Role role){
-        return roleService.update(role);
+        roleService.update(role);
+        return role;
     }
 }

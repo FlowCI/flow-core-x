@@ -15,14 +15,13 @@
  */
 package com.flow.platform.api.domain.user;
 
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
-import java.time.ZonedDateTime;
 
 /**
  * @author lhl
  */
-public class Permission extends Jsonable {
+public class Permission extends CreateUpdateObject {
 
     @Expose
     private String action;
@@ -38,12 +37,6 @@ public class Permission extends Jsonable {
 
     @Expose
     private GroupPermission tag = GroupPermission.DEFAULT;
-
-    @Expose
-    private ZonedDateTime createdAt;
-
-    @Expose
-    private ZonedDateTime updatedAt;
 
     public String getName() {
         return name;
@@ -77,31 +70,12 @@ public class Permission extends Jsonable {
         this.tag = tag;
     }
 
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     public String getCreateBy() {
         return createBy;
     }
 
     public void setCreateBy(String createBy) {
         this.createBy = createBy;
-    }
-
-    public Permission() {
     }
 
     @Override

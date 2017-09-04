@@ -13,27 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service.user;
+package com.flow.platform.api.dao.user;
 
 import com.flow.platform.api.domain.user.UserRoleKey;
-import com.flow.platform.api.domain.user.UsersRoles;
+import com.flow.platform.api.domain.user.UserRole;
+import com.flow.platform.core.dao.BaseDao;
 import java.util.List;
 
 /**
  * @author lhl
  */
-public interface UsersRolesService {
+public interface UserRoleDao extends BaseDao<UserRoleKey, UserRole> {
 
-    UsersRoles create(UsersRoles usersRoles);
+    /**
+     * List roles id for user email
+     */
+    List<Integer> list(String email);
 
-//    UsersRoles update(UsersRoles usersRoles);
+    /**
+     * List user emails for role id
+     */
+    List<String> list(Integer roleId);
 
-    void delete(UserRoleKey userRoleKey);
-
-    List<UsersRoles> listUsersRoles();
-
-    List<UsersRoles> listUsersRolesByEmail(String email);
-
-
+    /**
+     * Get number of user for role
+     */
+    Long numOfUser(Integer roleId);
 
 }

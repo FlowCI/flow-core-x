@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.domain.user;
 
+import com.flow.platform.api.domain.CreateUpdateObject;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
@@ -22,39 +23,13 @@ import java.time.ZonedDateTime;
 /**
  * @author lhl
  */
-public class RolesPermissions extends Jsonable {
+public class RolesPermissions extends CreateUpdateObject {
 
     @Expose
     private RolePermissionKey rolePermissionKey;
 
-    @Expose
-    private ZonedDateTime createdAt;
-
-    @Expose
-    private ZonedDateTime updatedAt;
-
     public RolePermissionKey getRolePermissionKey() {
         return rolePermissionKey;
-    }
-
-    public void setRolePermissionKey(RolePermissionKey rolePermissionKey) {
-        this.rolePermissionKey = rolePermissionKey;
-    }
-
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public RolesPermissions() {
@@ -62,6 +37,10 @@ public class RolesPermissions extends Jsonable {
 
     public RolesPermissions(Integer roleId, String action) {
         this(new RolePermissionKey(roleId, action));
+    }
+
+    public void setRolePermissionKey(RolePermissionKey rolePermissionKey) {
+        this.rolePermissionKey = rolePermissionKey;
     }
 
     public RolesPermissions(RolePermissionKey rolePermissionKey) {

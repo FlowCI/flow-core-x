@@ -16,8 +16,11 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.user.Role;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.exception.IllegalParameterException;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,39 +34,53 @@ public class RoleServiceTest extends TestBase {
     private RoleService roleService;
 
     @Test
-    public void should_create_role(){
-        Role role = new Role();
-        role.setName("test");
-        roleService.create(role);
-        Assert.assertEquals(1,roleService.listRoles().size());
+    public void should_create_role() {
+        roleService.create("test", "");
+        Assert.assertEquals(1, roleService.list().size());
     }
 
     @Test
-    public void should_update_role(){
-        Role role = new Role();
-        role.setName("test");
-        Role role1 = roleService.create(role);
-        role1.setName("test_update");
-        roleService.update(role1);
-        Assert.assertEquals("test_update", role1.getName());
+    public void should_update_role() {
+        // when: update
+        Role role = roleService.create("test", "");
+        role.setName("test_update");
+        roleService.update(role);
+
+        // then
+        Assert.assertNotNull(roleService.find("test_update"));
     }
 
-    @Test
-    public void should_delete_role(){
-        Role role = new Role();
-        role.setName("test");
-        roleService.create(role);
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_if_role_deleted() {
+        // when:
+        roleService.create("test", null);
+        Assert.assertNotNull(roleService.find("test"));
 
+        // then: raise exception if find role by name
         roleService.delete("test");
-        Assert.assertEquals(0, roleService.listRoles().size());
+        roleService.find("test");
     }
 
     @Test
-    public void should_list_roles(){
-        Role role = new Role();
-        role.setName("test");
-        roleService.create(role);
+    public void should_assign_user_to_role() {
+        // given:
+        final String roleName = "admin";
+        final String email = "test@hello.com";
 
-        Assert.assertEquals(1, roleService.listRoles().size());
+        User user = new User(email, "test", "12345");
+        userDao.save(user);
+        Assert.assertNotNull(userDao.get(user.getEmail()));
+
+        Role role = roleService.create(roleName, "for test");
+        Assert.assertNotNull(roleService.find(role.getName()));
+
+        // when:
+        roleService.assign(user, role.getName());
+
+        // then:
+        List<User> usersForRole = roleService.list(roleName);
+        Assert.assertNotNull(usersForRole);
+        Assert.assertEquals(1, usersForRole.size());
+        Assert.assertEquals(user, usersForRole.get(0));
     }
 }
