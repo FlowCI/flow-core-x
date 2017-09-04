@@ -51,6 +51,16 @@ public interface RoleService {
     List<Role> list();
 
     /**
+     * List roles for user
+     */
+    List<Role> list(User user);
+
+    /**
+     * List users for role
+     */
+    List<User> list(String role);
+
+    /**
      * Assign user to role
      */
     void assign(User user, String role);
@@ -59,9 +69,4 @@ public interface RoleService {
      * Un-assign a user form role
      */
     void unAssign(User user, String role);
-
-    /**
-     * List users for role
-     */
-    List<User> list(String role);
 }

@@ -95,6 +95,25 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public List<User> list(String role) {
+        Role roleObj = find(role);
+        List<String> userEmails = userRoleDao.list(roleObj.getId());
+        if (userEmails.isEmpty()) {
+            return new ArrayList<>(0);
+        }
+        return userDao.list(userEmails);
+    }
+
+    @Override
+    public List<Role> list(User user) {
+        List<Integer> roleIds = userRoleDao.list(user.getEmail());
+        if (roleIds.isEmpty()) {
+            return new ArrayList<>(0);
+        }
+        return roleDao.list(roleIds);
+    }
+
+    @Override
     public void assign(User user, String role) {
         Role roleObj = find(role);
         UserRole userRole = new UserRole(roleObj.getId(), user.getEmail());
@@ -108,15 +127,5 @@ public class RoleServiceImpl implements RoleService {
         if (userRole != null) {
             userRoleDao.delete(userRole);
         }
-    }
-
-    @Override
-    public List<User> list(String role) {
-        Role roleObj = find(role);
-        List<String> userEmails = userRoleDao.list(roleObj.getId());
-        if (userEmails.isEmpty()) {
-            return new ArrayList<>(0);
-        }
-        return userDao.list(userEmails);
     }
 }

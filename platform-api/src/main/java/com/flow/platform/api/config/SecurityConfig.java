@@ -51,23 +51,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-            .antMatchers("/", "/register").permitAll()
-            .anyRequest().authenticated().
-            and()
-            .formLogin()
-            .loginPage("/login")
-            .permitAll()
-            .and()
-            .logout()
-            .permitAll();
+            .antMatchers("/user/register", "/user/login").permitAll()
+            .anyRequest().authenticated();
 
         http
             .authorizeRequests()
             .antMatchers("/credentials").hasAnyAuthority("show", "index")
-            .anyRequest().authenticated()
-            .and().csrf().disable();
+            .anyRequest().authenticated();
     }
-
-
 }
 

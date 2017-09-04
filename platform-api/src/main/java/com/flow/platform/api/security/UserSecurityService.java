@@ -15,11 +15,17 @@
  */
 package com.flow.platform.api.security;
 
+import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.PermissionService;
+import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.util.Logger;
+import java.util.LinkedList;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -38,7 +44,10 @@ public class UserSecurityService implements UserDetailsService {
     private UserService userService;
 
     @Autowired
-    private PermissionService rolesPermissionsService;
+    private RoleService roleService;
+
+    @Autowired
+    private PermissionService permissionService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -48,27 +57,18 @@ public class UserSecurityService implements UserDetailsService {
             throw new UsernameNotFoundException("Cannot find user by email: " + email);
         }
 
-        return null;
+        List<Role> roles = roleService.list(user);
+        List<SimpleGrantedAuthority> authorities = new LinkedList<>();
 
-//        List<UserRole> resources= usersRolesService.listUsersRolesByEmail(user.getEmail());
-//
-//        List<Integer> roleIds = new ArrayList<>();
-//
-//        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-//
-//        for (UserRole u : resources) {
-//            roleIds.add(u.getRoleId());
-//        }
-//
-//        for (Integer roleId : roleIds) {
-//            List<RolesPermissions> rolesPermissions = rolesPermissionsService.listRolesPermissionsByRoleId(roleId);
-//            for (RolesPermissions rp : rolesPermissions) {
-//                authorities.add(new SimpleGrantedAuthority(rp.getAction()));
-//            }
-//        }
-//
-//        return new org.springframework.security.core.userdetails.User(user.getUsername(),
-//            user.getPassword(), authorities);
+        for (Role role : roles) {
+            List<Action> actions = permissionService.list(role);
+            for (Action action : actions) {
+                authorities.add(new SimpleGrantedAuthority(action.getName()));
+            }
+        }
+
+        return new org.springframework.security.core.userdetails.User(user.getUsername(),
+            user.getPassword(), authorities);
     }
 }
 
