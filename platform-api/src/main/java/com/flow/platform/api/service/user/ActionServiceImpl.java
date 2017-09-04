@@ -16,9 +16,10 @@
 package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.dao.user.ActionDao;
-import com.flow.platform.api.dao.user.RolesPermissionsDao;
+import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.google.common.base.Strings;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class ActionServiceImpl implements ActionService {
     private ActionDao actionDao;
 
     @Autowired
-    private RolesPermissionsDao rolesPermissionsDao;
+    private PermissionDao permissionDao;
 
     @Override
     public Action find(String name) {
@@ -73,8 +74,14 @@ public class ActionServiceImpl implements ActionService {
 
     @Override
     public void delete(String name) {
-        // TODO: check action has assigned to role
         Action action = find(name);
+
+        Long numOfRole = permissionDao.numOfRole(name);
+        if (numOfRole > 0L) {
+            String err = String.format("Cannot delete action since '%s' roles assigned", numOfRole);
+            throw new IllegalStatusException(err);
+        }
+
         actionDao.delete(action);
     }
 

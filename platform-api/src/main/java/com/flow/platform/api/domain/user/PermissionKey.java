@@ -21,13 +21,21 @@ import java.io.Serializable;
 /**
  * @author lhl
  */
-public class RolePermissionKey implements Serializable {
+public class PermissionKey implements Serializable {
 
     @Expose
     private Integer roleId;
 
     @Expose
     private String action;
+
+    public PermissionKey() {
+    }
+
+    public PermissionKey(Integer roleId, String action) {
+        this.roleId = roleId;
+        this.action = action;
+    }
 
     public Integer getRoleId() {
         return roleId;
@@ -45,14 +53,6 @@ public class RolePermissionKey implements Serializable {
         this.action = action;
     }
 
-    public RolePermissionKey(Integer roleId, String action) {
-        this.roleId = roleId;
-        this.action = action;
-    }
-
-    public RolePermissionKey() {
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -62,24 +62,24 @@ public class RolePermissionKey implements Serializable {
             return false;
         }
 
-        RolePermissionKey that = (RolePermissionKey) o;
+        PermissionKey that = (PermissionKey) o;
 
-        if (roleId != null ? !roleId.equals(that.roleId) : that.roleId != null) {
+        if (!roleId.equals(that.roleId)) {
             return false;
         }
-        return action != null ? action.equals(that.action) : that.action == null;
+        return action.equals(that.action);
     }
 
     @Override
     public int hashCode() {
-        int result = roleId != null ? roleId.hashCode() : 0;
-        result = 31 * result + (action != null ? action.hashCode() : 0);
+        int result = roleId.hashCode();
+        result = 31 * result + action.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return "RolePermissionKey{" +
+        return "PermissionKey{" +
             "roleId=" + roleId +
             ", action='" + action + '\'' +
             '}';

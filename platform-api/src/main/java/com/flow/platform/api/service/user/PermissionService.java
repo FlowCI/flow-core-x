@@ -15,21 +15,33 @@
  */
 package com.flow.platform.api.service.user;
 
-import com.flow.platform.api.domain.user.RolePermissionKey;
-import com.flow.platform.api.domain.user.RolesPermissions;
+import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.domain.user.Role;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author lhl
  */
-public interface RolesPermissionsService {
+public interface PermissionService {
 
-    RolesPermissions create(RolesPermissions rolesPermissions);
+    /**
+     * List all actions by role
+     */
+    List<Action> list(Role role);
 
-    void delete(RolePermissionKey rolePermissionKey);
+    /**
+     * List all roles by action
+     */
+    List<Role> list(Action action);
 
-    List<RolesPermissions> listRolesPermissions();
+    /**
+     * Batch assign actions to role
+     */
+    void assign(Role role, Set<Action> actions);
 
-    List<RolesPermissions> listRolesPermissionsByRoleId(Integer roleId);
-
+    /**
+     * Batch un-assign actions from role
+     */
+    void unAssign(Role role, Set<Action> actions);
 }

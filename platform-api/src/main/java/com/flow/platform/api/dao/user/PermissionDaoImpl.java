@@ -15,8 +15,8 @@
  */
 package com.flow.platform.api.dao.user;
 
-import com.flow.platform.api.domain.user.UserRole;
-import com.flow.platform.api.domain.user.UserRoleKey;
+import com.flow.platform.api.domain.user.Permission;
+import com.flow.platform.api.domain.user.PermissionKey;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.util.List;
 import org.springframework.stereotype.Repository;
@@ -24,13 +24,12 @@ import org.springframework.stereotype.Repository;
 /**
  * @author lhl
  */
-
 @Repository
-public class UserRoleDaoImpl extends AbstractBaseDao<UserRoleKey, UserRole> implements UserRoleDao {
+public class PermissionDaoImpl extends AbstractBaseDao<PermissionKey, Permission> implements PermissionDao {
 
     @Override
-    protected Class<UserRole> getEntityClass() {
-        return UserRole.class;
+    protected Class<Permission> getEntityClass() {
+        return Permission.class;
     }
 
     @Override
@@ -39,25 +38,33 @@ public class UserRoleDaoImpl extends AbstractBaseDao<UserRoleKey, UserRole> impl
     }
 
     @Override
-    public List<Integer> list(String email) {
+    public List<Integer> list(String action) {
         return execute(session -> session
-            .createQuery("select key.roleId from UserRole where key.email = ?", Integer.class)
-            .setParameter(0, email)
+            .createQuery("select key.roleId from Permission where key.action = ?", Integer.class)
+            .setParameter(0, action)
             .list());
     }
 
     @Override
     public List<String> list(Integer roleId) {
         return execute(session -> session
-            .createQuery("select key.email from UserRole where key.roleId = ?", String.class)
+            .createQuery("select key.action from Permission where key.roleId = ?", String.class)
             .setParameter(0, roleId)
             .list());
     }
 
     @Override
-    public Long numOfUser(Integer roleId) {
+    public Long numOfRole(String action) {
         return execute(session -> session
-            .createQuery("select count(key.email) from UserRole where key.roleId = ?", Long.class)
+            .createQuery("select count(key.roleId) from Permission where key.action = ?", Long.class)
+            .setParameter(0, action)
+            .uniqueResult());
+    }
+
+    @Override
+    public Long numOfAction(Integer roleId) {
+        return execute(session -> session
+            .createQuery("select count(key.action) from Permission where key.roleId = ?", Long.class)
             .setParameter(0, roleId)
             .uniqueResult());
     }

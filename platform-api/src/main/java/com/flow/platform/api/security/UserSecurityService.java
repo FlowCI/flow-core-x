@@ -16,7 +16,7 @@
 package com.flow.platform.api.security;
 
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.api.service.user.RolesPermissionsService;
+import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ public class UserSecurityService implements UserDetailsService {
     private UserService userService;
 
     @Autowired
-    private RolesPermissionsService rolesPermissionsService;
+    private PermissionService rolesPermissionsService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

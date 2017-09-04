@@ -15,15 +15,33 @@
  */
 package com.flow.platform.api.dao.user;
 
-import com.flow.platform.api.domain.user.RolePermissionKey;
-import com.flow.platform.api.domain.user.RolesPermissions;
+import com.flow.platform.api.domain.user.PermissionKey;
+import com.flow.platform.api.domain.user.Permission;
 import com.flow.platform.core.dao.BaseDao;
 import java.util.List;
 
 /**
  * @author lhl
  */
-public interface RolesPermissionsDao extends BaseDao<RolePermissionKey, RolesPermissions> {
+public interface PermissionDao extends BaseDao<PermissionKey, Permission> {
 
-    List<RolesPermissions> list(Integer roleId);
+    /**
+     * Get list of action by role id
+     */
+    List<String> list(Integer roleId);
+
+    /**
+     * Get list of role id by action
+     */
+    List<Integer> list(String action);
+
+    /**
+     * Get num of role assign to action
+     */
+    Long numOfRole(String action);
+
+    /**
+     * Get num of action assign to role
+     */
+    Long numOfAction(Integer roleId);
 }

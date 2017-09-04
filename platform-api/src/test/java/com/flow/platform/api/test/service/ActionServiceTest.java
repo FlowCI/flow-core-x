@@ -17,8 +17,12 @@ package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.user.ActionGroup;
 import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.domain.user.Permission;
+import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.service.user.ActionService;
+import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.exception.IllegalStatusException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +35,11 @@ public class ActionServiceTest extends TestBase {
     @Autowired
     private ActionService actionService;
 
+    @Autowired
+    private RoleService roleService;
+
     @Test
-    public void should_create_permission() {
+    public void should_create_action() {
         Action action = new Action();
         action.setName("test");
         action.setAlias("test-super-admin");
@@ -43,7 +50,7 @@ public class ActionServiceTest extends TestBase {
     }
 
     @Test
-    public void should_update_role() {
+    public void should_update_action() {
         // given:
         final String actionName = "test";
 
@@ -64,7 +71,7 @@ public class ActionServiceTest extends TestBase {
     }
 
     @Test
-    public void should_delete_role() {
+    public void should_delete_action() {
         Action action = new Action();
         action.setName("test");
         action.setTag(ActionGroup.MANAGER);
@@ -72,6 +79,24 @@ public class ActionServiceTest extends TestBase {
 
         actionService.delete("test");
         Assert.assertEquals(0, actionService.list().size());
+    }
+
+    @Test(expected = IllegalStatusException.class)
+    public void should_raise_exception_if_has_role_assigned_to_action() {
+        // given: action
+        Action action = new Action();
+        action.setName("test-with-role");
+        action.setTag(ActionGroup.MANAGER);
+        actionService.create(action);
+
+        // given: role
+        Role admin = roleService.create("admin", null);
+
+        // given: assign role to action
+        permissionDao.save(new Permission(admin.getId(), action.getName()));
+
+        // then:
+        actionService.delete(action.getName());
     }
 
     @Test
@@ -83,5 +108,4 @@ public class ActionServiceTest extends TestBase {
 
         Assert.assertEquals(1, actionService.list().size());
     }
-
 }
