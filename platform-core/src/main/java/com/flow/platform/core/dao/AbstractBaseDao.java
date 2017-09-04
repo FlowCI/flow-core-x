@@ -60,13 +60,13 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
     protected abstract String getKeyName();
 
     @Override
-    public List<T> list(final Collection<K> keySet) {
+    public List<T> list(final Collection<K> keys) {
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
 
             CriteriaQuery<T> select = builder.createQuery(getEntityClass());
             Root<T> from = select.from(getEntityClass());
-            select.where(from.get(getKeyName()).in(keySet));
+            select.where(from.get(getKeyName()).in(keys));
 
             return session.createQuery(select).list();
         });

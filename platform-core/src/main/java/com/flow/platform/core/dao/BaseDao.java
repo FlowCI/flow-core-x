@@ -28,7 +28,7 @@ public interface BaseDao<K extends Serializable, T> {
 
     Session getSession();
 
-    List<T> list(final Collection<K> keySet);
+    List<T> list(final Collection<K> keys);
 
     T get(final K key);
 

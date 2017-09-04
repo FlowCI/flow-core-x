@@ -21,20 +21,22 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author lhl
  */
 @Service(value = "permissionService")
-public class PermissionServiceImpl implements PermissionService{
+@Transactional
+public class PermissionServiceImpl implements PermissionService {
 
     @Autowired
     private PermissionDao permissionDao;
 
     @Override
-    public Permission create(Permission permission){
+    public Permission create(Permission permission) {
         if (findPermissionByAction(permission.getAction()) != null) {
-            throw new IllegalParameterException(String.format("action is already present"));
+            throw new IllegalParameterException("Action is already present");
         } else {
             permissionDao.save(permission);
             return permission;
@@ -42,24 +44,23 @@ public class PermissionServiceImpl implements PermissionService{
     }
 
     @Override
-    public  Permission update(Permission permission){
+    public Permission update(Permission permission) {
         permissionDao.update(permission);
         return permission;
     }
 
     @Override
-    public void delete(String action){
+    public void delete(String action) {
         Permission permission = findPermissionByAction(action);
         permissionDao.delete(permission);
     }
 
     @Override
-    public List<Permission> listPermissions(){
+    public List<Permission> listPermissions() {
         return permissionDao.list();
     }
 
-    private Permission findPermissionByAction(String action){
+    private Permission findPermissionByAction(String action) {
         return permissionDao.get(action);
     }
-
 }

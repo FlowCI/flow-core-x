@@ -24,9 +24,8 @@ import com.flow.platform.api.domain.user.UserRole;
 import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.util.CollectionUtil;
 import com.google.common.base.Strings;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -115,6 +114,9 @@ public class RoleServiceImpl implements RoleService {
     public List<User> list(String role) {
         Role roleObj = find(role);
         List<String> userEmails = userRoleDao.list(roleObj.getId());
+        if (userEmails.isEmpty()) {
+            return new ArrayList<>(0);
+        }
         return userDao.list(userEmails);
     }
 }

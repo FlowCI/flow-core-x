@@ -16,9 +16,7 @@
 package com.flow.platform.api.domain.user;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
-import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
-import java.time.ZonedDateTime;
 
 /**
  * @author lhl

@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,7 +52,7 @@ public class RoleServiceTest extends TestBase {
     }
 
     @Test(expected = IllegalParameterException.class)
-    public void should_raise_exception_if_role_deleted() {
+    public void should_raise_exception_if_role_been_deleted() {
         // when:
         roleService.create("test", null);
         Assert.assertNotNull(roleService.find("test"));
@@ -59,6 +60,26 @@ public class RoleServiceTest extends TestBase {
         // then: raise exception if find role by name
         roleService.delete("test");
         roleService.find("test");
+    }
+
+    @Test(expected = IllegalStatusException.class)
+    public void should_raise_exception_if_user_been_assigned_to_role() {
+        // given:
+        final String roleName = "admin";
+        final String email = "test@hello.com";
+
+        User user = new User(email, "test", "12345");
+        userDao.save(user);
+        Assert.assertNotNull(userDao.get(user.getEmail()));
+
+        Role role = roleService.create(roleName, "for test");
+        Assert.assertNotNull(roleService.find(role.getName()));
+
+        // when:
+        roleService.assign(user, roleName);
+
+        // then:
+        roleService.delete(roleName);
     }
 
     @Test
@@ -74,13 +95,19 @@ public class RoleServiceTest extends TestBase {
         Role role = roleService.create(roleName, "for test");
         Assert.assertNotNull(roleService.find(role.getName()));
 
-        // when:
+        // when: assign user to role
         roleService.assign(user, role.getName());
 
         // then:
         List<User> usersForRole = roleService.list(roleName);
-        Assert.assertNotNull(usersForRole);
         Assert.assertEquals(1, usersForRole.size());
         Assert.assertEquals(user, usersForRole.get(0));
+
+        // when: un-assign user to role
+        roleService.unAssign(user, roleName);
+
+        // then:
+        usersForRole = roleService.list(roleName);
+        Assert.assertEquals(0, usersForRole.size());
     }
 }

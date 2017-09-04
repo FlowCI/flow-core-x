@@ -22,6 +22,7 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
+import java.util.Collection;
 import java.util.HashSet;
 import javax.persistence.criteria.CriteriaUpdate;
 import org.hibernate.Session;
@@ -74,17 +75,17 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
-    public List<Agent> list(Set<AgentPath> keySet) {
+    public List<Agent> list(Collection<AgentPath> keys) {
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
 
             CriteriaQuery<Agent> select = builder.createQuery(Agent.class);
             Root<Agent> from = select.from(Agent.class);
 
-            Set<String> zones = new HashSet<>(keySet.size());
-            Set<String> agents = new HashSet<>(keySet.size());
+            Set<String> zones = new HashSet<>(keys.size());
+            Set<String> agents = new HashSet<>(keys.size());
 
-            for (AgentPath path : keySet) {
+            for (AgentPath path : keys) {
                 if (path.getZone() != null) {
                     zones.add(path.getZone());
                 }
