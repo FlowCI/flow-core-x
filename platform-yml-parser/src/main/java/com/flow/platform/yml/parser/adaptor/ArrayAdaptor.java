@@ -63,7 +63,6 @@ public class ArrayAdaptor<E> extends BaseAdaptor<Object> {
         return array;
     }
 
-
     @Override
     public Object write(Object array) {
         List<Object> objects = new ArrayList<>();

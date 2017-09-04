@@ -88,7 +88,6 @@ public class ClazzUtil {
         }
     }
 
-
     public static <T> Object write(T clazz) {
         try {
 

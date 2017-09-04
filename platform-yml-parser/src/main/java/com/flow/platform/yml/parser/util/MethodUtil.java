@@ -42,7 +42,6 @@ public class MethodUtil {
         return getMethod(field, clazz, "get");
     }
 
-
     private static Method getSetterMethod(Field field, Class<?> clazz) {
         return getMethod(field, clazz, "set");
     }

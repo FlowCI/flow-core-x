@@ -17,39 +17,19 @@
 package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.factory.BaseFactory;
+import com.flow.platform.yml.parser.util.PrimitiveUtil;
 import com.flow.platform.yml.parser.util.TypeUtil;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author yh@firim
  */
 public class PrimitiveAdaptor<E> extends BaseAdaptor<Object> {
 
-    private static final Set<Class> WRAPPER_TYPES = new HashSet(Arrays.asList(
-        Boolean.class, Character.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
-        Void.class));
-
-    public static boolean isWrapperType(Class clazz) {
-        return WRAPPER_TYPES.contains(clazz);
-    }
-
-
     public final static BaseFactory FACTORY = type -> {
 
         Class<?> rawType = TypeUtil.getRawType(type);
 
-        // 判断是基本数据类型
-        if (rawType.isPrimitive()) {
-            return new PrimitiveAdaptor(rawType);
-        }
-
-        if(isWrapperType(rawType)){
-            return new PrimitiveAdaptor(rawType);
-        }
-
-        if(rawType == String.class){
+        if (PrimitiveUtil.isUsePrimitive(rawType)) {
             return new PrimitiveAdaptor(rawType);
         }
 

@@ -24,5 +24,4 @@ public abstract class TypeAdaptor {
     public abstract <T> void write(Object o, Class<T> clazz);
 
     public abstract <T> Object read(Object o, Class<T> clazz);
-
 }
