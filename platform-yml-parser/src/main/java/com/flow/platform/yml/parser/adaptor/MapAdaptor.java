@@ -17,8 +17,8 @@
 package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.factory.BaseFactory;
-import com.flow.platform.yml.parser.util.ClazzUtil;
-import com.flow.platform.yml.parser.util.TypeToken;
+import com.flow.platform.yml.parser.util.TypeUtil;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,10 +31,10 @@ public class MapAdaptor extends BaseAdaptor<Object> {
     public final static BaseFactory FACTORY = new BaseFactory() {
 
         @Override
-        public <T> BaseAdaptor<T> create(TypeToken<T> token) {
-            Class<?> type = token.getRawType();
+        public <T> BaseAdaptor<T> create(Type type) {
+            Class<?> rawType = TypeUtil.getRawType(type);
 
-            if (!Map.class.isAssignableFrom(type)) {
+            if (!Map.class.isAssignableFrom(rawType)) {
                 return null;
             }
             return (BaseAdaptor<T>) new MapAdaptor();

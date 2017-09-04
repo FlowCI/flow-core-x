@@ -28,14 +28,14 @@ import org.yaml.snakeyaml.Yaml;
 public class YmlParser {
 
     public static <T> T fromObject(Object o, Type typeOfT) {
-        TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
+//        TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(typeOfT);
 
-        return (T) TypeAdaptorFactory.getAdaptor(typeToken).read(o);
+        return (T) TypeAdaptorFactory.getAdaptor(typeOfT).read(o);
     }
 
     public static <T> Object toObject(T t) {
-        TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(t.getClass());
-        return TypeAdaptorFactory.getAdaptor(typeToken).write(t);
+//        TypeToken<T> typeToken = (TypeToken<T>) TypeToken.get(t.getClass());
+        return TypeAdaptorFactory.getAdaptor(t.getClass()).write(t);
     }
 
     public static <T> T fromYml(String str, Type typeOfT) {

@@ -17,7 +17,8 @@
 package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.factory.BaseFactory;
-import com.flow.platform.yml.parser.util.TypeToken;
+import com.flow.platform.yml.parser.util.TypeUtil;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,20 +40,21 @@ public class PrimitiveAdaptor<E> extends BaseAdaptor<Object> {
     public final static BaseFactory FACTORY = new BaseFactory() {
 
         @Override
-        public <T> BaseAdaptor<T> create(TypeToken<T> token) {
-            Class<?> type = token.getRawType();
+        public <T> BaseAdaptor<T> create(Type type) {
+
+            Class<?> rawType = TypeUtil.getRawType(type);
 
             // 判断是基本数据类型
-            if (type.isPrimitive()) {
-                return new PrimitiveAdaptor(type);
+            if (rawType.isPrimitive()) {
+                return new PrimitiveAdaptor(rawType);
             }
 
-            if(isWrapperType(type)){
-                return new PrimitiveAdaptor(type);
+            if(isWrapperType(rawType)){
+                return new PrimitiveAdaptor(rawType);
             }
 
-            if(type == String.class){
-                return new PrimitiveAdaptor(type);
+            if(rawType == String.class){
+                return new PrimitiveAdaptor(rawType);
             }
 
             return null;

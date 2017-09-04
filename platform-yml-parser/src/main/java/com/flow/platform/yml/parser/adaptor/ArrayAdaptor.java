@@ -18,8 +18,7 @@ package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.TypeAdaptorFactory;
 import com.flow.platform.yml.parser.factory.BaseFactory;
-import com.flow.platform.yml.parser.util.$Gson$Types;
-import com.flow.platform.yml.parser.util.TypeToken;
+import com.flow.platform.yml.parser.util.TypeUtil;
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Type;
@@ -33,17 +32,20 @@ import java.util.List;
 public class ArrayAdaptor<E> extends BaseAdaptor<Object> {
 
     public final static BaseFactory FACTORY = new BaseFactory() {
+
         @Override
-        public <T> BaseAdaptor<T> create(TypeToken<T> typeToken) {
-            Type type = typeToken.getType();
+        public <T> BaseAdaptor<T> create(Type type) {
             if (!(type instanceof GenericArrayType || type instanceof Class && ((Class<?>) type).isArray())) {
                 return null;
             }
-            Type componentType = $Gson$Types.getArrayComponentType(type);
-            BaseAdaptor<?> componentTypeAdapter = TypeAdaptorFactory.getAdaptor(TypeToken.get(componentType));
 
-            return new ArrayAdaptor($Gson$Types.getRawType(componentType), componentTypeAdapter);
+            Type componentType = TypeUtil.getArrayComponentType(type);
+            BaseAdaptor<?> componentTypeAdapter = TypeAdaptorFactory.getAdaptor(componentType);
+
+            return new ArrayAdaptor(TypeUtil.getRawType(componentType), componentTypeAdapter);
+
         }
+
     };
 
     private Class<E> componentType;

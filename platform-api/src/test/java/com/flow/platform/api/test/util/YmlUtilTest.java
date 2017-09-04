@@ -32,10 +32,10 @@ import org.yaml.snakeyaml.Yaml;
 /**
  * @author yh@firim
  */
-public class YmlUtilTest extends TestBase{
+public class YmlUtilTest extends TestBase {
 
     @Test
-    public void should_test_success(){
+    public void should_test_success() {
         ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
         URL resource = classLoader.getResource("flow.yaml");
         File ymlSampleFile = new File(resource.getFile());
@@ -46,20 +46,20 @@ public class YmlUtilTest extends TestBase{
         Flow[] flows;
         String ymlString = null;
 //        try {
-            try {
-                ymlString = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
+        try {
+            ymlString = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
 
-            }catch (Exception e){
+        } catch (Exception e) {
 
-            }
-            result = (Map) yaml.load(ymlString);
-            Object o = result.get("flow");
+        }
+        result = (Map) yaml.load(ymlString);
+        Object o = result.get("flow");
+        String yml1 = yaml.dump(o);
 ////            Object f = ((ArrayList)o).get(0);
-            flows = YmlParser.fromObject(o, Flow[].class);
+        flows = YmlParser.fromObject(o, Flow[].class);
 //
-            Object toObject = YmlParser.toObject(flows);
+        Object toObject = YmlParser.toObject(flows);
 //
-//            String yml = yaml.dump(toObject);
 
         Flow[] flow1 = YmlParser.fromYml(ymlString, Flow[].class);
         String yml = YmlParser.toYml(flow1);

@@ -24,6 +24,7 @@ import com.flow.platform.yml.parser.adaptor.PrimitiveAdaptor;
 import com.flow.platform.yml.parser.adaptor.ReflectTypeAdaptor;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.TypeToken;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,9 +44,9 @@ public class TypeAdaptorFactory {
     }
 
 
-    public static <T> BaseAdaptor getAdaptor(TypeToken<T> token) {
+    public static <T> BaseAdaptor getAdaptor(Type type) {
         for (BaseFactory factory : factories) {
-            BaseAdaptor adaptor = factory.create(token);
+            BaseAdaptor adaptor = factory.create(type);
             if (adaptor != null) {
                 return adaptor;
             }

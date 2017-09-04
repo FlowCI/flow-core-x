@@ -44,7 +44,7 @@ public class Node<T extends Node> extends EnvObject {
 
     protected Node parent;
 
-    @YmlSerializer(required = false, name = "children")
+    @YmlSerializer(required = false, name = "steps")
     @SerializedName("steps")
     protected List<T> children = new LinkedList<>();
 

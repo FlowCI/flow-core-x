@@ -18,10 +18,11 @@ package com.flow.platform.yml.parser.factory;
 
 import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
 import com.flow.platform.yml.parser.util.TypeToken;
+import java.lang.reflect.Type;
 
 /**
  * @author gyfirim
  */
 public interface BaseFactory {
-    <T> BaseAdaptor<T> create(TypeToken<T> token);
+    <T> BaseAdaptor<T> create(Type type);
 }

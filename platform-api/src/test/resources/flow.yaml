@@ -4,7 +4,7 @@ flow:
     envs:
       FLOW_WORKSPACE: "echo hello"
       FLOW_VERSION: "echo version"
-    children:
+    steps:
      - name: step1
        envs:
          FLOW_WORKSPACE: "echo step"

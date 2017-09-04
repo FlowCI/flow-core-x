@@ -18,10 +18,7 @@ package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.TypeAdaptorFactory;
 import com.flow.platform.yml.parser.factory.BaseFactory;
-import com.flow.platform.yml.parser.util.$Gson$Types;
-import com.flow.platform.yml.parser.util.ClazzUtil;
-import com.flow.platform.yml.parser.util.TypeToken;
-import com.sun.xml.internal.rngom.parse.host.Base;
+import com.flow.platform.yml.parser.util.TypeUtil;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,15 +32,15 @@ public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
     public final static BaseFactory FACTORY = new BaseFactory() {
 
         @Override
-        public <T> BaseAdaptor<T> create(TypeToken<T> typeToken) {
-            Type type = typeToken.getType();
-            Class<? super T> rawType = typeToken.getRawType();
+        public <T> BaseAdaptor<T> create(Type type) {
+
+            Class<? super T> rawType = (Class<? super T>) TypeUtil.getRawType(type);
             if(!Collection.class.isAssignableFrom(rawType)){
                 return null;
             }
 
-            Type elementType = $Gson$Types.getCollectionElementType(type, rawType);
-            BaseAdaptor<?> elementTypeAdapter = TypeAdaptorFactory.getAdaptor(TypeToken.get(elementType));
+            Type elementType = TypeUtil.getCollectionElementType(type);
+            BaseAdaptor<?> elementTypeAdapter = TypeAdaptorFactory.getAdaptor(elementType);
 
             return new CollectionAdaptor(rawType, elementTypeAdapter);
         }

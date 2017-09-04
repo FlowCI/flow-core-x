@@ -39,7 +39,6 @@ public class ClazzUtil {
 
             T instance = clazz.newInstance();
 
-            TypeToken<?> type = TypeToken.get(clazz);
             Class<?> raw = clazz;
 
             while (raw != Object.class) {
@@ -66,17 +65,19 @@ public class ClazzUtil {
                     }
 
                     field.setAccessible(true);
-                    Type fieldType = $Gson$Types.resolve(type.getType(), raw, field.getGenericType());
+                    Type fieldType = MethodUtil.getClazz(field, clazz);
+                    if(fieldType == null){
+                        fieldType = field.getGenericType();
+                    }
                     try {
                         field.set(instance,
-                            TypeAdaptorFactory.getAdaptor(TypeToken.get(fieldType)).read(obj));
+                            TypeAdaptorFactory.getAdaptor(fieldType).read(obj));
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     }
                 }
 
-                type = TypeToken.get($Gson$Types.resolve(type.getType(), raw, raw.getGenericSuperclass()));
-                raw = type.getRawType();
+                raw = raw.getSuperclass();
             }
 
             return instance;
@@ -95,7 +96,6 @@ public class ClazzUtil {
 
             Map map = new LinkedHashMap();
 
-            TypeToken<?> type = TypeToken.get(clazz.getClass());
             Class<?> raw = clazz.getClass();
 
             while (raw != Object.class) {
@@ -109,14 +109,15 @@ public class ClazzUtil {
                     }
 
                     field.setAccessible(true);
-                    Type fieldType = $Gson$Types.resolve(type.getType(), raw, field.getGenericType());
-
+                    Type fieldType = MethodUtil.getClazz(field, clazz.getClass());
+                    if(fieldType == null){
+                        fieldType = field.getGenericType();
+                    }
                     map.put(getAnnotationMappingName(field.getName(), ymlSerializer),
-                        TypeAdaptorFactory.getAdaptor(TypeToken.get(fieldType)).write(field.get(clazz)));
+                        TypeAdaptorFactory.getAdaptor(fieldType).write(field.get(clazz)));
                 }
 
-                type = TypeToken.get($Gson$Types.resolve(type.getType(), raw, raw.getGenericSuperclass()));
-                raw = type.getRawType();
+                raw = raw.getSuperclass();
             }
             return map;
         } catch (IllegalAccessException e) {
