@@ -16,12 +16,15 @@
 
 package com.flow.platform.yml.parser.annotations;
 
+import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
+import com.flow.platform.yml.parser.empty.EmptyAdapter;
+import com.flow.platform.yml.parser.empty.EmptyValidator;
+import com.flow.platform.yml.parser.validator.YmlValidator;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import sun.invoke.empty.Empty;
 
 /**
  * @author yh@firim
@@ -50,10 +53,10 @@ public @interface YmlSerializer {
     /**
      * this field will apply provided adaptor
      */
-    Class<?> adaptor() default Empty.class;
+    Class<? extends YmlAdaptor> adaptor() default EmptyAdapter.class;
 
     /**
      * this field will apply provided validator
      */
-    Class<?> validator() default Empty.class;
+    Class<? extends YmlValidator> validator() default EmptyValidator.class;
 }

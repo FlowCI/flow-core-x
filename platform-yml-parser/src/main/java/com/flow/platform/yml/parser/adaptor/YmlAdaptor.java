@@ -18,6 +18,8 @@ package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.TypeAdaptorFactory;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
+import com.flow.platform.yml.parser.empty.EmptyAdapter;
+import com.flow.platform.yml.parser.empty.EmptyValidator;
 import com.flow.platform.yml.parser.exception.YmlFormatException;
 import com.flow.platform.yml.parser.exception.YmlParseException;
 import com.flow.platform.yml.parser.validator.YmlValidator;
@@ -135,7 +137,7 @@ public abstract class YmlAdaptor<T> {
         }
 
         // auto select adaptor
-        if (ymlSerializer.adaptor() == Empty.class) {
+        if (ymlSerializer.adaptor() == EmptyAdapter.class) {
             try {
                 return TypeAdaptorFactory.getAdaptor(fieldType).write(field.get(t));
             } catch (Throwable throwable) {
@@ -144,7 +146,7 @@ public abstract class YmlAdaptor<T> {
         }
 
         //annotation provider adaptor
-        if (ymlSerializer.adaptor() != Empty.class) {
+        if (ymlSerializer.adaptor() != EmptyAdapter.class) {
             try {
                 YmlAdaptor instance = (YmlAdaptor) ymlSerializer.adaptor().newInstance();
                 return instance.write(field.get(t));
@@ -162,7 +164,7 @@ public abstract class YmlAdaptor<T> {
      */
     public static <T> void validator(Field field, T instance) {
         YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
-        if (ymlSerializer.validator() != Empty.class) {
+        if (ymlSerializer.validator() != EmptyValidator.class) {
             YmlValidator validator;
             Object value = null;
             try {
@@ -198,12 +200,12 @@ public abstract class YmlAdaptor<T> {
         }
 
         // auto select adaptor
-        if (ymlSerializer.adaptor() == Empty.class) {
+        if (ymlSerializer.adaptor() == EmptyAdapter.class) {
             return TypeAdaptorFactory.getAdaptor(fieldType).read(obj);
         }
 
         // annotation provide adaptor
-        if (ymlSerializer.adaptor() != Empty.class) {
+        if (ymlSerializer.adaptor() != EmptyAdapter.class) {
             try {
                 YmlAdaptor instance = (YmlAdaptor) ymlSerializer.adaptor().newInstance();
                 return instance.read(obj);
