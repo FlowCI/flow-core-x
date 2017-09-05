@@ -15,15 +15,25 @@
  */
 package com.flow.platform.api.config;
 
-import com.flow.platform.api.security.UserSecurityService;
+import com.flow.platform.api.security.JwtAuthFilter;
+import com.flow.platform.api.security.JwtAuthProvider;
+import com.flow.platform.api.security.token.JwtTokenGenerator;
+import com.flow.platform.api.security.token.TokenGenerator;
+import java.util.LinkedList;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 
 /**
@@ -32,32 +42,48 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
+    @Autowired
+    private JwtAuthProvider jwtAuthProvider;
+
+    private final TokenGenerator tokenGenerator = new JwtTokenGenerator("MY_SECRET_KEY");
+
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new UserSecurityService();
+    public TokenGenerator tokenGenerator() {
+        return tokenGenerator;
+    }
+
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth)
-        throws Exception {
-        auth.userDetailsService(userDetailsService());
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(jwtAuthProvider);
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-            .authorizeRequests()
-            .antMatchers("/user/register", "/user/login").permitAll()
-            .anyRequest().authenticated();
+        RequestMatcher matcher = buildRequestMatcher();
+
+        JwtAuthFilter filter = new JwtAuthFilter(matcher, tokenGenerator);
 
         http
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .csrf().disable()
+            .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
             .authorizeRequests()
-            .antMatchers("/credentials").hasAnyAuthority("show", "index")
-            .anyRequest().authenticated();
+            .requestMatchers(matcher).hasRole("ADMIN");
+    }
+
+    private RequestMatcher buildRequestMatcher() {
+        List<RequestMatcher> matcherList = new LinkedList<>();
+        matcherList.add(new AntPathRequestMatcher("/flows/**"));
+        return new OrRequestMatcher(matcherList);
     }
 }
 

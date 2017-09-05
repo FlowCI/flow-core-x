@@ -27,7 +27,7 @@ public class Role extends CreateUpdateObject {
     private Integer id;
 
     @Expose
-    private String name;
+    private String name; // it must be start with ROLE_
 
     @Expose
     private String description;

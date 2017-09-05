@@ -4,8 +4,9 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.request.LoginForm;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.util.StringEncodeUtil;
-import com.flow.platform.api.util.TokenUtil;
+import com.flow.platform.api.security.token.JwtTokenGenerator;
 import com.flow.platform.core.exception.IllegalParameterException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,9 @@ public class UserServiceImpl implements UserService {
 
     @Value(value = "${expiration.duration}")
     private long expirationDuration;
+
+    @Autowired
+    private TokenGenerator tokenGenerator;
 
     @Override
     public String login(LoginForm loginForm) {
@@ -103,7 +107,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // Login success, return token
-        return TokenUtil.createToken(email, expirationDuration);
+        return tokenGenerator.create(email, expirationDuration);
     }
 
 
@@ -133,7 +137,7 @@ public class UserServiceImpl implements UserService {
 
         // Login success, return token
         String email = userDao.getEmailBy("username", username);
-        return TokenUtil.createToken(email, expirationDuration);
+        return tokenGenerator.create(email, expirationDuration);
     }
 
     /**

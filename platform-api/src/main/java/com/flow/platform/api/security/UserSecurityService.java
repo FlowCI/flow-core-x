@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
  * @author lhl
  */
 
-@Service
+@Service(value = "userSecurityService")
 public class UserSecurityService implements UserDetailsService {
 
     private final static Logger LOGGER = new Logger(UserSecurityService.class);
