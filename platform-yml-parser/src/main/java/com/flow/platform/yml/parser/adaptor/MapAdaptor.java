@@ -16,6 +16,7 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
+import com.flow.platform.yml.parser.exception.YmlException;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.TypeUtil;
 import java.util.HashMap;
@@ -38,6 +39,11 @@ public class MapAdaptor extends BaseAdaptor<Object> {
 
     @Override
     public Object read(Object o) {
+
+        if (!Map.class.isAssignableFrom(o.getClass())) {
+            throw new YmlException("MapAdaptor Object Class not extends Map");
+        }
+
         return o;
     }
 

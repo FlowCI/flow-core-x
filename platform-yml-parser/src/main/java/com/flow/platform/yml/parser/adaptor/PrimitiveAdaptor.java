@@ -16,6 +16,7 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
+import com.flow.platform.yml.parser.exception.YmlException;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.PrimitiveUtil;
 import com.flow.platform.yml.parser.util.TypeUtil;
@@ -47,7 +48,7 @@ public class PrimitiveAdaptor<E> extends BaseAdaptor<Object> {
         if (componentType.isAssignableFrom(o.getClass())) {
             return o;
         } else {
-            throw new RuntimeException(String
+            throw new YmlException(String
                 .format("data format not match componentType - %s, o.getClass - %s", componentType, o.getClass()));
         }
     }
