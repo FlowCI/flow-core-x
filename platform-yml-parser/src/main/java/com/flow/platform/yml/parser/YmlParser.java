@@ -18,6 +18,7 @@ package com.flow.platform.yml.parser;
 
 import com.esotericsoftware.yamlbeans.YamlConfig;
 import com.esotericsoftware.yamlbeans.YamlConfig.WriteClassName;
+import com.esotericsoftware.yamlbeans.YamlReader;
 import com.esotericsoftware.yamlbeans.YamlWriter;
 import com.flow.platform.yml.parser.exception.YmlParseException;
 import java.io.StringWriter;
@@ -25,7 +26,6 @@ import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
-import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author yh@firim
@@ -58,10 +58,10 @@ public class YmlParser {
      * @return T instance
      */
     public static <T> T fromYml(String str, Type typeOfT) {
-        Yaml yaml = new Yaml();
         Map result;
         try {
-            result = (Map) yaml.load(str);
+            YamlReader yamlReader = new YamlReader(str, yamlConfig);
+            result = (Map) yamlReader.read();
         } catch (Throwable throwable) {
             throw new YmlParseException("Load Yml error");
         }
