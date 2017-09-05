@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.exception;
-
-import com.flow.platform.core.exception.FlowException;
+package com.flow.platform.api.domain;
 
 /**
  * @author yang
  */
-public class SecurityTokenException extends FlowException {
+public enum Actions {
 
-    public SecurityTokenException(String description) {
-        super(description, null);
-    }
+    FLOW_CREATE,
+
+    FLOW_DELETE,
+
+    FLOW_SHOW,
+
+    FLOW_SET_ENV
 }

@@ -16,17 +16,21 @@
 
 package com.flow.platform.api.security;
 
-import javax.servlet.http.HttpServletRequest;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
+import com.flow.platform.api.domain.Actions;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author yang
  */
-@Component
-public class WebSecurity {
 
-    public boolean check(Authentication authentication, HttpServletRequest request) {
-        return true;
-    }
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface WebSecurity {
+
+    Actions action();
 }

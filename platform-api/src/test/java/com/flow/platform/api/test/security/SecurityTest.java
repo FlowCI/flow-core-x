@@ -24,7 +24,6 @@ import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,14 +44,10 @@ public class SecurityTest extends TestBase {
     @Autowired
     private ActionService actionService;
 
-    @Before
-    public void init() {
-
-    }
+    private final String flowName = "test";
 
     @Test
     public void test() throws Throwable {
-        this.mockMvc.perform(get("/credentials")).andExpect(status().isOk());
+        this.mockMvc.perform(get("/flows/test/show")).andExpect(status().isOk());
     }
-
 }

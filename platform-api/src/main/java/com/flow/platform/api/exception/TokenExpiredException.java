@@ -19,7 +19,7 @@ package com.flow.platform.api.exception;
 /**
  * @author yang
  */
-public class TokenExpiredException extends SecurityTokenException {
+public class TokenExpiredException extends AuthenticationException {
 
     public TokenExpiredException() {
         super("Access token is expired");

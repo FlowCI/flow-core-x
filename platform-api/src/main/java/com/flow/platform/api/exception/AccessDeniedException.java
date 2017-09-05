@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.security;
-
-import com.flow.platform.api.domain.Actions;
-import com.flow.platform.api.domain.user.Action;
+package com.flow.platform.api.exception;
 
 /**
  * @author yang
  */
-public interface UserSecurityService {
+public class AccessDeniedException extends AuthenticationException {
 
-    /**
-     * Verify the action is accessible for user
-     */
-    boolean canAccess(String email, Action action);
-
-    /**
-     * Get action from Actions enum
-     */
-    Action getAction(Actions actionName);
+    public AccessDeniedException(String email, String actionName) {
+        super(String.format("Access is denied for '%s' of user '%s'", actionName, email));
+    }
 }

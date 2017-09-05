@@ -16,10 +16,12 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.Actions;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.response.BooleanValue;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
@@ -66,6 +68,7 @@ public class FlowController extends NodeController {
      *  }
      */
     @GetMapping(path = {"/{root}", "/{root}/show"})
+    @WebSecurity(action = Actions.FLOW_SHOW)
     public Node show() {
         String path = getNodePathFromUrl();
         Node node = nodeService.find(path);

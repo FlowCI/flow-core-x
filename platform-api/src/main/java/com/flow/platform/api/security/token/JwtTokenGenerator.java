@@ -1,7 +1,7 @@
 package com.flow.platform.api.security.token;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.exception.SecurityTokenException;
+import com.flow.platform.api.exception.AuthenticationException;
 import com.flow.platform.api.exception.TokenExpiredException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -35,7 +35,7 @@ public class JwtTokenGenerator implements TokenGenerator {
                 .setExpiration(new Date(new Date().getTime() + duration))
                 .compact();
         } catch (UnsupportedEncodingException e) {
-            throw new SecurityTokenException(e.getMessage());
+            throw new AuthenticationException(e.getMessage());
         }
     }
 
@@ -54,7 +54,7 @@ public class JwtTokenGenerator implements TokenGenerator {
         } catch (ExpiredJwtException e) {
             throw new TokenExpiredException();
         } catch (UnsupportedEncodingException e) {
-            throw new SecurityTokenException(e.getMessage());
+            throw new AuthenticationException(e.getMessage());
         }
     }
 }

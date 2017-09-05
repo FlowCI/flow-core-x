@@ -20,25 +20,23 @@ import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
-import org.springframework.core.io.support.ResourcePropertySource;
-import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
-import org.springframework.web.WebApplicationInitializer;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.servlet.DispatcherServlet;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
+import org.springframework.core.io.support.ResourcePropertySource;
+import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
 
 /**
  * Created by gyfirim on 14/07/2017.
  *
  * @Copyright fir.im
  */
-public class AppInit extends AbstractSecurityWebApplicationInitializer {
+public class AppInit implements WebApplicationInitializer {
 
     @Override
-    public void afterSpringSecurityFilterChain(javax.servlet.ServletContext servletContext) {
+    public void onStartup(ServletContext servletContext) throws ServletException {
         AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext();
 
         applicationContext.register(WebConfig.class);
