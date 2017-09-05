@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.io.UnsupportedEncodingException;
+import java.time.Instant;
 import java.util.Date;
 
 /**
@@ -27,12 +28,12 @@ public class JwtTokenGenerator implements TokenGenerator {
      * At the same time, you need provide a expiration duration, It's in millisecond.
      */
     @Override
-    public String create(String email, long duration) {
+    public String create(String email, long durationInSeconds) {
         try {
             return Jwts.builder()
                 .signWith(SignatureAlgorithm.HS256, secret.getBytes(AppConfig.DEFAULT_CHARSET.name()))
                 .setSubject(email)
-                .setExpiration(new Date(new Date().getTime() + duration))
+                .setExpiration(Date.from(Instant.now().plusSeconds(durationInSeconds)))
                 .compact();
         } catch (UnsupportedEncodingException e) {
             throw new AuthenticationException(e.getMessage());

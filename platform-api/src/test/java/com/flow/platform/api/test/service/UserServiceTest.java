@@ -72,24 +72,4 @@ public class UserServiceTest extends TestBase {
         userService.delete(emailList);
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
     }
-
-    @Test
-    public void should_switch_role_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
-        userDao.save(user);
-        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
-
-        ZonedDateTime beforeUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
-        List<String> emailList = new LinkedList<>();
-        emailList.add("liangpengyv@fir.im");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        userService.switchRole(emailList, "admin");
-
-        ZonedDateTime afterUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
-        Assert.assertTrue(beforeUpdateTime.isBefore(afterUpdateTime));
-    }
 }

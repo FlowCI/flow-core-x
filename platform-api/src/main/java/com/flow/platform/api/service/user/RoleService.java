@@ -63,10 +63,10 @@ public interface RoleService {
     /**
      * Assign user to role
      */
-    void assign(User user, String role);
+    void assign(User user, Role role);
 
     /**
      * Un-assign a user form role
      */
-    void unAssign(User user, String role);
+    void unAssign(User user, Role role);
 }

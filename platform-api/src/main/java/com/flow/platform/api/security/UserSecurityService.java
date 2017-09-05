@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.security;
 
-import com.flow.platform.api.domain.Actions;
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.Action;
 
 /**

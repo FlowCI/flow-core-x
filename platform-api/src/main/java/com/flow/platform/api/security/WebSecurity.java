@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.security;
 
-import com.flow.platform.api.domain.Actions;
+import com.flow.platform.api.domain.permission.Actions;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

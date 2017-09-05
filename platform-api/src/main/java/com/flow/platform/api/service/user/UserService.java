@@ -23,15 +23,10 @@ public interface UserService {
     /**
      * Register
      */
-    void register(User user);
+    User register(User user);
 
     /**
      * Delete a user
      */
     void delete(List<String> emailList);
-
-    /**
-     * Update role_id of user
-     */
-    void switchRole(List<String> emailList, String roleId);
 }

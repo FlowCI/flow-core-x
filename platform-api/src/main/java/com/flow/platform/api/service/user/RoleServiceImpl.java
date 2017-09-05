@@ -114,16 +114,14 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public void assign(User user, String role) {
-        Role roleObj = find(role);
-        UserRole userRole = new UserRole(roleObj.getId(), user.getEmail());
+    public void assign(User user, Role role) {
+        UserRole userRole = new UserRole(role.getId(), user.getEmail());
         userRoleDao.save(userRole);
     }
 
     @Override
-    public void unAssign(User user, String role) {
-        Role roleObj = find(role);
-        UserRole userRole = userRoleDao.get(new UserRoleKey(roleObj.getId(), user.getEmail()));
+    public void unAssign(User user, Role role) {
+        UserRole userRole = userRoleDao.get(new UserRoleKey(role.getId(), user.getEmail()));
         if (userRole != null) {
             userRoleDao.delete(userRole);
         }

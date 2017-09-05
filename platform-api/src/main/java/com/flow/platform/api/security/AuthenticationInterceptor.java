@@ -36,13 +36,13 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
  */
 public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
-    private final static Logger LOGGER = new Logger(AuthenticationInterceptor.class);
+    public final static String TOKEN_HEADER_PARAM = "X-Authorization";
 
-    private final static String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
+    private final static Logger LOGGER = new Logger(AuthenticationInterceptor.class);
 
     private final static String TOKEN_PAYLOAD_FOR_TEST = "mytokenpayload";
 
-    private final static boolean SKIP_AUTH = false;
+    private final static boolean ENABLE_AUTH = Boolean.parseBoolean(System.getProperty("auth.enable", "false"));
 
     @Autowired
     private UserSecurityService userSecurityService;
@@ -64,7 +64,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
-        if (SKIP_AUTH) {
+        if (!ENABLE_AUTH) {
             return true;
         }
 
@@ -73,7 +73,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         }
 
         try {
-            doVerify(request, response, handler);
+            doVerify(request, handler);
             return true;
         } catch (Throwable e) {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
@@ -81,14 +81,14 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         }
     }
 
-    private void doVerify(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    private void doVerify(HttpServletRequest request, Object handler) {
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         if (handler == null) {
             return;
         }
 
         // check token is provided from http header
-        String tokenPayload = request.getHeader(JWT_TOKEN_HEADER_PARAM);
+        String tokenPayload = request.getHeader(TOKEN_HEADER_PARAM);
         if (Strings.isNullOrEmpty(tokenPayload)) {
             throw new AuthenticationException("Invalid request");
         }
@@ -108,7 +108,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
         // find action for request
         Action action = userSecurityService.getAction(securityAnnotation.action());
-        LOGGER.debug("User '%s' requested for action %s", email, action);
+        LOGGER.debug("User '%s' requested for action %s", email, action.getName());
 
         if (!userSecurityService.canAccess(email, action)) {
             throw new AccessDeniedException(email, action.getName());

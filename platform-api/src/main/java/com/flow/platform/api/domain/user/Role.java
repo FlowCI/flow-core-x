@@ -35,7 +35,6 @@ public class Role extends CreateUpdateObject {
     @Expose
     private String createBy;
 
-
     public Role() {
     }
 

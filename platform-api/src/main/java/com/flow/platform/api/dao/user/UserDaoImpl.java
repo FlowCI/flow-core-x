@@ -94,18 +94,4 @@ public class UserDaoImpl extends AbstractBaseDao<String, User> implements UserDa
             return false;
         });
     }
-
-    @Override
-    public void switchUserRoleIdTo(List<String> emailList, String roleId) {
-        execute((Session session) -> {
-            String update = String.format("update User set role_id='%s' where email in (:list)", roleId);
-            Query query = session.createQuery(update);
-            query.setParameterList("list", emailList);
-            int affectedRows = query.executeUpdate();
-            if (affectedRows == 0) {
-                return false;
-            }
-            return true;
-        });
-    }
 }

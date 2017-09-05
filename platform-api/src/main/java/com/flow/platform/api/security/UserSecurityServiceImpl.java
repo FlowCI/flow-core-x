@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.security;
 
-import com.flow.platform.api.domain.Actions;
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
@@ -25,7 +25,6 @@ import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -62,6 +61,7 @@ public class UserSecurityServiceImpl implements UserSecurityService {
 
         List<Role> roles = roleService.list(user);
 
+        // TODO: should improve performance
         for (Role role : roles) {
             List<Action> actions = permissionService.list(role);
             for (Action action : actions) {

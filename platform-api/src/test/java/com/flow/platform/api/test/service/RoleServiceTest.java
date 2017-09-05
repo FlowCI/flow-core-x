@@ -76,7 +76,7 @@ public class RoleServiceTest extends TestBase {
         Assert.assertNotNull(roleService.find(role.getName()));
 
         // when:
-        roleService.assign(user, roleName);
+        roleService.assign(user, role);
 
         // then:
         roleService.delete(roleName);
@@ -96,7 +96,7 @@ public class RoleServiceTest extends TestBase {
         Assert.assertNotNull(roleService.find(role.getName()));
 
         // when: assign user to role
-        roleService.assign(user, role.getName());
+        roleService.assign(user, role);
 
         // then:
         List<User> usersForRole = roleService.list(roleName);
@@ -104,7 +104,7 @@ public class RoleServiceTest extends TestBase {
         Assert.assertEquals(user, usersForRole.get(0));
 
         // when: un-assign user to role
-        roleService.unAssign(user, roleName);
+        roleService.unAssign(user, role);
 
         // then:
         usersForRole = roleService.list(roleName);

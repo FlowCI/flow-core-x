@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.Actions;
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
@@ -46,6 +46,7 @@ public class FlowController extends NodeController {
     private YmlService ymlService;
 
     @GetMapping
+    @WebSecurity(action = Actions.FLOW_SHOW)
     public List<Flow> index() {
         return nodeService.listFlows();
     }
@@ -98,6 +99,7 @@ public class FlowController extends NodeController {
      *  }
      */
     @PostMapping(path = {"/{root}", "/{root}/create"})
+    @WebSecurity(action = Actions.FLOW_CREATE)
     public Node createEmptyFlow() {
         String path = getNodePathFromUrl();
         return nodeService.createEmptyFlow(path);
@@ -122,6 +124,7 @@ public class FlowController extends NodeController {
      *  }
      */
     @PostMapping(path = "/{root}/delete")
+    @WebSecurity(action = Actions.FLOW_DELETE)
     public Node delete() {
         String path = getNodePathFromUrl();
         return nodeService.delete(path);
@@ -151,6 +154,7 @@ public class FlowController extends NodeController {
      *  }
      */
     @PostMapping("/{root}/env")
+    @WebSecurity(action = Actions.FLOW_SET_ENV)
     public Node setFlowEnv(@RequestBody Map<String, String> envs) {
         String path = getNodePathFromUrl();
         return nodeService.setFlowEnv(path, envs);
@@ -169,6 +173,7 @@ public class FlowController extends NodeController {
      *  }
      */
     @GetMapping(path = "/{root}/env/{key}")
+    @WebSecurity(action = Actions.FLOW_SHOW)
     public Map<String, String> getFlowEnv(@PathVariable(required = false) String key) {
         return super.getEnv(key);
     }
@@ -184,6 +189,7 @@ public class FlowController extends NodeController {
      *  }
      */
     @GetMapping("/{root}/exist")
+    @WebSecurity(action = Actions.FLOW_SHOW)
     public BooleanValue isFlowNameExist() {
         String path = getNodePathFromUrl();
         boolean exist = nodeService.exist(path);
@@ -204,6 +210,7 @@ public class FlowController extends NodeController {
      *  ]
      */
     @GetMapping("/webhooks")
+    @WebSecurity(action = Actions.FLOW_SHOW)
     public List<Webhook> listFlowWebhooks() {
         return nodeService.listWebhooks();
     }
@@ -225,6 +232,7 @@ public class FlowController extends NodeController {
      *  Empty yml content
      */
     @GetMapping(value = "/{root}/yml")
+    @WebSecurity(action = Actions.FLOW_SHOW)
     public String getRawYml() {
         String path = getNodePathFromUrl();
         return ymlService.getYmlContent(path);
@@ -251,19 +259,21 @@ public class FlowController extends NodeController {
      *  }
      */
     @GetMapping("/{root}/yml/load")
+    @WebSecurity(action = Actions.FLOW_YML)
     public Node loadRawYmlFromGit() {
         String path = getNodePathFromUrl();
         return ymlService.loadYmlContent(path, null);
     }
 
     /**
-     * @api {get} /flows/:root/yml/stop Stop Load
+     * @api {post} /flows/:root/yml/stop Stop Load
      * @apiParam {String} root flow node name for stop yml loading
      * @apiGroup Flow Yml
      * @apiDescription Stop current yml loading threads,
      * and reset FLOW_YML_STATUS to NOF_FOUND if on loading status
      */
-    @GetMapping("/{root}/yml/stop")
+    @PostMapping("/{root}/yml/stop")
+    @WebSecurity(action = Actions.FLOW_YML)
     public void stopLoadYml() {
         String path = getNodePathFromUrl();
         ymlService.stopLoadYmlContent(path);
@@ -290,6 +300,7 @@ public class FlowController extends NodeController {
      *  }
      */
     @PostMapping("/{root}/yml/verify")
+    @WebSecurity(action = Actions.FLOW_YML)
     public void ymlVerification(@RequestBody String yml) {
         String path = getNodePathFromUrl();
         ymlService.verifyYml(path, yml);
@@ -320,6 +331,7 @@ public class FlowController extends NodeController {
      *  }
      */
     @PostMapping("/{root}/yml/create")
+    @WebSecurity(action = Actions.FLOW_CREATE)
     public Node createFromYml(@RequestBody String yml) {
         String path = getNodePathFromUrl();
         return nodeService.createOrUpdate(path, yml);

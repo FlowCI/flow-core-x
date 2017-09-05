@@ -24,7 +24,7 @@ public interface TokenGenerator {
     /**
      * Create token by value with available duration in seconds
      */
-    String create(String value, long duration);
+    String create(String value, long durationInSeconds);
 
     /**
      * Extract value from token

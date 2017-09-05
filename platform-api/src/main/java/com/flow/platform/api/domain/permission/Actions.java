@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.permission;
 
 /**
  * @author yang
@@ -27,5 +27,7 @@ public enum Actions {
 
     FLOW_SHOW,
 
-    FLOW_SET_ENV
+    FLOW_SET_ENV,
+
+    FLOW_YML
 }

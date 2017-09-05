@@ -78,20 +78,4 @@ public class UserDaoTest extends TestBase {
         userDao.deleteList(emailList);
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
     }
-
-    @Test
-    public void should_switch_role_success() {
-        ZonedDateTime beforeUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
-        List<String> emailList = new ArrayList<>();
-        emailList.add("liangpengyv@fir.im");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        userDao.switchUserRoleIdTo(emailList, "admin");
-
-        ZonedDateTime afterUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
-        Assert.assertTrue(beforeUpdateTime.isBefore(afterUpdateTime));
-    }
 }

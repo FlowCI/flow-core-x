@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void register(User user) {
+    public User register(User user) {
         String errMsg = "Illegal register request parameter: ";
 
         // Check format
@@ -68,17 +68,12 @@ public class UserServiceImpl implements UserService {
         // Insert the user info into the database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
         user.setPassword(passwordForMD5);
-        userDao.save(user);
+        return userDao.save(user);
     }
 
     @Override
     public void delete(List<String> emailList) {
         userDao.deleteList(emailList);
-    }
-
-    @Override
-    public void switchRole(List<String> emailList, String roleId) {
-        userDao.switchUserRoleIdTo(emailList, roleId);
     }
 
     @Override

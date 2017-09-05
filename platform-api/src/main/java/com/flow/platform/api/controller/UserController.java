@@ -115,35 +115,4 @@ public class UserController {
     public void delete(@RequestBody List<String> emailList) {
         userService.delete(emailList);
     }
-
-    /**
-     * @api {Post} /role/switch Switch role
-     * @apiName UserSwitchRole
-     * @apiGroup User
-     * @apiDescription Switch role by request information
-     *
-     * @apiParamExample {json} Request-Example:
-     *     {
-     *         "emailList" : [
-     *             "test1@fir.im",
-     *             "test2@fir.im"
-     *             ],
-     *         "switchTo" : "developer"
-     *     }
-     *
-     * @apiSuccessExample {json} Success-Response:
-     *     HTTP/1.1 200 OK
-     *
-     * @apiErrorExample {json} Error-Response:
-     *     HTTP/1.1 500 Internal Server Error
-     *     {
-     *         "message": "JSON parse error: java.io.EOFException: End of input at line 7 column 1 path $.switchTo; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 7 column 1 path $.switchTo"
-     *     }
-     */
-    @PostMapping("/role/switch")
-    public void switchRole(@RequestBody SwitchRole switchRole) {
-        List<String> emailList = switchRole.getUsers();
-        String roleId = switchRole.getSwitchTo();
-        userService.switchRole(emailList, roleId);
-    }
 }
