@@ -17,6 +17,7 @@
 package com.flow.platform.core.util;
 
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.ObjectWrapper;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -102,9 +103,9 @@ public class HttpUtil {
             }
         }
 
-        final String[] res = {null};
-        exec(httpPost, retry, (String item) -> res[0] = item);
-        return res[0];
+        final ObjectWrapper<String> res = new ObjectWrapper<>();
+        exec(httpPost, retry, res::setInstance);
+        return res.getInstance();
     }
 
     /**
@@ -127,9 +128,9 @@ public class HttpUtil {
             }
         }
 
-        final String[] res = {null};
-        exec(httpGet, retry, (String item) -> res[0] = item);
-        return res[0];
+        final ObjectWrapper<String> res = new ObjectWrapper<>();
+        exec(httpGet, retry, res::setInstance);
+        return res.getInstance();
     }
 
     /**
@@ -142,9 +143,9 @@ public class HttpUtil {
         HttpEntity entity = new StringEntity(body);
         httpPut.setEntity(entity);
 
-        final String[] res = {null};
-        exec(httpPut, 1, (String item) -> res[0] = item);
-        return res[0];
+        final ObjectWrapper<String> res = new ObjectWrapper<>();
+        exec(httpPut, 1, res::setInstance);
+        return res.getInstance();
     }
 
     private static void exec(HttpUriRequest httpUriRequest, Integer tryTimes, Consumer<String> consumer) {

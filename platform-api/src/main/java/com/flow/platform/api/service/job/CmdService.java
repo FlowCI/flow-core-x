@@ -18,6 +18,7 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.domain.AgentPath;
 
 /**
  * Control center cmd service
@@ -44,4 +45,13 @@ public interface CmdService {
      * @return cmd id
      */
     String runShell(Job job, Node node);
+
+    /**
+     * Send shutdown cmd to agent
+     *
+     * @param path target agent path
+     * @param password password for host
+     * @exception com.flow.platform.core.exception.IllegalStatusException if unable to send cmd to cc
+     */
+    void shutdown(AgentPath path, String password);
 }

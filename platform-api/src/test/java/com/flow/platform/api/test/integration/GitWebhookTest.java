@@ -84,9 +84,10 @@ public class GitWebhookTest extends TestBase {
 
         Job job = push_trigger_from_git(push);
         job = jobDao.get(job.getId());
-        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getResult().getOutputs().get(GitEnvs.FLOW_GIT_SOURCE.name()));
-        Assert.assertEquals(GitEventType.PUSH.name(), job.getResult().getOutputs().get(GitEnvs.FLOW_GIT_EVENT_TYPE.name()));
-        Assert.assertEquals("Update .flow.yml for github", job.getResult().getOutputs().get(GitEnvs.FLOW_GIT_CHANGELOG.name()));
+
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE.name()));
+        Assert.assertEquals(GitEventType.PUSH.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE.name()));
+        Assert.assertEquals("Update .flow.yml for github", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG.name()));
     }
 
     @Test
@@ -100,9 +101,9 @@ public class GitWebhookTest extends TestBase {
 
         Job job = push_trigger_from_git(push);
         job = jobDao.get(job.getId());
-        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getResult().getOutputs().get(GitEnvs.FLOW_GIT_SOURCE.name()));
-        Assert.assertEquals(GitEventType.PUSH.name(), job.getResult().getOutputs().get(GitEnvs.FLOW_GIT_EVENT_TYPE.name()));
-        Assert.assertEquals("Update .flow.yml for gitlab", job.getResult().getOutputs().get(GitEnvs.FLOW_GIT_CHANGELOG.name()));
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE.name()));
+        Assert.assertEquals(GitEventType.PUSH.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE.name()));
+        Assert.assertEquals("Update .flow.yml for gitlab", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG.name()));
     }
 
     private void init_flow(String gitUrl) throws Throwable {

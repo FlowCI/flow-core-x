@@ -55,6 +55,25 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
+    public Agent get(final AgentPath agentPath) {
+        Agent agent = (Agent) execute(session -> (Agent) session
+            .createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
+            .setParameter("zone", agentPath.getZone())
+            .setParameter("name", agentPath.getName())
+            .uniqueResult());
+        return agent;
+    }
+
+    @Override
+    public Agent get(final String sessionId) {
+        Agent agent = (Agent) execute(
+            session -> (Agent) session.createQuery("from Agent where sessionId = :sessionId")
+                .setParameter("sessionId", sessionId)
+                .uniqueResult());
+        return agent;
+    }
+
+    @Override
     public List<Agent> list(Set<AgentPath> keySet) {
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -80,15 +99,6 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
             select.where(builder.and(zoneInClause, nameInClause));
 
             return session.createQuery(select).list();
-        });
-    }
-
-    @Override
-    public void update(final Agent obj) {
-        execute(session -> {
-            obj.setUpdatedDate(DateUtil.now());
-            session.update(obj);
-            return null;
         });
     }
 
@@ -132,29 +142,17 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
-    public Agent find(final AgentPath agentPath) {
-        // TODO: AgentPath is key, should overwrite get method at least
-
-        Agent agent = (Agent) execute(session -> (Agent) session
-            .createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
-            .setParameter("zone", agentPath.getZone())
-            .setParameter("name", agentPath.getName())
-            .uniqueResult());
-        return agent;
+    public void update(final Agent obj) {
+        execute(session -> {
+            obj.setUpdatedDate(DateUtil.now());
+            session.update(obj);
+            return null;
+        });
     }
 
-    @Override
-    public Agent find(final String sessionId) {
-        Agent agent = (Agent) execute(
-            session -> (Agent) session.createQuery("from Agent where sessionId = :sessionId")
-                .setParameter("sessionId", sessionId)
-                .uniqueResult());
-        return agent;
-    }
 
     @Override
-    public int batchUpdateStatus(final String zone, final AgentStatus status, final Set<String> agents,
-        final boolean isNot) {
+    public int batchUpdateStatus(String zone, AgentStatus status, Set<String> agents, boolean isNot) {
 
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();

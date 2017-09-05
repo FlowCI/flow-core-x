@@ -70,7 +70,6 @@ public class NodeResultServiceImpl implements NodeResultService {
             NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
             nodeResult.setName(node.getName());
             nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
-            nodeResult.setOutputs(node.getEnvs());
             nodeResultDao.save(nodeResult);
 
             if (node.equals(root)) {
@@ -181,7 +180,7 @@ public class NodeResultServiceImpl implements NodeResultService {
         }
 
         // update parent status if current on success and it is the last one in the tree level
-        if (result.isSucess()) {
+        if (result.isSuccess()) {
             if (current.getNext() == null) {
                 return true;
             }

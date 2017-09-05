@@ -122,6 +122,9 @@ public abstract class TestBase {
 
     protected MockMvc mockMvc;
 
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8080);
+
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
@@ -136,6 +139,7 @@ public abstract class TestBase {
 
     public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
         Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+        setFlowToReady(emptyFlow);
         String yml = getResourceContent(ymlResourceName);
         return nodeService.createOrUpdate(emptyFlow.getPath(), yml);
     }
@@ -179,9 +183,6 @@ public abstract class TestBase {
         credentialStorageDao.deleteAll();
         messageSettingDao.deleteAll();
     }
-
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(8080);
 
     @After
     public void afterEach() {

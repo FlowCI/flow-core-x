@@ -59,7 +59,8 @@ public class CmdWebhookController {
 
         try {
             BigInteger jobId = new BigInteger(jobIdStr);
-            LOGGER.trace("Cmd {%s:%s} webhook received with identifier: '%s'", cmd.getType(), cmd.getId(), identifier);
+            LOGGER.trace("Webhook received: Cmd {%s : %s : %s} with identifier: '%s'",
+                cmd.getType(), cmd.getStatus(), cmd.getId(), identifier);
             jobService.enterQueue(new CmdQueueItem(jobId, cmd));
         } catch (NumberFormatException warn) {
             LOGGER.warn("Invalid job id format");

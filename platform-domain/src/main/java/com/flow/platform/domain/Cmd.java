@@ -18,6 +18,7 @@ package com.flow.platform.domain;
 
 import com.google.common.collect.Sets;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -135,6 +136,22 @@ public class Cmd extends CmdBase {
         this.updatedDate = updatedDate;
     }
 
+    public CmdResult getCmdResult() {
+        return cmdResult;
+    }
+
+    public void setCmdResult(CmdResult cmdResult) {
+        this.cmdResult = cmdResult;
+    }
+
+    public ZonedDateTime getFinishedDate() {
+        return finishedDate;
+    }
+
+    public void setFinishedDate(ZonedDateTime finishedDate) {
+        this.finishedDate = finishedDate;
+    }
+
     public Boolean isCurrent() {
         return WORKING_STATUS.contains(status);
     }
@@ -143,12 +160,19 @@ public class Cmd extends CmdBase {
         return AGENT_CMD_TYPE.contains(type);
     }
 
-    public CmdResult getCmdResult() {
-        return cmdResult;
-    }
+    public boolean isCmdTimeout() {
+        if (type != CmdType.RUN_SHELL) {
+            return false;
+        }
 
-    public void setCmdResult(CmdResult cmdResult) {
-        this.cmdResult = cmdResult;
+        // not timeout since cmd is executed
+        if (!isCurrent()) {
+            return false;
+        }
+
+        ZonedDateTime createdAt = getCreatedDate();
+        final long runningInSeconds = ChronoUnit.SECONDS.between(createdAt, ZonedDateTime.now());
+        return runningInSeconds >= getTimeout();
     }
 
     @Override
@@ -180,17 +204,7 @@ public class Cmd extends CmdBase {
         return "Cmd{" +
             "id='" + id + '\'' +
             ", info=" + super.toString() +
-            ", createdDate=" + createdDate +
-            ", updatedDate=" + updatedDate +
             '}';
-    }
-
-    public ZonedDateTime getFinishedDate() {
-        return finishedDate;
-    }
-
-    public void setFinishedDate(ZonedDateTime finishedDate) {
-        this.finishedDate = finishedDate;
     }
 
     /**

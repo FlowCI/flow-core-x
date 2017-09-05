@@ -31,6 +31,7 @@ import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -40,6 +41,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,9 +89,14 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public Node createOrUpdate(final String path, final String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
+
         if (Strings.isNullOrEmpty(yml)) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.NOT_FOUND, null);
             return flow;
+        }
+
+        if (!Objects.equals(flow.getEnv(FlowEnvs.FLOW_STATUS), StatusValue.READY.value())) {
+            throw new IllegalStatusException("Node status not correct, should be READY for FLOW_STATUS");
         }
 
         Node rootFromYml;
@@ -100,7 +107,6 @@ public class NodeServiceImpl implements NodeService {
             return flow;
         }
 
-        flow.putEnv(FlowEnvs.FLOW_STATUS, FlowEnvs.StatusValue.READY);
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
 
         // persistent flow type node to flow table with env which from yml

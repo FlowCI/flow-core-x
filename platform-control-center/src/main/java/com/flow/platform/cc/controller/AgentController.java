@@ -51,12 +51,6 @@ public class AgentController {
         return agentService.find(new AgentPath(zoneName, agentName));
     }
 
-    @PostMapping(path = "/shutdown")
-    public boolean shutDown(@RequestParam String zone, @RequestParam String name,
-        @RequestParam(required = false) String password) {
-        return agentService.shutdown(new AgentPath(zone, name), password);
-    }
-
     /**
      * Update agent status, required attributes are
      * - path

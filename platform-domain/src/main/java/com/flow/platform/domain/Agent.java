@@ -16,7 +16,6 @@
 
 package com.flow.platform.domain;
 
-import com.flow.platform.util.DateUtil;
 import java.time.ZonedDateTime;
 
 /**

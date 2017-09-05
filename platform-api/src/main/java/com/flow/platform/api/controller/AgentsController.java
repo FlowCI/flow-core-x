@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.AgentPath;
@@ -62,8 +63,7 @@ public class AgentsController {
     public List<AgentWithFlow> index(){
         return agentService.list();
     }
-
-
+    
     /**
      * @api {Post} /agents/shutdown shutdown
      * @apiName AgentShutdown
@@ -74,16 +74,19 @@ public class AgentsController {
      * @apiDescription shutdown agent
      *
      * @apiSuccessExample {String} Success-Response:
-     *     HTTP/1.1 200 OK
-     *      true or false
+     *  HTTP/1.1 200 OK
+     *  {
+     *      value: true or false
+     *  }
      */
     @PostMapping(path = "/shutdown")
-    public boolean shutDown(@RequestParam String zone, @RequestParam String name,
-        @RequestParam(required = false) String password) {
+    public BooleanValue shutDown(@RequestParam String zone,
+                                 @RequestParam String name,
+                                 @RequestParam(required = false) String password) {
         if(Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name)){
             throw new IllegalParameterException("require zone or name not found");
         }
         Boolean t = agentService.shutdown(zone, name, password);
-        return t;
+        return new BooleanValue(t);
     }
 }

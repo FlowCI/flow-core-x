@@ -26,7 +26,6 @@ public class PlatformURL {
     private String queueUrl;
     private String cmdStopUrl;
     private String agentUrl;
-    private String agentShutdownUrl;
     private String sysinfoUrl;
 
     public PlatformURL(String baseURL) {
@@ -34,7 +33,6 @@ public class PlatformURL {
         queueUrl = String.format("%s%s", baseURL, "cmd/queue/send");
         cmdStopUrl = String.format("%s%s", baseURL, "cmd/stop/");
         agentUrl = String.format("%s%s", baseURL, "agent/list");
-        agentShutdownUrl = String.format("%s%s", baseURL, "agent/shutdown");
         sysinfoUrl = String.format("%s%s", baseURL, "sys/info");
     }
 
@@ -52,10 +50,6 @@ public class PlatformURL {
 
     public String getAgentUrl() {
         return agentUrl;
-    }
-
-    public String getAgentShutdownUrl() {
-        return agentShutdownUrl;
     }
 
     public String getSysinfoUrl() {
