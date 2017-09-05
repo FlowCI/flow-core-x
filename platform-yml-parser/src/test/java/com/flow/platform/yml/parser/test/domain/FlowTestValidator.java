@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
+package com.flow.platform.yml.parser.test.domain;
+import com.flow.platform.yml.parser.annotations.YmlSerializer;
+import com.flow.platform.yml.parser.test.adaptor.NameValidator;
+
 /**
- * @author gyfirim
+ * @author yh@firim
  */
+public class FlowTestValidator {
+    @YmlSerializer(validator = NameValidator.class)
+    private String name;
 
-public class TestBase {
-
-    public void test(){
-
-    }
+    @YmlSerializer
+    private String script;
 }
+

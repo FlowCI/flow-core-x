@@ -40,70 +40,84 @@ public class ClazzUtil {
 
     public static <T> T read(Object o, Class<T> clazz) {
 
+        T instance;
         try {
 
-            T instance = clazz.newInstance();
+            instance = clazz.newInstance();
+        } catch (Throwable throwable) {
+            throw new YmlException(String.format("clazz - %s instance error", clazz.getName()), throwable);
+        }
 
-            Class<?> raw = clazz;
+        Class<?> raw = clazz;
 
-            while (raw != Object.class) {
-                Field[] fields = raw.getDeclaredFields();
-                for (Field field : fields) {
+        while (raw != Object.class) {
+            Field[] fields = raw.getDeclaredFields();
+            for (Field field : fields) {
 
-                    // 获取 field 对应的值
-                    YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
+                // 获取 field 对应的值
+                YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
 
-                    if (FieldUtil.noAnnotationField(field)) {
-                        continue;
-                    }
+                //过滤没打注释的field
+                if (FieldUtil.noAnnotationField(field)) {
+                    continue;
+                }
 
-                    Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
+                //过滤打了注释但是需要 ignore 的 field
+                if (FieldUtil.ignoreField(field)) {
+                    continue;
+                }
 
-                    // 必须的属性
-                    if (FieldUtil.requiredField(field)) {
-                        if (obj == null) {
-                            throw new YmlException("required field");
-                        }
-                    }
+                Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
 
+                // 必须的属性
+                if (FieldUtil.requiredField(field)) {
                     if (obj == null) {
-                        continue;
-                    }
-
-                    field.setAccessible(true);
-
-                    try {
-                        field.set(instance,
-                            read(field, obj, clazz));
-
-                        // validator field
-                        validator(field, instance);
-                    } catch (Throwable throwable) {
-                        throw new YmlException("field set value error", throwable);
+                        throw new YmlException("required field");
                     }
                 }
 
-                raw = raw.getSuperclass();
+                if (obj == null) {
+                    continue;
+                }
+
+                field.setAccessible(true);
+
+                Object value = read(field, obj, clazz);
+
+                try {
+                    field.set(instance, value);
+
+                } catch (Throwable throwable) {
+                    throw new YmlException("field set value error", throwable);
+                }
+
+                // validator field
+                validator(field, instance);
             }
 
-            return instance;
-
-        } catch (Throwable throwable) {
-            throw new YmlException("ym error", throwable);
+            raw = raw.getSuperclass();
         }
+
+        return instance;
     }
 
     public static <T> void validator(Field field, T instance) {
         YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
         if (ymlSerializer.validator() != Empty.class) {
+            BaseValidator validator;
+            Object value = null;
             try {
-                BaseValidator validator = (BaseValidator) ymlSerializer.validator().newInstance();
-                if (validator.ReadValidator(field.get(instance)) == false) {
-                    throw new YmlValidatorException(String.format("field - %s , validator - error", field.getName()));
-                }
+                validator = (BaseValidator) ymlSerializer.validator().newInstance();
+                value = field.get(instance);
             } catch (Throwable throwable) {
-                throw new YmlValidatorException(String.format("instance validator - error", throwable));
+                throw new YmlValidatorException(String
+                    .format("validator - %s instance  error - %s", ymlSerializer.validator().getName(), throwable));
             }
+
+            if (validator.ReadValidator(value) == false) {
+                throw new YmlValidatorException(String.format("field - %s , validator - error", field.getName()));
+            }
+
         }
     }
 

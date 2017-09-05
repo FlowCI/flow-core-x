@@ -14,33 +14,21 @@
  * limitations under the License.
  */
 
-package com.flow.platform.yml.parser.annotations;
+package com.flow.platform.yml.parser.test.adaptor;
 
-import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
 import com.flow.platform.yml.parser.validator.BaseValidator;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import sun.invoke.empty.Empty;
+import com.google.common.base.Strings;
 
 /**
  * @author yh@firim
  */
+public class NameValidator extends BaseValidator<String>{
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD})
-public @interface YmlSerializer {
-
-    boolean required() default true;
-
-    String name() default "";
-
-    boolean ignore() default false;
-
-    Class<?> adaptor() default Empty.class;
-
-    Class<?> validator() default Empty.class;
+    @Override
+    public Boolean ReadValidator(String o) {
+        if(Strings.isNullOrEmpty(o)){
+            return false;
+        }
+        return o.contains("aaa");
+    }
 }

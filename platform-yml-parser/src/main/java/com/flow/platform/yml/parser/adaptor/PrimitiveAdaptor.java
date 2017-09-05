@@ -45,12 +45,21 @@ public class PrimitiveAdaptor<E> extends BaseAdaptor<Object> {
 
     @Override
     public Object read(Object o) {
+
+        if (componentType == Integer.class) {
+            return Integer.parseInt(o.toString());
+        }
+
+        if (componentType == String.class) {
+            return o.toString();
+        }
+
         if (componentType.isAssignableFrom(o.getClass())) {
             return o;
-        } else {
-            throw new YmlException(String
-                .format("data format not match componentType - %s, o.getClass - %s", componentType, o.getClass()));
         }
+
+        throw new YmlException(String
+            .format("data format not match componentType - %s, o.getClass - %s", componentType, o.getClass()));
     }
 
     @Override

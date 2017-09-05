@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-package com.flow.platform.yml.parser.annotations;
+package com.flow.platform.yml.parser.test.adaptor;
 
 import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
-import com.flow.platform.yml.parser.validator.BaseValidator;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import sun.invoke.empty.Empty;
+import java.util.Collection;
 
 /**
  * @author yh@firim
  */
+public class StringAdaptor  extends BaseAdaptor<String>{
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD})
-public @interface YmlSerializer {
+    @Override
+    public String read(Object o) {
+        StringBuilder stringBuilder = new StringBuilder("");
+        ((Collection)o).forEach(action -> {
+            stringBuilder.append(action);
+        });
+        return stringBuilder.toString();
+    }
 
-    boolean required() default true;
-
-    String name() default "";
-
-    boolean ignore() default false;
-
-    Class<?> adaptor() default Empty.class;
-
-    Class<?> validator() default Empty.class;
+    @Override
+    public Object write(String s) {
+        return null;
+    }
 }

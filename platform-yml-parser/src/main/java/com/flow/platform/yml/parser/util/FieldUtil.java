@@ -41,9 +41,18 @@ public class FieldUtil {
         return false;
     }
 
-    public static Boolean noAnnotationField(Field field){
+    public static Boolean noAnnotationField(Field field) {
         YmlSerializer annotation = field.getAnnotation(YmlSerializer.class);
-        if(annotation == null){
+        if (annotation == null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static Boolean ignoreField(Field field) {
+        YmlSerializer annotation = field.getAnnotation(YmlSerializer.class);
+        if (annotation.ignore()) {
             return true;
         }
 
