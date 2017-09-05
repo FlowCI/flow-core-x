@@ -19,8 +19,8 @@ package com.flow.platform.yml.parser.validator;
 /**
  * @author yh@firim
  */
-public abstract class YmlValidator<T> {
+public interface YmlValidator<T> {
 
     //validate true: success, false: failure
-    public abstract Boolean validate(T o);
+    Boolean validate(T o);
 }

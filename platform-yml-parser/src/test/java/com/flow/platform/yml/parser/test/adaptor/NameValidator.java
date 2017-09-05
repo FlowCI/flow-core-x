@@ -22,7 +22,7 @@ import com.google.common.base.Strings;
 /**
  * @author yh@firim
  */
-public class NameValidator extends YmlValidator<String> {
+public class NameValidator implements YmlValidator<String> {
 
     @Override
     public Boolean validate(String o) {

@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * @author yh@firim
  */
-public class EnvValidator extends YmlValidator<Map<String, String>> {
+public class EnvValidator implements YmlValidator<Map<String, String>> {
 
     @Override
     public Boolean validate(Map<String, String> o) {
