@@ -56,9 +56,9 @@ public class YmlUtilTest extends TestBase {
         Object o = result.get("flow");
         String yml1 = yaml.dump(o);
 ////            Object f = ((ArrayList)o).get(0);
-        flows = YmlParser.fromObject(o, Flow[].class);
+//        flows = YmlParser.fromObject(o, Flow[].class);
 //
-        Object toObject = YmlParser.toObject(flows);
+//        Object toObject = YmlParser.toObject(flows);
 //
 
         Flow[] flow1 = YmlParser.fromYml(ymlString, Flow[].class);

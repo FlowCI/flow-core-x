@@ -16,6 +16,12 @@
 
 package com.flow.platform.yml.parser;
 
+import com.esotericsoftware.yamlbeans.YamlConfig;
+import com.esotericsoftware.yamlbeans.YamlConfig.WriteClassName;
+import com.esotericsoftware.yamlbeans.YamlWriter;
+import com.flow.platform.yml.parser.exception.YmlException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +31,13 @@ import org.yaml.snakeyaml.Yaml;
  * @author yh@firim
  */
 public class YmlParser {
+
+    private final static YamlConfig yamlConfig = new YamlConfig();
+
+    static {
+        yamlConfig.writeConfig.setAutoAnchor(false);
+        yamlConfig.writeConfig.setWriteClassname(WriteClassName.NEVER);
+    }
 
     public static <T> T fromObject(Object o, Type typeOfT) {
         return (T) TypeAdaptorFactory.getAdaptor(typeOfT).read(o);
@@ -44,7 +57,17 @@ public class YmlParser {
         Map<String, Object> map = new HashMap<>();
         Object o = toObject(t);
         map.put("flow", o);
-        Yaml yaml = new Yaml();
-        return yaml.dump(map);
+        String yml = null;
+        try {
+            Writer stringWriter = new StringWriter();
+            YamlWriter writer = new YamlWriter(stringWriter, yamlConfig);
+            writer.write(map);
+            writer.close();
+            yml = stringWriter.toString();
+        } catch (Throwable throwable) {
+            throw new YmlException(String.format("Object to yaml error"), throwable);
+        }
+
+        return yml;
     }
 }
