@@ -30,6 +30,7 @@ public class PrimitiveAdaptor<E> extends BaseAdaptor<Object> {
 
         Class<?> rawType = TypeUtil.getRawType(type);
 
+        // judge rawType is primitive or not
         if (PrimitiveUtil.isUsePrimitive(rawType)) {
             return new PrimitiveAdaptor(rawType);
         }

@@ -27,7 +27,12 @@ import java.util.Map;
  */
 public class FieldUtil {
 
-    // 必填的字段
+    /**
+     * detect required field from annotation
+     *
+     * @param field field
+     * @return True or false
+     */
     public static Boolean requiredField(Field field) {
         YmlSerializer annotation = field.getAnnotation(YmlSerializer.class);
         if (annotation == null) {
@@ -41,6 +46,9 @@ public class FieldUtil {
         return false;
     }
 
+    /**
+     * filter no annotation field
+     */
     public static Boolean noAnnotationField(Field field) {
         YmlSerializer annotation = field.getAnnotation(YmlSerializer.class);
         if (annotation == null) {
@@ -50,6 +58,9 @@ public class FieldUtil {
         return false;
     }
 
+    /**
+     * filter ignore field
+     */
     public static Boolean ignoreField(Field field) {
         YmlSerializer annotation = field.getAnnotation(YmlSerializer.class);
         if (annotation.ignore()) {
@@ -59,7 +70,11 @@ public class FieldUtil {
         return false;
     }
 
-    //过滤有标识的field
+    /**
+     * filter annotation fields
+     *
+     * @return Map<name, field>
+     */
     public static Map<String, Field> filterAnnotationField(Class<?> clazz) {
         Map<String, Field> fieldMap = new HashMap<>();
         allFields(clazz).forEach((s, field) -> {
@@ -71,7 +86,11 @@ public class FieldUtil {
         return fieldMap;
     }
 
-    // 查找所有的field
+    /**
+     * get all fields
+     *
+     * @return Map<name, field>
+     */
     private static Map<String, Field> allFields(Class<?> clazz) {
         Map<String, Field> map = new HashMap<>();
 

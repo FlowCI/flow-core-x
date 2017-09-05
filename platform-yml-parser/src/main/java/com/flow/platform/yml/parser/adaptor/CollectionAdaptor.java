@@ -42,7 +42,6 @@ public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
         return new CollectionAdaptor(rawType, elementTypeAdapter);
     };
 
-
     private Class<E> componentClazz;
 
     private BaseAdaptor<E> typeAdaptor;

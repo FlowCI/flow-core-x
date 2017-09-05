@@ -19,9 +19,20 @@ package com.flow.platform.yml.parser.adaptor;
 /**
  * @author yh@firim
  */
-public abstract class BaseAdaptor<T>
-{
+public abstract class BaseAdaptor<T> {
+
+    /**
+     * Object to Model T
+     *
+     * @param o object
+     * @return Model T
+     */
     public abstract T read(Object o);
 
+    /**
+     * Model T to Object
+     *
+     * @param t T's instance
+     */
     public abstract Object write(T t);
 }

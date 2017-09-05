@@ -29,9 +29,12 @@ public class MethodUtil {
         return Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
     }
 
+    /**
+     * get field type
+     */
     public static Type getClazz(Field field, Class<?> clazz) {
         Method method = getGetterMethod(field, clazz);
-        if(method == null){
+        if (method == null) {
             return null;
         }
 
@@ -46,6 +49,9 @@ public class MethodUtil {
         return getMethod(field, clazz, "set");
     }
 
+    /**
+     * get method
+     */
     private static Method getMethod(Field field, Class<?> clazz, String action) {
         try {
             Method method = clazz

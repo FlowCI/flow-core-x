@@ -25,12 +25,15 @@ import java.lang.reflect.Type;
  */
 public class TypeUtil {
 
+    /**
+     * get class from type
+     */
     public static Class<?> getRawType(Type type) {
         if (type instanceof Class<?>) {
             return (Class<?>) type;
         }
 
-        if (type instanceof ParameterizedType){
+        if (type instanceof ParameterizedType) {
             ParameterizedType parameterized = (ParameterizedType) type;
             return (Class<?>) parameterized.getRawType();
         }
@@ -38,12 +41,15 @@ public class TypeUtil {
         return null;
     }
 
-    public static Class<?> getCollectionElementType(Type type){
+    /**
+     * get collection element type
+     */
+    public static Class<?> getCollectionElementType(Type type) {
         if (type instanceof Class<?>) {
             return (Class<?>) type;
         }
 
-        if (type instanceof ParameterizedType){
+        if (type instanceof ParameterizedType) {
             ParameterizedType parameterized = (ParameterizedType) type;
             return (Class<?>) parameterized.getActualTypeArguments()[0];
         }
@@ -51,6 +57,9 @@ public class TypeUtil {
         return null;
     }
 
+    /**
+     * get array element type
+     */
     public static Type getArrayComponentType(Type array) {
         return array instanceof GenericArrayType
             ? ((GenericArrayType) array).getGenericComponentType()

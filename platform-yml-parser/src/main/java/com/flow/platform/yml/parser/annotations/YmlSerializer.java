@@ -32,13 +32,28 @@ import sun.invoke.empty.Empty;
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface YmlSerializer {
 
+    /**
+     * field is required
+     */
     boolean required() default true;
 
+    /**
+     * yml to field mapping name
+     */
     String name() default "";
 
+    /**
+     * yml to field ignore
+     */
     boolean ignore() default false;
 
+    /**
+     * this field will apply provided adaptor
+     */
     Class<?> adaptor() default Empty.class;
 
+    /**
+     * this field will apply provided validator
+     */
     Class<?> validator() default Empty.class;
 }

@@ -31,6 +31,7 @@ public class MapAdaptor extends BaseAdaptor<Object> {
     public final static BaseFactory FACTORY = type -> {
         Class<?> rawType = TypeUtil.getRawType(type);
 
+        // judge Map is rawType subclass
         if (!Map.class.isAssignableFrom(rawType)) {
             return null;
         }
@@ -40,6 +41,7 @@ public class MapAdaptor extends BaseAdaptor<Object> {
     @Override
     public Object read(Object o) {
 
+        // judge Map is o.class subclass
         if (!Map.class.isAssignableFrom(o.getClass())) {
             throw new YmlException("MapAdaptor Object Class not extends Map");
         }

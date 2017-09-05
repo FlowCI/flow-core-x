@@ -104,4 +104,26 @@ public class YmlParserTest extends TestBase {
             Assert.assertEquals(YmlException.class, e.getClass());
         }
     }
+
+    @Test
+    public void should_to_yml_success() {
+        String demo = loadDemoFlowYaml("demo-yml.yaml");
+        FlowTestIgnore[] flows = YmlParser.fromYml(demo, FlowTestIgnore[].class);
+        Assert.assertEquals(1, flows.length);
+        Assert.assertEquals(null, flows[0].getName());
+        String yml = YmlParser.toYml(flows);
+        Assert.assertNotNull(yml);
+    }
+
+    @Test
+    public void should_to_yml_complex_success() {
+        String demo = loadDemoFlowYaml("demo-yml-complex.yaml");
+        FlowTest[] flows = YmlParser.fromYml(demo, FlowTest[].class);
+        Assert.assertEquals(1, flows.length);
+        String yml = YmlParser.toYml(flows);
+        Assert.assertNotNull(yml);
+        flows = YmlParser.fromYml(yml, FlowTest[].class);
+        Assert.assertEquals(1, flows.length);
+        Assert.assertNotNull(flows[0].getScript());
+    }
 }

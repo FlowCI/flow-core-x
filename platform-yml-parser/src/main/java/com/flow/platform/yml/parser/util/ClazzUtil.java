@@ -38,6 +38,14 @@ import sun.invoke.empty.Empty;
  */
 public class ClazzUtil {
 
+    /**
+     * read object value to clazz
+     *
+     * @param o object
+     * @param clazz clazz
+     * @param <T> clazz
+     * @return clazz instance
+     */
     public static <T> T read(Object o, Class<T> clazz) {
 
         T instance;
@@ -53,22 +61,22 @@ public class ClazzUtil {
             Field[] fields = raw.getDeclaredFields();
             for (Field field : fields) {
 
-                // 获取 field 对应的值
+                // find field annotations
                 YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
 
-                //过滤没打注释的field
+                //filter no annotations field
                 if (FieldUtil.noAnnotationField(field)) {
                     continue;
                 }
 
-                //过滤打了注释但是需要 ignore 的 field
+                //filter ignore field
                 if (FieldUtil.ignoreField(field)) {
                     continue;
                 }
 
                 Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
 
-                // 必须的属性
+                // required field
                 if (FieldUtil.requiredField(field)) {
                     if (obj == null) {
                         throw new YmlException(String.format("required field - %s", field.getName()));
@@ -81,6 +89,7 @@ public class ClazzUtil {
 
                 field.setAccessible(true);
 
+                // read field value
                 Object value = read(field, obj, clazz);
 
                 try {
@@ -100,6 +109,9 @@ public class ClazzUtil {
         return instance;
     }
 
+    /**
+     * validate field's value
+     */
     public static <T> void validator(Field field, T instance) {
         YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
         if (ymlSerializer.validator() != Empty.class) {
@@ -120,19 +132,29 @@ public class ClazzUtil {
         }
     }
 
+    /**
+     * read field value from clazz, auto select adaptor or annotation support
+     *
+     * @param field field
+     * @param obj yml
+     * @param clazz field's clazz
+     * @return Object
+     */
     public static Object read(Field field, Object obj, Class<?> clazz) {
         YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
 
+        // get field type
         Type fieldType = MethodUtil.getClazz(field, clazz);
         if (fieldType == null) {
             fieldType = field.getGenericType();
         }
 
+        // auto select adaptor
         if (ymlSerializer.adaptor() == Empty.class) {
             return TypeAdaptorFactory.getAdaptor(fieldType).read(obj);
         }
 
-        //采用 adaptor
+        // annotation provide adaptor
         if (ymlSerializer.adaptor() != Empty.class) {
             try {
                 BaseAdaptor instance = (BaseAdaptor) ymlSerializer.adaptor().newInstance();
@@ -145,6 +167,9 @@ public class ClazzUtil {
         return null;
     }
 
+    /**
+     * model write field to object
+     */
     public static <T> Object write(T clazz) {
         try {
 
@@ -176,14 +201,19 @@ public class ClazzUtil {
         }
     }
 
+    /**
+     * auto select adaptor or annotation provider
+     */
     public static <T> Object write(Field field, T t) {
         YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
 
+        // get field type
         Type fieldType = MethodUtil.getClazz(field, t.getClass());
         if (fieldType == null) {
             fieldType = field.getGenericType();
         }
 
+        // auto select adaptor
         if (ymlSerializer.adaptor() == Empty.class) {
             try {
                 return TypeAdaptorFactory.getAdaptor(fieldType).write(field.get(t));
@@ -192,7 +222,7 @@ public class ClazzUtil {
             }
         }
 
-        //采用 adaptor
+        //annotation provider adaptor
         if (ymlSerializer.adaptor() != Empty.class) {
             try {
                 BaseAdaptor instance = (BaseAdaptor) ymlSerializer.adaptor().newInstance();
@@ -206,6 +236,9 @@ public class ClazzUtil {
         return null;
     }
 
+    /**
+     * get field mapping name
+     */
     private static String getAnnotationMappingName(String s, YmlSerializer ymlSerializer) {
         if (Strings.isNullOrEmpty(ymlSerializer.name())) {
             return s;

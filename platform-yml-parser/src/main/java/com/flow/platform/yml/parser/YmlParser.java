@@ -39,33 +39,47 @@ public class YmlParser {
         yamlConfig.writeConfig.setWriteClassname(WriteClassName.NEVER);
     }
 
-    public static <T> T fromObject(Object o, Type typeOfT) {
+    private static <T> T fromObject(Object o, Type typeOfT) {
         if (o == null) {
             throw new YmlException("yml parser error");
         }
         return (T) TypeAdaptorFactory.getAdaptor(typeOfT).read(o);
     }
 
-    public static <T> Object toObject(T t) {
+    private static <T> Object toObject(T t) {
         return TypeAdaptorFactory.getAdaptor(t.getClass()).write(t);
     }
 
+    /**
+     * Yml String To Type
+     *
+     * @param str Yml String
+     * @param typeOfT Class
+     * @return T instance
+     */
     public static <T> T fromYml(String str, Type typeOfT) {
         Yaml yaml = new Yaml();
         Map result;
         try {
             result = (Map) yaml.load(str);
-        }catch (Throwable throwable){
+        } catch (Throwable throwable) {
             throw new YmlException("Load Yml error");
         }
         return fromObject(result.get("flow"), typeOfT);
     }
 
+    /**
+     * T to Yml
+     *
+     * @param t object
+     * @return String
+     */
     public static <T> String toYml(T t) {
         Map<String, Object> map = new HashMap<>();
         Object o = toObject(t);
         map.put("flow", o);
         String yml = null;
+
         try {
             Writer stringWriter = new StringWriter();
             YamlWriter writer = new YamlWriter(stringWriter, yamlConfig);

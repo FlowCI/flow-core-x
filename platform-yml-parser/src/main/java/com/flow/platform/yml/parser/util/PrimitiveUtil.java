@@ -48,6 +48,9 @@ public class PrimitiveUtil {
         return WRAPPER_TYPES.contains(clazz);
     }
 
+    /**
+     * detect data type is primitive or not
+     */
     public static boolean isUsePrimitive(Class clazz) {
         if (WRAPPER_TYPES.contains(clazz)) {
             return true;
