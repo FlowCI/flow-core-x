@@ -16,6 +16,8 @@
 
 package com.flow.platform.yml.parser.annotations;
 
+import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
+import com.flow.platform.yml.parser.validator.BaseValidator;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -37,4 +39,6 @@ public @interface YmlSerializer {
     String name() default "";
 
     Class<?> adaptor() default Empty.class;
+
+    Class<?> validator() default Empty.class;
 }

@@ -20,6 +20,8 @@ import com.flow.platform.yml.parser.TypeAdaptorFactory;
 import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.flow.platform.yml.parser.exception.YmlException;
+import com.flow.platform.yml.parser.exception.YmlValidatorException;
+import com.flow.platform.yml.parser.validator.BaseValidator;
 import com.google.common.base.Strings;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -73,6 +75,9 @@ public class ClazzUtil {
                     try {
                         field.set(instance,
                             read(field, obj, clazz));
+
+                        // validator field
+                        validator(field, instance);
                     } catch (Throwable throwable) {
                         throw new YmlException("field set value error", throwable);
                     }
@@ -85,6 +90,20 @@ public class ClazzUtil {
 
         } catch (Throwable throwable) {
             throw new YmlException("ym error", throwable);
+        }
+    }
+
+    public static <T> void validator(Field field, T instance) {
+        YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
+        if (ymlSerializer.validator() != Empty.class) {
+            try {
+                BaseValidator validator = (BaseValidator) ymlSerializer.validator().newInstance();
+                if (validator.ReadValidator(field.get(instance)) == false) {
+                    throw new YmlValidatorException(String.format("field - %s , validator - error", field.getName()));
+                }
+            } catch (Throwable throwable) {
+                throw new YmlValidatorException(String.format("instance validator - error", throwable));
+            }
         }
     }
 
