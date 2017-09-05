@@ -64,7 +64,7 @@ public class YmlUtilTest extends TestBase {
 
         Flow[] flow2 = YmlParser.fromYml(yml, Flow[].class);
 //        } catch (Throwable e) {
-//            throw new YmlException("Illegal yml definition");
+//            throw new YmlParserException("Illegal yml definition");
 //        }
 
 //        Step step = new Step("/flow1/step", "step");

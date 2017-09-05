@@ -19,18 +19,14 @@ package com.flow.platform.yml.parser.util;
 import com.flow.platform.yml.parser.TypeAdaptorFactory;
 import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import com.flow.platform.yml.parser.exception.YmlException;
+import com.flow.platform.yml.parser.exception.YmlParserException;
 import com.flow.platform.yml.parser.exception.YmlValidatorException;
 import com.flow.platform.yml.parser.validator.BaseValidator;
 import com.google.common.base.Strings;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import jdk.nashorn.internal.parser.TokenType;
 import sun.invoke.empty.Empty;
 
 /**
@@ -52,7 +48,7 @@ public class ClazzUtil {
         try {
             instance = clazz.newInstance();
         } catch (Throwable throwable) {
-            throw new YmlException(String.format("clazz - %s instance error", clazz.getName()), throwable);
+            throw new YmlParserException(String.format("clazz - %s instance error", clazz.getName()), throwable);
         }
 
         Class<?> raw = clazz;
@@ -79,7 +75,7 @@ public class ClazzUtil {
                 // required field
                 if (FieldUtil.requiredField(field)) {
                     if (obj == null) {
-                        throw new YmlException(String.format("required field - %s", field.getName()));
+                        throw new YmlParserException(String.format("required field - %s", field.getName()));
                     }
                 }
 
@@ -96,7 +92,7 @@ public class ClazzUtil {
                     field.set(instance, value);
 
                 } catch (Throwable throwable) {
-                    throw new YmlException(String.format("field - %s set value error", field.getName()), throwable);
+                    throw new YmlParserException(String.format("field - %s set value error", field.getName()), throwable);
                 }
 
                 // validator field
@@ -160,7 +156,7 @@ public class ClazzUtil {
                 BaseAdaptor instance = (BaseAdaptor) ymlSerializer.adaptor().newInstance();
                 return instance.read(obj);
             } catch (Throwable throwable) {
-                throw new YmlException("create instance adaptor", throwable);
+                throw new YmlParserException("create instance adaptor", throwable);
             }
         }
 
@@ -197,7 +193,7 @@ public class ClazzUtil {
             }
             return map;
         } catch (Throwable throwable) {
-            throw new YmlException("write yml error", throwable);
+            throw new YmlParserException("write yml error", throwable);
         }
     }
 
@@ -218,7 +214,7 @@ public class ClazzUtil {
             try {
                 return TypeAdaptorFactory.getAdaptor(fieldType).write(field.get(t));
             } catch (Throwable throwable) {
-                throw new YmlException(String.format("field - %s get error", field.getName()), throwable);
+                throw new YmlParserException(String.format("field - %s get error", field.getName()), throwable);
             }
         }
 
@@ -228,7 +224,7 @@ public class ClazzUtil {
                 BaseAdaptor instance = (BaseAdaptor) ymlSerializer.adaptor().newInstance();
                 return instance.write(field.get(t));
             } catch (Throwable throwable) {
-                throw new YmlException(
+                throw new YmlParserException(
                     String.format("create instance adaptor - %s error", ymlSerializer.adaptor().getName()), throwable);
             }
         }

@@ -20,6 +20,9 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.yml.parser.YmlParser;
+import com.flow.platform.yml.parser.exception.YmlParserException;
+import com.flow.platform.yml.parser.exception.YmlValidatorException;
 import com.google.common.io.Files;
 import java.io.File;
 import java.nio.file.Path;
@@ -67,23 +70,15 @@ public class NodeUtil {
      * @throws YmlException if yml format is illegal
      */
     public static Node buildFromYml(String yml) {
-        Yaml yaml = new Yaml();
-        Map result = null;
 
+        Flow[] flows;
         try {
-            result = (Map) yaml.load(yml);
-        } catch (Throwable e) {
-            throw new YmlException("Illegal yml definition");
+            flows = YmlParser.fromYml(yml, Flow[].class);
+        }catch (YmlParserException e){
+            throw new YmlException("Yml parser error", e);
+        }catch (YmlValidatorException e){
+            throw new YmlException("Yml validator error", e);
         }
-
-        Object content = result.get("flow");
-
-        if (content == null || !(content instanceof List)) {
-            throw new YmlException("Illegal yml definition");
-        }
-
-        String rawJson = Jsonable.GSON_CONFIG.toJson(content);
-        Flow[] flows = Jsonable.GSON_CONFIG.fromJson(rawJson, Flow[].class);
 
         // current version only support single flow
         if (flows.length > 1) {

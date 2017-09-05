@@ -52,6 +52,7 @@
     <hibernate-validator.version>5.4.1.Final</hibernate-validator.version>
     <javax.mail-api.version>1.5.5</javax.mail-api.version>
     <javax.mail.version>1.5.5</javax.mail.version>
+    <yamlbeans.version>1.12</yamlbeans.version>
   </properties>
 
   <build>
@@ -261,6 +262,12 @@
         <groupId>com.jcraft</groupId>
         <artifactId>jsch</artifactId>
         <version>${jsch.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.esotericsoftware.yamlbeans</groupId>
+        <artifactId>yamlbeans</artifactId>
+        <version>${yamlbeans.version}</version>
       </dependency>
 
       <!--library for testing-->

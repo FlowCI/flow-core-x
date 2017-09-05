@@ -25,7 +25,6 @@
     <dependency>
       <groupId>com.esotericsoftware.yamlbeans</groupId>
       <artifactId>yamlbeans</artifactId>
-      <version>1.12</version>
     </dependency>
 
     <dependency>

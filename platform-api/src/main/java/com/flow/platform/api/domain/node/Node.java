@@ -34,7 +34,7 @@ public class Node<T extends Node> extends EnvObject {
     @Expose
     protected String path;
 
-    @YmlSerializer(required = false)
+    @YmlSerializer
     @Expose
     protected String name;
 

@@ -22,7 +22,7 @@ import com.flow.platform.yml.parser.adaptor.CollectionAdaptor;
 import com.flow.platform.yml.parser.adaptor.MapAdaptor;
 import com.flow.platform.yml.parser.adaptor.PrimitiveAdaptor;
 import com.flow.platform.yml.parser.adaptor.ReflectTypeAdaptor;
-import com.flow.platform.yml.parser.exception.YmlException;
+import com.flow.platform.yml.parser.exception.YmlParserException;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class TypeAdaptorFactory {
             }
         }
 
-        throw new YmlException("Not found adaptor");
+        throw new YmlParserException("Not found adaptor");
     }
 
 }
