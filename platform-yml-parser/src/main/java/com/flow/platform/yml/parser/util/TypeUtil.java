@@ -21,7 +21,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
- * @author gyfirim
+ * @author yh@firim
  */
 public class TypeUtil {
 

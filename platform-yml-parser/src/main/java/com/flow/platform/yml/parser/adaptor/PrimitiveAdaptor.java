@@ -18,8 +18,10 @@ package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.exception.YmlParseException;
 import com.flow.platform.yml.parser.factory.BaseFactory;
-import com.flow.platform.yml.parser.util.PrimitiveUtil;
 import com.flow.platform.yml.parser.util.TypeUtil;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author yh@firim
@@ -31,12 +33,30 @@ public class PrimitiveAdaptor<E> extends YmlAdaptor<Object> {
         Class<?> rawType = TypeUtil.getRawType(type);
 
         // judge rawType is primitive or not
-        if (PrimitiveUtil.isUsePrimitive(rawType)) {
+        if (isUsePrimitive(rawType)) {
             return new PrimitiveAdaptor(rawType);
         }
 
         return null;
     };
+
+    private static final Set<Class> WRAPPER_TYPES = new HashSet(
+        Arrays.asList(
+            Boolean.class,
+            Character.class,
+            Byte.class,
+            Short.class,
+            Integer.class,
+            Long.class,
+            Float.class,
+            Double.class,
+            Void.class
+        ));
+
+    private static final Set<Class> SPECIAL_TYPES = new HashSet(
+        Arrays.asList(
+            String.class
+        ));
 
     private Class<E> componentType;
 
@@ -66,5 +86,24 @@ public class PrimitiveAdaptor<E> extends YmlAdaptor<Object> {
     @Override
     public Object write(Object o) {
         return o;
+    }
+
+    private static boolean isWrapperType(Class clazz) {
+        return WRAPPER_TYPES.contains(clazz);
+    }
+
+    /**
+     * detect data type is primitive or not
+     */
+    private static boolean isUsePrimitive(Class clazz) {
+        if (WRAPPER_TYPES.contains(clazz)) {
+            return true;
+        }
+
+        if (SPECIAL_TYPES.contains(clazz)) {
+            return true;
+        }
+
+        return false;
     }
 }

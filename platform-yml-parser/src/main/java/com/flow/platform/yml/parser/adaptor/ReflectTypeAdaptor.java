@@ -17,7 +17,6 @@
 package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.factory.BaseFactory;
-import com.flow.platform.yml.parser.util.ClazzUtil;
 import com.flow.platform.yml.parser.util.TypeUtil;
 
 /**
@@ -42,11 +41,11 @@ public class ReflectTypeAdaptor<E> extends YmlAdaptor<Object> {
 
     @Override
     public Object read(Object o) {
-        return ClazzUtil.read(o, componentClazz);
+        return doRead(o, componentClazz);
     }
 
     @Override
     public Object write(Object object) {
-        return ClazzUtil.write(object);
+        return doWrite(object);
     }
 }
