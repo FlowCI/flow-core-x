@@ -17,12 +17,12 @@
 package com.flow.platform.yml.parser;
 
 import com.flow.platform.yml.parser.adaptor.ArrayAdaptor;
-import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
+import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
 import com.flow.platform.yml.parser.adaptor.CollectionAdaptor;
 import com.flow.platform.yml.parser.adaptor.MapAdaptor;
 import com.flow.platform.yml.parser.adaptor.PrimitiveAdaptor;
 import com.flow.platform.yml.parser.adaptor.ReflectTypeAdaptor;
-import com.flow.platform.yml.parser.exception.YmlParserException;
+import com.flow.platform.yml.parser.exception.YmlParseException;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -44,15 +44,15 @@ public class TypeAdaptorFactory {
     }
 
 
-    public static BaseAdaptor getAdaptor(Type type) {
+    public static YmlAdaptor getAdaptor(Type type) {
         for (BaseFactory factory : factories) {
-            BaseAdaptor adaptor = factory.create(type);
+            YmlAdaptor adaptor = factory.create(type);
             if (adaptor != null) {
                 return adaptor;
             }
         }
 
-        throw new YmlParserException("Not found adaptor");
+        throw new YmlParseException("Not found adaptor");
     }
 
 }

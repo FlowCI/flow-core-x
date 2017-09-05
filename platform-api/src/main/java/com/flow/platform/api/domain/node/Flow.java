@@ -39,11 +39,4 @@ public class Flow extends Node<Step> {
         return super.getChildren();
     }
 
-    public List<Step> flows(){
-        return null;
-    }
-
-    public Step getStep(){
-        return null;
-    }
 }

@@ -16,7 +16,7 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
-import com.flow.platform.yml.parser.exception.YmlParserException;
+import com.flow.platform.yml.parser.exception.YmlParseException;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.PrimitiveUtil;
 import com.flow.platform.yml.parser.util.TypeUtil;
@@ -24,7 +24,7 @@ import com.flow.platform.yml.parser.util.TypeUtil;
 /**
  * @author yh@firim
  */
-public class PrimitiveAdaptor<E> extends BaseAdaptor<Object> {
+public class PrimitiveAdaptor<E> extends YmlAdaptor<Object> {
 
     public final static BaseFactory FACTORY = type -> {
 
@@ -59,7 +59,7 @@ public class PrimitiveAdaptor<E> extends BaseAdaptor<Object> {
             return o;
         }
 
-        throw new YmlParserException(String
+        throw new YmlParseException(String
             .format("data format not match componentType - %s, o.getClass - %s", componentType, o.getClass()));
     }
 

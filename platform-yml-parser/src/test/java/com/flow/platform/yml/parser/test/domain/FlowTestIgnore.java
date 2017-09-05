@@ -15,12 +15,14 @@
  */
 
 package com.flow.platform.yml.parser.test.domain;
+
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 
 /**
  * @author yh@firim
  */
 public class FlowTestIgnore {
+
     @YmlSerializer(ignore = true)
     private String name;
 

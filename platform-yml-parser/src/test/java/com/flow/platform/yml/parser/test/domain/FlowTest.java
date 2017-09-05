@@ -22,6 +22,7 @@ import com.flow.platform.yml.parser.annotations.YmlSerializer;
  * @author yh@firim
  */
 public class FlowTest {
+
     @YmlSerializer
     private String name;
     @YmlSerializer

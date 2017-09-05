@@ -16,19 +16,16 @@
 
 package com.flow.platform.yml.parser.test.adaptor;
 
-import com.flow.platform.yml.parser.validator.BaseValidator;
+import com.flow.platform.yml.parser.validator.YmlValidator;
 import com.google.common.base.Strings;
 
 /**
  * @author yh@firim
  */
-public class NameValidator extends BaseValidator<String>{
+public class NameValidator extends YmlValidator<String> {
 
     @Override
-    public Boolean ReadValidator(String o) {
-        if(Strings.isNullOrEmpty(o)){
-            return false;
-        }
-        return o.contains("aaa");
+    public Boolean validate(String o) {
+        return !Strings.isNullOrEmpty(o) && o.contains("aaa");
     }
 }

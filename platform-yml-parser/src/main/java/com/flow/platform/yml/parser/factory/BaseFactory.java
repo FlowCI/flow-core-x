@@ -16,12 +16,12 @@
 
 package com.flow.platform.yml.parser.factory;
 
-import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
+import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
 import java.lang.reflect.Type;
 
 /**
  * @author yh@firim
  */
 public interface BaseFactory {
-    BaseAdaptor create(Type type);
+    YmlAdaptor create(Type type);
 }

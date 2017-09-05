@@ -19,8 +19,8 @@ package com.flow.platform.yml.parser.validator;
 /**
  * @author yh@firim
  */
-public abstract class BaseValidator<T> {
+public abstract class YmlValidator<T> {
 
     //validate true: success, false: failure
-    public abstract Boolean ReadValidator(T o);
+    public abstract Boolean validate(T o);
 }

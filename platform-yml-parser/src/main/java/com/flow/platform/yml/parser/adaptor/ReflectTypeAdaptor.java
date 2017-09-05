@@ -23,7 +23,7 @@ import com.flow.platform.yml.parser.util.TypeUtil;
 /**
  * @author yh@firim
  */
-public class ReflectTypeAdaptor<E> extends BaseAdaptor<Object> {
+public class ReflectTypeAdaptor<E> extends YmlAdaptor<Object> {
 
     public final static BaseFactory FACTORY = type -> {
         Class<?> rawType = TypeUtil.getRawType(type);

@@ -110,12 +110,6 @@
     </dependency>
 
     <dependency>
-      <groupId>com.flow.platform</groupId>
-      <artifactId>platform-yml-parser</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
     </dependency>

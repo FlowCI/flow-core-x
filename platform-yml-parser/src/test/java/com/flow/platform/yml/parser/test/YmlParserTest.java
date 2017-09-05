@@ -16,9 +16,11 @@
 
 package com.flow.platform.yml.parser.test;
 
+import static org.junit.Assert.fail;
+
 import com.flow.platform.yml.parser.YmlParser;
-import com.flow.platform.yml.parser.exception.YmlParserException;
-import com.flow.platform.yml.parser.exception.YmlValidatorException;
+import com.flow.platform.yml.parser.exception.YmlParseException;
+import com.flow.platform.yml.parser.exception.YmlFormatException;
 import com.flow.platform.yml.parser.test.domain.FlowTest;
 import com.flow.platform.yml.parser.test.domain.FlowTestAdaptor;
 import com.flow.platform.yml.parser.test.domain.FlowTestIgnore;
@@ -45,8 +47,8 @@ public class YmlParserTest extends TestBase {
         String demo = loadDemoFlowYaml("demo-yml.yaml");
         try {
             FlowTestRequired[] flows = YmlParser.fromYml(demo, FlowTestRequired[].class);
-        } catch (YmlParserException e) {
-            Assert.assertEquals(YmlParserException.class, e.getClass());
+        } catch (YmlParseException e) {
+            Assert.assertEquals(YmlParseException.class, e.getClass());
         }
     }
 
@@ -75,34 +77,22 @@ public class YmlParserTest extends TestBase {
         Assert.assertEquals("abc", flows[0].getName());
     }
 
-    @Test
+    @Test(expected = YmlFormatException.class)
     public void should_validator_error() {
         String demo = loadDemoFlowYaml("demo-yml-validator.yaml");
-        try {
-            FlowTestValidator[] flows = YmlParser.fromYml(demo, FlowTestValidator[].class);
-        } catch (YmlValidatorException e) {
-            Assert.assertEquals(YmlValidatorException.class, e.getClass());
-        }
+        YmlParser.fromYml(demo, FlowTestValidator[].class);
     }
 
-    @Test
+    @Test(expected = YmlParseException.class)
     public void should_parser_yml_error() {
         String demo = loadDemoFlowYaml("demo-yml-error.yaml");
-        try {
-            FlowTestValidator[] flows = YmlParser.fromYml(demo, FlowTestValidator[].class);
-        } catch (YmlParserException e) {
-            Assert.assertEquals(YmlParserException.class, e.getClass());
-        }
+        YmlParser.fromYml(demo, FlowTestValidator[].class);
     }
 
-    @Test
-    public void should_parser_yml_error_format_error(){
+    @Test(expected = YmlParseException.class)
+    public void should_parser_yml_error_format_error() {
         String demo = loadDemoFlowYaml("demo-yml-error-format.yaml");
-        try {
-            FlowTestValidator[] flows = YmlParser.fromYml(demo, FlowTestValidator[].class);
-        } catch (YmlParserException e) {
-            Assert.assertEquals(YmlParserException.class, e.getClass());
-        }
+        YmlParser.fromYml(demo, FlowTestValidator[].class);
     }
 
     @Test

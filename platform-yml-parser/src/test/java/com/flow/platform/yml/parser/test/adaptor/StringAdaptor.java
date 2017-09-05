@@ -16,20 +16,18 @@
 
 package com.flow.platform.yml.parser.test.adaptor;
 
-import com.flow.platform.yml.parser.adaptor.BaseAdaptor;
+import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
 import java.util.Collection;
 
 /**
  * @author yh@firim
  */
-public class StringAdaptor  extends BaseAdaptor<String>{
+public class StringAdaptor extends YmlAdaptor<String> {
 
     @Override
     public String read(Object o) {
         StringBuilder stringBuilder = new StringBuilder("");
-        ((Collection)o).forEach(action -> {
-            stringBuilder.append(action);
-        });
+        ((Collection) o).forEach(stringBuilder::append);
         return stringBuilder.toString();
     }
 

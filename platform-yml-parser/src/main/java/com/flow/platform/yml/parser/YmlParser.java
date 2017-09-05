@@ -19,7 +19,7 @@ package com.flow.platform.yml.parser;
 import com.esotericsoftware.yamlbeans.YamlConfig;
 import com.esotericsoftware.yamlbeans.YamlConfig.WriteClassName;
 import com.esotericsoftware.yamlbeans.YamlWriter;
-import com.flow.platform.yml.parser.exception.YmlParserException;
+import com.flow.platform.yml.parser.exception.YmlParseException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Type;
@@ -41,7 +41,7 @@ public class YmlParser {
 
     private static <T> T fromObject(Object o, Type typeOfT) {
         if (o == null) {
-            throw new YmlParserException("yml parser error");
+            throw new YmlParseException("yml parser error");
         }
         return (T) TypeAdaptorFactory.getAdaptor(typeOfT).read(o);
     }
@@ -63,7 +63,7 @@ public class YmlParser {
         try {
             result = (Map) yaml.load(str);
         } catch (Throwable throwable) {
-            throw new YmlParserException("Load Yml error");
+            throw new YmlParseException("Load Yml error");
         }
         return fromObject(result.get("flow"), typeOfT);
     }
@@ -87,7 +87,7 @@ public class YmlParser {
             writer.close();
             yml = stringWriter.toString();
         } catch (Throwable throwable) {
-            throw new YmlParserException(String.format("Object to yaml error"), throwable);
+            throw new YmlParseException(String.format("Object to yaml error"), throwable);
         }
 
         return yml;

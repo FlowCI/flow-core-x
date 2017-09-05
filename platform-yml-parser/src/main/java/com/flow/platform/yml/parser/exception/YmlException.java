@@ -19,13 +19,13 @@ package com.flow.platform.yml.parser.exception;
 /**
  * @author yh@firim
  */
-public class YmlValidatorException extends RuntimeException {
+public class YmlException extends RuntimeException {
 
-    public YmlValidatorException(String message) {
+    public YmlException(String message) {
         super(message);
     }
 
-    public YmlValidatorException(String message, Throwable cause) {
+    public YmlException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -19,19 +19,16 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.exception.YmlException;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.yml.parser.YmlParser;
-import com.flow.platform.yml.parser.exception.YmlParserException;
-import com.flow.platform.yml.parser.exception.YmlValidatorException;
+import com.flow.platform.yml.parser.exception.YmlParseException;
+import com.flow.platform.yml.parser.exception.YmlFormatException;
 import com.google.common.io.Files;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author yh@firim
@@ -74,9 +71,9 @@ public class NodeUtil {
         Flow[] flows;
         try {
             flows = YmlParser.fromYml(yml, Flow[].class);
-        }catch (YmlParserException e){
+        }catch (YmlParseException e){
             throw new YmlException("Yml parser error", e);
-        }catch (YmlValidatorException e){
+        }catch (YmlFormatException e){
             throw new YmlException("Yml validator error", e);
         }
 

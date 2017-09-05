@@ -223,7 +223,7 @@ public class NodeServiceTest extends TestBase {
         // then: FLOW_YML_STATUS should be ERROR
         Assert.assertEquals("ERROR", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
-        // then: should raise YmlParserException
+        // then: should raise YmlParseException
         ymlService.getYmlContent(root.getPath());
     }
 

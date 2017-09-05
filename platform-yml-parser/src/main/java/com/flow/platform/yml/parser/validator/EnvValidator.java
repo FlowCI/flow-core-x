@@ -20,12 +20,12 @@ package com.flow.platform.yml.parser.validator;
 import java.util.Map;
 
 /**
- * @author gyfirim
+ * @author yh@firim
  */
-public class EnvValidator extends BaseValidator<Map<String, String>> {
+public class EnvValidator extends YmlValidator<Map<String, String>> {
 
     @Override
-    public Boolean ReadValidator(Map<String, String> o) {
+    public Boolean validate(Map<String, String> o) {
         if(o == null){
             return false;
         }

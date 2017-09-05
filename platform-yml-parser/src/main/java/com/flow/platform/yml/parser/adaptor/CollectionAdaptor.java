@@ -17,7 +17,7 @@
 package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.TypeAdaptorFactory;
-import com.flow.platform.yml.parser.exception.YmlParserException;
+import com.flow.platform.yml.parser.exception.YmlParseException;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.TypeUtil;
 import java.lang.reflect.Type;
@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * @author yh@firim
  */
-public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
+public class CollectionAdaptor<E> extends YmlAdaptor<Object> {
 
     public final static BaseFactory FACTORY = type -> {
 
@@ -38,15 +38,15 @@ public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
         }
 
         Type elementType = TypeUtil.getCollectionElementType(type);
-        BaseAdaptor<?> elementTypeAdapter = TypeAdaptorFactory.getAdaptor(elementType);
+        YmlAdaptor<?> elementTypeAdapter = TypeAdaptorFactory.getAdaptor(elementType);
         return new CollectionAdaptor(rawType, elementTypeAdapter);
     };
 
     private Class<E> componentClazz;
 
-    private BaseAdaptor<E> typeAdaptor;
+    private YmlAdaptor<E> typeAdaptor;
 
-    public CollectionAdaptor(Class<E> componentClazz, BaseAdaptor<E> typeAdaptor) {
+    public CollectionAdaptor(Class<E> componentClazz, YmlAdaptor<E> typeAdaptor) {
         this.componentClazz = componentClazz;
         this.typeAdaptor = typeAdaptor;
     }
@@ -54,7 +54,7 @@ public class CollectionAdaptor<E> extends BaseAdaptor<Object> {
     @Override
     public Object read(Object o) {
         if (!Collection.class.isAssignableFrom(o.getClass())) {
-            throw new YmlParserException("ArrayAdaptor Object Class not extends Collection");
+            throw new YmlParseException("ArrayAdaptor Object Class not extends Collection");
         }
 
         List<E> list = new ArrayList<>();

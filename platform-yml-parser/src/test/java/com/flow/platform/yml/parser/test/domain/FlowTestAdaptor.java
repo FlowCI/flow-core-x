@@ -15,6 +15,7 @@
  */
 
 package com.flow.platform.yml.parser.test.domain;
+
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.flow.platform.yml.parser.test.adaptor.StringAdaptor;
 
@@ -22,6 +23,7 @@ import com.flow.platform.yml.parser.test.adaptor.StringAdaptor;
  * @author yh@firim
  */
 public class FlowTestAdaptor {
+
     @YmlSerializer(adaptor = StringAdaptor.class)
     private String name;
 

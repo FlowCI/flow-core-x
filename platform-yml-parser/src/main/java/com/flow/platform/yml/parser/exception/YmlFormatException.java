@@ -14,36 +14,19 @@
  * limitations under the License.
  */
 
-package com.flow.platform.yml.parser.test.domain;
-
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
+package com.flow.platform.yml.parser.exception;
 
 /**
  * @author yh@firim
  */
-public class FlowTestInteger {
+public class YmlFormatException extends YmlException {
 
-    @YmlSerializer
-    private Integer name;
-
-    @YmlSerializer
-    private String script;
-
-
-    public Integer getName() {
-        return name;
+    public YmlFormatException(String message) {
+        super(message);
     }
 
-    public void setName(Integer name) {
-        this.name = name;
+    public YmlFormatException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public String getScript() {
-        return script;
-    }
-
-    public void setScript(String script) {
-        this.script = script;
-    }
 }
-

@@ -16,7 +16,7 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
-import com.flow.platform.yml.parser.exception.YmlParserException;
+import com.flow.platform.yml.parser.exception.YmlParseException;
 import com.flow.platform.yml.parser.factory.BaseFactory;
 import com.flow.platform.yml.parser.util.TypeUtil;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * @author yh@firim
  */
-public class MapAdaptor extends BaseAdaptor<Object> {
+public class MapAdaptor extends YmlAdaptor<Object> {
 
     public final static BaseFactory FACTORY = type -> {
         Class<?> rawType = TypeUtil.getRawType(type);
@@ -43,7 +43,7 @@ public class MapAdaptor extends BaseAdaptor<Object> {
 
         // judge Map is o.class subclass
         if (!Map.class.isAssignableFrom(o.getClass())) {
-            throw new YmlParserException("MapAdaptor Object Class not extends Map");
+            throw new YmlParseException("MapAdaptor Object Class not extends Map");
         }
 
         return o;
