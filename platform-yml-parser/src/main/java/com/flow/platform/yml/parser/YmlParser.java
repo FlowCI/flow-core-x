@@ -40,6 +40,9 @@ public class YmlParser {
     }
 
     public static <T> T fromObject(Object o, Type typeOfT) {
+        if (o == null) {
+            throw new YmlException("yml parser error");
+        }
         return (T) TypeAdaptorFactory.getAdaptor(typeOfT).read(o);
     }
 
@@ -49,7 +52,12 @@ public class YmlParser {
 
     public static <T> T fromYml(String str, Type typeOfT) {
         Yaml yaml = new Yaml();
-        Map result = (Map) yaml.load(str);
+        Map result;
+        try {
+            result = (Map) yaml.load(str);
+        }catch (Throwable throwable){
+            throw new YmlException("Load Yml error");
+        }
         return fromObject(result.get("flow"), typeOfT);
     }
 

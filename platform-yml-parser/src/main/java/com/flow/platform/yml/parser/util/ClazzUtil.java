@@ -42,7 +42,6 @@ public class ClazzUtil {
 
         T instance;
         try {
-
             instance = clazz.newInstance();
         } catch (Throwable throwable) {
             throw new YmlException(String.format("clazz - %s instance error", clazz.getName()), throwable);
@@ -72,7 +71,7 @@ public class ClazzUtil {
                 // 必须的属性
                 if (FieldUtil.requiredField(field)) {
                     if (obj == null) {
-                        throw new YmlException("required field");
+                        throw new YmlException(String.format("required field - %s", field.getName()));
                     }
                 }
 
@@ -88,7 +87,7 @@ public class ClazzUtil {
                     field.set(instance, value);
 
                 } catch (Throwable throwable) {
-                    throw new YmlException("field set value error", throwable);
+                    throw new YmlException(String.format("field - %s set value error", field.getName()), throwable);
                 }
 
                 // validator field
@@ -189,7 +188,7 @@ public class ClazzUtil {
             try {
                 return TypeAdaptorFactory.getAdaptor(fieldType).write(field.get(t));
             } catch (Throwable throwable) {
-                throw new YmlException("field get error", throwable);
+                throw new YmlException(String.format("field - %s get error", field.getName()), throwable);
             }
         }
 
@@ -199,7 +198,8 @@ public class ClazzUtil {
                 BaseAdaptor instance = (BaseAdaptor) ymlSerializer.adaptor().newInstance();
                 return instance.write(field.get(t));
             } catch (Throwable throwable) {
-                throw new YmlException("create instance adaptor", throwable);
+                throw new YmlException(
+                    String.format("create instance adaptor - %s error", ymlSerializer.adaptor().getName()), throwable);
             }
         }
 

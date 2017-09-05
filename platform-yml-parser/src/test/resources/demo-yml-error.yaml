@@ -1,4 +1,4 @@
-flow:
+A:
   - name: flow1
     script: "echo 'hello world'"
     envs:
@@ -18,4 +18,3 @@ flow:
      - name: step2
        isAllowFailure: false
        script: "echo 2"
-
