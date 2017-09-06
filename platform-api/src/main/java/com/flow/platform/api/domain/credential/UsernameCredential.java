@@ -13,35 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.credential;
 
 import com.google.gson.annotations.Expose;
 
 /**
  * @author lhl
  */
-public class CredentialUserName extends Credential{
+public class UsernameCredential extends Credential {
 
     @Expose
-    protected String userName;
+    protected String username;
 
     @Expose
     protected String password;
 
 
-    public CredentialUserName(String name) {
+    public UsernameCredential(String name) {
         super(name);
     }
 
-    public CredentialUserName() {
+    public UsernameCredential() {
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {

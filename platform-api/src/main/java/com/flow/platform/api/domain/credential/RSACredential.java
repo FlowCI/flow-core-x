@@ -13,23 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.credential;
 
 import com.google.gson.annotations.Expose;
 
 /**
  * @author lhl
  */
-public class IosCredential extends Credential {
+public class RSACredential extends Credential {
 
     @Expose
-    protected CredentialFile[] fileNames;
+    protected String publicKey;
 
-    public CredentialFile[] getFileNames() {
-        return fileNames;
+    @Expose
+    protected String privateKey;
+
+    public RSACredential(String name) {
+        super(name);
     }
 
-    public void setFileNames(CredentialFile[] fileNames) {
-        this.fileNames = fileNames;
+    public RSACredential() {
     }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }
+
 }

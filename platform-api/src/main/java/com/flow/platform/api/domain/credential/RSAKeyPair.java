@@ -13,32 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain;
+
+package com.flow.platform.api.domain.credential;
+
+import com.flow.platform.domain.Jsonable;
 
 /**
- * @author lhl
+ * @author yang
  */
-public enum CredentialType {
-    RSAkEYS("RSAKEYS", SSHKey.class),
-    USERNAME("USERNAME", CredentialUserName.class),
-    IOS("IOS", IosCredential.class),
-    ANDROID("ANDROID", AndroidCredential.class);
+public class RSAKeyPair extends Jsonable {
 
-    private Class<?> clazz;
+    private String publicKey;
 
-    private String name;
+    private String privateKey;
 
-    CredentialType(String name, Class<?> clazz) {
-        this.name = name;
-        this.clazz = clazz;
+    public String getPublicKey() {
+        return publicKey;
     }
 
-    public String getName() {
-        return name;
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
     }
 
-    public Class<?> getClazz() {
-        return clazz;
+    public String getPrivateKey() {
+        return privateKey;
     }
 
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }
 }

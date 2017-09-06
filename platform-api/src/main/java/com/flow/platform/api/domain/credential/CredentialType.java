@@ -13,25 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.credential;
 
-import com.flow.platform.api.domain.credential.Credential;
-import com.flow.platform.api.domain.credential.CredentialFile;
-import com.google.gson.annotations.Expose;
+import com.flow.platform.api.domain.AndroidCredential;
 
 /**
  * @author lhl
  */
-public class AndroidCredential extends Credential {
+public enum CredentialType {
 
-    @Expose
-    protected CredentialFile[] fileNames;
+    RSAkEYS("RSAKEYS", RSACredential.class),
 
-    public CredentialFile[] getFileNames() {
-        return fileNames;
+    USERNAME("USERNAME", UsernameCredential.class),
+
+    IOS("IOS", IosCredential.class),
+
+    ANDROID("ANDROID", AndroidCredential.class);
+
+    private Class<?> clazz;
+
+    private String name;
+
+    CredentialType(String name, Class<?> clazz) {
+        this.name = name;
+        this.clazz = clazz;
     }
 
-    public void setFileNames(CredentialFile[] fileNames) {
-        this.fileNames = fileNames;
+    public String getName() {
+        return name;
     }
+
+    public Class<?> getClazz() {
+        return clazz;
+    }
+
 }
