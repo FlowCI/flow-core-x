@@ -27,8 +27,10 @@ import com.flow.platform.yml.parser.test.domain.FlowTest;
 import com.flow.platform.yml.parser.test.domain.FlowTestAdaptor;
 import com.flow.platform.yml.parser.test.domain.FlowTestIgnore;
 import com.flow.platform.yml.parser.test.domain.FlowTestInteger;
+import com.flow.platform.yml.parser.test.domain.FlowTestPrimitativeBoolean;
 import com.flow.platform.yml.parser.test.domain.FlowTestRequired;
 import com.flow.platform.yml.parser.test.domain.FlowTestValidator;
+import com.sun.tools.javac.comp.Flow;
 import java.io.FileReader;
 import java.util.Map;
 import org.junit.Assert;
@@ -119,5 +121,17 @@ public class YmlParserTest extends TestBase {
         flows = YmlParser.fromYml(yml, FlowTest[].class);
         Assert.assertEquals(1, flows.length);
         Assert.assertNotNull(flows[0].getScript());
+    }
+
+    @Test
+    public void should_primitative_boolean(){
+        String demo = loadDemoFlowYaml("demo-yml-primitive-boolen.yaml");
+        FlowTestPrimitativeBoolean[] flows = YmlParser.fromYml(demo, FlowTestPrimitativeBoolean[].class);
+        Assert.assertEquals(1, flows.length);
+        Assert.assertEquals(true, flows[0].getaBoolean());
+        Assert.assertEquals("26012202222", flows[0].getaLong().toString());
+        Assert.assertEquals("1.0", flows[0].getaFloat().toString());
+        Assert.assertEquals((Double)1d, flows[0].getaDouble());
+        Assert.assertEquals((Integer)1, flows[0].getInteger());
     }
 }

@@ -24,6 +24,8 @@ import com.flow.platform.yml.parser.adaptor.PrimitiveAdaptor;
 import com.flow.platform.yml.parser.adaptor.ReflectTypeAdaptor;
 import com.flow.platform.yml.parser.exception.YmlParseException;
 import com.flow.platform.yml.parser.factory.YmlFactory;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author yh@firim
@@ -38,6 +42,16 @@ import java.util.Map;
 public class TypeAdaptorFactory {
 
     private static List<YmlFactory> factories = new LinkedList<>();
+
+    private final static int ADAPTOR_CACHE_EXPIRE_SECOND = 3600 * 24;
+
+    private final static int ADAPTOR_CACHE_CACHE_NUM = 100;
+
+    private static Cache<Type, YmlAdaptor> adaptorCache = CacheBuilder
+        .newBuilder()
+        .expireAfterAccess(ADAPTOR_CACHE_EXPIRE_SECOND, TimeUnit.SECONDS)
+        .maximumSize(ADAPTOR_CACHE_CACHE_NUM)
+        .build();
 
     static {
         factories.add(MapAdaptor.FACTORY);
@@ -50,17 +64,24 @@ public class TypeAdaptorFactory {
     private static Map<Type, YmlAdaptor> cacheFactories = new LinkedHashMap<>();
 
     public static YmlAdaptor getAdaptor(Type type) {
-        YmlAdaptor adaptor = cacheFactories.get(type);
-        if (adaptor != null) {
-            return adaptor;
+        YmlAdaptor ymlAdaptor = null;
+        try {
+            ymlAdaptor = adaptorCache.get(type, () -> {
+                for (YmlFactory factory : factories) {
+                    YmlAdaptor adaptor = factory.create(type);
+                    if (adaptor != null) {
+                        cacheFactories.put(type, adaptor);
+                        return adaptor;
+                    }
+                }
+
+                return null;
+            });
+        } catch (Throwable throwable) {
         }
 
-        for (YmlFactory factory : factories) {
-            adaptor = factory.create(type);
-            if (adaptor != null) {
-                cacheFactories.put(type, adaptor);
-                return adaptor;
-            }
+        if (ymlAdaptor != null) {
+            return ymlAdaptor;
         }
 
         throw new YmlParseException("Not found adaptor");

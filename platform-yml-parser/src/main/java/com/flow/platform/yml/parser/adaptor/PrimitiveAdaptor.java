@@ -67,6 +67,22 @@ public class PrimitiveAdaptor<E> extends YmlAdaptor<Object> {
     @Override
     public Object read(Object o) {
 
+        if (componentType == Double.class) {
+            return Double.parseDouble(o.toString());
+        }
+
+        if (componentType == Float.class) {
+            return Float.parseFloat(o.toString());
+        }
+
+        if (componentType == Long.class) {
+            return Long.parseLong(o.toString());
+        }
+
+        if (componentType == Boolean.class) {
+            return Boolean.parseBoolean(o.toString());
+        }
+
         if (componentType == Integer.class) {
             return Integer.parseInt(o.toString());
         }
