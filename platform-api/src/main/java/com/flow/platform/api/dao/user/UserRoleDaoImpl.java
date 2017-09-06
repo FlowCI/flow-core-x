@@ -61,4 +61,20 @@ public class UserRoleDaoImpl extends AbstractBaseDao<UserRoleKey, UserRole> impl
             .setParameter(0, roleId)
             .uniqueResult());
     }
+
+    @Override
+    public int delete(String email) {
+        return execute(session -> session
+            .createQuery("delete from UserRole where key.email = ?")
+            .setParameter(0, email)
+            .executeUpdate());
+    }
+
+    @Override
+    public int delete(Integer roleId) {
+        return execute(session -> session
+            .createQuery("delete from UserRole where key.roleId = ?")
+            .setParameter(0, roleId)
+            .executeUpdate());
+    }
 }

@@ -4,10 +4,14 @@ import com.flow.platform.api.domain.request.LoginForm;
 import com.flow.platform.api.domain.request.SwitchRole;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.UserService;
+import com.google.common.base.Strings;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -25,7 +29,7 @@ public class UserController {
 
     /**
      * @api {Post} /login Login
-     * @apiName UserLogin
+     * @apiName User Login
      * @apiGroup User
      * @apiDescription Login by request information
      *
@@ -58,7 +62,8 @@ public class UserController {
 
     /**
      * @api {Post} /register Register
-     * @apiName UserRegister
+     * @apiParam {String} roles Param Example: ?roles=admin,user
+     * @apiName User Register
      * @apiGroup User
      * @apiDescription Register by request information
      *
@@ -86,8 +91,21 @@ public class UserController {
      *     }
      */
     @PostMapping("/register")
-    public void register(@RequestBody User user) {
-        userService.register(user);
+    public void register(@RequestBody User user, @RequestParam(required = false) String roles) {
+        Set<String> roleNameSet = new HashSet<>(2);
+
+        if (!Strings.isNullOrEmpty(roles)) {
+            roles = roles.trim();
+
+            for (String role : roles.trim().split(",")) {
+                role = role.trim();
+                if (!Strings.isNullOrEmpty(role)) {
+                    roleNameSet.add(role);
+                }
+            }
+        }
+
+        userService.register(user, roleNameSet);
     }
 
     /**

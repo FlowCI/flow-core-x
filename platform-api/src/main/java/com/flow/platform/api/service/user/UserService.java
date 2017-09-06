@@ -4,6 +4,7 @@ import com.flow.platform.api.domain.request.LoginForm;
 import com.flow.platform.api.domain.user.User;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author liangpengyv
@@ -21,9 +22,11 @@ public interface UserService {
     String login(LoginForm loginForm);
 
     /**
-     * Register
+     * Register user to roles
+     *
+     * @param roles role name set, or null for not set to role
      */
-    User register(User user);
+    User register(User user, Set<String> roles);
 
     /**
      * Delete a user

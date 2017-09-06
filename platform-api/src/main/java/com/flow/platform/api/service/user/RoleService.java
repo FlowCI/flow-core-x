@@ -66,6 +66,11 @@ public interface RoleService {
     void assign(User user, Role role);
 
     /**
+     * Un-assign a user for all roles
+     */
+    void unAssign(User user);
+
+    /**
      * Un-assign a user form role
      */
     void unAssign(User user, Role role);

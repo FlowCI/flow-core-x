@@ -120,6 +120,11 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public void unAssign(User user) {
+        userRoleDao.delete(user.getEmail());
+    }
+
+    @Override
     public void unAssign(User user, Role role) {
         UserRole userRole = userRoleDao.get(new UserRoleKey(role.getId(), user.getEmail()));
         if (userRole != null) {

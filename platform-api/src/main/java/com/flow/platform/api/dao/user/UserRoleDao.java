@@ -40,4 +40,13 @@ public interface UserRoleDao extends BaseDao<UserRoleKey, UserRole> {
      */
     Long numOfUser(Integer roleId);
 
+    /**
+     * Delete all user role records by email
+     */
+    int delete(String email);
+
+    /**
+     * Delete all user role records by role id
+     */
+    int delete(Integer roleId);
 }

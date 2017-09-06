@@ -34,7 +34,7 @@ public class UserControllerTest extends TestBase {
         user.setEmail("liangpengyv@fir.im");
         user.setUsername("liangpengyv");
         user.setPassword("liangpengyv");
-        userService.register(user);
+        userService.register(user, null);
         user.setPassword("liangpengyv");
     }
 

@@ -15,13 +15,11 @@
  */
 package com.flow.platform.api.test.dao;
 
-import com.flow.platform.api.dao.user.UserRoleDao;
-import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.api.domain.user.UserRole;
+import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.api.test.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 /**
@@ -48,16 +46,24 @@ public class UserRoleDaoTest extends TestBase {
     }
 
     @Test
-    public void should_find_user_role_by_email() {
-        UserRoleKey userRoleKey = new UserRoleKey(1, "liuhailiang@126.com");
+    public void should_find_user_role_by_email_and_delete() {
+        final String email = "liuhailiang@126.com";
+
+        // then: create two user-role for the same email
+        UserRoleKey userRoleKey = new UserRoleKey(1, email);
         UserRole usersRoles = new UserRole(userRoleKey);
         userRoleDao.save(usersRoles);
 
-        UserRoleKey userRoleKey1 = new UserRoleKey(2, "liuhailiang@126.com");
+        UserRoleKey userRoleKey1 = new UserRoleKey(2, email);
         UserRole usersRoles1 = new UserRole(userRoleKey1);
         userRoleDao.save(usersRoles1);
 
-        Assert.assertEquals(2, userRoleDao.list("liuhailiang@126.com").size());
+        Assert.assertEquals(2, userRoleDao.list(email).size());
+
+        // then: delete user-role by email
+        int numOfRows = userRoleDao.delete(email);
+        Assert.assertEquals(2, numOfRows);
+        Assert.assertEquals(0, userRoleDao.list(email).size());
     }
 
     @Test

@@ -7,14 +7,12 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.StringEncodeUtil;
+import java.util.LinkedList;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.ZonedDateTime;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * @author liangpengyv
@@ -57,7 +55,7 @@ public class UserServiceTest extends TestBase {
 
     @Test
     public void should_register_success() {
-        userService.register(user);
+        userService.register(user, null);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
     }
 
