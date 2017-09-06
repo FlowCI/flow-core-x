@@ -30,7 +30,6 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import sun.invoke.empty.Empty;
 
 /**
  * @author yh@firim
@@ -114,8 +113,8 @@ public abstract class YmlAdaptor<T> {
                         throwable);
                 }
 
-                // validator field
-                validator(field, instance);
+                // validate field
+                validate(field, instance);
             }
 
             raw = raw.getSuperclass();
@@ -162,7 +161,7 @@ public abstract class YmlAdaptor<T> {
     /**
      * validate field's value
      */
-    public static <T> void validator(Field field, T instance) {
+    public static <T> void validate(Field field, T instance) {
         YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
         if (ymlSerializer.validator() != EmptyValidator.class) {
             YmlValidator validator;
@@ -172,11 +171,11 @@ public abstract class YmlAdaptor<T> {
                 value = field.get(instance);
             } catch (Throwable throwable) {
                 throw new YmlFormatException(String
-                    .format("validator - %s instance  error - %s", ymlSerializer.validator().getName(), throwable));
+                    .format("validate - %s instance  error - %s", ymlSerializer.validator().getName(), throwable));
             }
 
             if (validator.validate(value) == false) {
-                throw new YmlFormatException(String.format("field - %s , validator - error", field.getName()));
+                throw new YmlFormatException(String.format("field - %s , validate - error", field.getName()));
             }
 
         }

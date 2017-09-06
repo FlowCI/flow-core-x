@@ -56,7 +56,7 @@ public @interface YmlSerializer {
     Class<? extends YmlAdaptor> adaptor() default EmptyAdapter.class;
 
     /**
-     * this field will apply provided validator
+     * this field will apply provided validate
      */
     Class<? extends YmlValidator> validator() default EmptyValidator.class;
 }

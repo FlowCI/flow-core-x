@@ -74,7 +74,7 @@ public class NodeUtil {
         }catch (YmlParseException e){
             throw new YmlException("Yml parser error", e);
         }catch (YmlFormatException e){
-            throw new YmlException("Yml validator error", e);
+            throw new YmlException("Yml validate error", e);
         }
 
         // current version only support single flow

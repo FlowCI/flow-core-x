@@ -80,11 +80,9 @@ public class YmlParser {
         map.put("flow", o);
         String yml = null;
 
-        try {
-            Writer stringWriter = new StringWriter();
+        try (Writer stringWriter = new StringWriter()) {
             YamlWriter writer = new YamlWriter(stringWriter, yamlConfig);
             writer.write(map);
-            writer.close();
             yml = stringWriter.toString();
         } catch (Throwable throwable) {
             throw new YmlParseException(String.format("Object to yaml error"), throwable);
