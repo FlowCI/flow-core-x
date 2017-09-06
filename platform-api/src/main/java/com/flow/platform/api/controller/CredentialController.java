@@ -120,7 +120,7 @@ public class CredentialController {
     }
 
     /**
-     * @api {get} /credentials/:type/list List by type
+     * @api {get} /credentials/:type/list List By Type
      * @apiParam {String="ios","android","username","rsakeys"} type Credential type
      * @apiGroup Credenital
      * @apiDescription List credentials by type
