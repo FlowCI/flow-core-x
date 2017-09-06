@@ -62,7 +62,7 @@ public class SysInfoServiceTest extends TestBase {
     @Test
     public void should_get_api_jvm_info() throws Throwable {
         // when:
-        GroupSystemInfo jvmInfo = (GroupSystemInfo) sysInfoService.get(Category.API, Type.JVM);
+        GroupSystemInfo jvmInfo = (GroupSystemInfo) sysInfoService.components(Category.API, Type.JVM).get(0);
         Assert.assertNotNull(jvmInfo);
 
         // then:
@@ -81,7 +81,7 @@ public class SysInfoServiceTest extends TestBase {
     @Test
     public void should_get_api_db_info() throws Throwable {
         // when:
-        GroupSystemInfo dbInfo = (GroupSystemInfo) sysInfoService.get(Category.API, Type.DB);
+        GroupSystemInfo dbInfo = (GroupSystemInfo) sysInfoService.components(Category.API, Type.DB).get(0);
         Assert.assertNotNull(dbInfo);
 
         // then:
@@ -92,7 +92,7 @@ public class SysInfoServiceTest extends TestBase {
     @Test
     public void should_get_api_tomcat_info() throws Throwable {
         // when: get tomcat info should be offline since unit test not in tomcat container
-        SystemInfo serverInfo = sysInfoService.get(Category.API, Type.SERVER);
+        SystemInfo serverInfo = sysInfoService.components(Category.API, Type.SERVER).get(0);
         Assert.assertNotNull(serverInfo);
         Assert.assertEquals(Status.OFFLINE, serverInfo.getStatus());
     }
@@ -102,7 +102,7 @@ public class SysInfoServiceTest extends TestBase {
         JvmLoader jvmLoader = new JvmLoader();
         stubFor(get("/sys/info/jvm").willReturn(aResponse().withBody(jvmLoader.load().toJson())));
 
-        GroupSystemInfo jvmInfo = (GroupSystemInfo) sysInfoService.get(Category.CC, Type.JVM);
+        GroupSystemInfo jvmInfo = (GroupSystemInfo) sysInfoService.components(Category.CC, Type.JVM).get(0);
         Assert.assertNotNull(jvmInfo);
 
         Assert.assertEquals(3, jvmInfo.size());
@@ -122,7 +122,7 @@ public class SysInfoServiceTest extends TestBase {
         DBInfoLoader dbInfoLoader = new DBInfoLoader("com.mysql.jdbc.Driver", jdbcUrl, jdbcUsername, jdbcPassword);
         stubFor(get("/sys/info/db").willReturn(aResponse().withBody(dbInfoLoader.load().toJson())));
 
-        GroupSystemInfo dbInfo = (GroupSystemInfo) sysInfoService.get(Category.CC, Type.DB);
+        GroupSystemInfo dbInfo = (GroupSystemInfo) sysInfoService.components(Category.CC, Type.DB).get(0);
         Assert.assertNotNull(dbInfo);
 
         Map<String, String> mysqlInfo = dbInfo.get(DBGroupName.MYSQL);
@@ -135,7 +135,7 @@ public class SysInfoServiceTest extends TestBase {
             "jdbc:mysql://localhost:8888/test_db", jdbcUsername, jdbcPassword);
         stubFor(get("/sys/info/db").willReturn(aResponse().withBody(dbInfoLoader.load().toJson())));
 
-        SystemInfo dbInfo = sysInfoService.get(Category.CC, Type.DB);
+        GroupSystemInfo dbInfo = (GroupSystemInfo) sysInfoService.components(Category.CC, Type.DB).get(0);
         Assert.assertNotNull(dbInfo);
         Assert.assertEquals(Status.OFFLINE, dbInfo.getStatus());
     }

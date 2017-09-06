@@ -16,6 +16,9 @@
 
 package com.flow.platform.api.domain.node;
 
+import com.flow.platform.yml.parser.annotations.YmlSerializer;
+import java.util.List;
+
 public class Step extends Node<Step> {
 
     public Step(String path, String name) {
@@ -26,6 +29,7 @@ public class Step extends Node<Step> {
 
     }
 
+    @YmlSerializer(required = false)
     private Boolean allowFailure = false;
 
     private String plugin;
@@ -44,5 +48,15 @@ public class Step extends Node<Step> {
 
     public void setPlugin(String plugin) {
         this.plugin = plugin;
+    }
+
+    @Override
+    public List<Step> getChildren() {
+        return super.getChildren();
+    }
+
+    @Override
+    public void setChildren(List<Step> children) {
+        super.setChildren(children);
     }
 }

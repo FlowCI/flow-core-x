@@ -27,7 +27,6 @@ import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -56,7 +55,7 @@ public class UserSecurityServiceImpl implements UserSecurityService {
         User user = userService.findByEmail(email);
 
         if (user == null) {
-            throw new UsernameNotFoundException("Cannot find user by email: " + email);
+            throw new NotFoundException("Cannot find user by email: " + email);
         }
 
         List<Role> roles = roleService.list(user);

@@ -18,10 +18,10 @@ package com.flow.platform.api.test.service;
 import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.domain.credential.CredentialStorage;
 import com.flow.platform.api.domain.credential.CredentialType;
-import com.flow.platform.api.domain.credential.CredentialUserName;
+import com.flow.platform.api.domain.credential.RSAKeyPair;
+import com.flow.platform.api.domain.credential.UsernameCredential;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.test.TestBase;
-import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +40,9 @@ public class CredentialServiceTest extends TestBase {
 
     @Test
     public void should_create_credential() {
-        CredentialUserName credentialUserName = new CredentialUserName();
+        UsernameCredential credentialUserName = new UsernameCredential();
         credentialUserName.setName("test");
-        credentialUserName.setUserName("name1");
+        credentialUserName.setUsername("name1");
         credentialUserName.setPassword("password");
         credentialUserName.setCredentialType(CredentialType.USERNAME);
         credentialService.create(credentialUserName);
@@ -51,16 +51,18 @@ public class CredentialServiceTest extends TestBase {
 
     @Test
     public void should_generate_ssh_key() {
-        Map<String, String> keys = credentialService.getKeyMap();
-        Assert.assertEquals(2, keys.size());
+        RSAKeyPair pair = credentialService.generateRsaKey();
+        Assert.assertNotNull(pair);
+        Assert.assertNotNull(pair.getPrivateKey());
+        Assert.assertNotNull(pair.getPublicKey());
     }
 
     @Test
     public void should_find_credential() {
-        CredentialUserName credential = new CredentialUserName();
+        UsernameCredential credential = new UsernameCredential();
         CredentialStorage credentialStorage = new CredentialStorage();
         credential.setName("test");
-        credential.setUserName("name1");
+        credential.setUsername("name1");
         credential.setPassword("password");
         credential.setCredentialType(CredentialType.USERNAME);
         credentialStorage.setContent(credential);
@@ -71,25 +73,25 @@ public class CredentialServiceTest extends TestBase {
     @Test
     public void should_update_credential() {
         CredentialStorage credentialStorage = new CredentialStorage();
-        CredentialUserName credentialUserName = new CredentialUserName();
+        UsernameCredential credentialUserName = new UsernameCredential();
         credentialUserName.setName("test");
-        credentialUserName.setUserName("name1");
+        credentialUserName.setUsername("name1");
         credentialUserName.setPassword("password");
         credentialUserName.setCredentialType(CredentialType.USERNAME);
         credentialStorage.setContent(credentialUserName);
         credentialStorageDao.save(credentialStorage);
-        CredentialUserName credential1 = (CredentialUserName) credentialService.find("test");
-        credential1.setUserName("name2");
+        UsernameCredential credential1 = (UsernameCredential) credentialService.find("test");
+        credential1.setUsername("name2");
         credentialService.update(credential1);
-        Assert.assertEquals("name2", ((CredentialUserName) credentialService.find("test")).getUserName());
+        Assert.assertEquals("name2", ((UsernameCredential) credentialService.find("test")).getUsername());
     }
 
     @Test
     public void should_delete_credential() {
         CredentialStorage credentialStorage = new CredentialStorage();
-        CredentialUserName credentialUserName = new CredentialUserName();
+        UsernameCredential credentialUserName = new UsernameCredential();
         credentialUserName.setName("test");
-        credentialUserName.setUserName("name1");
+        credentialUserName.setUsername("name1");
         credentialUserName.setPassword("password");
         credentialUserName.setCredentialType(CredentialType.USERNAME);
         credentialStorage.setContent(credentialUserName);
@@ -101,9 +103,9 @@ public class CredentialServiceTest extends TestBase {
     @Test
     public void should_list_credentials(){
         CredentialStorage credentialStorage = new CredentialStorage();
-        CredentialUserName credentialUserName = new CredentialUserName();
+        UsernameCredential credentialUserName = new UsernameCredential();
         credentialUserName.setName("test");
-        credentialUserName.setUserName("name1");
+        credentialUserName.setUsername("name1");
         credentialUserName.setPassword("password");
         credentialUserName.setCredentialType(CredentialType.USERNAME);
         credentialStorage.setContent(credentialUserName);
@@ -115,9 +117,9 @@ public class CredentialServiceTest extends TestBase {
     @Test
     public void should_list_by_types(){
         CredentialStorage credentialStorage = new CredentialStorage();
-        CredentialUserName credentialUserName = new CredentialUserName();
+        UsernameCredential credentialUserName = new UsernameCredential();
         credentialUserName.setName("test");
-        credentialUserName.setUserName("name1");
+        credentialUserName.setUsername("name1");
         credentialUserName.setPassword("password");
         credentialUserName.setCredentialType(CredentialType.USERNAME);
         credentialStorage.setContent(credentialUserName);

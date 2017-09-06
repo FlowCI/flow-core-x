@@ -1,0 +1,20 @@
+flow:
+  - name: 1
+    script: 2
+    envs:
+      FLOW_WORKSPACE: 3
+      FLOW_VERSION: 4
+    steps:
+     - name: 5
+       envs:
+         FLOW_WORKSPACE: 6
+         FLOW_VERSION: 7
+       isAllowFailure: 8
+       steps:
+        - name: 8
+          script: 9
+        - name: 10
+          script: 11
+     - name: 12
+       isAllowFailure: 13
+       script: 14

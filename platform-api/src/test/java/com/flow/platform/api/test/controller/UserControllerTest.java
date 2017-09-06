@@ -47,28 +47,33 @@ public class UserControllerTest extends TestBase {
 
         // login success by email: response 200; return a long token string
         requestContent = "{ \"emailOrUsername\" : \"liangpengyv@fir.im\", \"password\" : \"liangpengyv\" }";
-        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertTrue(responseContent.length() > 20);
 
         // login success by username: response 200; return a long token string
         requestContent = "{ \"emailOrUsername\" : \"liangpengyv\", \"password\" : \"liangpengyv\" }";
-        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertTrue(responseContent.length() > 20);
 
         // login failed: response 400; return error description message
         requestContent = "{ \"emailOrUsername\" : \"xxx\", \"password\" : \"liangpengyv\" }";
-        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is4xxClientError()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
-        Assert.assertEquals("{\"message\":\"Illegal login request parameter: username format false\"}", responseContent);
+        Assert
+            .assertEquals("{\"message\":\"Illegal login request parameter: username format false\"}", responseContent);
 
         // login failed: response 500; return error description message
         requestContent = "abcdefg";
-        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is5xxServerError()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertEquals("{\"message\"", responseContent.substring(0, 10));
@@ -83,20 +88,24 @@ public class UserControllerTest extends TestBase {
 
         // register success: response 200; userinfo is inserted into database
         requestContent = "{ \"email\" : \"test1@fir.im\", \"username\" : \"test1\", \"password\" : \"test1\", \"roleId\" : \"developer\" }";
-        mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
         mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         Assert.assertNotNull(userDao.get("test1@fir.im"));
 
         // register failed: response 400; return error description message
         requestContent = "{ \"email\" : \"liangpengyv@fir.im\", \"username\" : \"liangpengyv\", \"password\" : \"liangpengyv\", \"roleId\" : \"developer\" }";
-        mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is4xxClientError()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
-        Assert.assertEquals("{\"message\":\"Illegal register request parameter: email already exist\"}", responseContent);
+        Assert
+            .assertEquals("{\"message\":\"Illegal register request parameter: email already exist\"}", responseContent);
 
         // register failed: response 500; return error description message
         requestContent = "abcdefg";
-        mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is5xxServerError()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertEquals("{\"message\"", responseContent.substring(0, 10));
@@ -113,34 +122,15 @@ public class UserControllerTest extends TestBase {
 
         // delete success: response 200; userinfo is deleted from database
         requestContent = "[ \"liangpengyv@fir.im\" ]";
-        mockHttpServletRequestBuilder = post("/user/delete").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/delete").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
         mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
 
         //delete failed: response 500; return error description message
         requestContent = "abcdefg";
-        mockHttpServletRequestBuilder = post("/user/delete").contentType(MediaType.APPLICATION_JSON).content(requestContent);
-        mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is5xxServerError()).andReturn();
-        responseContent = mvcResult.getResponse().getContentAsString();
-        Assert.assertEquals("{\"message\"", responseContent.substring(0, 10));
-    }
-
-    @Test
-    public void should_switch_role_success() throws Throwable {
-        String requestContent;
-        String responseContent;
-        MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
-        MvcResult mvcResult;
-
-        // update success: response 200; userinfo is updated from database
-        requestContent = "{ \"emailList\" : [ \"liangpengyv@fir.im\" ], \"switchTo\" : \"admin\" }";
-        mockHttpServletRequestBuilder = post("/user/role/switch").contentType(MediaType.APPLICATION_JSON).content(requestContent);
-        mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
-        mvcResult.getResponse().getContentAsString();
-
-        // update failed: response 500; return error description message
-        requestContent = "abcdefg";
-        mockHttpServletRequestBuilder = post("/user/role/switch").contentType(MediaType.APPLICATION_JSON).content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/delete").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is5xxServerError()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertEquals("{\"message\"", responseContent.substring(0, 10));

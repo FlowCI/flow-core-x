@@ -23,17 +23,24 @@ package com.flow.platform.api.util;
 public class PlatformURL {
 
     private String cmdUrl;
+
     private String queueUrl;
+
     private String cmdStopUrl;
+
     private String agentUrl;
-    private String sysinfoUrl;
+
+    private String sysInfoUrl;
+
+    private String sysIndexUrl;
 
     public PlatformURL(String baseURL) {
         cmdUrl = String.format("%s%s", baseURL, "cmd/send");
         queueUrl = String.format("%s%s", baseURL, "cmd/queue/send");
         cmdStopUrl = String.format("%s%s", baseURL, "cmd/stop/");
         agentUrl = String.format("%s%s", baseURL, "agent/list");
-        sysinfoUrl = String.format("%s%s", baseURL, "sys/info");
+        sysIndexUrl = String.format("%s%s", baseURL, "index");
+        sysInfoUrl = String.format("%s%s", baseURL, "sys/info");
     }
 
     public String getCmdUrl() {
@@ -52,7 +59,11 @@ public class PlatformURL {
         return agentUrl;
     }
 
-    public String getSysinfoUrl() {
-        return sysinfoUrl;
+    public String getSysIndexUrl() {
+        return sysIndexUrl;
+    }
+
+    public String getSysInfoUrl() {
+        return sysInfoUrl;
     }
 }

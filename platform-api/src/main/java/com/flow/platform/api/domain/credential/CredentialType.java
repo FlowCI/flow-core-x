@@ -15,14 +15,17 @@
  */
 package com.flow.platform.api.domain.credential;
 
-
 /**
  * @author lhl
  */
 public enum CredentialType {
-    RSAKEYS("RSAKEYS", SSHKey.class),
-    USERNAME("USERNAME", CredentialUserName.class),
+
+    RSA("RSA", RSACredential.class),
+
+    USERNAME("USERNAME", UsernameCredential.class),
+
     IOS("IOS", IosCredential.class),
+
     ANDROID("ANDROID", AndroidCredential.class);
 
     private Class<?> clazz;

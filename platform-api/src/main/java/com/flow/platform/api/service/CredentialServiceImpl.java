@@ -22,15 +22,16 @@ import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialStorage;
 import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -81,6 +82,7 @@ public class CredentialServiceImpl implements CredentialService {
         return listCertificate();
     }
 
+    // TODO: should be optimized
     @Override
     public List<Credential> listTypes(String credentialType) {
         List<Credential> list = new ArrayList<>();
@@ -96,31 +98,33 @@ public class CredentialServiceImpl implements CredentialService {
 
 
     @Override
-    public Map<String, String> getKeyMap() {
+    public RSAKeyPair generateRsaKey() {
         String comment = "FLOWCI";
-        Map<String, String> keys = new HashMap<>();
         int type = KeyPair.RSA;
         JSch jsch = new JSch();
+
         try {
             KeyPair kpair = KeyPair.genKeyPair(jsch, type);
+            RSAKeyPair pair = new RSAKeyPair();
 
             // private key
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            kpair.writePrivateKey(baos);
-            String privateKeyString = baos.toString();
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                kpair.writePrivateKey(baos);
+                pair.setPrivateKey(baos.toString());
+            }
 
             // public key
-            baos = new ByteArrayOutputStream();
-            kpair.writePublicKey(baos, comment);
-            String publicKeyString = baos.toString();
-            kpair.dispose();
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                kpair.writePublicKey(baos, comment);
+                pair.setPublicKey(baos.toString());
+            }
 
-            keys.put("publicKey", publicKeyString);
-            keys.put("privateKey", privateKeyString);
-        } catch (Exception e) {
+            kpair.dispose();
+            return pair;
+
+        } catch (JSchException | IOException e) {
             return null;
         }
-        return keys;
     }
 
     public long getAllowSize(){

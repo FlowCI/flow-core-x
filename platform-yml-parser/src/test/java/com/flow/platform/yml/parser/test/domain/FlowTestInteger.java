@@ -13,42 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.credential;
 
-import com.google.gson.annotations.Expose;
+package com.flow.platform.yml.parser.test.domain;
+
+import com.flow.platform.yml.parser.annotations.YmlSerializer;
 
 /**
- * @author lhl
+ * @author yh@firim
  */
-public class SSHKey extends Credential {
+public class FlowTestInteger {
 
-    @Expose
-    protected String publicKey;
+    @YmlSerializer
+    private Integer name;
 
-    @Expose
-    protected String privateKey;
+    @YmlSerializer
+    private String script;
 
-    public SSHKey(String name) {
-        super(name);
+
+    public Integer getName() {
+        return name;
     }
 
-    public SSHKey() {
+    public void setName(Integer name) {
+        this.name = name;
     }
 
-    public String getPublicKey() {
-        return publicKey;
+    public String getScript() {
+        return script;
     }
 
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
+    public void setScript(String script) {
+        this.script = script;
     }
-
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
-    }
-
 }
+

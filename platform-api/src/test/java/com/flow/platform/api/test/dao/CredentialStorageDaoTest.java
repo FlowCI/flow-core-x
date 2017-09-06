@@ -19,7 +19,7 @@ import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialStorage;
 import com.flow.platform.api.domain.credential.CredentialType;
-import com.flow.platform.api.domain.credential.SSHKey;
+import com.flow.platform.api.domain.credential.RSACredential;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.test.TestBase;
 import org.junit.Assert;
@@ -40,24 +40,27 @@ public class CredentialStorageDaoTest extends TestBase {
     @Test
     public void should_save_and_get_success() {
         CredentialStorage credentialStorage = new CredentialStorage();
-        SSHKey sshKey = new SSHKey();
-        String publicKey = credentialService.getKeyMap().get("publicKey");
+        RSACredential sshKey = new RSACredential();
+
+        String publicKey = credentialService.generateRsaKey().getPublicKey();
         sshKey.setPublicKey(publicKey);
-        sshKey.setCredentialType(CredentialType.RSAKEYS);
+        sshKey.setCredentialType(CredentialType.RSA);
         sshKey.setName("test");
         credentialStorage.setContent(sshKey);
         credentialStorageDao.save(credentialStorage);
-        Assert.assertEquals(2, credentialService.getKeyMap().size());
+
+        Assert.assertNotNull(credentialService.generateRsaKey());
         Assert.assertEquals("test", credentialStorage.getContent().getName());
     }
 
     @Test
     public void should_update_credential_success() {
         CredentialStorage credentialStorage = new CredentialStorage();
-        SSHKey sshKey = new SSHKey();
-        String publicKey = credentialService.getKeyMap().get("publicKey");
+        RSACredential sshKey = new RSACredential();
+
+        String publicKey = credentialService.generateRsaKey().getPublicKey();
         sshKey.setPublicKey(publicKey);
-        sshKey.setCredentialType(CredentialType.RSAKEYS);
+        sshKey.setCredentialType(CredentialType.RSA);
         sshKey.setName("test");
         credentialStorage.setContent(sshKey);
         credentialStorageDao.save(credentialStorage);
@@ -73,10 +76,10 @@ public class CredentialStorageDaoTest extends TestBase {
     @Test
     public void should_delete_success() {
         CredentialStorage credentialStorage = new CredentialStorage();
-        SSHKey sshKey = new SSHKey();
-        String publicKey = credentialService.getKeyMap().get("publicKey");
+        RSACredential sshKey = new RSACredential();
+        String publicKey = credentialService.generateRsaKey().getPublicKey();
         sshKey.setPublicKey(publicKey);
-        sshKey.setCredentialType(CredentialType.RSAKEYS);
+        sshKey.setCredentialType(CredentialType.RSA);
         sshKey.setName("test");
         credentialStorageDao.save(credentialStorage);
         credentialStorageDao.delete(credentialStorage);

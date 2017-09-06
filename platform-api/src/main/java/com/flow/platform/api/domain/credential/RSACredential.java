@@ -20,37 +20,35 @@ import com.google.gson.annotations.Expose;
 /**
  * @author lhl
  */
-public class CredentialUserName extends Credential{
+public class RSACredential extends Credential {
 
     @Expose
-    protected String userName;
+    protected String publicKey;
 
     @Expose
-    protected String password;
+    protected String privateKey;
 
-
-    public CredentialUserName(String name) {
+    public RSACredential(String name) {
         super(name);
     }
 
-    public CredentialUserName() {
+    public RSACredential() {
     }
 
-    public String getUserName() {
-        return userName;
+    public String getPublicKey() {
+        return publicKey;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
     }
 
-    public String getPassword() {
-        return password;
+    public String getPrivateKey() {
+        return privateKey;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
     }
-
 
 }

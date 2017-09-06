@@ -16,15 +16,15 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.RSAKeyPair;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author lhl
  */
 public interface CredentialService {
 
-    Map<String, String> getKeyMap();
+    RSAKeyPair generateRsaKey();
 
     /**
      * create credential

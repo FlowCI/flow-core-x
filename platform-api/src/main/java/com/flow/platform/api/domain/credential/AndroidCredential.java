@@ -15,6 +15,8 @@
  */
 package com.flow.platform.api.domain.credential;
 
+import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.CredentialFile;
 import com.google.gson.annotations.Expose;
 
 /**

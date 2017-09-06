@@ -42,10 +42,13 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
@@ -209,4 +212,5 @@ public abstract class TestBase {
     public static void afterClass() throws IOException {
         // clean up cmd log folder
     }
+
 }
