@@ -22,6 +22,6 @@ import java.lang.reflect.Type;
 /**
  * @author yh@firim
  */
-public interface BaseFactory {
+public interface YmlFactory {
     YmlAdaptor create(Type type);
 }

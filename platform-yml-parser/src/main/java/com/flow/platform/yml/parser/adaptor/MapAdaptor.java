@@ -17,7 +17,7 @@
 package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.exception.YmlParseException;
-import com.flow.platform.yml.parser.factory.BaseFactory;
+import com.flow.platform.yml.parser.factory.YmlFactory;
 import com.flow.platform.yml.parser.util.TypeUtil;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public class MapAdaptor extends YmlAdaptor<Object> {
 
-    public final static BaseFactory FACTORY = type -> {
+    public final static YmlFactory FACTORY = type -> {
         Class<?> rawType = TypeUtil.getRawType(type);
 
         // judge Map is rawType subclass

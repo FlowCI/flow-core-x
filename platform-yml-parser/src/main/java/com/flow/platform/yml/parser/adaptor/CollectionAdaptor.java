@@ -18,7 +18,7 @@ package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.TypeAdaptorFactory;
 import com.flow.platform.yml.parser.exception.YmlParseException;
-import com.flow.platform.yml.parser.factory.BaseFactory;
+import com.flow.platform.yml.parser.factory.YmlFactory;
 import com.flow.platform.yml.parser.util.TypeUtil;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class CollectionAdaptor<E> extends YmlAdaptor<Object> {
 
-    public final static BaseFactory FACTORY = type -> {
+    public final static YmlFactory FACTORY = type -> {
 
         Class<?> rawType = TypeUtil.getRawType(type);
         if(!Collection.class.isAssignableFrom(rawType)){

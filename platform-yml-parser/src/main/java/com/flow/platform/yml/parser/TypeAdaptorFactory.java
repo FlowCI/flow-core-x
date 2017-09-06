@@ -23,17 +23,21 @@ import com.flow.platform.yml.parser.adaptor.MapAdaptor;
 import com.flow.platform.yml.parser.adaptor.PrimitiveAdaptor;
 import com.flow.platform.yml.parser.adaptor.ReflectTypeAdaptor;
 import com.flow.platform.yml.parser.exception.YmlParseException;
-import com.flow.platform.yml.parser.factory.BaseFactory;
+import com.flow.platform.yml.parser.factory.YmlFactory;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yh@firim
  */
 public class TypeAdaptorFactory {
 
-    public static List<BaseFactory> factories = new ArrayList<>();
+    private static List<YmlFactory> factories = new LinkedList<>();
 
     static {
         factories.add(MapAdaptor.FACTORY);
@@ -43,11 +47,18 @@ public class TypeAdaptorFactory {
         factories.add(ReflectTypeAdaptor.FACTORY);
     }
 
+    private static Map<Type, YmlAdaptor> cacheFactories = new LinkedHashMap<>();
 
     public static YmlAdaptor getAdaptor(Type type) {
-        for (BaseFactory factory : factories) {
-            YmlAdaptor adaptor = factory.create(type);
+        YmlAdaptor adaptor = cacheFactories.get(type);
+        if (adaptor != null) {
+            return adaptor;
+        }
+
+        for (YmlFactory factory : factories) {
+            adaptor = factory.create(type);
             if (adaptor != null) {
+                cacheFactories.put(type, adaptor);
                 return adaptor;
             }
         }
