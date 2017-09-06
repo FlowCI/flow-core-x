@@ -59,13 +59,12 @@ public abstract class SysInfoServiceImplBase implements SysInfoService {
     public List<SystemInfo> components(Category sys, Type type) {
         // load all component
         if (type == null) {
-            Type[] values = Type.values();
             Map<Type, SystemInfoLoader> infoLoader = getLoaders().get(sys);
 
-            List<SystemInfo> infoList = new ArrayList<>(values.length);
+            List<SystemInfo> infoList = new ArrayList<>(infoLoader.size());
 
-            for (Type componentType : values) {
-                infoList.add(infoLoader.get(componentType).load());
+            for (SystemInfoLoader loader : infoLoader.values()) {
+                infoList.add(loader.load());
             }
 
             return infoList;

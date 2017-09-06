@@ -130,7 +130,7 @@ public class WelcomeController {
      *      }
      *  ]
      */
-    @GetMapping(path = "/sys/{system}/info}")
+    @GetMapping(path = "/sys/{system}/info")
     public List<SystemInfo> componentInfo(@PathVariable String system) {
         Category targetSystem = Category.valueOf(system.toUpperCase());
         return sysInfoService.components(targetSystem, null);
