@@ -13,47 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.user;
 
-import com.flow.platform.api.domain.CreateUpdateObject;
-import com.google.gson.annotations.Expose;
+package com.flow.platform.api.domain.request;
+
+import com.flow.platform.api.domain.user.ActionGroup;
 
 /**
- * @author lhl
+ * @author yang
  */
-public class Action extends CreateUpdateObject {
+public class ActionParam {
 
-    @Expose
-    private String name;
-
-    @Expose
     private String alias;
 
-    @Expose
     private String description;
 
-    @Expose
-    private ActionGroup tag = ActionGroup.DEFAULT;
+    private ActionGroup tag;
 
-    public Action() {
+    public ActionParam() {
     }
 
-    public Action(String name) {
-        this.name = name;
-    }
-
-    public Action(String name, String alias, String description) {
-        this.name = name;
+    public ActionParam(String alias, String description, ActionGroup tag) {
         this.alias = alias;
         this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        this.tag = tag;
     }
 
     public String getAlias() {
@@ -78,31 +60,5 @@ public class Action extends CreateUpdateObject {
 
     public void setTag(ActionGroup tag) {
         this.tag = tag;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Action action = (Action) o;
-        return name.equals(action.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "Action{" +
-            "name='" + name + '\'' +
-            ", alias='" + alias + '\'' +
-            "} ";
     }
 }

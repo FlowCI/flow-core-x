@@ -34,8 +34,8 @@ import com.flow.platform.api.test.TestBase;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Set;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -60,6 +60,9 @@ public class SecurityTest extends TestBase {
     @Autowired
     private TokenGenerator tokenGenerator;
 
+    @Autowired
+    private AuthenticationInterceptor authInterceptor;
+
     private User userForAdmin;
 
     private User userForUser;
@@ -68,13 +71,10 @@ public class SecurityTest extends TestBase {
 
     private final String flowName = "flow1";
 
-    @BeforeClass
-    public static void enableAuth() {
-        System.setProperty("auth.enable", "true");
-    }
-
     @Before
     public void init() throws Throwable {
+        authInterceptor.enable();
+
         // init two roles admin and user
         Role admin = roleService.create("ROLE_ADMIN", null);
         Set<Action> adminActions = new HashSet<>();
@@ -161,6 +161,11 @@ public class SecurityTest extends TestBase {
         // enable to delete flow
         this.mockMvc.perform(requestWithUser(post("/flows/" + flowName + "/delete"), userForAdmin))
             .andExpect(status().isOk());
+    }
+
+    @After
+    public void after() {
+        authInterceptor.disable();
     }
 
     private MockHttpServletRequestBuilder requestWithUser(MockHttpServletRequestBuilder builder, User user) {

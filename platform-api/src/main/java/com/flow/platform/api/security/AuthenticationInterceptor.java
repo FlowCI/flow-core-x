@@ -42,8 +42,6 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
     private final static String TOKEN_PAYLOAD_FOR_TEST = "mytokenpayload";
 
-    private final static boolean ENABLE_AUTH = Boolean.parseBoolean(System.getProperty("auth.enable", "false"));
-
     @Autowired
     private UserSecurityService userSecurityService;
 
@@ -55,8 +53,18 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
      */
     private final List<RequestMatcher> authRequests;
 
+    private boolean enableAuth = false;
+
     public AuthenticationInterceptor(List<RequestMatcher> matchers) {
         this.authRequests = matchers;
+    }
+
+    public void enable() {
+        this.enableAuth = true;
+    }
+
+    public void disable() {
+        this.enableAuth = false;
     }
 
     @Override
@@ -64,7 +72,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
-        if (!ENABLE_AUTH) {
+        if (!enableAuth) {
             return true;
         }
 

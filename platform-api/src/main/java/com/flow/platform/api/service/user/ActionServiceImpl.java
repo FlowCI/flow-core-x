@@ -17,6 +17,7 @@ package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.dao.user.ActionDao;
 import com.flow.platform.api.dao.user.PermissionDao;
+import com.flow.platform.api.domain.request.ActionParam;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -68,8 +69,14 @@ public class ActionServiceImpl implements ActionService {
     }
 
     @Override
-    public void update(Action action) {
+    public Action update(String name, ActionParam body) {
+        Action action = find(name);
+        action.setAlias(body.getAlias());
+        action.setDescription(body.getDescription());
+        action.setTag(body.getTag());
+
         actionDao.update(action);
+        return action;
     }
 
     @Override
