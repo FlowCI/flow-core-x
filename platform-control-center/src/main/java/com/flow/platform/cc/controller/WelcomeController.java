@@ -17,8 +17,10 @@
 package com.flow.platform.cc.controller;
 
 import com.flow.platform.core.service.SysInfoService;
+import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Category;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,20 +35,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class WelcomeController {
 
     @Autowired
-    private SystemInfo systemInfo;
-
-    @Autowired
     private SysInfoService sysInfoService;
 
     @GetMapping("/index")
-    public SystemInfo index() {
-        return systemInfo;
+    public PropertySystemInfo index() {
+        return sysInfoService.system();
     }
 
     @GetMapping("/sys/info/{type}")
-    public SystemInfo systemInfo(@PathVariable(required = false) String type) {
+    public SystemInfo systemInfo(@PathVariable String type) {
         SystemInfo.Type targetType = SystemInfo.Type.valueOf(type.toUpperCase());
-        SystemInfo info = sysInfoService.get(Category.CC, targetType);
-        return info;
+        List<SystemInfo> infoList = sysInfoService.components(Category.CC, targetType);
+        return infoList.get(0);
     }
 }

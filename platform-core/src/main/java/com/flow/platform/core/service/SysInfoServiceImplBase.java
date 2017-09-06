@@ -17,10 +17,16 @@
 package com.flow.platform.core.service;
 
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Category;
+import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.core.sysinfo.SystemInfoLoader;
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -29,6 +35,9 @@ import org.springframework.beans.factory.annotation.Value;
 public abstract class SysInfoServiceImplBase implements SysInfoService {
 
     protected final String defaultDriverName = "com.mysql.jdbc.Driver";
+
+    @Autowired
+    private PropertySystemInfo systemInfo;
 
     @Value("${jdbc.url}")
     protected String dbUrl;
@@ -39,17 +48,33 @@ public abstract class SysInfoServiceImplBase implements SysInfoService {
     @Value("${jdbc.password}")
     protected String dbPassword;
 
-    public abstract Map<Category, Map<SystemInfo.Type, SystemInfoLoader>> getLoaders();
+    public abstract Map<Category, Map<Type, SystemInfoLoader>> getLoaders();
 
     @Override
-    public SystemInfo get(Category sys, SystemInfo.Type type) {
+    public PropertySystemInfo system() {
+        return systemInfo;
+    }
+
+    @Override
+    public List<SystemInfo> components(Category sys, Type type) {
+        // load all component
         if (type == null) {
-            // load system info
+            Type[] values = Type.values();
+            Map<Type, SystemInfoLoader> infoLoader = getLoaders().get(sys);
+
+            List<SystemInfo> infoList = new ArrayList<>(values.length);
+
+            for (Type componentType : values) {
+                infoList.add(infoLoader.get(componentType).load());
+            }
+
+            return infoList;
         }
 
         // load related components info
         try {
-            return getLoaders().get(sys).get(type).load();
+            SystemInfo info = getLoaders().get(sys).get(type).load();
+            return Lists.newArrayList(info);
         } catch (NullPointerException e) {
             throw new IllegalParameterException(String.format("Cannot load system info of %s - %s", sys, type));
         }

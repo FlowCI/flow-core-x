@@ -29,6 +29,7 @@ import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.core.sysinfo.ZooKeeperLoader.ZooKeeperGroup;
+import com.flow.platform.domain.Jsonable;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,7 +57,7 @@ public class WelcomeControllerTest extends TestBase {
     }
 
     @Test
-    public void should_load_system_jvm_info() throws Throwable {
+    public void should_load_jvm_info() throws Throwable {
         // when: load jvm info
         MvcResult result = this.mockMvc.perform(get("/sys/info/jvm"))
             .andExpect(status().isOk())
@@ -80,7 +81,7 @@ public class WelcomeControllerTest extends TestBase {
     }
 
     @Test
-    public void should_load_system_db_info() throws Throwable {
+    public void should_load_database_info() throws Throwable {
         // when: load db info
         MvcResult result = this.mockMvc.perform(get("/sys/info/db"))
             .andExpect(status().isOk())

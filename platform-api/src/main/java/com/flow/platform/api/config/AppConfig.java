@@ -42,7 +42,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Import({DatabaseConfig.class})
 public class AppConfig extends AppConfigBase {
 
-    public final static String NAME = "flow-api";
+    public final static String NAME = "API";
 
     public final static String VERSION = "alpha-0.1";
 
@@ -59,7 +59,6 @@ public class AppConfig extends AppConfigBase {
     public final static String ALLOW_SUFFIX = "p12,mobileprovision,jks,pem";
 
     public final static long ALLOW_SIZE = 2 * 1024 * 1024;
-
 
     @Value("${api.workspace}")
     private String workspace;
