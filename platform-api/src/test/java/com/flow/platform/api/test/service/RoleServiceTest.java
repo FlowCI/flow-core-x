@@ -54,11 +54,11 @@ public class RoleServiceTest extends TestBase {
     @Test(expected = IllegalParameterException.class)
     public void should_raise_exception_if_role_been_deleted() {
         // when:
-        roleService.create("test", null);
+        Role role = roleService.create("test", null);
         Assert.assertNotNull(roleService.find("test"));
 
         // then: raise exception if find role by name
-        roleService.delete("test");
+        roleService.delete(role.getId());
         roleService.find("test");
     }
 
@@ -79,7 +79,7 @@ public class RoleServiceTest extends TestBase {
         roleService.assign(user, role);
 
         // then:
-        roleService.delete(roleName);
+        roleService.delete(role.getId());
     }
 
     @Test

@@ -1,7 +1,6 @@
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.request.LoginForm;
-import com.flow.platform.api.domain.request.SwitchRole;
+import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.UserService;
 import com.google.common.base.Strings;
@@ -33,7 +32,7 @@ public class UserController {
      * @apiGroup User
      * @apiDescription Login by request information
      *
-     * @apiParamExample {json} Request-Example:
+     * @apiParamExample {json} Request-Body:
      *     {
      *         "emailOrUsername" : "admin",
      *         "password" : "admin"
@@ -56,24 +55,23 @@ public class UserController {
      *     }
      */
     @PostMapping("/login")
-    public String login(@RequestBody LoginForm loginForm) {
+    public String login(@RequestBody LoginParam loginForm) {
         return userService.login(loginForm);
     }
 
     /**
      * @api {Post} /register Register
-     * @apiParam {String} roles Param Example: ?roles=admin,user
-     * @apiName User Register
-     * @apiGroup User
-     * @apiDescription Register by request information
-     *
-     * @apiParamExample {json} Request-Example:
+     * @apiParam {String} roles Param example: ?roles=admin,user
+     * @apiParamExample {json} Request-Body:
      *     {
      *         	"email" : "test1@fir.im",
      *         	"username" : "test1",
      *         	"password" : "test1",
      *         	"roleId" : "developer"
      *     }
+     * @apiName User Register
+     * @apiGroup User
+     * @apiDescription Register by request information
      *
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK

@@ -24,6 +24,8 @@ import java.util.List;
  */
 public interface RoleService {
 
+    Role find(Integer roleId);
+
 
     Role find(String name);
 
@@ -43,7 +45,7 @@ public interface RoleService {
     /**
      * Delete role
      */
-    void delete(String role);
+    void delete(Integer roleId);
 
     /**
      * List all roles

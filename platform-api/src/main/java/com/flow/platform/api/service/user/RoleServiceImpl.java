@@ -49,6 +49,15 @@ public class RoleServiceImpl implements RoleService {
     private UserRoleDao userRoleDao;
 
     @Override
+    public Role find(Integer roleId) {
+        Role role = roleDao.get(roleId);
+        if (role == null) {
+            throw new IllegalParameterException(String.format("The id of role '%s' is doesn't existed", roleId));
+        }
+        return role;
+    }
+
+    @Override
     public Role find(String name) {
         Role role = roleDao.get(name);
         if (role == null) {
@@ -77,12 +86,12 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public void delete(String name) {
-        Role role = find(name);
+    public void delete(Integer roleId) {
+        Role role = find(roleId);
         Long numOfUser = userRoleDao.numOfUser(role.getId());
 
         if (numOfUser > 0L) {
-            final String err = String.format("Cannot delete role '%s' since has '%s' assigned", name, numOfUser);
+            final String err = String.format("Cannot delete role '%s' since has '%s' assigned", roleId, numOfUser);
             throw new IllegalStatusException(err);
         }
 

@@ -3,7 +3,7 @@ package com.flow.platform.api.domain.request;
 /**
  * @author liangpengyv
  */
-public class LoginForm {
+public class LoginParam {
 
     private String emailOrUsername;
 

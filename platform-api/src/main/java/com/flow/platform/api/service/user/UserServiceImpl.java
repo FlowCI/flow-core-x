@@ -2,14 +2,12 @@ package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
-import com.flow.platform.api.domain.request.LoginForm;
+import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.util.StringEncodeUtil;
-import com.flow.platform.api.security.token.JwtTokenGenerator;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.google.common.base.Strings;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +37,7 @@ public class UserServiceImpl implements UserService {
     private long expirationDuration;
 
     @Override
-    public String login(LoginForm loginForm) {
+    public String login(LoginParam loginForm) {
         String emailOrUsername = loginForm.getEmailOrUsername();
         String password = loginForm.getPassword();
         if (checkEmailFormatIsPass(emailOrUsername)) {
