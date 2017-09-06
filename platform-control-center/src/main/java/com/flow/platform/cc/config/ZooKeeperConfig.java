@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.config;
 
+import com.flow.platform.cc.util.ZooKeeperUtil;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import org.apache.zookeeper.ZKUtil;
 import org.apache.zookeeper.ZooKeeper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -73,6 +75,7 @@ public class ZooKeeperConfig {
     @Bean
     public ZKClient zkClient() {
         ZKClient zkClient = new ZKClient(host);
+        ZooKeeperUtil.start();
         if (zkClient.start()) {
             LOGGER.trace("Zookeeper been connected at: %s", host);
         } else {
