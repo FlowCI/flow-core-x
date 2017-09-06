@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.google.common.base.Strings;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -95,5 +96,10 @@ public class ActionServiceImpl implements ActionService {
     @Override
     public List<Action> list() {
         return actionDao.list();
+    }
+
+    @Override
+    public List<Action> list(Collection<String> actions) {
+        return actionDao.list(actions);
     }
 }
