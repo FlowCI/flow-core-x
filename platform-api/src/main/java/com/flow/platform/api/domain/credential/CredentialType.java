@@ -15,14 +15,12 @@
  */
 package com.flow.platform.api.domain.credential;
 
-import com.flow.platform.api.domain.AndroidCredential;
-
 /**
  * @author lhl
  */
 public enum CredentialType {
 
-    RSAkEYS("RSAKEYS", RSACredential.class),
+    RSA("RSA", RSACredential.class),
 
     USERNAME("USERNAME", UsernameCredential.class),
 

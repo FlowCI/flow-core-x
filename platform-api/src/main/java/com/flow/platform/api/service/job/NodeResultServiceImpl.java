@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.dao.NodeResultDao;
+import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;

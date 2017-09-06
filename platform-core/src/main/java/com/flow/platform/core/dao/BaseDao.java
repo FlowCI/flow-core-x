@@ -17,8 +17,8 @@
 package com.flow.platform.core.dao;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import org.hibernate.Session;
 
 /**
@@ -28,7 +28,7 @@ public interface BaseDao<K extends Serializable, T> {
 
     Session getSession();
 
-    List<T> list(final Set<K> keySet);
+    List<T> list(final Collection<K> keys);
 
     T get(final K key);
 

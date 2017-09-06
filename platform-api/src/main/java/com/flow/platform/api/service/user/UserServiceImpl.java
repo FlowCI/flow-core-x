@@ -1,27 +1,39 @@
-package com.flow.platform.api.service;
+package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.dao.UserDao;
+import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.request.LoginForm;
-import com.flow.platform.api.domain.User;
+import com.flow.platform.api.domain.user.Role;
+import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.util.StringEncodeUtil;
-import com.flow.platform.api.util.TokenUtil;
+import com.flow.platform.api.security.token.JwtTokenGenerator;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.google.common.base.Strings;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.regex.Pattern;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author liangpengyv
  */
 @Service(value = "userService")
+@Transactional
 public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private TokenGenerator tokenGenerator;
+
+    @Autowired
+    private RoleService roleService;
 
     @Value(value = "${expiration.duration}")
     private long expirationDuration;
@@ -39,7 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void register(User user) {
+    public User register(User user, Set<String> roles) {
         String errMsg = "Illegal register request parameter: ";
 
         // Check format
@@ -64,17 +76,36 @@ public class UserServiceImpl implements UserService {
         // Insert the user info into the database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
         user.setPassword(passwordForMD5);
-        userDao.save(user);
+        user = userDao.save(user);
+
+        if (roles == null || roles.isEmpty()) {
+            return user;
+        }
+
+        // assign user to role
+        for (String roleName : roles) {
+            Role targetRole = roleService.find(roleName);
+            roleService.assign(user, targetRole);
+        }
+
+        return user;
     }
 
     @Override
     public void delete(List<String> emailList) {
+        // un-assign user from role
+        List<User> users = userDao.list(emailList);
+        for (User user : users) {
+            roleService.unAssign(user);
+        }
+
+        // delete user
         userDao.deleteList(emailList);
     }
 
     @Override
-    public void switchRole(List<String> emailList, String roleId) {
-        userDao.switchUserRoleIdTo(emailList, roleId);
+    public User findByEmail(String email){
+        return userDao.get(email);
     }
 
     /**
@@ -98,7 +129,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // Login success, return token
-        return TokenUtil.createToken(email, expirationDuration);
+        return tokenGenerator.create(email, expirationDuration);
     }
 
     /**
@@ -126,7 +157,7 @@ public class UserServiceImpl implements UserService {
 
         // Login success, return token
         String email = userDao.getEmailBy("username", username);
-        return TokenUtil.createToken(email, expirationDuration);
+        return tokenGenerator.create(email, expirationDuration);
     }
 
     /**

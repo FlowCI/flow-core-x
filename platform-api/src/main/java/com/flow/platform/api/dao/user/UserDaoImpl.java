@@ -1,6 +1,6 @@
-package com.flow.platform.api.dao;
+package com.flow.platform.api.dao.user;
 
-import com.flow.platform.api.domain.User;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -92,20 +92,6 @@ public class UserDaoImpl extends AbstractBaseDao<String, User> implements UserDa
                 return true;
             }
             return false;
-        });
-    }
-
-    @Override
-    public void switchUserRoleIdTo(List<String> emailList, String roleId) {
-        execute((Session session) -> {
-            String update = String.format("update User set role_id='%s' where email in (:list)", roleId);
-            Query query = session.createQuery(update);
-            query.setParameterList("list", emailList);
-            int affectedRows = query.executeUpdate();
-            if (affectedRows == 0) {
-                return false;
-            }
-            return true;
         });
     }
 }

@@ -17,12 +17,15 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.resource.PropertyResourceLoader;
+import com.flow.platform.api.security.AuthenticationInterceptor;
+import com.flow.platform.api.security.token.JwtTokenGenerator;
+import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.util.GsonHttpExposeConverter;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.resource.AppResourceLoader;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.List;
-import javax.annotation.Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -31,10 +34,14 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @Configuration
@@ -43,11 +50,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @ComponentScan({
     "com.flow.platform.api.controller",
     "com.flow.platform.api.service",
+    "com.flow.platform.api.security",
     "com.flow.platform.api.dao",
     "com.flow.platform.api.context",
     "com.flow.platform.api.util",
     "com.flow.platform.api.consumer",
-    "com.flow.platform.api.context"})
+    "com.flow.platform.api.context",})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
@@ -76,6 +84,24 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         CommonsMultipartResolver resolver = new CommonsMultipartResolver();
         resolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
         return resolver;
+    }
+
+    @Bean
+    public TokenGenerator tokenGenerator() {
+        return new JwtTokenGenerator("MY_SECRET_KEY");
+    }
+
+    @Bean
+    public HandlerInterceptor jwtAuthinterceptor() {
+        List<RequestMatcher> matchers = Lists.newArrayList(
+            new AntPathRequestMatcher("/flows/**")
+        );
+        return new AuthenticationInterceptor(matchers);
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(jwtAuthinterceptor());
     }
 
     @Override

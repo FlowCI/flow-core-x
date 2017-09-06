@@ -115,13 +115,13 @@ public class CredentialController {
      *  ]
      */
     @GetMapping
-    public List<Credential> index() {
+    public List<Credential> list() {
         return credentialService.listCredentials();
     }
 
     /**
      * @api {get} /credentials/:type/list List By Type
-     * @apiParam {String="ios","android","username","rsakeys"} type Credential type
+     * @apiParam {String="ios","android","username","rsa"} type Credential type
      * @apiGroup Credenital
      * @apiDescription List credentials by type
      *
@@ -130,7 +130,7 @@ public class CredentialController {
      *  reference on List
      */
     @GetMapping(path = "/{type}/list")
-    public Collection<Credential> credentialTypeList(@PathVariable String type) {
+    public Collection<Credential> list(@PathVariable String type) {
         return credentialService.listTypes(type.toUpperCase());
     }
 
@@ -212,6 +212,18 @@ public class CredentialController {
         return credentialService.generateRsaKey();
     }
 
+    /**
+     * @api {Post} /credentials/fileUpload
+     * @apiName uploadFile
+     * @apiGroup Credentials
+     * @apiDescription upload files
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *
+     *       {
+     *         "/aa/a/aa/a"
+     *       }
+     */
     @PostMapping("/fileUpload")
     public List<String> filesUpload(MultipartFile[] files) {
         List<String> list = new ArrayList<>();

@@ -13,25 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain;
-
-import com.flow.platform.api.domain.credential.Credential;
-import com.flow.platform.api.domain.credential.CredentialFile;
-import com.google.gson.annotations.Expose;
+package com.flow.platform.api.domain.user;
 
 /**
  * @author lhl
  */
-public class AndroidCredential extends Credential {
+public enum ActionGroup {
 
-    @Expose
-    protected CredentialFile[] fileNames;
+    DEFAULT("DEFAULT", 0),
 
-    public CredentialFile[] getFileNames() {
-        return fileNames;
+    SUPERADMIN("SUPERADMIN", 1),
+
+    ADMIN("ADMIN", 2),
+
+    MANAGER("MANAGER", 3),
+
+    USER("USER", 4);
+
+    private String name;
+
+    private int index;
+
+    ActionGroup(String name, int index) {
+        this.name = name;
+        this.index = index;
     }
 
-    public void setFileNames(CredentialFile[] fileNames) {
-        this.fileNames = fileNames;
+    public String getName() {
+        return name;
+    }
+
+    public int getIndex() {
+        return index;
     }
 }

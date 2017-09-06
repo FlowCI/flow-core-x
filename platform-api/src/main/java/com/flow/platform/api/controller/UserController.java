@@ -2,12 +2,16 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.request.LoginForm;
 import com.flow.platform.api.domain.request.SwitchRole;
-import com.flow.platform.api.domain.User;
-import com.flow.platform.api.service.UserService;
+import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.service.user.UserService;
+import com.google.common.base.Strings;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -25,7 +29,7 @@ public class UserController {
 
     /**
      * @api {Post} /login Login
-     * @apiName UserLogin
+     * @apiName User Login
      * @apiGroup User
      * @apiDescription Login by request information
      *
@@ -58,7 +62,8 @@ public class UserController {
 
     /**
      * @api {Post} /register Register
-     * @apiName UserRegister
+     * @apiParam {String} roles Param Example: ?roles=admin,user
+     * @apiName User Register
      * @apiGroup User
      * @apiDescription Register by request information
      *
@@ -86,8 +91,21 @@ public class UserController {
      *     }
      */
     @PostMapping("/register")
-    public void register(@RequestBody User user) {
-        userService.register(user);
+    public void register(@RequestBody User user, @RequestParam(required = false) String roles) {
+        Set<String> roleNameSet = new HashSet<>(2);
+
+        if (!Strings.isNullOrEmpty(roles)) {
+            roles = roles.trim();
+
+            for (String role : roles.trim().split(",")) {
+                role = role.trim();
+                if (!Strings.isNullOrEmpty(role)) {
+                    roleNameSet.add(role);
+                }
+            }
+        }
+
+        userService.register(user, roleNameSet);
     }
 
     /**
@@ -114,36 +132,5 @@ public class UserController {
     @PostMapping("/delete")
     public void delete(@RequestBody List<String> emailList) {
         userService.delete(emailList);
-    }
-
-    /**
-     * @api {Post} /role/switch Switch role
-     * @apiName UserSwitchRole
-     * @apiGroup User
-     * @apiDescription Switch role by request information
-     *
-     * @apiParamExample {json} Request-Example:
-     *     {
-     *         "emailList" : [
-     *             "test1@fir.im",
-     *             "test2@fir.im"
-     *             ],
-     *         "switchTo" : "developer"
-     *     }
-     *
-     * @apiSuccessExample {json} Success-Response:
-     *     HTTP/1.1 200 OK
-     *
-     * @apiErrorExample {json} Error-Response:
-     *     HTTP/1.1 500 Internal Server Error
-     *     {
-     *         "message": "JSON parse error: java.io.EOFException: End of input at line 7 column 1 path $.switchTo; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 7 column 1 path $.switchTo"
-     *     }
-     */
-    @PostMapping("/role/switch")
-    public void switchRole(@RequestBody SwitchRole switchRole) {
-        List<String> emailList = switchRole.getUsers();
-        String roleId = switchRole.getSwitchTo();
-        userService.switchRole(emailList, roleId);
     }
 }

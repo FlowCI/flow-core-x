@@ -1,20 +1,18 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.dao.UserDao;
+import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.request.LoginForm;
-import com.flow.platform.api.domain.User;
-import com.flow.platform.api.service.UserService;
+import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.StringEncodeUtil;
+import java.util.LinkedList;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.ZonedDateTime;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * @author liangpengyv
@@ -37,7 +35,6 @@ public class UserServiceTest extends TestBase {
         user.setEmail("liangpengyv@fir.im");
         user.setUsername("liangpengyv");
         user.setPassword("liangpengyv");
-        user.setRoleId("developer");
     }
 
     @Test
@@ -58,7 +55,7 @@ public class UserServiceTest extends TestBase {
 
     @Test
     public void should_register_success() {
-        userService.register(user);
+        userService.register(user, null);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
     }
 
@@ -72,27 +69,5 @@ public class UserServiceTest extends TestBase {
         emailList.add("liangpengyv@fir.im");
         userService.delete(emailList);
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
-    }
-
-    @Test
-    public void should_switch_role_success() {
-        user.setPassword(StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name()));
-        userDao.save(user);
-        Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
-        Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
-
-        ZonedDateTime beforeUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
-        List<String> emailList = new LinkedList<>();
-        emailList.add("liangpengyv@fir.im");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        userService.switchRole(emailList, "admin");
-
-        ZonedDateTime afterUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
-        Assert.assertEquals("admin", userDao.get("liangpengyv@fir.im").getRoleId());
-        Assert.assertTrue(beforeUpdateTime.isBefore(afterUpdateTime));
     }
 }
