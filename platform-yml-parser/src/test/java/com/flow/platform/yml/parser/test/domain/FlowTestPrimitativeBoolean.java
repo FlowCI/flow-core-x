@@ -34,7 +34,7 @@ public class FlowTestPrimitativeBoolean {
     private Integer integer;
     @YmlSerializer
     private Double aDouble;
-    @YmlSerializer
+
     private Float aFloat;
     @YmlSerializer
     private Long aLong;

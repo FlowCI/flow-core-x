@@ -17,8 +17,6 @@
 package com.flow.platform.yml.parser.adaptor;
 
 import com.flow.platform.yml.parser.exception.YmlParseException;
-import com.flow.platform.yml.parser.factory.YmlFactory;
-import com.flow.platform.yml.parser.util.TypeUtil;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -27,16 +25,6 @@ import java.util.Map;
  * @author yh@firim
  */
 public class MapAdaptor extends YmlAdaptor<Object> {
-
-    public final static YmlFactory FACTORY = type -> {
-        Class<?> rawType = TypeUtil.getRawType(type);
-
-        // judge Map is rawType subclass
-        if (!Map.class.isAssignableFrom(rawType)) {
-            return null;
-        }
-        return new MapAdaptor();
-    };
 
     @Override
     public Object read(Object o) {
@@ -51,7 +39,7 @@ public class MapAdaptor extends YmlAdaptor<Object> {
 
     @Override
     public Object write(Object object) {
-        LinkedHashMap<String, String> linkedHashMap = new LinkedHashMap<>((HashMap)object);
+        LinkedHashMap<String, String> linkedHashMap = new LinkedHashMap<>((HashMap) object);
         return linkedHashMap;
     }
 }

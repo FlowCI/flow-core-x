@@ -16,11 +16,7 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
-import com.flow.platform.yml.parser.TypeAdaptorFactory;
 import com.flow.platform.yml.parser.exception.YmlParseException;
-import com.flow.platform.yml.parser.factory.YmlFactory;
-import com.flow.platform.yml.parser.util.TypeUtil;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,18 +25,6 @@ import java.util.List;
  * @author yh@firim
  */
 public class CollectionAdaptor<E> extends YmlAdaptor<Object> {
-
-    public final static YmlFactory FACTORY = type -> {
-
-        Class<?> rawType = TypeUtil.getRawType(type);
-        if(!Collection.class.isAssignableFrom(rawType)){
-            return null;
-        }
-
-        Type elementType = TypeUtil.getCollectionElementType(type);
-        YmlAdaptor<?> elementTypeAdapter = TypeAdaptorFactory.getAdaptor(elementType);
-        return new CollectionAdaptor(rawType, elementTypeAdapter);
-    };
 
     private Class<E> componentClazz;
 

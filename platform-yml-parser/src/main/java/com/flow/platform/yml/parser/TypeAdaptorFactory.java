@@ -17,74 +17,125 @@
 package com.flow.platform.yml.parser;
 
 import com.flow.platform.yml.parser.adaptor.ArrayAdaptor;
-import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
 import com.flow.platform.yml.parser.adaptor.CollectionAdaptor;
 import com.flow.platform.yml.parser.adaptor.MapAdaptor;
 import com.flow.platform.yml.parser.adaptor.PrimitiveAdaptor;
 import com.flow.platform.yml.parser.adaptor.ReflectTypeAdaptor;
+import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
 import com.flow.platform.yml.parser.exception.YmlParseException;
-import com.flow.platform.yml.parser.factory.YmlFactory;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.flow.platform.yml.parser.util.TypeUtil;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author yh@firim
  */
 public class TypeAdaptorFactory {
 
-    private static List<YmlFactory> factories = new LinkedList<>();
-
-    private final static int ADAPTOR_CACHE_EXPIRE_SECOND = 3600 * 24;
-
-    private final static int ADAPTOR_CACHE_CACHE_NUM = 100;
-
-    private static Cache<Type, YmlAdaptor> adaptorCache = CacheBuilder
-        .newBuilder()
-        .expireAfterAccess(ADAPTOR_CACHE_EXPIRE_SECOND, TimeUnit.SECONDS)
-        .maximumSize(ADAPTOR_CACHE_CACHE_NUM)
-        .build();
-
-    static {
-        factories.add(MapAdaptor.FACTORY);
-        factories.add(PrimitiveAdaptor.FACTORY);
-        factories.add(CollectionAdaptor.FACTORY);
-        factories.add(ArrayAdaptor.FACTORY);
-        factories.add(ReflectTypeAdaptor.FACTORY);
-    }
+    private static Map<Type, YmlAdaptor> adaptorCache = new LinkedHashMap<>();
 
     private static Map<Type, YmlAdaptor> cacheFactories = new LinkedHashMap<>();
 
+    private static final List<AdaptorSelector> selectorChain = new LinkedList<>();
+
+    static {
+        selectorChain.add(new MapAdaptorSelector());
+        selectorChain.add(new PrimitiveAdaptorSelector());
+        selectorChain.add(new ArrayAdaptorSelector());
+        selectorChain.add(new CollectionAdaptorSelector());
+        selectorChain.add(new ReflectTypeAdaptorSelector());
+    }
+
     public static YmlAdaptor getAdaptor(Type type) {
-        YmlAdaptor ymlAdaptor = null;
-        try {
-            ymlAdaptor = adaptorCache.get(type, () -> {
-                for (YmlFactory factory : factories) {
-                    YmlAdaptor adaptor = factory.create(type);
-                    if (adaptor != null) {
-                        cacheFactories.put(type, adaptor);
-                        return adaptor;
-                    }
-                }
+        for (AdaptorSelector selector : selectorChain) {
+            YmlAdaptor adaptor = selector.selectAdaptor(type);
+            if (adaptor != null) {
+                return adaptor;
+            }
+        }
 
+        return null;
+    }
+
+    private interface AdaptorSelector {
+
+        YmlAdaptor selectAdaptor(Type type);
+    }
+
+    private static class ArrayAdaptorSelector implements AdaptorSelector {
+
+        @Override
+        public YmlAdaptor selectAdaptor(Type type) {
+            if (type instanceof GenericArrayType || type instanceof Class && ((Class<?>) type).isArray()) {
+                Type componentType = TypeUtil.getArrayComponentType(type);
+                YmlAdaptor<?> componentTypeAdapter = TypeAdaptorFactory.getAdaptor(componentType);
+                return new ArrayAdaptor(TypeUtil.getRawType(componentType), componentTypeAdapter);
+            }
+            return null;
+        }
+    }
+
+
+    private static class CollectionAdaptorSelector implements AdaptorSelector {
+
+        @Override
+        public YmlAdaptor selectAdaptor(Type type) {
+            Class<?> rawType = TypeUtil.getRawType(type);
+            if (!Collection.class.isAssignableFrom(rawType)) {
                 return null;
-            });
-        } catch (Throwable throwable) {
-        }
+            }
 
-        if (ymlAdaptor != null) {
-            return ymlAdaptor;
+            Type elementType = TypeUtil.getCollectionElementType(type);
+            YmlAdaptor<?> elementTypeAdapter = TypeAdaptorFactory.getAdaptor(elementType);
+            return new CollectionAdaptor(rawType, elementTypeAdapter);
         }
+    }
 
-        throw new YmlParseException("Not found adaptor");
+    private static class MapAdaptorSelector implements AdaptorSelector {
+
+        @Override
+        public YmlAdaptor selectAdaptor(Type type) {
+            Class<?> rawType = TypeUtil.getRawType(type);
+
+            // judge Map is rawType subclass
+            if (!Map.class.isAssignableFrom(rawType)) {
+                return null;
+            }
+            return new MapAdaptor();
+        }
+    }
+
+    private static class PrimitiveAdaptorSelector implements AdaptorSelector {
+
+        @Override
+        public YmlAdaptor selectAdaptor(Type type) {
+            Class<?> rawType = TypeUtil.getRawType(type);
+
+            // judge rawType is primitive or not
+            if (PrimitiveAdaptor.isUsePrimitive(rawType)) {
+                return new PrimitiveAdaptor(rawType);
+            }
+
+            return null;
+        }
+    }
+
+    private static class ReflectTypeAdaptorSelector implements AdaptorSelector {
+
+        @Override
+        public YmlAdaptor selectAdaptor(Type type) {
+            Class<?> rawType = TypeUtil.getRawType(type);
+
+            if (!Object.class.isAssignableFrom(rawType)) {
+                return null;
+            }
+            return new ReflectTypeAdaptor(rawType);
+        }
     }
 
 }

@@ -16,22 +16,10 @@
 
 package com.flow.platform.yml.parser.adaptor;
 
-import com.flow.platform.yml.parser.factory.YmlFactory;
-import com.flow.platform.yml.parser.util.TypeUtil;
-
 /**
  * @author yh@firim
  */
 public class ReflectTypeAdaptor<E> extends YmlAdaptor<Object> {
-
-    public final static YmlFactory FACTORY = type -> {
-        Class<?> rawType = TypeUtil.getRawType(type);
-
-        if (!Object.class.isAssignableFrom(rawType)) {
-            return null;
-        }
-        return new ReflectTypeAdaptor(rawType);
-    };
 
     private Class<E> componentClazz;
 
