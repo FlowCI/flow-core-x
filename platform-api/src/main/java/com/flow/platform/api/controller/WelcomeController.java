@@ -54,7 +54,7 @@ public class WelcomeController {
     }
 
     /**
-     * @api {get} /index All System Information
+     * @api {get} /index/all All System Information
      * @apiName Get All system info
      * @apiGroup System Info
      * @apiDescription Get flow api and control center system version, status, start time and its properties configuration
