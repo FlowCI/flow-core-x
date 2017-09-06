@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
-
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import java.util.List;
-
-public class Flow extends Node<Step> {
+package com.flow.platform.yml.parser.validator;
 
 
-    public Flow(String path, String name) {
-        super(path, name);
-    }
+import java.util.Map;
 
-    public Flow() {
-    }
+/**
+ * @author yh@firim
+ */
+public class EnvValidator implements YmlValidator<Map<String, String>> {
 
     @Override
-    public void setChildren(List<Step> children) {
-        super.setChildren(children);
+    public Boolean validate(Map<String, String> o) {
+        if(o == null){
+            return false;
+        }
+        o.forEach((k, v) -> {
+        });
+        return true;
     }
-
-    @Override
-    public List<Step> getChildren() {
-        return super.getChildren();
-    }
-
 }

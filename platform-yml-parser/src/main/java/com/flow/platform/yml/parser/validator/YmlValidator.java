@@ -14,29 +14,13 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
+package com.flow.platform.yml.parser.validator;
 
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import java.util.List;
+/**
+ * @author yh@firim
+ */
+public interface YmlValidator<T> {
 
-public class Flow extends Node<Step> {
-
-
-    public Flow(String path, String name) {
-        super(path, name);
-    }
-
-    public Flow() {
-    }
-
-    @Override
-    public void setChildren(List<Step> children) {
-        super.setChildren(children);
-    }
-
-    @Override
-    public List<Step> getChildren() {
-        return super.getChildren();
-    }
-
+    //validate true: success, false: failure
+    Boolean validate(T o);
 }

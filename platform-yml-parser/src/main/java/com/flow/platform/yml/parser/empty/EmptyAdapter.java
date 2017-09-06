@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
+package com.flow.platform.yml.parser.empty;
 
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import java.util.List;
+import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
 
-public class Flow extends Node<Step> {
+/**
+ * @author yh@firim
+ */
+public class EmptyAdapter extends YmlAdaptor {
 
-
-    public Flow(String path, String name) {
-        super(path, name);
-    }
-
-    public Flow() {
+    @Override
+    public Object read(Object o) {
+        return null;
     }
 
     @Override
-    public void setChildren(List<Step> children) {
-        super.setChildren(children);
+    public Object write(Object o) {
+        return null;
     }
-
-    @Override
-    public List<Step> getChildren() {
-        return super.getChildren();
-    }
-
 }

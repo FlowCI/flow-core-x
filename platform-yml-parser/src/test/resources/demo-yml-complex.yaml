@@ -1,0 +1,24 @@
+flow:
+  - name: flow1
+    script: |
+      file_path="./dist/index.html"
+      curl -# -F file=@${file_path} -F "key=$key" -F "token=$token" $upload_url
+      FLOW_RUBOCOP_RENDER_URL=$download_url
+      echo "details: $FLOW_RUBOCOP_RENDER_URL"
+    envs:
+      FLOW_WORKSPACE: "echo hello"
+      FLOW_VERSION: "echo version"
+    steps:
+     - name: step1
+       envs:
+         FLOW_WORKSPACE: "echo step"
+         FLOW_VERSION: "echo step version"
+       isAllowFailure: true
+       steps:
+        - name: step11
+          script: "echo 1"
+        - name: step12
+          script: "echo 2"
+     - name: step2
+       isAllowFailure: false
+       script: "echo 2"

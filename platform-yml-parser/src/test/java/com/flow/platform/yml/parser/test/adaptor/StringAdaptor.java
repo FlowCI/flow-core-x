@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
+package com.flow.platform.yml.parser.test.adaptor;
 
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import java.util.List;
+import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
+import java.util.Collection;
 
-public class Flow extends Node<Step> {
+/**
+ * @author yh@firim
+ */
+public class StringAdaptor extends YmlAdaptor<String> {
 
-
-    public Flow(String path, String name) {
-        super(path, name);
-    }
-
-    public Flow() {
+    @Override
+    public String read(Object o) {
+        StringBuilder stringBuilder = new StringBuilder("");
+        ((Collection) o).forEach(stringBuilder::append);
+        return stringBuilder.toString();
     }
 
     @Override
-    public void setChildren(List<Step> children) {
-        super.setChildren(children);
+    public Object write(String s) {
+        return null;
     }
-
-    @Override
-    public List<Step> getChildren() {
-        return super.getChildren();
-    }
-
 }

@@ -19,16 +19,16 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.exception.YmlException;
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.yml.parser.YmlParser;
+import com.flow.platform.yml.parser.exception.YmlParseException;
+import com.flow.platform.yml.parser.exception.YmlFormatException;
 import com.google.common.io.Files;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author yh@firim
@@ -67,23 +67,15 @@ public class NodeUtil {
      * @throws YmlException if yml format is illegal
      */
     public static Node buildFromYml(String yml) {
-        Yaml yaml = new Yaml();
-        Map result = null;
 
+        Flow[] flows;
         try {
-            result = (Map) yaml.load(yml);
-        } catch (Throwable e) {
-            throw new YmlException("Illegal yml definition");
+            flows = YmlParser.fromYml(yml, Flow[].class);
+        }catch (YmlParseException e){
+            throw new YmlException("Yml parser error", e);
+        }catch (YmlFormatException e){
+            throw new YmlException("Yml validate error", e);
         }
-
-        Object content = result.get("flow");
-
-        if (content == null || !(content instanceof List)) {
-            throw new YmlException("Illegal yml definition");
-        }
-
-        String rawJson = Jsonable.GSON_CONFIG.toJson(content);
-        Flow[] flows = Jsonable.GSON_CONFIG.fromJson(rawJson, Flow[].class);
 
         // current version only support single flow
         if (flows.length > 1) {
