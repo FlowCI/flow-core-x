@@ -17,6 +17,7 @@
 package com.flow.platform.api.domain.node;
 
 import com.flow.platform.api.domain.EnvObject;
+import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.time.ZonedDateTime;
@@ -33,13 +34,16 @@ public class Node<T extends Node> extends EnvObject {
     @Expose
     protected String path;
 
+    @YmlSerializer
     @Expose
     protected String name;
 
+    @YmlSerializer(required = false)
     protected String script;
 
     protected Node parent;
 
+    @YmlSerializer(required = false, name = "steps")
     @SerializedName("steps")
     protected List<T> children = new LinkedList<>();
 

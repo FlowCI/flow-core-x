@@ -14,29 +14,33 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
+package com.flow.platform.yml.parser.test.domain;
 
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import java.util.List;
 
-public class Flow extends Node<Step> {
+/**
+ * @author yh@firim
+ */
+public class FlowTest {
 
+    @YmlSerializer
+    private String name;
+    @YmlSerializer
+    private String script;
 
-    public Flow(String path, String name) {
-        super(path, name);
+    public String getName() {
+        return name;
     }
 
-    public Flow() {
+    public void setName(String name) {
+        this.name = name;
     }
 
-    @Override
-    public void setChildren(List<Step> children) {
-        super.setChildren(children);
+    public String getScript() {
+        return script;
     }
 
-    @Override
-    public List<Step> getChildren() {
-        return super.getChildren();
+    public void setScript(String script) {
+        this.script = script;
     }
-
 }

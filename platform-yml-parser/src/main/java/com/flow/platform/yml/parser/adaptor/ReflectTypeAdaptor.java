@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
+package com.flow.platform.yml.parser.adaptor;
 
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import java.util.List;
+/**
+ * @author yh@firim
+ */
+public class ReflectTypeAdaptor<E> extends YmlAdaptor<Object> {
 
-public class Flow extends Node<Step> {
+    private Class<E> componentClazz;
 
-
-    public Flow(String path, String name) {
-        super(path, name);
-    }
-
-    public Flow() {
-    }
-
-    @Override
-    public void setChildren(List<Step> children) {
-        super.setChildren(children);
+    public ReflectTypeAdaptor(Class<E> componentClazz) {
+        this.componentClazz = componentClazz;
     }
 
     @Override
-    public List<Step> getChildren() {
-        return super.getChildren();
+    public Object read(Object o) {
+        return doRead(o, componentClazz);
     }
 
+    @Override
+    public Object write(Object object) {
+        return doWrite(object);
+    }
 }

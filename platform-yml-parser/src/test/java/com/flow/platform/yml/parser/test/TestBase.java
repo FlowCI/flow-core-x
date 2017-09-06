@@ -14,29 +14,27 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
+package com.flow.platform.yml.parser.test;
 
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import java.util.List;
+import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.Charset;
 
-public class Flow extends Node<Step> {
+/**
+ * @author yh@firim
+ */
+public class TestBase {
 
-
-    public Flow(String path, String name) {
-        super(path, name);
-    }
-
-    public Flow() {
-    }
-
-    @Override
-    public void setChildren(List<Step> children) {
-        super.setChildren(children);
-    }
-
-    @Override
-    public List<Step> getChildren() {
-        return super.getChildren();
+    public static String loadDemoFlowYaml(String classPath) {
+        URL resource = TestBase.class.getClassLoader().getResource(classPath);
+        try {
+            return Files.toString(new File(resource.getFile()), Charset.forName("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

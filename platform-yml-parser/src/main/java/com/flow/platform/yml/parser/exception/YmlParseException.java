@@ -14,29 +14,19 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.node;
+package com.flow.platform.yml.parser.exception;
 
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
-import java.util.List;
+/**
+ * @author yh@firim
+ */
+public class YmlParseException extends YmlException{
 
-public class Flow extends Node<Step> {
-
-
-    public Flow(String path, String name) {
-        super(path, name);
+    public YmlParseException(String message) {
+        super(message);
     }
 
-    public Flow() {
-    }
-
-    @Override
-    public void setChildren(List<Step> children) {
-        super.setChildren(children);
-    }
-
-    @Override
-    public List<Step> getChildren() {
-        return super.getChildren();
+    public YmlParseException(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }
