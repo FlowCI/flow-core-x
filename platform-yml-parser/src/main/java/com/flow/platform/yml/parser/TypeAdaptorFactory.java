@@ -39,8 +39,6 @@ public class TypeAdaptorFactory {
 
     private static Map<Type, YmlAdaptor> adaptorCache = new LinkedHashMap<>();
 
-    private static Map<Type, YmlAdaptor> cacheFactories = new LinkedHashMap<>();
-
     private static final List<AdaptorSelector> selectorChain = new LinkedList<>();
 
     static {
@@ -52,6 +50,11 @@ public class TypeAdaptorFactory {
     }
 
     public static YmlAdaptor getAdaptor(Type type) {
+
+        if (adaptorCache.get(type) != null) {
+            return adaptorCache.get(type);
+        }
+
         for (AdaptorSelector selector : selectorChain) {
             YmlAdaptor adaptor = selector.selectAdaptor(type);
             if (adaptor != null) {
@@ -59,7 +62,7 @@ public class TypeAdaptorFactory {
             }
         }
 
-        return null;
+        throw new YmlParseException(String.format("Not found adaptor to type - %s", type.getTypeName()));
     }
 
     private interface AdaptorSelector {
