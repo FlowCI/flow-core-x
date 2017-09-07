@@ -16,6 +16,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.CredentialDetail;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.service.CredentialService;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -63,6 +65,7 @@ public class CredentialController {
 
     /**
      * @api {get} /credentials List
+     * @apiParam {String="android","rsa","ios","username"} types Passed as ?types=android,ios,username
      * @apiGroup Credenital
      * @apiDescription List credentials
      *
@@ -144,22 +147,23 @@ public class CredentialController {
     }
 
     /**
-     * @api {get} /credentials Show
+     * @api {get} /credentials/:name Show
+     * @apiParam {String} name Credential name
      * @apiGroup Credenital
-     * @apiDescription List credentials
+     * @apiDescription Get credential by name
      *
      * @apiSuccessExample {json} Success-Response
      *
      *  reference on List item
      */
     @GetMapping(path = "/{name}")
-    public String show(@PathVariable String name) {
-        Credential credential = credentialService.find(name);
-        return credential.toJson();
+    public Credential show(@PathVariable String name) {
+        return credentialService.find(name);
     }
 
     /**
-     * @api {post} /credentials Create
+     * @api {post} /credentials/:type Create
+     * @apiParam {String="android","rsa","ios","username"} type Credential type
      * @apiParamExample {json} Request-Body:
      *
      *  reference on List item
@@ -170,17 +174,19 @@ public class CredentialController {
      *
      *  reference on List item
      */
-    @PostMapping
-    public Object create(@RequestBody String credentialJson) {
-//        Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
-//        Object o = Jsonable.GSON_CONFIG.fromJson(credentialJson, credential.getCredentialType().getClazz());
-//        return credentialService.create((Credential) o);
+    @PostMapping(path = "/{name}")
+    public Credential create(@PathVariable String name,
+                             @RequestPart(name = "detail") CredentialDetail detail,
+                             @RequestPart(name = "android-file", required = false) MultipartFile file,
+                             @RequestPart(name = "p12-file", required = false) MultipartFile[] p12Files,
+                             @RequestPart(name = "pp-file", required = false) MultipartFile[] ppFiles) {
 
-        return null;
+        Credential credential = credentialService.create(name, detail);
+        return credential;
     }
 
     /**
-     * @api {delete} /credentials Delete
+     * @api {delete} /credentials/:name Delete
      * @apiParam {String} name Credential name
      * @apiGroup Credenital
      * @apiDescription Delete credential
@@ -191,7 +197,7 @@ public class CredentialController {
     }
 
     /**
-     * @api {get} /credentials/ssh/key Gen Rsa Key Pari
+     * @api {get} /credentials/rsa Gen Rsa Key Pari
      * @apiGroup Credenital
      * @apiDescription Generate RSA key pair
      *
@@ -201,7 +207,7 @@ public class CredentialController {
      *      publicKey: xxx
      *  }
      */
-    @GetMapping(path = "/ssh/keys")
+    @GetMapping(path = "/rsa")
     public RSAKeyPair getKeys() {
         return credentialService.generateRsaKey();
     }

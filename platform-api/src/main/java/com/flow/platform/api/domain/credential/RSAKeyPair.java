@@ -17,14 +17,17 @@
 package com.flow.platform.api.domain.credential;
 
 import com.flow.platform.domain.Jsonable;
+import com.google.gson.annotations.Expose;
 
 /**
  * @author yang
  */
 public class RSAKeyPair extends Jsonable {
 
+    @Expose
     private String publicKey;
 
+    @Expose
     private String privateKey;
 
     public String getPublicKey() {

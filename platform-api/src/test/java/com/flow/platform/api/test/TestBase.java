@@ -19,6 +19,8 @@ import com.flow.platform.api.config.WebConfig;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.dao.FlowDao;
@@ -53,6 +55,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.context.WebApplicationContext;
@@ -182,6 +186,11 @@ public abstract class TestBase {
             .post(urlEqualTo("/agent/shutdown?zone=default&name=machine&password=123456"))
             .willReturn(aResponse()
                 .withBody(Jsonable.GSON_CONFIG.toJson(true))));
+    }
+
+    public String performRequestWith200Status(MockHttpServletRequestBuilder builder) throws Exception {
+        MvcResult result = mockMvc.perform(builder).andExpect(status().isOk()).andReturn();
+        return result.getResponse().getContentAsString();
     }
 
     private void cleanDatabase() {

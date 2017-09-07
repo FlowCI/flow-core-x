@@ -21,6 +21,7 @@ import com.flow.platform.core.dao.adaptor.BaseAdaptor;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 
@@ -28,6 +29,11 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
  * @author lhl
  */
 public class CredentialDetailAdaptor extends BaseAdaptor {
+
+    @Override
+    public int[] sqlTypes() {
+        return new int[]{Types.BLOB};
+    }
 
     @Override
     protected Type getTargetType() {
