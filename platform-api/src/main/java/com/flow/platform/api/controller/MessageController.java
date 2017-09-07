@@ -59,9 +59,9 @@ public class MessageController {
      * @apiDescription create email settings
      * @apiParam {String} [smtpUrl] required smtp host
      * @apiParam {String} [smtpPort] required smtp port
-     * @apiParam {String} [username] optional smtp username
-     * @apiParam {String} [password] optional smtp password
-     * @apiParam {String} [sender] optional smtp sender
+     * @apiParam {String} username optional smtp username
+     * @apiParam {String} password optional smtp password
+     * @apiParam {String} sender optional smtp sender
      * @apiSuccessExample {String} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
@@ -115,11 +115,11 @@ public class MessageController {
      * @apiName UpdateEmail
      * @apiGroup EmailSetting
      * @apiDescription update email settings
-     * @apiParam {String} [smtpUrl] required smtp host
-     * @apiParam {String} [smtpPort] required smtp port
+     * @apiParam {String} smtpUrl required smtp host
+     * @apiParam {String} smtpPort required smtp port
      * @apiParam {String} [username] optional smtp username
      * @apiParam {String} [password] optional smtp password
-     * @apiParam {String} [sender] optional smtp sender
+     * @apiParam {String} sender optional smtp sender
      * @apiSuccessExample {String} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
@@ -140,11 +140,11 @@ public class MessageController {
      * @apiName AuthEmailSetting
      * @apiGroup EmailSetting
      * @apiDescription Auth email settings
-     * @apiParam {String} [smtpUrl] required smtp host
-     * @apiParam {String} [smtpPort] required smtp port
+     * @apiParam {String} smtpUrl required smtp host
+     * @apiParam {String} smtpPort required smtp port
      * @apiParam {String} [username] optional smtp username
      * @apiParam {String} [password] optional smtp password
-     * @apiParam {String} [sender] optional smtp sender
+     * @apiParam {String} sender optional smtp sender
      * @apiExample Example usage:
      *     endpoint: http://localhost/message/email/settings/auth
      *
