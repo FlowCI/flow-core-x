@@ -39,6 +39,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -248,6 +249,11 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public List<Flow> listFlows() {
         return flowDao.list();
+    }
+
+    @Override
+    public List<String> listFlowPathByUser(Collection<String> createdByList) {
+        return flowDao.pathList(createdByList);
     }
 
     @Override
