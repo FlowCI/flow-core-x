@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.domain;
+package com.flow.platform.util.zk;
 
 import java.io.IOException;
 import org.apache.zookeeper.server.ServerConfig;
@@ -23,11 +23,11 @@ import org.apache.zookeeper.server.ZooKeeperServerMain;
 /**
  * @author yh@firim
  */
-public class ZkServer extends ZooKeeperServerMain {
+public class ZKServer extends ZooKeeperServerMain {
 
     private Boolean isStarted = false;
 
-    public ZkServer() {
+    public ZKServer() {
         super();
     }
 

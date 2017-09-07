@@ -16,17 +16,10 @@
 
 package com.flow.platform.cc.service;
 
-import com.flow.platform.cc.domain.ZkServer;
-import com.flow.platform.cc.util.ZooKeeperUtil;
+import com.flow.platform.util.zk.ZKServer;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
-import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
-import java.util.UUID;
-import org.apache.zookeeper.server.ServerConfig;
-import org.apache.zookeeper.server.ZooKeeperServerMain;
-import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +35,7 @@ public class ZooKeeperServiceImpl implements ZooKeeperService {
     private ZKClient client;
 
     @Autowired
-    private ZkServer zkServer;
+    private ZKServer zkServer;
 
     @Override
     public void start() {

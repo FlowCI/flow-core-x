@@ -16,27 +16,29 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.cc.domain.ZkServer;
-import com.flow.platform.cc.util.ZooKeeperUtil;
+import com.flow.platform.util.zk.ZKServer;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.zk.ZKClient;
 import com.google.common.base.Strings;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.server.ServerConfig;
+import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yang
@@ -53,6 +55,12 @@ public class ZooKeeperConfig {
      */
     private final static String ZONE_PROPERTY_NAMING = "zone.%s.%s";
 
+    private final static String ZOOKEEPER_PORT = "2181";
+
+    private final static String ZOOKEEPER_HOST = "0.0.0.0";
+
+    private final static String ZOOKEEPER_DATA = "data1";
+
     @Value("${zk.host}")
     private String host;
 
@@ -68,6 +76,11 @@ public class ZooKeeperConfig {
     @Autowired
     private Environment env;
 
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
+    private ZKServer zkServer = null;
+
     @PostConstruct
     public void init() {
         LOGGER.trace("Host: %s", host);
@@ -77,44 +90,74 @@ public class ZooKeeperConfig {
 
     @Bean
     public ZKClient zkClient() {
-        ZKClient zkClient = new ZKClient(host);
-        if (zkStart(zkClient) == false) {
+        ZKClient zkClient = zkStart();
+        if (zkClient == null) {
             throw new RuntimeException(String.format("Fail to connect zookeeper server: %s", host));
         }
         return zkClient;
     }
 
-    private Boolean zkStart(ZKClient zkClient) {
+    @Bean
+    public ZKServer zkServer() {
+        return zkServer;
+    }
+
+    private ZKClient zkStart() {
+        ZKClient zkClient = new ZKClient(host);
+
+        // user provider zookeeper
         if (zkClient.start()) {
             LOGGER.trace("Zookeeper been connected at: %s", host);
-            return true;
+            return zkClient;
         }
-
-        if (ZooKeeperUtil.start(zkServer(), zkProperties())) {
+        // start inner zookeeper
+        if (startZkServer()) {
             LOGGER.trace("start inner zookeeper");
-            if (zkClient.start()) {
+            ZKClient innerZkClient = new ZKClient(ZOOKEEPER_HOST);
+
+            if (innerZkClient.start()) {
                 LOGGER.trace("Inner Zookeeper been connected at: %s", host);
-                return true;
+                return innerZkClient;
             }
-            return false;
         }
 
-        return false;
+        return null;
     }
 
-    @Bean
-    public ZkServer zkServer() {
-        return new ZkServer();
-    }
-
-    private Properties zkProperties() {
-        File file = new File(System.getProperty("java.io.tmpdir")
-            + File.separator + UUID.randomUUID());
+    private Boolean startZkServer() {
+        File file = new File(
+            String.format("%s%s%s", System.getProperty("java.io.tmpdir"), File.separator, ZOOKEEPER_DATA));
 
         Properties properties = new Properties();
         properties.setProperty("dataDir", file.getAbsolutePath());
-        properties.setProperty("clientPort", String.valueOf(2181));
-        return properties;
+        properties.setProperty("clientPort", ZOOKEEPER_PORT);
+        properties.setProperty("clientPortAddress", ZOOKEEPER_HOST);
+
+        try {
+            zkServer = new ZKServer();
+            QuorumPeerConfig quorumPeerConfig = new QuorumPeerConfig();
+            quorumPeerConfig.parseProperties(properties);
+
+            ServerConfig configuration = new ServerConfig();
+            configuration.readFrom(quorumPeerConfig);
+
+            LOGGER.traceMarker("startZkServer", "***start zookeeper****");
+
+            taskExecutor.execute(() -> {
+                try {
+                    LOGGER.traceMarker("startZkServer", "start zookeeper success");
+                    zkServer.runFromConfig(configuration);
+                } catch (IOException e) {
+                    LOGGER.traceMarker("startZkServer", String.format("start zookeeper error - %s", e));
+                }
+            });
+
+            return true;
+        } catch (Exception e) {
+            LOGGER.traceMarker("start", String.format("start zookeeper error - %s", e));
+            return false;
+        }
+
     }
 
     @Bean

@@ -16,12 +16,11 @@
 
 package com.flow.platform.cc.util;
 
-import com.flow.platform.cc.domain.ZkServer;
+import com.flow.platform.util.zk.ZKServer;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.util.Properties;
 import org.apache.zookeeper.server.ServerConfig;
-import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 
 /**
@@ -29,7 +28,7 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
  */
 public class ZooKeeperUtil {
 
-    public static Boolean start(ZkServer zkServer, Properties properties) {
+    public static Boolean start(ZKServer zkServer, Properties properties) {
         Logger logger = new Logger(ZooKeeperUtil.class);
 
         try {
