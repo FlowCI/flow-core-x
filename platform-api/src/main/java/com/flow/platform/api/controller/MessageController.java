@@ -136,10 +136,10 @@ public class MessageController {
     }
 
     /**
-     * @api {Post} /message/email/settings/auth auth
+     * @api {Post} /message/email/settings/auth test smtp
      * @apiName AuthEmailSetting
      * @apiGroup EmailSetting
-     * @apiDescription Auth email settings
+     * @apiDescription test smtp settings
      * @apiParam {String} smtpUrl required smtp host
      * @apiParam {String} smtpPort required smtp port
      * @apiParam {String} [username] optional smtp username
