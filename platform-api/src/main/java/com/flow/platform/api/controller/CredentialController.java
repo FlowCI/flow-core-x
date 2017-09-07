@@ -215,7 +215,7 @@ public class CredentialController {
     /**
      * @api {Post} /credentials/fileUpload
      * @apiName uploadFile
-     * @apiGroup Credentials
+     * @apiGroup Credential
      * @apiDescription upload files
      *
      * @apiSuccessExample {json} Success-Response:

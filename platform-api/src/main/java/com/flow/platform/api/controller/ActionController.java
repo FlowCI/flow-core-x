@@ -65,7 +65,7 @@ public class ActionController {
     }
 
     /**
-     * @api {patch} /actions/:name
+     * @api {patch} /actions/:name Update
      * @apiParam {String} name Update action by name
      * @apiParamExample {json} Request-Body
      *  {
