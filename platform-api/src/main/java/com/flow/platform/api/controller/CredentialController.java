@@ -60,28 +60,22 @@ public class CredentialController {
      * @apiGroup Credenital
      * @apiDescription List credentials
      *
-     * @apiSuccessExample {json} RSAKEYS-Success-Response
+     * @apiSuccessExample {json} Success-Response
      *  [
      *      {
      *          name: xxx,
-     *          credentialType: RSAKEYS,
+     *          credentialType: RSA,
      *          publicKey: xxx,
      *          privateKey: xx
-     *      }
-     *  ]
+     *      },
      *
-     * @apiSuccessExample {json} USERNAME-Success-Response
-     *  [
      *      {
      *          name: xxx,
      *          credentialType: USERNAME,
      *          username: xxx,
      *          password: xxx
-     *      }
-     *  ]
+     *      },
      *
-     * @apiSuccessExample {json} IOS-Success-Response
-     *  [
      *      {
      *          name: xxx,
      *          credentialType: IOS,
@@ -93,11 +87,8 @@ public class CredentialController {
      *                  type
      *              }
      *          ]
-     *      }
-     *  ]
+     *      },
      *
-     * @apiSuccessExample {json} ANDROID-Success-Response
-     *  [
      *      {
      *          name: xxx,
      *          credentialType: ANDROID,
