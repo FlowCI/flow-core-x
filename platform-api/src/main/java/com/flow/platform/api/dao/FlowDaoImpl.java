@@ -18,6 +18,8 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import java.util.Collection;
+import java.util.List;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -34,5 +36,13 @@ public class FlowDaoImpl extends AbstractBaseDao<String, Flow> implements FlowDa
     @Override
     protected String getKeyName() {
         return "path";
+    }
+
+    @Override
+    public List<String> pathList(Collection<String> createdBy) {
+        return execute(session -> session
+            .createQuery("select path from Flow where createdBy in :createdByList", String.class)
+            .setParameterList("createdByList", createdBy)
+            .list());
     }
 }

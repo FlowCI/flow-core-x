@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.test.dao;
 
-import com.flow.platform.api.dao.NodeResultDao;
+import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;

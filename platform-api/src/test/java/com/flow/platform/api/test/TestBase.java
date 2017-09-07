@@ -16,18 +16,21 @@ package com.flow.platform.api.test;/*
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
-import com.flow.platform.api.dao.*;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 import com.flow.platform.api.dao.CredentialStorageDao;
 import com.flow.platform.api.dao.FlowDao;
-import com.flow.platform.api.dao.JobDao;
-import com.flow.platform.api.dao.JobYmlDao;
+import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.MessageSettingDao;
-import com.flow.platform.api.dao.NodeResultDao;
+import com.flow.platform.api.dao.job.NodeResultDao;
+import com.flow.platform.api.dao.user.ActionDao;
+import com.flow.platform.api.dao.user.RoleDao;
+import com.flow.platform.api.dao.user.PermissionDao;
+import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
@@ -64,7 +67,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
 
 /**
  * @author yh@fir.im
@@ -116,6 +118,18 @@ public abstract class TestBase {
 
     @Autowired
     protected WebApplicationContext webAppContext;
+
+    @Autowired
+    protected RoleDao roleDao;
+
+    @Autowired
+    protected ActionDao actionDao;
+
+    @Autowired
+    protected UserRoleDao userRoleDao;
+
+    @Autowired
+    protected PermissionDao permissionDao;
 
     @Autowired
     protected Path workspace;
@@ -182,6 +196,10 @@ public abstract class TestBase {
         userDao.deleteAll();
         credentialStorageDao.deleteAll();
         messageSettingDao.deleteAll();
+        roleDao.deleteAll();
+        actionDao.deleteAll();
+        userRoleDao.deleteAll();
+        permissionDao.deleteAll();
     }
 
     @After

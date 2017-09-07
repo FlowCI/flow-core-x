@@ -22,7 +22,6 @@ import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.domain.credential.UsernameCredential;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.test.TestBase;
-import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

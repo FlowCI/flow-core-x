@@ -41,7 +41,7 @@ public class AgentsController {
     private AgentService agentService;
 
     /**
-     * @api {Get} /agents list
+     * @api {Get} /agents List
      * @apiName AgentList
      * @apiGroup Agent
      * @apiDescription get agent list

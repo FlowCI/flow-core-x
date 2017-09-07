@@ -60,28 +60,22 @@ public class CredentialController {
      * @apiGroup Credenital
      * @apiDescription List credentials
      *
-     * @apiSuccessExample {json} RSAKEYS-Success-Response
+     * @apiSuccessExample {json} Success-Response
      *  [
      *      {
      *          name: xxx,
-     *          credentialType: RSAKEYS,
+     *          credentialType: RSA,
      *          publicKey: xxx,
      *          privateKey: xx
-     *      }
-     *  ]
+     *      },
      *
-     * @apiSuccessExample {json} USERNAME-Success-Response
-     *  [
      *      {
      *          name: xxx,
      *          credentialType: USERNAME,
      *          username: xxx,
      *          password: xxx
-     *      }
-     *  ]
+     *      },
      *
-     * @apiSuccessExample {json} IOS-Success-Response
-     *  [
      *      {
      *          name: xxx,
      *          credentialType: IOS,
@@ -93,11 +87,8 @@ public class CredentialController {
      *                  type
      *              }
      *          ]
-     *      }
-     *  ]
+     *      },
      *
-     * @apiSuccessExample {json} ANDROID-Success-Response
-     *  [
      *      {
      *          name: xxx,
      *          credentialType: ANDROID,
@@ -115,13 +106,13 @@ public class CredentialController {
      *  ]
      */
     @GetMapping
-    public List<Credential> index() {
+    public List<Credential> list() {
         return credentialService.listCredentials();
     }
 
     /**
-     * @api {get} /credentials/:type/list List by type
-     * @apiParam {String="ios","android","username","rsakeys"} type Credential type
+     * @api {get} /credentials/:type/list List By Type
+     * @apiParam {String="ios","android","username","rsa"} type Credential type
      * @apiGroup Credenital
      * @apiDescription List credentials by type
      *
@@ -130,7 +121,7 @@ public class CredentialController {
      *  reference on List
      */
     @GetMapping(path = "/{type}/list")
-    public Collection<Credential> credentialTypeList(@PathVariable String type) {
+    public Collection<Credential> list(@PathVariable String type) {
         return credentialService.listTypes(type.toUpperCase());
     }
 
@@ -212,6 +203,18 @@ public class CredentialController {
         return credentialService.generateRsaKey();
     }
 
+    /**
+     * @api {Post} /credentials/fileUpload
+     * @apiName uploadFile
+     * @apiGroup Credential
+     * @apiDescription upload files
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *
+     *       {
+     *         "/aa/a/aa/a"
+     *       }
+     */
     @PostMapping("/fileUpload")
     public List<String> filesUpload(MultipartFile[] files) {
         List<String> list = new ArrayList<>();
