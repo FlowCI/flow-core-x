@@ -105,19 +105,20 @@ public class ZooKeeperConfig {
     private ZKClient zkStart() {
         ZKClient zkClient = new ZKClient(host);
 
+        LOGGER.trace("detect user provider zookeeper or start internal zookeeper");
         // user provider zookeeper
         if (zkClient.start()) {
             LOGGER.trace("Zookeeper been connected at: %s", host);
             return zkClient;
         }
-        // start inner zookeeper
+        // start internal zookeeper
         if (startZkServer()) {
-            LOGGER.trace("start inner zookeeper");
-            ZKClient innerZkClient = new ZKClient(ZOOKEEPER_HOST);
+            LOGGER.trace("start internal zookeeper");
+            ZKClient internalZkClient = new ZKClient(ZOOKEEPER_HOST);
 
-            if (innerZkClient.start()) {
-                LOGGER.trace("Inner Zookeeper been connected at: %s", host);
-                return innerZkClient;
+            if (internalZkClient.start()) {
+                LOGGER.trace("internal Zookeeper been connected at: %s", host);
+                return internalZkClient;
             }
         }
 

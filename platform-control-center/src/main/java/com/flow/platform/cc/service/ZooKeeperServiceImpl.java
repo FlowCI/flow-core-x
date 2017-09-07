@@ -46,7 +46,9 @@ public class ZooKeeperServiceImpl implements ZooKeeperService {
     public void stop() {
         try {
             client.close();
-            zkServer.stop();
+            if (zkServer != null) {
+                zkServer.stop();
+            }
         } catch (IOException e) {
             LOGGER.warn("Fail to close zk client connection: %s", e.getMessage());
         }
