@@ -17,8 +17,8 @@ package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Role;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author lhl
@@ -38,10 +38,10 @@ public interface PermissionService {
     /**
      * Batch assign actions to role
      */
-    void assign(Role role, Set<Action> actions);
+    void assign(Role role, Collection<Action> actions);
 
     /**
      * Batch un-assign actions from role
      */
-    void unAssign(Role role, Set<Action> actions);
+    void unAssign(Role role, Collection<Action> actions);
 }

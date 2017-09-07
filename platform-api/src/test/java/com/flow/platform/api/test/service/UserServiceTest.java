@@ -2,7 +2,7 @@ package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
-import com.flow.platform.api.domain.request.LoginForm;
+import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
@@ -27,7 +27,7 @@ public class UserServiceTest extends TestBase {
 
     private User user;
 
-    private LoginForm loginForm;
+    private LoginParam loginForm;
 
     @Before
     public void beforeTest() {
@@ -43,7 +43,7 @@ public class UserServiceTest extends TestBase {
         userDao.save(user);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 
-        loginForm = new LoginForm();
+        loginForm = new LoginParam();
         loginForm.setEmailOrUsername("liangpengyv@fir.im");
         loginForm.setPassword("liangpengyv");
         String msg = userService.login(loginForm);

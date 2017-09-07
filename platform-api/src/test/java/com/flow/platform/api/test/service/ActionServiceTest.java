@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.test.service;
 
+import com.flow.platform.api.domain.request.ActionParam;
 import com.flow.platform.api.domain.user.ActionGroup;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Permission;
@@ -60,9 +61,7 @@ public class ActionServiceTest extends TestBase {
         actionService.create(action);
 
         // when:
-        action.setTag(ActionGroup.DEFAULT);
-        action.setAlias("test-test");
-        actionService.update(action);
+        actionService.update(actionName, new ActionParam("test-test", "desc", ActionGroup.DEFAULT));
 
         // then:
         Action loaded = actionService.find(actionName);

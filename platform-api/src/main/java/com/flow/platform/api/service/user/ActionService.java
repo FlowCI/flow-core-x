@@ -15,7 +15,9 @@
  */
 package com.flow.platform.api.service.user;
 
+import com.flow.platform.api.domain.request.ActionParam;
 import com.flow.platform.api.domain.user.Action;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,7 +42,7 @@ public interface ActionService {
     /**
      * Update action alias or desc
      */
-    void update(Action action);
+    Action update(String name, ActionParam body);
 
     /**
      * Delete action
@@ -55,4 +57,9 @@ public interface ActionService {
      * List all action
      */
     List<Action> list();
+
+    /**
+     * List action by name
+     */
+    List<Action> list(Collection<String> actions);
 }

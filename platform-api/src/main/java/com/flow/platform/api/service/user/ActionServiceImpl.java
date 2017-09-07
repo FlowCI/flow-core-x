@@ -17,10 +17,12 @@ package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.dao.user.ActionDao;
 import com.flow.platform.api.dao.user.PermissionDao;
+import com.flow.platform.api.domain.request.ActionParam;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.google.common.base.Strings;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,8 +70,14 @@ public class ActionServiceImpl implements ActionService {
     }
 
     @Override
-    public void update(Action action) {
+    public Action update(String name, ActionParam body) {
+        Action action = find(name);
+        action.setAlias(body.getAlias());
+        action.setDescription(body.getDescription());
+        action.setTag(body.getTag());
+
         actionDao.update(action);
+        return action;
     }
 
     @Override
@@ -88,5 +96,10 @@ public class ActionServiceImpl implements ActionService {
     @Override
     public List<Action> list() {
         return actionDao.list();
+    }
+
+    @Override
+    public List<Action> list(Collection<String> actions) {
+        return actionDao.list(actions);
     }
 }

@@ -15,13 +15,17 @@
  */
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.permission.Actions;
+import com.flow.platform.api.domain.request.ActionParam;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.service.user.ActionService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,34 +37,56 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@RequestMapping(path = "/permissions")
-public class PermissionController {
+@RequestMapping(path = "/actions")
+public class ActionController {
 
     @Autowired
     private ActionService actionService;
 
+    /**
+     * @api {get} /actions List
+     * @apiGroup Action
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  [
+     *      {
+     *          name: FLOW_CREATE,
+     *          alias: create flow,
+     *          description: xxxx,
+     *          tag: ADMIN,
+     *          createdAt: xxx,
+     *          updatedAt: xxx
+     *      }
+     *  ]
+     */
     @GetMapping
     public List<Action> index() {
         return actionService.list();
     }
 
-    @PostMapping
-    public Action create(@RequestBody Action action){
-        return actionService.create(action);
-    }
-
-    @PostMapping(path = "/{action}/delete")
-    public void delete(@PathVariable String action) {
-        actionService.delete(action);
-    }
-
-    @PostMapping(path = "/{action}/update")
-    public void update(@PathVariable String action, @RequestBody Action body){
-        if (Objects.equals(action, body.getName())) {
-            actionService.update(body);
-            return;
-        }
-
-        throw new IllegalParameterException("The action path doesn't match");
+    /**
+     * @api {patch} /actions/:name
+     * @apiParam {String} name Update action by name
+     * @apiParamExample {json} Request-Body
+     *  {
+     *      alias: xxxx,
+     *      description: xxx,
+     *      tag: USER
+     *  }
+     * @apiGroup Action
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      name: FLOW_CREATE,
+     *      alias: create flow,
+     *      description: xxxx,
+     *      tag: ADMIN,
+     *      createdAt: xxx,
+     *      updatedAt: xxx
+     *  }
+     */
+    @PatchMapping(path = "/{name}")
+    public Action update(@PathVariable String name, @RequestBody ActionParam body) {
+        return actionService.update(name, body);
     }
 }

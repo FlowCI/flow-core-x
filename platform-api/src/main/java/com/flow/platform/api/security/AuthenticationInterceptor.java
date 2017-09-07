@@ -17,9 +17,11 @@
 package com.flow.platform.api.security;
 
 import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.AccessDeniedException;
 import com.flow.platform.api.exception.AuthenticationException;
 import com.flow.platform.api.security.token.TokenGenerator;
+import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.util.List;
@@ -32,6 +34,10 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 /**
+ * Verify token from header if controller method has
+ * annotation @WebSecurity with action name, the auth
+ * can be enabled or disabled
+ *
  * @author yang
  */
 public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
@@ -42,10 +48,11 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
     private final static String TOKEN_PAYLOAD_FOR_TEST = "mytokenpayload";
 
-    private final static boolean ENABLE_AUTH = Boolean.parseBoolean(System.getProperty("auth.enable", "false"));
-
     @Autowired
     private UserSecurityService userSecurityService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private TokenGenerator tokenGenerator;
@@ -55,8 +62,18 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
      */
     private final List<RequestMatcher> authRequests;
 
+    private boolean enableAuth = false;
+
     public AuthenticationInterceptor(List<RequestMatcher> matchers) {
         this.authRequests = matchers;
+    }
+
+    public void enable() {
+        this.enableAuth = true;
+    }
+
+    public void disable() {
+        this.enableAuth = false;
     }
 
     @Override
@@ -64,7 +81,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
-        if (!ENABLE_AUTH) {
+        if (!enableAuth) {
             return true;
         }
 
@@ -113,6 +130,11 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         if (!userSecurityService.canAccess(email, action)) {
             throw new AccessDeniedException(email, action.getName());
         }
+
+        // TODO: to be cached
+        // set current user to request attribute
+        User currentUser = userService.findByEmail(email);
+        request.setAttribute("user", currentUser);
     }
 
     private boolean isNeedToVerify(HttpServletRequest request) {

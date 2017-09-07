@@ -1,6 +1,6 @@
 package com.flow.platform.api.service.user;
 
-import com.flow.platform.api.domain.request.LoginForm;
+import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.user.User;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public interface UserService {
     /**
      * Login
      */
-    String login(LoginForm loginForm);
+    String login(LoginParam loginForm);
 
     /**
      * Register user to roles

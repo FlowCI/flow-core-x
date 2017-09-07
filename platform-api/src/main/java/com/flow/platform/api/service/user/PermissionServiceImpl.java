@@ -22,8 +22,8 @@ import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Permission;
 import com.flow.platform.api.domain.user.Role;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,14 +64,14 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
-    public void assign(Role role, Set<Action> actions) {
+    public void assign(Role role, Collection<Action> actions) {
         for (Action action : actions) {
             permissionDao.save(new Permission(role.getId(), action.getName()));
         }
     }
 
     @Override
-    public void unAssign(Role role, Set<Action> actions) {
+    public void unAssign(Role role, Collection<Action> actions) {
         for (Action action : actions) {
             permissionDao.delete(new Permission(role.getId(), action.getName()));
         }

@@ -1,18 +1,22 @@
 package com.flow.platform.api.domain.user;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
+import com.google.gson.annotations.Expose;
 
 /**
  * @author liangpengyv
  */
 public class User extends CreateUpdateObject {
 
+    @Expose
     private String email;
 
+    @Expose
     private String username;
 
     private String password;
 
+    @Expose
     private String flowAuth;
 
     public User(String email, String username, String password) {

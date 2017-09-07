@@ -38,7 +38,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
-import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -92,7 +91,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    public HandlerInterceptor jwtAuthinterceptor() {
+    public AuthenticationInterceptor authInterceptor() {
         List<RequestMatcher> matchers = Lists.newArrayList(
             new AntPathRequestMatcher("/flows/**")
         );
@@ -101,7 +100,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(jwtAuthinterceptor());
+        registry.addInterceptor(authInterceptor());
     }
 
     @Override
