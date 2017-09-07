@@ -29,21 +29,19 @@ public class RSACredentialDetail extends CredentialDetail {
     protected String privateKey;
 
     public RSACredentialDetail() {
+        this.type = CredentialType.RSA;
     }
 
     public RSACredentialDetail(String publicKey, String privateKey) {
+        this();
         this.publicKey = publicKey;
         this.privateKey = privateKey;
     }
 
     public RSACredentialDetail(RSAKeyPair pair) {
+        this();
         publicKey = pair.getPublicKey();
         privateKey = pair.getPrivateKey();
-    }
-
-    @Override
-    public CredentialType getType() {
-        return CredentialType.RSA;
     }
 
     public String getPublicKey() {

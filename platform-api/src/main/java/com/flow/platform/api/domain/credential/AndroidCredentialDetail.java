@@ -35,9 +35,8 @@ public class AndroidCredentialDetail extends CredentialDetail {
     @Expose
     private String keyStoreAliasPassword;
 
-    @Override
-    public CredentialType getType() {
-        return CredentialType.ANDROID;
+    public AndroidCredentialDetail() {
+        this.type = CredentialType.ANDROID;
     }
 
     public FileResource getFile() {

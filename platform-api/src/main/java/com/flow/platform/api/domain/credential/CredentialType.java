@@ -28,11 +28,11 @@ public enum CredentialType {
 
     ANDROID("ANDROID", AndroidCredentialDetail.class);
 
-    private Class<?> clazz;
+    private Class<? extends CredentialDetail> clazz;
 
     private String name;
 
-    CredentialType(String name, Class<?> clazz) {
+    CredentialType(String name, Class<? extends CredentialDetail> clazz) {
         this.name = name;
         this.clazz = clazz;
     }
@@ -41,7 +41,7 @@ public enum CredentialType {
         return name;
     }
 
-    public Class<?> getClazz() {
+    public Class<? extends CredentialDetail> getClazz() {
         return clazz;
     }
 }

@@ -35,9 +35,8 @@ public class IosCredentialDetail extends CredentialDetail {
     @Expose
     private List<PasswordFileResource> p12s = new LinkedList<>();
 
-    @Override
-    public CredentialType getType() {
-        return CredentialType.IOS;
+    public IosCredentialDetail() {
+        this.type = CredentialType.IOS;
     }
 
     public List<FileResource> getProvisionProfiles() {

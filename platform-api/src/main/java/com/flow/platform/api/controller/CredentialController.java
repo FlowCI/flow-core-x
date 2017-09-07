@@ -135,7 +135,7 @@ public class CredentialController {
             types = types.trim();
 
             ControllerUtil.extractParam(types, input -> {
-                typeSet.add(CredentialType.valueOf(input));
+                typeSet.add(CredentialType.valueOf(input.toUpperCase()));
                 return null;
             });
         }

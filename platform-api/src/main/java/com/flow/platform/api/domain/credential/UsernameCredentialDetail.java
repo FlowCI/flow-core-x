@@ -29,16 +29,13 @@ public class UsernameCredentialDetail extends CredentialDetail {
     protected String password;
 
     public UsernameCredentialDetail() {
+        this.type = CredentialType.USERNAME;
     }
 
     public UsernameCredentialDetail(String username, String password) {
+        this();
         this.username = username;
         this.password = password;
-    }
-
-    @Override
-    public CredentialType getType() {
-        return CredentialType.USERNAME;
     }
 
     public String getUsername() {

@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.controller;
 
+import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -33,6 +34,12 @@ public class ControllerUtil {
         String[] params = param.split(PARAM_DELIMITE);
         List<R> list = new ArrayList<>(params.length);
         for (String item : params) {
+
+            item = item.trim();
+            if (Strings.isNullOrEmpty(item)) {
+                continue;
+            }
+
             R apply = converter.apply(item);
 
             if (apply != null) {

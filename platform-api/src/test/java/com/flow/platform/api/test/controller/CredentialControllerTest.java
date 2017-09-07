@@ -47,7 +47,7 @@ public class CredentialControllerTest extends TestBase {
     @Before
     public void initCredentialOfTypes() {
         RSACredentialDetail rsaDetail = new RSACredentialDetail("public key", "private key");
-        credentialService.create("ras-credential", rsaDetail);
+        credentialService.create("rsa-credential", rsaDetail);
 
         UsernameCredentialDetail usernameDetail = new UsernameCredentialDetail("user", "pass");
         credentialService.create("username-credential", usernameDetail);
@@ -66,10 +66,23 @@ public class CredentialControllerTest extends TestBase {
     }
 
     @Test
-    public void should_list_credential_with_diff_type() throws Throwable {
+    public void should_list_credential_without_type() throws Throwable {
         MvcResult result = mockMvc.perform(get("/credentials")).andExpect(status().isOk()).andReturn();
+
         Credential[] credentials = Jsonable.parseArray(result.getResponse().getContentAsString(), Credential[].class);
+
         Assert.assertEquals(4, credentials.length);
+    }
+
+    @Test
+    public void should_list_credential_with_type_param() throws Throwable {
+        MvcResult result = mockMvc.perform(get("/credentials?types=android,rsa,ios"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        Credential[] credentials = Jsonable.parseArray(result.getResponse().getContentAsString(), Credential[].class);
+
+        Assert.assertEquals(3, credentials.length);
     }
 
 }
