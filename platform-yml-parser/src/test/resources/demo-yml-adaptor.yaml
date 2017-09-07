@@ -1,0 +1,23 @@
+flow:
+  - script: "echo 'hello world'"
+    name:
+     - a
+     - b
+     - c
+    envs:
+      FLOW_WORKSPACE: "echo hello"
+      FLOW_VERSION: "echo version"
+    steps:
+     - name: step1
+       envs:
+         FLOW_WORKSPACE: "echo step"
+         FLOW_VERSION: "echo step version"
+       isAllowFailure: true
+       steps:
+        - name: step11
+          script: "echo 1"
+        - name: step12
+          script: "echo 2"
+     - name: step2
+       isAllowFailure: false
+       script: "echo 2"

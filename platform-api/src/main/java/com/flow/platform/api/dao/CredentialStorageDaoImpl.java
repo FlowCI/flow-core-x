@@ -15,8 +15,8 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.CredentialStorage;
-import com.flow.platform.api.domain.CredentialType;
+import com.flow.platform.api.domain.credential.CredentialStorage;
+import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;

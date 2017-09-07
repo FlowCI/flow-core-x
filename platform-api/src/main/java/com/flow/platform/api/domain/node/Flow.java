@@ -16,7 +16,20 @@
 
 package com.flow.platform.api.domain.node;
 
+import com.google.gson.annotations.Expose;
+import java.time.ZonedDateTime;
+import java.util.List;
+
 public class Flow extends Node<Step> {
+
+    @Expose
+    private String createdBy;
+
+    @Expose
+    protected ZonedDateTime createdAt;
+
+    @Expose
+    protected ZonedDateTime updatedAt;
 
     public Flow(String path, String name) {
         super(path, name);
@@ -24,4 +37,39 @@ public class Flow extends Node<Step> {
 
     public Flow() {
     }
+
+    @Override
+    public void setChildren(List<Step> children) {
+        super.setChildren(children);
+    }
+
+    @Override
+    public List<Step> getChildren() {
+        return super.getChildren();
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(ZonedDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public ZonedDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
 }

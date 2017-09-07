@@ -8,8 +8,8 @@
     <id name="path" type="string" column="path"/>
 
     <property name="name" length="50" column="name"/>
-
     <property name="envs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="envs"/>
+    <property name="createdBy" column="created_by" length="100"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>

@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.dao.JobYmlDao;
+import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.core.exception.NotFoundException;

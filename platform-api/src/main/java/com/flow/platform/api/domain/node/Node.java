@@ -17,9 +17,9 @@
 package com.flow.platform.api.domain.node;
 
 import com.flow.platform.api.domain.EnvObject;
+import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import java.time.ZonedDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,25 +33,22 @@ public class Node<T extends Node> extends EnvObject {
     @Expose
     protected String path;
 
+    @YmlSerializer
     @Expose
     protected String name;
 
+    @YmlSerializer(required = false)
     protected String script;
 
     protected Node parent;
 
+    @YmlSerializer(required = false, name = "steps")
     @SerializedName("steps")
     protected List<T> children = new LinkedList<>();
 
     protected Node prev;
 
     protected Node next;
-
-    @Expose
-    protected ZonedDateTime createdAt;
-
-    @Expose
-    protected ZonedDateTime updatedAt;
 
     public Node() {
     }
@@ -107,22 +104,6 @@ public class Node<T extends Node> extends EnvObject {
 
     public void setNext(Node next) {
         this.next = next;
-    }
-
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public String getScript() {

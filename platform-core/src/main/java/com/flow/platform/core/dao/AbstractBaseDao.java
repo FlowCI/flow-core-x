@@ -16,8 +16,8 @@
 
 package com.flow.platform.core.dao;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
@@ -60,13 +60,13 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
     protected abstract String getKeyName();
 
     @Override
-    public List<T> list(final Set<K> keySet) {
+    public List<T> list(final Collection<K> keys) {
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
 
             CriteriaQuery<T> select = builder.createQuery(getEntityClass());
             Root<T> from = select.from(getEntityClass());
-            select.where(from.get(getKeyName()).in(keySet));
+            select.where(from.get(getKeyName()).in(keys));
 
             return session.createQuery(select).list();
         });

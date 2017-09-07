@@ -20,14 +20,13 @@ import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
 import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
 
 /**
  * Created by gyfirim on 14/07/2017.

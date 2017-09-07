@@ -16,14 +16,24 @@
 
 package com.flow.platform.core.service;
 
+import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Category;
+import java.util.List;
 
 /**
  * @author yang
  */
 public interface SysInfoService {
 
-    SystemInfo get(Category sys, SystemInfo.Type type);
+    /**
+     * Get current system info
+     */
+    PropertySystemInfo system();
+
+    /**
+     * Get components information
+     */
+    List<SystemInfo> components(Category sys, SystemInfo.Type type);
 
 }

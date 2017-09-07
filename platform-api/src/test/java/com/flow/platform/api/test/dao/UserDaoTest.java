@@ -1,8 +1,8 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.dao.UserDao;
-import com.flow.platform.api.domain.User;
+import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.StringEncodeUtil;
 import org.junit.Assert;
@@ -30,7 +30,6 @@ public class UserDaoTest extends TestBase {
         user.setEmail("liangpengyv@fir.im");
         user.setUsername("liangpengyv");
         user.setPassword(StringEncodeUtil.encodeByMD5("liangpengyv", AppConfig.DEFAULT_CHARSET.name()));
-        user.setRoleId("developer");
         userDao.save(user);
     }
 
@@ -78,24 +77,5 @@ public class UserDaoTest extends TestBase {
         emailList.add("liangpengyv@fir.im");
         userDao.deleteList(emailList);
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
-    }
-
-    @Test
-    public void should_switch_role_success() {
-        Assert.assertEquals("developer", userDao.get("liangpengyv@fir.im").getRoleId());
-
-        ZonedDateTime beforeUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
-        List<String> emailList = new ArrayList<>();
-        emailList.add("liangpengyv@fir.im");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        userDao.switchUserRoleIdTo(emailList, "admin");
-
-        ZonedDateTime afterUpdateTime = userDao.get("liangpengyv@fir.im").getUpdatedAt();
-        Assert.assertEquals("admin", userDao.get("liangpengyv@fir.im").getRoleId());
-        Assert.assertTrue(beforeUpdateTime.isBefore(afterUpdateTime));
     }
 }

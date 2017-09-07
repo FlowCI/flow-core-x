@@ -73,13 +73,13 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
         private final SystemInfo.Type type;
 
-        public ControlCenterInfoLoader(Type type) {
+        ControlCenterInfoLoader(Type type) {
             this.type = type;
         }
 
         @Override
         public SystemInfo load() {
-            String response = HttpUtil.get(platformURL.getSysinfoUrl() + "/" + type.name().toLowerCase());
+            String response = HttpUtil.get(platformURL.getSysInfoUrl() + "/" + type.name().toLowerCase());
             if (response == null) {
                 return null;
             }

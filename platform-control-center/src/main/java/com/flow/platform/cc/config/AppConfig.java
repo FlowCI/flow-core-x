@@ -67,7 +67,7 @@ import org.springframework.web.context.support.StandardServletEnvironment;
 })
 public class AppConfig extends AppConfigBase {
 
-    public final static String NAME = "flow-control-center";
+    public final static String NAME = "Control Center";
 
     public final static String VERSION = "alpha-0.1";
 

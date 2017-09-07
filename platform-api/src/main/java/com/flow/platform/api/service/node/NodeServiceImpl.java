@@ -39,6 +39,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -52,7 +53,6 @@ import org.springframework.util.FileSystemUtils;
 /**
  * @author yh@firim
  */
-
 @Service(value = "nodeService")
 public class NodeServiceImpl implements NodeService {
 
@@ -141,12 +141,6 @@ public class NodeServiceImpl implements NodeService {
 
                     // should merge env from flow dao and yml
                     EnvUtil.merge(flow, root, false);
-
-                    // should set created time and updated time
-                    if (flow != null) {
-                        root.setCreatedAt(flow.getCreatedAt());
-                        root.setUpdatedAt(flow.getUpdatedAt());
-                    }
 
                     return newTree;
                 }
@@ -255,6 +249,11 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public List<Flow> listFlows() {
         return flowDao.list();
+    }
+
+    @Override
+    public List<String> listFlowPathByUser(Collection<String> createdByList) {
+        return flowDao.pathList(createdByList);
     }
 
     @Override

@@ -32,6 +32,8 @@ import org.hibernate.usertype.UserType;
 /**
  * @author Will
  */
+
+//YmlTypeAdaptor
 public abstract class BaseAdaptor implements UserType {
 
     public static final Gson GSON = Jsonable.GSON_CONFIG;
