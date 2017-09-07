@@ -20,13 +20,13 @@ package com.flow.platform.api.domain.credential;
  */
 public enum CredentialType {
 
-    RSA("RSA", RSACredential.class),
+    RSA("RSA", RSACredentialDetail.class),
 
-    USERNAME("USERNAME", UsernameCredential.class),
+    USERNAME("USERNAME", UsernameCredentialDetail.class),
 
-    IOS("IOS", IosCredential.class),
+    IOS("IOS", IosCredentialDetail.class),
 
-    ANDROID("ANDROID", AndroidCredential.class);
+    ANDROID("ANDROID", AndroidCredentialDetail.class);
 
     private Class<?> clazz;
 
@@ -44,5 +44,4 @@ public enum CredentialType {
     public Class<?> getClazz() {
         return clazz;
     }
-
 }

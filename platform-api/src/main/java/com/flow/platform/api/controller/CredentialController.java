@@ -16,18 +16,23 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +41,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -62,67 +68,79 @@ public class CredentialController {
      *
      * @apiSuccessExample {json} Success-Response
      *  [
-     *      {
-     *          name: xxx,
-     *          credentialType: RSA,
-     *          publicKey: xxx,
-     *          privateKey: xx
-     *      },
-     *
-     *      {
-     *          name: xxx,
-     *          credentialType: USERNAME,
-     *          username: xxx,
-     *          password: xxx
-     *      },
-     *
-     *      {
-     *          name: xxx,
-     *          credentialType: IOS,
-     *          fileNames:
-     *          [
-     *              {
-     *                  path: xxx,
-     *                  p12Password: xx,
-     *                  type
-     *              }
-     *          ]
-     *      },
-     *
-     *      {
-     *          name: xxx,
-     *          credentialType: ANDROID,
-     *          fileNames:
-     *          [
-     *              {
-     *                  path: xxx,
-     *                  keyStorePassword: xx,
-     *                  keyStoreAlias: xx,
-     *                  keyStoreAliasPassword,
-     *                  type
-     *              }
-     *          ]
-     *      }
-     *  ]
+            {
+                "name": "android-credential",
+                "type": "ANDROID",
+                "detail": {
+                    "file": {
+                        "name": "android.jks"
+                    },
+                    "keyStorePassword": "12345",
+                    "keyStoreAlias": "android",
+                    "keyStoreAliasPassword": "12345"
+                },
+                "createdAt": 1504737923,
+                "updatedAt": 1504737923
+            },
+
+            {
+                "name": "ios-credential",
+                "type": "IOS",
+                "detail": {
+                    "provisionProfiles": [
+                        {
+                            "name": "pp"
+                        }
+                    ],
+
+                    "p12s": [
+                        {
+                            "password": "12345",
+                            "name": "p12"
+                        }
+                    ]
+                },
+                "createdAt": 1504737923,
+                "updatedAt": 1504737923
+            },
+
+            {
+                "name": "ras-credential",
+                "type": "RSA",
+                "detail": {
+                    "publicKey": "public key",
+                    "privateKey": "private key"
+                },
+                "createdAt": 1504737923,
+                "updatedAt": 1504737923
+            },
+
+            {
+                "name": "username-credential",
+                "type": "USERNAME",
+                "detail": {
+                    "username": "user",
+                    "password": "pass"
+                },
+                "createdAt": 1504737923,
+                "updatedAt": 1504737923
+            }
+        ]
      */
     @GetMapping
-    public List<Credential> list() {
-        return credentialService.listCredentials();
-    }
+    public List<Credential> list(@RequestParam(required = false) String types) {
+        final Set<CredentialType> typeSet = new HashSet<>(CredentialType.values().length);
 
-    /**
-     * @api {get} /credentials/:type/list List By Type
-     * @apiParam {String="ios","android","username","rsa"} type Credential type
-     * @apiGroup Credenital
-     * @apiDescription List credentials by type
-     *
-     * @apiSuccessExample {json} Success-Response
-     *
-     *  reference on List
-     */
-    @GetMapping(path = "/{type}/list")
-    public Collection<Credential> list(@PathVariable String type) {
-        return credentialService.listTypes(type.toUpperCase());
+        if (!Strings.isNullOrEmpty(types)) {
+            types = types.trim();
+
+            ControllerUtil.extractParam(types, input -> {
+                typeSet.add(CredentialType.valueOf(input));
+                return null;
+            });
+        }
+
+        return credentialService.list(typeSet);
     }
 
     /**
@@ -154,9 +172,11 @@ public class CredentialController {
      */
     @PostMapping
     public Object create(@RequestBody String credentialJson) {
-        Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
-        Object o = Jsonable.GSON_CONFIG.fromJson(credentialJson, credential.getCredentialType().getClazz());
-        return credentialService.create((Credential) o);
+//        Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
+//        Object o = Jsonable.GSON_CONFIG.fromJson(credentialJson, credential.getCredentialType().getClazz());
+//        return credentialService.create((Credential) o);
+
+        return null;
     }
 
     /**
@@ -168,23 +188,6 @@ public class CredentialController {
     @DeleteMapping(path = "/{name}")
     public void delete(@PathVariable String name) {
         credentialService.delete(name);
-    }
-
-    /**
-     * @api {patch} /credentials Update
-     * @apiParam {String} name Credential name
-     * @apiParamExample {json} Request-Body:
-     *
-     *  reference on List item
-     *
-     * @apiGroup Credenital
-     * @apiDescription Update credential
-     */
-    @PatchMapping(path = "/{name}")
-    public Object update(@RequestBody String credentialJson) {
-        Credential credential = Jsonable.GSON_CONFIG.fromJson(credentialJson, Credential.class);
-        Object o = Jsonable.GSON_CONFIG.fromJson(credentialJson, credential.getCredentialType().getClazz());
-        return credentialService.update((Credential) o);
     }
 
     /**
@@ -202,62 +205,54 @@ public class CredentialController {
     public RSAKeyPair getKeys() {
         return credentialService.generateRsaKey();
     }
-
-    /**
-     * @api {Post} /credentials/fileUpload
-     * @apiName uploadFile
-     * @apiGroup Credential
-     * @apiDescription upload files
-     *
-     * @apiSuccessExample {json} Success-Response:
-     *
-     *       {
-     *         "/aa/a/aa/a"
-     *       }
-     */
-    @PostMapping("/fileUpload")
-    public List<String> filesUpload(MultipartFile[] files) {
-        List<String> list = new ArrayList<>();
-        if (files != null && files.length > 0) {
-            for (int i = 0; i < files.length; i++) {
-                MultipartFile file = files[i];
-                list.add(saveFile(file));
-            }
-            return list;
-        }
-        LOGGER.trace("upload files failure");
-        return null;
-    }
-
-    private String saveFile(MultipartFile file) {
-        if (!file.isEmpty()) {
-            try {
-                String suffix = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
-                int length = getAllowSuffix().indexOf(suffix);
-                if (length == -1) {
-                    throw new IllegalArgumentException("Please upload allowed file format");
-                }
-                String fileName = getFileNameNew() + "_" + file.getOriginalFilename();
-                file.transferTo(Paths.get(workspace.toString(), "uploads/", fileName).toFile());
-                return Paths.get(workspace.toString()).toString() + "/uploads/" + fileName;
-            } catch (Exception e) {
-                LOGGER.trace("upload files failure");
-            }
-        }
-
-        return "save file failure";
-    }
-
-    private String getFileNameNew() {
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-        return fmt.format(new Date());
-    }
-
-    private long getAllowSize() {
-        return credentialService.getAllowSize();
-    }
-
-    private String getAllowSuffix() {
-        return credentialService.allowSuffix();
-    }
+//
+//    /**
+//     * @api {Post} /credentials/fileUpload
+//     * @apiName uploadFile
+//     * @apiGroup Credential
+//     * @apiDescription upload files
+//     *
+//     * @apiSuccessExample {json} Success-Response:
+//     *
+//     *       {
+//     *         "/aa/a/aa/a"
+//     *       }
+//     */
+//    @PostMapping("/fileUpload")
+//    public List<String> filesUpload(MultipartFile[] files) {
+//        List<String> list = new ArrayList<>();
+//        if (files != null && files.length > 0) {
+//            for (int i = 0; i < files.length; i++) {
+//                MultipartFile file = files[i];
+//                list.add(saveFile(file));
+//            }
+//            return list;
+//        }
+//        LOGGER.trace("upload files failure");
+//        return null;
+//    }
+//
+//    private String saveFile(MultipartFile file) {
+//        if (!file.isEmpty()) {
+//            try {
+//                String suffix = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+//                int length = getAllowSuffix().indexOf(suffix);
+//                if (length == -1) {
+//                    throw new IllegalArgumentException("Please upload allowed file format");
+//                }
+//                String fileName = getFileNameNew() + "_" + file.getOriginalFilename();
+//                file.transferTo(Paths.get(workspace.toString(), "uploads/", fileName).toFile());
+//                return Paths.get(workspace.toString()).toString() + "/uploads/" + fileName;
+//            } catch (Exception e) {
+//                LOGGER.trace("upload files failure");
+//            }
+//        }
+//
+//        return "save file failure";
+//    }
+//
+//    private String getFileNameNew() {
+//        SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+//        return fmt.format(new Date());
+//    }
 }

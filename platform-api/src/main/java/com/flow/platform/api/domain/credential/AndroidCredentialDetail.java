@@ -15,18 +15,16 @@
  */
 package com.flow.platform.api.domain.credential;
 
+import com.flow.platform.api.domain.file.FileResource;
 import com.google.gson.annotations.Expose;
 
 /**
  * @author lhl
  */
-public class CredentialFile {
+public class AndroidCredentialDetail extends CredentialDetail {
 
     @Expose
-    private  String path;
-
-    @Expose
-    private String p12Password;
+    private FileResource file;
 
     @Expose
     private String keyStorePassword;
@@ -37,23 +35,17 @@ public class CredentialFile {
     @Expose
     private String keyStoreAliasPassword;
 
-    @Expose
-    private String type;
-
-    public String getPath() {
-        return path;
+    @Override
+    public CredentialType getType() {
+        return CredentialType.ANDROID;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public FileResource getFile() {
+        return file;
     }
 
-    public String getP12Password() {
-        return p12Password;
-    }
-
-    public void setP12Password(String p12Password) {
-        this.p12Password = p12Password;
+    public void setFile(FileResource file) {
+        this.file = file;
     }
 
     public String getKeyStorePassword() {
@@ -78,16 +70,5 @@ public class CredentialFile {
 
     public void setKeyStoreAliasPassword(String keyStoreAliasPassword) {
         this.keyStoreAliasPassword = keyStoreAliasPassword;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public CredentialFile() {
     }
 }

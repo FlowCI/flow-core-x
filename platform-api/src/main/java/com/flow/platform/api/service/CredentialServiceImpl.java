@@ -15,87 +15,73 @@
  */
 package com.flow.platform.api.service;
 
-import static com.flow.platform.api.config.AppConfig.ALLOW_SIZE;
-import static com.flow.platform.api.config.AppConfig.ALLOW_SUFFIX;
-
-import com.flow.platform.api.dao.CredentialStorageDao;
+import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.credential.Credential;
-import com.flow.platform.api.domain.credential.CredentialStorage;
+import com.flow.platform.api.domain.credential.CredentialDetail;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.util.CollectionUtil;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author lhl
  */
 
-@Service(value = "credentialService")
+@Service
+@Transactional
 public class CredentialServiceImpl implements CredentialService {
 
     @Autowired
-    private CredentialStorageDao credentialStorageDao;
+    private CredentialDao credentialDao;
 
     @Override
-    public Credential create(Credential credential) {
-        CredentialStorage credentialStorage = new CredentialStorage(credential, ZonedDateTime.now(),
-            ZonedDateTime.now());
-        if(findCredentialByName(credential.getName()) != null){
-            throw new IllegalParameterException("name is already present");
-        } else {
-            credentialStorageDao.save(credentialStorage);
-            return credential;
+    public List<Credential> list(Collection<CredentialType> types) {
+        if (CollectionUtil.isNullOrEmpty(types)) {
+            return credentialDao.list();
         }
 
+        return credentialDao.listByType(types);
+    }
+
+    @Override
+    public Credential create(String name, CredentialDetail detail) {
+        if (credentialDao.exist(name)) {
+            throw new IllegalParameterException("Name of credential has already existed");
+        }
+
+        Credential credential = new Credential(name);
+        credential.setType(detail.getType());
+        credential.setDetail(detail);
+        credentialDao.save(credential);
+        return credentialDao.get(name);
     }
 
     @Override
     public Credential find(String name) {
-        return findCredentialByName(name).getContent();
-    }
+        Credential credential = credentialDao.get(name);
 
-    @Override
-    public Credential update(Credential credential) {
-        CredentialStorage credentialStorage = findCredentialByName(credential.getName());
-        credentialStorage.setContent(credential);
-        credentialStorageDao.update(credentialStorage);
+        if (credential == null) {
+            throw new IllegalParameterException("Credential '" + name + "' doesn't existed");
+        }
+
         return credential;
     }
 
     @Override
     public void delete(String name) {
-        CredentialStorage credentialStorage = findCredentialByName(name);
-        credentialStorageDao.delete(credentialStorage);
+        Credential credential = find(name);
+        credentialDao.delete(credential);
     }
-
-    @Override
-    public List<Credential> listCredentials() {
-        return listCertificate();
-    }
-
-    // TODO: should be optimized
-    @Override
-    public List<Credential> listTypes(String credentialType) {
-        List<Credential> list = new ArrayList<>();
-        CredentialType credentialType1 = CredentialType.valueOf(credentialType);
-        List<Credential> list_certificate = listCertificate();
-        for (Credential credential : list_certificate) {
-            if (credential.getCredentialType() == credentialType1) {
-                list.add(credential);
-            }
-        }
-        return list;
-    }
-
 
     @Override
     public RSAKeyPair generateRsaKey() {
@@ -125,30 +111,5 @@ public class CredentialServiceImpl implements CredentialService {
         } catch (JSchException | IOException e) {
             return null;
         }
-    }
-
-    public long getAllowSize(){
-        return ALLOW_SIZE;
-    }
-
-    public String allowSuffix(){
-        return ALLOW_SUFFIX;
-    }
-
-    private CredentialStorage findCredentialByName(String name) {
-        for (CredentialStorage credentialStorage : credentialStorageDao.list()) {
-            if (credentialStorage.getContent().getName().equals(name)) {
-                return credentialStorage;
-            }
-        }
-        return null;
-    }
-
-    private List<Credential> listCertificate() {
-        List<Credential> list = new ArrayList<>();
-        for (CredentialStorage credentialStorage : credentialStorageDao.list()) {
-            list.add(credentialStorage.getContent());
-        }
-        return list;
     }
 }

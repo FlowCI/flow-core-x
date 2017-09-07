@@ -16,7 +16,10 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.CredentialDetail;
+import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -24,12 +27,17 @@ import java.util.List;
  */
 public interface CredentialService {
 
-    RSAKeyPair generateRsaKey();
+    /**
+     * List all credentials or by type
+     *
+     * @param types set of credential type or null to load all
+     */
+    List<Credential> list(Collection<CredentialType> types);
 
     /**
-     * create credential
+     * Create credential
      */
-    Credential create(Credential credential);
+    Credential create(String name, CredentialDetail detail);
 
     /**
      * find credential by name
@@ -37,18 +45,12 @@ public interface CredentialService {
     Credential find(String name);
 
     /**
-     * update credential
+     * Delete credential by name
      */
-
-    Credential update(Credential credential);
-
     void delete(String name);
 
-    List<Credential> listCredentials();
-
-    List<Credential> listTypes(String credentialType);
-
-    long getAllowSize();
-
-    String allowSuffix();
+    /**
+     * Generate RSA key pair
+     */
+    RSAKeyPair generateRsaKey();
 }

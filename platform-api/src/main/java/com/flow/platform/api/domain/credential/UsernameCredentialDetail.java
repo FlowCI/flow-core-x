@@ -15,23 +15,46 @@
  */
 package com.flow.platform.api.domain.credential;
 
-import com.flow.platform.api.domain.credential.Credential;
-import com.flow.platform.api.domain.credential.CredentialFile;
 import com.google.gson.annotations.Expose;
 
 /**
  * @author lhl
  */
-public class AndroidCredential extends Credential {
+public class UsernameCredentialDetail extends CredentialDetail {
 
     @Expose
-    protected CredentialFile[] fileNames;
+    protected String username;
 
-    public CredentialFile[] getFileNames() {
-        return fileNames;
+    @Expose
+    protected String password;
+
+    public UsernameCredentialDetail() {
     }
 
-    public void setFileNames(CredentialFile[] fileNames) {
-        this.fileNames = fileNames;
+    public UsernameCredentialDetail(String username, String password) {
+        this.username = username;
+        this.password = password;
     }
+
+    @Override
+    public CredentialType getType() {
+        return CredentialType.USERNAME;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
 }

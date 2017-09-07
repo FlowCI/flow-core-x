@@ -13,44 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.credential;
 
+package com.flow.platform.api.domain.file;
+
+import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 
 /**
- * @author lhl
+ * @author yang
  */
-public class UsernameCredential extends Credential {
+public class FileResource extends Jsonable {
 
     @Expose
-    protected String username;
+    protected String name;
 
-    @Expose
-    protected String password;
+    protected String path;
 
-
-    public UsernameCredential(String name) {
-        super(name);
+    public FileResource() {
     }
 
-    public UsernameCredential() {
+    public FileResource(String name, String path) {
+        this.name = name;
+        this.path = path;
     }
 
-    public String getUsername() {
-        return username;
+    public String getName() {
+        return name;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getPassword() {
-        return password;
+    public String getPath() {
+        return path;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPath(String path) {
+        this.path = path;
     }
-
-
 }

@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
-import com.flow.platform.api.dao.CredentialStorageDao;
+import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
@@ -42,13 +42,10 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
@@ -102,7 +99,7 @@ public abstract class TestBase {
     protected NodeResultDao nodeResultDao;
 
     @Autowired
-    protected CredentialStorageDao credentialStorageDao;
+    protected CredentialDao credentialDao;
 
     @Autowired
     protected MessageSettingDao messageSettingDao;
@@ -194,7 +191,7 @@ public abstract class TestBase {
         jobYmlDao.deleteAll();
         nodeResultDao.deleteAll();
         userDao.deleteAll();
-        credentialStorageDao.deleteAll();
+        credentialDao.deleteAll();
         messageSettingDao.deleteAll();
         roleDao.deleteAll();
         actionDao.deleteAll();

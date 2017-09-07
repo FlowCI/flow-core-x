@@ -13,42 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.credential;
+
+package com.flow.platform.api.domain.file;
 
 import com.google.gson.annotations.Expose;
 
 /**
- * @author lhl
+ * @author yang
  */
-public class RSACredential extends Credential {
+public class PasswordFileResource extends FileResource {
 
     @Expose
-    protected String publicKey;
+    private String password;
 
-    @Expose
-    protected String privateKey;
-
-    public RSACredential(String name) {
-        super(name);
+    public PasswordFileResource() {
     }
 
-    public RSACredential() {
+    public PasswordFileResource(String name, String path, String password) {
+        super(name, path);
+        this.password = password;
     }
 
-    public String getPublicKey() {
-        return publicKey;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
+    public void setPassword(String password) {
+        this.password = password;
     }
-
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
-    }
-
 }
