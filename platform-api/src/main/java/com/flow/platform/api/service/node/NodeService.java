@@ -19,6 +19,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -89,6 +90,11 @@ public interface NodeService {
      * list current flows with path, name, created at and updated at
      */
     List<Flow> listFlows();
+
+    /**
+     * List flow path by created by user
+     */
+    List<String> listFlowPathByUser(Collection<String> createdByList);
 
     /**
      * List webhooks for all flow

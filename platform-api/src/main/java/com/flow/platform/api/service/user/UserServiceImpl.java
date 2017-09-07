@@ -6,8 +6,10 @@ import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.token.TokenGenerator;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.google.common.collect.Lists;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,8 +35,33 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private NodeService nodeService;
+
     @Value(value = "${expiration.duration}")
     private long expirationDuration;
+
+    @Override
+    public List<User> list(boolean withFlow, boolean withRole) {
+        List<User> users = userDao.list();
+
+        if (!withFlow && !withRole) {
+            return users;
+        }
+
+        for (User user : users) {
+            if (withRole) {
+                user.setRoles(roleService.list(user));
+            }
+
+            if (withFlow) {
+                List<String> paths = nodeService.listFlowPathByUser(Lists.newArrayList(user.getEmail()));
+                user.setFlows(paths);
+            }
+        }
+
+        return users;
+    }
 
     @Override
     public String login(LoginParam loginForm) {
