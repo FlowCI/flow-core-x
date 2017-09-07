@@ -99,7 +99,7 @@ public class AppConfig extends AppConfigBase {
     }
 
     @Bean
-    protected ThreadPoolTaskExecutor taskExecutor() {
+    public ThreadPoolTaskExecutor taskExecutor() {
         return executor;
     }
 

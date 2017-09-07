@@ -16,7 +16,6 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.cc.util.ZooKeeperUtil;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
@@ -27,13 +26,14 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import org.apache.zookeeper.ZKUtil;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yang
@@ -75,13 +75,18 @@ public class ZooKeeperConfig {
     @Bean
     public ZKClient zkClient() {
         ZKClient zkClient = new ZKClient(host);
-        ZooKeeperUtil.start();
+
         if (zkClient.start()) {
             LOGGER.trace("Zookeeper been connected at: %s", host);
         } else {
             throw new RuntimeException(String.format("Fail to connect zookeeper server: %s", host));
         }
         return zkClient;
+    }
+
+    @Bean
+    public ZooKeeperServerMain zkServer() {
+        return new ZooKeeperServerMain();
     }
 
     @Bean

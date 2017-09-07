@@ -29,7 +29,8 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
  * @author yh@firim
  */
 public class ZooKeeperUtil {
-    public static void start(){
+
+    public static void start(String host, String port, String dataDir){
         Logger logger = new Logger(ZooKeeperUtil.class);
 
         try {
@@ -53,12 +54,11 @@ public class ZooKeeperUtil {
                 } catch (IOException e) {
                     logger.traceMarker("start", String.format("start zookeeper error - %s", e));
                 }
-            });
+            }).start();
         }
         catch (Exception e) {
             logger.traceMarker("start", String.format("start zookeeper error - %s", e));
         }
-
 
     }
 }

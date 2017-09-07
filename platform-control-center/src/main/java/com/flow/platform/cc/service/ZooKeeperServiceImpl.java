@@ -16,9 +16,16 @@
 
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.util.ZooKeeperUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
+import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
+import java.util.UUID;
+import org.apache.zookeeper.server.ServerConfig;
+import org.apache.zookeeper.server.ZooKeeperServerMain;
+import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +40,9 @@ public class ZooKeeperServiceImpl implements ZooKeeperService {
     @Autowired
     private ZKClient client;
 
+    @Autowired
+    private ZooKeeperServerMain zkServer;
+
     @Override
     public void start() {
         // not start since ZKClient been started in zookeeper config
@@ -44,6 +54,37 @@ public class ZooKeeperServiceImpl implements ZooKeeperService {
             client.close();
         } catch (IOException e) {
             LOGGER.warn("Fail to close zk client connection: %s", e.getMessage());
+        }
+    }
+
+    @Override
+    public void startServer() {
+        Logger logger = new Logger(ZooKeeperUtil.class);
+
+        try {
+            Properties properties = new Properties();
+            File file = new File(System.getProperty("java.io.tmpdir")
+                + File.separator + UUID.randomUUID());
+            file.deleteOnExit();
+            properties.setProperty("dataDir", file.getAbsolutePath());
+            properties.setProperty("clientPort", String.valueOf(2181));
+
+            QuorumPeerConfig quorumPeerConfig = new QuorumPeerConfig();
+            quorumPeerConfig.parseProperties(properties);
+
+            ServerConfig configuration = new ServerConfig();
+            configuration.readFrom(quorumPeerConfig);
+
+            new Thread(() -> {
+                try {
+                    zkServer.runFromConfig(configuration);
+                } catch (IOException e) {
+                    logger.traceMarker("start", String.format("start zookeeper error - %s", e));
+                }
+            }).start();
+        }
+        catch (Exception e) {
+            logger.traceMarker("start", String.format("start zookeeper error - %s", e));
         }
     }
 }
