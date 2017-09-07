@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.response.SmtpAuthResponse;
 import com.flow.platform.api.service.MessageService;
+import com.flow.platform.core.exception.IllegalParameterException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -56,7 +57,11 @@ public class MessageController {
      * @apiName CreateEmail
      * @apiGroup EmailSetting
      * @apiDescription create email settings
-     *
+     * @apiParam {String} [smtpUrl] required smtp host
+     * @apiParam {String} [smtpPort] required smtp port
+     * @apiParam {String} [username] optional smtp username
+     * @apiParam {String} [password] optional smtp password
+     * @apiParam {String} [sender] optional smtp sender
      * @apiSuccessExample {String} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
@@ -110,7 +115,11 @@ public class MessageController {
      * @apiName UpdateEmail
      * @apiGroup EmailSetting
      * @apiDescription update email settings
-     *
+     * @apiParam {String} [smtpUrl] required smtp host
+     * @apiParam {String} [smtpPort] required smtp port
+     * @apiParam {String} [username] optional smtp username
+     * @apiParam {String} [password] optional smtp password
+     * @apiParam {String} [sender] optional smtp sender
      * @apiSuccessExample {String} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
@@ -131,11 +140,30 @@ public class MessageController {
      * @apiName AuthEmailSetting
      * @apiGroup EmailSetting
      * @apiDescription Auth email settings
+     * @apiParam {String} [smtpUrl] required smtp host
+     * @apiParam {String} [smtpPort] required smtp port
+     * @apiParam {String} [username] optional smtp username
+     * @apiParam {String} [password] optional smtp password
+     * @apiParam {String} [sender] optional smtp sender
+     * @apiExample Example usage:
+     *     endpoint: http://localhost/message/email/settings/auth
+     *
+     *     body:
+     *     {
+     *       "smtpUrl": "",
+     *       "smtpPort": "22",
+     *       "username": xxx,
+     *       "password": xxxx,
+     *       "sender": xxxx
+     *     }
      *
      * @apiSuccessExample {String} Success-Response:
      *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400 Bad Request
      *     {
-     *          "aut": true
+     *         "message": "smtp test error"
      *     }
      */
     @PostMapping(path = "/email/settings/auth")
@@ -143,7 +171,7 @@ public class MessageController {
         if (messageService.authEmailSetting(emailSetting)) {
             return new SmtpAuthResponse(true);
         } else {
-            return new SmtpAuthResponse(false);
+            throw new IllegalParameterException("email test error");
         }
     }
 }
