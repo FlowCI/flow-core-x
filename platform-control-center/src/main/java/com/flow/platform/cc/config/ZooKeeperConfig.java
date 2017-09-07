@@ -59,7 +59,7 @@ public class ZooKeeperConfig {
 
     private final static String ZOOKEEPER_HOST = "0.0.0.0";
 
-    private final static String ZOOKEEPER_DATA = "data1";
+    private final static String ZOOKEEPER_DATA = "data";
 
     @Value("${zk.host}")
     private String host;
