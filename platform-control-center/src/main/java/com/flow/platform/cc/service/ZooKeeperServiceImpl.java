@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.domain.ZkServer;
 import com.flow.platform.cc.util.ZooKeeperUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
@@ -41,7 +42,7 @@ public class ZooKeeperServiceImpl implements ZooKeeperService {
     private ZKClient client;
 
     @Autowired
-    private ZooKeeperServerMain zkServer;
+    private ZkServer zkServer;
 
     @Override
     public void start() {
@@ -52,39 +53,9 @@ public class ZooKeeperServiceImpl implements ZooKeeperService {
     public void stop() {
         try {
             client.close();
+            zkServer.stop();
         } catch (IOException e) {
             LOGGER.warn("Fail to close zk client connection: %s", e.getMessage());
-        }
-    }
-
-    @Override
-    public void startServer() {
-        Logger logger = new Logger(ZooKeeperUtil.class);
-
-        try {
-            Properties properties = new Properties();
-            File file = new File(System.getProperty("java.io.tmpdir")
-                + File.separator + UUID.randomUUID());
-            file.deleteOnExit();
-            properties.setProperty("dataDir", file.getAbsolutePath());
-            properties.setProperty("clientPort", String.valueOf(2181));
-
-            QuorumPeerConfig quorumPeerConfig = new QuorumPeerConfig();
-            quorumPeerConfig.parseProperties(properties);
-
-            ServerConfig configuration = new ServerConfig();
-            configuration.readFrom(quorumPeerConfig);
-
-            new Thread(() -> {
-                try {
-                    zkServer.runFromConfig(configuration);
-                } catch (IOException e) {
-                    logger.traceMarker("start", String.format("start zookeeper error - %s", e));
-                }
-            }).start();
-        }
-        catch (Exception e) {
-            logger.traceMarker("start", String.format("start zookeeper error - %s", e));
         }
     }
 }

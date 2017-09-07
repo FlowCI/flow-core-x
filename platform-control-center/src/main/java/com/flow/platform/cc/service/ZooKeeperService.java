@@ -23,5 +23,4 @@ import com.flow.platform.core.context.ContextEvent;
  */
 public interface ZooKeeperService extends ContextEvent {
 
-    void startServer();
 }

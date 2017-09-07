@@ -16,11 +16,10 @@
 
 package com.flow.platform.cc.util;
 
+import com.flow.platform.cc.domain.ZkServer;
 import com.flow.platform.util.Logger;
-import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.UUID;
 import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
@@ -30,21 +29,13 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
  */
 public class ZooKeeperUtil {
 
-    public static void start(String host, String port, String dataDir){
+    public static Boolean start(ZkServer zkServer, Properties properties) {
         Logger logger = new Logger(ZooKeeperUtil.class);
 
         try {
-            Properties properties = new Properties();
-            File file = new File(System.getProperty("java.io.tmpdir")
-                + File.separator + UUID.randomUUID());
-            file.deleteOnExit();
-            properties.setProperty("dataDir", file.getAbsolutePath());
-            properties.setProperty("clientPort", String.valueOf(2181));
-
             QuorumPeerConfig quorumPeerConfig = new QuorumPeerConfig();
             quorumPeerConfig.parseProperties(properties);
 
-            ZooKeeperServerMain zkServer = new ZooKeeperServerMain();
             ServerConfig configuration = new ServerConfig();
             configuration.readFrom(quorumPeerConfig);
 
@@ -55,9 +46,11 @@ public class ZooKeeperUtil {
                     logger.traceMarker("start", String.format("start zookeeper error - %s", e));
                 }
             }).start();
-        }
-        catch (Exception e) {
+
+            return true;
+        } catch (Exception e) {
             logger.traceMarker("start", String.format("start zookeeper error - %s", e));
+            return false;
         }
 
     }

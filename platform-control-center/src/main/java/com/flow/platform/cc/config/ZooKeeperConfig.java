@@ -16,24 +16,27 @@
 
 package com.flow.platform.cc.config;
 
+import com.flow.platform.cc.domain.ZkServer;
+import com.flow.platform.cc.util.ZooKeeperUtil;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.zk.ZKClient;
 import com.google.common.base.Strings;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yang
@@ -75,18 +78,43 @@ public class ZooKeeperConfig {
     @Bean
     public ZKClient zkClient() {
         ZKClient zkClient = new ZKClient(host);
-
-        if (zkClient.start()) {
-            LOGGER.trace("Zookeeper been connected at: %s", host);
-        } else {
+        if (zkStart(zkClient) == false) {
             throw new RuntimeException(String.format("Fail to connect zookeeper server: %s", host));
         }
         return zkClient;
     }
 
+    private Boolean zkStart(ZKClient zkClient) {
+        if (zkClient.start()) {
+            LOGGER.trace("Zookeeper been connected at: %s", host);
+            return true;
+        }
+
+        if (ZooKeeperUtil.start(zkServer(), zkProperties())) {
+            LOGGER.trace("start inner zookeeper");
+            if (zkClient.start()) {
+                LOGGER.trace("Inner Zookeeper been connected at: %s", host);
+                return true;
+            }
+            return false;
+        }
+
+        return false;
+    }
+
     @Bean
-    public ZooKeeperServerMain zkServer() {
-        return new ZooKeeperServerMain();
+    public ZkServer zkServer() {
+        return new ZkServer();
+    }
+
+    private Properties zkProperties() {
+        File file = new File(System.getProperty("java.io.tmpdir")
+            + File.separator + UUID.randomUUID());
+
+        Properties properties = new Properties();
+        properties.setProperty("dataDir", file.getAbsolutePath());
+        properties.setProperty("clientPort", String.valueOf(2181));
+        return properties;
     }
 
     @Bean
