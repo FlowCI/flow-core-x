@@ -2,6 +2,7 @@ package com.flow.platform.api.domain.user;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
+import java.util.List;
 
 /**
  * @author liangpengyv
@@ -17,7 +18,10 @@ public class User extends CreateUpdateObject {
     private String password;
 
     @Expose
-    private String flowAuth;
+    private List<String> flows;
+
+    @Expose
+    private List<Role> roles;
 
     public User(String email, String username, String password) {
         this.email = email;
@@ -52,12 +56,20 @@ public class User extends CreateUpdateObject {
         this.password = password;
     }
 
-    public String getFlowAuth() {
-        return flowAuth;
+    public List<String> getFlows() {
+        return flows;
     }
 
-    public void setFlowAuth(String flowAuth) {
-        this.flowAuth = flowAuth;
+    public void setFlows(List<String> flows) {
+        this.flows = flows;
+    }
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 
     @Override

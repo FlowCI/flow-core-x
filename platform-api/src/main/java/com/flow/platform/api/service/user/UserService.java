@@ -12,6 +12,11 @@ import java.util.Set;
 public interface UserService {
 
     /**
+     * List all users
+     */
+    List<User> list(boolean withFlow, boolean withRole);
+
+    /**
      * Find user by email
      */
     User findByEmail(String email);

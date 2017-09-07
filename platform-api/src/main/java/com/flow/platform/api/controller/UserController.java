@@ -7,6 +7,8 @@ import com.google.common.base.Strings;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +29,42 @@ public class UserController {
     private UserService userService;
 
     /**
-     * @api {Post} /login Login
+     * @api {get} List
+     * @apiName List users
+     * @apiGroup User
+     * @apiDescription Get user list with user joined flow and roles
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  [
+     *      {
+     *          email: xxx,
+     *          username: xxx,
+     *          createdAt: xxx,
+     *          updatedAt: xxx,
+     *          flows: [
+     *              flow-1,
+     *              flow-2,
+     *          ],
+     *          roles: [
+     *              {
+     *                  id: xx,
+     *                  name: xx,
+     *                  description: xx,
+     *                  createdBy: xxx,
+     *                  createdAt: xxx,
+     *                  updatedAt: xxx
+     *              }
+     *          ]
+     *      }
+     *  ]
+     */
+    @GetMapping
+    public List<User> list() {
+        return userService.list(true, true);
+    }
+
+    /**
+     * @api {post} /login Login
      * @apiName User Login
      * @apiGroup User
      * @apiDescription Login by request information
@@ -60,7 +97,7 @@ public class UserController {
     }
 
     /**
-     * @api {Post} /register Register
+     * @api {post} /register Register
      * @apiParam {String} roles Param example: ?roles=admin,user
      * @apiParamExample {json} Request-Body:
      *     {
@@ -92,6 +129,7 @@ public class UserController {
     public void register(@RequestBody User user, @RequestParam(required = false) String roles) {
         Set<String> roleNameSet = new HashSet<>(2);
 
+        // to split roles parameter from xx,xx,xx, to role name set
         if (!Strings.isNullOrEmpty(roles)) {
             roles = roles.trim();
 
@@ -107,10 +145,10 @@ public class UserController {
     }
 
     /**
-     * @api {Post} /delete Delete
-     * @apiName UserDelete
+     * @api {delete} /delete Delete
+     * @apiName Delete User
      * @apiGroup User
-     * @apiDescription Delete by request information
+     * @apiDescription Delete user by email
      *
      * @apiParamExample {json} Request-Example:
      *     [
@@ -127,7 +165,7 @@ public class UserController {
      *         "message": "JSON parse error: java.io.EOFException: End of input at line 4 column 1 path $[2]; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 4 column 1 path $[2]"
      *     }
      */
-    @PostMapping("/delete")
+    @DeleteMapping
     public void delete(@RequestBody List<String> emailList) {
         userService.delete(emailList);
     }

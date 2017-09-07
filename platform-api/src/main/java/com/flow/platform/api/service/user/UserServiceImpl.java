@@ -37,6 +37,22 @@ public class UserServiceImpl implements UserService {
     private long expirationDuration;
 
     @Override
+    public List<User> list(boolean withFlow, boolean withRole) {
+        List<User> users = userDao.list();
+        for (User user : users) {
+            if (withRole) {
+                user.setRoles(roleService.list(user));
+            }
+
+            // TODO: add interface on flow service
+            if (withFlow) {
+            }
+        }
+
+        return users;
+    }
+
+    @Override
     public String login(LoginParam loginForm) {
         String emailOrUsername = loginForm.getEmailOrUsername();
         String password = loginForm.getPassword();
