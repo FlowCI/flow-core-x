@@ -16,8 +16,10 @@
 
 package com.flow.platform.cc.service;
 
+import com.flow.platform.cc.domain.AgentToken;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.AgentStatus;
 
 import java.time.ZonedDateTime;
@@ -86,4 +88,10 @@ public interface AgentService {
      */
     void sessionTimeoutTask();
 
+    /**
+     * create token
+     */
+    String createToken(AgentPath agentPath);
+
+    AgentSettings getInfo(String token);
 }

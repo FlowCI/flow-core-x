@@ -114,7 +114,7 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
         final String zonePath = ZKHelper.buildPath(zone.getName(), null);
         zone.setPath(zonePath);
 
-        zkClient.create(zonePath, agentSettings.toBytes());
+//        zkClient.create(zonePath, agentSettings.toBytes());
 
         List<String> agents = zkClient.getChildren(zonePath);
 

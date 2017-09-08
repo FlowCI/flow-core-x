@@ -19,6 +19,7 @@ package com.flow.platform.cc.controller;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,6 +50,16 @@ public class AgentController {
     @GetMapping(path = "/find")
     public Agent find(@RequestParam(name = "zone") String zoneName, @RequestParam(name = "name") String agentName) {
         return agentService.find(new AgentPath(zoneName, agentName));
+    }
+
+    @PostMapping(path = "/token")
+    public String createToken(@RequestBody AgentPath agentPath) {
+        return agentService.createToken(agentPath);
+    }
+
+    @GetMapping(path = "/info")
+    public AgentSettings getInfo(@RequestParam String token){
+        return agentService.getInfo(token);
     }
 
     /**

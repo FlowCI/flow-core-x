@@ -18,13 +18,18 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
+import com.flow.platform.cc.domain.AgentToken;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.util.TokenUtil;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
@@ -36,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -66,7 +72,13 @@ public class AgentServiceImpl implements AgentService {
     private TaskConfig taskConfig;
 
     @Autowired
+    private AgentSettings agentSettings;
+
+    @Autowired
     private BlockingQueue<AgentPath> agentReportQueue;
+
+    @Value("${agent.secret_key}")
+    private String secretKey;
 
     @Override
     public void reportOnline(String zone, Set<String> agents) {
@@ -161,5 +173,48 @@ public class AgentServiceImpl implements AgentService {
         }
 
         LOGGER.traceMarker("sessionTimeoutTask", "end");
+    }
+
+
+    @Override
+    public String createToken(AgentPath agentPath) {
+
+        // generate token
+        String token = TokenUtil.md5(String.format("%s%s%s", agentPath.getZone(), agentPath.getName(), secretKey));
+
+        // build agent token
+        AgentToken agentToken = new AgentToken(agentPath, token);
+        String result = TokenUtil.encode(Jsonable.GSON_CONFIG.toJson(agentToken));
+
+        return result;
+    }
+
+    @Override
+    public AgentSettings getInfo(String token) {
+
+        // decode token
+        AgentToken agentToken = Jsonable.GSON_CONFIG.fromJson(token, AgentToken.class);
+
+        // validate token
+        if(validateToken(agentToken)){
+            throw new IllegalParameterException(String.format("Validate Token Error %s", agentToken.toString()));
+        }
+
+        return agentSettings;
+    }
+
+    private Boolean validateToken(AgentToken agentToken) {
+        try {
+            AgentPath agentPath = agentToken.getAgentPath();
+            String token = TokenUtil.md5(String.format("%s%s%s", agentPath.getZone(), agentPath.getName(), secretKey));
+
+            if (token.equals(agentToken.getToken())) {
+                return true;
+            }
+
+            return false;
+        } catch (Throwable throwable) {
+            return false;
+        }
     }
 }

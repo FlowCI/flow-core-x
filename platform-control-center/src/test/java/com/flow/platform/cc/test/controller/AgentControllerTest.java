@@ -104,4 +104,9 @@ public class AgentControllerTest extends TestBase {
         Agent loaded = agentService.find(agentObj.getPath());
         Assert.assertEquals(AgentStatus.BUSY, loaded.getStatus());
     }
+
+    @Test
+    public void should_get_agent_token_success(){
+
+    }
 }

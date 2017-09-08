@@ -38,13 +38,19 @@ public class AgentSettings extends Jsonable {
      */
     private String cmdLogUrl;
 
+    /**
+     * Url for zookeeper
+     */
+    private String zookeeperUrl;
+
     public AgentSettings() {
     }
 
-    public AgentSettings(String webSocketUrl, String cmdStatusUrl, String cmdLogUrl) {
+    public AgentSettings(String webSocketUrl, String cmdStatusUrl, String cmdLogUrl, String zookeeperUrl) {
         this.webSocketUrl = webSocketUrl;
         this.cmdStatusUrl = cmdStatusUrl;
         this.cmdLogUrl = cmdLogUrl;
+        this.zookeeperUrl = zookeeperUrl;
     }
 
     public String getWebSocketUrl() {
