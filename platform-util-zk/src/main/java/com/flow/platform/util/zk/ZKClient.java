@@ -61,8 +61,15 @@ public class ZKClient implements Closeable {
 
     private Map<String, TreeCache> nodeTreeCache = new ConcurrentHashMap<>();
 
+    private int connTimeout = 30;
+
     public ZKClient(String host) {
         this(host, DEFAULT_RETRY_PERIOD, DEFAULT_RETRY_TIMES);
+    }
+
+    public ZKClient(String host, int connTimeout) {
+        this(host, DEFAULT_RETRY_PERIOD, DEFAULT_RETRY_TIMES);
+        this.connTimeout = connTimeout;
     }
 
     /**
@@ -82,11 +89,12 @@ public class ZKClient implements Closeable {
     public boolean start() {
         try {
             client.start();
-            if (client.blockUntilConnected(30, TimeUnit.SECONDS)) {
+
+            if (client.blockUntilConnected(connTimeout, TimeUnit.SECONDS)) {
                 return true;
             }
-        } catch (InterruptedException ignore) {
 
+        } catch (InterruptedException ignore) {
         }
         return false;
     }

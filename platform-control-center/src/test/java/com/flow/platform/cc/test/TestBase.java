@@ -58,9 +58,6 @@ public abstract class TestBase {
         try {
             System.setProperty("flow.cc.env", "local");
             System.setProperty("flow.cc.task.keep_idle_agent", "false");
-
-            TestingServer server = new TestingServer(2181);
-            server.start();
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
@@ -134,7 +131,7 @@ public abstract class TestBase {
     }
 
     protected void cleanZookeeperChildrenNode(String node) {
-        if (zkClient.exist(node)) {
+        if (!zkClient.exist(node)) {
             return;
         }
         zkClient.delete(node, true);

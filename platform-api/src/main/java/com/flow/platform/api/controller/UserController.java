@@ -127,18 +127,16 @@ public class UserController {
      */
     @PostMapping("/register")
     public void register(@RequestBody User user, @RequestParam(required = false) String roles) {
-        Set<String> roleNameSet = new HashSet<>(2);
+        final Set<String> roleNameSet = new HashSet<>(2);
 
         // to split roles parameter from xx,xx,xx, to role name set
         if (!Strings.isNullOrEmpty(roles)) {
             roles = roles.trim();
 
-            for (String role : roles.trim().split(",")) {
-                role = role.trim();
-                if (!Strings.isNullOrEmpty(role)) {
-                    roleNameSet.add(role);
-                }
-            }
+            ControllerUtil.extractParam(roles, item -> {
+                roleNameSet.add(item);
+                return null;
+            });
         }
 
         userService.register(user, roleNameSet);

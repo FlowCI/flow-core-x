@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.service;
 
+import com.flow.platform.util.zk.ZKServer;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import java.io.IOException;
@@ -33,6 +34,9 @@ public class ZooKeeperServiceImpl implements ZooKeeperService {
     @Autowired
     private ZKClient client;
 
+    @Autowired
+    private ZKServer zkServer;
+
     @Override
     public void start() {
         // not start since ZKClient been started in zookeeper config
@@ -42,6 +46,9 @@ public class ZooKeeperServiceImpl implements ZooKeeperService {
     public void stop() {
         try {
             client.close();
+            if (zkServer != null) {
+                zkServer.stop();
+            }
         } catch (IOException e) {
             LOGGER.warn("Fail to close zk client connection: %s", e.getMessage());
         }

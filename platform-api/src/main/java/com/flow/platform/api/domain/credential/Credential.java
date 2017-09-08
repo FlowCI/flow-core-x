@@ -15,25 +15,34 @@
  */
 package com.flow.platform.api.domain.credential;
 
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
 
 /**
  * @author lhl
  */
-public class Credential extends Jsonable {
+public class Credential extends CreateUpdateObject {
 
     @Expose
     protected String name;
 
     @Expose
-    protected CredentialType credentialType;
+    protected CredentialType type;
+
+    @Expose
+    protected String createdBy;
+
+    /**
+     * The credential detail will be saved as raw json
+     */
+    @Expose
+    private CredentialDetail detail;
+
+    public Credential() {
+    }
 
     public Credential(String name) {
         this.name = name;
-    }
-
-    public Credential() {
     }
 
     public String getName() {
@@ -44,14 +53,29 @@ public class Credential extends Jsonable {
         this.name = name;
     }
 
-    public CredentialType getCredentialType() {
-        return credentialType;
+    public CredentialType getType() {
+        return type;
     }
 
-    public void setCredentialType(CredentialType credentialType) {
-        this.credentialType = credentialType;
+    public void setType(CredentialType type) {
+        this.type = type;
     }
 
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public CredentialDetail getDetail() {
+        return detail;
+    }
+
+    public void setDetail(CredentialDetail detail) {
+        this.detail = detail;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -76,7 +100,7 @@ public class Credential extends Jsonable {
     public String toString() {
         return "Credential{" +
             "name='" + name + '\'' +
-            ", credentialType=" + credentialType +
+            ", type=" + type +
             '}';
     }
 }

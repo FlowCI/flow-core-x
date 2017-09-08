@@ -51,7 +51,7 @@ public class ActionController {
      *  [
      *      {
      *          name: FLOW_CREATE,
-     *          alias: create flow,
+     *          alias: crate flow,
      *          description: xxxx,
      *          tag: ADMIN,
      *          createdAt: xxx,
@@ -65,7 +65,7 @@ public class ActionController {
     }
 
     /**
-     * @api {patch} /actions/:name
+     * @api {patch} /actions/:name Update
      * @apiParam {String} name Update action by name
      * @apiParamExample {json} Request-Body
      *  {

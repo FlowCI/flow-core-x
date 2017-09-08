@@ -15,87 +15,96 @@
  */
 package com.flow.platform.api.service;
 
-import static com.flow.platform.api.config.AppConfig.ALLOW_SIZE;
-import static com.flow.platform.api.config.AppConfig.ALLOW_SUFFIX;
-
-import com.flow.platform.api.dao.CredentialStorageDao;
+import com.flow.platform.api.dao.CredentialDao;
+import com.flow.platform.api.domain.credential.AndroidCredentialDetail;
 import com.flow.platform.api.domain.credential.Credential;
-import com.flow.platform.api.domain.credential.CredentialStorage;
+import com.flow.platform.api.domain.credential.CredentialDetail;
 import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.credential.IosCredentialDetail;
+import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
+import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.util.CollectionUtil;
+import com.flow.platform.util.StringUtil;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author lhl
  */
 
-@Service(value = "credentialService")
+@Service
+@Transactional
 public class CredentialServiceImpl implements CredentialService {
 
     @Autowired
-    private CredentialStorageDao credentialStorageDao;
+    private CredentialDao credentialDao;
+
+    private final Map<CredentialType, DetailHandler> handlerMapping = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        handlerMapping.put(CredentialType.RSA, new RSADetailHandler());
+        handlerMapping.put(CredentialType.USERNAME, new UsernameDetailHandler());
+        handlerMapping.put(CredentialType.ANDROID, new AndroidDetailHandler());
+        handlerMapping.put(CredentialType.IOS, new IosDetailHandler());
+    }
 
     @Override
-    public Credential create(Credential credential) {
-        CredentialStorage credentialStorage = new CredentialStorage(credential, ZonedDateTime.now(),
-            ZonedDateTime.now());
-        if(findCredentialByName(credential.getName()) != null){
-            throw new IllegalParameterException("name is already present");
-        } else {
-            credentialStorageDao.save(credentialStorage);
-            return credential;
+    public List<Credential> list(Collection<CredentialType> types) {
+        if (CollectionUtil.isNullOrEmpty(types)) {
+            return credentialDao.list();
         }
 
+        return credentialDao.listByType(types);
+    }
+
+    @Override
+    public Credential createOrUpdate(String name, CredentialDetail detail) {
+        Credential credential = credentialDao.get(name);
+
+        if (credential == null) {
+            credential = new Credential(name);
+        }
+
+        // create xxCredentialDetailHandler instance by name
+        handlerMapping.get(detail.getType()).handle(detail);
+
+        credential.setType(detail.getType());
+        credential.setDetail(detail);
+        credentialDao.saveOrUpdate(credential);
+
+        return credentialDao.get(name);
     }
 
     @Override
     public Credential find(String name) {
-        return findCredentialByName(name).getContent();
-    }
+        Credential credential = credentialDao.get(name);
 
-    @Override
-    public Credential update(Credential credential) {
-        CredentialStorage credentialStorage = findCredentialByName(credential.getName());
-        credentialStorage.setContent(credential);
-        credentialStorageDao.update(credentialStorage);
+        if (credential == null) {
+            throw new IllegalParameterException("Credential '" + name + "' doesn't existed");
+        }
+
         return credential;
     }
 
     @Override
     public void delete(String name) {
-        CredentialStorage credentialStorage = findCredentialByName(name);
-        credentialStorageDao.delete(credentialStorage);
+        Credential credential = find(name);
+        credentialDao.delete(credential);
     }
-
-    @Override
-    public List<Credential> listCredentials() {
-        return listCertificate();
-    }
-
-    // TODO: should be optimized
-    @Override
-    public List<Credential> listTypes(String credentialType) {
-        List<Credential> list = new ArrayList<>();
-        CredentialType credentialType1 = CredentialType.valueOf(credentialType);
-        List<Credential> list_certificate = listCertificate();
-        for (Credential credential : list_certificate) {
-            if (credential.getCredentialType() == credentialType1) {
-                list.add(credential);
-            }
-        }
-        return list;
-    }
-
 
     @Override
     public RSAKeyPair generateRsaKey() {
@@ -127,28 +136,44 @@ public class CredentialServiceImpl implements CredentialService {
         }
     }
 
-    public long getAllowSize(){
-        return ALLOW_SIZE;
+    private interface DetailHandler<T extends CredentialDetail> {
+
+        void handle(T detail);
     }
 
-    public String allowSuffix(){
-        return ALLOW_SUFFIX;
-    }
+    private class RSADetailHandler implements DetailHandler<RSACredentialDetail> {
 
-    private CredentialStorage findCredentialByName(String name) {
-        for (CredentialStorage credentialStorage : credentialStorageDao.list()) {
-            if (credentialStorage.getContent().getName().equals(name)) {
-                return credentialStorage;
+        @Override
+        public void handle(RSACredentialDetail detail) {
+            if (StringUtil.isNullOrEmptyForItems(detail.getPrivateKey(), detail.getPublicKey())) {
+                RSAKeyPair pair = generateRsaKey();
+                detail.setPublicKey(pair.getPublicKey());
+                detail.setPrivateKey(pair.getPrivateKey());
             }
         }
-        return null;
     }
 
-    private List<Credential> listCertificate() {
-        List<Credential> list = new ArrayList<>();
-        for (CredentialStorage credentialStorage : credentialStorageDao.list()) {
-            list.add(credentialStorage.getContent());
+    private class UsernameDetailHandler implements DetailHandler<UsernameCredentialDetail> {
+
+        @Override
+        public void handle(UsernameCredentialDetail detail) {
+
         }
-        return list;
+    }
+
+    private class AndroidDetailHandler implements DetailHandler<AndroidCredentialDetail> {
+
+        @Override
+        public void handle(AndroidCredentialDetail detail) {
+
+        }
+    }
+
+    private class IosDetailHandler implements DetailHandler<IosCredentialDetail> {
+
+        @Override
+        public void handle(IosCredentialDetail detail) {
+
+        }
     }
 }

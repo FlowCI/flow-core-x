@@ -16,18 +16,24 @@
 
 package com.flow.platform.api.dao.adaptor;
 
-import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.core.dao.adaptor.BaseAdaptor;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 
 /**
  * @author lhl
  */
-public class CredentialAdaptor extends BaseAdaptor {
+public class CredentialDetailAdaptor extends BaseAdaptor {
+
+    @Override
+    public int[] sqlTypes() {
+        return new int[]{Types.BLOB};
+    }
 
     @Override
     protected Type getTargetType() {
@@ -41,14 +47,19 @@ public class CredentialAdaptor extends BaseAdaptor {
 
     @Override
     public Object nullSafeGet(ResultSet rs,
-        String[] names,
-        SharedSessionContractImplementor session,
-        Object owner) throws HibernateException, SQLException {
-        String str = rs.getString(names[0]);
-        if (str == null) {
+                              String[] names,
+                              SharedSessionContractImplementor session,
+                              Object owner) throws HibernateException, SQLException {
+
+        String detailRaw = rs.getString(names[0]);
+        if (detailRaw == null) {
             return null;
         }
-        Credential credential = GSON.fromJson(str, Credential.class);
-        return GSON.fromJson(str, credential.getCredentialType().getClazz());
+
+        // according to credential.hbm.xml property sequence
+        String typeRaw = rs.getString(2);
+        CredentialType type = CredentialType.valueOf(typeRaw);
+
+        return GSON.fromJson(detailRaw, type.getClazz());
     }
 }
