@@ -15,30 +15,32 @@
  */
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.credential.AndroidCredentialDetail;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialDetail;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
+import com.flow.platform.api.domain.file.FileResource;
 import com.flow.platform.api.service.CredentialService;
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,6 +59,14 @@ import org.springframework.web.multipart.MultipartFile;
 public class CredentialController {
 
     private final static Logger LOGGER = new Logger(CredentialController.class);
+
+    private final static Set<String> ANDROID_EXTENSIONS = Sets.newHashSet("jks");
+
+    private final static Set<String> IOS_PROVISION_PROFILE_EXTENSIONS = Sets.newHashSet("mobileprovision");
+
+    private final static Set<String> IOS_P12_EXTENSIONS = Sets.newHashSet("p12");
+
+    private final static SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 
     @Autowired
     private CredentialService credentialService;
@@ -183,9 +193,12 @@ public class CredentialController {
     @PostMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Credential create(@PathVariable String name,
                              @RequestPart(name = "detail") CredentialDetail detail,
-                             @RequestPart(name = "android-file", required = false) MultipartFile file,
+                             @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
                              @RequestPart(name = "p12-file", required = false) MultipartFile[] p12Files,
                              @RequestPart(name = "pp-file", required = false) MultipartFile[] ppFiles) {
+
+        handleAndroidFile(detail, androidFile);
+        handleIosFile(detail, p12Files, ppFiles);
 
         Credential credential = credentialService.create(name, detail);
         return credential;
@@ -238,6 +251,38 @@ public class CredentialController {
     public RSAKeyPair getKeys() {
         return credentialService.generateRsaKey();
     }
+
+    private void handleAndroidFile(CredentialDetail detail, MultipartFile file) {
+        if (!(detail instanceof AndroidCredentialDetail)) {
+            return;
+        }
+
+        if (file.isEmpty()) {
+            return;
+        }
+
+        AndroidCredentialDetail androidDetail = (AndroidCredentialDetail) detail;
+        String extension = Files.getFileExtension(file.getOriginalFilename());
+
+        if (!ANDROID_EXTENSIONS.contains(extension)) {
+            throw new IllegalParameterException("Illegal android cert file");
+        }
+
+        try {
+            String destFileName = getFileName(file);
+            Path destPath = credentailFilePath(destFileName);
+
+            file.transferTo(destPath.toFile());
+            androidDetail.setFile(new FileResource(file.getOriginalFilename(), destPath.toString()));
+        } catch (IOException e) {
+            throw new IllegalStatusException("Cannot save uploaded file since io error: " + e.getMessage());
+        }
+    }
+
+    private void handleIosFile(CredentialDetail detail, MultipartFile[] p12Files, MultipartFile[] ppFiles) {
+
+    }
+
 //
 //    /**
 //     * @api {Post} /credentials/fileUpload
@@ -264,28 +309,20 @@ public class CredentialController {
 //        LOGGER.trace("upload files failure");
 //        return null;
 //    }
-//
-//    private String saveFile(MultipartFile file) {
-//        if (!file.isEmpty()) {
-//            try {
-//                String suffix = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
-//                int length = getAllowSuffix().indexOf(suffix);
-//                if (length == -1) {
-//                    throw new IllegalArgumentException("Please upload allowed file format");
-//                }
-//                String fileName = getFileNameNew() + "_" + file.getOriginalFilename();
-//                file.transferTo(Paths.get(workspace.toString(), "uploads/", fileName).toFile());
-//                return Paths.get(workspace.toString()).toString() + "/uploads/" + fileName;
-//            } catch (Exception e) {
-//                LOGGER.trace("upload files failure");
-//            }
-//        }
-//
-//        return "save file failure";
-//    }
-//
-//    private String getFileNameNew() {
-//        SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-//        return fmt.format(new Date());
-//    }
+
+
+    private Path credentailFilePath(String fileName) throws IOException {
+        Path path = Paths.get(workspace.toString(), "credentials", fileName);
+        Files.createParentDirs(path.toFile());
+        return path;
+    }
+
+    private String getFileName(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+
+        return String.format("%s-%s.%s",
+            Files.getNameWithoutExtension(originalFilename),
+            FILE_DATE_FORMAT.format(new Date()),
+            Files.getFileExtension(originalFilename));
+    }
 }

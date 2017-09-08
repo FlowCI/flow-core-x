@@ -41,7 +41,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * @author yang
@@ -73,6 +73,15 @@ public class CredentialControllerTest extends TestBase {
     }
 
     @Test
+    public void should_400_bad_request_if_name_already_exist_when_create() throws Throwable {
+        MockHttpServletRequestBuilder content = post(getUrlForCredential("username-credential"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(new RSACredentialDetail().toJson());
+
+        mockMvc.perform(content).andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void should_list_credential_without_type() throws Throwable {
         String response = performRequestWith200Status(get("/credentials"));
         Credential[] credentials = Jsonable.parseArray(response, Credential[].class);
@@ -100,13 +109,13 @@ public class CredentialControllerTest extends TestBase {
         final String credentialName = "rsa-test";
 
         performRequestWith200Status(
-            post("/credentials/" + credentialName)
+            post(getUrlForCredential(credentialName))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new RSACredentialDetail(pair).toJson())
         );
 
         // then: load by name
-        response = performRequestWith200Status(get("/credentials/" + credentialName));
+        response = performRequestWith200Status(get(getUrlForCredential(credentialName)));
         Credential rsaCredential = Credential.parse(response, Credential.class);
         Assert.assertNotNull(rsaCredential);
 
@@ -127,13 +136,13 @@ public class CredentialControllerTest extends TestBase {
         // when: mock create rsa credential without rsa key pair
         final String credentialName = "rsa-test";
 
-        performRequestWith200Status(post("/credentials/" + credentialName)
+        performRequestWith200Status(post(getUrlForCredential(credentialName))
             .contentType(MediaType.APPLICATION_JSON)
             .content(new RSACredentialDetail().toJson())
         );
 
         // then: load by name
-        String response = performRequestWith200Status(get("/credentials/" + credentialName));
+        String response = performRequestWith200Status(get(getUrlForCredential(credentialName)));
         Credential rsaCredential = Credential.parse(response, Credential.class);
         Assert.assertNotNull(rsaCredential);
 
@@ -156,12 +165,12 @@ public class CredentialControllerTest extends TestBase {
 
         // when: create username credential
         performRequestWith200Status(
-            post("/credentials/" + credentialName)
+            post(getUrlForCredential(credentialName))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new UsernameCredentialDetail("username", "password").toJson()));
 
         // then:
-        String response = performRequestWith200Status(get("/credentials/" + credentialName));
+        String response = performRequestWith200Status(get(getUrlForCredential(credentialName)));
         Credential credential = Credential.parse(response, Credential.class);
         Assert.assertNotNull(credential);
         Assert.assertEquals(CredentialType.USERNAME, credential.getType());
@@ -174,12 +183,51 @@ public class CredentialControllerTest extends TestBase {
         Assert.assertEquals("password", usernameDetail.getPassword());
     }
 
+    @Test
+    public void should_create_android_credential() throws Throwable {
+        // given:
+        final String credentialName = "android-test";
+
+        // when: create android credential
+        AndroidCredentialDetail detail = new AndroidCredentialDetail();
+        detail.setKeyStoreAliasPassword("12345");
+        detail.setKeyStoreAlias("alias");
+        detail.setKeyStorePassword("54321");
+
+        performRequestWith200Status(fileUpload(getUrlForCredential(credentialName))
+            .file(createDetailPart(detail))
+            .file(createAndroidFilePart("file-name.jks"))
+        );
+
+        // then:
+        String response = performRequestWith200Status(get(getUrlForCredential(credentialName)));
+        Credential credential = Credential.parse(response, Credential.class);
+        Assert.assertNotNull(credential);
+
+        Assert.assertEquals(credentialName, credential.getName());
+        Assert.assertEquals(CredentialType.ANDROID, credential.getType());
+        Assert.assertEquals(AndroidCredentialDetail.class, credential.getDetail().getClass());
+
+        AndroidCredentialDetail androidDetail = (AndroidCredentialDetail) credential.getDetail();
+        Assert.assertEquals("12345", androidDetail.getKeyStoreAliasPassword());
+        Assert.assertEquals("alias", androidDetail.getKeyStoreAlias());
+        Assert.assertEquals("54321", androidDetail.getKeyStorePassword());
+
+        Assert.assertNotNull(androidDetail.getFile());
+        Assert.assertEquals("file-name.jks", androidDetail.getFile().getName());
+        Assert.assertNull(androidDetail.getFile().getPath()); // actual path cannot to client
+    }
+
+    private String getUrlForCredential(String credentialName) {
+        return "/credentials/" + credentialName;
+    }
+
     private MockMultipartFile createDetailPart(CredentialDetail detail) {
         return new MockMultipartFile("detail", "", "application/json", detail.toBytes());
     }
 
-    private MockMultipartFile createAndroidFilePart() {
-        return new MockMultipartFile("android-file", "file-name.jks", "application/jks", "content".getBytes());
+    private MockMultipartFile createAndroidFilePart(String name) {
+        return new MockMultipartFile("android-file", name, "application/jks", "content".getBytes());
     }
 
     private MockMultipartFile createIosProvisionProfilePart(String fileName) {

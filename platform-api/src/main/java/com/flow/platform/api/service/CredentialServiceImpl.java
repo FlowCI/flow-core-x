@@ -16,26 +16,30 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.CredentialDao;
+import com.flow.platform.api.domain.credential.AndroidCredentialDetail;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialDetail;
 import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.credential.IosCredentialDetail;
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
+import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.StringUtil;
-import com.google.common.base.Strings;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 /**
  * @author lhl
@@ -47,6 +51,16 @@ public class CredentialServiceImpl implements CredentialService {
 
     @Autowired
     private CredentialDao credentialDao;
+
+    private final Map<CredentialType, DetailHandler> handlerMapping = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        handlerMapping.put(CredentialType.RSA, new RSADetailHandler());
+        handlerMapping.put(CredentialType.USERNAME, new UsernameDetailHandler());
+        handlerMapping.put(CredentialType.ANDROID, new AndroidDetailHandler());
+        handlerMapping.put(CredentialType.IOS, new IosDetailHandler());
+    }
 
     @Override
     public List<Credential> list(Collection<CredentialType> types) {
@@ -63,16 +77,8 @@ public class CredentialServiceImpl implements CredentialService {
             throw new IllegalParameterException("Name of credential has already existed");
         }
 
-        // auto generate rsa key pair if not provided
-        if (detail instanceof RSACredentialDetail) {
-            RSACredentialDetail rsaDetail = (RSACredentialDetail) detail;
-
-            if (StringUtil.isNullOrEmptyForItems(rsaDetail.getPrivateKey(), rsaDetail.getPublicKey())) {
-                RSAKeyPair pair = generateRsaKey();
-                rsaDetail.setPublicKey(pair.getPublicKey());
-                rsaDetail.setPrivateKey(pair.getPrivateKey());
-            }
-        }
+        // create xxCredentialDetailHandler instance by name
+        handlerMapping.get(detail.getType()).handle(detail);
 
         Credential credential = new Credential(name);
         credential.setType(detail.getType());
@@ -125,6 +131,47 @@ public class CredentialServiceImpl implements CredentialService {
 
         } catch (JSchException | IOException e) {
             return null;
+        }
+    }
+
+    private interface DetailHandler<T extends CredentialDetail> {
+
+        void handle(T detail);
+    }
+
+    private class RSADetailHandler implements DetailHandler<RSACredentialDetail> {
+
+        @Override
+        public void handle(RSACredentialDetail detail) {
+            if (StringUtil.isNullOrEmptyForItems(detail.getPrivateKey(), detail.getPublicKey())) {
+                RSAKeyPair pair = generateRsaKey();
+                detail.setPublicKey(pair.getPublicKey());
+                detail.setPrivateKey(pair.getPrivateKey());
+            }
+        }
+    }
+
+    private class UsernameDetailHandler implements DetailHandler<UsernameCredentialDetail> {
+
+        @Override
+        public void handle(UsernameCredentialDetail detail) {
+
+        }
+    }
+
+    private class AndroidDetailHandler implements DetailHandler<AndroidCredentialDetail> {
+
+        @Override
+        public void handle(AndroidCredentialDetail detail) {
+
+        }
+    }
+
+    private class IosDetailHandler implements DetailHandler<IosCredentialDetail> {
+
+        @Override
+        public void handle(IosCredentialDetail detail) {
+
         }
     }
 }
