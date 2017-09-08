@@ -19,12 +19,15 @@ import com.flow.platform.api.domain.credential.AndroidCredentialDetail;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialDetail;
 import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.credential.IosCredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.domain.file.FileResource;
+import com.flow.platform.api.domain.file.PasswordFileResource;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -194,14 +197,18 @@ public class CredentialController {
     public Credential create(@PathVariable String name,
                              @RequestPart(name = "detail") CredentialDetail detail,
                              @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
-                             @RequestPart(name = "p12-file", required = false) MultipartFile[] p12Files,
-                             @RequestPart(name = "pp-file", required = false) MultipartFile[] ppFiles) {
+                             @RequestPart(name = "p12-files", required = false) MultipartFile[] p12Files,
+                             @RequestPart(name = "pp-files", required = false) MultipartFile[] ppFiles) {
 
-        handleAndroidFile(detail, androidFile);
-        handleIosFile(detail, p12Files, ppFiles);
+        try {
+            handleAndroidFile(detail, androidFile);
+            handleIosFile(detail, p12Files, ppFiles);
 
-        Credential credential = credentialService.create(name, detail);
-        return credential;
+            Credential credential = credentialService.create(name, detail);
+            return credential;
+        } catch (IOException e) {
+            throw new IllegalStatusException("Cannot save credential file with io error: " + e.getMessage());
+        }
     }
 
     /**
@@ -252,12 +259,12 @@ public class CredentialController {
         return credentialService.generateRsaKey();
     }
 
-    private void handleAndroidFile(CredentialDetail detail, MultipartFile file) {
+    private void handleAndroidFile(CredentialDetail detail, MultipartFile file) throws IOException {
         if (!(detail instanceof AndroidCredentialDetail)) {
             return;
         }
 
-        if (file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             return;
         }
 
@@ -268,19 +275,67 @@ public class CredentialController {
             throw new IllegalParameterException("Illegal android cert file");
         }
 
-        try {
-            String destFileName = getFileName(file);
-            Path destPath = credentailFilePath(destFileName);
+        String destFileName = getFileName(file.getOriginalFilename());
+        Path destPath = credentailFilePath(destFileName);
 
-            file.transferTo(destPath.toFile());
-            androidDetail.setFile(new FileResource(file.getOriginalFilename(), destPath.toString()));
-        } catch (IOException e) {
-            throw new IllegalStatusException("Cannot save uploaded file since io error: " + e.getMessage());
-        }
+        file.transferTo(destPath.toFile());
+        androidDetail.setFile(new FileResource(file.getOriginalFilename(), destPath.toString()));
     }
 
-    private void handleIosFile(CredentialDetail detail, MultipartFile[] p12Files, MultipartFile[] ppFiles) {
+    private void handleIosFile(CredentialDetail detail,
+                               MultipartFile[] p12Files,
+                               MultipartFile[] ppFiles) throws IOException {
+        if (!(detail instanceof IosCredentialDetail)) {
+            return;
+        }
 
+        IosCredentialDetail iosDetail = (IosCredentialDetail) detail;
+
+        for(MultipartFile file : p12Files) {
+            String extension = Files.getFileExtension(file.getOriginalFilename());
+            if (!IOS_P12_EXTENSIONS.contains(extension)) {
+                throw new IllegalParameterException("Illegal ios p12 file");
+            }
+
+            PasswordFileResource resource = null;
+
+            // find detail has valid password
+            for (PasswordFileResource item : iosDetail.getP12s()) {
+                if (Strings.isNullOrEmpty(item.getName())) {
+                    continue;
+                }
+
+                if (item.getName().equals(file.getOriginalFilename())) {
+                    resource = item;
+                    break;
+                }
+            }
+
+            Path destPath = credentailFilePath(getFileName(file.getOriginalFilename()));
+            file.transferTo(destPath.toFile());
+
+            if (resource == null) {
+                iosDetail.getP12s().add(
+                    new PasswordFileResource(file.getOriginalFilename(), destPath.toString(), StringUtil.EMPTY));
+                continue;
+            }
+
+            resource.setName(file.getOriginalFilename());
+            resource.setPath(destPath.toString());
+        }
+
+        for(MultipartFile file : ppFiles) {
+            String extension = Files.getFileExtension(file.getOriginalFilename());
+            if (!IOS_PROVISION_PROFILE_EXTENSIONS.contains(extension)) {
+                throw new IllegalParameterException("Illegal ios mobile provision file");
+            }
+
+            Path destPath = credentailFilePath(getFileName(file.getOriginalFilename()));
+            file.transferTo(destPath.toFile());
+
+            FileResource resource = new FileResource(file.getOriginalFilename(), destPath.toString());
+            iosDetail.getProvisionProfiles().add(resource);
+        }
     }
 
 //
@@ -317,9 +372,7 @@ public class CredentialController {
         return path;
     }
 
-    private String getFileName(MultipartFile file) {
-        String originalFilename = file.getOriginalFilename();
-
+    private String getFileName(String originalFilename) {
         return String.format("%s-%s.%s",
             Files.getNameWithoutExtension(originalFilename),
             FILE_DATE_FORMAT.format(new Date()),

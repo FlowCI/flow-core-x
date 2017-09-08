@@ -16,8 +16,10 @@
 
 package com.flow.platform.api.test.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -218,6 +220,35 @@ public class CredentialControllerTest extends TestBase {
         Assert.assertNull(androidDetail.getFile().getPath()); // actual path cannot to client
     }
 
+    @Test
+    public void should_create_ios_credential() throws Throwable {
+        // given: create ios credential
+        final String credentialName = "ios-test";
+
+        performRequestWith200Status(fileUpload(getUrlForCredential(credentialName))
+            .file(createDetailPart(new IosCredentialDetail()))
+            .file(createIosP12Part("p12-1.p12"))
+            .file(createIosP12Part("p12-2.p12"))
+            .file(createIosP12Part("p12-3.p12"))
+            .file(createIosProvisionProfilePart("pp1.mobileprovision"))
+            .file(createIosProvisionProfilePart("pp2.mobileprovision"))
+        );
+
+        // when: load credential after created
+        String response = performRequestWith200Status(get(getUrlForCredential(credentialName)));
+        Credential credential = Credential.parse(response, Credential.class);
+        Assert.assertNotNull(credential);
+
+        // then:
+        Assert.assertEquals(credentialName, credential.getName());
+        Assert.assertEquals(CredentialType.IOS, credential.getType());
+        Assert.assertEquals(IosCredentialDetail.class, credential.getDetail().getClass());
+
+        IosCredentialDetail iosDetail = (IosCredentialDetail) credential.getDetail();
+        Assert.assertEquals(3, iosDetail.getP12s().size());
+        Assert.assertEquals(2, iosDetail.getProvisionProfiles().size());
+    }
+
     private String getUrlForCredential(String credentialName) {
         return "/credentials/" + credentialName;
     }
@@ -231,10 +262,10 @@ public class CredentialControllerTest extends TestBase {
     }
 
     private MockMultipartFile createIosProvisionProfilePart(String fileName) {
-        return new MockMultipartFile("pp-file", fileName, "application/pp", "content".getBytes());
+        return new MockMultipartFile("pp-files", fileName, "application/pp", "content".getBytes());
     }
 
     private MockMultipartFile createIosP12Part(String fileName) {
-        return new MockMultipartFile("p12-file", fileName, "application/pp", "content".getBytes());
+        return new MockMultipartFile("p12-files", fileName, "application/pp", "content".getBytes());
     }
 }
