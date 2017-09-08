@@ -41,11 +41,10 @@ public class MessageController {
     private MessageService messageService;
 
     /**
-     * @api {Post} /message/email/settings create
-     * @apiExample Example usage:
-     *     endpoint: http://localhost/message/email/settings
+     * @api {Post} /message/email/settings Create
+     * @apiParamExample {json} Request-Body:
+     *  smtpUrl and smtpPort are required
      *
-     *     body:
      *     {
      *       "smtpUrl": "",
      *       "smtpPort": "22",
@@ -54,15 +53,9 @@ public class MessageController {
      *       "sender": xxxx
      *     }
      *
-     * @apiName CreateEmail
      * @apiGroup EmailSetting
-     * @apiDescription create email settings
-     * @apiParam {String} [smtpUrl] required smtp host
-     * @apiParam {String} [smtpPort] required smtp port
-     * @apiParam {String} username optional smtp username
-     * @apiParam {String} password optional smtp password
-     * @apiParam {String} sender optional smtp sender
-     * @apiSuccessExample {String} Success-Response:
+     * @apiDescription Create email settings
+     * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
      *       "smtpUrl": "",

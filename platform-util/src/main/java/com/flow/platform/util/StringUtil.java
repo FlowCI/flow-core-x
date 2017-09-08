@@ -13,17 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.credential.CredentialStorage;
-import com.flow.platform.api.domain.credential.CredentialType;
-import com.flow.platform.core.dao.BaseDao;
-import java.util.List;
+package com.flow.platform.util;
 
 /**
- * @author lhl
+ * @author yang
  */
-public interface CredentialStorageDao extends BaseDao<String, CredentialStorage> {
+public class StringUtil {
 
-    List<CredentialStorage> list(CredentialType... types);
+    public final static String EMPTY = "";
+
+    public static boolean isNullOrEmptyForItems(String... strings) {
+        if (CollectionUtil.isNullOrEmpty(strings)) {
+            return true;
+        }
+
+        for (String item : strings) {
+            if (item == null) {
+                continue;
+            }
+
+            item = item.trim();
+            if (!EMPTY.equals(item)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

@@ -20,7 +20,7 @@ import com.google.gson.annotations.Expose;
 /**
  * @author lhl
  */
-public class RSACredential extends Credential {
+public class RSACredentialDetail extends CredentialDetail {
 
     @Expose
     protected String publicKey;
@@ -28,11 +28,20 @@ public class RSACredential extends Credential {
     @Expose
     protected String privateKey;
 
-    public RSACredential(String name) {
-        super(name);
+    public RSACredentialDetail() {
+        this.type = CredentialType.RSA;
     }
 
-    public RSACredential() {
+    public RSACredentialDetail(String publicKey, String privateKey) {
+        this();
+        this.publicKey = publicKey;
+        this.privateKey = privateKey;
+    }
+
+    public RSACredentialDetail(RSAKeyPair pair) {
+        this();
+        publicKey = pair.getPublicKey();
+        privateKey = pair.getPrivateKey();
     }
 
     public String getPublicKey() {

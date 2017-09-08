@@ -131,7 +131,7 @@ public abstract class TestBase {
     }
 
     protected void cleanZookeeperChildrenNode(String node) {
-        if (zkClient.exist(node)) {
+        if (!zkClient.exist(node)) {
             return;
         }
         zkClient.delete(node, true);

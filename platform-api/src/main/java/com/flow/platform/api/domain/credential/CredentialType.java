@@ -20,19 +20,19 @@ package com.flow.platform.api.domain.credential;
  */
 public enum CredentialType {
 
-    RSA("RSA", RSACredential.class),
+    RSA("RSA", RSACredentialDetail.class),
 
-    USERNAME("USERNAME", UsernameCredential.class),
+    USERNAME("USERNAME", UsernameCredentialDetail.class),
 
-    IOS("IOS", IosCredential.class),
+    IOS("IOS", IosCredentialDetail.class),
 
-    ANDROID("ANDROID", AndroidCredential.class);
+    ANDROID("ANDROID", AndroidCredentialDetail.class);
 
-    private Class<?> clazz;
+    private Class<? extends CredentialDetail> clazz;
 
     private String name;
 
-    CredentialType(String name, Class<?> clazz) {
+    CredentialType(String name, Class<? extends CredentialDetail> clazz) {
         this.name = name;
         this.clazz = clazz;
     }
@@ -41,8 +41,7 @@ public enum CredentialType {
         return name;
     }
 
-    public Class<?> getClazz() {
+    public Class<? extends CredentialDetail> getClazz() {
         return clazz;
     }
-
 }

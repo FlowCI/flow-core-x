@@ -13,36 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.flow.platform.api.domain.credential;
 
-import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 
 /**
- * @author yang
+ * @author lhl
  */
-public class RSAKeyPair extends Jsonable {
+public class UsernameCredentialDetail extends CredentialDetail {
 
     @Expose
-    private String publicKey;
+    protected String username;
 
     @Expose
-    private String privateKey;
+    protected String password;
 
-    public String getPublicKey() {
-        return publicKey;
+    public UsernameCredentialDetail() {
+        this.type = CredentialType.USERNAME;
     }
 
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
+    public UsernameCredentialDetail(String username, String password) {
+        this();
+        this.username = username;
+        this.password = password;
     }
 
-    public String getPrivateKey() {
-        return privateKey;
+    public String getUsername() {
+        return username;
     }
 
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
+    public void setUsername(String username) {
+        this.username = username;
     }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
 }

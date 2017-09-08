@@ -51,7 +51,7 @@ public class ActionController {
      *  [
      *      {
      *          name: FLOW_CREATE,
-     *          alias: create flow,
+     *          alias: crate flow,
      *          description: xxxx,
      *          tag: ADMIN,
      *          createdAt: xxx,

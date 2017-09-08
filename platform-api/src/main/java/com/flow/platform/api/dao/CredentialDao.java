@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.credential;
+package com.flow.platform.api.dao;
 
-import com.google.gson.annotations.Expose;
+import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.core.dao.BaseDao;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lhl
  */
-public class IosCredential extends Credential {
+public interface CredentialDao extends BaseDao<String, Credential> {
 
-    @Expose
-    protected CredentialFile[] fileNames;
+    /**
+     * Check credential name is existed
+     */
+    boolean exist(String name);
 
-    public CredentialFile[] getFileNames() {
-        return fileNames;
-    }
-
-    public void setFileNames(CredentialFile[] fileNames) {
-        this.fileNames = fileNames;
-    }
+    /**
+     * List credential by types
+     */
+    List<Credential> listByType(Collection<CredentialType> types);
 }
