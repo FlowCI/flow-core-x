@@ -19,9 +19,17 @@ package com.flow.platform.agent;
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.zk.ZKClient;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 /**
  * @author gy@fir.im
@@ -146,5 +154,22 @@ public class Config {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static AgentSettings loadAgentConfig(String baseUrl, String token) {
+        String url = new StringBuilder(baseUrl).append("/agents/info").append("?token=" + token).toString();
+        HttpGet httpGet = new HttpGet(url);
+        AgentSettings agentSettings = null;
+
+        try {
+            String response = ReportManager
+                .httpSend(httpGet, 5, "load agent setting success", "get agent setting error");
+
+            agentSettings = Jsonable.parse(response, AgentSettings.class);
+        } catch (Throwable throwable) {
+            new RuntimeException(String.format("get agent setting error - %s", throwable));
+        }
+
+        return agentSettings;
     }
 }
