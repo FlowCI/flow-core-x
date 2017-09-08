@@ -107,7 +107,7 @@ public class GitWebhookTest extends TestBase {
     }
 
     private void init_flow(String gitUrl) throws Throwable {
-        // create empty flow
+        // createOrUpdate empty flow
         Flow flow = nodeService.createEmptyFlow(flowName);
         setFlowToReady(flow);
 

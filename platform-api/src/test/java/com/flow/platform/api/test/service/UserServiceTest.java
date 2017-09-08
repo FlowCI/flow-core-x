@@ -49,7 +49,7 @@ public class UserServiceTest extends TestBase {
         user.setUsername("liangpengyv");
         user.setPassword("liangpengyv");
 
-        // create roles
+        // createOrUpdate roles
         for (String role : roles) {
             roleService.create(role, null);
         }

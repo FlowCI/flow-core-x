@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -176,7 +175,7 @@ public class CredentialController {
     }
 
     /**
-     * @api {post} /credentials/:type Create with Multipart
+     * @api {post} /credentials/:type CreateOrUpdate with Multipart
      * @apiParam {String="android","rsa","ios","username"} type Credential type
      * @apiParamExample {multipart} Request-Body:
      *  - part:
@@ -194,17 +193,17 @@ public class CredentialController {
      *  reference on List item
      */
     @PostMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Credential create(@PathVariable String name,
-                             @RequestPart(name = "detail") CredentialDetail detail,
-                             @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
-                             @RequestPart(name = "p12-files", required = false) MultipartFile[] p12Files,
-                             @RequestPart(name = "pp-files", required = false) MultipartFile[] ppFiles) {
+    public Credential createOrUpdate(@PathVariable String name,
+                                     @RequestPart(name = "detail") CredentialDetail detail,
+                                     @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
+                                     @RequestPart(name = "p12-files", required = false) MultipartFile[] p12Files,
+                                     @RequestPart(name = "pp-files", required = false) MultipartFile[] ppFiles) {
 
         try {
             handleAndroidFile(detail, androidFile);
             handleIosFile(detail, p12Files, ppFiles);
 
-            Credential credential = credentialService.create(name, detail);
+            Credential credential = credentialService.createOrUpdate(name, detail);
             return credential;
         } catch (IOException e) {
             throw new IllegalStatusException("Cannot save credential file with io error: " + e.getMessage());
@@ -212,7 +211,7 @@ public class CredentialController {
     }
 
     /**
-     * @api {post} /credentials/:type Create with Json
+     * @api {post} /credentials/:type CreateOrUpdate with Json
      * @apiParam {String="android","rsa","ios","username"} type Credential type
      * @apiParamExample {json} Request-Body:
      *
@@ -225,10 +224,10 @@ public class CredentialController {
      *  reference on List item
      */
     @PostMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Credential create(@PathVariable String name,
-                             @RequestBody CredentialDetail detail) {
+    public Credential createOrUpdate(@PathVariable String name,
+                                     @RequestBody CredentialDetail detail) {
 
-        Credential credential = credentialService.create(name, detail);
+        Credential credential = credentialService.createOrUpdate(name, detail);
         return credential;
     }
 
@@ -337,34 +336,6 @@ public class CredentialController {
             iosDetail.getProvisionProfiles().add(resource);
         }
     }
-
-//
-//    /**
-//     * @api {Post} /credentials/fileUpload
-//     * @apiName uploadFile
-//     * @apiGroup Credential
-//     * @apiDescription upload files
-//     *
-//     * @apiSuccessExample {json} Success-Response:
-//     *
-//     *       {
-//     *         "/aa/a/aa/a"
-//     *       }
-//     */
-//    @PostMapping("/fileUpload")
-//    public List<String> filesUpload(MultipartFile[] files) {
-//        List<String> list = new ArrayList<>();
-//        if (files != null && files.length > 0) {
-//            for (int i = 0; i < files.length; i++) {
-//                MultipartFile file = files[i];
-//                list.add(saveFile(file));
-//            }
-//            return list;
-//        }
-//        LOGGER.trace("upload files failure");
-//        return null;
-//    }
-
 
     private Path credentailFilePath(String fileName) throws IOException {
         Path path = Paths.get(workspace.toString(), "credentials", fileName);

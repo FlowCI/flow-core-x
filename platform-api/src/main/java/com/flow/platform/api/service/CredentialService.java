@@ -37,7 +37,7 @@ public interface CredentialService {
     /**
      * Create credential
      */
-    Credential create(String name, CredentialDetail detail);
+    Credential createOrUpdate(String name, CredentialDetail detail);
 
     /**
      * find credential by name

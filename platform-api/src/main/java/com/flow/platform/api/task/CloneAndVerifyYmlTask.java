@@ -77,7 +77,7 @@ public class CloneAndVerifyYmlTask implements Runnable {
         try {
             nodeService.createOrUpdate(flow.getPath(), yml);
         } catch (Throwable e) {
-            LOGGER.warn("Fail to create or update yml in node");
+            LOGGER.warn("Fail to createOrUpdate or update yml in node");
         }
 
         LOGGER.trace("Node %s FLOW_YML_STATUS is: %s", flow.getName(), flow.getEnv(FlowEnvs.FLOW_YML_STATUS));

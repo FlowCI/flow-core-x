@@ -40,7 +40,7 @@ public class MessageController {
     private MessageService messageService;
 
     /**
-     * @api {Post} /message/email/settings create
+     * @api {Post} /message/email/settings createOrUpdate
      * @apiExample Example usage:
      *     endpoint: http://localhost/message/email/settings
      *
@@ -55,7 +55,7 @@ public class MessageController {
      *
      * @apiName CreateEmail
      * @apiGroup EmailSetting
-     * @apiDescription create email settings
+     * @apiDescription createOrUpdate email settings
      *
      * @apiSuccessExample {String} Success-Response:
      *     HTTP/1.1 200 OK

@@ -67,7 +67,7 @@ public class NodeServiceTest extends TestBase {
 
     @Test
     public void should_create_node_by_yml() throws Throwable {
-        // when: create empty flow and set special env for flow
+        // when: createOrUpdate empty flow and set special env for flow
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
         Map<String, String> flowEnv = new HashMap<>();

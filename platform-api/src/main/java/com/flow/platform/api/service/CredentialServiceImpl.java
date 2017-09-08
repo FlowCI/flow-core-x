@@ -72,18 +72,20 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    public Credential create(String name, CredentialDetail detail) {
-        if (credentialDao.exist(name)) {
-            throw new IllegalParameterException("Name of credential has already existed");
+    public Credential createOrUpdate(String name, CredentialDetail detail) {
+        Credential credential = credentialDao.get(name);
+
+        if (credential == null) {
+            credential = new Credential(name);
         }
 
-        // create xxCredentialDetailHandler instance by name
+        // createOrUpdate xxCredentialDetailHandler instance by name
         handlerMapping.get(detail.getType()).handle(detail);
 
-        Credential credential = new Credential(name);
         credential.setType(detail.getType());
         credential.setDetail(detail);
-        credentialDao.save(credential);
+        credentialDao.saveOrUpdate(credential);
+
         return credentialDao.get(name);
     }
 

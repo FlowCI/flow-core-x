@@ -28,7 +28,7 @@ import com.flow.platform.domain.AgentPath;
 public interface CmdService {
 
     /**
-     * Send create session cmd job async
+     * Send createOrUpdate session cmd job async
      *
      * @return session id
      */

@@ -16,10 +16,8 @@
 
 package com.flow.platform.api.test.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,22 +54,22 @@ public class CredentialControllerTest extends TestBase {
     @Before
     public void initCredentialOfTypes() {
         RSACredentialDetail rsaDetail = new RSACredentialDetail("public key", "private key");
-        credentialService.create("rsa-credential", rsaDetail);
+        credentialService.createOrUpdate("rsa-credential", rsaDetail);
 
         UsernameCredentialDetail usernameDetail = new UsernameCredentialDetail("user", "pass");
-        credentialService.create("username-credential", usernameDetail);
+        credentialService.createOrUpdate("username-credential", usernameDetail);
 
         AndroidCredentialDetail androidDetail = new AndroidCredentialDetail();
         androidDetail.setFile(new FileResource("android.jks", "/path/of/android.jks"));
         androidDetail.setKeyStorePassword("12345");
         androidDetail.setKeyStoreAlias("android");
         androidDetail.setKeyStoreAliasPassword("12345");
-        credentialService.create("android-credential", androidDetail);
+        credentialService.createOrUpdate("android-credential", androidDetail);
 
         IosCredentialDetail iosDetail = new IosCredentialDetail();
         iosDetail.setProvisionProfiles(Lists.newArrayList(new FileResource("pp", "pp.pp")));
         iosDetail.setP12s(Lists.newArrayList(new PasswordFileResource("p12", "p12.p12", "12345")));
-        credentialService.create("ios-credential", iosDetail);
+        credentialService.createOrUpdate("ios-credential", iosDetail);
     }
 
     @Test
@@ -107,7 +105,7 @@ public class CredentialControllerTest extends TestBase {
 
         // build mock detail entity
 
-        // when: mock create rsa credential
+        // when: mock createOrUpdate rsa credential
         final String credentialName = "rsa-test";
 
         performRequestWith200Status(
@@ -135,7 +133,7 @@ public class CredentialControllerTest extends TestBase {
 
     @Test
     public void should_create_rsa_credential_auto_generate() throws Throwable {
-        // when: mock create rsa credential without rsa key pair
+        // when: mock createOrUpdate rsa credential without rsa key pair
         final String credentialName = "rsa-test";
 
         performRequestWith200Status(post(getUrlForCredential(credentialName))
@@ -165,7 +163,7 @@ public class CredentialControllerTest extends TestBase {
         // given:
         final String credentialName = "username-test";
 
-        // when: create username credential
+        // when: createOrUpdate username credential
         performRequestWith200Status(
             post(getUrlForCredential(credentialName))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -190,7 +188,7 @@ public class CredentialControllerTest extends TestBase {
         // given:
         final String credentialName = "android-test";
 
-        // when: create android credential
+        // when: createOrUpdate android credential
         AndroidCredentialDetail detail = new AndroidCredentialDetail();
         detail.setKeyStoreAliasPassword("12345");
         detail.setKeyStoreAlias("alias");
@@ -222,17 +220,20 @@ public class CredentialControllerTest extends TestBase {
 
     @Test
     public void should_create_ios_credential() throws Throwable {
-        // given: create ios credential
+        // given: createOrUpdate ios credential
         final String credentialName = "ios-test";
 
+        // set password for p12-3.p12 file
+        IosCredentialDetail detail = new IosCredentialDetail();
+        detail.getP12s().add(new PasswordFileResource("p12-3.p12", null, "123123"));
+
         performRequestWith200Status(fileUpload(getUrlForCredential(credentialName))
-            .file(createDetailPart(new IosCredentialDetail()))
+            .file(createDetailPart(detail))
             .file(createIosP12Part("p12-1.p12"))
             .file(createIosP12Part("p12-2.p12"))
             .file(createIosP12Part("p12-3.p12"))
             .file(createIosProvisionProfilePart("pp1.mobileprovision"))
-            .file(createIosProvisionProfilePart("pp2.mobileprovision"))
-        );
+            .file(createIosProvisionProfilePart("pp2.mobileprovision")));
 
         // when: load credential after created
         String response = performRequestWith200Status(get(getUrlForCredential(credentialName)));
@@ -247,6 +248,12 @@ public class CredentialControllerTest extends TestBase {
         IosCredentialDetail iosDetail = (IosCredentialDetail) credential.getDetail();
         Assert.assertEquals(3, iosDetail.getP12s().size());
         Assert.assertEquals(2, iosDetail.getProvisionProfiles().size());
+
+        for (PasswordFileResource resource : iosDetail.getP12s()) {
+            if (resource.getName().equals("p12-3.p12")) {
+                Assert.assertEquals("123123", resource.getPassword());
+            }
+        }
     }
 
     private String getUrlForCredential(String credentialName) {

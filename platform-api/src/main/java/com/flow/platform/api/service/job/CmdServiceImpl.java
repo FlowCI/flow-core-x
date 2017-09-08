@@ -60,10 +60,10 @@ public class CmdServiceImpl implements CmdService {
         cmdInfo.setWebhook(buildCmdWebhook(job));
         LOGGER.traceMarker("CreateSession", "job id - %s", job.getId());
 
-        // create session
+        // createOrUpdate session
         Cmd cmd = sendToQueue(cmdInfo, 5);
         if (cmd == null) {
-            throw new IllegalStatusException("Unable to create session since cmd return null");
+            throw new IllegalStatusException("Unable to createOrUpdate session since cmd return null");
         }
 
         if (Strings.isNullOrEmpty(cmd.getSessionId())) {

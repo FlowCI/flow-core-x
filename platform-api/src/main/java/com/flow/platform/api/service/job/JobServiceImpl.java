@@ -126,7 +126,7 @@ public class JobServiceImpl implements JobService {
 
         String status = root.getEnv(FlowEnvs.FLOW_STATUS);
         if (Strings.isNullOrEmpty(status) || !status.equals(FlowEnvs.StatusValue.READY.value())) {
-            throw new IllegalStatusException("Cannot create job since status is not READY");
+            throw new IllegalStatusException("Cannot createOrUpdate job since status is not READY");
         }
 
         String yml = null;
@@ -140,7 +140,7 @@ public class JobServiceImpl implements JobService {
             throw e;
         }
 
-        // create job
+        // createOrUpdate job
         Job job = new Job(CommonUtil.randomId());
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
@@ -150,14 +150,14 @@ public class JobServiceImpl implements JobService {
         //save job
         jobDao.save(job);
 
-        // create yml snapshot for job
+        // createOrUpdate yml snapshot for job
         jobNodeService.save(job.getId(), yml);
 
         // init for node result
         NodeResult rootResult = nodeResultService.create(job);
         job.setResult(rootResult);
 
-        // to create agent session for job
+        // to createOrUpdate agent session for job
         String sessionId = cmdService.createSession(job);
         job.setSessionId(sessionId);
         job.setStatus(JobStatus.SESSION_CREATING);
