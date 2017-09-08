@@ -28,6 +28,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.zookeeper.ZooKeeper;
@@ -55,11 +57,14 @@ public class ZooKeeperConfig {
      */
     private final static String ZONE_PROPERTY_NAMING = "zone.%s.%s";
 
-    private final static String ZOOKEEPER_PORT = "2181";
+    private final static String EMBEDDED_ZOOKEEPER_PORT = "2181";
 
-    private final static String ZOOKEEPER_HOST = "0.0.0.0";
+    private final static String EMBEDDED_ZOOKEEPER_HOST = "0.0.0.0";
 
-    private final static String ZOOKEEPER_DATA = "data";
+    private final static String EMBEDDED_ZOOKEEPER_DATA = "data";
+
+    @Value("${zk.server.embedded}")
+    private Boolean enableEmbeddedServer;
 
     @Value("${zk.host}")
     private String host;
@@ -86,43 +91,32 @@ public class ZooKeeperConfig {
         LOGGER.trace("Host: %s", host);
         LOGGER.trace("Root node: %s", rootNodeName);
         LOGGER.trace("Zones: %s", zonesDefinition);
+        LOGGER.trace("Embedded enabled: %s", enableEmbeddedServer);
     }
 
     @Bean
     public ZKClient zkClient() {
-        ZKClient zkClient = zkStart();
-        if (zkClient == null) {
-            throw new RuntimeException(String.format("Fail to connect zookeeper server: %s", host));
-        }
-        return zkClient;
-    }
-
-    @Bean
-    public ZKServer zkServer() {
-        return zkServer;
-    }
-
-    private ZKClient zkStart() {
         ZKClient zkClient = new ZKClient(host, clientTimeout);
 
-        // user provider zookeeper
         if (zkClient.start()) {
             LOGGER.trace("Zookeeper been connected at: %s", host);
             return zkClient;
         }
 
-        // start internal zookeeper
-        if (startZooKeeperServer()) {
-            LOGGER.trace("start internal zookeeper");
-            ZKClient internalZkClient = new ZKClient(ZOOKEEPER_HOST);
-
-            if (internalZkClient.start()) {
-                LOGGER.trace("internal Zookeeper been connected at: %s", host);
-                return internalZkClient;
+        if (enableEmbeddedServer && startEmbeddedServer()) {
+            zkClient = new ZKClient(EMBEDDED_ZOOKEEPER_HOST, clientTimeout);
+            if (zkClient.start()) {
+                LOGGER.trace("Zookeeper been connected at: %s", host);
+                return zkClient;
             }
         }
 
-        return null;
+        throw new RuntimeException(String.format("Fail to connect zookeeper server: %s", host));
+    }
+
+    @Bean
+    public ZKServer zkServer() {
+        return zkServer;
     }
 
     @Bean
@@ -168,14 +162,14 @@ public class ZooKeeperConfig {
         }
     }
 
-    private Boolean startZooKeeperServer() {
+    private boolean startEmbeddedServer() {
         File file = new File(
-            String.format("%s%s%s", System.getProperty("java.io.tmpdir"), File.separator, ZOOKEEPER_DATA));
+            String.format("%s%s%s", System.getProperty("java.io.tmpdir"), File.separator, EMBEDDED_ZOOKEEPER_DATA));
 
         Properties properties = new Properties();
         properties.setProperty("dataDir", file.getAbsolutePath());
-        properties.setProperty("clientPort", ZOOKEEPER_PORT);
-        properties.setProperty("clientPortAddress", ZOOKEEPER_HOST);
+        properties.setProperty("clientPort", EMBEDDED_ZOOKEEPER_PORT);
+        properties.setProperty("clientPortAddress", EMBEDDED_ZOOKEEPER_HOST);
 
         try {
             zkServer = new ZKServer();
@@ -185,22 +179,26 @@ public class ZooKeeperConfig {
             ServerConfig configuration = new ServerConfig();
             configuration.readFrom(quorumPeerConfig);
 
-            LOGGER.traceMarker("startZooKeeperServer", "***start zookeeper****");
+            final CountDownLatch latch = new CountDownLatch(1);
+
+            LOGGER.debug("Starting internal zookeeper server.......");
 
             taskExecutor.execute(() -> {
                 try {
-                    LOGGER.traceMarker("startZooKeeperServer", "start zookeeper success");
                     zkServer.runFromConfig(configuration);
+                    LOGGER.debug("Internal zookeeper been started");
+                    latch.countDown();
                 } catch (IOException e) {
-                    LOGGER.traceMarker("startZooKeeperServer", String.format("start zookeeper error - %s", e));
+                    LOGGER.warn("Start internal zookeeper error: %s", e.getMessage());
                 }
             });
 
-            return true;
+            // waiting for embedded zk server starting for 30 seconds
+            return latch.await(30, TimeUnit.SECONDS);
+
         } catch (Exception e) {
-            LOGGER.traceMarker("start", String.format("start zookeeper error - %s", e));
+            LOGGER.warn("Start internal zookeeper error: %s", e.getMessage());
             return false;
         }
-
     }
 }

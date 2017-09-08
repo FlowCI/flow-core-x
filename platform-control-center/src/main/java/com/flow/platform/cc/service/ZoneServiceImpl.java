@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -94,7 +95,7 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
         // init zone nodes
         for (Zone zone : defaultZones) {
             path = createZone(zone);
-            LOGGER.trace("Zone zookeeper node initialized: %s", path);
+            LOGGER.trace("Zone node initialized: %s", path);
         }
     }
 
@@ -240,11 +241,15 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
         @Override
         public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
             // TODO: should optimize by event type
+            Type type = event.getType();
+            LOGGER.debugMarker("ZoneEventListener", "Receive zookeeper event %s", type);
 
-            taskExecutor.execute(() -> {
-                List<String> agents = zkClient.getChildren(zone.getPath());
-                agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
-            });
+            if (type.equals(Type.CHILD_ADDED) || type.equals(Type.CHILD_REMOVED)) {
+                taskExecutor.execute(() -> {
+                    List<String> agents = zkClient.getChildren(zone.getPath());
+                    agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
+                });
+            }
         }
     }
 }

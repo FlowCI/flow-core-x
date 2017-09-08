@@ -58,6 +58,9 @@ public abstract class TestBase {
         try {
             System.setProperty("flow.cc.env", "local");
             System.setProperty("flow.cc.task.keep_idle_agent", "false");
+
+            TestingServer server = new TestingServer(2181);
+            server.start();
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
@@ -126,11 +129,12 @@ public abstract class TestBase {
 
     protected AgentPath createMockAgent(String zone, String agent) {
         AgentPath agentPath = new AgentPath(zone, agent);
-        zkClient.create(ZKHelper.buildPath(agentPath), null);
+        String path = ZKHelper.buildPath(agentPath);
+        zkClient.createEphemeral(path, null);
         return agentPath;
     }
 
-    protected void cleanZookeeperChildrenNode(String node) {
+    protected void deleteNodeWithChildren(String node) {
         if (!zkClient.exist(node)) {
             return;
         }
