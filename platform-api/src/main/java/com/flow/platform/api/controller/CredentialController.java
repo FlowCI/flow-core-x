@@ -175,18 +175,78 @@ public class CredentialController {
     }
 
     /**
-     * @api {post} /credentials/:type CreateOrUpdate with Multipart
-     * @apiParam {String="android","rsa","ios","username"} type Credential type
-     * @apiParamExample {multipart} Request-Body:
+     * @api {post} /credentials/:name CreateOrUpdate
+     * @apiParam {String} name Credential name to create or update
+     *
+     * @apiParamExample {multipart} RSA-Multipart-Body:
+     *  Create RSA credential, putblic key and private key are optional,
+     *  it will auto generate if not provided
+     *
      *  - part:
      *      - name: detail
      *      - content-type: application/json
-     *  - part:
-     *      -
+     *      - exampe: {
+     *          type: RSA,
+     *          publicKey: xxx,
+     *          privateKey: xxx
+     *      }
      *
+     * @apiParamExample {multipart} USERNAME-Multipart-Body:
+     *
+     *  - part:
+     *      - name: detail
+     *      - content-type: application/json
+     *      - exampe: {
+     *          type: USERNAME,
+     *          username: xxx,
+     *          password: xxx
+     *      }
+     *
+     * @apiParamExample {multipart} ANDROID-Multipart-Body:
+     *
+     *  - part:
+     *      - name: detail
+     *      - content-type: application/json
+     *      - exampe: {
+     *          type: ANDROID,
+     *          keyStorePassword: xxx,
+     *          keyStoreAlias: xxx,
+     *          keyStoreAliasPassword: xxx
+     *      }
+     *
+     *  - part:
+     *      - name: android-file
+     *      - content: jks file content
+     *
+     * @apiParamExample {multipart} ANDROID-Multipart-Body:
+     *
+     *  The p12s field in detail part only needs to provide if p12 has password,
+     *  and the name must be match file name which will be uploaded
+     *
+     *  - part:
+     *      - name: detail
+     *      - content-type: application/json
+     *      - exampe: {
+     *          type: IOS,
+     *          p12s: [
+     *              {
+     *                  name: p12-file.p12,
+     *                  password: your_p12_password
+     *              }
+     *          ]
+     *      }
+     *
+     *  - part:
+     *      - name: p12-files
+     *      - content: p12-file.p12 file content
+     *
+     *  - part:
+     *      - name: pp-files
+     *      - content: pp.mobileprovision file content
      *
      * @apiGroup Credenital
-     * @apiDescription Create credentials with content-type multipart/form-data
+     * @apiDescription Create or update credentials with content-type multipart/form-data or application/json,
+     *  for json request body, just reference on multipart detail part
      *
      * @apiSuccessExample {json} Success-Response
      *
@@ -210,19 +270,6 @@ public class CredentialController {
         }
     }
 
-    /**
-     * @api {post} /credentials/:type CreateOrUpdate with Json
-     * @apiParam {String="android","rsa","ios","username"} type Credential type
-     * @apiParamExample {json} Request-Body:
-     *
-     *  reference on List item
-     * @apiGroup Credenital
-     * @apiDescription Create credentials with content-type application/json
-     *
-     * @apiSuccessExample {json} Success-Response
-     *
-     *  reference on List item
-     */
     @PostMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Credential createOrUpdate(@PathVariable String name,
                                      @RequestBody CredentialDetail detail) {
@@ -243,7 +290,7 @@ public class CredentialController {
     }
 
     /**
-     * @api {get} /credentials/rsa Gen Rsa Key Pari
+     * @api {get} /credentials/rsa Generate RSA Pari
      * @apiGroup Credenital
      * @apiDescription Generate RSA key pair
      *
