@@ -24,7 +24,7 @@ public class JwtTokenGenerator implements TokenGenerator {
     }
 
     /**
-     * Through the email of user to createOrUpdate a token.
+     * Through the email of user to create a token.
      * At the same time, you need provide a expiration duration, It's in millisecond.
      */
     @Override

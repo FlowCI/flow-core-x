@@ -99,7 +99,7 @@ public class CmdQueueConsumerTest extends TestBase {
         // given:
         String agentName = "agent-for-queue-test";
         AgentPath agentPath = createMockAgent(ZONE, agentName);
-        Thread.sleep(2000);
+        Thread.sleep(5000);
 
         Agent agent = agentService.find(agentPath);
         Assert.assertNotNull(agent);

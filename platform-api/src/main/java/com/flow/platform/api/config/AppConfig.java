@@ -73,7 +73,7 @@ public class AppConfig extends AppConfigBase {
             LOGGER.trace("flow.ci working dir been created : %s", dir);
             return dir;
         } catch (IOException e) {
-            throw new RuntimeException("Fail to createOrUpdate flow.ci api working dir", e);
+            throw new RuntimeException("Fail to create flow.ci api working dir", e);
         }
     }
 

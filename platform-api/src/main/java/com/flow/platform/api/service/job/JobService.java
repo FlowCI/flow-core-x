@@ -51,7 +51,7 @@ public interface JobService {
     List<NodeResult> listNodeResult(String path, Integer number);
 
     /**
-     * createOrUpdate job from node path, copy yml to job yml
+     * create job from node path, copy yml to job yml
      * request agent session from control center
      *
      * @param path any node path

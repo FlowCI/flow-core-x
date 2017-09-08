@@ -49,7 +49,7 @@ public interface YmlService {
 
 
     /**
-     * Load yml content from git repo in async and createOrUpdate tree from yml,
+     * Load yml content from git repo in async and create tree from yml,
      * Then call "getYmlContent" to get yml
      *
      * @param path any node path

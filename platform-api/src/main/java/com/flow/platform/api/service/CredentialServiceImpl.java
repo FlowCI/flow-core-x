@@ -79,7 +79,7 @@ public class CredentialServiceImpl implements CredentialService {
             credential = new Credential(name);
         }
 
-        // createOrUpdate xxCredentialDetailHandler instance by name
+        // create xxCredentialDetailHandler instance by name
         handlerMapping.get(detail.getType()).handle(detail);
 
         credential.setType(detail.getType());

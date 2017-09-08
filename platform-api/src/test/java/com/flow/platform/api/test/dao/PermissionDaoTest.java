@@ -43,7 +43,7 @@ public class PermissionDaoTest extends TestBase {
         Permission permissionForShow = new Permission(roleId, "show");
         permissionDao.save(permissionForShow);
 
-        Permission permissionForCreate = new Permission(roleId, "createOrUpdate");
+        Permission permissionForCreate = new Permission(roleId, "create");
         permissionDao.save(permissionForCreate);
 
         // then:
@@ -54,7 +54,7 @@ public class PermissionDaoTest extends TestBase {
     @Test
     public void should_find_permissions_by_action() {
         // when
-        final String action = "createOrUpdate-flow";
+        final String action = "create-flow";
 
         Permission actionForFirstRole = new Permission(1, action);
         permissionDao.save(actionForFirstRole);

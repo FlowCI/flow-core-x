@@ -307,7 +307,7 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {post} /flows/:root/yml/createOrUpdate Create
+     * @api {post} /flows/:root/yml/create Create
      * @apiParam {String} root flow node name to set yml content
      * @apiParam Request-Body
      *  - flows:

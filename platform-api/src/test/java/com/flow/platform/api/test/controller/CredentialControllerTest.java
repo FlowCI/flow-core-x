@@ -73,15 +73,6 @@ public class CredentialControllerTest extends TestBase {
     }
 
     @Test
-    public void should_400_bad_request_if_name_already_exist_when_create() throws Throwable {
-        MockHttpServletRequestBuilder content = post(getUrlForCredential("username-credential"))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(new RSACredentialDetail().toJson());
-
-        mockMvc.perform(content).andExpect(status().isBadRequest());
-    }
-
-    @Test
     public void should_list_credential_without_type() throws Throwable {
         String response = performRequestWith200Status(get("/credentials"));
         Credential[] credentials = Jsonable.parseArray(response, Credential[].class);
@@ -105,7 +96,7 @@ public class CredentialControllerTest extends TestBase {
 
         // build mock detail entity
 
-        // when: mock createOrUpdate rsa credential
+        // when: mock create rsa credential
         final String credentialName = "rsa-test";
 
         performRequestWith200Status(
@@ -133,7 +124,7 @@ public class CredentialControllerTest extends TestBase {
 
     @Test
     public void should_create_rsa_credential_auto_generate() throws Throwable {
-        // when: mock createOrUpdate rsa credential without rsa key pair
+        // when: mock create rsa credential without rsa key pair
         final String credentialName = "rsa-test";
 
         performRequestWith200Status(post(getUrlForCredential(credentialName))
@@ -163,7 +154,7 @@ public class CredentialControllerTest extends TestBase {
         // given:
         final String credentialName = "username-test";
 
-        // when: createOrUpdate username credential
+        // when: create username credential
         performRequestWith200Status(
             post(getUrlForCredential(credentialName))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -188,7 +179,7 @@ public class CredentialControllerTest extends TestBase {
         // given:
         final String credentialName = "android-test";
 
-        // when: createOrUpdate android credential
+        // when: create android credential
         AndroidCredentialDetail detail = new AndroidCredentialDetail();
         detail.setKeyStoreAliasPassword("12345");
         detail.setKeyStoreAlias("alias");
@@ -220,7 +211,7 @@ public class CredentialControllerTest extends TestBase {
 
     @Test
     public void should_create_ios_credential() throws Throwable {
-        // given: createOrUpdate ios credential
+        // given: create ios credential
         final String credentialName = "ios-test";
 
         // set password for p12-3.p12 file

@@ -91,7 +91,7 @@ public class GitWebHookController {
                     Job job = jobService.createJob(path);
                     applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
                 } catch (Throwable e) {
-                    LOGGER.warn("Fail to createOrUpdate job for path : " + path);
+                    LOGGER.warn("Fail to create job for path : " + path);
                 }
             });
 

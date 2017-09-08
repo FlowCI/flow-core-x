@@ -16,6 +16,7 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.test.TestBase;
+import org.junit.Test;
 
 /**
  * @author lhl
@@ -23,4 +24,8 @@ import com.flow.platform.api.test.TestBase;
 @Deprecated // since test in credential controller
 public class CredentialServiceTest extends TestBase {
 
+    @Test
+    public void empty() {
+
+    }
 }

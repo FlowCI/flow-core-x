@@ -145,7 +145,7 @@ public class GitServiceImpl implements GitService {
                 .getConstructor(Flow.class, Path.class)
                 .newInstance(node, gitSourcePath(node));
         } catch (Throwable e) {
-            throw new IllegalStatusException("Fail to createOrUpdate GitClientBuilder instance: " + e.getMessage());
+            throw new IllegalStatusException("Fail to create GitClientBuilder instance: " + e.getMessage());
         }
 
         GitClient client = builder.build();

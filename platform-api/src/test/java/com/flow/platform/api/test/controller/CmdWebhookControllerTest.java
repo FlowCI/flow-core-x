@@ -61,7 +61,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Job job = jobService.createJob(rootForFlow.getPath());
         final String sessionId = "1111111";
 
-        // when: createOrUpdate session
+        // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
@@ -153,7 +153,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Step step1 = (Step) nodeService.find("flow1/step1");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
 
-        // createOrUpdate session
+        // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
         String sessionId = "1111111";
@@ -192,7 +192,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Job job = jobService.createJob(rootForFlow.getPath());
         final String sessionId = "1111111";
 
-        // when: createOrUpdate session
+        // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);

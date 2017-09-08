@@ -49,7 +49,7 @@ public class UserRoleDaoTest extends TestBase {
     public void should_find_user_role_by_email_and_delete() {
         final String email = "liuhailiang@126.com";
 
-        // then: createOrUpdate two user-role for the same email
+        // then: create two user-role for the same email
         UserRoleKey userRoleKey = new UserRoleKey(1, email);
         UserRole usersRoles = new UserRole(userRoleKey);
         userRoleDao.save(usersRoles);

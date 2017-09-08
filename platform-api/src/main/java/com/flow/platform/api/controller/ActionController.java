@@ -51,7 +51,7 @@ public class ActionController {
      *  [
      *      {
      *          name: FLOW_CREATE,
-     *          alias: createOrUpdate flow,
+     *          alias: crate flow,
      *          description: xxxx,
      *          tag: ADMIN,
      *          createdAt: xxx,
@@ -78,7 +78,7 @@ public class ActionController {
      * @apiSuccessExample {json} Success-Response
      *  {
      *      name: FLOW_CREATE,
-     *      alias: createOrUpdate flow,
+     *      alias: create flow,
      *      description: xxxx,
      *      tag: ADMIN,
      *      createdAt: xxx,

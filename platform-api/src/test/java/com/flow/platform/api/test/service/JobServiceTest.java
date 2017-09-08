@@ -120,14 +120,14 @@ public class JobServiceTest extends TestBase {
         final String sessionId = "session-id-1";
         Node root = createRootFlow("flow-run-job", "for_job_service_run_job.yaml");
 
-        // when: createOrUpdate job and job should be SESSION_CREATING
+        // when: create job and job should be SESSION_CREATING
         Job job = createMockJob(root.getPath());
 
-        // then: check cmd request to createOrUpdate session
+        // then: check cmd request to create session
         CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
         verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
-        // when: simulate cc callback for createOrUpdate session
+        // when: simulate cc callback for create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId(sessionId);
         cmd.setStatus(CmdStatus.SENT);

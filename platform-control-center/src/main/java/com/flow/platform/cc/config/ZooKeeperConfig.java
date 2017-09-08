@@ -65,7 +65,7 @@ public class ZooKeeperConfig {
     private String host;
 
     @Value("${zk.timeout}")
-    private Integer timeout;
+    private Integer clientTimeout; // zk client connection timeout
 
     @Value("${zk.node.root}")
     private String rootNodeName;
@@ -103,16 +103,16 @@ public class ZooKeeperConfig {
     }
 
     private ZKClient zkStart() {
-        ZKClient zkClient = new ZKClient(host);
+        ZKClient zkClient = new ZKClient(host, clientTimeout);
 
-        LOGGER.trace("detect user provider zookeeper or start internal zookeeper");
         // user provider zookeeper
         if (zkClient.start()) {
             LOGGER.trace("Zookeeper been connected at: %s", host);
             return zkClient;
         }
+
         // start internal zookeeper
-        if (startZkServer()) {
+        if (startZooKeeperServer()) {
             LOGGER.trace("start internal zookeeper");
             ZKClient internalZkClient = new ZKClient(ZOOKEEPER_HOST);
 
@@ -123,42 +123,6 @@ public class ZooKeeperConfig {
         }
 
         return null;
-    }
-
-    private Boolean startZkServer() {
-        File file = new File(
-            String.format("%s%s%s", System.getProperty("java.io.tmpdir"), File.separator, ZOOKEEPER_DATA));
-
-        Properties properties = new Properties();
-        properties.setProperty("dataDir", file.getAbsolutePath());
-        properties.setProperty("clientPort", ZOOKEEPER_PORT);
-        properties.setProperty("clientPortAddress", ZOOKEEPER_HOST);
-
-        try {
-            zkServer = new ZKServer();
-            QuorumPeerConfig quorumPeerConfig = new QuorumPeerConfig();
-            quorumPeerConfig.parseProperties(properties);
-
-            ServerConfig configuration = new ServerConfig();
-            configuration.readFrom(quorumPeerConfig);
-
-            LOGGER.traceMarker("startZkServer", "***start zookeeper****");
-
-            taskExecutor.execute(() -> {
-                try {
-                    LOGGER.traceMarker("startZkServer", "start zookeeper success");
-                    zkServer.runFromConfig(configuration);
-                } catch (IOException e) {
-                    LOGGER.traceMarker("startZkServer", String.format("start zookeeper error - %s", e));
-                }
-            });
-
-            return true;
-        } catch (Exception e) {
-            LOGGER.traceMarker("start", String.format("start zookeeper error - %s", e));
-            return false;
-        }
-
     }
 
     @Bean
@@ -202,5 +166,41 @@ public class ZooKeeperConfig {
                 ObjectUtil.assignValueToField(field, emptyZone, valueFromConfig);
             }
         }
+    }
+
+    private Boolean startZooKeeperServer() {
+        File file = new File(
+            String.format("%s%s%s", System.getProperty("java.io.tmpdir"), File.separator, ZOOKEEPER_DATA));
+
+        Properties properties = new Properties();
+        properties.setProperty("dataDir", file.getAbsolutePath());
+        properties.setProperty("clientPort", ZOOKEEPER_PORT);
+        properties.setProperty("clientPortAddress", ZOOKEEPER_HOST);
+
+        try {
+            zkServer = new ZKServer();
+            QuorumPeerConfig quorumPeerConfig = new QuorumPeerConfig();
+            quorumPeerConfig.parseProperties(properties);
+
+            ServerConfig configuration = new ServerConfig();
+            configuration.readFrom(quorumPeerConfig);
+
+            LOGGER.traceMarker("startZooKeeperServer", "***start zookeeper****");
+
+            taskExecutor.execute(() -> {
+                try {
+                    LOGGER.traceMarker("startZooKeeperServer", "start zookeeper success");
+                    zkServer.runFromConfig(configuration);
+                } catch (IOException e) {
+                    LOGGER.traceMarker("startZooKeeperServer", String.format("start zookeeper error - %s", e));
+                }
+            });
+
+            return true;
+        } catch (Exception e) {
+            LOGGER.traceMarker("start", String.format("start zookeeper error - %s", e));
+            return false;
+        }
+
     }
 }
