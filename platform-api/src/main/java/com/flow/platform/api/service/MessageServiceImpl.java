@@ -56,7 +56,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public SettingContent find(MessageType type) {
         if (findSettingByType(type) == null) {
-            throw new NotFoundException(String.format("Message Setting not found type - %s", type));
+            return null;
         }
         return findSettingByType(type).getContent();
     }
