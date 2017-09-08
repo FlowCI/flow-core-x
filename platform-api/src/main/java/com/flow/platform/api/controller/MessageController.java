@@ -74,6 +74,7 @@ public class MessageController {
      */
     @PostMapping(path = "/email/settings")
     public EmailSettingContent createEmailSetting(@RequestBody EmailSettingContent emailSetting) {
+        emailSetting.setType(MessageType.EMAIl);
         return (EmailSettingContent) messageService.save(emailSetting);
     }
 
