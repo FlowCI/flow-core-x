@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -162,24 +163,50 @@ public class CredentialController {
     }
 
     /**
-     * @api {post} /credentials/:type Create
+     * @api {post} /credentials/:type Create with Multipart
      * @apiParam {String="android","rsa","ios","username"} type Credential type
-     * @apiParamExample {json} Request-Body:
+     * @apiParamExample {multipart} Request-Body:
+     *  - part:
+     *      - name: detail
+     *      - content-type: application/json
+     *  - part:
+     *      -
      *
-     *  reference on List item
+     *
      * @apiGroup Credenital
-     * @apiDescription Create credentials
+     * @apiDescription Create credentials with content-type multipart/form-data
      *
      * @apiSuccessExample {json} Success-Response
      *
      *  reference on List item
      */
-    @PostMapping(path = "/{name}")
+    @PostMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Credential create(@PathVariable String name,
                              @RequestPart(name = "detail") CredentialDetail detail,
                              @RequestPart(name = "android-file", required = false) MultipartFile file,
                              @RequestPart(name = "p12-file", required = false) MultipartFile[] p12Files,
                              @RequestPart(name = "pp-file", required = false) MultipartFile[] ppFiles) {
+
+        Credential credential = credentialService.create(name, detail);
+        return credential;
+    }
+
+    /**
+     * @api {post} /credentials/:type Create with Json
+     * @apiParam {String="android","rsa","ios","username"} type Credential type
+     * @apiParamExample {json} Request-Body:
+     *
+     *  reference on List item
+     * @apiGroup Credenital
+     * @apiDescription Create credentials with content-type application/json
+     *
+     * @apiSuccessExample {json} Success-Response
+     *
+     *  reference on List item
+     */
+    @PostMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Credential create(@PathVariable String name,
+                             @RequestBody CredentialDetail detail) {
 
         Credential credential = credentialService.create(name, detail);
         return credential;

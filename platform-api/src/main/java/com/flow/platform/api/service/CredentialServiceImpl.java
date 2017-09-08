@@ -19,9 +19,12 @@ import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialDetail;
 import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.CollectionUtil;
+import com.flow.platform.util.StringUtil;
+import com.google.common.base.Strings;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
@@ -32,6 +35,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * @author lhl
@@ -57,6 +61,17 @@ public class CredentialServiceImpl implements CredentialService {
     public Credential create(String name, CredentialDetail detail) {
         if (credentialDao.exist(name)) {
             throw new IllegalParameterException("Name of credential has already existed");
+        }
+
+        // auto generate rsa key pair if not provided
+        if (detail instanceof RSACredentialDetail) {
+            RSACredentialDetail rsaDetail = (RSACredentialDetail) detail;
+
+            if (StringUtil.isNullOrEmptyForItems(rsaDetail.getPrivateKey(), rsaDetail.getPublicKey())) {
+                RSAKeyPair pair = generateRsaKey();
+                rsaDetail.setPublicKey(pair.getPublicKey());
+                rsaDetail.setPrivateKey(pair.getPrivateKey());
+            }
         }
 
         Credential credential = new Credential(name);

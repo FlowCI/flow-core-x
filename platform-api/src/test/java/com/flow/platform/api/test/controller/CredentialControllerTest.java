@@ -18,6 +18,7 @@ package com.flow.platform.api.test.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.credential.AndroidCredentialDetail;
@@ -38,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 
@@ -94,13 +96,14 @@ public class CredentialControllerTest extends TestBase {
 
         // build mock detail entity
 
-        // when: mock create rsa credential with multipart/form-data
+        // when: mock create rsa credential
         final String credentialName = "rsa-test";
 
-        MockMultipartHttpServletRequestBuilder requestBuilder = fileUpload("/credentials/" + credentialName)
-            .file(createDetailPart(new RSACredentialDetail(pair)));
-
-        performRequestWith200Status(requestBuilder);
+        performRequestWith200Status(
+            post("/credentials/" + credentialName)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new RSACredentialDetail(pair).toJson())
+        );
 
         // then: load by name
         response = performRequestWith200Status(get("/credentials/" + credentialName));
@@ -117,6 +120,58 @@ public class CredentialControllerTest extends TestBase {
         RSACredentialDetail rsaDetail = (RSACredentialDetail) detail;
         Assert.assertEquals(pair.getPublicKey(), rsaDetail.getPublicKey());
         Assert.assertEquals(pair.getPrivateKey(), rsaDetail.getPrivateKey());
+    }
+
+    @Test
+    public void should_create_rsa_credential_auto_generate() throws Throwable {
+        // when: mock create rsa credential without rsa key pair
+        final String credentialName = "rsa-test";
+
+        performRequestWith200Status(post("/credentials/" + credentialName)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(new RSACredentialDetail().toJson())
+        );
+
+        // then: load by name
+        String response = performRequestWith200Status(get("/credentials/" + credentialName));
+        Credential rsaCredential = Credential.parse(response, Credential.class);
+        Assert.assertNotNull(rsaCredential);
+
+        // then: verify credential
+        Assert.assertEquals(credentialName, rsaCredential.getName());
+        Assert.assertEquals(CredentialType.RSA, rsaCredential.getType());
+
+        CredentialDetail detail = rsaCredential.getDetail();
+        Assert.assertTrue(detail instanceof RSACredentialDetail);
+
+        RSACredentialDetail rsaDetail = (RSACredentialDetail) detail;
+        Assert.assertNotNull(rsaDetail.getPublicKey());
+        Assert.assertNotNull(rsaDetail.getPrivateKey());
+    }
+
+    @Test
+    public void should_create_username_credential() throws Throwable {
+        // given:
+        final String credentialName = "username-test";
+
+        // when: create username credential
+        performRequestWith200Status(
+            post("/credentials/" + credentialName)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new UsernameCredentialDetail("username", "password").toJson()));
+
+        // then:
+        String response = performRequestWith200Status(get("/credentials/" + credentialName));
+        Credential credential = Credential.parse(response, Credential.class);
+        Assert.assertNotNull(credential);
+        Assert.assertEquals(CredentialType.USERNAME, credential.getType());
+
+        CredentialDetail detail = credential.getDetail();
+        Assert.assertEquals(UsernameCredentialDetail.class, detail.getClass());
+
+        UsernameCredentialDetail usernameDetail = (UsernameCredentialDetail) detail;
+        Assert.assertEquals("username", usernameDetail.getUsername());
+        Assert.assertEquals("password", usernameDetail.getPassword());
     }
 
     private MockMultipartFile createDetailPart(CredentialDetail detail) {
