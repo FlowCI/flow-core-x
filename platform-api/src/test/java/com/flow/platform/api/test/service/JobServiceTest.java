@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
@@ -203,7 +204,10 @@ public class JobServiceTest extends TestBase {
         Job job = jobService.createJob(nodePath);
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
+        Assert.assertNotNull(job.getNumber());
         Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
+
+        Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.JOB_BUILD_NUMBER));
 
         Assert.assertNotNull(job.getResult());
         Assert.assertTrue(job.getResult().getOutputs().isEmpty());
