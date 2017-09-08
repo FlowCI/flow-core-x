@@ -21,6 +21,7 @@ import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.*;
+import java.io.UnsupportedEncodingException;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -28,6 +29,7 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -63,9 +65,9 @@ public class AgentControllerTest extends TestBase {
         Thread.sleep(1000);
         // when: send get request
         MvcResult result = this.mockMvc.perform(get("/agent/list").param("zone", zoneName))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
 
         // then:
         String json = result.getResponse().getContentAsString();
@@ -93,12 +95,12 @@ public class AgentControllerTest extends TestBase {
         agentObj.setStatus(AgentStatus.BUSY);
 
         MockHttpServletRequestBuilder content = post("/agent/report")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(gsonConfig.toJson(agentObj));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(gsonConfig.toJson(agentObj));
 
         this.mockMvc.perform(content)
-                .andDo(print())
-                .andExpect(status().isOk());
+            .andDo(print())
+            .andExpect(status().isOk());
 
         // then: check status from agent service
         Agent loaded = agentService.find(agentObj.getPath());
@@ -106,7 +108,70 @@ public class AgentControllerTest extends TestBase {
     }
 
     @Test
-    public void should_get_agent_token_success(){
+    public void should_get_agent_token_success() throws Exception {
+        AgentPath agentPath = new AgentPath("default", "test");
+        MockHttpServletRequestBuilder content = post("/agent/token")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(gsonConfig.toJson(agentPath));
 
+        MvcResult result = this.mockMvc.perform(content)
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        Assert.assertNotNull(json);
     }
+
+    @Test
+    public void should_get_agent_info_success() throws Exception {
+        AgentPath agentPath = new AgentPath("default", "test");
+        MockHttpServletRequestBuilder content = post("/agent/token")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(gsonConfig.toJson(agentPath));
+
+        MvcResult result = this.mockMvc.perform(content)
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String token = result.getResponse().getContentAsString();
+
+        result = this.mockMvc.perform(get("/agent/info").param("token", token))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String info = result.getResponse().getContentAsString();
+
+        AgentSettings agentSettings = Jsonable.GSON_CONFIG.fromJson(info, AgentSettings.class);
+        Assert.assertNotNull(agentSettings);
+        Assert.assertEquals("default", agentSettings.getAgentPath().getZone());
+        Assert.assertEquals("test", agentSettings.getAgentPath().getName());
+    }
+
+
+    @Test
+    public void should_get_agent_info_fail() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(get("/agent/info").param("token", "xxxxxxx"))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        Assert.assertEquals("", mvcResult.getResponse().getContentAsString());
+    }
+
+    @Test
+    public void should_get_agent_token_fail() throws Exception {
+        AgentPath agentPath = new AgentPath("", "test");
+        MockHttpServletRequestBuilder content = post("/agent/token")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(gsonConfig.toJson(agentPath));
+
+        MvcResult result = this.mockMvc.perform(content)
+            .andDo(print())
+            .andExpect(status().)
+            .andReturn();
+    }
+
 }

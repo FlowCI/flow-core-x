@@ -17,7 +17,6 @@
 package com.flow.platform.cc.util;
 
 import java.security.MessageDigest;
-import java.util.Arrays;
 import org.apache.commons.codec.binary.Base64;
 
 /**
@@ -29,18 +28,29 @@ public class TokenUtil {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(s.getBytes());
-            return Arrays.toString(md.digest());
+            byte[] digest = md.digest();
+
+            return byteToString(digest);
+
         } catch (Throwable throwable) {
             return null;
         }
     }
 
     public static String encode(String s) {
-        return Arrays.toString(Base64.encodeBase64(s.getBytes()));
+        return Base64.encodeBase64String(s.getBytes());
     }
 
     public static String decode(String s) {
-        return Arrays.toString(Base64.decodeBase64(s.getBytes()));
+        return new String(Base64.decodeBase64(s.getBytes()));
+    }
+
+    private static String byteToString(byte[] digest) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (byte b : digest) {
+            stringBuilder.append(String.format("%02x", b & 0xff));
+        }
+        return stringBuilder.toString();
     }
 
 }

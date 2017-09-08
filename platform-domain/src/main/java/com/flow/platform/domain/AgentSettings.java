@@ -43,6 +43,8 @@ public class AgentSettings extends Jsonable {
      */
     private String zookeeperUrl;
 
+    private AgentPath agentPath;
+
     public AgentSettings() {
     }
 
@@ -50,6 +52,22 @@ public class AgentSettings extends Jsonable {
         this.webSocketUrl = webSocketUrl;
         this.cmdStatusUrl = cmdStatusUrl;
         this.cmdLogUrl = cmdLogUrl;
+        this.zookeeperUrl = zookeeperUrl;
+    }
+
+    public AgentPath getAgentPath() {
+        return agentPath;
+    }
+
+    public void setAgentPath(AgentPath agentPath) {
+        this.agentPath = agentPath;
+    }
+
+    public String getZookeeperUrl() {
+        return zookeeperUrl;
+    }
+
+    public void setZookeeperUrl(String zookeeperUrl) {
         this.zookeeperUrl = zookeeperUrl;
     }
 

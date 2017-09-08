@@ -193,13 +193,21 @@ public class AgentServiceImpl implements AgentService {
     public AgentSettings getInfo(String token) {
 
         // decode token
-        AgentToken agentToken = Jsonable.GSON_CONFIG.fromJson(token, AgentToken.class);
+        AgentToken agentToken;
 
-        // validate token
-        if(validateToken(agentToken)){
-            throw new IllegalParameterException(String.format("Validate Token Error %s", agentToken.toString()));
+        try {
+            token = TokenUtil.decode(token);
+            agentToken = Jsonable.GSON_CONFIG.fromJson(token, AgentToken.class);
+        } catch (Throwable throwable) {
+            return null;
         }
 
+        // validate token
+        if (!validateToken(agentToken)) {
+            return null;
+        }
+
+        agentSettings.setAgentPath(agentToken.getAgentPath());
         return agentSettings;
     }
 
