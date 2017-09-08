@@ -155,10 +155,8 @@ public class AgentControllerTest extends TestBase {
     public void should_get_agent_info_fail() throws Exception {
         MvcResult mvcResult = this.mockMvc.perform(get("/agent/info").param("token", "xxxxxxx"))
             .andDo(print())
-            .andExpect(status().isOk())
+            .andExpect(status().isBadRequest())
             .andReturn();
-
-        Assert.assertEquals("", mvcResult.getResponse().getContentAsString());
     }
 
     @Test
@@ -170,7 +168,7 @@ public class AgentControllerTest extends TestBase {
 
         MvcResult result = this.mockMvc.perform(content)
             .andDo(print())
-            .andExpect(status().)
+            .andExpect(status().isBadRequest())
             .andReturn();
     }
 

@@ -47,6 +47,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @EnableWebMvc
 @EnableScheduling
 @ComponentScan({
+    "com.flow.platform.core.controller",
     "com.flow.platform.cc.context",
     "com.flow.platform.cc.controller",
     "com.flow.platform.cc.consumer",

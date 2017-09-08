@@ -199,12 +199,12 @@ public class AgentServiceImpl implements AgentService {
             token = TokenUtil.decode(token);
             agentToken = Jsonable.GSON_CONFIG.fromJson(token, AgentToken.class);
         } catch (Throwable throwable) {
-            return null;
+            throw new IllegalParameterException("decoding error");
         }
 
         // validate token
         if (!validateToken(agentToken)) {
-            return null;
+            throw new IllegalParameterException("token error");
         }
 
         agentSettings.setAgentPath(agentToken.getAgentPath());

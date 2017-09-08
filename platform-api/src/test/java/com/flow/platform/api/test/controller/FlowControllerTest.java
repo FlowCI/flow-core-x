@@ -26,7 +26,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.response.BooleanValue;
-import com.flow.platform.api.domain.response.ResponseError;
+import com.flow.platform.core.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.PathUtil;
 import org.junit.Assert;
