@@ -19,6 +19,7 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Node;
@@ -145,7 +146,10 @@ public class JobServiceImpl implements JobService {
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
-        job.setEnvs(root.getEnvs());
+
+        // setup job env variables
+        job.putEnv(JobEnvs.JOB_BUILD_NUMBER, job.getNumber().toString());
+        EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
 
         //save job
         jobDao.save(job);
