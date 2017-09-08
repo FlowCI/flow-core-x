@@ -74,7 +74,6 @@ public class SmtpUtil {
             transport.connect(emailSetting.getSmtpUrl(), emailSetting.getSmtpPort(), emailSetting.getUsername(),
                 emailSetting.getPassword());
             transport.close();
-            System.out.println("success");
             return true;
         } catch (Throwable throwable) {
             return false;

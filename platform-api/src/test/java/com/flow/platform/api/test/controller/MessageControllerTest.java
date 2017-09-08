@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.response.SmtpAuthResponse;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.domain.Jsonable;
 import org.junit.Assert;
 import org.junit.Test;
@@ -105,13 +106,13 @@ public class MessageControllerTest extends TestBase {
         try {
             MvcResult mvcResult = this.mockMvc.perform(content)
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().is4xxClientError())
                 .andReturn();
 
             String response = mvcResult.getResponse().getContentAsString();
-            SmtpAuthResponse smtpAuthResponse = Jsonable.GSON_CONFIG.fromJson(response, SmtpAuthResponse.class);
+            FlowException smtpAuthResponse = Jsonable.GSON_CONFIG.fromJson(response, FlowException.class);
 
-            Assert.assertEquals(false, smtpAuthResponse.getAuth());
+            Assert.assertNotNull(smtpAuthResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }

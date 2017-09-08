@@ -82,11 +82,12 @@ public class ZKClient implements Closeable {
     public boolean start() {
         try {
             client.start();
+
             if (client.blockUntilConnected(30, TimeUnit.SECONDS)) {
                 return true;
             }
-        } catch (InterruptedException ignore) {
 
+        } catch (InterruptedException ignore) {
         }
         return false;
     }
