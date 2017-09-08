@@ -26,10 +26,12 @@ import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.zk.ZKClient;
 import com.google.gson.Gson;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import org.apache.commons.io.FileUtils;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -58,8 +60,11 @@ public abstract class TestBase {
         try {
             System.setProperty("flow.cc.env", "local");
             System.setProperty("flow.cc.task.keep_idle_agent", "false");
-//            TestingServer testingServer = new TestingServer(2181);
-//            testingServer.start();
+            File file = new File(
+                String.format("%s%s%s", System.getProperty("java.io.tmpdir"), File.separator, "data"));
+            if (file.isDirectory() && file.exists()) {
+                FileUtils.deleteDirectory(file);
+            }
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
