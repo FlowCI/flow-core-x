@@ -63,7 +63,7 @@ public class AgentController {
     }
 
     @GetMapping(path = "/info")
-    public AgentSettings getInfo(@RequestParam String token) {
+    public AgentSettings getInfo(@RequestParam(required = false) String token) {
         return agentService.getInfo(token);
     }
 

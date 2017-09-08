@@ -22,14 +22,17 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.util.PlatformURL;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -113,5 +116,32 @@ public class AgentServiceImpl implements AgentService {
             LOGGER.warnMarker("shutdown", "Illegal shutdown state : " + e.getMessage());
             return false;
         }
+    }
+
+    @Override
+    public String createToken(AgentPath agentPath) {
+        String post = null;
+        try {
+            post = HttpUtil.post(platformURL.getAgentTokenUrl(), Jsonable.GSON_CONFIG.toJson(agentPath));
+            if (Strings.isNullOrEmpty(post)) {
+                throw new FlowException("get token error");
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new FlowException("get token error", e);
+        }
+        return post;
+    }
+
+    @Override
+    public String getInfo(String token) {
+
+        String url = new StringBuilder(platformURL.getAgentInfoUrl()).append("?").append("token=" + token).toString();
+        String res = HttpUtil.get(url);
+
+        if (res == null) {
+            throw new FlowException("get agent info error");
+        }
+
+        return res;
     }
 }
