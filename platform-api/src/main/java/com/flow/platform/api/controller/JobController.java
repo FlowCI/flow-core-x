@@ -154,6 +154,10 @@ public class JobController extends NodeController {
      * @apiSuccessExample {json} Success-Response
      *  [
      *      {
+     *          key: {
+     *              jobId: xxx,
+     *              path: flow-name/step-name
+     *          }
      *          outputs: {
      *              FLOW_ENV_OUT_1: xxxx,
      *              FLOW_ENV_OUT_2: xxxx

@@ -67,9 +67,8 @@ public class NodeResultServiceImpl implements NodeResultService {
 
         // save all empty node result to db
         NodeUtil.recurse(root, node -> {
-            NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
-            nodeResult.setName(node.getName());
-            nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+
+            NodeResult nodeResult = create(job, node);
             nodeResultDao.save(nodeResult);
 
             if (node.equals(root)) {
@@ -102,6 +101,14 @@ public class NodeResultServiceImpl implements NodeResultService {
 
         updateParent(job, node);
         return currentResult;
+    }
+
+    private NodeResult create(Job job, Node node) {
+        NodeResult r = new NodeResult(job.getId(), node.getPath());
+        r.setName(node.getName());
+        r.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+        r.setCmdId(String.format("%s-%s", r.getKey().getJobId(), r.getKey().getPath()));
+        return r;
     }
 
     private void updateCurrent(NodeResult currentResult, Cmd cmd) {

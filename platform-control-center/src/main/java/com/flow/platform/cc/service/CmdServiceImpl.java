@@ -135,6 +135,11 @@ public class CmdServiceImpl implements CmdService {
         cmd.setCreatedDate(ZonedDateTime.now());
         cmd.setUpdatedDate(ZonedDateTime.now());
 
+        // check customized id from CmdInfo, therefore cmd id can be controlled by other system
+        if (!Strings.isNullOrEmpty(info.getCustomizedId())) {
+            cmd.setId(info.getCustomizedId());
+        }
+
         // validate input cmd
         for (Map.Entry<EnumSet<CmdType>, CmdValidator> entry : cmdValidators.entrySet()) {
             EnumSet<CmdType> types = entry.getKey();

@@ -91,22 +91,21 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public String runShell(Job job, Node node) {
+    public void runShell(Job job, Node node, String cmdId) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setInputs(node.getEnvs());
         cmdInfo.setWebhook(buildCmdWebhook(job));
         cmdInfo.setOutputEnvFilter("FLOW_");
         cmdInfo.setSessionId(job.getSessionId());
         cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
+        cmdInfo.setCustomizedId(cmdId);
 
         try {
             LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());
-            Cmd cmd = sendDirectly(cmdInfo);
-            return cmd.getId();
+            sendDirectly(cmdInfo);
         } catch (Throwable ignore) {
             String rootCause = ExceptionUtil.findRootCause(ignore).getMessage();
             LOGGER.warnMarker("RunShell", "Unexpected exception", rootCause);
-            return null;
         }
     }
 

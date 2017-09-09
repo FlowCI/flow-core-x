@@ -75,9 +75,6 @@ public class JobServiceImpl implements JobService {
     private JobDao jobDao;
 
     @Autowired
-    private NodeResultDao nodeResultDao;
-
-    @Autowired
     private NodeService nodeService;
 
     @Autowired
@@ -85,9 +82,6 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private YmlService ymlService;
-
-    @Autowired
-    private PlatformURL platformURL;
 
     @Override
     public Job find(BigInteger id) {
@@ -242,12 +236,9 @@ public class JobServiceImpl implements JobService {
         // pass job env to node
         EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
 
-        String cmdId = cmdService.runShell(job, node);
+        // to run node with customized cmd id
         NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
-
-        // record cmd id
-        nodeResult.setCmdId(cmdId);
-        nodeResultService.save(nodeResult);
+        cmdService.runShell(job, node, nodeResult.getCmdId());
     }
 
     /**

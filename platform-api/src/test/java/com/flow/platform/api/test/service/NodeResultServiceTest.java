@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import java.io.IOException;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,10 +34,22 @@ public class NodeResultServiceTest extends TestBase {
 
     @Test
     public void should_save_job_node_by_job() throws IOException {
+        // when: create node result list from job
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath());
 
+        // then: check node result is created
+        List<NodeResult> list = nodeResultService.list(job);
+        Assert.assertEquals(5, list.size());
+
+        // then: check cmd id is defined
+        for (NodeResult nodeResult : list) {
+            Assert.assertEquals(String.format("%s-%s", job.getId(), nodeResult.getKey().getPath()),
+                nodeResult.getCmdId());
+        }
+
+        // then: check flow node result is created
         Flow flow = (Flow) nodeService.find(job.getNodePath());
         Assert.assertEquals(job.getId(), nodeResultService.find(flow.getPath(), job.getId()).getJobId());
     }

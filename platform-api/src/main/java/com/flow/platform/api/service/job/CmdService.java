@@ -41,17 +41,15 @@ public interface CmdService {
 
     /**
      * Send run shell cmd by node for job
-     *
-     * @return cmd id
      */
-    String runShell(Job job, Node node);
+    void runShell(Job job, Node node, String cmdId);
 
     /**
      * Send shutdown cmd to agent
      *
      * @param path target agent path
      * @param password password for host
-     * @exception com.flow.platform.core.exception.IllegalStatusException if unable to send cmd to cc
+     * @throws com.flow.platform.core.exception.IllegalStatusException if unable to send cmd to cc
      */
     void shutdown(AgentPath path, String password);
 }

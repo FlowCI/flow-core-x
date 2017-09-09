@@ -39,6 +39,7 @@ public class NodeResult extends CreateUpdateObject {
 
     public final static EnumSet<NodeStatus> STOP_STATUS = EnumSet.of(STOPPED);
 
+    @Expose
     private NodeResultKey key;
 
     @Expose
