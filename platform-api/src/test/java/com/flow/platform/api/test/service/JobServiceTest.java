@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
@@ -79,7 +79,7 @@ public class JobServiceTest extends TestBase {
         cmd.setSessionId("11111111");
         cmd.setStatus(CmdStatus.SENT);
 
-        jobService.callback(new CmdQueueItem(job.getId(), cmd));
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         job = jobService.find(job.getId());
         Assert.assertEquals("11111111", job.getSessionId());
@@ -89,7 +89,7 @@ public class JobServiceTest extends TestBase {
         cmd.setType(CmdType.RUN_SHELL);
         cmd.setExtra(step1.getPath());
 
-        jobService.callback(new CmdQueueItem(job.getId(), cmd));
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
         job = jobService.find(job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, job.getResult().getStatus());
         job = jobService.find(job.getId());
@@ -105,7 +105,7 @@ public class JobServiceTest extends TestBase {
         cmdResult.setDuration(10L);
         cmd.setCmdResult(cmdResult);
 
-        jobService.callback(new CmdQueueItem(job.getId(), cmd));
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
         job = jobService.find(job.getId());
 
         Assert.assertEquals(NodeStatus.FAILURE, (nodeResultService.find(step2.getPath(), job.getId())).getStatus());
@@ -132,7 +132,7 @@ public class JobServiceTest extends TestBase {
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId(sessionId);
         cmd.setStatus(CmdStatus.SENT);
-        CmdQueueItem createSessionItem = new CmdQueueItem(job.getId(), cmd);
+        CmdCallbackQueueItem createSessionItem = new CmdCallbackQueueItem(job.getId(), cmd);
         jobService.callback(createSessionItem);
 
         // then: check job status should be running
@@ -174,7 +174,7 @@ public class JobServiceTest extends TestBase {
 
             // build mock identifier
 
-            CmdQueueItem runStepShellItem = new CmdQueueItem(job.getId(), stepCmd);
+            CmdCallbackQueueItem runStepShellItem = new CmdCallbackQueueItem(job.getId(), stepCmd);
             jobService.callback(runStepShellItem);
             stepResult = nodeResultService.find(step.getPath(), job.getId());
             Assert.assertEquals(NodeStatus.SUCCESS, stepResult.getStatus());

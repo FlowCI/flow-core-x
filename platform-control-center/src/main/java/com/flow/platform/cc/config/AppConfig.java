@@ -57,14 +57,7 @@ import org.springframework.web.context.support.StandardServletEnvironment;
  * @author gy@fir.im
  */
 @Configuration
-@Import({
-    DatabaseConfig.class,
-    ZooKeeperConfig.class,
-    MQConfig.class,
-    TaskConfig.class,
-    WebSocketConfig.class,
-    AgentConfig.class
-})
+@Import({DatabaseConfig.class, ZooKeeperConfig.class, MQConfig.class, TaskConfig.class, AgentConfig.class})
 public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "Control Center";
@@ -80,7 +73,7 @@ public class AppConfig extends AppConfigBase {
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
     private final static ThreadPoolTaskExecutor executor =
-        ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100,THREAD_NAME_PREFIX);
+        ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
 
     @PostConstruct
     public void init() {

@@ -15,9 +15,8 @@
  */
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import java.math.BigInteger;
 import java.util.List;
@@ -62,12 +61,12 @@ public interface JobService {
     /**
      * handle callback
      **/
-    void callback(CmdQueueItem cmdQueueItem);
+    void callback(CmdCallbackQueueItem cmdQueueItem);
 
     /**
      * send cmd to queue
      */
-    void enterQueue(CmdQueueItem cmdQueueItem);
+    void enterQueue(CmdCallbackQueueItem cmdQueueItem);
 
     /**
      * stop job

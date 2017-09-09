@@ -17,7 +17,7 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
@@ -69,7 +69,7 @@ public class JobServiceImpl implements JobService {
     private JobNodeService jobNodeService;
 
     @Autowired
-    private BlockingQueue<CmdQueueItem> cmdBaseBlockingQueue;
+    private BlockingQueue<CmdCallbackQueueItem> cmdBaseBlockingQueue;
 
     @Autowired
     private JobDao jobDao;
@@ -171,7 +171,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void callback(CmdQueueItem cmdQueueItem) {
+    public void callback(CmdCallbackQueueItem cmdQueueItem) {
         BigInteger jobId = cmdQueueItem.getJobId();
         Cmd cmd = cmdQueueItem.getCmd();
         Job job = find(jobId);
@@ -319,7 +319,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void enterQueue(CmdQueueItem cmdQueueItem) {
+    public void enterQueue(CmdCallbackQueueItem cmdQueueItem) {
         try {
             cmdBaseBlockingQueue.put(cmdQueueItem);
         } catch (Throwable throwable) {

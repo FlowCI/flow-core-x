@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.consumer;
+package com.flow.platform.api.consumer;
 
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 /**
+ * To handle cmd real time logging from agent
+ *
  * @author yang
  */
-@Component
-public class RealTimeLoggingHandler extends TextWebSocketHandler {
+public class CmdLoggingConsumer extends TextWebSocketHandler {
 
-    private final static Logger LOGGER = new Logger(RealTimeLoggingHandler.class);
+    private final static Logger LOGGER = new Logger(CmdLoggingConsumer.class);
 
     private final static int MIN_LENGTH_LOG = 6;
 
@@ -58,7 +58,7 @@ public class RealTimeLoggingHandler extends TextWebSocketHandler {
 
         String content = logItem.substring(cmdIdIndex + 1);
 
-        String event = String.format("/topic/%s:%s", zone, agent);
+        String event = String.format("/topic/%s", cmdId);
         template.convertAndSend(event, content);
     }
 }

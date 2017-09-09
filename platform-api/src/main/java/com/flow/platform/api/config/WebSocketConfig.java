@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.config;
+package com.flow.platform.api.config;
 
-import com.flow.platform.cc.consumer.RealTimeLoggingHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.flow.platform.api.consumer.CmdLoggingConsumer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -35,12 +36,15 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocketMessageBroker
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer implements WebSocketConfigurer {
 
-    @Autowired
-    private RealTimeLoggingHandler realTimeLoggingHandler;
+    @Bean
+    public WebSocketHandler cmdLoggingConsumer() {
+        return new CmdLoggingConsumer();
+    }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(realTimeLoggingHandler, "/cmd/logging").setAllowedOrigins("*");
+        WebSocketHandler webSocketHandler = cmdLoggingConsumer();
+        registry.addHandler(webSocketHandler, "/cmd/logging").setAllowedOrigins("*");
     }
 
     @Override
