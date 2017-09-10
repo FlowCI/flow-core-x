@@ -17,41 +17,24 @@
 package com.flow.platform.cc.config;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
-import com.flow.platform.cc.resource.PropertyResourceLoader;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
-import com.flow.platform.core.sysinfo.PropertySystemInfo;
-import com.flow.platform.core.sysinfo.SystemInfo;
-import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.support.ResourcePropertySource;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
  * @author gy@fir.im

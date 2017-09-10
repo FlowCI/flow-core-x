@@ -16,8 +16,8 @@
 
 package com.flow.platform.core.config;
 
+import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.core.sysinfo.PropertySystemInfo;
-import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.util.DateUtil;
 import java.util.Map;
@@ -27,20 +27,21 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.ResourcePropertySource;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
  * @author yh@firim
  */
-@ComponentScan({
-    "com.flow.platform.core.context",
-    "com.flow.platform.core.service"
-})
+@ComponentScan({"com.flow.platform.core.service"})
 public abstract class AppConfigBase {
 
     @Autowired
     private Environment env;
+
+    @Bean
+    public SpringContext springContext() {
+        return new SpringContext();
+    }
 
     @Bean
     public PropertySystemInfo systemInfo() {
