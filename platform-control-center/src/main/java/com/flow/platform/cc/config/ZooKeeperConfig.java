@@ -94,22 +94,27 @@ public class ZooKeeperConfig {
 
     @Bean
     public ZKClient zkClient() {
-        ZKClient zkClient = new ZKClient(host, clientTimeout);
+        if (enableEmbeddedServer) {
+            if (startEmbeddedServer()) {
+                ZKClient zkClient = new ZKClient(EMBEDDED_ZOOKEEPER_HOST, clientTimeout);
+                if (zkClient.start()) {
+                    LOGGER.info("Zookeeper been connected at: %s", host);
+                    return zkClient;
+                }
 
+                throw new RuntimeException("Fail to connect embedded zookeeper server" + host);
+            }
+
+            throw new RuntimeException("Fail to start embedded zookeeper server" + host);
+        }
+
+        ZKClient zkClient = new ZKClient(host, clientTimeout);
         if (zkClient.start()) {
             LOGGER.info("Zookeeper been connected at: %s", host);
             return zkClient;
         }
 
-        if (enableEmbeddedServer && startEmbeddedServer()) {
-            zkClient = new ZKClient(EMBEDDED_ZOOKEEPER_HOST, clientTimeout);
-            if (zkClient.start()) {
-                LOGGER.info("Zookeeper been connected at: %s", host);
-                return zkClient;
-            }
-        }
-
-        throw new RuntimeException(String.format("Fail to connect zookeeper server: %s", host));
+        throw new RuntimeException("Fail to connect zookeeper server: " + host);
     }
 
     @Bean
