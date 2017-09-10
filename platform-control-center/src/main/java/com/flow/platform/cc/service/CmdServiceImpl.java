@@ -29,7 +29,9 @@ import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.task.CmdWebhookTask;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -59,6 +61,7 @@ import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import javax.annotation.PostConstruct;
+import org.omg.PortableServer.THREAD_POLICY_ID;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -128,6 +131,7 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
+    @Transactional(noRollbackFor = Throwable.class)
     public Cmd create(CmdInfo info) {
 
         Cmd cmd = Cmd.convert(info);
@@ -146,9 +150,7 @@ public class CmdServiceImpl implements CmdService {
             CmdValidator validator = entry.getValue();
 
             if (types.contains(cmd.getType())) {
-                if (!validator.validate(cmd)) {
-                    throw new IllegalParameterException("Invalid cmd: " + validator.errorMessage);
-                }
+                validator.validate(cmd);
             }
         }
 
@@ -346,26 +348,22 @@ public class CmdServiceImpl implements CmdService {
 
         abstract boolean doValidation(Cmd cmd);
 
-        protected String errorMessage;
-
-        boolean validate(Cmd cmd) {
+        void validate(Cmd cmd) {
             if (!targets().contains(cmd.getType())) {
-                errorMessage = "Cmd validator type does not match";
-                return false;
+                throw new IllegalParameterException("Cmd validator type does not match");
             }
 
             // verify input cmd status is in finished status
             if (!cmd.isCurrent()) {
-                errorMessage = "Cmd cannot be proceeded since status is: " + cmd.getStatus();
-                return false;
+                throw new IllegalStatusException("Cmd cannot be proceeded since status is: " + cmd.getStatus());
             }
 
             AgentPath agentPath = cmd.getAgentPath();
-            return agentPath != null && doValidation(cmd);
-        }
+            if (agentPath == null) {
+                throw new IllegalParameterException("Cmd anget path does not set");
+            }
 
-        String error() {
-            return errorMessage;
+            doValidation(cmd);
         }
     }
 
@@ -384,14 +382,12 @@ public class CmdServiceImpl implements CmdService {
         @Override
         boolean doValidation(Cmd cmd) {
             if (Strings.isNullOrEmpty(cmd.getZoneName())) {
-                errorMessage = ERR_MISSING_ZONE;
-                return false;
+                throw new IllegalParameterException(ERR_MISSING_NAME);
             }
 
             Zone zone = zoneService.getZone(cmd.getZoneName());
             if (zone == null) {
-                errorMessage = "Zone name not found: " + cmd.getZoneName();
-                return false;
+                throw new IllegalParameterException("Zone name not found: " + cmd.getZoneName());
             }
 
             return true;
@@ -410,8 +406,7 @@ public class CmdServiceImpl implements CmdService {
         @Override
         boolean doValidation(Cmd cmd) {
             if (Strings.isNullOrEmpty(cmd.getSessionId())) {
-                errorMessage = "Missing session id";
-                return false;
+                throw new IllegalParameterException("Missing session id");
             }
 
             return true;
@@ -436,8 +431,7 @@ public class CmdServiceImpl implements CmdService {
 
             Agent agent = agentService.find(sessionId);
             if (agent == null) {
-                errorMessage = "Agent not found for session: " + sessionId;
-                return false;
+                throw new IllegalParameterException("Agent not found for session: " + sessionId);
             }
 
             return true;
@@ -456,20 +450,18 @@ public class CmdServiceImpl implements CmdService {
         @Override
         public boolean doValidation(Cmd cmd) {
             AgentPath path = cmd.getAgentPath();
+
             if (Strings.isNullOrEmpty(path.getZone())) {
-                errorMessage = ERR_MISSING_ZONE;
-                return false;
+                throw new IllegalParameterException(ERR_MISSING_ZONE);
             }
 
             if (Strings.isNullOrEmpty(path.getName())) {
-                errorMessage = ERR_MISSING_NAME;
-                return false;
+                throw new IllegalParameterException(ERR_MISSING_NAME);
             }
 
             Agent agent = agentService.find(path);
             if (agent == null) {
-                errorMessage = "Agent not found: " + cmd.getAgentPath();
-                return false;
+                throw new AgentErr.NotFoundException("Agent not found: " + cmd.getAgentPath());
             }
 
             return true;

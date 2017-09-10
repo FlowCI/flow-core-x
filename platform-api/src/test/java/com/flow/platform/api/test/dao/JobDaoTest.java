@@ -51,6 +51,7 @@ public class JobDaoTest extends TestBase {
         nodeResult = new NodeResult(job.getId(), job.getNodePath());
         nodeResult.setNodeTag(NodeTag.FLOW);
         nodeResult.setStatus(NodeStatus.SUCCESS);
+        nodeResult.setOrder(1);
         nodeResultDao.save(nodeResult);
     }
 
@@ -114,6 +115,7 @@ public class JobDaoTest extends TestBase {
         NodeResult newResult = new NodeResult(newJob.getId(), newJob.getNodePath());
         newResult.setNodeTag(NodeTag.FLOW);
         newResult.setStatus(NodeStatus.FAILURE);
+        newResult.setOrder(1);
         nodeResultDao.save(newResult);
 
         // when: get latest job

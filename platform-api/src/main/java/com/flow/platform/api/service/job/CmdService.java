@@ -19,6 +19,7 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.CmdInfo;
 
 /**
  * Control center cmd service
@@ -41,8 +42,10 @@ public interface CmdService {
 
     /**
      * Send run shell cmd by node for job
+     *
+     * @return CmdInfo instance, CmdStatus will be exception if fail to send
      */
-    void runShell(Job job, Node node, String cmdId);
+    CmdInfo runShell(Job job, Node node, String cmdId);
 
     /**
      * Send shutdown cmd to agent

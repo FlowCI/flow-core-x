@@ -28,6 +28,8 @@ public interface JobService {
 
     /**
      * find by node path and number
+     *
+     * @return job with children node result
      */
     Job find(String path, Integer number);
 

@@ -36,6 +36,7 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
@@ -87,6 +88,11 @@ public class JobServiceImpl implements JobService {
         if (job == null) {
             throw new NotFoundException("job is not found");
         }
+
+        List<NodeResult> allResults = nodeResultService.list(job);
+        allResults.remove(allResults.size() - 1);
+        job.setChildrenResult(allResults);
+
         return job;
     }
 
@@ -233,7 +239,11 @@ public class JobServiceImpl implements JobService {
 
         // to run node with customized cmd id
         NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
-        cmdService.runShell(job, node, nodeResult.getCmdId());
+        CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
+
+        if (cmd.getStatus() == CmdStatus.EXCEPTION) {
+            nodeResultService.update(job, node, Cmd.convert(cmd));
+        }
     }
 
     /**

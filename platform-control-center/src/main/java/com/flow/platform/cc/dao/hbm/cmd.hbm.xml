@@ -44,7 +44,7 @@
 
   <!--for cmd result definition-->
   <class name="CmdResult" table="cmd_result">
-    <id name="cmdId" type="string" column="cmd_id" length="36">
+    <id name="cmdId" type="string" column="cmd_id" length="100">
       <generator class="assigned"/>
     </id>
 

@@ -24,7 +24,6 @@ import java.math.BigInteger;
  */
 public class NodeResultKey implements Serializable {
 
-    @Expose
     private BigInteger jobId;
 
     @Expose

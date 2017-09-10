@@ -135,8 +135,11 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
             CmdResult result = new CmdResult();
             result.getExceptions().add(e);
 
-            CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
+            // update cmd status to exception
+            CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.EXCEPTION, null, false, true);
             cmdService.updateStatus(statusItem, false);
+
+            cleanCurrentCmd(cmd);
             throw e;
         }
     }
@@ -224,6 +227,22 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         CmdInfo param = new CmdInfo(target.getPath(), CmdType.DELETE_SESSION, null);
         param.setSessionId(target.getSessionId());
         return cmdService.create(param);
+    }
+
+    /**
+     * Kill agent current running cmd or delete current session
+     */
+    private void cleanCurrentCmd(Cmd current) {
+        if (Strings.isNullOrEmpty(current.getSessionId())) {
+            Cmd cmdToKill = cmdService.create(new CmdInfo(current.getAgentPath(), CmdType.KILL, null));
+            dispatch(cmdToKill.getId(), false);
+        }
+
+        else {
+            Agent agent = agentService.find(current.getAgentPath());
+            Cmd cmdToDelSession = createDeleteSessionCmd(agent);
+            dispatch(cmdToDelSession.getId(), false);
+        }
     }
 
     /**

@@ -244,12 +244,10 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
             Type type = event.getType();
             LOGGER.debugMarker("ZoneEventListener", "Receive zookeeper event %s", type);
 
-            if (type.equals(Type.CHILD_ADDED) || type.equals(Type.CHILD_REMOVED)) {
-                taskExecutor.execute(() -> {
-                    List<String> agents = zkClient.getChildren(zone.getPath());
-                    agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
-                });
-            }
+            taskExecutor.execute(() -> {
+                List<String> agents = zkClient.getChildren(zone.getPath());
+                agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
+            });
         }
     }
 }
