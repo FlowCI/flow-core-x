@@ -59,11 +59,11 @@ public class JobDaoTest extends TestBase {
         // when:
         Job loaded = jobDao.get(job.getId());
         Assert.assertNotNull(loaded);
-        Assert.assertNotNull(loaded.getResult());
+        Assert.assertNotNull(loaded.getRootResult());
 
         // then: check job is correct
         Assert.assertEquals(job.getNodePath(), loaded.getNodePath());
-        Assert.assertEquals(nodeResult.getKey(), loaded.getResult().getKey());
+        Assert.assertEquals(nodeResult.getKey(), loaded.getRootResult().getKey());
 
         // then: check job list data
         Assert.assertEquals(job, jobDao.list().get(0));
@@ -123,7 +123,7 @@ public class JobDaoTest extends TestBase {
 
         // then:
         Job lastJob = latestJobList.get(0);
-        Assert.assertEquals(NodeStatus.FAILURE, lastJob.getResult().getStatus());
+        Assert.assertEquals(NodeStatus.FAILURE, lastJob.getRootResult().getStatus());
     }
 
     @Test
@@ -136,7 +136,7 @@ public class JobDaoTest extends TestBase {
         Assert.assertEquals(1, jobs.size());
 
         Job job1 = jobs.get(0);
-        Assert.assertEquals(nodeResult.getStatus(), job1.getResult().getStatus());
+        Assert.assertEquals(nodeResult.getStatus(), job1.getRootResult().getStatus());
         Assert.assertNotNull(job1.getCreatedAt());
         Assert.assertNotNull(job1.getUpdatedAt());
     }

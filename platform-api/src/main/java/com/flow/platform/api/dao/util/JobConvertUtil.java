@@ -45,7 +45,7 @@ public class JobConvertUtil {
         if (objects[1] == null) {
             return job;
         }
-        job.setResult((NodeResult) objects[1]);
+        job.setRootResult((NodeResult) objects[1]);
         return job;
     }
 

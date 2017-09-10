@@ -27,11 +27,6 @@ import java.util.List;
 public interface JobService {
 
     /**
-     * find job by id
-     */
-    Job find(BigInteger id);
-
-    /**
      * find by node path and number
      */
     Job find(String path, Integer number);
@@ -54,7 +49,7 @@ public interface JobService {
      * request agent session from control center
      *
      * @param path any node path
-     * @return job
+     * @return job with children node result
      */
     Job createJob(String path);
 

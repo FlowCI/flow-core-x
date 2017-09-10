@@ -44,14 +44,17 @@ public class NodeResultDaoTest extends TestBase {
     public void should_save_and_get_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setNodePath("/flow1");
+
         NodeResult jobNode = new NodeResult(job.getId(), "/flow1");
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
         jobNode.setNodeTag(NodeTag.FLOW);
+        jobNode.setOrder(1);
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
+
         NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
         NodeResult job_node = nodeResultDao.get(nodeResultKey);
         Assert.assertNotNull(job_node);
@@ -63,14 +66,17 @@ public class NodeResultDaoTest extends TestBase {
     public void should_update_success() {
         Job job = new Job(CommonUtil.randomId());
         job.setNodePath("/flow1");
+
         NodeResult jobNode = new NodeResult(job.getId(), "/flow1");
         jobNode.setStatus(NodeStatus.SUCCESS);
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
+        jobNode.setOrder(1);
         jobNode.setNodeTag(NodeTag.FLOW);
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
+
         NodeResult job_node = nodeResultService.find(job.getNodePath(), job.getId());
         job_node.setNodeTag(NodeTag.STEP);
         nodeResultDao.update(job_node);
@@ -90,12 +96,13 @@ public class NodeResultDaoTest extends TestBase {
         jobNode.setExitCode(0);
         jobNode.setCmdId("1111");
         jobNode.setNodeTag(NodeTag.FLOW);
+        jobNode.setOrder(1);
         jobNode.setStartTime(ZonedDateTime.now());
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
+
         nodeResultDao.delete(jobNode);
         NodeResult job_node = nodeResultService.find(job.getNodePath(), job.getId());
-
         Assert.assertEquals(null, job_node);
     }
 }
