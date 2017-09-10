@@ -36,6 +36,12 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocketMessageBroker
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer implements WebSocketConfigurer {
 
+    // for agent uploading real time log
+    private final static String PATH_FOR_AGENT_CMD_LOGGING = "/agent/cmd/logging";
+
+    // for cmd logging which web connected to
+    private final static String PATH_FOR_WEB_CONNECTION = "/ws/web";
+
     @Bean
     public WebSocketHandler cmdLoggingConsumer() {
         return new CmdLoggingConsumer();
@@ -44,17 +50,17 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer im
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         WebSocketHandler webSocketHandler = cmdLoggingConsumer();
-        registry.addHandler(webSocketHandler, "/cmd/logging").setAllowedOrigins("*");
+        registry.addHandler(webSocketHandler, PATH_FOR_AGENT_CMD_LOGGING).setAllowedOrigins("*");
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
+        config.enableSimpleBroker("/topic/cmd", "/topic/job");
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/cmd/logging").setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint(PATH_FOR_WEB_CONNECTION).setAllowedOrigins("*").withSockJS();
     }
 }
