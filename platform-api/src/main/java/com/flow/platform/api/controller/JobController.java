@@ -75,7 +75,7 @@ public class JobController extends NodeController {
      *      status: CREATED,
      *      createdAt: 154123211,
      *      updatedAt: 154123211,
-     *      rootResult: {
+     *      result: {
      *          outputs: {
      *              FLOW_ENV_OUT_1: xxxx,
      *              FLOW_ENV_OUT_2: xxxx

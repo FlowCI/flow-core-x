@@ -18,6 +18,7 @@ package com.flow.platform.api.domain.job;
 
 import com.flow.platform.api.domain.EnvObject;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -54,6 +55,7 @@ public class Job extends EnvObject {
      * The root node result for job detail
      */
     @Expose
+    @SerializedName("result")
     private NodeResult rootResult;
 
     /**
