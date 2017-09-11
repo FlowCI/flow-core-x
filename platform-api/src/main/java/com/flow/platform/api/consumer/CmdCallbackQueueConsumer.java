@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.consumer;
 
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.core.consumer.QueueConsumerBase;
 import com.flow.platform.util.Logger;
@@ -29,12 +29,12 @@ import org.springframework.stereotype.Component;
  * @author yh@firim
  */
 @Component
-public class CmdQueueConsumer extends QueueConsumerBase<CmdQueueItem> {
+public class CmdCallbackQueueConsumer extends QueueConsumerBase<CmdCallbackQueueItem> {
 
-    private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
+    private final static Logger LOGGER = new Logger(CmdCallbackQueueConsumer.class);
 
     @Autowired
-    private BlockingQueue<CmdQueueItem> cmdBaseBlockingQueue;
+    private BlockingQueue<CmdCallbackQueueItem> cmdBaseBlockingQueue;
 
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
@@ -48,12 +48,12 @@ public class CmdQueueConsumer extends QueueConsumerBase<CmdQueueItem> {
     }
 
     @Override
-    public BlockingQueue<CmdQueueItem> getQueue() {
+    public BlockingQueue<CmdCallbackQueueItem> getQueue() {
         return cmdBaseBlockingQueue;
     }
 
     @Override
-    public void onQueueItem(CmdQueueItem item) {
+    public void onQueueItem(CmdCallbackQueueItem item) {
         if (item == null) {
             return;
         }

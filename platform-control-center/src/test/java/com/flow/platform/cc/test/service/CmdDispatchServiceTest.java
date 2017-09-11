@@ -174,7 +174,8 @@ public class CmdDispatchServiceTest extends TestBase {
 
     @After
     public void cleanMockAgent() throws Throwable {
-        deleteNodeWithChildren(ZKHelper.buildPath(agentPath));
+        String path = ZKHelper.buildPath(agentPath);
+        zkClient.delete(path, false);
     }
 
     private Cmd startRunShell(String zone, String sessionId) {

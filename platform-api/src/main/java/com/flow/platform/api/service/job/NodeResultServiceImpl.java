@@ -24,16 +24,16 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeTag;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
-import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,32 +52,35 @@ public class NodeResultServiceImpl implements NodeResultService {
     private NodeResultDao nodeResultDao;
 
     @Autowired
-    private NodeService nodeService;
+    private JobNodeService jobNodeService;
 
     @Override
-    public NodeResult create(Job job) {
-        String nodePath = job.getNodePath();
-        Node root = nodeService.find(nodePath);
+    public List<NodeResult> create(Job job) {
+        NodeTree nodeTree = jobNodeService.get(job.getId());
 
-        if (root == null) {
+        if (nodeTree == null) {
             throw new IllegalStatusException("Job related node is empty, please check");
         }
 
-        final NodeResult[] rootResult = {null};
+        List<NodeResult> resultList = new ArrayList<>(nodeTree.childrenSize() + 1);
 
-        // save all empty node result to db
-        NodeUtil.recurse(root, node -> {
-            NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
-            nodeResult.setName(node.getName());
-            nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+        // save all empty node result for sub nodes
+        int order = 1;
+        for (Node node : nodeTree.children()) {
+            NodeResult nodeResult = createNodeResult(job, nodeTree, node);
+            nodeResult.setOrder(order++);
+
             nodeResultDao.save(nodeResult);
+            resultList.add(nodeResult);
+        }
 
-            if (node.equals(root)) {
-                rootResult[0] = nodeResult;
-            }
-        });
+        // save empty node result for root node
+        NodeResult rootResult = createNodeResult(job, nodeTree, nodeTree.root());
+        rootResult.setOrder(order);
+        nodeResultDao.save(rootResult);
+        resultList.add(rootResult);
 
-        return rootResult[0];
+        return resultList;
     }
 
     @Override
@@ -102,6 +105,20 @@ public class NodeResultServiceImpl implements NodeResultService {
 
         updateParent(job, node);
         return currentResult;
+    }
+
+    private NodeResult createNodeResult(Job job, NodeTree nodeTree, Node node) {
+        NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
+
+        // generate cc agent cmd id if node is runnable
+        if (nodeTree.canRun(node.getPath())) {
+            String agentCmdId = nodeResult.getKey().getJobId() + "-" + nodeResult.getKey().getPath();
+            nodeResult.setCmdId(agentCmdId);
+        }
+
+        nodeResult.setName(node.getName());
+        nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+        return nodeResult;
     }
 
     private void updateCurrent(NodeResult currentResult, Cmd cmd) {

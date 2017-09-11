@@ -193,7 +193,7 @@ public class ZKClient implements Closeable {
             DeleteBuilder builder = client.delete();
 
             if (isDeleteChildren) {
-                builder.deletingChildrenIfNeeded().forPath(path);
+                builder.guaranteed().deletingChildrenIfNeeded().forPath(path);
             } else {
                 builder.guaranteed().forPath(path);
             }

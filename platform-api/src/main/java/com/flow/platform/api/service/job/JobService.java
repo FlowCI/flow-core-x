@@ -15,9 +15,8 @@
  */
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import java.math.BigInteger;
 import java.util.List;
@@ -28,12 +27,9 @@ import java.util.List;
 public interface JobService {
 
     /**
-     * find job by id
-     */
-    Job find(BigInteger id);
-
-    /**
      * find by node path and number
+     *
+     * @return job with children node result
      */
     Job find(String path, Integer number);
 
@@ -55,19 +51,19 @@ public interface JobService {
      * request agent session from control center
      *
      * @param path any node path
-     * @return job
+     * @return job with children node result
      */
     Job createJob(String path);
 
     /**
      * handle callback
      **/
-    void callback(CmdQueueItem cmdQueueItem);
+    void callback(CmdCallbackQueueItem cmdQueueItem);
 
     /**
      * send cmd to queue
      */
-    void enterQueue(CmdQueueItem cmdQueueItem);
+    void enterQueue(CmdCallbackQueueItem cmdQueueItem);
 
     /**
      * stop job

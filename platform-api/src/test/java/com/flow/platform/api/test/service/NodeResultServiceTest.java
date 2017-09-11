@@ -15,37 +15,61 @@
  */
 package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeTag;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
+import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import java.io.IOException;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author lhl
  */
 public class NodeResultServiceTest extends TestBase {
 
+    @Autowired
+    private JobNodeService jobNodeService;
+
     @Test
     public void should_save_job_node_by_job() throws IOException {
+        // when: create node result list from job
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath());
 
-        Flow flow = (Flow) nodeService.find(job.getNodePath());
-        Assert.assertEquals(job.getId(), nodeResultService.find(flow.getPath(), job.getId()).getJobId());
+        // then: check node result is created
+        List<NodeResult> list = nodeResultService.list(job);
+        Assert.assertEquals(5, list.size());
+
+        NodeTree nodeTree = jobNodeService.get(job.getId());
+
+        // then: check cmd id is defined if the node is runnable
+        for (NodeResult nodeResult : list) {
+            if (nodeTree.canRun(nodeResult.getPath())) {
+                Assert.assertEquals(String.format("%s-%s", job.getId(), nodeResult.getKey().getPath()),
+                    nodeResult.getCmdId());
+            }
+        }
+
+        // then: check flow node result is created
+        NodeResult rootNodeResult = list.get(list.size() - 1);
+        Assert.assertEquals(NodeTag.FLOW, rootNodeResult.getNodeTag());
     }
 
     @Test
-    public void should_update_job_node() {
+    public void should_save_job_node() {
         Job job = new Job(CommonUtil.randomId());
         NodeResult nodeResult = new NodeResult(job.getId(), "/flow_test");
         nodeResult.setNodeTag(NodeTag.FLOW);
+        nodeResult.setOrder(1);
+
         nodeResultDao.save(nodeResult);
 
         nodeResult.setNodeTag(NodeTag.STEP);

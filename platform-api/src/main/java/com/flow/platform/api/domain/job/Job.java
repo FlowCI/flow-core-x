@@ -18,8 +18,10 @@ package com.flow.platform.api.domain.job;
 
 import com.flow.platform.api.domain.EnvObject;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 /**
  * @author yh@firim
@@ -49,8 +51,18 @@ public class Job extends EnvObject {
     @Expose
     private ZonedDateTime updatedAt;
 
+    /**
+     * The root node result for job detail
+     */
     @Expose
-    private NodeResult result;
+    @SerializedName("result")
+    private NodeResult rootResult;
+
+    /**
+     * The node result list expect root result
+     */
+    @Expose
+    private List<NodeResult> childrenResult;
 
     public Job(BigInteger id) {
         this.id = id;
@@ -59,12 +71,12 @@ public class Job extends EnvObject {
     public Job() {
     }
 
-    public NodeResult getResult() {
-        return result;
+    public NodeResult getRootResult() {
+        return rootResult;
     }
 
-    public void setResult(NodeResult result) {
-        this.result = result;
+    public void setRootResult(NodeResult rootResult) {
+        this.rootResult = rootResult;
     }
 
     public Integer getNumber() {
@@ -129,6 +141,14 @@ public class Job extends EnvObject {
 
     public void setStatus(JobStatus status) {
         this.status = status;
+    }
+
+    public List<NodeResult> getChildrenResult() {
+        return childrenResult;
+    }
+
+    public void setChildrenResult(List<NodeResult> childrenResult) {
+        this.childrenResult = childrenResult;
     }
 
     @Override

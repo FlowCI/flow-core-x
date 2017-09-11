@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.config;
 
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
@@ -39,7 +39,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author yang
  */
 @Configuration
-@Import({DatabaseConfig.class})
+@Import({DatabaseConfig.class, WebSocketConfig.class})
 public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "API";
@@ -83,7 +83,7 @@ public class AppConfig extends AppConfigBase {
     }
 
     @Bean
-    public BlockingQueue<CmdQueueItem> cmdBaseBlockingQueue() {
+    public BlockingQueue<CmdCallbackQueueItem> cmdBaseBlockingQueue() {
         return new LinkedBlockingQueue<>(50);
     }
 
