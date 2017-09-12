@@ -41,7 +41,6 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     private MessageSettingDao messageDao;
 
-
     @Override
     public SettingContent save(SettingContent t) {
         MessageSetting messageSetting = new MessageSetting(t, ZonedDateTime.now(), ZonedDateTime.now());

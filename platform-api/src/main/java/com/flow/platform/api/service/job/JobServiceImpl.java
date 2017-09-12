@@ -297,21 +297,13 @@ public class JobServiceImpl implements JobService {
         Node node = tree.find(path);
         Node next = tree.next(path);
 
+        // bottom up recursive update node result
         NodeResult nodeResult = nodeResultService.update(job, node, cmd);
+        LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
         // no more node to run or manual stop node, update job data
         if (next == null || nodeResult.isStop()) {
-            String rootPath = PathUtil.rootPath(path);
-            NodeResult rootResult = nodeResultService.find(rootPath, job.getId());
-
-            // update job status
-            updateJobStatus(job, rootResult);
-            LOGGER.debug("The node tree '%s' been executed with %s status", rootPath, rootResult.getStatus());
-
-            // send to delete session
-            if (!nodeResult.isRunning()) {
-                cmdService.deleteSession(job);
-            }
+            stopJob(job);
             return;
         }
 
@@ -327,6 +319,11 @@ public class JobServiceImpl implements JobService {
                 Step step = (Step) node;
                 if (step.getAllowFailure()) {
                     run(next, job);
+                }
+
+                // clean up session if node result failure and set job status to error
+                else {
+                    stopJob(job);
                 }
             }
         }
@@ -346,10 +343,6 @@ public class JobServiceImpl implements JobService {
         Job runningJob = find(path, buildNumber);
         NodeResult result = runningJob.getRootResult();
 
-        if (runningJob == null) {
-            throw new NotFoundException("running job not found by path - " + path);
-        }
-
         if (result == null) {
             throw new NotFoundException("running job not found node result - " + path);
         }
@@ -357,9 +350,8 @@ public class JobServiceImpl implements JobService {
         // do not handle job since it is not in running status
         if (result.isRunning()) {
             try {
-                cmdService.deleteSession(runningJob);
                 updateNodeResult(runningJob, NodeStatus.STOPPED);
-                updateJobStatus(runningJob, result);
+                stopJob(runningJob);
             } catch (Throwable throwable) {
                 String message = "stop job error - " + ExceptionUtil.findRootCause(throwable);
                 LOGGER.traceMarker("stopJob", message);
@@ -370,7 +362,12 @@ public class JobServiceImpl implements JobService {
         return runningJob;
     }
 
-    private void updateJobStatus(Job job, NodeResult rootResult) {
+    /**
+     * Update job status by root node result
+     */
+    private NodeResult updateJobStatus(Job job) {
+        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
+
         if (rootResult.isFailure()) {
             job.setStatus(JobStatus.ERROR);
         }
@@ -384,6 +381,15 @@ public class JobServiceImpl implements JobService {
         }
 
         jobDao.update(job);
+        return rootResult;
+    }
+
+    /**
+     * Update job status and delete agent session
+     */
+    private void stopJob(Job job) {
+        updateJobStatus(job);
+        cmdService.deleteSession(job);
     }
 
     private void updateNodeResult(Job job, NodeStatus status) {

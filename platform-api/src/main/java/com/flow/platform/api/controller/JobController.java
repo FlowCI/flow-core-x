@@ -69,13 +69,20 @@ public class JobController extends NodeController {
      *
      * @apiSuccessExample {json} Success-Response
      *  {
-     *      nodePath: xx/xx/xx,
+     *      nodePath: flow-integration,
      *      number: 1,
-     *      nodeName: xx,
+     *      nodeName: flow-integration,
      *      status: CREATED,
+     *      envs: {
+     *          FLOW_GIT_BRANCH: xxx
+     *          FLOW_GIT_: xxx
+     *      }
      *      createdAt: 154123211,
      *      updatedAt: 154123211,
      *      result: {
+     *          key: {
+     *             path: flow-integration
+     *          },
      *          outputs: {
      *              FLOW_ENV_OUT_1: xxxx,
      *              FLOW_ENV_OUT_2: xxxx
@@ -93,6 +100,9 @@ public class JobController extends NodeController {
      *
      *      childrenResult: [
      *          {
+     *              key: {
+     *                  path: flow-integration/step1
+     *              },
      *              duration: 0,
      *              status: PENDING,
      *              cmdId: xxx,
@@ -103,6 +113,9 @@ public class JobController extends NodeController {
      *          },
      *
      *          {
+     *              key: {
+     *                  path: flow-integration/step2
+     *              },
      *              duration: 0,
      *              status: PENDING,
      *              cmdId: xxx,
