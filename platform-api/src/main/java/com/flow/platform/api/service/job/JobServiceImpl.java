@@ -301,8 +301,8 @@ public class JobServiceImpl implements JobService {
         NodeResult nodeResult = nodeResultService.update(job, node, cmd);
         LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
-        // no more node to run or manual stop node, update job data
-        if (next == null || nodeResult.isStop()) {
+        // no more node to run and status is not running
+        if (next == null && !nodeResult.isRunning()) {
             stopJob(job);
             return;
         }
