@@ -89,9 +89,8 @@ public class JobServiceImpl implements JobService {
             throw new NotFoundException("job is not found");
         }
 
-        List<NodeResult> allResults = nodeResultService.list(job);
-        allResults.remove(allResults.size() - 1);
-        job.setChildrenResult(allResults);
+        List<NodeResult> childrenResult = getChildrenResult(job);
+        job.setChildrenResult(childrenResult);
 
         return job;
     }
@@ -99,7 +98,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<NodeResult> listNodeResult(String path, Integer number) {
         Job job = find(path, number);
-        return nodeResultService.list(job);
+        return getChildrenResult(job);
     }
 
     @Override
@@ -213,6 +212,12 @@ public class JobServiceImpl implements JobService {
 
         LOGGER.warn("not found cmdType, cmdType: %s", cmd.getType().toString());
         throw new NotFoundException("not found cmdType");
+    }
+
+    private List<NodeResult> getChildrenResult(Job job) {
+        List<NodeResult> allResults = nodeResultService.list(job);
+        allResults.remove(allResults.size() - 1);
+        return allResults;
     }
 
     /**
