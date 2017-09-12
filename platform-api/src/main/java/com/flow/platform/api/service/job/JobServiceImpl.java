@@ -16,8 +16,7 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.JobDao;
-import com.flow.platform.api.dao.job.NodeResultDao;
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
@@ -32,12 +31,12 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
@@ -69,13 +68,10 @@ public class JobServiceImpl implements JobService {
     private JobNodeService jobNodeService;
 
     @Autowired
-    private BlockingQueue<CmdQueueItem> cmdBaseBlockingQueue;
+    private BlockingQueue<CmdCallbackQueueItem> cmdBaseBlockingQueue;
 
     @Autowired
     private JobDao jobDao;
-
-    @Autowired
-    private NodeResultDao nodeResultDao;
 
     @Autowired
     private NodeService nodeService;
@@ -86,20 +82,17 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private YmlService ymlService;
 
-    @Autowired
-    private PlatformURL platformURL;
-
-    @Override
-    public Job find(BigInteger id) {
-        return jobDao.get(id);
-    }
-
     @Override
     public Job find(String flowName, Integer number) {
         Job job = jobDao.get(flowName, number);
         if (job == null) {
             throw new NotFoundException("job is not found");
         }
+
+        List<NodeResult> allResults = nodeResultService.list(job);
+        allResults.remove(allResults.size() - 1);
+        job.setChildrenResult(allResults);
+
         return job;
     }
 
@@ -157,9 +150,11 @@ public class JobServiceImpl implements JobService {
         // create yml snapshot for job
         jobNodeService.save(job.getId(), yml);
 
-        // init for node result
-        NodeResult rootResult = nodeResultService.create(job);
-        job.setResult(rootResult);
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult);
+        job.setChildrenResult(resultList);
 
         // to create agent session for job
         String sessionId = cmdService.createSession(job);
@@ -171,10 +166,10 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void callback(CmdQueueItem cmdQueueItem) {
+    public void callback(CmdCallbackQueueItem cmdQueueItem) {
         BigInteger jobId = cmdQueueItem.getJobId();
         Cmd cmd = cmdQueueItem.getCmd();
-        Job job = find(jobId);
+        Job job = jobDao.get(jobId);
 
         if (cmd.getType() == CmdType.CREATE_SESSION) {
 
@@ -242,12 +237,13 @@ public class JobServiceImpl implements JobService {
         // pass job env to node
         EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
 
-        String cmdId = cmdService.runShell(job, node);
+        // to run node with customized cmd id
         NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+        CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
 
-        // record cmd id
-        nodeResult.setCmdId(cmdId);
-        nodeResultService.save(nodeResult);
+        if (cmd.getStatus() == CmdStatus.EXCEPTION) {
+            nodeResultService.update(job, node, Cmd.convert(cmd));
+        }
     }
 
     /**
@@ -319,7 +315,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void enterQueue(CmdQueueItem cmdQueueItem) {
+    public void enterQueue(CmdCallbackQueueItem cmdQueueItem) {
         try {
             cmdBaseBlockingQueue.put(cmdQueueItem);
         } catch (Throwable throwable) {
@@ -330,7 +326,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public Job stopJob(String path, Integer buildNumber) {
         Job runningJob = find(path, buildNumber);
-        NodeResult result = runningJob.getResult();
+        NodeResult result = runningJob.getRootResult();
 
         if (runningJob == null) {
             throw new NotFoundException("running job not found by path - " + path);
@@ -380,7 +376,7 @@ public class JobServiceImpl implements JobService {
                 nodeResultService.save(result);
 
                 if (job.getNodePath().equals(result.getPath())) {
-                    job.setResult(result);
+                    job.setRootResult(result);
                 }
             }
         }

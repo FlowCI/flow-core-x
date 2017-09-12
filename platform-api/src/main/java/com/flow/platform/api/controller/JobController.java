@@ -84,11 +84,34 @@ public class JobController extends NodeController {
      *          status: PENDING,
      *          cmdId: xxxx,
      *          nodeTag: FLOW,
+     *          order: 5
      *          startTime: 154123211,
      *          finishTime: 154123211,
      *          createdAt: 154123211,
      *          updatedAt: 154123211
-     *      }
+     *      },
+     *
+     *      childrenResult: [
+     *          {
+     *              duration: 0,
+     *              status: PENDING,
+     *              cmdId: xxx,
+     *              outputs: {
+     *                  FLOW_ENV_OUT_1: xx
+     *              },
+     *              order: 0
+     *          },
+     *
+     *          {
+     *              duration: 0,
+     *              status: PENDING,
+     *              cmdId: xxx,
+     *              outputs: {
+     *                  FLOW_ENV_OUT_1: xx
+     *              },
+     *              order: 1
+     *          }
+     *      ]
      *  }
      */
     @PostMapping(path = "/{root}")
@@ -154,6 +177,10 @@ public class JobController extends NodeController {
      * @apiSuccessExample {json} Success-Response
      *  [
      *      {
+     *          key: {
+     *              jobId: xxx,
+     *              path: flow-name/step-name
+     *          }
      *          outputs: {
      *              FLOW_ENV_OUT_1: xxxx,
      *              FLOW_ENV_OUT_2: xxxx

@@ -170,6 +170,8 @@ public abstract class TestBase {
         mockCmdResponse.setId(UUID.randomUUID().toString());
         mockCmdResponse.setSessionId(UUID.randomUUID().toString());
 
+        wireMockRule.resetAll();
+
         stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));

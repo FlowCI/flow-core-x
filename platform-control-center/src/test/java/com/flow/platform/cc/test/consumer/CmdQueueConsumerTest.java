@@ -79,9 +79,10 @@ public class CmdQueueConsumerTest extends TestBase {
         // given:
         String agentName = "agent-name-test";
         zkClient.delete(ZKHelper.buildPath(ZONE, agentName), false);
+        Thread.sleep(2000);
 
         AgentPath agentPath = createMockAgent(ZONE, agentName);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         Assert.assertTrue(zkClient.exist(ZKHelper.buildPath(agentPath)));
 

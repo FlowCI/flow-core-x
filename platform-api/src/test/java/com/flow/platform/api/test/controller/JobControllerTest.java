@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.test.TestBase;
 
 import com.flow.platform.api.domain.node.Node;
@@ -110,6 +109,6 @@ public class JobControllerTest extends TestBase {
 
         String res = result.getResponse().getContentAsString();
         Job job1 = Job.parse(res, Job.class);
-        Assert.assertEquals(NodeStatus.STOPPED, job1.getResult().getStatus());
+        Assert.assertEquals(NodeStatus.STOPPED, job1.getRootResult().getStatus());
     }
 }

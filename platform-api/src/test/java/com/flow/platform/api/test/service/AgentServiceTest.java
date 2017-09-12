@@ -96,6 +96,7 @@ public class AgentServiceTest extends TestBase {
         NodeResult res = new NodeResult(job.getId(), "path");
         res.setStatus(status);
         res.setNodeTag(NodeTag.FLOW);
+        res.setOrder(1);
         nodeResultDao.save(res);
 
         return job;

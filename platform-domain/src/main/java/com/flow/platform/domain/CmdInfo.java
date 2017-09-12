@@ -23,6 +23,11 @@ package com.flow.platform.domain;
  */
 public class CmdInfo extends CmdBase {
 
+    /**
+     * Customized id from invoker
+     */
+    private String customizedId;
+
     public CmdInfo() {
         this.status = CmdStatus.PENDING;
     }
@@ -33,5 +38,13 @@ public class CmdInfo extends CmdBase {
 
     public CmdInfo(AgentPath agentPath, CmdType type, String cmd) {
         super(agentPath, type, cmd);
+    }
+
+    public String getCustomizedId() {
+        return customizedId;
+    }
+
+    public void setCustomizedId(String customizedId) {
+        this.customizedId = customizedId;
     }
 }

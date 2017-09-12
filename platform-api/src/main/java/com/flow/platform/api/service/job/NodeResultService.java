@@ -31,9 +31,9 @@ public interface NodeResultService {
     /**
      * Create all empty nodes results by job
      *
-     * @return NodeResult for root node
+     * @return List of node result for job
      */
-    NodeResult create(Job job);
+    List<NodeResult> create(Job job);
 
     /**
      * find node by node path

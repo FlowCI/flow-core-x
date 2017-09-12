@@ -25,6 +25,7 @@ import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
@@ -91,23 +92,28 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public String runShell(Job job, Node node) {
+    public CmdInfo runShell(Job job, Node node, String cmdId) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setInputs(node.getEnvs());
         cmdInfo.setWebhook(buildCmdWebhook(job));
         cmdInfo.setOutputEnvFilter("FLOW_");
         cmdInfo.setSessionId(job.getSessionId());
         cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
+        cmdInfo.setCustomizedId(cmdId);
 
         try {
             LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());
-            Cmd cmd = sendDirectly(cmdInfo);
-            return cmd.getId();
-        } catch (Throwable ignore) {
-            String rootCause = ExceptionUtil.findRootCause(ignore).getMessage();
-            LOGGER.warnMarker("RunShell", "Unexpected exception", rootCause);
-            return null;
+            sendDirectly(cmdInfo);
+        } catch (Throwable e) {
+            String rootCause = ExceptionUtil.findRootCause(e).getMessage();
+            LOGGER.warnMarker("RunShell", "Unexpected exception: %s", rootCause);
+
+            /// set cmd status to exception
+            cmdInfo.setStatus(CmdStatus.EXCEPTION);
+            cmdInfo.setExtra("Unexpected exception: " + rootCause);
         }
+
+        return cmdInfo;
     }
 
     @Override

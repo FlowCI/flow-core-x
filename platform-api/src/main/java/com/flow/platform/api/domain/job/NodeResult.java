@@ -19,7 +19,6 @@ package com.flow.platform.api.domain.job;
 import static com.flow.platform.api.domain.job.NodeStatus.*;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
-import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
@@ -39,6 +38,7 @@ public class NodeResult extends CreateUpdateObject {
 
     public final static EnumSet<NodeStatus> STOP_STATUS = EnumSet.of(STOPPED);
 
+    @Expose
     private NodeResultKey key;
 
     @Expose
@@ -71,9 +71,11 @@ public class NodeResult extends CreateUpdateObject {
     @Expose
     private ZonedDateTime finishTime;
 
+    @Expose
     private String name; // node name
 
-    private int order;
+    @Expose
+    private Integer order;
 
     public NodeResult() {
     }
@@ -182,11 +184,11 @@ public class NodeResult extends CreateUpdateObject {
         this.finishTime = finishTime;
     }
 
-    public int getOrder() {
+    public Integer getOrder() {
         return order;
     }
 
-    public void setOrder(int order) {
+    public void setOrder(Integer order) {
         this.order = order;
     }
 
