@@ -322,6 +322,8 @@ public class JobServiceImpl implements JobService {
                 }
 
                 // clean up session if node result failure and set job status to error
+
+                //TODO: Missing unit test
                 else {
                     stopJob(job);
                 }
