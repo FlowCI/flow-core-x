@@ -41,6 +41,11 @@ public interface CmdService {
     Cmd create(CmdInfo cmd);
 
     /**
+     * Create command with retry times
+     */
+    Cmd create(CmdInfo cmd, Integer retry);
+
+    /**
      * Save cmd properties
      */
     void save(Cmd cmd);
@@ -56,11 +61,6 @@ public interface CmdService {
      * List cmd by agent path, order by cmd create date
      */
     List<Cmd> listByAgentPath(AgentPath agentPath);
-
-    /**
-     * List cmd by zone, order by cmd create date
-     */
-    List<Cmd> listByZone(String zone);
 
     /**
      * List cmd by session id
@@ -82,17 +82,12 @@ public interface CmdService {
     /**
      * Send cmd info to queue
      */
-    Cmd queue(CmdInfo cmdInfo, int priority, int retry);
+    Cmd enqueue(CmdInfo cmdInfo, int priority, int retry);
 
     /**
      * Update cmd status and result, send cmd webhook if existed
      */
     void updateStatus(CmdStatusItem statusItem, boolean inQueue);
-
-    /**
-     * Reset cmd status to init status PENDING
-     */
-    void resetStatus(String cmdId);
 
     /**
      * Record full zipped log to store

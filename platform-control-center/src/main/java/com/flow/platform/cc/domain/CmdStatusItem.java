@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.domain;
 
+import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import java.io.Serializable;
@@ -47,6 +48,10 @@ public class CmdStatusItem implements Serializable {
         this.cmdResult = cmdResult;
         this.updateAgentStatus = updateAgentStatus;
         this.callWebhook = callWebhook;
+    }
+
+    public CmdStatusItem(CmdReport cmdReport, boolean updateAgentStatus, boolean callWebhook) {
+        this(cmdReport.getId(), cmdReport.getStatus(), cmdReport.getResult(), updateAgentStatus, callWebhook);
     }
 
     public String getCmdId() {

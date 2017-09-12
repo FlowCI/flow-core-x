@@ -95,9 +95,10 @@ public final class App {
             null,
             "FLOW_", // find env start with FLOW_ and put to cmd result output map
             null,
-            Lists.newArrayList("$TEST", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/"));
+            Lists.newArrayList("sleep 20", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/"));
 
-        executor.run();
+        CmdResult result = executor.run();
+        assert result != null;
     }
 
     private static class MyThread implements Runnable {

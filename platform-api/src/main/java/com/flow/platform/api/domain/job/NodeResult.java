@@ -234,4 +234,13 @@ public class NodeResult extends CreateUpdateObject {
     public int hashCode() {
         return this.getKey().hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "NodeResult{" +
+            "key=" + key +
+            ", exitCode=" + exitCode +
+            ", status=" + status +
+            "} " + super.toString();
+    }
 }
