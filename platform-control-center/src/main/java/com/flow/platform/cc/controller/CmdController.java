@@ -80,7 +80,7 @@ public class CmdController {
             throw new IllegalParameterException("Illegal retry value should between (0 - 100)");
         }
 
-        return cmdService.queue(cmd, priority, retry);
+        return cmdService.enqueue(cmd, priority, retry);
     }
 
     /**

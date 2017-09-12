@@ -58,11 +58,6 @@ public interface CmdService {
     List<Cmd> listByAgentPath(AgentPath agentPath);
 
     /**
-     * List cmd by zone, order by cmd create date
-     */
-    List<Cmd> listByZone(String zone);
-
-    /**
      * List cmd by session id
      */
     List<Cmd> listBySession(String sessionId);
@@ -82,17 +77,12 @@ public interface CmdService {
     /**
      * Send cmd info to queue
      */
-    Cmd queue(CmdInfo cmdInfo, int priority, int retry);
+    Cmd enqueue(CmdInfo cmdInfo, int priority, int retry);
 
     /**
      * Update cmd status and result, send cmd webhook if existed
      */
     void updateStatus(CmdStatusItem statusItem, boolean inQueue);
-
-    /**
-     * Reset cmd status to init status PENDING
-     */
-    void resetStatus(String cmdId);
 
     /**
      * Record full zipped log to store

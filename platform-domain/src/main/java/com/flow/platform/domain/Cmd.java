@@ -61,6 +61,16 @@ public class Cmd extends CmdBase {
     private List<String> logPaths = new ArrayList<>(5);
 
     /**
+     * Retry time if cmd with cmd queue
+     */
+    private Integer retry = 0;
+
+    /**
+     * finish time
+     */
+    private ZonedDateTime finishedDate;
+
+    /**
      * Created date
      */
     private ZonedDateTime createdDate;
@@ -71,10 +81,8 @@ public class Cmd extends CmdBase {
     private ZonedDateTime updatedDate;
 
     /**
-     * finish time
+     * Cmd result
      */
-    private ZonedDateTime finishedDate;
-
     private CmdResult cmdResult;
 
     public Cmd() {
@@ -92,32 +100,28 @@ public class Cmd extends CmdBase {
         this.id = id;
     }
 
-    /**
-     * only level gt current level
-     *
-     * @param status target status
-     * @return true if status updated
-     */
-    public boolean addStatus(CmdStatus status) {
-        if (this.status == null) {
-            this.status = status;
-            return true;
-        }
-
-        if (this.status.getLevel() < status.getLevel()) {
-            this.status = status;
-            return true;
-        }
-
-        return false;
-    }
-
     public List<String> getLogPaths() {
         return logPaths;
     }
 
     public void setLogPaths(List<String> logPaths) {
         this.logPaths = logPaths;
+    }
+
+    public Integer getRetry() {
+        return retry;
+    }
+
+    public void setRetry(Integer retry) {
+        this.retry = retry;
+    }
+
+    public ZonedDateTime getFinishedDate() {
+        return finishedDate;
+    }
+
+    public void setFinishedDate(ZonedDateTime finishedDate) {
+        this.finishedDate = finishedDate;
     }
 
     public ZonedDateTime getCreatedDate() {
@@ -144,20 +148,24 @@ public class Cmd extends CmdBase {
         this.cmdResult = cmdResult;
     }
 
-    public ZonedDateTime getFinishedDate() {
-        return finishedDate;
-    }
+    /**
+     * only level gt current level
+     *
+     * @param status target status
+     * @return true if status updated
+     */
+    public boolean addStatus(CmdStatus status) {
+        if (this.status == null) {
+            this.status = status;
+            return true;
+        }
 
-    public void setFinishedDate(ZonedDateTime finishedDate) {
-        this.finishedDate = finishedDate;
-    }
+        if (this.status.getLevel() < status.getLevel()) {
+            this.status = status;
+            return true;
+        }
 
-    public Boolean isCurrent() {
-        return WORKING_STATUS.contains(status);
-    }
-
-    public Boolean isAgentCmd() {
-        return AGENT_CMD_TYPE.contains(type);
+        return false;
     }
 
     public boolean isCmdTimeout() {
@@ -173,6 +181,14 @@ public class Cmd extends CmdBase {
         ZonedDateTime createdAt = getCreatedDate();
         final long runningInSeconds = ChronoUnit.SECONDS.between(createdAt, ZonedDateTime.now());
         return runningInSeconds >= getTimeout();
+    }
+
+    public Boolean isCurrent() {
+        return WORKING_STATUS.contains(status);
+    }
+
+    public Boolean isAgentCmd() {
+        return AGENT_CMD_TYPE.contains(type);
     }
 
     @Override
@@ -203,6 +219,7 @@ public class Cmd extends CmdBase {
     public String toString() {
         return "Cmd{" +
             "id='" + id + '\'' +
+            "retry='" + retry + '\'' +
             ", info=" + super.toString() +
             '}';
     }

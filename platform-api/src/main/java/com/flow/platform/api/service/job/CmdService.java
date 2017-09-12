@@ -33,7 +33,7 @@ public interface CmdService {
      *
      * @return session id
      */
-    String createSession(Job job);
+    String createSession(Job job, Integer retry);
 
     /**
      * Send delete session cmd by job

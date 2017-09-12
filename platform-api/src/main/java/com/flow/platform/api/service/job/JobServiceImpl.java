@@ -61,6 +61,8 @@ public class JobServiceImpl implements JobService {
 
     private Integer RETRY_TIMEs = 5;
 
+    private final Integer createSessionRetryTimes = 5;
+
     @Autowired
     private NodeResultService nodeResultService;
 
@@ -161,7 +163,7 @@ public class JobServiceImpl implements JobService {
         job.setChildrenResult(resultList);
 
         // to create agent session for job
-        String sessionId = cmdService.createSession(job);
+        String sessionId = cmdService.createSession(job, createSessionRetryTimes);
         job.setSessionId(sessionId);
         job.setStatus(JobStatus.SESSION_CREATING);
         jobDao.update(job);
@@ -260,6 +262,8 @@ public class JobServiceImpl implements JobService {
      * Create session callback
      */
     private void onCreateSessionCallback(Job job, Cmd cmd) {
+        LOGGER.debug("Create session cmd callback: " + cmd);
+
         if (cmd.getStatus() != CmdStatus.SENT) {
             LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
             job.setStatus(JobStatus.ERROR);

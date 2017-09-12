@@ -183,11 +183,6 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public List<Cmd> listByZone(String zone) {
-        return cmdDao.list(new AgentPath(zone, null), null, null);
-    }
-
-    @Override
     public List<Cmd> listBySession(String sessionId) {
         return cmdDao.list(sessionId);
     }
@@ -204,8 +199,9 @@ public class CmdServiceImpl implements CmdService {
 
     @Override
     @Transactional(propagation = Propagation.NEVER)
-    public Cmd queue(CmdInfo cmdInfo, int priority, int retry) {
+    public Cmd enqueue(CmdInfo cmdInfo, int priority, int retry) {
         Cmd cmd = create(cmdInfo);
+        cmd.setRetry(retry);
 
         CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
         MessageProperties properties = new MessageProperties();
@@ -262,17 +258,6 @@ public class CmdServiceImpl implements CmdService {
                 webhookCallback(cmd);
             }
         }
-    }
-
-    @Override
-    public void resetStatus(String cmdId) {
-        Cmd cmd = find(cmdId);
-        if (cmd == null) {
-            throw new IllegalArgumentException("Cmd does not exist");
-        }
-
-        cmd.setStatus(CmdStatus.PENDING);
-        cmdDao.save(cmd);
     }
 
     @Override
