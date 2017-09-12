@@ -36,9 +36,6 @@
     <property name="extra" type="string" column="extra"/>
     <property name="retry" type="integer" column="retry"/>
 
-    <property name="finishedDate" type="java.time.ZonedDateTime">
-      <column name="finished_date" sql-type="timestamp"/>
-    </property>
     <property name="createdDate" type="java.time.ZonedDateTime">
       <column name="created_date" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
     </property>

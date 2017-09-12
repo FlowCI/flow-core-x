@@ -238,33 +238,29 @@ public class CmdServiceImpl implements CmdService {
             throw new IllegalArgumentException("Cmd does not exist");
         }
 
-        CmdResult cmdResult = cmdResultDao.get(cmd.getId());
+
+        //TODO: missing unit test
+        // set cmd status in sequence
+        if (!cmd.addStatus(statusItem.getStatus())) {
+            return;
+        }
 
         // compare exiting cmd result and update
         CmdResult inputResult = statusItem.getCmdResult();
+
         if (inputResult != null) {
             inputResult.setCmdId(cmdId);
-            cmd.setFinishedDate(inputResult.getFinishTime());
-            if (cmdResult != null) {
-                cmdResultDao.updateNotNullOrEmpty(inputResult);
-            } else {
-                cmdResultDao.save(inputResult);
-            }
+            cmdResultDao.saveOrUpdate(inputResult);
+            cmd.setCmdResult(inputResult);
         }
-        cmd.setCmdResult(cmdResult);
 
-        // update cmd status
-        if (cmd.addStatus(statusItem.getStatus())) {
-            cmdDao.update(cmd);
+        // update agent status
+        if (statusItem.isUpdateAgentStatus()) {
+            updateAgentStatusFromCmd(cmd);
+        }
 
-            // update agent status
-            if (statusItem.isUpdateAgentStatus()) {
-                updateAgentStatusFromCmd(cmd);
-            }
-
-            if (statusItem.isCallWebhook()) {
-                webhookCallback(cmd);
-            }
+        if (statusItem.isCallWebhook()) {
+            webhookCallback(cmd);
         }
     }
 

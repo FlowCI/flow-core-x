@@ -116,14 +116,6 @@ public class Cmd extends CmdBase {
         this.retry = retry;
     }
 
-    public ZonedDateTime getFinishedDate() {
-        return finishedDate;
-    }
-
-    public void setFinishedDate(ZonedDateTime finishedDate) {
-        this.finishedDate = finishedDate;
-    }
-
     public ZonedDateTime getCreatedDate() {
         return createdDate;
     }
