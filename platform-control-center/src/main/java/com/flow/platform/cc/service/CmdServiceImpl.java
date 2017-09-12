@@ -133,7 +133,12 @@ public class CmdServiceImpl implements CmdService {
     @Override
     @Transactional(noRollbackFor = Throwable.class)
     public Cmd create(CmdInfo info) {
+        return create(info, 0);
+    }
 
+    @Override
+    @Transactional(noRollbackFor = Throwable.class)
+    public Cmd create(CmdInfo info, Integer retry) {
         Cmd cmd = Cmd.convert(info);
         cmd.setId(UUID.randomUUID().toString());
         cmd.setCreatedDate(ZonedDateTime.now());
@@ -162,6 +167,10 @@ public class CmdServiceImpl implements CmdService {
 
         if (cmd.getTimeout() == null) {
             cmd.setTimeout(DEFAULT_CMD_TIMEOUT);
+        }
+
+        if (retry != null && retry > 0) {
+            cmd.setRetry(retry);
         }
 
         return cmdDao.save(cmd);
@@ -200,8 +209,7 @@ public class CmdServiceImpl implements CmdService {
     @Override
     @Transactional(propagation = Propagation.NEVER)
     public Cmd enqueue(CmdInfo cmdInfo, int priority, int retry) {
-        Cmd cmd = create(cmdInfo);
-        cmd.setRetry(retry);
+        Cmd cmd = create(cmdInfo, retry);
 
         CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
         MessageProperties properties = new MessageProperties();

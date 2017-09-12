@@ -41,6 +41,11 @@ public interface CmdService {
     Cmd create(CmdInfo cmd);
 
     /**
+     * Create command with retry times
+     */
+    Cmd create(CmdInfo cmd, Integer retry);
+
+    /**
      * Save cmd properties
      */
     void save(Cmd cmd);
