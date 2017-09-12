@@ -140,7 +140,7 @@ public class CmdWebhookControllerTest extends TestBase {
     }
 
     @Test
-    public void should_callback_failure() throws Throwable {
+    public void should_failure_on_callback_with_timeout() throws Throwable {
         // init
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
 
@@ -163,7 +163,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(NodeStatus.PENDING, job.getRootResult().getStatus());
 
-        // run first step timeout
+        // when: first step with timeout status
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
         cmd.setExtra(step1.getPath());
@@ -171,19 +171,23 @@ public class CmdWebhookControllerTest extends TestBase {
         performMockHttpRequest(cmd, job);
         Thread.sleep(1000);
 
+        // then: verify job status
         job = jobService.find(job.getNodePath(), job.getNumber());
+        Assert.assertEquals(JobStatus.ERROR, job.getStatus());
 
-        NodeResult jobStep1 = nodeResultService.find(step1.getPath(), job.getId());
-        Assert.assertNotNull(jobStep1.getCmdId());
-        NodeResult jobFlow = nodeResultService.find(flow.getPath(), job.getId());
+        // then: verify first node result status
+        NodeResult firstStepResult = nodeResultService.find(step1.getPath(), job.getId());
+        Assert.assertNotNull(firstStepResult.getCmdId());
+        Assert.assertEquals(NodeStatus.TIMEOUT, firstStepResult.getStatus());
 
-        Assert.assertEquals(NodeStatus.TIMEOUT, job.getRootResult().getStatus());
-        Assert.assertEquals(NodeStatus.TIMEOUT, jobStep1.getStatus());
-        Assert.assertEquals(NodeStatus.TIMEOUT, jobFlow.getStatus());
+        // then: verify root result
+        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
+        Assert.assertEquals(job.getRootResult(), rootResult);
+        Assert.assertEquals(NodeStatus.TIMEOUT, rootResult.getStatus());
     }
 
     @Test
-    public void should_callback_timeout_allow_failure() throws Throwable {
+    public void should_failure_on_callback_timeout_but_allow_failure() throws Throwable {
         Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
         Job job = jobService.createJob(rootForFlow.getPath());
         final String sessionId = "1111111";
