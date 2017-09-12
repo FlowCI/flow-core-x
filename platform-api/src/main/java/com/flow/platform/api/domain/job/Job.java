@@ -64,6 +64,9 @@ public class Job extends EnvObject {
     @Expose
     private List<NodeResult> childrenResult;
 
+    @Expose
+    private String createdBy;
+
     public Job(BigInteger id) {
         this.id = id;
     }
@@ -141,6 +144,14 @@ public class Job extends EnvObject {
 
     public void setStatus(JobStatus status) {
         this.status = status;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     public List<NodeResult> getChildrenResult() {
