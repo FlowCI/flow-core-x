@@ -262,9 +262,13 @@ public class JobServiceImpl implements JobService {
      * Create session callback
      */
     private void onCreateSessionCallback(Job job, Cmd cmd) {
-        LOGGER.debug("Create session cmd callback: " + cmd);
-
         if (cmd.getStatus() != CmdStatus.SENT) {
+
+            if (cmd.getRetry() > 1) {
+                LOGGER.trace("Create Session fail but retrying: %s", cmd.getStatus().getName());
+                return;
+            }
+
             LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
             job.setStatus(JobStatus.ERROR);
             jobDao.update(job);

@@ -219,7 +219,7 @@ public class Cmd extends CmdBase {
     public String toString() {
         return "Cmd{" +
             "id='" + id + '\'' +
-            "retry='" + retry + '\'' +
+            ", retry='" + retry + '\'' +
             ", info=" + super.toString() +
             '}';
     }
