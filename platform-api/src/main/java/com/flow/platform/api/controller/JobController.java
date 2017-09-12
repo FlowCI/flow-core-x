@@ -168,6 +168,28 @@ public class JobController extends NodeController {
     }
 
     /**
+     * @api {get} /jobs/:root/:buildNumber/yml Get YML
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiGroup Jobs
+     * @apiDescription Get job yml content
+     *
+     * @apiSuccessExample {yml} Success-Response
+     *
+     *  - flows:
+     *      - envs:
+     *          FLOW_ENV: xxx,
+     *      - steps:
+     *          name: xxx
+     *          ...
+     */
+    @GetMapping(path = "/{root}/{buildNumber}/yml")
+    public String yml(@PathVariable Integer buildNumber) {
+        String path = getNodePathFromUrl();
+        return jobService.findYml(path, buildNumber);
+    }
+
+    /**
      * @api {get} /jobs/:root/:buildNumber/nodes List Nodes
      * @apiParam {String} root flow node path
      * @apiParam {String} buildNumber job build number

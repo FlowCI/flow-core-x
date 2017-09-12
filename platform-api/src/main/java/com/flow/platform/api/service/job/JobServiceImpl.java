@@ -91,8 +91,13 @@ public class JobServiceImpl implements JobService {
 
         List<NodeResult> childrenResult = getChildrenResult(job);
         job.setChildrenResult(childrenResult);
-
         return job;
+    }
+
+    @Override
+    public String findYml(String path, Integer number) {
+        Job job = find(path, number);
+        return jobNodeService.find(job.getId()).getFile();
     }
 
     @Override
