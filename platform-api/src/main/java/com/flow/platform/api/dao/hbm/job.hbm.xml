@@ -24,6 +24,8 @@
 
     <property name="nodeName" column="node_name" length="50" not-null="true"/>
 
+    <property name="createdBy" type="string" column="created_by"/>
+
     <property name="status" column="job_status" length="20" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">com.flow.platform.api.domain.job.JobStatus</param>
@@ -50,6 +52,7 @@
       <column name="job_id" sql-type="decimal(25, 0)"/>
     </id>
 
+    <property name="createdBy" type="string" column="created_by"/>
     <property name="file" type="com.flow.platform.core.dao.adaptor.ByteAdaptor"/>
   </class>
 
@@ -68,6 +71,7 @@
     <property name="cmdId" type="string" column="cmd_id"/>
     <property name="outputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="outputs"/>
     <property name="logPaths" type="com.flow.platform.core.dao.adaptor.list.ListAdaptor" column="log_paths"/>
+    <property name="createdBy" type="string" column="created_by"/>
 
     <property name="nodeTag" column="type" length="10" not-null="true">
       <type name="org.hibernate.type.EnumType">

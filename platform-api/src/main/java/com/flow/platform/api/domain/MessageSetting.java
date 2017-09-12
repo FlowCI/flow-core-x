@@ -29,6 +29,8 @@ public class MessageSetting extends Jsonable {
 
     private Integer id;
 
+    private String createdBy;
+
     private ZonedDateTime createdAt;
 
     private ZonedDateTime updatedAt;
@@ -72,6 +74,14 @@ public class MessageSetting extends Jsonable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     @Override

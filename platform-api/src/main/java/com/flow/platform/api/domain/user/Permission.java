@@ -28,6 +28,9 @@ public class Permission extends CreateUpdateObject {
     @Expose
     private PermissionKey key;
 
+    @Expose
+    private String createdBy;
+
     public Permission() {
     }
 
@@ -53,6 +56,14 @@ public class Permission extends CreateUpdateObject {
 
     public Integer getRoleId() {
         return key.getRoleId();
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     @Override

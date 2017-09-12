@@ -26,12 +26,23 @@ public class UserRole extends CreateUpdateObject {
     @Expose
     private UserRoleKey key;
 
+    @Expose
+    private String createdBy;
+
     public UserRoleKey getKey() {
         return key;
     }
 
     public void setKey(UserRoleKey key) {
         this.key = key;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     public UserRole() {

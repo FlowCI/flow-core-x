@@ -27,6 +27,8 @@ public class JobYml {
 
     private String file;
 
+    private String createdBy;
+
     public BigInteger getJobId() {
         return jobId;
     }
@@ -41,6 +43,14 @@ public class JobYml {
 
     public void setFile(String file) {
         this.file = file;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     public JobYml(BigInteger jobId, String file) {

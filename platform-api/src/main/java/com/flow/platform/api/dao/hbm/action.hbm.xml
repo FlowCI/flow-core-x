@@ -9,6 +9,7 @@
 
     <property name="alias" type="string" column="alias" length="100"/>
     <property name="description" type="string" column="description"/>
+    <property name="createdBy" type="string" column="created_by"/>
 
     <property name="tag" column="tag" length="10" not-null="true">
       <type name="org.hibernate.type.EnumType">

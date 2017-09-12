@@ -51,6 +51,9 @@ public class NodeResult extends CreateUpdateObject {
     private Integer exitCode;
 
     @Expose
+    private String createdBy;
+
+    @Expose
     private List<String> logPaths = new ArrayList<>();
 
     @Expose
@@ -201,6 +204,14 @@ public class NodeResult extends CreateUpdateObject {
 
     public boolean isStop() {
         return STOP_STATUS.contains(status);
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     @Override

@@ -15,6 +15,9 @@ public class User extends CreateUpdateObject {
     @Expose
     private String username;
 
+    @Expose
+    private String createdBy;
+
     private String password;
 
     @Expose
@@ -70,6 +73,14 @@ public class User extends CreateUpdateObject {
 
     public void setRoles(List<Role> roles) {
         this.roles = roles;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     @Override

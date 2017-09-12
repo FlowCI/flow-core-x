@@ -33,7 +33,7 @@ public class Role extends CreateUpdateObject {
     private String description;
 
     @Expose
-    private String createBy;
+    private String createdBy;
 
     public Role() {
     }
@@ -67,12 +67,12 @@ public class Role extends CreateUpdateObject {
         this.description = description;
     }
 
-    public String getCreateBy() {
-        return createBy;
+    public String getCreatedBy() {
+        return createdBy;
     }
 
-    public void setCreateBy(String createBy) {
-        this.createBy = createBy;
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     @Override
