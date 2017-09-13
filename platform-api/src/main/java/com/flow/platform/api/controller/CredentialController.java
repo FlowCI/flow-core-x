@@ -218,7 +218,7 @@ public class CredentialController {
      *      - name: android-file
      *      - content: jks file content
      *
-     * @apiParamExample {multipart} ANDROID-Multipart-Body:
+     * @apiParamExample {multipart} IOS-Multipart-Body:
      *
      *  The p12s field in detail part only needs to provide if p12 has password,
      *  and the name must be match file name which will be uploaded

@@ -101,7 +101,7 @@ public class NodeResultServiceImpl implements NodeResultService {
     @Override
     public NodeResult update(Job job, Node node, Cmd cmd) {
         NodeResult currentResult = find(node.getPath(), job.getId());
-        updateCurrent(currentResult, cmd);
+        updateCurrent(node, currentResult, cmd);
 
         updateParent(job, node);
         return currentResult;
@@ -121,8 +121,13 @@ public class NodeResultServiceImpl implements NodeResultService {
         return nodeResult;
     }
 
-    private void updateCurrent(NodeResult currentResult, Cmd cmd) {
-        NodeStatus newStatus = NodeStatus.transfer(cmd);
+    private void updateCurrent(Node current, NodeResult currentResult, Cmd cmd) {
+        boolean isAllowFailure = false;
+        if (current instanceof Step) {
+            isAllowFailure = ((Step) current).getAllowFailure();
+        }
+
+        NodeStatus newStatus = NodeStatus.transfer(cmd, isAllowFailure);
 
         // keep job step status sorted
         if (currentResult.getStatus().getLevel() >= newStatus.getLevel()) {
@@ -161,12 +166,15 @@ public class NodeResultServiceImpl implements NodeResultService {
         parentResult.setStartTime(firstResult.getStartTime());
         parentResult.setFinishTime(currentResult.getFinishTime());
         parentResult.setExitCode(currentResult.getExitCode());
+
+        // TODO: missing unit test
+        long duration = 0L;
         try {
-            long duration = Duration.between(currentResult.getStartTime(), currentResult.getFinishTime()).getSeconds();
-            parentResult.setDuration(parentResult.getDuration() + duration);
-        } catch (Throwable e) {
-            parentResult.setDuration(0L); // cache exception if start or finish time is null
+            duration = Duration.between(currentResult.getStartTime(), currentResult.getFinishTime()).getSeconds();
+        } catch (Throwable ignore) {
         }
+
+        parentResult.setDuration(parentResult.getDuration() + duration);
 
         if (shouldUpdateParentStatus(current, currentResult)) {
             parentResult.setStatus(currentResult.getStatus());
@@ -191,7 +199,7 @@ public class NodeResultServiceImpl implements NodeResultService {
             }
         }
 
-        // update parent status if current node on step status
+        // update parent status if current node on stop status
         if (result.isStop()) {
             return true;
         }
@@ -206,6 +214,10 @@ public class NodeResultServiceImpl implements NodeResultService {
         // update parent status if current on failure and it is not allow failure
         if (result.isFailure()) {
             if (current instanceof Step) {
+                if (current.getNext() == null) {
+                    return true;
+                }
+
                 Step step = (Step) current;
                 if (!step.getAllowFailure()) {
                     return true;

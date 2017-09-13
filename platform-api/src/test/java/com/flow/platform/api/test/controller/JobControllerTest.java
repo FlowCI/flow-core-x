@@ -18,22 +18,18 @@ package com.flow.platform.api.test.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.test.TestBase;
-
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Jsonable;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * @author yh@firim
@@ -46,29 +42,22 @@ public class JobControllerTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath());
 
-        Map<String, String> map = new HashMap<>();
-        map.put("FLOW_GIT_BRANCH", "a");
-
+        job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
-        StringBuilder stringBuilder = new StringBuilder("/jobs/");
+        Job returnedJob = requestToShowJob(job.getNodePath(), job.getNumber());
 
-        MockHttpServletRequestBuilder content = get(
-            stringBuilder.append(job.getNodeName()).append("/").append(job.getNumber()).toString())
-            .contentType(MediaType.APPLICATION_JSON);
+        // then: verify children result is returned
+        Assert.assertNotNull(returnedJob.getChildrenResult());
 
-        MvcResult mvcResult = this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
-
-        String response = mvcResult.getResponse().getContentAsString();
-        Job returnedJob = Job.parse(response, Job.class);
-
-        // those fields cannot exported
+        // then: verify session id is created
         Assert.assertNull(returnedJob.getSessionId());
-    }
 
+        // when: load yml
+        String ymlForJob = requestToGetYml(job.getNodePath(), job.getNumber());
+        String originYml = getResourceContent("flow.yaml");
+        Assert.assertEquals(originYml, ymlForJob);
+    }
 
     @Test
     public void should_stop_job_success() throws Exception {
@@ -76,39 +65,38 @@ public class JobControllerTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath());
 
-        Map<String, String> map = new HashMap<>();
-        map.put("FLOW_GIT_BRANCH", "a");
-
+        job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
-        StringBuilder stringBuilder = new StringBuilder("/jobs/");
-
-        MockHttpServletRequestBuilder content = post(
-            stringBuilder.append(job.getNodeName()).append("/").append(job.getNumber()).append("/stop").toString())
-            .contentType(MediaType.APPLICATION_JSON);
-
-        MvcResult mvcResult = this.mockMvc.perform(content)
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andReturn();
+        MvcResult mvcResult = this.mockMvc.perform(
+            post(String.format("/jobs/%s/%s/stop", job.getNodeName(), job.getNumber()))
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk()).andReturn();
 
         String response = mvcResult.getResponse().getContentAsString();
         Job jobLoaded = Jsonable.GSON_CONFIG.fromJson(response, Job.class);
         Assert.assertNotNull(jobLoaded);
 
-        StringBuilder string = new StringBuilder("/jobs/");
 
-        MockHttpServletRequestBuilder con = get(
-            string.append(job.getNodeName()).append("/").append(job.getNumber()).toString())
-            .contentType(MediaType.APPLICATION_JSON);
+        Job loadedJob = requestToShowJob(job.getNodePath(), job.getNumber());
+        Assert.assertEquals(NodeStatus.STOPPED, loadedJob.getRootResult().getStatus());
+    }
 
-        MvcResult result = this.mockMvc.perform(con)
-            .andDo(print())
+    private Job requestToShowJob(String path, Integer buildNumber) throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(
+            get(String.format("/jobs/%s/%s", path, buildNumber))
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk()).andReturn();
+
+        String response = mvcResult.getResponse().getContentAsString();
+        return Job.parse(response, Job.class);
+    }
+
+    private String requestToGetYml(String path, Integer buildNumber) throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(get(String.format("/jobs/%s/%s/yml", path, buildNumber)))
             .andExpect(status().isOk())
             .andReturn();
 
-        String res = result.getResponse().getContentAsString();
-        Job job1 = Job.parse(res, Job.class);
-        Assert.assertEquals(NodeStatus.STOPPED, job1.getRootResult().getStatus());
+        return mvcResult.getResponse().getContentAsString();
     }
 }

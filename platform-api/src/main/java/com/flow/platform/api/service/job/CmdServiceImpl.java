@@ -56,13 +56,13 @@ public class CmdServiceImpl implements CmdService {
     private String domain;
 
     @Override
-    public String createSession(Job job) {
+    public String createSession(Job job, Integer retry) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
         cmdInfo.setWebhook(buildCmdWebhook(job));
         LOGGER.traceMarker("CreateSession", "job id - %s", job.getId());
 
         // create session
-        Cmd cmd = sendToQueue(cmdInfo, 5);
+        Cmd cmd = sendToQueue(cmdInfo, retry);
         if (cmd == null) {
             throw new IllegalStatusException("Unable to create session since cmd return null");
         }

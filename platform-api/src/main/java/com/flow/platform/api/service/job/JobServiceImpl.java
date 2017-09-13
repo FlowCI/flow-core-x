@@ -63,6 +63,8 @@ public class JobServiceImpl implements JobService {
 
     private Integer RETRY_TIMEs = 5;
 
+    private final Integer createSessionRetryTimes = 5;
+
     @Autowired
     private NodeResultService nodeResultService;
 
@@ -94,17 +96,21 @@ public class JobServiceImpl implements JobService {
             throw new NotFoundException("job is not found");
         }
 
-        List<NodeResult> allResults = nodeResultService.list(job);
-        allResults.remove(allResults.size() - 1);
-        job.setChildrenResult(allResults);
-
+        List<NodeResult> childrenResult = getChildrenResult(job);
+        job.setChildrenResult(childrenResult);
         return job;
+    }
+
+    @Override
+    public String findYml(String path, Integer number) {
+        Job job = find(path, number);
+        return jobNodeService.find(job.getId()).getFile();
     }
 
     @Override
     public List<NodeResult> listNodeResult(String path, Integer number) {
         Job job = find(path, number);
-        return nodeResultService.list(job);
+        return getChildrenResult(job);
     }
 
     @Override
@@ -168,7 +174,7 @@ public class JobServiceImpl implements JobService {
         job.setChildrenResult(resultList);
 
         // to create agent session for job
-        String sessionId = cmdService.createSession(job);
+        String sessionId = cmdService.createSession(job, createSessionRetryTimes);
         job.setSessionId(sessionId);
         job.setStatus(JobStatus.SESSION_CREATING);
         jobDao.update(job);
@@ -226,6 +232,12 @@ public class JobServiceImpl implements JobService {
         throw new NotFoundException("not found cmdType");
     }
 
+    private List<NodeResult> getChildrenResult(Job job) {
+        List<NodeResult> allResults = nodeResultService.list(job);
+        allResults.remove(allResults.size() - 1);
+        return allResults;
+    }
+
     /**
      * run node
      *
@@ -262,6 +274,12 @@ public class JobServiceImpl implements JobService {
      */
     private void onCreateSessionCallback(Job job, Cmd cmd) {
         if (cmd.getStatus() != CmdStatus.SENT) {
+
+            if (cmd.getRetry() > 1) {
+                LOGGER.trace("Create Session fail but retrying: %s", cmd.getStatus().getName());
+                return;
+            }
+
             LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
             job.setStatus(JobStatus.ERROR);
             jobDao.update(job);
@@ -290,21 +308,13 @@ public class JobServiceImpl implements JobService {
         Node node = tree.find(path);
         Node next = tree.next(path);
 
+        // bottom up recursive update node result
         NodeResult nodeResult = nodeResultService.update(job, node, cmd);
+        LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
-        // no more node to run or manual stop node, update job data
-        if (next == null || nodeResult.isStop()) {
-            String rootPath = PathUtil.rootPath(path);
-            NodeResult rootResult = nodeResultService.find(rootPath, job.getId());
-
-            // update job status
-            updateJobStatus(job, rootResult);
-            LOGGER.debug("The node tree '%s' been executed with %s status", rootPath, rootResult.getStatus());
-
-            // send to delete session
-            if (!nodeResult.isRunning()) {
-                cmdService.deleteSession(job);
-            }
+        // no more node to run and status is not running
+        if (next == null && !nodeResult.isRunning()) {
+            stopJob(job);
             return;
         }
 
@@ -320,6 +330,13 @@ public class JobServiceImpl implements JobService {
                 Step step = (Step) node;
                 if (step.getAllowFailure()) {
                     run(next, job);
+                }
+
+                // clean up session if node result failure and set job status to error
+
+                //TODO: Missing unit test
+                else {
+                    stopJob(job);
                 }
             }
         }
@@ -339,10 +356,6 @@ public class JobServiceImpl implements JobService {
         Job runningJob = find(path, buildNumber);
         NodeResult result = runningJob.getRootResult();
 
-        if (runningJob == null) {
-            throw new NotFoundException("running job not found by path - " + path);
-        }
-
         if (result == null) {
             throw new NotFoundException("running job not found node result - " + path);
         }
@@ -350,9 +363,8 @@ public class JobServiceImpl implements JobService {
         // do not handle job since it is not in running status
         if (result.isRunning()) {
             try {
-                cmdService.deleteSession(runningJob);
                 updateNodeResult(runningJob, NodeStatus.STOPPED);
-                updateJobStatus(runningJob, result);
+                stopJob(runningJob);
             } catch (Throwable throwable) {
                 String message = "stop job error - " + ExceptionUtil.findRootCause(throwable);
                 LOGGER.traceMarker("stopJob", message);
@@ -363,12 +375,13 @@ public class JobServiceImpl implements JobService {
         return runningJob;
     }
 
-    @Override
-    public AgentWithFlow findAgentInfoByJob(String flowName, Integer number){
-        return null;
-    }
 
-    private void updateJobStatus(Job job, NodeResult rootResult) {
+    /**
+     * Update job status by root node result
+     */
+    private NodeResult updateJobStatus(Job job) {
+        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
+
         if (rootResult.isFailure()) {
             job.setStatus(JobStatus.ERROR);
         }
@@ -382,6 +395,15 @@ public class JobServiceImpl implements JobService {
         }
 
         jobDao.update(job);
+        return rootResult;
+    }
+
+    /**
+     * Update job status and delete agent session
+     */
+    private void stopJob(Job job) {
+        updateJobStatus(job);
+        cmdService.deleteSession(job);
     }
 
     private void updateNodeResult(Job job, NodeStatus status) {

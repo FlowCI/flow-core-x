@@ -34,6 +34,8 @@
     <property name="inputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="inputs"/>
     <property name="webhook" type="string" column="webhook"/>
     <property name="extra" type="string" column="extra"/>
+    <property name="retry" type="integer" column="retry"/>
+
     <property name="createdDate" type="java.time.ZonedDateTime">
       <column name="created_date" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
     </property>

@@ -35,6 +35,11 @@ public interface JobService {
     Job find(String path, Integer number);
 
     /**
+     * Get job yml content
+     */
+    String findYml(String path, Integer number);
+
+    /**
      * List all jobs by given path
      *
      * @param paths job node path

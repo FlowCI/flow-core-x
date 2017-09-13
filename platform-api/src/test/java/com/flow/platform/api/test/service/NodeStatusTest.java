@@ -31,36 +31,36 @@ public class NodeStatusTest {
 
     @Test(expected = IllegalParameterException.class)
     public void should_illegal_parameter_exception_if_null_cmd() {
-        NodeStatus.transfer(null);
+        NodeStatus.transfer(null, false);
     }
 
     @Test(expected = IllegalParameterException.class)
     public void should_illegal_parameter_exception_if_no_cmd_status() {
         Cmd cmd = new Cmd();
         cmd.setStatus(null);
-        NodeStatus.transfer(cmd);
+        NodeStatus.transfer(cmd, false);
     }
 
     @Test
     public void should_transfer_cmd_pending_or_sent_to_pending() {
         Cmd cmd = new Cmd();
         cmd.setStatus(CmdStatus.PENDING);
-        Assert.assertEquals(NodeStatus.PENDING, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.PENDING, NodeStatus.transfer(cmd, false));
 
         cmd = new Cmd();
         cmd.setStatus(CmdStatus.SENT);
-        Assert.assertEquals(NodeStatus.PENDING, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.PENDING, NodeStatus.transfer(cmd, false));
     }
 
     @Test
     public void should_transfer_cmd_running_or_executed_to_running() {
         Cmd cmd = new Cmd();
         cmd.setStatus(CmdStatus.RUNNING);
-        Assert.assertEquals(NodeStatus.RUNNING, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.RUNNING, NodeStatus.transfer(cmd, false));
 
         cmd = new Cmd();
         cmd.setStatus(CmdStatus.EXECUTED);
-        Assert.assertEquals(NodeStatus.RUNNING, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.RUNNING, NodeStatus.transfer(cmd, false));
     }
 
     @Test
@@ -68,44 +68,49 @@ public class NodeStatusTest {
         Cmd cmd = new Cmd();
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setCmdResult(new CmdResult(0));
-        Assert.assertEquals(NodeStatus.SUCCESS, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.SUCCESS, NodeStatus.transfer(cmd, false));
 
         cmd = new Cmd();
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setCmdResult(new CmdResult(100));
-        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd, false));
 
         cmd = new Cmd();
         cmd.setStatus(CmdStatus.LOGGED);
-        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd, false));
+
+        cmd = new Cmd();
+        cmd.setStatus(CmdStatus.LOGGED);
+        cmd.setCmdResult(new CmdResult(100));
+        Assert.assertEquals(NodeStatus.SUCCESS, NodeStatus.transfer(cmd, true));
     }
 
     @Test
     public void should_transfer_cmd_killed_or_exception_or_reject_to_failure() {
         Cmd cmd = new Cmd();
         cmd.setStatus(CmdStatus.EXCEPTION);
-        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd, false));
 
         cmd = new Cmd();
         cmd.setStatus(CmdStatus.KILLED);
-        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd, false));
 
         cmd = new Cmd();
         cmd.setStatus(CmdStatus.REJECTED);
-        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.FAILURE, NodeStatus.transfer(cmd, false));
     }
 
     @Test
     public void should_transfer_cmd_stopped_to_stopped() {
         Cmd cmd = new Cmd();
         cmd.setStatus(CmdStatus.STOPPED);
-        Assert.assertEquals(NodeStatus.STOPPED, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.STOPPED, NodeStatus.transfer(cmd, false));
     }
 
     @Test
     public void should_transfer_cmd_timeout_kill_to_timeout() {
         Cmd cmd = new Cmd();
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
-        Assert.assertEquals(NodeStatus.TIMEOUT, NodeStatus.transfer(cmd));
+        Assert.assertEquals(NodeStatus.TIMEOUT, NodeStatus.transfer(cmd, false));
     }
 }

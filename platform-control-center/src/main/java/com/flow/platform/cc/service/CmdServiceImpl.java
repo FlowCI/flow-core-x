@@ -133,7 +133,12 @@ public class CmdServiceImpl implements CmdService {
     @Override
     @Transactional(noRollbackFor = Throwable.class)
     public Cmd create(CmdInfo info) {
+        return create(info, 0);
+    }
 
+    @Override
+    @Transactional(noRollbackFor = Throwable.class)
+    public Cmd create(CmdInfo info, Integer retry) {
         Cmd cmd = Cmd.convert(info);
         cmd.setId(UUID.randomUUID().toString());
         cmd.setCreatedDate(ZonedDateTime.now());
@@ -164,6 +169,10 @@ public class CmdServiceImpl implements CmdService {
             cmd.setTimeout(DEFAULT_CMD_TIMEOUT);
         }
 
+        if (retry != null && retry > 0) {
+            cmd.setRetry(retry);
+        }
+
         return cmdDao.save(cmd);
     }
 
@@ -183,11 +192,6 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public List<Cmd> listByZone(String zone) {
-        return cmdDao.list(new AgentPath(zone, null), null, null);
-    }
-
-    @Override
     public List<Cmd> listBySession(String sessionId) {
         return cmdDao.list(sessionId);
     }
@@ -204,8 +208,8 @@ public class CmdServiceImpl implements CmdService {
 
     @Override
     @Transactional(propagation = Propagation.NEVER)
-    public Cmd queue(CmdInfo cmdInfo, int priority, int retry) {
-        Cmd cmd = create(cmdInfo);
+    public Cmd enqueue(CmdInfo cmdInfo, int priority, int retry) {
+        Cmd cmd = create(cmdInfo, retry);
 
         CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
         MessageProperties properties = new MessageProperties();
@@ -234,45 +238,30 @@ public class CmdServiceImpl implements CmdService {
             throw new IllegalArgumentException("Cmd does not exist");
         }
 
-        CmdResult cmdResult = cmdResultDao.get(cmd.getId());
+
+        //TODO: missing unit test
+        // set cmd status in sequence
+        if (!cmd.addStatus(statusItem.getStatus())) {
+            return;
+        }
 
         // compare exiting cmd result and update
         CmdResult inputResult = statusItem.getCmdResult();
+
         if (inputResult != null) {
             inputResult.setCmdId(cmdId);
-            cmd.setFinishedDate(inputResult.getFinishTime());
-            if (cmdResult != null) {
-                cmdResultDao.updateNotNullOrEmpty(inputResult);
-            } else {
-                cmdResultDao.save(inputResult);
-            }
-        }
-        cmd.setCmdResult(cmdResult);
-
-        // update cmd status
-        if (cmd.addStatus(statusItem.getStatus())) {
-            cmdDao.update(cmd);
-
-            // update agent status
-            if (statusItem.isUpdateAgentStatus()) {
-                updateAgentStatusFromCmd(cmd);
-            }
-
-            if (statusItem.isCallWebhook()) {
-                webhookCallback(cmd);
-            }
-        }
-    }
-
-    @Override
-    public void resetStatus(String cmdId) {
-        Cmd cmd = find(cmdId);
-        if (cmd == null) {
-            throw new IllegalArgumentException("Cmd does not exist");
+            cmdResultDao.saveOrUpdate(inputResult);
+            cmd.setCmdResult(inputResult);
         }
 
-        cmd.setStatus(CmdStatus.PENDING);
-        cmdDao.save(cmd);
+        // update agent status
+        if (statusItem.isUpdateAgentStatus()) {
+            updateAgentStatusFromCmd(cmd);
+        }
+
+        if (statusItem.isCallWebhook()) {
+            webhookCallback(cmd);
+        }
     }
 
     @Override
