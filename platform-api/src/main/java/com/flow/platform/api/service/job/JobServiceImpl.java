@@ -16,8 +16,8 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.JobDao;
-import com.flow.platform.api.dao.job.NodeResultDao;
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
@@ -27,17 +27,18 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.service.AgentService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
@@ -62,6 +63,8 @@ public class JobServiceImpl implements JobService {
 
     private Integer RETRY_TIMEs = 5;
 
+    private final Integer createSessionRetryTimes = 5;
+
     @Autowired
     private NodeResultService nodeResultService;
 
@@ -69,13 +72,10 @@ public class JobServiceImpl implements JobService {
     private JobNodeService jobNodeService;
 
     @Autowired
-    private BlockingQueue<CmdQueueItem> cmdBaseBlockingQueue;
+    private BlockingQueue<CmdCallbackQueueItem> cmdBaseBlockingQueue;
 
     @Autowired
     private JobDao jobDao;
-
-    @Autowired
-    private NodeResultDao nodeResultDao;
 
     @Autowired
     private NodeService nodeService;
@@ -87,12 +87,7 @@ public class JobServiceImpl implements JobService {
     private YmlService ymlService;
 
     @Autowired
-    private PlatformURL platformURL;
-
-    @Override
-    public Job find(BigInteger id) {
-        return jobDao.get(id);
-    }
+    private AgentService agentService;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -100,22 +95,37 @@ public class JobServiceImpl implements JobService {
         if (job == null) {
             throw new NotFoundException("job is not found");
         }
+
+        List<NodeResult> childrenResult = getChildrenResult(job);
+        job.setChildrenResult(childrenResult);
         return job;
+    }
+
+    @Override
+    public String findYml(String path, Integer number) {
+        Job job = find(path, number);
+        return jobNodeService.find(job.getId()).getFile();
     }
 
     @Override
     public List<NodeResult> listNodeResult(String path, Integer number) {
         Job job = find(path, number);
-        return nodeResultService.list(job);
+        return getChildrenResult(job);
     }
 
     @Override
     public List<Job> list(List<String> paths, boolean latestOnly) {
         if (latestOnly) {
-            jobDao.latestByPath(paths);
+            List<Job> jobs = jobDao.latestByPath(paths);
         }
 
-        return jobDao.listByPath(paths);
+        List<Job> jobs = jobDao.listByPath(paths);
+
+        for (Job job : jobs) {
+            job.setAgent(agentService.show(job));
+        }
+
+        return jobs;
     }
 
     @Override
@@ -157,12 +167,14 @@ public class JobServiceImpl implements JobService {
         // create yml snapshot for job
         jobNodeService.save(job.getId(), yml);
 
-        // init for node result
-        NodeResult rootResult = nodeResultService.create(job);
-        job.setResult(rootResult);
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult);
+        job.setChildrenResult(resultList);
 
         // to create agent session for job
-        String sessionId = cmdService.createSession(job);
+        String sessionId = cmdService.createSession(job, createSessionRetryTimes);
         job.setSessionId(sessionId);
         job.setStatus(JobStatus.SESSION_CREATING);
         jobDao.update(job);
@@ -171,10 +183,10 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void callback(CmdQueueItem cmdQueueItem) {
+    public void callback(CmdCallbackQueueItem cmdQueueItem) {
         BigInteger jobId = cmdQueueItem.getJobId();
         Cmd cmd = cmdQueueItem.getCmd();
-        Job job = find(jobId);
+        Job job = jobDao.get(jobId);
 
         if (cmd.getType() == CmdType.CREATE_SESSION) {
 
@@ -220,6 +232,12 @@ public class JobServiceImpl implements JobService {
         throw new NotFoundException("not found cmdType");
     }
 
+    private List<NodeResult> getChildrenResult(Job job) {
+        List<NodeResult> allResults = nodeResultService.list(job);
+        allResults.remove(allResults.size() - 1);
+        return allResults;
+    }
+
     /**
      * run node
      *
@@ -242,12 +260,13 @@ public class JobServiceImpl implements JobService {
         // pass job env to node
         EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
 
-        String cmdId = cmdService.runShell(job, node);
+        // to run node with customized cmd id
         NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+        CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
 
-        // record cmd id
-        nodeResult.setCmdId(cmdId);
-        nodeResultService.save(nodeResult);
+        if (cmd.getStatus() == CmdStatus.EXCEPTION) {
+            nodeResultService.update(job, node, Cmd.convert(cmd));
+        }
     }
 
     /**
@@ -255,6 +274,12 @@ public class JobServiceImpl implements JobService {
      */
     private void onCreateSessionCallback(Job job, Cmd cmd) {
         if (cmd.getStatus() != CmdStatus.SENT) {
+
+            if (cmd.getRetry() > 1) {
+                LOGGER.trace("Create Session fail but retrying: %s", cmd.getStatus().getName());
+                return;
+            }
+
             LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
             job.setStatus(JobStatus.ERROR);
             jobDao.update(job);
@@ -283,21 +308,13 @@ public class JobServiceImpl implements JobService {
         Node node = tree.find(path);
         Node next = tree.next(path);
 
+        // bottom up recursive update node result
         NodeResult nodeResult = nodeResultService.update(job, node, cmd);
+        LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
-        // no more node to run or manual stop node, update job data
-        if (next == null || nodeResult.isStop()) {
-            String rootPath = PathUtil.rootPath(path);
-            NodeResult rootResult = nodeResultService.find(rootPath, job.getId());
-
-            // update job status
-            updateJobStatus(job, rootResult);
-            LOGGER.debug("The node tree '%s' been executed with %s status", rootPath, rootResult.getStatus());
-
-            // send to delete session
-            if (!nodeResult.isRunning()) {
-                cmdService.deleteSession(job);
-            }
+        // no more node to run and status is not running
+        if (next == null && !nodeResult.isRunning()) {
+            stopJob(job);
             return;
         }
 
@@ -314,12 +331,19 @@ public class JobServiceImpl implements JobService {
                 if (step.getAllowFailure()) {
                     run(next, job);
                 }
+
+                // clean up session if node result failure and set job status to error
+
+                //TODO: Missing unit test
+                else {
+                    stopJob(job);
+                }
             }
         }
     }
 
     @Override
-    public void enterQueue(CmdQueueItem cmdQueueItem) {
+    public void enterQueue(CmdCallbackQueueItem cmdQueueItem) {
         try {
             cmdBaseBlockingQueue.put(cmdQueueItem);
         } catch (Throwable throwable) {
@@ -330,11 +354,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public Job stopJob(String path, Integer buildNumber) {
         Job runningJob = find(path, buildNumber);
-        NodeResult result = runningJob.getResult();
-
-        if (runningJob == null) {
-            throw new NotFoundException("running job not found by path - " + path);
-        }
+        NodeResult result = runningJob.getRootResult();
 
         if (result == null) {
             throw new NotFoundException("running job not found node result - " + path);
@@ -343,9 +363,8 @@ public class JobServiceImpl implements JobService {
         // do not handle job since it is not in running status
         if (result.isRunning()) {
             try {
-                cmdService.deleteSession(runningJob);
                 updateNodeResult(runningJob, NodeStatus.STOPPED);
-                updateJobStatus(runningJob, result);
+                stopJob(runningJob);
             } catch (Throwable throwable) {
                 String message = "stop job error - " + ExceptionUtil.findRootCause(throwable);
                 LOGGER.traceMarker("stopJob", message);
@@ -356,7 +375,13 @@ public class JobServiceImpl implements JobService {
         return runningJob;
     }
 
-    private void updateJobStatus(Job job, NodeResult rootResult) {
+
+    /**
+     * Update job status by root node result
+     */
+    private NodeResult updateJobStatus(Job job) {
+        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
+
         if (rootResult.isFailure()) {
             job.setStatus(JobStatus.ERROR);
         }
@@ -370,6 +395,15 @@ public class JobServiceImpl implements JobService {
         }
 
         jobDao.update(job);
+        return rootResult;
+    }
+
+    /**
+     * Update job status and delete agent session
+     */
+    private void stopJob(Job job) {
+        updateJobStatus(job);
+        cmdService.deleteSession(job);
     }
 
     private void updateNodeResult(Job job, NodeStatus status) {
@@ -380,7 +414,7 @@ public class JobServiceImpl implements JobService {
                 nodeResultService.save(result);
 
                 if (job.getNodePath().equals(result.getPath())) {
-                    job.setResult(result);
+                    job.setRootResult(result);
                 }
             }
         }

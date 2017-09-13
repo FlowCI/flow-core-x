@@ -69,13 +69,20 @@ public class JobController extends NodeController {
      *
      * @apiSuccessExample {json} Success-Response
      *  {
-     *      nodePath: xx/xx/xx,
+     *      nodePath: flow-integration,
      *      number: 1,
-     *      nodeName: xx,
+     *      nodeName: flow-integration,
      *      status: CREATED,
+     *      envs: {
+     *          FLOW_GIT_BRANCH: xxx
+     *          FLOW_GIT_: xxx
+     *      }
      *      createdAt: 154123211,
      *      updatedAt: 154123211,
      *      result: {
+     *          key: {
+     *             path: flow-integration
+     *          },
      *          outputs: {
      *              FLOW_ENV_OUT_1: xxxx,
      *              FLOW_ENV_OUT_2: xxxx
@@ -84,11 +91,40 @@ public class JobController extends NodeController {
      *          status: PENDING,
      *          cmdId: xxxx,
      *          nodeTag: FLOW,
+     *          order: 5
      *          startTime: 154123211,
      *          finishTime: 154123211,
      *          createdAt: 154123211,
      *          updatedAt: 154123211
-     *      }
+     *      },
+     *
+     *      childrenResult: [
+     *          {
+     *              key: {
+     *                  path: flow-integration/step1
+     *              },
+     *              duration: 0,
+     *              status: PENDING,
+     *              cmdId: xxx,
+     *              outputs: {
+     *                  FLOW_ENV_OUT_1: xx
+     *              },
+     *              order: 0
+     *          },
+     *
+     *          {
+     *              key: {
+     *                  path: flow-integration/step2
+     *              },
+     *              duration: 0,
+     *              status: PENDING,
+     *              cmdId: xxx,
+     *              outputs: {
+     *                  FLOW_ENV_OUT_1: xx
+     *              },
+     *              order: 1
+     *          }
+     *      ]
      *  }
      */
     @PostMapping(path = "/{root}")
@@ -145,6 +181,28 @@ public class JobController extends NodeController {
     }
 
     /**
+     * @api {get} /jobs/:root/:buildNumber/yml Get YML
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiGroup Jobs
+     * @apiDescription Get job yml content
+     *
+     * @apiSuccessExample {yml} Success-Response
+     *
+     *  - flows:
+     *      - envs:
+     *          FLOW_ENV: xxx,
+     *      - steps:
+     *          name: xxx
+     *          ...
+     */
+    @GetMapping(path = "/{root}/{buildNumber}/yml")
+    public String yml(@PathVariable Integer buildNumber) {
+        String path = getNodePathFromUrl();
+        return jobService.findYml(path, buildNumber);
+    }
+
+    /**
      * @api {get} /jobs/:root/:buildNumber/nodes List Nodes
      * @apiParam {String} root flow node path
      * @apiParam {String} buildNumber job build number
@@ -154,6 +212,10 @@ public class JobController extends NodeController {
      * @apiSuccessExample {json} Success-Response
      *  [
      *      {
+     *          key: {
+     *              jobId: xxx,
+     *              path: flow-name/step-name
+     *          }
      *          outputs: {
      *              FLOW_ENV_OUT_1: xxxx,
      *              FLOW_ENV_OUT_2: xxxx

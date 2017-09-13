@@ -30,6 +30,8 @@ public class PlatformURL {
 
     private String agentUrl;
 
+    private String agentInfoUrl;
+
     private String sysInfoUrl;
 
     private String sysIndexUrl;
@@ -39,6 +41,7 @@ public class PlatformURL {
         queueUrl = String.format("%s%s", baseURL, "cmd/queue/send");
         cmdStopUrl = String.format("%s%s", baseURL, "cmd/stop/");
         agentUrl = String.format("%s%s", baseURL, "agent/list");
+        agentInfoUrl = String.format("%s%s", baseURL, "agent/find");
         sysIndexUrl = String.format("%s%s", baseURL, "index");
         sysInfoUrl = String.format("%s%s", baseURL, "sys/info");
     }
@@ -58,6 +61,11 @@ public class PlatformURL {
     public String getAgentUrl() {
         return agentUrl;
     }
+
+    public String getAgentInfoUrl() {
+        return agentInfoUrl;
+    }
+
 
     public String getSysIndexUrl() {
         return sysIndexUrl;

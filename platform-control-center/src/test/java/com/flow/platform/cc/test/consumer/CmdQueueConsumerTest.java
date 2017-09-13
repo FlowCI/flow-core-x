@@ -79,9 +79,10 @@ public class CmdQueueConsumerTest extends TestBase {
         // given:
         String agentName = "agent-name-test";
         zkClient.delete(ZKHelper.buildPath(ZONE, agentName), false);
+        Thread.sleep(2000);
 
         AgentPath agentPath = createMockAgent(ZONE, agentName);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         Assert.assertTrue(zkClient.exist(ZKHelper.buildPath(agentPath)));
 
@@ -96,7 +97,7 @@ public class CmdQueueConsumerTest extends TestBase {
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088/node/callback");
 
-        Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 0);
+        Cmd mockCmdInstance = cmdService.enqueue(mockCmd, 1, 0);
         Assert.assertNotNull(mockCmdInstance.getId());
 
         Thread.sleep(1000);
@@ -122,7 +123,7 @@ public class CmdQueueConsumerTest extends TestBase {
         CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088" + url);
 
-        Cmd cmd = cmdService.queue(mockCmd, 1, 3);
+        Cmd cmd = cmdService.enqueue(mockCmd, 1, 3);
         Assert.assertNotNull(cmdService.find(cmd.getId()));
 
         Thread.sleep(10000); // wait for retrying.
@@ -142,7 +143,7 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: send cmd without available agent
         CmdInfo mockCmd = new CmdInfo(ZONE, agentName, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088" + testUrl);
-        Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 5);
+        Cmd mockCmdInstance = cmdService.enqueue(mockCmd, 1, 5);
         Assert.assertNotNull(mockCmdInstance.getId());
 
         // wait for send webhook
@@ -159,6 +160,10 @@ public class CmdQueueConsumerTest extends TestBase {
         // then:
         countStrategy = new CountMatchingStrategy(CountMatchingStrategy.GREATER_THAN_OR_EQUAL, 2);
         verify(countStrategy, postRequestedFor(urlEqualTo(testUrl)));
+
+        Integer retry = cmdService.find(mockCmdInstance.getId()).getRetry();
+        Assert.assertNotNull(retry);
+        Assert.assertTrue(retry > 0);
     }
 
     @Test
@@ -170,7 +175,7 @@ public class CmdQueueConsumerTest extends TestBase {
         // when: send cmd without available agent
         CmdInfo mockCmd = new CmdInfo(ZONE, null, CmdType.RUN_SHELL, "echo hello");
         mockCmd.setWebhook("http://localhost:8088" + testUrl);
-        Cmd mockCmdInstance = cmdService.queue(mockCmd, 1, 5);
+        Cmd mockCmdInstance = cmdService.enqueue(mockCmd, 1, 5);
 
         Assert.assertNotNull(mockCmdInstance.getId());
         Assert.assertNotNull(cmdDao.get(mockCmdInstance.getId()));

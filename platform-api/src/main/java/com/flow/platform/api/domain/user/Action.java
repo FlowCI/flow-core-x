@@ -33,6 +33,9 @@ public class Action extends CreateUpdateObject {
     private String description;
 
     @Expose
+    private String createdBy;
+
+    @Expose
     private ActionGroup tag = ActionGroup.DEFAULT;
 
     public Action() {
@@ -78,6 +81,14 @@ public class Action extends CreateUpdateObject {
 
     public void setTag(ActionGroup tag) {
         this.tag = tag;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     @Override

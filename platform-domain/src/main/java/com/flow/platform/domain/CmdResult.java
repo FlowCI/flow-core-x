@@ -153,6 +153,7 @@ public class CmdResult extends Jsonable {
             this.executedTime = executedTime;
             if (startTime != null) {
                 this.duration = ChronoUnit.SECONDS.between(this.startTime, this.executedTime);
+                this.totalDuration = this.duration;
             }
         }
     }

@@ -20,7 +20,9 @@ import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.event.NoAvailableResourceEvent;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.cc.exception.AgentErr.NotAvailableException;
 import com.flow.platform.cc.util.ZKHelper;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -32,7 +34,7 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
-import com.flow.platform.util.zk.ZkException.NotExitException;
+import com.flow.platform.util.zk.ZkException;
 import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -117,16 +119,19 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
             cmd = cmdService.find(cmd.getId());
             return cmd;
 
-        } catch (AgentErr.NotAvailableException e) {
+        } catch (FlowException e) {
             CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
             cmdService.updateStatus(statusItem, false);
 
             // broadcast NoAvailableResourceEvent with zone name
             String zone = cmd.getAgentPath().getZone();
-            applicationEventPublisher.publishEvent(new NoAvailableResourceEvent(this, zone));
+
+            if (e instanceof NotAvailableException) {
+                applicationEventPublisher.publishEvent(new NoAvailableResourceEvent(this, zone));
+            }
             throw e;
 
-        } catch (NotExitException e) {
+        } catch (ZkException e) {
             CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
             cmdService.updateStatus(statusItem, false);
             throw new AgentErr.NotFoundException(cmd.getAgentName());
@@ -135,8 +140,11 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
             CmdResult result = new CmdResult();
             result.getExceptions().add(e);
 
-            CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
+            // update cmd status to exception
+            CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.EXCEPTION, null, false, true);
             cmdService.updateStatus(statusItem, false);
+
+            cleanCurrentCmd(cmd);
             throw e;
         }
     }
@@ -224,6 +232,22 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
         CmdInfo param = new CmdInfo(target.getPath(), CmdType.DELETE_SESSION, null);
         param.setSessionId(target.getSessionId());
         return cmdService.create(param);
+    }
+
+    /**
+     * Kill agent current running cmd or delete current session
+     */
+    private void cleanCurrentCmd(Cmd current) {
+        if (Strings.isNullOrEmpty(current.getSessionId())) {
+            Cmd cmdToKill = cmdService.create(new CmdInfo(current.getAgentPath(), CmdType.KILL, null));
+            dispatch(cmdToKill.getId(), false);
+        }
+
+        else {
+            Agent agent = agentService.find(current.getAgentPath());
+            Cmd cmdToDelSession = createDeleteSessionCmd(agent);
+            dispatch(cmdToDelSession.getId(), false);
+        }
     }
 
     /**

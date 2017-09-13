@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.config;
+package com.flow.platform.api.config;
 
-import com.flow.platform.cc.consumer.RealTimeLoggingHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.flow.platform.api.consumer.CmdLoggingConsumer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -35,22 +36,31 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocketMessageBroker
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer implements WebSocketConfigurer {
 
-    @Autowired
-    private RealTimeLoggingHandler realTimeLoggingHandler;
+    // for agent uploading real time log
+    private final static String PATH_FOR_AGENT_CMD_LOGGING = "/agent/cmd/logging";
+
+    // for cmd logging which web connected to
+    private final static String PATH_FOR_WEB_CONNECTION = "/ws/web";
+
+    @Bean
+    public WebSocketHandler cmdLoggingConsumer() {
+        return new CmdLoggingConsumer();
+    }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(realTimeLoggingHandler, "/cmd/logging").setAllowedOrigins("*");
+        WebSocketHandler webSocketHandler = cmdLoggingConsumer();
+        registry.addHandler(webSocketHandler, PATH_FOR_AGENT_CMD_LOGGING).setAllowedOrigins("*");
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
+        config.enableSimpleBroker("/topic/cmd", "/topic/job");
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/cmd/logging").setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint(PATH_FOR_WEB_CONNECTION).setAllowedOrigins("*").withSockJS();
     }
 }

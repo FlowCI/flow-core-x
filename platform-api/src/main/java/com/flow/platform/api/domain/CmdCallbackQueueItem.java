@@ -22,7 +22,7 @@ import java.math.BigInteger;
 /**
  * @author yh@firim
  */
-public class CmdQueueItem {
+public class CmdCallbackQueueItem {
 
     private final BigInteger jobId;
 
@@ -32,7 +32,7 @@ public class CmdQueueItem {
 
     private Integer retryTimes = 0;
 
-    public CmdQueueItem(BigInteger jobId, Cmd cmd) {
+    public CmdCallbackQueueItem(BigInteger jobId, Cmd cmd) {
         this.jobId = jobId;
         this.cmd = cmd;
         this.path = cmd.getExtra();

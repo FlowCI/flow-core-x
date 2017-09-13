@@ -62,7 +62,7 @@ public enum NodeStatus {
     /**
      * Transfer cmd to node status
      */
-    public static NodeStatus transfer(Cmd cmd) {
+    public static NodeStatus transfer(Cmd cmd, boolean isAllowFailure) {
         if (cmd == null || cmd.getStatus() == null) {
             throw new IllegalParameterException("Cannot transfer null cmd or null cmd status to node status");
         }
@@ -82,6 +82,10 @@ public enum NodeStatus {
                 CmdResult cmdResult = cmd.getCmdResult();
                 if (cmdResult != null) {
                     if (isSuccess(cmdResult)) {
+                        return NodeStatus.SUCCESS;
+                    }
+
+                    if (isAllowFailure) {
                         return NodeStatus.SUCCESS;
                     }
                 }

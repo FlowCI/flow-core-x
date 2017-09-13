@@ -23,13 +23,10 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.stereotype.Component;
 
 /**
  * @author yang
  */
-
-@Component
 public class SpringContext implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
