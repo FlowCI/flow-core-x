@@ -17,6 +17,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.job.Job;
 import java.util.List;
 
 /**
@@ -25,6 +26,8 @@ import java.util.List;
 public interface AgentService {
 
     List<AgentWithFlow> list();
+
+    AgentWithFlow show(Job job);
 
     /**
      * agent shutdown

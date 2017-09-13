@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service.job;
 
+import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
@@ -69,4 +70,6 @@ public interface JobService {
      * stop job
      */
     Job stopJob(String name, Integer buildNumber);
+
+    AgentWithFlow findAgentInfoByJob(String flowName, Integer number);
 }

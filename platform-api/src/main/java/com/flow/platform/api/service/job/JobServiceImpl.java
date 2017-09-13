@@ -16,6 +16,7 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.JobEnvs;
@@ -26,6 +27,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.service.AgentService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -82,6 +84,9 @@ public class JobServiceImpl implements JobService {
     @Autowired
     private YmlService ymlService;
 
+    @Autowired
+    private AgentService agentService;
+
     @Override
     public Job find(String flowName, Integer number) {
         Job job = jobDao.get(flowName, number);
@@ -105,10 +110,16 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<Job> list(List<String> paths, boolean latestOnly) {
         if (latestOnly) {
-            jobDao.latestByPath(paths);
+            List<Job> jobs = jobDao.latestByPath(paths);
         }
 
-        return jobDao.listByPath(paths);
+        List<Job> jobs = jobDao.listByPath(paths);
+
+        for (Job job : jobs) {
+            job.setAgent(agentService.show(job));
+        }
+
+        return jobs;
     }
 
     @Override
@@ -350,6 +361,11 @@ public class JobServiceImpl implements JobService {
         }
 
         return runningJob;
+    }
+
+    @Override
+    public AgentWithFlow findAgentInfoByJob(String flowName, Integer number){
+        return null;
     }
 
     private void updateJobStatus(Job job, NodeResult rootResult) {
