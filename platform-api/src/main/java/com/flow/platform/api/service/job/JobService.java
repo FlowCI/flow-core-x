@@ -75,6 +75,4 @@ public interface JobService {
      * stop job
      */
     Job stopJob(String name, Integer buildNumber);
-
-    AgentWithFlow findAgentInfoByJob(String flowName, Integer number);
 }
