@@ -99,6 +99,18 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
+    public Job find(BigInteger jobId) {
+        Job job = jobDao.get(jobId);
+        if (job == null) {
+            throw new NotFoundException("job is not found");
+        }
+
+        List<NodeResult> childrenResult = getChildrenResult(job);
+        job.setChildrenResult(childrenResult);
+        return job;
+    }
+
+    @Override
     public String findYml(String path, Integer number) {
         Job job = find(path, number);
         return jobNodeService.find(job.getId()).getFile();
@@ -407,7 +419,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setStatus(newStatus);
         jobDao.save(job);
 
-        this.dispatchEvent(new JobStatusChangeEvent(this, job, originStatus, newStatus));
+        this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
     }
 
     private void updateNodeResult(Job job, NodeStatus status) {
