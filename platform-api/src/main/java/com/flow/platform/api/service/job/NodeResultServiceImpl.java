@@ -24,17 +24,20 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeTag;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
-import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.events.NodeStatusChangeEvent;
 import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class NodeResultServiceImpl implements NodeResultService {
+public class NodeResultServiceImpl extends ApplicationEventService implements NodeResultService {
 
     private final static Logger LOGGER = new Logger(NodeResultService.class);
 
@@ -52,64 +55,117 @@ public class NodeResultServiceImpl implements NodeResultService {
     private NodeResultDao nodeResultDao;
 
     @Autowired
-    private NodeService nodeService;
+    private JobNodeService jobNodeService;
 
     @Override
-    public NodeResult create(Job job) {
-        String nodePath = job.getNodePath();
-        Node root = nodeService.find(nodePath);
+    public List<NodeResult> create(Job job) {
+        NodeTree nodeTree = jobNodeService.get(job.getId());
 
-        if (root == null) {
+        if (nodeTree == null) {
             throw new IllegalStatusException("Job related node is empty, please check");
         }
 
-        final NodeResult[] rootResult = {null};
+        List<NodeResult> resultList = new ArrayList<>(nodeTree.childrenSize() + 1);
 
-        // save all empty node result to db
-        NodeUtil.recurse(root, node -> {
-            NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
-            nodeResult.setName(node.getName());
-            nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+        // save all empty node result for sub nodes
+        int order = 1;
+        for (Node node : nodeTree.children()) {
+            NodeResult nodeResult = createNodeResult(job, nodeTree, node);
+            nodeResult.setOrder(order++);
+
             nodeResultDao.save(nodeResult);
+            resultList.add(nodeResult);
+        }
 
-            if (node.equals(root)) {
-                rootResult[0] = nodeResult;
+        // save empty node result for root node
+        NodeResult rootResult = createNodeResult(job, nodeTree, nodeTree.root());
+        rootResult.setOrder(order);
+        nodeResultDao.save(rootResult);
+        resultList.add(rootResult);
+
+        return resultList;
+    }
+
+    @Override
+    public NodeResult find(String path, BigInteger jobId) {
+        return nodeResultDao.get(new NodeResultKey(jobId, path));
+    }
+
+    @Override
+    public List<NodeResult> list(Job job, boolean childrenOnly) {
+        List<NodeResult> list = nodeResultDao.list(job.getId());
+
+        if (childrenOnly) {
+            list.remove(list.size() - 1);
+            return list;
+        }
+
+        return list;
+    }
+
+    @Override
+    public void updateStatus(Job job, NodeStatus targetStatus, Set<NodeStatus> skipped) {
+        List<NodeResult> list = list(job, false);
+
+        for (NodeResult nodeResult : list) {
+            if (skipped.contains(nodeResult.getStatus())) {
+                continue;
             }
-        });
 
-        return rootResult[0];
+            NodeStatus originStatus = nodeResult.getStatus();
+
+            if (originStatus == targetStatus) {
+                continue;
+            }
+
+            nodeResult.setStatus(targetStatus);
+            nodeResultDao.save(nodeResult);
+            this.dispatchEvent(new NodeStatusChangeEvent(this, nodeResult.getKey(), originStatus, targetStatus));
+        }
     }
 
     @Override
-    public NodeResult find(String path, BigInteger jobID) {
-        return nodeResultDao.get(new NodeResultKey(jobID, path));
-    }
-
-    @Override
-    public List<NodeResult> list(Job job) {
-        return nodeResultDao.list(job.getId());
-    }
-
-    @Override
-    public void save(NodeResult result) {
-        nodeResultDao.update(result);
-    }
-
-    @Override
-    public NodeResult update(Job job, Node node, Cmd cmd) {
+    public NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd) {
         NodeResult currentResult = find(node.getPath(), job.getId());
-        updateCurrent(currentResult, cmd);
+
+        NodeStatus originStatus = currentResult.getStatus();
+        NodeStatus newStatus = updateCurrent(node, currentResult, cmd);
 
         updateParent(job, node);
+
+        if (originStatus != newStatus) {
+            this.dispatchEvent(new NodeStatusChangeEvent(this, currentResult.getKey(), originStatus, newStatus));
+        }
+
         return currentResult;
     }
 
-    private void updateCurrent(NodeResult currentResult, Cmd cmd) {
-        NodeStatus newStatus = NodeStatus.transfer(cmd);
+    private NodeResult createNodeResult(Job job, NodeTree nodeTree, Node node) {
+        NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
+
+        // generate cc agent cmd id if node is runnable
+        if (nodeTree.canRun(node.getPath())) {
+            String agentCmdId = nodeResult.getKey().getJobId() + "-" + nodeResult.getKey().getPath();
+            nodeResult.setCmdId(agentCmdId);
+        }
+
+        nodeResult.setName(node.getName());
+        nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+        return nodeResult;
+    }
+
+    private NodeStatus updateCurrent(Node current, NodeResult currentResult, Cmd cmd) {
+        boolean isAllowFailure = false;
+        if (current instanceof Step) {
+            isAllowFailure = ((Step) current).getAllowFailure();
+        }
+
+        NodeStatus originStatus = currentResult.getStatus();
+        NodeStatus newStatus = NodeStatus.transfer(cmd, isAllowFailure);
 
         // keep job step status sorted
-        if (currentResult.getStatus().getLevel() >= newStatus.getLevel()) {
-            return;
+        if (originStatus.getLevel() >= newStatus.getLevel()) {
+            return originStatus;
         }
 
         currentResult.setStatus(newStatus);
@@ -125,6 +181,7 @@ public class NodeResultServiceImpl implements NodeResultService {
         }
 
         nodeResultDao.update(currentResult);
+        return newStatus;
     }
 
     private void updateParent(Job job, Node current) {
@@ -144,12 +201,15 @@ public class NodeResultServiceImpl implements NodeResultService {
         parentResult.setStartTime(firstResult.getStartTime());
         parentResult.setFinishTime(currentResult.getFinishTime());
         parentResult.setExitCode(currentResult.getExitCode());
+
+        // TODO: missing unit test
+        long duration = 0L;
         try {
-            long duration = Duration.between(currentResult.getStartTime(), currentResult.getFinishTime()).getSeconds();
-            parentResult.setDuration(parentResult.getDuration() + duration);
-        } catch (Throwable e) {
-            parentResult.setDuration(0L); // cache exception if start or finish time is null
+            duration = Duration.between(currentResult.getStartTime(), currentResult.getFinishTime()).getSeconds();
+        } catch (Throwable ignore) {
         }
+
+        parentResult.setDuration(parentResult.getDuration() + duration);
 
         if (shouldUpdateParentStatus(current, currentResult)) {
             parentResult.setStatus(currentResult.getStatus());
@@ -174,7 +234,7 @@ public class NodeResultServiceImpl implements NodeResultService {
             }
         }
 
-        // update parent status if current node on step status
+        // update parent status if current node on stop status
         if (result.isStop()) {
             return true;
         }
@@ -189,6 +249,10 @@ public class NodeResultServiceImpl implements NodeResultService {
         // update parent status if current on failure and it is not allow failure
         if (result.isFailure()) {
             if (current instanceof Step) {
+                if (current.getNext() == null) {
+                    return true;
+                }
+
                 Step step = (Step) current;
                 if (!step.getAllowFailure()) {
                     return true;

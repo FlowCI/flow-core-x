@@ -17,14 +17,14 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
-import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.domain.*;
-import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.IllegalStatusException;
-import org.springframework.web.multipart.MultipartFile;
-
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdBase;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdResult;
 import java.util.List;
 import java.util.Set;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author gy@fir.im
@@ -39,6 +39,11 @@ public interface CmdService {
      * @return Cmd objc with id
      */
     Cmd create(CmdInfo cmd);
+
+    /**
+     * Create command with retry times
+     */
+    Cmd create(CmdInfo cmd, Integer retry);
 
     /**
      * Save cmd properties
@@ -56,11 +61,6 @@ public interface CmdService {
      * List cmd by agent path, order by cmd create date
      */
     List<Cmd> listByAgentPath(AgentPath agentPath);
-
-    /**
-     * List cmd by zone, order by cmd create date
-     */
-    List<Cmd> listByZone(String zone);
 
     /**
      * List cmd by session id
@@ -82,17 +82,12 @@ public interface CmdService {
     /**
      * Send cmd info to queue
      */
-    Cmd queue(CmdInfo cmdInfo, int priority, int retry);
+    Cmd enqueue(CmdInfo cmdInfo, int priority, int retry);
 
     /**
      * Update cmd status and result, send cmd webhook if existed
      */
     void updateStatus(CmdStatusItem statusItem, boolean inQueue);
-
-    /**
-     * Reset cmd status to init status PENDING
-     */
-    void resetStatus(String cmdId);
 
     /**
      * Record full zipped log to store

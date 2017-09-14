@@ -39,7 +39,7 @@ public class NodeTree {
     /**
      * Ordered tree list without root, used for find next and prev steps
      */
-    private final LinkedList<Node> ordered = new LinkedList<>();
+    private final LinkedList<Node> children = new LinkedList<>();
 
     private final Node root;
 
@@ -53,8 +53,12 @@ public class NodeTree {
         fill(this.root);
     }
 
-    public List<Node> ordered() {
-        return ordered;
+    public List<Node> children() {
+        return children;
+    }
+
+    public int childrenSize() {
+        return children.size();
     }
 
     public Node root() {
@@ -72,7 +76,7 @@ public class NodeTree {
      */
     public Node next(String path) {
         Node current = find(path);
-        return NodeUtil.next(current, ordered);
+        return NodeUtil.next(current, children);
     }
 
     /**
@@ -82,7 +86,7 @@ public class NodeTree {
      */
     public Node prev(String path) {
         Node current = find(path);
-        return NodeUtil.prev(current, ordered);
+        return NodeUtil.prev(current, children);
     }
 
     /**
@@ -92,7 +96,7 @@ public class NodeTree {
      */
     public Node first() {
         try {
-            return ordered.getFirst();
+            return children.getFirst();
         } catch (NoSuchElementException e) {
             return null;
         }
@@ -100,7 +104,7 @@ public class NodeTree {
 
     public Node last() {
         try {
-            return ordered.getLast();
+            return children.getLast();
         } catch (NoSuchElementException e) {
             return null;
         }
@@ -136,8 +140,8 @@ public class NodeTree {
     private void fill(Node root) {
         NodeUtil.recurse(root, node -> {
             treeCache.put(node.getPath(), node);
-            ordered.add(node);
+            children.add(node);
         });
-        ordered.remove(root);
+        children.remove(root);
     }
 }

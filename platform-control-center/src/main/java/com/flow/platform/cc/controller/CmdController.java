@@ -80,7 +80,7 @@ public class CmdController {
             throw new IllegalParameterException("Illegal retry value should between (0 - 100)");
         }
 
-        return cmdService.queue(cmd, priority, retry);
+        return cmdService.enqueue(cmd, priority, retry);
     }
 
     /**
@@ -108,8 +108,7 @@ public class CmdController {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
         }
 
-        CmdStatusItem statusItem =
-            new CmdStatusItem(reportData.getId(), reportData.getStatus(), reportData.getResult(), true, true);
+        CmdStatusItem statusItem = new CmdStatusItem(reportData, true, true);
         cmdService.updateStatus(statusItem, true);
     }
 

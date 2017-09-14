@@ -17,6 +17,7 @@
 package com.flow.platform.api;
 
 import com.flow.platform.api.config.WebConfig;
+import com.flow.platform.api.config.WebSocketConfig;
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class AppInit implements WebApplicationInitializer {
     public void onStartup(ServletContext servletContext) throws ServletException {
         AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext();
 
-        applicationContext.register(WebConfig.class);
+        applicationContext.register(WebConfig.class, WebSocketConfig.class);
         applicationContext.setServletContext(servletContext);
 
         // Add the servlet mapping manually and make it initialize automatically

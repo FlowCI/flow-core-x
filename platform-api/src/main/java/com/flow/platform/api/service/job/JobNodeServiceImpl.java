@@ -59,16 +59,23 @@ public class JobNodeServiceImpl implements JobNodeService {
     public NodeTree get(final BigInteger jobId) {
         try {
             return nodeCache.get(jobId, () -> {
-                JobYml jobYmlStorage = jobYmlDao.get(jobId);
-                if (jobYmlStorage == null) {
-                    throw new NotFoundException(String.format("Job node of job '%s' not found", jobId));
-                }
-
-                return new NodeTree(jobYmlStorage.getFile());
+                JobYml jobYml = find(jobId);
+                return new NodeTree(jobYml.getFile());
             });
         } catch (ExecutionException e) {
             LOGGER.warn(String.format("get yaml from jobYamlService error - %s", e));
             return null;
         }
+    }
+
+    @Override
+    public JobYml find(BigInteger jobId) {
+        JobYml jobYml = jobYmlDao.get(jobId);
+
+        if (jobYml == null) {
+            throw new NotFoundException(String.format("Job node of job '%s' not found", jobId));
+        }
+
+        return jobYml;
     }
 }

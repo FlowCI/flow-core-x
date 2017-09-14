@@ -13,31 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.job.JobYml;
-import com.flow.platform.api.domain.node.NodeTree;
-import java.math.BigInteger;
+package com.flow.platform.core.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
- * @author lhl
+ * Base service enable to send application event
+ *
+ * @author yang
  */
-public interface JobNodeService {
+public abstract class ApplicationEventService {
 
-    /**
-     * save yml to db
-     */
-    void save(BigInteger jobId, String yml);
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
-
-    /**
-     * get node tree by job
-     */
-    NodeTree get(BigInteger jobId);
-
-    /**
-     * Get job yml data
-     */
-    JobYml find(BigInteger jobId);
-
+    protected void dispatchEvent(ApplicationEvent event) {
+        applicationEventPublisher.publishEvent(event);
+    }
 }

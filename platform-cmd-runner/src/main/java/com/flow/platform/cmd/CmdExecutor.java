@@ -145,6 +145,8 @@ public final class CmdExecutor {
 
         this.outputEnvFilter = outputEnvFilter;
 
+        cmds.add(0, "set -e"); // exit bash when command error
+
         this.cmdList = cmds;
         this.pBuilder = new ProcessBuilder("/bin/bash").directory(DEFAULT_WORKING_DIR);
 
