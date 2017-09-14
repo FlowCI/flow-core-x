@@ -18,7 +18,7 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.core.consumer.QueueConsumerBase;
+import com.flow.platform.core.consumer.QueueConsumer;
 import com.flow.platform.util.Logger;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
  * @author yh@firim
  */
 @Component
-public class CmdCallbackQueueConsumer extends QueueConsumerBase<CmdCallbackQueueItem> {
+public class CmdCallbackQueueConsumer extends QueueConsumer<CmdCallbackQueueItem> {
 
     private final static Logger LOGGER = new Logger(CmdCallbackQueueConsumer.class);
 

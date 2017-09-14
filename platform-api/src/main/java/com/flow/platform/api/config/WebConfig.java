@@ -66,12 +66,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-    private final static int MAX_UPLOAD_SIZE = 2 * 1024 * 1024;
-
-    public final static Gson GSON_CONFIG_FOR_RESPONE = new GsonBuilder()
+    private final static Gson GSON_CONFIG_FOR_RESPONE = new GsonBuilder()
         .excludeFieldsWithoutExposeAnnotation()
         .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdaptor())
         .create();
+
+    private final static int MAX_UPLOAD_SIZE = 2 * 1024 * 1024;
+
+    private final RawGsonMessageConverter jsonConverter =
+        new RawGsonMessageConverter(true, GSON_CONFIG_FOR_RESPONE, Jsonable.GSON_CONFIG);
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -111,6 +114,11 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         return new AuthenticationInterceptor(matchers);
     }
 
+    @Bean
+    public RawGsonMessageConverter jsonConverter() {
+        return this.jsonConverter;
+    }
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor());
@@ -119,11 +127,6 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
-
-        RawGsonMessageConverter jsonConverter = new RawGsonMessageConverter();
-        jsonConverter.setGsonForWriter(GSON_CONFIG_FOR_RESPONE);
-        jsonConverter.setGsonForReader(Jsonable.GSON_CONFIG);
-        jsonConverter.setIgnoreType(true);
         converters.add(jsonConverter);
     }
 

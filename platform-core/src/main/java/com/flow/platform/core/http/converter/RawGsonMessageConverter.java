@@ -83,11 +83,19 @@ public class RawGsonMessageConverter extends GsonHttpMessageConverter {
         this.gsonForWriter = gsonForWriter;
     }
 
+    public Gson getGsonForWriter() {
+        return gsonForWriter;
+    }
+
     /**
      * Set gson for reader which convert from json to object
      */
     public void setGsonForReader(Gson gsonForReader) {
         this.gsonForReader = gsonForReader;
+    }
+
+    public Gson getGsonForReader() {
+        return gsonForReader;
     }
 
     @Override
@@ -134,6 +142,4 @@ public class RawGsonMessageConverter extends GsonHttpMessageConverter {
             throw new HttpMessageNotReadableException("JSON parse error: " + ex.getMessage(), ex);
         }
     }
-
-
 }

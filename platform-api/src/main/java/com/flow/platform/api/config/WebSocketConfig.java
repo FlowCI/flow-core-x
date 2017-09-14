@@ -17,6 +17,7 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.consumer.CmdLoggingConsumer;
+import com.flow.platform.api.message.JobPushService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -49,6 +50,11 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer im
     @Bean
     public WebSocketHandler cmdLoggingConsumer() {
         return new CmdLoggingConsumer();
+    }
+
+    @Bean
+    public JobPushService jobPushService() {
+        return new JobPushService();
     }
 
     @Override

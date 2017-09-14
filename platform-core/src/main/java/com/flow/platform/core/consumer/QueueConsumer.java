@@ -24,7 +24,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yang
  */
-public abstract class QueueConsumerBase<T> implements ContextEvent {
+public abstract class QueueConsumer<T> implements ContextEvent {
 
     public abstract ThreadPoolTaskExecutor getTaskExecutor();
 
