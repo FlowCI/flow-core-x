@@ -51,6 +51,11 @@ public class AgentController {
         return agentService.find(new AgentPath(zoneName, agentName));
     }
 
+    @GetMapping(path= "/findAgentBySessionId")
+    public Agent show(@RequestParam(name = "SessionId") String sessionId){
+        return agentService.find(sessionId);
+    }
+
     /**
      * Update agent status, required attributes are
      * - path
