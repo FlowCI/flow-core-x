@@ -17,7 +17,8 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.consumer.CmdLoggingConsumer;
-import com.flow.platform.api.consumer.JobEventPushHandler;
+import com.flow.platform.api.consumer.JobStatusEventPushHandler;
+import com.flow.platform.api.consumer.NodeStatusEventPushHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -53,8 +54,13 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer im
     }
 
     @Bean
-    public JobEventPushHandler jobEventHandler() {
-        return new JobEventPushHandler();
+    public JobStatusEventPushHandler jobEventHandler() {
+        return new JobStatusEventPushHandler();
+    }
+
+    @Bean
+    public NodeStatusEventPushHandler nodeEventHandler() {
+        return new NodeStatusEventPushHandler();
     }
 
     @Override

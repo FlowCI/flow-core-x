@@ -18,38 +18,28 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.config.WebSocketConfig;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.core.http.converter.RawGsonMessageConverter;
-import com.flow.platform.util.Logger;
+import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 /**
- * To handle JobStatusChangeEvent and NodeResultStatusChangeEvent
- *
  * @author yang
  */
-public class JobEventPushHandler implements ApplicationListener<JobStatusChangeEvent> {
-
-    private final static Logger LOGGER = new Logger(JobEventPushHandler.class);
+public abstract class JobPushHandler {
 
     @Autowired
-    private SimpMessagingTemplate template;
+    protected SimpMessagingTemplate template;
 
     @Autowired
-    private RawGsonMessageConverter jsonConverter;
+    protected RawGsonMessageConverter jsonConverter;
 
     @Autowired
-    private JobService jobService;
+    protected JobService jobService;
 
-    @Override
-    public void onApplicationEvent(JobStatusChangeEvent event) {
-        LOGGER.debugMarker("JobStatusChangeEvent",
-            "Job %s event from %s to %s", event.getJobId(), event.getFrom(), event.getTo());
-
-        Job job = jobService.find(event.getJobId());
+    protected void push(BigInteger jobId) {
+        Job job = jobService.find(jobId);
         String jobInJson = jsonConverter.getGsonForWriter().toJson(job);
         String jobTopic = jobEventBuilder(job);
         template.convertAndSend(jobTopic, jobInJson);
@@ -58,7 +48,7 @@ public class JobEventPushHandler implements ApplicationListener<JobStatusChangeE
     /**
      * Generate job event topic path, /topic/job/{node path}-{build number}
      */
-    private static String jobEventBuilder(Job job) {
+    protected static String jobEventBuilder(Job job) {
         return String.format("%s/%s-%s", WebSocketConfig.TOPIC_FOR_JOB, job.getNodePath(), job.getNumber());
     }
 }
