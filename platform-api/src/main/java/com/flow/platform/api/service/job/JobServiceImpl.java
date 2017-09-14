@@ -89,25 +89,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     public Job find(String flowName, Integer number) {
         Job job = jobDao.get(flowName, number);
-        if (job == null) {
-            throw new NotFoundException("job is not found");
-        }
-
-        List<NodeResult> childrenResult = getChildrenResult(job);
-        job.setChildrenResult(childrenResult);
-        return job;
+        return find(job);
     }
 
     @Override
     public Job find(BigInteger jobId) {
         Job job = jobDao.get(jobId);
-        if (job == null) {
-            throw new NotFoundException("job is not found");
-        }
-
-        List<NodeResult> childrenResult = getChildrenResult(job);
-        job.setChildrenResult(childrenResult);
-        return job;
+        return find(job);
     }
 
     @Override
@@ -395,6 +383,16 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         updateJobStatusAndSave(job, newStatus);
         return rootResult;
+    }
+
+    private Job find(Job job) {
+        if (job == null) {
+            throw new NotFoundException("job is not found");
+        }
+
+        List<NodeResult> childrenResult = getChildrenResult(job);
+        job.setChildrenResult(childrenResult);
+        return job;
     }
 
     /**
