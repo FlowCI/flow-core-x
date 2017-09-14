@@ -109,6 +109,17 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public String findNodeResultByJob(String path, Integer number, Integer order){
+        Job job = find(path, number);
+        NodeResult nodeResult = nodeResultService.find(path, job.getId());
+        String cmdId = nodeResult.getCmdId();
+
+//        Cmd cmd = cmdService.find(cmdId);
+
+        return null;
+    }
+
+    @Override
     public List<Job> list(List<String> paths, boolean latestOnly) {
         if (latestOnly) {
             jobDao.latestByPath(paths);

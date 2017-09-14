@@ -116,6 +116,7 @@ public class CmdServiceImpl implements CmdService {
         return cmdInfo;
     }
 
+
     @Override
     public void shutdown(AgentPath path, String password) {
         CmdInfo cmdInfo = new CmdInfo(path, CmdType.SHUTDOWN, password);

@@ -241,6 +241,16 @@ public class JobController extends NodeController {
         return jobService.listNodeResult(path, buildNumber);
     }
 
+    @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
+    public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder){
+        String path = getNodePathFromUrl();
+        jobService.findNodeResultByJob(path, buildNumber, stepOrder);
+//        TODO
+
+        return null;
+    }
+
+
     /**
      * @api {post} /jobs/:root/:buildNumber/stop Stop
      * @apiParam {String} root flow node path

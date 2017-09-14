@@ -51,6 +51,10 @@ public interface JobService {
      */
     List<NodeResult> listNodeResult(String path, Integer number);
 
+
+    String findNodeResultByJob(String path, Integer buildNumber, Integer stepOrder);
+
+
     /**
      * create job from node path, copy yml to job yml
      * request agent session from control center
