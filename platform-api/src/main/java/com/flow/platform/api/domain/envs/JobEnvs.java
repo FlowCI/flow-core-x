@@ -21,6 +21,8 @@ package com.flow.platform.api.domain.envs;
  */
 public enum JobEnvs implements EnvKey {
 
-    JOB_BUILD_NUMBER
+    JOB_BUILD_NUMBER,
+
+    JOB_AGENT_INFO;
 
 }

@@ -105,17 +105,6 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public AgentWithFlow show(Job job){
-        String res = HttpUtil.get(platformURL.getAgentInfoUrl());
-        if (res == null) {
-            throw new RuntimeException("Get Agent List error");
-        }
-
-        Agent agent = Jsonable.GSON_CONFIG.fromJson(res, Agent.class);
-        return new AgentWithFlow(agent, job);
-    }
-
-    @Override
     public Boolean shutdown(String zone, String name, String password) {
         try {
             cmdService.shutdown(new AgentPath(zone, name), password);

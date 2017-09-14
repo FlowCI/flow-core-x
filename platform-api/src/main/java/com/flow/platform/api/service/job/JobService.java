@@ -15,7 +15,6 @@
  */
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;

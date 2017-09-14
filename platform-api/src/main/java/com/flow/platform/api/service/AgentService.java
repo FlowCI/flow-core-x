@@ -27,8 +27,6 @@ public interface AgentService {
 
     List<AgentWithFlow> list();
 
-    AgentWithFlow show(Job job);
-
     /**
      * agent shutdown
      *

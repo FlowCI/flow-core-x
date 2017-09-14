@@ -16,7 +16,6 @@
 
 package com.flow.platform.api.domain.job;
 
-import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.EnvObject;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -45,9 +44,6 @@ public class Job extends EnvObject {
 
     @Expose
     private JobStatus status = JobStatus.CREATED;
-
-    @Expose
-    private AgentWithFlow agent;
 
     @Expose
     private ZonedDateTime createdAt;
@@ -164,14 +160,6 @@ public class Job extends EnvObject {
 
     public void setChildrenResult(List<NodeResult> childrenResult) {
         this.childrenResult = childrenResult;
-    }
-
-    public AgentWithFlow getAgent() {
-        return agent;
-    }
-
-    public void setAgent(AgentWithFlow agent) {
-        this.agent = agent;
     }
 
     @Override
