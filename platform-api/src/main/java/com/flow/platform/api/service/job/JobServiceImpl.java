@@ -31,14 +31,18 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.core.util.HttpUtil;
+import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
@@ -83,6 +87,9 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private YmlService ymlService;
+
+    @Autowired
+    private PlatformURL platformURL;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -175,6 +182,13 @@ public class JobServiceImpl implements JobService {
 
         // to create agent session for job
         String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+        String res = HttpUtil.get(platformURL.getAgentInfoUrl());
+
+        Agent agent = Jsonable.GSON_CONFIG.fromJson(res, Agent.class);
+
+        job.putEnv(JobEnvs.JOB_AGENT_INFO, agent.getName());
+
+        EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         job.setSessionId(sessionId);
         job.setStatus(JobStatus.SESSION_CREATING);
         jobDao.update(job);
@@ -374,6 +388,7 @@ public class JobServiceImpl implements JobService {
 
         return runningJob;
     }
+
 
     /**
      * Update job status by root node result
