@@ -37,6 +37,7 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -91,17 +92,37 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
     }
 
     @Override
-    public List<NodeResult> list(Job job) {
-        return nodeResultDao.list(job.getId());
+    public List<NodeResult> list(Job job, boolean childrenOnly) {
+        List<NodeResult> list = nodeResultDao.list(job.getId());
+
+        if (childrenOnly) {
+            list.remove(list.size() - 1);
+            return list;
+        }
+
+        return list;
     }
 
     @Override
-    public void save(NodeResult result) {
-        nodeResultDao.update(result);
+    public void updateStatus(Job job, NodeStatus targetStatus, Set<NodeStatus> skipped) {
+        List<NodeResult> list = list(job, false);
+
+        for (NodeResult nodeResult : list) {
+            if (skipped.contains(nodeResult.getStatus())) {
+                continue;
+            }
+
+            if (nodeResult.getStatus() == targetStatus) {
+                continue;
+            }
+
+            nodeResult.setStatus(targetStatus);
+            nodeResultDao.save(nodeResult);
+        }
     }
 
     @Override
-    public NodeResult update(Job job, Node node, Cmd cmd) {
+    public NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd) {
         NodeResult currentResult = find(node.getPath(), job.getId());
 
         NodeStatus originStatus = currentResult.getStatus();

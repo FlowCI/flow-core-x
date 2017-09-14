@@ -15,6 +15,11 @@
  */
 package com.flow.platform.api.test.service;
 
+import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
+import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
+import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
+import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
+
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeTag;
@@ -22,10 +27,11 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.CommonUtil;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.List;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,15 +43,20 @@ public class NodeResultServiceTest extends TestBase {
     @Autowired
     private JobNodeService jobNodeService;
 
+    @Before
+    public void init() {
+        stubDemo();
+
+    }
+
     @Test
     public void should_save_job_node_by_job() throws IOException {
         // when: create node result list from job
-        stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath());
 
         // then: check node result is created
-        List<NodeResult> list = nodeResultService.list(job);
+        List<NodeResult> list = nodeResultService.list(job, false);
         Assert.assertEquals(5, list.size());
 
         NodeTree nodeTree = jobNodeService.get(job.getId());
@@ -64,16 +75,33 @@ public class NodeResultServiceTest extends TestBase {
     }
 
     @Test
-    public void should_save_job_node() {
-        Job job = new Job(CommonUtil.randomId());
-        NodeResult nodeResult = new NodeResult(job.getId(), "/flow_test");
-        nodeResult.setNodeTag(NodeTag.FLOW);
-        nodeResult.setOrder(1);
+    public void should_update_node_status_with_skip_set() throws Throwable {
+        // given:
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath());
+        List<NodeResult> list = nodeResultService.list(job, false);
+        Assert.assertEquals(5, list.size());
 
-        nodeResultDao.save(nodeResult);
+        // when: set node result with diff status
+        NodeResult resultForSuccess = list.get(0);
+        resultForSuccess.setStatus(SUCCESS);
+        nodeResultDao.update(resultForSuccess);
 
-        nodeResult.setNodeTag(NodeTag.STEP);
-        nodeResultService.save(nodeResult);
-        Assert.assertEquals(nodeResult.getNodeTag(), NodeTag.STEP);
+        NodeResult resultForTimeout = list.get(2);
+        resultForTimeout.setStatus(TIMEOUT);
+        nodeResultDao.update(resultForTimeout);
+
+        NodeResult resultForFailure = list.get(3);
+        resultForFailure.setStatus(FAILURE);
+        nodeResultDao.update(resultForFailure);
+
+        nodeResultService.updateStatus(job, STOPPED, Sets.newHashSet(SUCCESS, FAILURE, TIMEOUT));
+
+        // then: check status of node result
+        Assert.assertEquals(SUCCESS, nodeResultService.find("flow1/step1/step11", job.getId()).getStatus());
+        Assert.assertEquals(STOPPED, nodeResultService.find("flow1/step1/step12", job.getId()).getStatus());
+        Assert.assertEquals(TIMEOUT, nodeResultService.find("flow1/step1", job.getId()).getStatus());
+        Assert.assertEquals(FAILURE, nodeResultService.find("flow1/step2", job.getId()).getStatus());
+        Assert.assertEquals(STOPPED, nodeResultService.find("flow1", job.getId()).getStatus());
     }
 }

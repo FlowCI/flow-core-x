@@ -173,7 +173,7 @@ public class CmdWebhookControllerTest extends TestBase {
 
         // then: verify job status
         job = jobService.find(job.getNodePath(), job.getNumber());
-        Assert.assertEquals(JobStatus.ERROR, job.getStatus());
+        Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
 
         // then: verify first node result status
         NodeResult firstStepResult = nodeResultService.find(step1.getPath(), job.getId());

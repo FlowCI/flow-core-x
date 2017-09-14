@@ -15,6 +15,11 @@
  */
 package com.flow.platform.api.service.job;
 
+import static com.flow.platform.api.domain.job.NodeStatus.*;
+import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
+import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
+import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
+
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
@@ -44,7 +49,9 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import java.math.BigInteger;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,7 +114,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     public List<NodeResult> listNodeResult(String path, Integer number) {
         Job job = find(path, number);
-        return getChildrenResult(job);
+        return nodeResultService.list(job, true);
     }
 
     @Override
@@ -221,12 +228,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         throw new NotFoundException("not found cmdType");
     }
 
-    private List<NodeResult> getChildrenResult(Job job) {
-        List<NodeResult> allResults = nodeResultService.list(job);
-        allResults.remove(allResults.size() - 1);
-        return allResults;
-    }
-
     /**
      * run node
      *
@@ -254,7 +255,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
 
         if (cmd.getStatus() == CmdStatus.EXCEPTION) {
-            nodeResultService.update(job, node, Cmd.convert(cmd));
+            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(cmd));
         }
     }
 
@@ -270,7 +271,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             }
 
             LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
-            updateJobStatusAndSave(job, JobStatus.ERROR);
+            updateJobStatusAndSave(job, JobStatus.FAILURE);
             return;
         }
 
@@ -296,7 +297,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         Node next = tree.next(path);
 
         // bottom up recursive update node result
-        NodeResult nodeResult = nodeResultService.update(job, node, cmd);
+        NodeResult nodeResult = nodeResultService.updateStatusByCmd(job, node, cmd);
         LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
         // no more node to run and status is not running
@@ -347,16 +348,20 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new NotFoundException("running job not found node result - " + path);
         }
 
+        if (!result.isRunning()) {
+            return runningJob;
+        }
+
         // do not handle job since it is not in running status
-        if (result.isRunning()) {
-            try {
-                updateNodeResult(runningJob, NodeStatus.STOPPED);
-                stopJob(runningJob);
-            } catch (Throwable throwable) {
-                String message = "stop job error - " + ExceptionUtil.findRootCause(throwable);
-                LOGGER.traceMarker("stopJob", message);
-                throw new IllegalParameterException(message);
-            }
+        try {
+            final HashSet<NodeStatus> skipStatus = Sets.newHashSet(SUCCESS, FAILURE, TIMEOUT);
+            nodeResultService.updateStatus(runningJob, STOPPED, skipStatus);
+
+            stopJob(runningJob);
+        } catch (Throwable throwable) {
+            String message = "stop job error - " + ExceptionUtil.findRootCause(throwable);
+            LOGGER.traceMarker("stopJob", message);
+            throw new IllegalParameterException(message);
         }
 
         return runningJob;
@@ -370,7 +375,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         JobStatus newStatus = job.getStatus();
 
         if (rootResult.isFailure()) {
-            newStatus = JobStatus.ERROR;
+            newStatus = JobStatus.FAILURE;
         }
 
         if (rootResult.isSuccess()) {
@@ -390,7 +395,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new NotFoundException("job is not found");
         }
 
-        List<NodeResult> childrenResult = getChildrenResult(job);
+        List<NodeResult> childrenResult = nodeResultService.list(job, true);
         job.setChildrenResult(childrenResult);
         return job;
     }
@@ -418,19 +423,5 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         jobDao.save(job);
 
         this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
-    }
-
-    private void updateNodeResult(Job job, NodeStatus status) {
-        List<NodeResult> results = nodeResultService.list(job);
-        for (NodeResult result : results) {
-            if (result.getStatus() != NodeStatus.SUCCESS) {
-                result.setStatus(status);
-                nodeResultService.save(result);
-
-                if (job.getNodePath().equals(result.getPath())) {
-                    job.setRootResult(result);
-                }
-            }
-        }
     }
 }
