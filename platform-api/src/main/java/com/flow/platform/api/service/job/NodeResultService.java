@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.domain.Cmd;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author yh@firim
@@ -43,15 +44,15 @@ public interface NodeResultService {
     /**
      * List all node results for job
      */
-    List<NodeResult> list(Job job);
+    List<NodeResult> list(Job job, boolean childrenOnly);
 
     /**
-     * Save node result to db
+     * Update all node result status to target but skip set of some node status
      */
-    void save(NodeResult result);
+    void updateStatus(Job job, NodeStatus targetStatus, Set<NodeStatus> skipped);
 
     /**
      * Update node result and recursive bottom up update parent node result by cmd
      */
-    NodeResult update(Job job, Node node, Cmd cmd);
+    NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd);
 }

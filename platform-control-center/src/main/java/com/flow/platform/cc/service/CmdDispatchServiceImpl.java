@@ -39,6 +39,7 @@ import com.flow.platform.util.zk.ZkException;
 import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -103,6 +104,11 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         // reset cmd status to pending
         if (reset) {
             cmd.setStatus(CmdStatus.PENDING);
+        }
+
+        // do not run cmd if not in working status
+        if (!cmd.isCurrent()) {
+            return cmd;
         }
 
         try {
@@ -305,9 +311,12 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
         @Override
         public void doExec(Agent target, Cmd cmd) {
-            if (hasRunningCmd(target.getSessionId())) {
-                // send kill cmd
-                Cmd killCmd = cmdService.create(new CmdInfo(target.getPath(), CmdType.KILL, null));
+
+            List<Cmd> runningCmdForRunShell = getRunningCmdForRunShell(target.getSessionId());
+
+            // kill current running cmd
+            for (Cmd runShellCmd : runningCmdForRunShell) {
+                Cmd killCmd = cmdService.create(new CmdInfo(runShellCmd.getAgentPath(), CmdType.KILL, null));
                 handler.get(CmdType.KILL).exec(target, killCmd);
             }
 
@@ -317,14 +326,25 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             agentService.save(target);
         }
 
-        private boolean hasRunningCmd(String sessionId) {
+        private List<Cmd> getRunningCmdForRunShell(String sessionId) {
             List<Cmd> cmdsInSession = cmdService.listBySession(sessionId);
-            for (Cmd cmd : cmdsInSession) {
-                if (cmd.isCurrent() && cmd.getType() == CmdType.RUN_SHELL) {
-                    return true;
+
+            Iterator<Cmd> iterator = cmdsInSession.iterator();
+            while(iterator.hasNext()) {
+                Cmd cmd = iterator.next();
+
+                if (cmd.getType() != CmdType.RUN_SHELL) {
+                    iterator.remove();
+                    continue;
+                }
+
+                if (!cmd.isCurrent()) {
+                    iterator.remove();
+                    continue;
                 }
             }
-            return false;
+
+            return cmdsInSession;
         }
     }
 

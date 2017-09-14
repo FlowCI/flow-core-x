@@ -21,6 +21,8 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
+ * Base service enable to send application event
+ *
  * @author yang
  */
 public abstract class ApplicationEventService {
