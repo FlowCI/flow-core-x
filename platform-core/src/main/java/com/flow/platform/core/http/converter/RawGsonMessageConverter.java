@@ -113,14 +113,27 @@ public class RawGsonMessageConverter extends GsonHttpMessageConverter {
     }
 
     @Override
+    public Object read(Type type, Class<?> contextClass, HttpInputMessage inputMessage)
+        throws IOException, HttpMessageNotReadableException {
+
+        TypeToken<?> token = getTypeToken(type);
+        return readObject(inputMessage, token);
+    }
+
+    @Override
     protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage)
         throws IOException, HttpMessageNotReadableException {
         TypeToken<?> token = getTypeToken(clazz);
+        return readObject(inputMessage, token);
+    }
 
+    private Object readObject(HttpInputMessage inputMessage, TypeToken<?> token) throws IOException {
         try (Reader json = new InputStreamReader(inputMessage.getBody(), getCharset(inputMessage.getHeaders()))) {
             return this.gsonForReader.fromJson(json, token.getType());
         } catch (JsonParseException ex) {
             throw new HttpMessageNotReadableException("JSON parse error: " + ex.getMessage(), ex);
         }
     }
+
+
 }
