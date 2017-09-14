@@ -20,11 +20,19 @@ import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.api.security.AuthenticationInterceptor;
 import com.flow.platform.api.security.token.JwtTokenGenerator;
 import com.flow.platform.api.security.token.TokenGenerator;
-import com.flow.platform.api.util.GsonHttpExposeConverter;
+import com.flow.platform.core.http.converter.RawGsonMessageConverter;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.resource.AppResourceLoader;
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -54,11 +62,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.context",
     "com.flow.platform.api.util",
     "com.flow.platform.api.consumer",
-    "com.flow.platform.api.context",})
+    "com.flow.platform.api.context"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
     private final static int MAX_UPLOAD_SIZE = 2 * 1024 * 1024;
+
+    public final static Gson GSON_CONFIG_FOR_RESPONE = new GsonBuilder()
+        .excludeFieldsWithoutExposeAnnotation()
+        .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdaptor())
+        .create();
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -106,9 +119,35 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.removeIf(converter -> converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_JSON));
-        GsonHttpExposeConverter gsonHttpExposeConverter = new GsonHttpExposeConverter();
-        gsonHttpExposeConverter.setGson(Jsonable.GSON_CONFIG);
-        converters.add(gsonHttpExposeConverter);
+
+        RawGsonMessageConverter jsonConverter = new RawGsonMessageConverter();
+        jsonConverter.setGsonForWriter(GSON_CONFIG_FOR_RESPONE);
+        jsonConverter.setGsonForReader(Jsonable.GSON_CONFIG);
+        jsonConverter.setIgnoreType(true);
+        converters.add(jsonConverter);
     }
 
+    /**
+     * Used for convert zoned date time to timestamp
+     */
+    private static class ZonedDateTimeAdaptor extends TypeAdapter<ZonedDateTime> {
+
+        @Override
+        public void write(JsonWriter out, ZonedDateTime value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+            out.value(value.toEpochSecond());
+        }
+
+        @Override
+        public ZonedDateTime read(JsonReader in) throws IOException {
+            Long ts = in.nextLong();
+            Instant i = Instant.ofEpochSecond(ts);
+            ZonedDateTime z;
+            z = ZonedDateTime.ofInstant(i, ZoneId.systemDefault());
+            return z;
+        }
+    }
 }
