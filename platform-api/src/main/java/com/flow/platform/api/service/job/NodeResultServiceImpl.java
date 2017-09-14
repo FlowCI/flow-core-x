@@ -112,12 +112,15 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
                 continue;
             }
 
-            if (nodeResult.getStatus() == targetStatus) {
+            NodeStatus originStatus = nodeResult.getStatus();
+
+            if (originStatus == targetStatus) {
                 continue;
             }
 
             nodeResult.setStatus(targetStatus);
             nodeResultDao.save(nodeResult);
+            this.dispatchEvent(new NodeStatusChangeEvent(this, nodeResult.getKey(), originStatus, targetStatus));
         }
     }
 
