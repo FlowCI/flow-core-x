@@ -17,6 +17,8 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.consumer.CmdLoggingConsumer;
+import com.flow.platform.api.consumer.JobStatusEventPushHandler;
+import com.flow.platform.api.consumer.NodeStatusEventPushHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -37,30 +39,46 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer implements WebSocketConfigurer {
 
     // for agent uploading real time log
-    private final static String PATH_FOR_AGENT_CMD_LOGGING = "/agent/cmd/logging";
+    private final static String URL_FOR_AGENT_CMD_LOGGING = "/agent/cmd/logging";
 
     // for cmd logging which web connected to
-    private final static String PATH_FOR_WEB_CONNECTION = "/ws/web";
+    private final static String URL_FOR_FOR_WEB_CONNECTION = "/ws/web";
+
+    public final static String TOPIC_FOR_JOB = "/topic/job";
+
+    public final static String TOPIC_FOR_CMD = "/topic/cmd";
 
     @Bean
     public WebSocketHandler cmdLoggingConsumer() {
         return new CmdLoggingConsumer();
     }
 
+    @Bean
+    public JobStatusEventPushHandler jobEventHandler() {
+        return new JobStatusEventPushHandler();
+    }
+
+    @Bean
+    public NodeStatusEventPushHandler nodeEventHandler() {
+        return new NodeStatusEventPushHandler();
+    }
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         WebSocketHandler webSocketHandler = cmdLoggingConsumer();
-        registry.addHandler(webSocketHandler, PATH_FOR_AGENT_CMD_LOGGING).setAllowedOrigins("*");
+        registry.addHandler(webSocketHandler, URL_FOR_AGENT_CMD_LOGGING).setAllowedOrigins("*");
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic/cmd", "/topic/job");
+        config.enableSimpleBroker(TOPIC_FOR_JOB, TOPIC_FOR_CMD);
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint(PATH_FOR_WEB_CONNECTION).setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint(URL_FOR_FOR_WEB_CONNECTION)
+                    .setAllowedOrigins("*")
+                    .withSockJS();
     }
 }

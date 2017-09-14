@@ -24,6 +24,7 @@ import com.flow.platform.cc.exception.AgentErr.NotAvailableException;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -43,7 +44,6 @@ import java.util.Map;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class CmdDispatchServiceImpl implements CmdDispatchService {
+public class CmdDispatchServiceImpl extends ApplicationEventService implements CmdDispatchService {
 
     private final static Logger LOGGER = new Logger(CmdDispatchService.class);
 
@@ -68,9 +68,6 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
 
     @Autowired
     protected ZKClient zkClient;
-
-    @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
 
     private final Map<CmdType, CmdHandler> handler = new HashMap<>(CmdType.values().length);
 
@@ -127,8 +124,9 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
             String zone = cmd.getAgentPath().getZone();
 
             if (e instanceof NotAvailableException) {
-                applicationEventPublisher.publishEvent(new NoAvailableResourceEvent(this, zone));
+                this.dispatchEvent(new NoAvailableResourceEvent(this, zone));
             }
+
             throw e;
 
         } catch (ZkException e) {

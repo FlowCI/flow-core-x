@@ -26,6 +26,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -35,6 +36,7 @@ import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
@@ -55,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service(value = "jobService")
 @Transactional(isolation = Isolation.REPEATABLE_READ)
-public class JobServiceImpl implements JobService {
+public class JobServiceImpl extends ApplicationEventService implements JobService {
 
     private static Logger LOGGER = new Logger(JobService.class);
 
@@ -87,6 +89,18 @@ public class JobServiceImpl implements JobService {
     @Override
     public Job find(String flowName, Integer number) {
         Job job = jobDao.get(flowName, number);
+        if (job == null) {
+            throw new NotFoundException("job is not found");
+        }
+
+        List<NodeResult> childrenResult = getChildrenResult(job);
+        job.setChildrenResult(childrenResult);
+        return job;
+    }
+
+    @Override
+    public Job find(BigInteger jobId) {
+        Job job = jobDao.get(jobId);
         if (job == null) {
             throw new NotFoundException("job is not found");
         }
@@ -165,9 +179,7 @@ public class JobServiceImpl implements JobService {
         // to create agent session for job
         String sessionId = cmdService.createSession(job, createSessionRetryTimes);
         job.setSessionId(sessionId);
-        job.setStatus(JobStatus.SESSION_CREATING);
-        jobDao.update(job);
-
+        updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
         return job;
     }
 
@@ -270,8 +282,7 @@ public class JobServiceImpl implements JobService {
             }
 
             LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
-            job.setStatus(JobStatus.ERROR);
-            jobDao.update(job);
+            updateJobStatusAndSave(job, JobStatus.ERROR);
             return;
         }
 
@@ -282,9 +293,8 @@ public class JobServiceImpl implements JobService {
         }
 
         // start run flow
-        job.setStatus(JobStatus.RUNNING);
         job.setSessionId(cmd.getSessionId());
-        jobDao.update(job);
+        updateJobStatusAndSave(job, JobStatus.RUNNING);
 
         run(tree.first(), job);
     }
@@ -367,22 +377,23 @@ public class JobServiceImpl implements JobService {
     /**
      * Update job status by root node result
      */
-    private NodeResult updateJobStatus(Job job) {
+    private NodeResult setJobStatusByRootResult(Job job) {
         NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
+        JobStatus newStatus = job.getStatus();
 
         if (rootResult.isFailure()) {
-            job.setStatus(JobStatus.ERROR);
+            newStatus = JobStatus.ERROR;
         }
 
         if (rootResult.isSuccess()) {
-            job.setStatus(JobStatus.SUCCESS);
+            newStatus = JobStatus.SUCCESS;
         }
 
         if (rootResult.isStop()) {
-            job.setStatus(JobStatus.STOPPED);
+            newStatus = JobStatus.STOPPED;
         }
 
-        jobDao.update(job);
+        updateJobStatusAndSave(job, newStatus);
         return rootResult;
     }
 
@@ -390,8 +401,25 @@ public class JobServiceImpl implements JobService {
      * Update job status and delete agent session
      */
     private void stopJob(Job job) {
-        updateJobStatus(job);
+        setJobStatusByRootResult(job);
         cmdService.deleteSession(job);
+    }
+
+    /**
+     * Save job instance with new job status and boardcast JobStatusChangeEvent
+     */
+    private void updateJobStatusAndSave(Job job, JobStatus newStatus) {
+        JobStatus originStatus = job.getStatus();
+
+        if (originStatus == newStatus) {
+            jobDao.save(job);
+            return;
+        }
+
+        job.setStatus(newStatus);
+        jobDao.save(job);
+
+        this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
     }
 
     private void updateNodeResult(Job job, NodeStatus status) {
