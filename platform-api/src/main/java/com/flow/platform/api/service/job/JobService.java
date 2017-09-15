@@ -18,6 +18,7 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -52,7 +53,7 @@ public interface JobService {
     List<NodeResult> listNodeResult(String path, Integer number);
 
 
-    String findNodeResultByJob(String path, Integer buildNumber, Integer stepOrder);
+    String findNodeResultByJob(String path, Integer buildNumber, Integer stepOrder) throws IOException;
 
 
     /**

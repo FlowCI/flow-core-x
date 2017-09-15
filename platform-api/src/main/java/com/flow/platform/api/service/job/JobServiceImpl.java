@@ -46,10 +46,16 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,22 +122,10 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public String findNodeResultByJob(String path, Integer number, Integer order){
-        Job job = find(path, number);
-        NodeResult nodeResult = nodeResultService.find(path, job.getId());
-        String cmdId = nodeResult.getCmdId();
-
-//        Cmd cmd = cmdService.find(cmdId);
-
-        return null;
-    }
-
-    @Override
     public List<Job> list(List<String> paths, boolean latestOnly) {
         if (latestOnly) {
             jobDao.latestByPath(paths);
         }
-
         return jobDao.listByPath(paths);
     }
 
@@ -244,6 +238,38 @@ public class JobServiceImpl implements JobService {
 
         LOGGER.warn("not found cmdType, cmdType: %s", cmd.getType().toString());
         throw new NotFoundException("not found cmdType");
+    }
+
+    @Override
+    public String findNodeResultByJob(String path, Integer number, Integer order) throws IOException{
+        Job job = find(path, number);
+        NodeResult nodeResult = nodeResultService.find(path, job.getId());
+        String cmdId = nodeResult.getCmdId();
+        String res = HttpUtil.get(platformURL.getCmdDownloadLogUrl());
+        Resource resource = Jsonable.GSON_CONFIG.fromJson(res, Resource.class);
+        return readZipFile(resource);
+    }
+
+    /**
+     * readFile
+     */
+    private String readZipFile(Resource resource) throws IOException{
+        StringBuilder content = new StringBuilder();
+        ZipFile zipFile = (ZipFile) resource;
+        Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) zipFile.entries();
+        ZipEntry ze;
+
+        while (entries.hasMoreElements()) {
+            ze = entries.nextElement();
+            Scanner scanner = new Scanner(zipFile.getInputStream(ze));
+            while (scanner.hasNextLine()) {
+                content.append(scanner.nextLine());
+            }
+            scanner.close();
+        }
+        zipFile.close();
+
+        return content.toString();
     }
 
     private List<NodeResult> getChildrenResult(Job job) {
