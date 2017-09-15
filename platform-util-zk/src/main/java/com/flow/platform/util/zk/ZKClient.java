@@ -115,19 +115,20 @@ public class ZKClient implements Closeable {
      * @return zookeeper node path just created
      */
     public String create(String path, byte[] data) {
-        try {
-            if (!exist(path)) {
-                CreateBuilder builder = client.create();
+        if (data == null) {
+            data = new byte[0];
+        }
 
-                if (data != null) {
-                    return builder.forPath(path, data);
-                } else {
-                    return builder.forPath(path);
-                }
-            } else {
-                setData(path, data);
-            }
+        if (exist(path)) {
+            setData(path, data);
             return path;
+        }
+
+        try {
+            return client.create()
+                .creatingParentsIfNeeded()
+                .withMode(CreateMode.PERSISTENT)
+                .forPath(path, data);
         } catch (Throwable e) {
             throw checkException(String.format("Fail to create node: %s", path), e);
         }
@@ -141,19 +142,19 @@ public class ZKClient implements Closeable {
      * @return zookeeper node path just created
      */
     public String createEphemeral(String path, byte[] data) {
-        try {
-            if (!exist(path)) {
-                CreateBuilder builder = client.create();
+        if (data == null) {
+            data = new byte[0];
+        }
 
-                if (data != null) {
-                    return builder.withMode(CreateMode.EPHEMERAL).forPath(path, data);
-                } else {
-                    return builder.withMode(CreateMode.EPHEMERAL).forPath(path);
-                }
-            } else {
-                setData(path, data);
-            }
+        if (exist(path)) {
+            setData(path, data);
             return path;
+        }
+
+        try {
+            return client.create()
+                .withMode(CreateMode.EPHEMERAL)
+                .forPath(path, data);
         } catch (Throwable e) {
             throw checkException(String.format("Fail to create node: %s", path), e);
         }
@@ -168,8 +169,11 @@ public class ZKClient implements Closeable {
     }
 
     public void setData(String path, byte[] data) {
+        if (!exist(path)) {
+            throw new ZkException("Zookeeper node path does not existed", null);
+        }
+
         try {
-            Stat stat = client.checkExists().forPath(path);
             client.setData().forPath(path, data);
         } catch (Throwable e) {
             throw checkException(String.format("Fail to set data for node: %s", path), e);
@@ -177,6 +181,10 @@ public class ZKClient implements Closeable {
     }
 
     public byte[] getData(String path) {
+        if (!exist(path)) {
+            throw new ZkException("Zookeeper node path does not existed", null);
+        }
+
         try {
             return client.getData().forPath(path);
         } catch (Throwable e) {
@@ -207,9 +215,9 @@ public class ZKClient implements Closeable {
             return false; // node doesn't exist
         }
 
-        NodeCache nc = (NodeCache) nodeCaches.get(path);
+        NodeCache nc = nodeCaches.get(path);
         if (nc != null) {
-            return false; // node been listenered
+            return false; // node been listened
         }
 
         try {
@@ -230,9 +238,9 @@ public class ZKClient implements Closeable {
     }
 
     public boolean watchTree(String path, TreeCacheListener listener) {
-        TreeCache tc = (TreeCache) nodeTreeCache.get(path);
+        TreeCache tc = nodeTreeCache.get(path);
         if (tc != null) {
-            return false; // node been listenered
+            return false; // node been listened
         }
 
         try {

@@ -35,6 +35,13 @@ public interface JobService {
     Job find(String path, Integer number);
 
     /**
+     * Find by job id
+     *
+     * @return job with children node result
+     */
+    Job find(BigInteger jobId);
+
+    /**
      * Get job yml content
      */
     String findYml(String path, Integer number);

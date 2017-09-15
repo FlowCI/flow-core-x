@@ -140,7 +140,7 @@ public class CmdWebhookControllerTest extends TestBase {
     }
 
     @Test
-    public void should_failure_on_callback_with_timeout() throws Throwable {
+    public void should_on_callback_with_timeout() throws Throwable {
         // init
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
 
@@ -173,7 +173,7 @@ public class CmdWebhookControllerTest extends TestBase {
 
         // then: verify job status
         job = jobService.find(job.getNodePath(), job.getNumber());
-        Assert.assertEquals(JobStatus.ERROR, job.getStatus());
+        Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
 
         // then: verify first node result status
         NodeResult firstStepResult = nodeResultService.find(step1.getPath(), job.getId());
@@ -187,7 +187,7 @@ public class CmdWebhookControllerTest extends TestBase {
     }
 
     @Test
-    public void should_failure_on_callback_timeout_but_allow_failure() throws Throwable {
+    public void should_callback_with_timeout_but_allow_failure() throws Throwable {
         Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
         Job job = jobService.createJob(rootForFlow.getPath());
         final String sessionId = "1111111";
@@ -240,6 +240,16 @@ public class CmdWebhookControllerTest extends TestBase {
         // then: check job status should be running since time out allow failure
         job = reload(job);
         Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+    }
+
+    @Test
+    public void should_on_callback_with_failure() {
+        // TODO:
+    }
+
+    @Test
+    public void should_on_callback_with_failure_but_allow_failure() {
+        // TODO:
     }
 
     private Job reload(Job job) {

@@ -24,6 +24,7 @@ import com.flow.platform.cc.exception.AgentErr.NotAvailableException;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -38,12 +39,12 @@ import com.flow.platform.util.zk.ZkException;
 import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class CmdDispatchServiceImpl implements CmdDispatchService {
+public class CmdDispatchServiceImpl extends ApplicationEventService implements CmdDispatchService {
 
     private final static Logger LOGGER = new Logger(CmdDispatchService.class);
 
@@ -68,9 +69,6 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
 
     @Autowired
     protected ZKClient zkClient;
-
-    @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
 
     private final Map<CmdType, CmdHandler> handler = new HashMap<>(CmdType.values().length);
 
@@ -108,6 +106,11 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
             cmd.setStatus(CmdStatus.PENDING);
         }
 
+        // do not run cmd if not in working status
+        if (!cmd.isCurrent()) {
+            return cmd;
+        }
+
         try {
             // get target agent
             Agent target = selectAgent(cmd);
@@ -127,8 +130,9 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
             String zone = cmd.getAgentPath().getZone();
 
             if (e instanceof NotAvailableException) {
-                applicationEventPublisher.publishEvent(new NoAvailableResourceEvent(this, zone));
+                this.dispatchEvent(new NoAvailableResourceEvent(this, zone));
             }
+
             throw e;
 
         } catch (ZkException e) {
@@ -307,9 +311,12 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
 
         @Override
         public void doExec(Agent target, Cmd cmd) {
-            if (hasRunningCmd(target.getSessionId())) {
-                // send kill cmd
-                Cmd killCmd = cmdService.create(new CmdInfo(target.getPath(), CmdType.KILL, null));
+
+            List<Cmd> runningCmdForRunShell = getRunningCmdForRunShell(target.getSessionId());
+
+            // kill current running cmd
+            for (Cmd runShellCmd : runningCmdForRunShell) {
+                Cmd killCmd = cmdService.create(new CmdInfo(runShellCmd.getAgentPath(), CmdType.KILL, null));
                 handler.get(CmdType.KILL).exec(target, killCmd);
             }
 
@@ -319,14 +326,25 @@ public class CmdDispatchServiceImpl implements CmdDispatchService {
             agentService.save(target);
         }
 
-        private boolean hasRunningCmd(String sessionId) {
+        private List<Cmd> getRunningCmdForRunShell(String sessionId) {
             List<Cmd> cmdsInSession = cmdService.listBySession(sessionId);
-            for (Cmd cmd : cmdsInSession) {
-                if (cmd.isCurrent() && cmd.getType() == CmdType.RUN_SHELL) {
-                    return true;
+
+            Iterator<Cmd> iterator = cmdsInSession.iterator();
+            while(iterator.hasNext()) {
+                Cmd cmd = iterator.next();
+
+                if (cmd.getType() != CmdType.RUN_SHELL) {
+                    iterator.remove();
+                    continue;
+                }
+
+                if (!cmd.isCurrent()) {
+                    iterator.remove();
+                    continue;
                 }
             }
-            return false;
+
+            return cmdsInSession;
         }
     }
 

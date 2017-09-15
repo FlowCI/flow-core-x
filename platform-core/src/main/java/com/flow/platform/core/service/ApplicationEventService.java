@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.job;
+package com.flow.platform.core.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
+ * Base service enable to send application event
+ *
  * @author yang
  */
-public enum JobStatus {
+public abstract class ApplicationEventService {
 
-    CREATED, // default status
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
-    SESSION_CREATING, // creating agent session
-
-    RUNNING, // executing node tree
-
-    SUCCESS, // finished without error
-
-    FAILURE, // finished with error
-
-    STOPPED // manual stop the job
+    protected void dispatchEvent(ApplicationEvent event) {
+        applicationEventPublisher.publishEvent(event);
+    }
 }

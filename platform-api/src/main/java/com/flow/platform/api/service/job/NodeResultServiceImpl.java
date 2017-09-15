@@ -26,8 +26,10 @@ import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.events.NodeStatusChangeEvent;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.Logger;
@@ -35,6 +37,7 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class NodeResultServiceImpl implements NodeResultService {
+public class NodeResultServiceImpl extends ApplicationEventService implements NodeResultService {
 
     private final static Logger LOGGER = new Logger(NodeResultService.class);
 
@@ -84,26 +87,56 @@ public class NodeResultServiceImpl implements NodeResultService {
     }
 
     @Override
-    public NodeResult find(String path, BigInteger jobID) {
-        return nodeResultDao.get(new NodeResultKey(jobID, path));
+    public NodeResult find(String path, BigInteger jobId) {
+        return nodeResultDao.get(new NodeResultKey(jobId, path));
     }
 
     @Override
-    public List<NodeResult> list(Job job) {
-        return nodeResultDao.list(job.getId());
+    public List<NodeResult> list(Job job, boolean childrenOnly) {
+        List<NodeResult> list = nodeResultDao.list(job.getId());
+
+        if (childrenOnly) {
+            list.remove(list.size() - 1);
+            return list;
+        }
+
+        return list;
     }
 
     @Override
-    public void save(NodeResult result) {
-        nodeResultDao.update(result);
+    public void updateStatus(Job job, NodeStatus targetStatus, Set<NodeStatus> skipped) {
+        List<NodeResult> list = list(job, false);
+
+        for (NodeResult nodeResult : list) {
+            if (skipped.contains(nodeResult.getStatus())) {
+                continue;
+            }
+
+            NodeStatus originStatus = nodeResult.getStatus();
+
+            if (originStatus == targetStatus) {
+                continue;
+            }
+
+            nodeResult.setStatus(targetStatus);
+            nodeResultDao.save(nodeResult);
+            this.dispatchEvent(new NodeStatusChangeEvent(this, nodeResult.getKey(), originStatus, targetStatus));
+        }
     }
 
     @Override
-    public NodeResult update(Job job, Node node, Cmd cmd) {
+    public NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd) {
         NodeResult currentResult = find(node.getPath(), job.getId());
-        updateCurrent(node, currentResult, cmd);
+
+        NodeStatus originStatus = currentResult.getStatus();
+        NodeStatus newStatus = updateCurrent(node, currentResult, cmd);
 
         updateParent(job, node);
+
+        if (originStatus != newStatus) {
+            this.dispatchEvent(new NodeStatusChangeEvent(this, currentResult.getKey(), originStatus, newStatus));
+        }
+
         return currentResult;
     }
 
@@ -121,17 +154,18 @@ public class NodeResultServiceImpl implements NodeResultService {
         return nodeResult;
     }
 
-    private void updateCurrent(Node current, NodeResult currentResult, Cmd cmd) {
+    private NodeStatus updateCurrent(Node current, NodeResult currentResult, Cmd cmd) {
         boolean isAllowFailure = false;
         if (current instanceof Step) {
             isAllowFailure = ((Step) current).getAllowFailure();
         }
 
+        NodeStatus originStatus = currentResult.getStatus();
         NodeStatus newStatus = NodeStatus.transfer(cmd, isAllowFailure);
 
         // keep job step status sorted
-        if (currentResult.getStatus().getLevel() >= newStatus.getLevel()) {
-            return;
+        if (originStatus.getLevel() >= newStatus.getLevel()) {
+            return originStatus;
         }
 
         currentResult.setStatus(newStatus);
@@ -147,6 +181,7 @@ public class NodeResultServiceImpl implements NodeResultService {
         }
 
         nodeResultDao.update(currentResult);
+        return newStatus;
     }
 
     private void updateParent(Job job, Node current) {

@@ -16,13 +16,20 @@
 
 package com.flow.platform.core.http.converter;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
+import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
@@ -35,6 +42,21 @@ public class RawGsonMessageConverter extends GsonHttpMessageConverter {
 
     private boolean ignoreType;
 
+    private Gson gsonForWriter;
+
+    private Gson gsonForReader;
+
+    public RawGsonMessageConverter() {
+        super();
+    }
+
+    public RawGsonMessageConverter(boolean ignoreType, Gson gsonForWriter, Gson gsonForReader) {
+        super();
+        this.ignoreType = ignoreType;
+        this.gsonForWriter = gsonForWriter;
+        this.gsonForReader = gsonForReader;
+    }
+
     private Charset getCharset(HttpHeaders headers) {
         if (headers == null || headers.getContentType() == null || headers.getContentType().getCharset() == null) {
             return DEFAULT_CHARSET;
@@ -42,8 +64,38 @@ public class RawGsonMessageConverter extends GsonHttpMessageConverter {
         return headers.getContentType().getCharset();
     }
 
+    /**
+     * Ignore type when convert object to json to get real polymorphic class json data
+     */
     public void setIgnoreType(boolean ignoreType) {
         this.ignoreType = ignoreType;
+    }
+
+    @Override
+    public void setGson(Gson gson) {
+        // ignore setGson method
+    }
+
+    /**
+     * Set gson for writer which convert from object to json
+     */
+    public void setGsonForWriter(Gson gsonForWriter) {
+        this.gsonForWriter = gsonForWriter;
+    }
+
+    public Gson getGsonForWriter() {
+        return gsonForWriter;
+    }
+
+    /**
+     * Set gson for reader which convert from json to object
+     */
+    public void setGsonForReader(Gson gsonForReader) {
+        this.gsonForReader = gsonForReader;
+    }
+
+    public Gson getGsonForReader() {
+        return gsonForReader;
     }
 
     @Override
@@ -52,20 +104,42 @@ public class RawGsonMessageConverter extends GsonHttpMessageConverter {
         Charset charset = getCharset(outputMessage.getHeaders());
 
         try (OutputStreamWriter writer = new OutputStreamWriter(outputMessage.getBody(), charset)) {
-
             if (ignoreType) {
-                this.getGson().toJson(o, writer);
+                gsonForWriter.toJson(o, writer);
                 return;
             }
 
             if (type != null) {
-                this.getGson().toJson(o, type, writer);
+                gsonForWriter.toJson(o, type, writer);
                 return;
             }
 
-            this.getGson().toJson(o, writer);
+            gsonForWriter.toJson(o, writer);
         } catch (JsonIOException ex) {
             throw new HttpMessageNotWritableException("Could not write JSON: " + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public Object read(Type type, Class<?> contextClass, HttpInputMessage inputMessage)
+        throws IOException, HttpMessageNotReadableException {
+
+        TypeToken<?> token = getTypeToken(type);
+        return readObject(inputMessage, token);
+    }
+
+    @Override
+    protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage)
+        throws IOException, HttpMessageNotReadableException {
+        TypeToken<?> token = getTypeToken(clazz);
+        return readObject(inputMessage, token);
+    }
+
+    private Object readObject(HttpInputMessage inputMessage, TypeToken<?> token) throws IOException {
+        try (Reader json = new InputStreamReader(inputMessage.getBody(), getCharset(inputMessage.getHeaders()))) {
+            return this.gsonForReader.fromJson(json, token.getType());
+        } catch (JsonParseException ex) {
+            throw new HttpMessageNotReadableException("JSON parse error: " + ex.getMessage(), ex);
         }
     }
 }
