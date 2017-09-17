@@ -169,6 +169,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
 
         // setup job env variables
+        job.putEnv(JobEnvs.JOB_BUILD_CATEGORY, job.getCategory());
         job.putEnv(JobEnvs.JOB_BUILD_NUMBER, job.getNumber().toString());
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
 

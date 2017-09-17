@@ -23,6 +23,8 @@ public enum JobEnvs implements EnvKey {
 
     JOB_BUILD_NUMBER,
 
+    JOB_BUILD_CATEGORY,
+
     JOB_AGENT_INFO;
 
 }

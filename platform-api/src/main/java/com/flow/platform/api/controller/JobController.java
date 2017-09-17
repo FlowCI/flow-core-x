@@ -242,12 +242,9 @@ public class JobController extends NodeController {
     }
 
     @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
-    public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder){
+    public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) throws Exception{
         String path = getNodePathFromUrl();
-        jobService.findNodeResultByJob(path, buildNumber, stepOrder);
-//        TODO
-
-        return null;
+        return jobService.findNodeResultByJob(path, buildNumber, stepOrder);
     }
 
 
