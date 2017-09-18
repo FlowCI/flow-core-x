@@ -52,20 +52,19 @@ public class FlowController extends NodeController {
         return nodeService.listFlows();
     }
 
-
     /**
      * @api {get} /flows/detail list detail flows
-     * @apiGroup flow with deploy keys
+     * @apiGroup list flow with deploy keys
      *
      * @apiSuccessExample {json} Success-Response
-     *  {
+     *  [{
      *      name: flow-name,
      *      createdAt: 15123123,
      *      username: will,
      *      hookUrl: xxxx,
      *      deployKeyName: xxxx,
      *      deployKey: xxxxx
-     *  }
+     *  }]
      */
     @GetMapping(path = "/detail")
     public List<FlowWithDeployKey> indexFlowWithDeployKeys() {
