@@ -21,11 +21,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Jsonable;
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.MediaType;

@@ -59,9 +59,10 @@ public interface JobService {
      */
     List<NodeResult> listNodeResult(String path, Integer number);
 
-
+    /**
+     * get job log
+     */
     String findNodeResultByJob(String path, Integer buildNumber, Integer stepOrder) throws IOException;
-
 
     /**
      * create job from node path, copy yml to job yml

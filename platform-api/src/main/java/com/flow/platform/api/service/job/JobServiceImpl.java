@@ -195,7 +195,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         job.putEnv(JobEnvs.JOB_AGENT_INFO, agent.getName());
 
-        EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         job.setSessionId(sessionId);
         updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
         return job;
@@ -253,7 +252,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
 
     @Override
-    public String findNodeResultByJob(String path, Integer number, Integer order) throws IOException {
+    public String findNodeResultByJob(String path, Integer number, Integer order) {
         Job job = find(path, number);
         NodeResult nodeResult = nodeResultService.find(path, job.getId());
         String cmdId = nodeResult.getCmdId();
@@ -263,33 +262,40 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 //        String res = HttpUtil.get(String.format("%s%s%s", platformURL.getCmdDownloadLogUrl(), "?", "cmdId=" + cmdId + "index=" + order));
         String res = HttpUtil.get(stringBuilder.toString());
         Resource resource = Jsonable.GSON_CONFIG.fromJson(res, Resource.class);
-        resource.getFile();
-        return readZipFile(resource.getFile());
+        try {
+            resource.getFile();
+            return readZipFile(resource.getFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
-     * readFile
+     * readZipFile
      */
-    private String readZipFile(File file) throws IOException {
-        StringBuilder content = new StringBuilder();
-        ZipFile zipFile = new ZipFile(file);
-        Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) zipFile.entries();
-        ZipEntry ze;
+    private String readZipFile(File file) {
 
-        while (entries.hasMoreElements()) {
-            ze = entries.nextElement();
-            Scanner scanner = new Scanner(zipFile.getInputStream(ze));
-            while (scanner.hasNextLine()) {
-                content.append(scanner.nextLine());
+        try {
+            StringBuilder content = new StringBuilder();
+            ZipFile zipFile = new ZipFile(file);
+            Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) zipFile.entries();
+            ZipEntry ze;
+
+            while (entries.hasMoreElements()) {
+                ze = entries.nextElement();
+                Scanner scanner = new Scanner(zipFile.getInputStream(ze));
+                while (scanner.hasNextLine()) {
+                    content.append(scanner.nextLine());
+                }
+                scanner.close();
             }
-            scanner.close();
+            zipFile.close();
+            return content.toString();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        zipFile.close();
-
-        return content.toString();
     }
-
-
 
 //    private List<NodeResult> getChildrenResult(Job job) {
 //        List<NodeResult> allResults = nodeResultService.list(job);
