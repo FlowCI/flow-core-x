@@ -43,5 +43,8 @@ public interface AgentService {
      */
     String createToken(AgentPath agentPath);
 
+    /**
+     * get info by token
+     */
     String getInfo(String token);
 }
