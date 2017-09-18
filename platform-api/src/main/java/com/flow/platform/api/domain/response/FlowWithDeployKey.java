@@ -16,14 +16,14 @@
 
 package com.flow.platform.api.domain.response;
 
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.api.domain.EnvObject;
 import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
 
 /**
  * @author yh@firim
  */
-public class FlowWithDeployKey extends Jsonable {
+public class FlowWithDeployKey extends EnvObject {
 
     // flow name
     @Expose
@@ -33,25 +33,21 @@ public class FlowWithDeployKey extends Jsonable {
     @Expose
     private ZonedDateTime createdAt;
     @Expose
-    private String hookUrl;
-    @Expose
     private String deployKeyName;
     @Expose
     private String deployKey;
 
-    public FlowWithDeployKey(String name, String username, ZonedDateTime createdTime, String hookUrl) {
+    public FlowWithDeployKey(String name, String username, ZonedDateTime createdTime) {
         this.name = name;
         this.username = username;
         this.createdAt = createdTime;
-        this.hookUrl = hookUrl;
     }
 
-    public FlowWithDeployKey(String name, String username, ZonedDateTime createdTime, String hookUrl,
+    public FlowWithDeployKey(String name, String username, ZonedDateTime createdTime,
         String deployKeyName, String deployKey) {
         this.name = name;
         this.username = username;
         this.createdAt = createdTime;
-        this.hookUrl = hookUrl;
         this.deployKeyName = deployKeyName;
         this.deployKey = deployKey;
     }
@@ -78,14 +74,6 @@ public class FlowWithDeployKey extends Jsonable {
 
     public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public String getHookUrl() {
-        return hookUrl;
-    }
-
-    public void setHookUrl(String hookUrl) {
-        this.hookUrl = hookUrl;
     }
 
     public String getDeployKeyName() {

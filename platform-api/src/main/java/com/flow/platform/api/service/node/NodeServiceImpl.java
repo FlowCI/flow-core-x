@@ -41,6 +41,7 @@ import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -272,7 +273,11 @@ public class NodeServiceImpl implements NodeService {
         List<Flow> flows = listFlows();
         List<FlowWithDeployKey> flowWithDeployKeys = new ArrayList<>(flows.size());
         for (Flow flow : flows) {
-            flowWithDeployKeys.add(new FlowWithDeployKey(flow.getName(), null, flow.getCreatedAt(), hooksUrl(flow)));
+            FlowWithDeployKey flowWithDeployKey = new FlowWithDeployKey(flow.getName(), null, flow.getCreatedAt());
+            Map<String, String> envs = new HashMap<>();
+            envs.put("FLOW_GIT_WEBHOOK", hooksUrl(flow));
+            flowWithDeployKey.setEnvs(envs);
+            flowWithDeployKeys.add(flowWithDeployKey);
         }
         return flowWithDeployKeys;
     }

@@ -61,9 +61,11 @@ public class FlowController extends NodeController {
      *      name: flow-name,
      *      createdAt: 15123123,
      *      username: will,
-     *      hookUrl: xxxx,
      *      deployKeyName: xxxx,
-     *      deployKey: xxxxx
+     *      deployKey: xxxxx,
+     *      envs: {
+     *          "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/flow"
+     *      }
      *  }]
      */
     @GetMapping(path = "/detail")
