@@ -54,8 +54,8 @@ public class FlowController extends NodeController {
 
     /**
      * @api {get} /flows/detail list detail flows
-     * @apiGroup list flow with deploy keys
-     *
+     * @apiGroup Flows
+     * @apiDescription list flow with deploy keys
      * @apiSuccessExample {json} Success-Response
      *  [{
      *      name: flow-name,
