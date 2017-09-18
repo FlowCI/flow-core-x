@@ -26,6 +26,7 @@ import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.response.FlowWithDeployKey;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
@@ -264,6 +265,16 @@ public class NodeServiceImpl implements NodeService {
             hooks.add(new Webhook(flow.getPath(), hooksUrl(flow)));
         }
         return hooks;
+    }
+
+    @Override
+    public List<FlowWithDeployKey> listFlowWithDeployKeys() {
+        List<Flow> flows = listFlows();
+        List<FlowWithDeployKey> flowWithDeployKeys = new ArrayList<>(flows.size());
+        for (Flow flow : flows) {
+            flowWithDeployKeys.add(new FlowWithDeployKey(flow.getName(), null, flow.getCreatedAt(), hooksUrl(flow)));
+        }
+        return flowWithDeployKeys;
     }
 
     private String hooksUrl(final Flow flow) {
