@@ -53,6 +53,7 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Enumeration;
@@ -187,8 +188,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // to create agent session for job
         String sessionId = cmdService.createSession(job, createSessionRetryTimes);
-        String res = HttpUtil.get(platformURL.getAgentInfoUrl());
-
+        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
+        stringBuilder.append("?sessionId=").append(sessionId);
+        String res = HttpUtil.get(stringBuilder.toString());
         Agent agent = Jsonable.GSON_CONFIG.fromJson(res, Agent.class);
 
         job.putEnv(JobEnvs.JOB_AGENT_INFO, agent.getName());
@@ -255,17 +257,22 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         Job job = find(path, number);
         NodeResult nodeResult = nodeResultService.find(path, job.getId());
         String cmdId = nodeResult.getCmdId();
-        String res = HttpUtil.get(platformURL.getCmdDownloadLogUrl());
+        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
+        stringBuilder.append("?cmdId=").append(cmdId).append("&index=").append(order);
+
+//        String res = HttpUtil.get(String.format("%s%s%s", platformURL.getCmdDownloadLogUrl(), "?", "cmdId=" + cmdId + "index=" + order));
+        String res = HttpUtil.get(stringBuilder.toString());
         Resource resource = Jsonable.GSON_CONFIG.fromJson(res, Resource.class);
-        return readZipFile(resource);
+        resource.getFile();
+        return readZipFile(resource.getFile());
     }
 
     /**
      * readFile
      */
-    private String readZipFile(Resource resource) throws IOException {
+    private String readZipFile(File file) throws IOException {
         StringBuilder content = new StringBuilder();
-        ZipFile zipFile = (ZipFile) resource;
+        ZipFile zipFile = new ZipFile(file);
         Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) zipFile.entries();
         ZipEntry ze;
 
@@ -281,6 +288,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         return content.toString();
     }
+
 
 
 //    private List<NodeResult> getChildrenResult(Job job) {
