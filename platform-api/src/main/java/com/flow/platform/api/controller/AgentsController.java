@@ -21,7 +21,6 @@ import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.AgentPath;
-import com.flow.platform.domain.AgentSettings;
 import com.google.common.base.Strings;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
