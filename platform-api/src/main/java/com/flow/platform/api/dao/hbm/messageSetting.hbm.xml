@@ -10,6 +10,7 @@
     </id>
 
     <property name="content" column="content" type="com.flow.platform.api.dao.adaptor.SettingContentAdaptor"/>
+    <property name="createdBy" type="string" column="created_by"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>

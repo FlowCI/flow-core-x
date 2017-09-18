@@ -13,35 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.credential;
+
+package com.flow.platform.api.domain.file;
 
 import com.google.gson.annotations.Expose;
 
 /**
- * @author lhl
+ * @author yang
  */
-public class UsernameCredential extends Credential {
+public class PasswordFileResource extends FileResource {
 
     @Expose
-    protected String username;
+    private String password;
 
-    @Expose
-    protected String password;
-
-
-    public UsernameCredential(String name) {
-        super(name);
+    public PasswordFileResource() {
     }
 
-    public UsernameCredential() {
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
+    public PasswordFileResource(String name, String path, String password) {
+        super(name, path);
+        this.password = password;
     }
 
     public String getPassword() {
@@ -51,6 +41,4 @@ public class UsernameCredential extends Credential {
     public void setPassword(String password) {
         this.password = password;
     }
-
-
 }

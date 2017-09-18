@@ -13,25 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.credential;
 
-import com.flow.platform.api.domain.credential.Credential;
-import com.flow.platform.api.domain.credential.CredentialFile;
+package com.flow.platform.api.domain.file;
+
+import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 
 /**
- * @author lhl
+ * @author yang
  */
-public class AndroidCredential extends Credential {
+public class FileResource extends Jsonable {
 
     @Expose
-    protected CredentialFile[] fileNames;
+    protected String name;
 
-    public CredentialFile[] getFileNames() {
-        return fileNames;
+    protected String path;
+
+    public FileResource() {
     }
 
-    public void setFileNames(CredentialFile[] fileNames) {
-        this.fileNames = fileNames;
+    public FileResource(String name, String path) {
+        this.name = name;
+        this.path = path;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 }

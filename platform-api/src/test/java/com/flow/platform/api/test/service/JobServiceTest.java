@@ -20,11 +20,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
@@ -78,9 +80,9 @@ public class JobServiceTest extends TestBase {
         cmd.setSessionId("11111111");
         cmd.setStatus(CmdStatus.SENT);
 
-        jobService.callback(new CmdQueueItem(job.getId(), cmd));
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
-        job = jobService.find(job.getId());
+        job = reload(job);
         Assert.assertEquals("11111111", job.getSessionId());
 
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
@@ -88,10 +90,11 @@ public class JobServiceTest extends TestBase {
         cmd.setType(CmdType.RUN_SHELL);
         cmd.setExtra(step1.getPath());
 
-        jobService.callback(new CmdQueueItem(job.getId(), cmd));
-        job = jobService.find(job.getId());
-        Assert.assertEquals(NodeStatus.RUNNING, job.getResult().getStatus());
-        job = jobService.find(job.getId());
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+        job = reload(job);
+        Assert.assertEquals(NodeStatus.RUNNING, job.getRootResult().getStatus());
+
+        job = reload(job);
         NodeResult jobFlow = nodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
 
@@ -104,11 +107,11 @@ public class JobServiceTest extends TestBase {
         cmdResult.setDuration(10L);
         cmd.setCmdResult(cmdResult);
 
-        jobService.callback(new CmdQueueItem(job.getId(), cmd));
-        job = jobService.find(job.getId());
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+        job = reload(job);
 
         Assert.assertEquals(NodeStatus.FAILURE, (nodeResultService.find(step2.getPath(), job.getId())).getStatus());
-        Assert.assertEquals(NodeStatus.FAILURE, job.getResult().getStatus());
+        Assert.assertEquals(NodeStatus.FAILURE, job.getRootResult().getStatus());
         jobFlow = nodeResultService.find(flow.getPath(), job.getId());
 
         Assert.assertEquals(NodeStatus.FAILURE, jobFlow.getStatus());
@@ -131,17 +134,17 @@ public class JobServiceTest extends TestBase {
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId(sessionId);
         cmd.setStatus(CmdStatus.SENT);
-        CmdQueueItem createSessionItem = new CmdQueueItem(job.getId(), cmd);
+        CmdCallbackQueueItem createSessionItem = new CmdCallbackQueueItem(job.getId(), cmd);
         jobService.callback(createSessionItem);
 
         // then: check job status should be running
-        job = jobService.find(job.getId());
+        job = reload(job);
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
 
         // then: check job tree data is correct
         NodeTree tree = jobNodeService.get(job.getId());
-        List<Node> steps = tree.ordered();
+        List<Node> steps = tree.children();
         Assert.assertEquals(7, steps.size());
 
         // when: simulate callback for all steps
@@ -173,7 +176,7 @@ public class JobServiceTest extends TestBase {
 
             // build mock identifier
 
-            CmdQueueItem runStepShellItem = new CmdQueueItem(job.getId(), stepCmd);
+            CmdCallbackQueueItem runStepShellItem = new CmdCallbackQueueItem(job.getId(), stepCmd);
             jobService.callback(runStepShellItem);
             stepResult = nodeResultService.find(step.getPath(), job.getId());
             Assert.assertEquals(NodeStatus.SUCCESS, stepResult.getStatus());
@@ -184,9 +187,9 @@ public class JobServiceTest extends TestBase {
         verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/send")));
 
         // then: check job status
-        job = jobService.find(job.getId());
+        job = reload(job);
         Assert.assertEquals(JobStatus.SUCCESS, job.getStatus());
-        Assert.assertEquals(NodeStatus.SUCCESS, job.getResult().getStatus());
+        Assert.assertEquals(NodeStatus.SUCCESS, job.getRootResult().getStatus());
     }
 
     @Test
@@ -196,18 +199,36 @@ public class JobServiceTest extends TestBase {
 
         Job stoppedJob = jobService.stopJob(job.getNodeName(), job.getNumber());
         Assert.assertNotNull(stoppedJob);
-        Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getResult().getStatus());
+        Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());
     }
 
     private Job createMockJob(String nodePath) {
         Job job = jobService.createJob(nodePath);
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
+        Assert.assertNotNull(job.getNumber());
         Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
 
-        Assert.assertNotNull(job.getResult());
-        Assert.assertTrue(job.getResult().getOutputs().isEmpty());
-        Assert.assertEquals(NodeStatus.PENDING, job.getResult().getStatus());
+        Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.JOB_BUILD_NUMBER));
+
+        // verify root node result for job
+        NodeResult rootResult = job.getRootResult();
+        Assert.assertNotNull(rootResult);
+        Assert.assertEquals(NodeTag.FLOW, rootResult.getNodeTag());
+        Assert.assertTrue(rootResult.getOutputs().isEmpty());
+        Assert.assertEquals(NodeStatus.PENDING, rootResult.getStatus());
+
+        NodeTree nodeTree = jobNodeService.get(job.getId());
+
+        // verify child node result list
+        List<NodeResult> childrenResult = job.getChildrenResult();
+        Assert.assertNotNull(childrenResult);
+        Assert.assertEquals(nodeTree.childrenSize(), childrenResult.size());
+
         return job;
+    }
+
+    private Job reload(Job job) {
+        return jobService.find(job.getNodePath(), job.getNumber());
     }
 }

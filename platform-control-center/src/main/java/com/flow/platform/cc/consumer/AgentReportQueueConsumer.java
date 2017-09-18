@@ -17,7 +17,7 @@
 package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.dao.AgentDao;
-import com.flow.platform.core.consumer.QueueConsumerBase;
+import com.flow.platform.core.consumer.QueueConsumer;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author yang
  */
 @Component
-public class AgentReportQueueConsumer extends QueueConsumerBase<AgentPath> {
+public class AgentReportQueueConsumer extends QueueConsumer<AgentPath> {
 
     private final static Logger LOGGER = new Logger(AgentReportQueueConsumer.class);
 

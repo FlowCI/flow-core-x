@@ -18,7 +18,7 @@ package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.CmdService;
-import com.flow.platform.core.consumer.QueueConsumerBase;
+import com.flow.platform.core.consumer.QueueConsumer;
 import com.flow.platform.util.Logger;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
  * @author yang
  */
 @Component
-public class CmdStatusQueueConsumer extends QueueConsumerBase<CmdStatusItem> {
+public class CmdStatusQueueConsumer extends QueueConsumer<CmdStatusItem> {
 
     private final static Logger LOGGER = new Logger(CmdStatusQueueConsumer.class);
 

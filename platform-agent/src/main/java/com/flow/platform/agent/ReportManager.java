@@ -122,7 +122,7 @@ public class ReportManager {
         StringEntity entity = new StringEntity(postCmd.toJson(), ContentType.APPLICATION_JSON);
         post.setEntity(entity);
 
-        String successMsg = String.format("Cmd %s report status %s", cmdId, status);
+        String successMsg = String.format("Cmd %s report status %s with result %s", cmdId, status, result);
         String failMsg = String.format("Fail to report cmd status to : %s", url);
         httpSend(post, retry, successMsg, failMsg);
     }

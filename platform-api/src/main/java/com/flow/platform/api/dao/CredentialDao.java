@@ -15,15 +15,24 @@
  */
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.credential.CredentialStorage;
+import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.core.dao.BaseDao;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author lhl
  */
-public interface CredentialStorageDao extends BaseDao<String, CredentialStorage> {
+public interface CredentialDao extends BaseDao<String, Credential> {
 
-    List<CredentialStorage> list(CredentialType... types);
+    /**
+     * Check credential name is existed
+     */
+    boolean exist(String name);
+
+    /**
+     * List credential by types
+     */
+    List<Credential> listByType(Collection<CredentialType> types);
 }

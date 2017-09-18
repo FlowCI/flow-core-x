@@ -37,6 +37,11 @@ public class CollectionUtil {
         return map == null || map.size() == 0;
     }
 
+    @SafeVarargs
+    public static <T> boolean isNullOrEmpty(final T... objects) {
+        return objects == null || objects.length == 0;
+    }
+
     /**
      * Fetch property list from a standard java bean collection
      * - The type R must be public

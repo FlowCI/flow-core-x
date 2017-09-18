@@ -12,7 +12,7 @@
 
     <property name="name" type="string" column="name" unique="true" length="100"/>
     <property name="description" type="string" column="description"/>
-    <property name="createBy" type="string" column="create_by"/>
+    <property name="createdBy" type="string" column="created_by"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>

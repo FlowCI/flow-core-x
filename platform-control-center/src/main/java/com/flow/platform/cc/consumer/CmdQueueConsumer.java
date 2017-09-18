@@ -23,6 +23,8 @@ import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
 import java.time.Duration;
@@ -85,15 +87,25 @@ public class CmdQueueConsumer {
         } catch (IllegalStatusException e) {
             LOGGER.warn("Illegal cmd status: %s", e.getMessage());
         } catch (AgentErr.NotAvailableException | AgentErr.NotFoundException | ZkException.NotExitException e) {
-            if (item.getRetry() > 0) {
-                boolean isTimeout = waitForIdleAgent(cmdId, idleAgentPeriod, idleAgentTimeout);
-                if (isTimeout) {
-                    LOGGER.trace("wait for idle agent time out %s seconds for cmd %s", idleAgentTimeout, cmdId);
-                }
-
-                cmdService.resetStatus(cmdId);
-                resend(item);
+            if (item.getRetry() <= 0) {
+                return;
             }
+
+            boolean isTimeout = waitForIdleAgent(cmdId, idleAgentPeriod, idleAgentTimeout);
+            if (isTimeout) {
+                LOGGER.trace("wait for idle agent time out %s seconds for cmd %s", idleAgentTimeout, cmdId);
+            }
+
+            // reset cmd status to pending, record num of retry
+            int retry = item.getRetry() - 1;
+            Cmd cmd = cmdService.find(cmdId);
+            cmd.setStatus(CmdStatus.PENDING);
+            cmd.setRetry(retry);
+            cmdService.save(cmd);
+
+            // re-enqueue
+            resend(item, retry);
+
         } catch (Throwable e) {
             LOGGER.error("Unexpected exception", e);
         }
@@ -129,13 +141,16 @@ public class CmdQueueConsumer {
         }
     }
 
-    private void resend(final CmdQueueItem item) {
-        item.setPriority(RETRY_QUEUE_PRIORITY);
-        item.setRetry(item.getRetry() - 1);
-
-        if (item.getRetry() <= 0) {
+    /**
+     * Re-enqueue cmd and return num of retry
+     */
+    private void resend(final CmdQueueItem item, final int retry) {
+        if (retry <= 0) {
             return;
         }
+
+        item.setPriority(RETRY_QUEUE_PRIORITY);
+        item.setRetry(retry);
 
         try {
             Thread.sleep(1000); // wait 1 seconds and enqueue again with priority

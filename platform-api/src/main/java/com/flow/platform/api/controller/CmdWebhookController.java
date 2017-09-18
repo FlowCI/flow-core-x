@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.CmdQueueItem;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
@@ -59,9 +59,12 @@ public class CmdWebhookController {
 
         try {
             BigInteger jobId = new BigInteger(jobIdStr);
-            LOGGER.trace("Webhook received: Cmd {%s : %s : %s} with identifier: '%s'",
-                cmd.getType(), cmd.getStatus(), cmd.getId(), identifier);
-            jobService.enterQueue(new CmdQueueItem(jobId, cmd));
+            LOGGER.trace("Webhook received: Cmd {%s : %s : %s : %s}",
+                cmd.getType(),
+                cmd.getStatus(),
+                cmd.getId(),
+                cmd.getCmdResult());
+            jobService.enterQueue(new CmdCallbackQueueItem(jobId, cmd));
         } catch (NumberFormatException warn) {
             LOGGER.warn("Invalid job id format");
         }

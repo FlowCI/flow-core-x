@@ -19,7 +19,6 @@ package com.flow.platform.cc.test.service;
 import static org.junit.Assert.fail;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
-import com.flow.platform.cc.event.NoAvailableResourceEvent;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdDispatchService;
@@ -36,15 +35,13 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
 
 /**
  * @author yang
@@ -73,10 +70,13 @@ public class CmdDispatchServiceTest extends TestBase {
         // given:
         String zoneName = defaultZones.get(0).getName();
         String agentName = "test-agent-006";
-        agentPath = new AgentPath(zoneName, agentName);
+        Thread.sleep(1000); // wait for zone node crated
 
-        zkClient.createEphemeral(ZKHelper.buildPath(agentPath), null);
-        Thread.sleep(1000);
+        Assert.assertTrue(zkClient.exist(ZKHelper.buildPath(zoneName, null)));
+        agentPath = createMockAgent(zoneName, agentName);
+        Thread.sleep(1000); // wait for agent node created
+
+        Assert.assertTrue(zkClient.exist(ZKHelper.buildPath(agentPath)));
 
         // when: create cmd and dispatch to agent
         Cmd cmd = cmdService.create(new CmdInfo(zoneName, agentName, CmdType.CREATE_SESSION, null));
@@ -170,6 +170,12 @@ public class CmdDispatchServiceTest extends TestBase {
         Agent sessionShouldReleased = agentService.find(cmd.getAgentPath());
         Assert.assertNull(sessionShouldReleased.getSessionId());
         Assert.assertEquals(AgentStatus.IDLE, sessionShouldReleased.getStatus());
+    }
+
+    @After
+    public void cleanMockAgent() throws Throwable {
+        String path = ZKHelper.buildPath(agentPath);
+        zkClient.delete(path, false);
     }
 
     private Cmd startRunShell(String zone, String sessionId) {

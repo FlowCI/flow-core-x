@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -115,23 +116,22 @@ public class UserControllerTest extends TestBase {
     public void should_delete_user_success() throws Throwable {
         String requestContent;
         String responseContent;
-        MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
         MvcResult mvcResult;
 
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 
         // delete success: response 200; userinfo is deleted from database
         requestContent = "[ \"liangpengyv@fir.im\" ]";
-        mockHttpServletRequestBuilder = post("/user/delete").contentType(MediaType.APPLICATION_JSON)
-            .content(requestContent);
-        mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
+        mockMvc.perform(delete("/user")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent)).andExpect(status().isOk()).andReturn();
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
 
         //delete failed: response 500; return error description message
         requestContent = "abcdefg";
-        mockHttpServletRequestBuilder = post("/user/delete").contentType(MediaType.APPLICATION_JSON)
-            .content(requestContent);
-        mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is5xxServerError()).andReturn();
+        mvcResult = mockMvc.perform(delete("/user")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent)).andExpect(status().is5xxServerError()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertEquals("{\"message\"", responseContent.substring(0, 10));
     }

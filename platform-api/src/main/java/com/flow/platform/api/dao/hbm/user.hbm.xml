@@ -9,6 +9,7 @@
 
         <property name="username" type="string" column="username" unique="true"/>
         <property name="password" type="string" column="password" length="50"/>
+        <property name="createdBy" type="string" column="created_by"/>
 
         <property name="createdAt" type="java.time.ZonedDateTime">
             <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>

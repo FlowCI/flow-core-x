@@ -5,7 +5,7 @@
 
 <hibernate-mapping package="com.flow.platform.domain">
   <class name="Cmd" table="cmd">
-    <id name="id" type="string" length="36">
+    <id name="id" type="string" length="100">
       <generator class="assigned"/>
     </id>
 
@@ -34,6 +34,8 @@
     <property name="inputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="inputs"/>
     <property name="webhook" type="string" column="webhook"/>
     <property name="extra" type="string" column="extra"/>
+    <property name="retry" type="integer" column="retry"/>
+
     <property name="createdDate" type="java.time.ZonedDateTime">
       <column name="created_date" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
     </property>
@@ -44,7 +46,7 @@
 
   <!--for cmd result definition-->
   <class name="CmdResult" table="cmd_result">
-    <id name="cmdId" type="string" column="cmd_id" length="36">
+    <id name="cmdId" type="string" column="cmd_id" length="100">
       <generator class="assigned"/>
     </id>
 

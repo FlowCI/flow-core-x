@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.credential;
 
-import com.google.gson.annotations.Expose;
+package com.flow.platform.api.domain.envs;
 
 /**
- * @author lhl
+ * @author yang
  */
-public class IosCredential extends Credential {
+public enum JobEnvs implements EnvKey {
 
-    @Expose
-    protected CredentialFile[] fileNames;
+    JOB_BUILD_NUMBER
 
-    public CredentialFile[] getFileNames() {
-        return fileNames;
-    }
-
-    public void setFileNames(CredentialFile[] fileNames) {
-        this.fileNames = fileNames;
-    }
 }

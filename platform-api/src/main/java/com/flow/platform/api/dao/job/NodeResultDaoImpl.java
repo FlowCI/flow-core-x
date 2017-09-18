@@ -68,7 +68,7 @@ public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult
             Root<NodeResult> nodeResultRoot = select.from(NodeResult.class);
             Predicate aCondition = builder.equal(nodeResultRoot.get("key").get("jobId"), jobId);
             select.where(aCondition);
-            select.orderBy(builder.desc(nodeResultRoot.get("createdAt")));
+            select.orderBy(builder.asc(nodeResultRoot.get("order")));
             return session.createQuery(select).list();
         });
     }

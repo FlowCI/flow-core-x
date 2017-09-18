@@ -95,7 +95,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
         // add default json converter
         RawGsonMessageConverter jsonConverter = new RawGsonMessageConverter();
-        jsonConverter.setGson(gsonConfig());
+        jsonConverter.setGsonForReader(Jsonable.GSON_CONFIG);
+        jsonConverter.setGsonForWriter(Jsonable.GSON_CONFIG);
         jsonConverter.setIgnoreType(true);
         converters.add(jsonConverter);
     }
