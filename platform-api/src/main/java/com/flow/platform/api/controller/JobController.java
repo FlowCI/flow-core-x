@@ -188,7 +188,7 @@ public class JobController extends NodeController {
      * @apiGroup Jobs
      * @apiDescription Get job yml content
      *
-     * @apiSuccessExample {log} Success-Response
+     * @apiSuccessExample {yml} Success-Response
      *
      *  - flows:
      *      - envs:
