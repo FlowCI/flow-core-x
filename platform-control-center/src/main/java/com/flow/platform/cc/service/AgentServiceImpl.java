@@ -18,9 +18,7 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
-import com.flow.platform.cc.domain.AgentToken;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.cc.util.TokenUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -29,7 +27,6 @@ import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
@@ -39,6 +36,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -179,50 +177,46 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public String createToken(AgentPath agentPath) {
 
-        // generate token
-        String token = TokenUtil.md5(String.format("%s%s%s", agentPath.getZone(), agentPath.getName(), secretKey));
+        Agent agent = agentDao.get(agentPath);
+        if (agent != null) {
+            throw new IllegalParameterException("agent token is dup");
+        }
 
-        // build agent token
-        AgentToken agentToken = new AgentToken(agentPath, token);
-        String result = TokenUtil.encode(Jsonable.GSON_CONFIG.toJson(agentToken));
+        agent = new Agent(agentPath);
+        agent.setCreatedDate(DateUtil.now());
+        agent.setUpdatedDate(DateUtil.now());
+        agent.setStatus(AgentStatus.OFFLINE);
+        //random token
+        agent.setToken(UUID.randomUUID().toString());
+        agentDao.save(agent);
 
-        return result;
+        return agent.getToken();
+    }
+
+    public String refreshToken(AgentPath agentPath){
+
+        Agent agent = agentDao.get(agentPath);
+        if (agent != null) {
+            throw new IllegalParameterException("agent token is dup");
+        }
+
+        //random token
+        agent.setToken(UUID.randomUUID().toString());
+        agentDao.save(agent);
+
+        return agent.getToken();
     }
 
     @Override
     public AgentSettings getInfo(String token) {
-
-        // decode token
-        AgentToken agentToken;
-
-        try {
-            token = TokenUtil.decode(token);
-            agentToken = Jsonable.GSON_CONFIG.fromJson(token, AgentToken.class);
-        } catch (Throwable throwable) {
-            throw new IllegalParameterException("decoding error");
-        }
+        Agent agent = agentDao.getByToken(token);
 
         // validate token
-        if (!validateToken(agentToken)) {
+        if (agent == null) {
             throw new IllegalParameterException("token error");
         }
 
-        agentSettings.setAgentPath(agentToken.getAgentPath());
+        agentSettings.setAgentPath(agent.getPath());
         return agentSettings;
-    }
-
-    private Boolean validateToken(AgentToken agentToken) {
-        try {
-            AgentPath agentPath = agentToken.getAgentPath();
-            String token = TokenUtil.md5(String.format("%s%s%s", agentPath.getZone(), agentPath.getName(), secretKey));
-
-            if (token.equals(agentToken.getToken())) {
-                return true;
-            }
-
-            return false;
-        } catch (Throwable throwable) {
-            return false;
-        }
     }
 }

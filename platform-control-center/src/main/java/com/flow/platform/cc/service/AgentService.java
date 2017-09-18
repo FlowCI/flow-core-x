@@ -93,5 +93,16 @@ public interface AgentService {
      */
     String createToken(AgentPath agentPath);
 
+    /**
+     * refresh token
+     */
+    String refreshToken(AgentPath agentPath);
+
+    /**
+     * get agent info by agent id
+     *
+     * @param token token
+     * @return agent setting
+     */
     AgentSettings getInfo(String token);
 }

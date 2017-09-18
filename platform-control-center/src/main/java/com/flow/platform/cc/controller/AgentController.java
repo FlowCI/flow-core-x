@@ -62,8 +62,19 @@ public class AgentController {
         return agentService.createToken(agentPath);
     }
 
+    @PostMapping(path = "/token/refresh")
+    public String refreshToken(@RequestBody AgentPath agentPath) {
+        if (Strings.isNullOrEmpty(agentPath.getName()) || Strings.isNullOrEmpty(agentPath.getZone())) {
+            throw new IllegalParameterException("miss required params ");
+        }
+        return agentService.refreshToken(agentPath);
+    }
+
     @GetMapping(path = "/info")
-    public AgentSettings getInfo(@RequestParam(required = false) String token) {
+    public AgentSettings getInfo(@RequestParam String token) {
+        if (token == null) {
+            throw new IllegalParameterException("miss required token");
+        }
         return agentService.getInfo(token);
     }
 
