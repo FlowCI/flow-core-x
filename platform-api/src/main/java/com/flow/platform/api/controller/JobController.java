@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
 import com.google.common.collect.Lists;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -240,6 +241,26 @@ public class JobController extends NodeController {
         String path = getNodePathFromUrl();
         return jobService.listNodeResult(path, buildNumber);
     }
+
+    /**
+     * @api {get} /jobs/:root/:buildNumber/:stepOrder/log Get log
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiParam {String} stepOrder step Order
+     * @apiGroup Jobs
+     * @apiDescription Get job log
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      Job response json see Job log
+     *  }
+     */
+    @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
+    public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) throws IOException {
+        String path = getNodePathFromUrl();
+        return jobService.findNodeResultByJob(path, buildNumber, stepOrder);
+    }
+
 
     /**
      * @api {post} /jobs/:root/:buildNumber/stop Stop

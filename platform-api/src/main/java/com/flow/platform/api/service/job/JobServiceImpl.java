@@ -37,24 +37,36 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.core.util.HttpUtil;
+import com.flow.platform.domain.Agent;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import java.io.File;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Enumeration;
 import com.google.common.collect.Sets;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,6 +105,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Autowired
     private YmlService ymlService;
 
+    @Autowired
+    private PlatformURL platformURL;
+
     @Override
     public Job find(String flowName, Integer number) {
         Job job = jobDao.get(flowName, number);
@@ -122,7 +137,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         if (latestOnly) {
             jobDao.latestByPath(paths);
         }
-
         return jobDao.listByPath(paths);
     }
 
@@ -156,6 +170,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
 
         // setup job env variables
+        job.putEnv(JobEnvs.JOB_BUILD_CATEGORY, job.getCategory());
         job.putEnv(JobEnvs.JOB_BUILD_NUMBER, job.getNumber().toString());
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
 
@@ -173,6 +188,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // to create agent session for job
         String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
+        stringBuilder.append("?sessionId=").append(sessionId);
+        String res = HttpUtil.get(stringBuilder.toString());
+        Agent agent = Jsonable.GSON_CONFIG.fromJson(res, Agent.class);
+
+        job.putEnv(JobEnvs.JOB_AGENT_INFO, agent.getName());
+
         job.setSessionId(sessionId);
         updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
         return job;
@@ -227,6 +249,58 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         LOGGER.warn("not found cmdType, cmdType: %s", cmd.getType().toString());
         throw new NotFoundException("not found cmdType");
     }
+
+
+    @Override
+    public String findNodeResultByJob(String path, Integer number, Integer order) {
+        Job job = find(path, number);
+        NodeResult nodeResult = nodeResultService.find(path, job.getId());
+        String cmdId = nodeResult.getCmdId();
+        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
+        stringBuilder.append("?cmdId=").append(cmdId).append("&index=").append(order);
+
+//        String res = HttpUtil.get(String.format("%s%s%s", platformURL.getCmdDownloadLogUrl(), "?", "cmdId=" + cmdId + "index=" + order));
+        String res = HttpUtil.get(stringBuilder.toString());
+        Resource resource = Jsonable.GSON_CONFIG.fromJson(res, Resource.class);
+        try {
+            return readZipFile(resource.getFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * readZipFile
+     */
+    private String readZipFile(File file) {
+
+        try {
+            StringBuilder content = new StringBuilder();
+            ZipFile zipFile = new ZipFile(file);
+            Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) zipFile.entries();
+            ZipEntry ze;
+
+            while (entries.hasMoreElements()) {
+                ze = entries.nextElement();
+                Scanner scanner = new Scanner(zipFile.getInputStream(ze));
+                while (scanner.hasNextLine()) {
+                    content.append(scanner.nextLine());
+                }
+                scanner.close();
+            }
+            zipFile.close();
+            return content.toString();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+//    private List<NodeResult> getChildrenResult(Job job) {
+//        List<NodeResult> allResults = nodeResultService.list(job);
+//        allResults.remove(allResults.size() - 1);
+//        return allResults;
+//    }
 
     /**
      * run node
@@ -366,6 +440,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         return runningJob;
     }
+
 
     /**
      * Update job status by root node result

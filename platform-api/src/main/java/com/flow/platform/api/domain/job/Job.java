@@ -67,6 +67,9 @@ public class Job extends EnvObject {
     @Expose
     private String createdBy;
 
+    @Expose
+    private String category;
+
     public Job(BigInteger id) {
         this.id = id;
     }
@@ -160,6 +163,14 @@ public class Job extends EnvObject {
 
     public void setChildrenResult(List<NodeResult> childrenResult) {
         this.childrenResult = childrenResult;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     @Override
