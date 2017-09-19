@@ -37,7 +37,13 @@ public class SmtpUtil {
         Session session = Session.getDefaultInstance(props,
             new javax.mail.Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(emailSetting.getUsername(), emailSetting.getPassword());
+                    String username = null;
+                    String password = null;
+                    if (emailSetting.isAuthenticated()) {
+                        username = emailSetting.getUsername();
+                        password = emailSetting.getPassword();
+                    }
+                    return new PasswordAuthentication(username, password);
                 }
             });
 
@@ -71,8 +77,14 @@ public class SmtpUtil {
 
         try {
             Transport transport = session.getTransport("smtp");
-            transport.connect(emailSetting.getSmtpUrl(), emailSetting.getSmtpPort(), emailSetting.getUsername(),
-                emailSetting.getPassword());
+            String username = null;
+            String password = null;
+            if (emailSetting.isAuthenticated()) {
+                username = emailSetting.getUsername();
+                password = emailSetting.getPassword();
+            }
+            transport.connect(emailSetting.getSmtpUrl(), emailSetting.getSmtpPort(), username,
+                password);
             transport.close();
             return true;
         } catch (Throwable throwable) {
