@@ -52,7 +52,7 @@ public class AgentController {
     }
 
     @GetMapping(path= "/findAgentBySessionId")
-    public Agent show(@RequestParam(name = "SessionId") String sessionId){
+    public Agent show(@RequestParam(name = "sessionId") String sessionId){
         return agentService.find(sessionId);
     }
 
