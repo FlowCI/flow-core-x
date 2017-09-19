@@ -34,6 +34,11 @@ public interface NodeResultDao extends BaseDao<NodeResultKey, NodeResult> {
     NodeResult get(BigInteger jobId, NodeStatus status, NodeTag tag);
 
     /**
+     * Get node result by job id and step order
+     */
+    NodeResult get(BigInteger jobId, Integer stepOrder);
+
+    /**
      * List node result for job
      */
     List<NodeResult> list(BigInteger jobId);

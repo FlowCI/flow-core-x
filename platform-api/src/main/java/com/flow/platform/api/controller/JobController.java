@@ -18,10 +18,12 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.google.common.collect.Lists;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "/jobs")
 public class JobController extends NodeController {
+
+    private final static Logger LOGGER = new Logger(JobController.class);
 
     @Autowired
     private JobService jobService;
@@ -240,6 +244,30 @@ public class JobController extends NodeController {
         String path = getNodePathFromUrl();
         return jobService.listNodeResult(path, buildNumber);
     }
+
+    /**
+     * @api {get} /jobs/:root/:buildNumber/:stepOrder/log Get log
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiParam {String} stepOrder step Order
+     * @apiGroup Jobs
+     * @apiDescription Get job log
+     *
+     * @apiSuccessExample {string} Success-Response
+     *
+     *  log content
+     */
+    @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
+    public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) {
+        String path = getNodePathFromUrl();
+        try {
+            return jobService.findNodeLog(path, buildNumber, stepOrder);
+        } catch (Throwable e){
+            LOGGER.warn("log not found", e.getMessage());
+            return StringUtil.EMPTY;
+        }
+    }
+
 
     /**
      * @api {post} /jobs/:root/:buildNumber/stop Stop

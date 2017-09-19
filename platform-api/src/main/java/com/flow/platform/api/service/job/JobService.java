@@ -18,6 +18,7 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -57,6 +58,11 @@ public interface JobService {
      * list node results
      */
     List<NodeResult> listNodeResult(String path, Integer number);
+
+    /**
+     * get job log
+     */
+    String findNodeLog(String path, Integer buildNumber, Integer stepOrder);
 
     /**
      * create job from node path, copy yml to job yml

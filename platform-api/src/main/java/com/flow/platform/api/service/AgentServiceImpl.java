@@ -135,7 +135,7 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public String getInfo(String token) {
 
-        String url = new StringBuilder(platformURL.getAgentInfoUrl()).append("?").append("token=" + token).toString();
+        String url = new StringBuilder(platformURL.getAgentDetailUrl()).append("?").append("token=" + token).toString();
         String res = HttpUtil.get(url);
 
         if (res == null) {
