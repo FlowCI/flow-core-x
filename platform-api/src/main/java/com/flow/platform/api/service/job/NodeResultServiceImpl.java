@@ -92,6 +92,11 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
     }
 
     @Override
+    public NodeResult find(BigInteger jobId, Integer stepOrder) {
+        return nodeResultDao.get(jobId, stepOrder);
+    }
+
+    @Override
     public List<NodeResult> list(Job job, boolean childrenOnly) {
         List<NodeResult> list = nodeResultDao.list(job.getId());
 

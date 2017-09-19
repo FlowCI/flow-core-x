@@ -231,9 +231,10 @@ public class LogEventHandler implements LogListener {
         }
 
         // init zipped log file for tmp
-        Path stdoutPath = Paths
-            .get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDOUT, true));
+        Path stdoutPath = Paths.get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDOUT, true));
         Files.deleteIfExists(stdoutPath);
+
+
         stdoutLogPath = Files.createFile(stdoutPath);
 
         // init zip stream for stdout log
@@ -258,6 +259,8 @@ public class LogEventHandler implements LogListener {
     private String getLogFileName(Cmd cmd, Log.Type logType, boolean isTemp) {
         String logTypeSuffix = logType == Log.Type.STDERR ? ".err" : ".out";
         String tempSuffix = isTemp ? ".tmp" : ".zip";
-        return cmd.getId() + logTypeSuffix + tempSuffix;
+
+        // replace / with - since cmd id may includes slash which the same as dir path
+        return cmd.getId().replace('/', '-') + logTypeSuffix + tempSuffix;
     }
 }

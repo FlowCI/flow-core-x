@@ -20,6 +20,7 @@ import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
 import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
@@ -43,7 +44,6 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.util.HttpUtil;
-import com.flow.platform.domain.Agent;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
@@ -52,19 +52,23 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.ObjectWrapper;
 import com.google.common.base.Strings;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.Enumeration;
 import com.google.common.collect.Sets;
-import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -246,55 +250,58 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
 
     @Override
-    public String findNodeResultByJob(String path, Integer number, Integer order) {
+    public String findNodeLog(String path, Integer number, Integer order) {
         Job job = find(path, number);
-        NodeResult nodeResult = nodeResultService.find(path, job.getId());
-        String cmdId = nodeResult.getCmdId();
-        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
-        stringBuilder.append("?cmdId=").append(cmdId).append("&index=").append(order);
-
-//        String res = HttpUtil.get(String.format("%s%s%s", platformURL.getCmdDownloadLogUrl(), "?", "cmdId=" + cmdId + "index=" + order));
-        String res = HttpUtil.get(stringBuilder.toString());
-        Resource resource = Jsonable.GSON_CONFIG.fromJson(res, Resource.class);
-        try {
-            return readZipFile(resource.getFile());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        NodeResult nodeResult = nodeResultService.find(job.getId(), order);
+        if (nodeResult == null) {
+            throw new IllegalParameterException("Illeal job id or step order number");
         }
+
+        String cmdId = nodeResult.getCmdId();
+
+        if (Strings.isNullOrEmpty(cmdId)) {
+            throw new IllegalParameterException("The job node without cmd id");
+        }
+
+        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
+        stringBuilder.append("?cmdId=").append(HttpUtil.urlEncode(cmdId)).append("&index=").append(0);
+
+        ObjectWrapper<String> logContent = new ObjectWrapper<>();
+
+        HttpUtil.getResponseEntity(stringBuilder.toString(), entity -> {
+            try {
+                InputStream content = entity.getContent();
+                String log = readZipFile(content);
+                logContent.setInstance(log);
+            } catch (IOException e) {
+                throw new FlowException("Cannot unzip log file for " + cmdId, e);
+            }
+        });
+
+        return logContent.getInstance();
     }
 
     /**
      * readZipFile
      */
-    private String readZipFile(File file) {
-
-        try {
+    private String readZipFile(InputStream zippedStream) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(zippedStream);) {
             StringBuilder content = new StringBuilder();
-            ZipFile zipFile = new ZipFile(file);
-            Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) zipFile.entries();
-            ZipEntry ze;
 
-            while (entries.hasMoreElements()) {
-                ze = entries.nextElement();
-                Scanner scanner = new Scanner(zipFile.getInputStream(ze));
-                while (scanner.hasNextLine()) {
-                    content.append(scanner.nextLine());
+            ZipEntry ze ;
+            byte[] buffer = new byte[2048];
+
+            while ((ze = zis.getNextEntry()) != null) {
+
+                int length = 0;
+                while ((length = zis.read(buffer)) > 0) {
+                    content.append(new String(buffer, 0, length, AppConfig.DEFAULT_CHARSET));
                 }
-                scanner.close();
             }
-            zipFile.close();
-            return content.toString();
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            return content.toString();
         }
     }
-
-//    private List<NodeResult> getChildrenResult(Job job) {
-//        List<NodeResult> allResults = nodeResultService.list(job);
-//        allResults.remove(allResults.size() - 1);
-//        return allResults;
-//    }
 
     /**
      * run node

@@ -55,11 +55,16 @@ public class NodeResultDaoTest extends TestBase {
         jobNode.setFinishTime(ZonedDateTime.now());
         nodeResultDao.save(jobNode);
 
+
         NodeResultKey nodeResultKey = new NodeResultKey(job.getId(), job.getNodePath());
         NodeResult job_node = nodeResultDao.get(nodeResultKey);
         Assert.assertNotNull(job_node);
         Assert.assertEquals("/flow1", job_node.getKey().getPath());
         Assert.assertEquals(NodeTag.FLOW, job_node.getNodeTag());
+
+        // get node result by job id and order
+        NodeResult result = nodeResultDao.get(job.getId(), 1);
+        Assert.assertEquals(jobNode, result);
     }
 
     @Test

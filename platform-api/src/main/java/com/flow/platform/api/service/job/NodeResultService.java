@@ -42,6 +42,11 @@ public interface NodeResultService {
     NodeResult find(String path, BigInteger jobId);
 
     /**
+     * Get node by job id and step order
+     */
+    NodeResult find(BigInteger jobId, Integer stepOrder);
+
+    /**
      * List all node results for job
      */
     List<NodeResult> list(Job job, boolean childrenOnly);

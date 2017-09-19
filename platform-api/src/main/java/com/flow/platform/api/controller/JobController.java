@@ -18,7 +18,6 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
 import com.google.common.collect.Lists;
@@ -255,9 +254,9 @@ public class JobController extends NodeController {
      *  log content
      */
     @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
-    public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) throws IOException {
+    public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) {
         String path = getNodePathFromUrl();
-        return jobService.findNodeResultByJob(path, buildNumber, stepOrder);
+        return jobService.findNodeLog(path, buildNumber, stepOrder);
     }
 
 
