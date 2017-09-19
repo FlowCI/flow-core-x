@@ -263,7 +263,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         String res = HttpUtil.get(stringBuilder.toString());
         Resource resource = Jsonable.GSON_CONFIG.fromJson(res, Resource.class);
         try {
-            resource.getFile();
             return readZipFile(resource.getFile());
         } catch (IOException e) {
             throw new RuntimeException(e);
