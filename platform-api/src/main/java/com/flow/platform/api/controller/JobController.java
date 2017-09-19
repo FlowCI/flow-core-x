@@ -250,10 +250,9 @@ public class JobController extends NodeController {
      * @apiGroup Jobs
      * @apiDescription Get job log
      *
-     * @apiSuccessExample {json} Success-Response
-     *  {
-     *      Job response json see Job log
-     *  }
+     * @apiSuccessExample {string} Success-Response
+     *
+     *  log content
      */
     @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
     public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) throws IOException {
