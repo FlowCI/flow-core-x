@@ -20,6 +20,8 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.Collection;
@@ -40,6 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "/jobs")
 public class JobController extends NodeController {
+
+    private final static Logger LOGGER = new Logger(JobController.class);
 
     @Autowired
     private JobService jobService;
@@ -256,7 +260,12 @@ public class JobController extends NodeController {
     @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
     public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) {
         String path = getNodePathFromUrl();
-        return jobService.findNodeLog(path, buildNumber, stepOrder);
+        try {
+            return jobService.findNodeLog(path, buildNumber, stepOrder);
+        } catch (Throwable e){
+            LOGGER.warn("log not found", e.getMessage());
+            return StringUtil.EMPTY;
+        }
     }
 
 
