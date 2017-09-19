@@ -13,6 +13,7 @@
     <property name="concurrentProc" column="concurrent_proc"></property>
     <property name="sessionId" length="50" column="session_id"></property>
     <property name="sessionDate" column="session_date"></property>
+    <property name="token" column="token"></property>
 
     <property name="status" column="status" length="10" not-null="true">
       <type name="org.hibernate.type.EnumType">

@@ -58,6 +58,11 @@ public class Agent extends Jsonable {
      */
     private ZonedDateTime updatedDate;
 
+    /**
+     * agent token
+     */
+    private String token;
+
     public Agent() {
     }
 
@@ -67,6 +72,14 @@ public class Agent extends Jsonable {
 
     public Agent(AgentPath path) {
         this.path = path;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public AgentPath getPath() {

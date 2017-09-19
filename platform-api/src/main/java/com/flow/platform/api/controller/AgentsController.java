@@ -26,6 +26,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -63,7 +64,7 @@ public class AgentsController {
     public List<AgentWithFlow> index(){
         return agentService.list();
     }
-    
+
     /**
      * @api {Post} /agents/shutdown shutdown
      * @apiName AgentShutdown
@@ -89,4 +90,21 @@ public class AgentsController {
         Boolean t = agentService.shutdown(zone, name, password);
         return new BooleanValue(t);
     }
+
+    @PostMapping(path = "/token")
+    public String createToken(@RequestBody AgentPath agentPath) {
+        if (Strings.isNullOrEmpty(agentPath.getName()) || Strings.isNullOrEmpty(agentPath.getZone())) {
+            throw new IllegalParameterException("miss required params ");
+        }
+        return agentService.createToken(agentPath);
+    }
+
+    @GetMapping(path = "/info")
+    public String getInfo(@RequestParam String token) {
+        if(Strings.isNullOrEmpty(token)){
+            throw new IllegalParameterException("miss required params ");
+        }
+        return agentService.getInfo(token);
+    }
+
 }

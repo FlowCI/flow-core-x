@@ -20,9 +20,14 @@ import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.util.Logger;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
@@ -30,13 +35,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * For reporting status
@@ -100,9 +101,9 @@ public class ReportManager {
     }
 
     private void cmdReportSync(final String cmdId,
-                               final CmdStatus status,
-                               final CmdResult result,
-                               final int retry) throws IOException {
+        final CmdStatus status,
+        final CmdResult result,
+        final int retry) throws IOException {
 
         if (!Config.isReportCmdStatus()) {
             LOGGER.trace("Cmd report toggle is disabled");
@@ -145,10 +146,10 @@ public class ReportManager {
         httpSend(post, retry, successMsg, failMsg);
     }
 
-    private static HttpResponse httpSend(final HttpUriRequest request,
-                                         final int retry,
-                                         final String successMsg,
-                                         final String failMsg) {
+    public static String httpSend(final HttpUriRequest request,
+        final int retry,
+        final String successMsg,
+        final String failMsg) {
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpResponse response = client.execute(request);
@@ -158,7 +159,8 @@ public class ReportManager {
             }
 
             LOGGER.trace(successMsg);
-            return response;
+            ResponseHandler<String> handler = new BasicResponseHandler();
+            return handler.handleResponse(response);
         } catch (Throwable e) {
             if (retry > 0) {
                 return httpSend(request, retry - 1, successMsg, failMsg);

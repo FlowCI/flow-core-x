@@ -210,7 +210,7 @@ public class CmdControllerTest extends TestBase {
     }
 
     @Test
-    public void should_raise_exception_if_illegal_parameter_for_queue() {
+    public void should_raise_exception_if_illegal_parameter_for_queue() throws Exception {
         // given:
         CmdInfo cmdBase = new CmdInfo("test-zone-1", "test-agent-1", CmdType.RUN_SHELL, "~/hello.sh");
         Assert.assertNotNull(cmdBase.getStatus());
@@ -222,14 +222,8 @@ public class CmdControllerTest extends TestBase {
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
 
-        // then: return 500 for illegal priority range
-        try {
-            this.mockMvc.perform(content).andExpect(status().is5xxServerError());
-            fail();
-        } catch (Throwable e) {
-            Assert.assertEquals(NestedServletException.class, e.getClass());
-            Assert.assertEquals(IllegalParameterException.class, e.getCause().getClass());
-        }
+        // then: return 400 for illegal priority range
+        this.mockMvc.perform(content).andExpect(status().isBadRequest());
 
         // when: request api of send cmd via queue with illegal retry
         content = post("/cmd/queue/send")
@@ -238,13 +232,6 @@ public class CmdControllerTest extends TestBase {
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmdBase.toJson());
 
-        // then: return 500 for illegal retry range
-        try {
-            this.mockMvc.perform(content).andExpect(status().is5xxServerError());
-            fail();
-        } catch (Throwable e) {
-            Assert.assertEquals(NestedServletException.class, e.getClass());
-            Assert.assertEquals(IllegalParameterException.class, e.getCause().getClass());
-        }
+        this.mockMvc.perform(content).andExpect(status().isBadRequest());
     }
 }

@@ -30,14 +30,16 @@ public class App {
         String zone = null; // agent zone
         String name = null; // agent name
 
-        if (args.length != 3) {
-            System.out.println("Missing arguments: please specify zookeeper host, working zone and agent name");
-            System.out.println("Cmd: java -jar {zookeeper host} {working zone} {agent name}");
+        String baseUrl = null;
+        String token = null;
+
+        if (args.length != 2) {
+            System.out.println("Missing arguments: please specify api host, agent token");
+            System.out.println("Cmd: java -jar {api baseUrl} {api token}");
             Runtime.getRuntime().exit(1);
         } else {
-            zkHome = args[0];
-            zone = args[1];
-            name = args[2];
+            baseUrl = args[0];
+            token = args[1];
         }
 
         LOGGER.trace("========= Run agent =========");
@@ -46,16 +48,16 @@ public class App {
         try {
             LOGGER.trace("========= Init config =========");
 
-            Config.AGENT_SETTINGS = Config.loadAgentConfig(zkHome, zone, 5);
+            Config.AGENT_SETTINGS = Config.loadAgentConfig(baseUrl, token);
             LOGGER.trace(" -- Settings: %s", Config.agentSettings());
 
-            Config.ZK_URL = zkHome;
+            Config.ZK_URL = Config.AGENT_SETTINGS.getZookeeperUrl();
             LOGGER.trace(" -- Zookeeper host: %s", Config.zkUrl());
 
-            Config.ZONE = zone;
+            Config.ZONE = Config.AGENT_SETTINGS.getAgentPath().getZone();
             LOGGER.trace(" -- Working zone: %s", Config.zone());
 
-            Config.NAME = name;
+            Config.NAME = Config.AGENT_SETTINGS.getAgentPath().getName();
             LOGGER.trace(" -- Agent agent: %s", Config.name());
 
             LOGGER.trace("========= Config initialized =========");
@@ -65,7 +67,7 @@ public class App {
         }
 
         try {
-            AgentManager client = new AgentManager(zkHome, Config.zkTimeout(), zone, name);
+            AgentManager client = new AgentManager(Config.zkUrl(), Config.zkTimeout(), Config.zone(), Config.name());
             new Thread(client).start();
         } catch (Throwable e) {
             LOGGER.error("Got exception when agent running", e);
