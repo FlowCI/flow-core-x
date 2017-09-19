@@ -188,12 +188,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // to create agent session for job
         String sessionId = cmdService.createSession(job, createSessionRetryTimes);
-        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
-        stringBuilder.append("?sessionId=").append(sessionId);
-        String res = HttpUtil.get(stringBuilder.toString());
-        Agent agent = Jsonable.GSON_CONFIG.fromJson(res, Agent.class);
-
-        job.putEnv(JobEnvs.JOB_AGENT_INFO, agent.getName());
 
         job.setSessionId(sessionId);
         updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
@@ -357,6 +351,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // start run flow
         job.setSessionId(cmd.getSessionId());
+
+        job.putEnv(JobEnvs.JOB_AGENT_INFO, cmd.getAgentPath().toString());
+
         updateJobStatusAndSave(job, JobStatus.RUNNING);
 
         run(tree.first(), job);
