@@ -321,7 +321,8 @@ public class JobController extends NodeController {
             return jobService.findJobLog(path, buildNumber);
         } catch (Throwable e) {
             LOGGER.warn("log not found", e.getMessage());
-            throw new FlowException("Log is not found")
+            throw new FlowException("Log is not found");
         }
     }
+
 }
