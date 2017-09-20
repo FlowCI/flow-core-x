@@ -19,6 +19,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.response.FlowWithDeployKey;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -100,4 +101,9 @@ public interface NodeService {
      * List webhooks for all flow
      */
     List<Webhook> listWebhooks();
+
+    /**
+     * list detail deploy keys and flows
+     */
+    List<FlowWithDeployKey> listFlowWithDeployKeys();
 }

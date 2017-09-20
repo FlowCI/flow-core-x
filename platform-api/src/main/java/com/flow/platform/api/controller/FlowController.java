@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.response.BooleanValue;
+import com.flow.platform.api.domain.response.FlowWithDeployKey;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -49,6 +50,27 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_SHOW)
     public List<Flow> index() {
         return nodeService.listFlows();
+    }
+
+    /**
+     * @api {get} /flows/detail list detail flows
+     * @apiGroup Flows
+     * @apiDescription list flow with deploy keys
+     * @apiSuccessExample {json} Success-Response
+     *  [{
+     *      name: flow-name,
+     *      createdAt: 15123123,
+     *      username: will,
+     *      deployKeyName: xxxx,
+     *      deployKey: xxxxx,
+     *      envs: {
+     *          "FLOW_GIT_WEBHOOK": "http://localhost:8088/hooks/git/flow"
+     *      }
+     *  }]
+     */
+    @GetMapping(path = "/detail")
+    public List<FlowWithDeployKey> indexFlowWithDeployKeys() {
+        return nodeService.listFlowWithDeployKeys();
     }
 
     /**

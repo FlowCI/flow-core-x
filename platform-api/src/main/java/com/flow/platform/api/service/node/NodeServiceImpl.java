@@ -26,6 +26,7 @@ import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.response.FlowWithDeployKey;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
@@ -40,6 +41,7 @@ import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -264,6 +266,20 @@ public class NodeServiceImpl implements NodeService {
             hooks.add(new Webhook(flow.getPath(), hooksUrl(flow)));
         }
         return hooks;
+    }
+
+    @Override
+    public List<FlowWithDeployKey> listFlowWithDeployKeys() {
+        List<Flow> flows = listFlows();
+        List<FlowWithDeployKey> flowWithDeployKeys = new ArrayList<>(flows.size());
+        for (Flow flow : flows) {
+            FlowWithDeployKey flowWithDeployKey = new FlowWithDeployKey(flow.getName(), null, flow.getCreatedAt());
+            Map<String, String> envs = new HashMap<>();
+            envs.put("FLOW_GIT_WEBHOOK", hooksUrl(flow));
+            flowWithDeployKey.setEnvs(envs);
+            flowWithDeployKeys.add(flowWithDeployKey);
+        }
+        return flowWithDeployKeys;
     }
 
     private String hooksUrl(final Flow flow) {
