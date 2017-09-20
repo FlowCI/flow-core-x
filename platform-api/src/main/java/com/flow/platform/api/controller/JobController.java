@@ -311,6 +311,16 @@ public class JobController extends NodeController {
         return jobService.list(paths, true);
     }
 
+
+    /**
+     * @api {get} /jobs/:buildNumber/log/download download job full log
+     * @apiParam {buildNumber} build number
+     * @apiGroup Jobs
+     * @apiDescription build number for job
+     *
+     * @apiSuccessExample {json} Success-Response
+     *   job.log file
+     */
     @GetMapping(path = "/{root}/{buildNumber}/log/download")
     public org.springframework.core.io.Resource jobLog(@PathVariable Integer buildNumber,
         HttpServletResponse httpResponse) {
@@ -318,7 +328,7 @@ public class JobController extends NodeController {
         try {
             httpResponse.setHeader("Content-Disposition",
                 String.format("attachment; filename=%s", String.format("%s-%s.log", path, buildNumber)));
-            return jobService.findJobLog(path, buildNumber);
+            return jobService.fullJobLog(path, buildNumber);
         } catch (Throwable e) {
             LOGGER.warn("log not found", e.getMessage());
             throw new FlowException("Log is not found");

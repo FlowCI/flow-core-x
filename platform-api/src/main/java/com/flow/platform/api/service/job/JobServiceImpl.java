@@ -282,7 +282,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public Resource findJobLog(String path, Integer buildNumber) {
+    public Resource fullJobLog(String path, Integer buildNumber) {
         Job job = find(path, buildNumber);
         List<NodeResult> list = nodeResultService.list(job, true);
         if (list.isEmpty()) {
