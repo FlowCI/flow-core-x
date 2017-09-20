@@ -87,8 +87,9 @@ public class GitWebHookController {
                 LOGGER.trace("Yml content has been loaded for path : " + path);
 
                 // start job
+
                 try {
-                    Job job = jobService.createJob(path);
+                    Job job = jobService.createJob(path, hookEvent.getType());
                     applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
                 } catch (Throwable e) {
                     LOGGER.warn("Fail to create job for path : " + path);

@@ -18,7 +18,7 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
-import java.io.IOException;
+import com.flow.platform.util.git.model.GitEventType;
 import java.math.BigInteger;
 import java.util.List;
 import javax.annotation.Resource;
@@ -74,7 +74,7 @@ public interface JobService {
      * @param path any node path
      * @return job with children node result
      */
-    Job createJob(String path);
+    Job createJob(String path, GitEventType build_category);
 
     /**
      * handle callback

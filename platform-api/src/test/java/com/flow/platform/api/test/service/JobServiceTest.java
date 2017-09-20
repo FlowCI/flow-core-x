@@ -38,6 +38,7 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.util.git.model.GitEventType;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -63,7 +64,7 @@ public class JobServiceTest extends TestBase {
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Flow rootForFlow = nodeService.createEmptyFlow("flow1");
-        jobService.createJob(rootForFlow.getPath());
+        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL);
     }
 
     @Test
@@ -84,6 +85,7 @@ public class JobServiceTest extends TestBase {
 
         job = reload(job);
         Assert.assertEquals("11111111", job.getSessionId());
+        Assert.assertEquals(GitEventType.TAG, job.getCategory());
 
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
@@ -203,7 +205,7 @@ public class JobServiceTest extends TestBase {
     }
 
     private Job createMockJob(String nodePath) {
-        Job job = jobService.createJob(nodePath);
+        Job job = jobService.createJob(nodePath, GitEventType.TAG);
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());

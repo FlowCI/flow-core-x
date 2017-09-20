@@ -15,8 +15,8 @@
  */
 package com.flow.platform.api.service.job;
 
-import static com.flow.platform.api.domain.job.NodeStatus.*;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
+import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
 import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
@@ -27,9 +27,9 @@ import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.events.JobStatusChangeEvent;
@@ -43,39 +43,29 @@ import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.core.service.ApplicationEventService;
+import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectWrapper;
+import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Enumeration;
-import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
@@ -154,7 +144,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public Job createJob(String path) {
+    public Job createJob(String path, GitEventType jobCategory) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
@@ -181,9 +171,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
+        job.setCategory(jobCategory);
 
         // setup job env variables
-        job.putEnv(JobEnvs.JOB_BUILD_CATEGORY, job.getCategory());
+        job.putEnv(JobEnvs.JOB_BUILD_CATEGORY, jobCategory.name());
         job.putEnv(JobEnvs.JOB_BUILD_NUMBER, job.getNumber().toString());
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
 

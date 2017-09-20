@@ -33,6 +33,13 @@
       </type>
     </property>
 
+    <property name="category" column="job_category" length="20" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.util.git.model.GitEventType</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
     <property name="sessionId" type="string" column="session_id" index="true"/>
 
     <property name="envs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="envs"/>
