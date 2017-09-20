@@ -48,6 +48,14 @@ public interface AgentDao extends BaseDao<AgentPath, Agent> {
     Agent get(String sessionId);
 
     /**
+     * find agent by token
+     *
+     * @param token token
+     * @return Agent instance
+     */
+    Agent getByToken(String token);
+
+    /**
      * Batch update agent status by zone
      *
      * @param zone target zone name

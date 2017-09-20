@@ -38,6 +38,9 @@ public class AgentWithFlow extends Jsonable {
     private String flowName;
 
     @Expose
+    private String token;
+
+    @Expose
     private AgentStatus agentStatus;
 
     @Expose
@@ -64,6 +67,7 @@ public class AgentWithFlow extends Jsonable {
         this.name = agent.getPath().getName();
         this.zone = agent.getPath().getZone();
         this.agentStatus = agent.getStatus();
+        this.token = agent.getToken();
         this.zoneWithName = this.name.concat(" - ").concat(this.zone);
 
         if (job != null) {
@@ -71,6 +75,14 @@ public class AgentWithFlow extends Jsonable {
             this.number = job.getNumber();
             this.branch = "master";
         }
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public String getZoneWithName() {

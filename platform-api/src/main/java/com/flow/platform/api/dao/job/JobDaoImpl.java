@@ -107,7 +107,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         return execute((Session session) -> {
             final StringBuilder query = new StringBuilder(JOB_QUERY);
             if (hasCollection(paths)) {
-                query.append(" where job.node_path in (:paths)");
+                query.append(" where job.node_path in (:paths) order by job.created_at desc ");
             }
 
             NativeQuery nativeQuery = session.createNativeQuery(query.toString())

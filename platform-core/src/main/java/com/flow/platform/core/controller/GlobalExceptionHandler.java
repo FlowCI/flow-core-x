@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.controller;
+package com.flow.platform.core.controller;
 
-import com.flow.platform.api.domain.response.ResponseError;
+import com.flow.platform.core.response.ResponseError;
 import com.flow.platform.core.exception.FlowException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
