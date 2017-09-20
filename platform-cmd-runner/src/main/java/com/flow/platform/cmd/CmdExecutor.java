@@ -128,12 +128,12 @@ public final class CmdExecutor {
      * @param cmd exec cmd
      */
     public CmdExecutor(final ProcListener procListener,
-                       final LogListener logListener,
-                       final Map<String, String> inputs,
-                       final String workingDir,
-                       final String outputEnvFilter,
-                       final Integer timeout,
-                       final List<String> cmds) {
+        final LogListener logListener,
+        final Map<String, String> inputs,
+        final String workingDir,
+        final String outputEnvFilter,
+        final Integer timeout,
+        final List<String> cmds) {
 
         if (procListener != null) {
             this.procListener = procListener;
@@ -183,7 +183,6 @@ public final class CmdExecutor {
     public void setLogListener(LogListener logListener) {
         this.logListener = logListener;
     }
-
 
 
     public CmdResult run() {
@@ -320,27 +319,25 @@ public final class CmdExecutor {
     }
 
     private Runnable createStdStreamReader(final Log.Type type, final InputStream is) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is), DEFAULT_BUFFER_SIZE)) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (Objects.equals(line, endTerm)) {
-                            if (outputResult != null) {
-                                readEnv(reader, outputResult.getOutput(), outputEnvFilter);
-                            }
-                            break;
+        return () -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is), DEFAULT_BUFFER_SIZE)) {
+                String line;
+                Integer count = 0;
+                while ((line = reader.readLine()) != null) {
+                    if (Objects.equals(line, endTerm)) {
+                        if (outputResult != null) {
+                            readEnv(reader, outputResult.getOutput(), outputEnvFilter);
                         }
-
-                        loggingQueue.add(new Log(type, line));
+                        break;
                     }
-                } catch (IOException ignore) {
-
-                } finally {
-                    stdThreadCountDown.countDown();
-                    System.out.println(String.format(" ===== %s Stream Reader Thread Finish =====", type));
+                    count += 1;
+                    loggingQueue.add(new Log(type, line, count));
                 }
+            } catch (IOException ignore) {
+
+            } finally {
+                stdThreadCountDown.countDown();
+                System.out.println(String.format(" ===== %s Stream Reader Thread Finish =====", type));
             }
         };
     }

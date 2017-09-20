@@ -121,7 +121,7 @@ public class LogEventHandler implements LogListener {
     }
 
     public String websocketLogFormat(Log log) {
-        return String.format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
+        return String.format("%s#%s#%s#%s#%s", log.getNumber(), cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
             log.getContent());
     }
 
@@ -221,7 +221,6 @@ public class LogEventHandler implements LogListener {
         Path stdoutPath = Paths.get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDOUT, true));
         Files.deleteIfExists(stdoutPath);
 
-
         stdoutLogPath = Files.createFile(stdoutPath);
 
         // init zip stream for stdout log
@@ -236,6 +235,6 @@ public class LogEventHandler implements LogListener {
         String tempSuffix = isTemp ? ".tmp" : ".zip";
 
         // replace / with - since cmd id may includes slash which the same as dir path
-        return cmd.getId().replace('/', '-')  + logTypeSuffix + tempSuffix;
+        return cmd.getId().replace('/', '-') + logTypeSuffix + tempSuffix;
     }
 }
