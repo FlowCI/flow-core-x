@@ -17,6 +17,7 @@
 package com.flow.platform.api.domain.job;
 
 import com.flow.platform.api.domain.EnvObject;
+import com.flow.platform.util.git.model.GitEventType;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.math.BigInteger;
@@ -43,6 +44,9 @@ public class Job extends EnvObject {
     private String nodeName;
 
     @Expose
+    private GitEventType category = GitEventType.MANUAL;
+
+    @Expose
     private JobStatus status = JobStatus.CREATED;
 
     @Expose
@@ -66,9 +70,6 @@ public class Job extends EnvObject {
 
     @Expose
     private String createdBy;
-
-    @Expose
-    private String category;
 
     public Job(BigInteger id) {
         this.id = id;
@@ -165,11 +166,11 @@ public class Job extends EnvObject {
         this.childrenResult = childrenResult;
     }
 
-    public String getCategory() {
+    public GitEventType getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(GitEventType category) {
         this.category = category;
     }
 

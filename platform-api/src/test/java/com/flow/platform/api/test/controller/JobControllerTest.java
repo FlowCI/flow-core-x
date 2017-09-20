@@ -21,13 +21,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.envs.GitEnvs;
-import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Jsonable;
-import java.io.IOException;
+import com.flow.platform.util.git.model.GitEventType;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.MediaType;
@@ -42,7 +41,7 @@ public class JobControllerTest extends TestBase {
     public void should_show_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath());
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -65,7 +64,7 @@ public class JobControllerTest extends TestBase {
     public void should_stop_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath());
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);

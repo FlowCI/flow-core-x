@@ -22,8 +22,8 @@ import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
+import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Lists;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,7 +134,7 @@ public class JobController extends NodeController {
     @PostMapping(path = "/{root}")
     public Job create() {
         String path = getNodePathFromUrl();
-        return jobService.createJob(path);
+        return jobService.createJob(path, GitEventType.MANUAL);
     }
 
     /**
@@ -263,7 +263,7 @@ public class JobController extends NodeController {
         try {
             return jobService.findNodeLog(path, buildNumber, stepOrder);
         } catch (Throwable e){
-            LOGGER.warn("log not found", e.getMessage());
+            LOGGER.warn("log not found: %s", e.getMessage());
             return StringUtil.EMPTY;
         }
     }

@@ -49,28 +49,21 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectWrapper;
+import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.util.Enumeration;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -145,7 +138,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public Job createJob(String path) {
+    public Job createJob(String path, GitEventType jobCategory) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
@@ -172,9 +165,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
+        job.setCategory(jobCategory);
 
         // setup job env variables
-        job.putEnv(JobEnvs.JOB_BUILD_CATEGORY, job.getCategory());
+        job.putEnv(JobEnvs.JOB_BUILD_CATEGORY, jobCategory.name());
         job.putEnv(JobEnvs.JOB_BUILD_NUMBER, job.getNumber().toString());
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
 
