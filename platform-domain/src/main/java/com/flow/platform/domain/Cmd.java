@@ -55,11 +55,6 @@ public class Cmd extends CmdBase {
      */
     private String id;
 
-//    /**
-//     * Path for full log
-//     */
-//    private List<String> logPaths = new ArrayList<>(5);
-
     private String logPath;
 
     /**

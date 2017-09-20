@@ -149,12 +149,6 @@ public class CmdController {
         }
 
         try {
-//            List<String> logPaths = cmd.getLogPaths();
-//
-//            if (logPaths.size() == 0 || !Range.closed(0, logPaths.size() - 1).contains(index)) {
-//                throw new IllegalParameterException("Illegal index range");
-//            }
-
             Path filePath = Paths.get(cmd.getLogPath());
 
             FileSystemResource resource = new FileSystemResource(filePath.toFile());

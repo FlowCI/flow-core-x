@@ -42,7 +42,7 @@ public class CmdDaoTest extends TestBase {
         cmd.setId(UUID.randomUUID().toString());
         cmd.setStatus(CmdStatus.KILLED);
         cmd.setOutputEnvFilter("FLOW_VAR");
-//        cmd.setLogPaths(Lists.newArrayList("/test/log/path"));
+        cmd.setLogPath("/test/log/path");
         cmd.setTimeout(10);
         cmd.setWebhook("http://webhook.com");
         cmd.getInputs().put("VAR_1", "1");
