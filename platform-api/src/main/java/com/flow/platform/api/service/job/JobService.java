@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
+import javax.annotation.Resource;
 
 /**
  * @author yh@firim
@@ -63,6 +64,8 @@ public interface JobService {
      * get job log
      */
     String findNodeLog(String path, Integer buildNumber, Integer stepOrder);
+
+    org.springframework.core.io.Resource findJobLog(String path, Integer buildNumber);
 
     /**
      * create job from node path, copy yml to job yml

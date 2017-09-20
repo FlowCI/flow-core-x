@@ -174,7 +174,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         }
 
         currentResult.setStatus(newStatus);
-        currentResult.setLogPaths(cmd.getLogPaths());
+        currentResult.setLogPath(cmd.getLogPath());
 
         CmdResult cmdResult = cmd.getCmdResult();
         if (cmdResult != null) {

@@ -20,12 +20,14 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -307,5 +309,19 @@ public class JobController extends NodeController {
     @PostMapping(path = "/status/latest")
     public Collection<Job> latestStatus(@RequestBody List<String> paths) {
         return jobService.list(paths, true);
+    }
+
+    @GetMapping(path = "/{root}/{buildNumber}/log/download")
+    public org.springframework.core.io.Resource jobLog(@PathVariable Integer buildNumber,
+        HttpServletResponse httpResponse) {
+        String path = getNodePathFromUrl();
+        try {
+            httpResponse.setHeader("Content-Disposition",
+                String.format("attachment; filename=%s", String.format("%s-%s.log", path, buildNumber)));
+            return jobService.findJobLog(path, buildNumber);
+        } catch (Throwable e) {
+            LOGGER.warn("log not found", e.getMessage());
+            throw new FlowException("Log is not found")
+        }
     }
 }

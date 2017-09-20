@@ -274,7 +274,7 @@ public class CmdServiceImpl implements CmdService {
         try {
             Path target = Paths.get(AppConfig.CMD_LOG_DIR.toString(), file.getOriginalFilename());
             Files.write(target, file.getBytes());
-            cmd.getLogPaths().add(target.toString());
+            cmd.setLogPath(target.toString());
             cmdDao.update(cmd);
         } catch (IOException e) {
             throw new RuntimeException(e);

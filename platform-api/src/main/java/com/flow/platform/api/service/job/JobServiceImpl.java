@@ -54,11 +54,18 @@ import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectWrapper;
 import com.google.common.base.Strings;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Enumeration;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
@@ -70,6 +77,8 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -281,6 +290,37 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         return logContent.getInstance();
     }
 
+    @Override
+    public Resource findJobLog(String path, Integer buildNumber) {
+        Job job = find(path, buildNumber);
+        List<NodeResult> list = nodeResultService.list(job, true);
+        if (list.isEmpty()) {
+            throw new FlowException("node result is empty");
+        }
+
+        StringBuilder stringBuilder = new StringBuilder("");
+
+        Resource allResource;
+        for (NodeResult nodeResult : list) {
+            if (!Strings.isNullOrEmpty(nodeResult.getLogPath())) {
+                Path filePath = Paths.get(nodeResult.getLogPath());
+                FileSystemResource resource = new FileSystemResource(filePath.toFile());
+                try {
+                    stringBuilder.append(readZipFile(resource.getInputStream()));
+                } catch (IOException e) {
+                    stringBuilder.append("");
+                }
+            }
+        }
+
+        InputStream inputStream = new ByteArrayInputStream(
+            stringBuilder.toString().getBytes(AppConfig.DEFAULT_CHARSET));
+
+        allResource = new InputStreamResource(inputStream);
+
+        return allResource;
+    }
+
     /**
      * readZipFile
      */
@@ -288,7 +328,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         try (ZipInputStream zis = new ZipInputStream(zippedStream);) {
             StringBuilder content = new StringBuilder();
 
-            ZipEntry ze ;
+            ZipEntry ze;
             byte[] buffer = new byte[2048];
 
             while ((ze = zis.getNextEntry()) != null) {

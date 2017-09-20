@@ -54,7 +54,7 @@ public class NodeResult extends CreateUpdateObject {
     private String createdBy;
 
     @Expose
-    private List<String> logPaths = new ArrayList<>();
+    private String logPath ;
 
     @Expose
     private NodeStatus status = PENDING;
@@ -136,12 +136,12 @@ public class NodeResult extends CreateUpdateObject {
         this.exitCode = exitCode;
     }
 
-    public List<String> getLogPaths() {
-        return logPaths;
+    public String getLogPath() {
+        return logPath;
     }
 
-    public void setLogPaths(List<String> logPaths) {
-        this.logPaths = logPaths;
+    public void setLogPath(String logPath) {
+        this.logPath = logPath;
     }
 
     public NodeStatus getStatus() {

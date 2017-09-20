@@ -70,7 +70,7 @@
     <property name="exitCode" type="integer" column="exit_code"/>
     <property name="cmdId" type="string" column="cmd_id"/>
     <property name="outputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="outputs"/>
-    <property name="logPaths" type="com.flow.platform.core.dao.adaptor.list.ListAdaptor" column="log_paths"/>
+    <property name="logPath" type="string" column="log_path"/>
     <property name="createdBy" type="string" column="created_by"/>
 
     <property name="nodeTag" column="type" length="10" not-null="true">
