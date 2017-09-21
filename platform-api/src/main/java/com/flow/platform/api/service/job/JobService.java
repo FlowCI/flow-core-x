@@ -83,4 +83,9 @@ public interface JobService {
      * stop job
      */
     Job stopJob(String name, Integer buildNumber);
+
+    /**
+     * update job
+     */
+    Job update(Job job);
 }

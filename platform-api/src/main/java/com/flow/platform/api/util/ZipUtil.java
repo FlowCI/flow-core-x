@@ -16,12 +16,15 @@
 
 package com.flow.platform.api.util;
 
+import com.flow.platform.api.config.AppConfig;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
 
@@ -53,6 +56,28 @@ public class ZipUtil {
             } else if (file.isDirectory()) {
                 processFolder(file, zipOutputStream, prefixLength);
             }
+        }
+    }
+
+    /**
+     * readZipFile
+     */
+    public static String readZipFile(InputStream zippedStream) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(zippedStream)) {
+            StringBuilder content = new StringBuilder();
+
+            ZipEntry ze;
+            byte[] buffer = new byte[2048];
+
+            while ((ze = zis.getNextEntry()) != null) {
+
+                int length = 0;
+                while ((length = zis.read(buffer)) > 0) {
+                    content.append(new String(buffer, 0, length, AppConfig.DEFAULT_CHARSET));
+                }
+            }
+
+            return content.toString();
         }
     }
 }

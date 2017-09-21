@@ -20,7 +20,6 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.util.PlatformURL;
@@ -41,8 +40,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -92,7 +89,10 @@ public class LogServiceImpl implements LogService {
 
         Resource allResource;
 
+        // read zip job log
         File zipFile = readZipLog(job);
+        job.setLogPath(zipFile.getPath());
+        jobService.update(job);
 
         InputStream inputStream;
         try {
@@ -106,29 +106,7 @@ public class LogServiceImpl implements LogService {
     }
 
     /**
-     * readZipFile
-     */
-    private String readZipFile(InputStream zippedStream) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(zippedStream);) {
-            StringBuilder content = new StringBuilder();
-
-            ZipEntry ze;
-            byte[] buffer = new byte[2048];
-
-            while ((ze = zis.getNextEntry()) != null) {
-
-                int length = 0;
-                while ((length = zis.read(buffer)) > 0) {
-                    content.append(new String(buffer, 0, length, AppConfig.DEFAULT_CHARSET));
-                }
-            }
-
-            return content.toString();
-        }
-    }
-
-    /**
-     * save log to workspace/:flowName/:jobId/
+     * save step log to workspace/:flowName/:jobId/
      */
     private String saveStepLog(Job job, InputStream inputStream, NodeResult nodeResult) {
         String jobFolder = workspace + "/" + job.getNodeName() + "/" + job.getId().toString();
@@ -157,7 +135,7 @@ public class LogServiceImpl implements LogService {
     }
 
     /**
-     * read log from workspace/:flowName/:jobId/
+     * read step log from workspace/:flowName/:jobId/
      */
     private String readStepLog(Job job, NodeResult nodeResult) {
 
@@ -168,6 +146,7 @@ public class LogServiceImpl implements LogService {
             return content;
         }
 
+        // read step log from cc
         content = readStepLogFromCC(job, nodeResult);
         if (content != null) {
             saveStepLog(job, new ByteArrayInputStream(
@@ -227,7 +206,7 @@ public class LogServiceImpl implements LogService {
             try {
                 if (entity != null) {
                     InputStream content = entity.getContent();
-                    String log = readZipFile(content);
+                    String log = ZipUtil.readZipFile(content);
                     logContent.setInstance(log);
 
                     //save file
@@ -250,6 +229,7 @@ public class LogServiceImpl implements LogService {
         return logContent.getInstance();
     }
 
+    // save zip log
     private File saveZipLog(Job job) {
         String jobPath = workspace + "/" + job.getNodeName() + "/" + job.getId().toString();
         String zipPath = jobPath + ".zip";
@@ -261,11 +241,12 @@ public class LogServiceImpl implements LogService {
             ZipUtil.zipFolder(folderFile, zipFile);
             FileUtils.moveFile(zipFile, destFile);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new FlowException("save zip log error");
         }
 
         return destFile;
     }
+
 
     private File readZipLog(Job job) {
         // read zip log from api
@@ -285,6 +266,7 @@ public class LogServiceImpl implements LogService {
         for (NodeResult nodeResult : list) {
             readStepLog(job, nodeResult);
         }
+
         saveZipLog(job);
         zipFile = new File(zipPath);
 

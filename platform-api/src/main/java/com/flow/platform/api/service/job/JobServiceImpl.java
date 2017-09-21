@@ -374,6 +374,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
 
+    @Override
+    public Job update(Job job) {
+        jobDao.update(job);
+        return job;
+    }
+
     /**
      * Update job status by root node result
      */
