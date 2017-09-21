@@ -160,9 +160,9 @@ public class LogServiceImpl implements LogService {
      * read log from api storage
      */
     private String readStepLogFromLocal(Job job, NodeResult nodeResult) {
-        String jobFolder = workspace + "/" + job.getNodeName() + "/" + job.getId().toString();
+        String jobFolder = String.format("%s/%s/%s", workspace, job.getNodeName(), job.getId().toString());
 
-        String targetFile = jobFolder + '/' + nodeResult.getName() + ".log";
+        String targetFile = String.format("%s/%s.log", jobFolder, nodeResult.getName());
 
         File file = new File(targetFile);
         if (!file.exists()) {
