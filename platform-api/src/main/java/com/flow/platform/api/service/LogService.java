@@ -16,18 +16,21 @@
 
 package com.flow.platform.api.service;
 
+import org.springframework.core.io.Resource;
+
 /**
  * @author yh@firim
  */
 public interface LogService {
+
     /**
      * get job log
      */
     String findNodeLog(String path, Integer buildNumber, Integer stepOrder);
 
     /**
-     * full job log
+     * get full job log
      */
-    org.springframework.core.io.Resource fullJobLog(String path, Integer buildNumber);
+    Resource fullJobLog(String path, Integer buildNumber);
 
 }
