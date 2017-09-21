@@ -87,9 +87,9 @@ public interface AgentService {
     void sessionTimeoutTask();
 
     /**
-     * create token
+     * Create agent and return token
      */
-    String createToken(AgentPath agentPath);
+    String create(AgentPath agentPath);
 
     /**
      * refresh token

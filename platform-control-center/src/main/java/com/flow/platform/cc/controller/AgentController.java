@@ -49,6 +49,11 @@ public class AgentController {
         return agentService.list(zoneName);
     }
 
+    @GetMapping(path = "/list/online")
+    public Collection<Agent> listOnline(@RequestParam(name = "zone", required = false) String zoneName) {
+        return agentService.listForOnline(zoneName);
+    }
+
     @GetMapping(path = "/find")
     public Agent find(@RequestParam(name = "zone") String zoneName, @RequestParam(name = "name") String agentName) {
         return agentService.find(new AgentPath(zoneName, agentName));
@@ -59,7 +64,7 @@ public class AgentController {
         if (Strings.isNullOrEmpty(agentPath.getName()) || Strings.isNullOrEmpty(agentPath.getZone())) {
             throw new IllegalParameterException("miss required params ");
         }
-        return agentService.createToken(agentPath);
+        return agentService.create(agentPath);
     }
 
     @PostMapping(path = "/token/refresh")

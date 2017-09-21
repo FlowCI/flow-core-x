@@ -26,9 +26,6 @@ public class App {
     private final static Logger LOGGER = new Logger(App.class);
 
     public static void main(String args[]) {
-        String zkHome = null; // zookeeper address
-        String zone = null; // agent zone
-        String name = null; // agent name
 
         String baseUrl = null;
         String token = null;
