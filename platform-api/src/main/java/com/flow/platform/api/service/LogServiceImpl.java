@@ -253,7 +253,7 @@ public class LogServiceImpl implements LogService {
     private File saveZipLog(Job job) {
         String jobPath = workspace + "/" + job.getNodeName() + "/" + job.getId().toString();
         String zipPath = jobPath + ".zip";
-        String destPath = jobPath + "/" + zipPath;
+        String destPath = jobPath + "/" + job.getId().toString() + ".zip";
         File folderFile = new File(jobPath);
         File zipFile = new File(zipPath);
         File destFile = new File(destPath);
