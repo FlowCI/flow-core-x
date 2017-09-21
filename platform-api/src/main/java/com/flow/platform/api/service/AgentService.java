@@ -17,6 +17,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
 import java.util.List;
@@ -39,12 +40,12 @@ public interface AgentService {
     Boolean shutdown(String zone, String name, String password);
 
     /**
-     * create token
+     * Create agent and return token from cc
      */
-    String createToken(AgentPath agentPath);
+    Agent create(AgentPath agentPath);
 
     /**
-     * get info by token
+     * Get agent setting by token from cc
      */
-    String getInfo(String token);
+    AgentSettings settings(String token);
 }

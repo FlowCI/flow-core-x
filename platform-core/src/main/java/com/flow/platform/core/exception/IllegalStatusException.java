@@ -21,6 +21,10 @@ package com.flow.platform.core.exception;
  */
 public class IllegalStatusException extends FlowException {
 
+    public IllegalStatusException(String description, Throwable e) {
+        super(description, e);
+    }
+
     public IllegalStatusException(String description) {
         super(description, null);
     }
