@@ -54,7 +54,7 @@ public class AgentServiceTest extends TestBase {
 
         List<Agent> mockAgentList = Lists.newArrayList(createMockAgent(sessionId));
 
-        stubFor(get(urlEqualTo("/agent/list"))
+        stubFor(get(urlEqualTo("/agents/list"))
             .willReturn(aResponse()
                 .withBody(Jsonable.GSON_CONFIG.toJson(mockAgentList))));
 

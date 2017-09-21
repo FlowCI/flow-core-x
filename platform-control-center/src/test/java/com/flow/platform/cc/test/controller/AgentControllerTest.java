@@ -64,7 +64,7 @@ public class AgentControllerTest extends TestBase {
 
         Thread.sleep(1000);
         // when: send get request
-        MvcResult result = this.mockMvc.perform(get("/agent/list").param("zone", zoneName))
+        MvcResult result = this.mockMvc.perform(get("/agents/list").param("zone", zoneName))
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
@@ -94,7 +94,7 @@ public class AgentControllerTest extends TestBase {
         Agent agentObj = new Agent(zoneName, agentName);
         agentObj.setStatus(AgentStatus.BUSY);
 
-        MockHttpServletRequestBuilder content = post("/agent/report")
+        MockHttpServletRequestBuilder content = post("/agents/report")
             .contentType(MediaType.APPLICATION_JSON)
             .content(gsonConfig.toJson(agentObj));
 
@@ -110,7 +110,7 @@ public class AgentControllerTest extends TestBase {
     @Test
     public void should_get_agent_token_success() throws Exception {
         AgentPath agentPath = new AgentPath("default", "test");
-        MockHttpServletRequestBuilder content = post("/agent/token")
+        MockHttpServletRequestBuilder content = post("/agents/token")
             .contentType(MediaType.APPLICATION_JSON)
             .content(gsonConfig.toJson(agentPath));
 
@@ -126,7 +126,7 @@ public class AgentControllerTest extends TestBase {
     @Test
     public void should_get_agent_info_success() throws Exception {
         AgentPath agentPath = new AgentPath("default", "test");
-        MockHttpServletRequestBuilder content = post("/agent/token")
+        MockHttpServletRequestBuilder content = post("/agents/token")
             .contentType(MediaType.APPLICATION_JSON)
             .content(gsonConfig.toJson(agentPath));
 
@@ -137,7 +137,7 @@ public class AgentControllerTest extends TestBase {
 
         String token = result.getResponse().getContentAsString();
 
-        result = this.mockMvc.perform(get("/agent/info").param("token", token))
+        result = this.mockMvc.perform(get("/agents/info").param("token", token))
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
@@ -153,7 +153,7 @@ public class AgentControllerTest extends TestBase {
 
     @Test
     public void should_get_agent_info_fail() throws Exception {
-        MvcResult mvcResult = this.mockMvc.perform(get("/agent/info").param("token", "xxxxxxx"))
+        MvcResult mvcResult = this.mockMvc.perform(get("/agents/info").param("token", "xxxxxxx"))
             .andDo(print())
             .andExpect(status().isBadRequest())
             .andReturn();
@@ -162,7 +162,7 @@ public class AgentControllerTest extends TestBase {
     @Test
     public void should_get_agent_token_fail() throws Exception {
         AgentPath agentPath = new AgentPath("", "test");
-        MockHttpServletRequestBuilder content = post("/agent/token")
+        MockHttpServletRequestBuilder content = post("/agents/token")
             .contentType(MediaType.APPLICATION_JSON)
             .content(gsonConfig.toJson(agentPath));
 

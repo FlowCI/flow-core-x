@@ -31,7 +31,7 @@ import java.util.Collection;
  * @author gy@fir.im
  */
 @RestController
-@RequestMapping("/agent")
+@RequestMapping("/agents")
 public class AgentController {
 
     private final AgentService agentService;
