@@ -55,6 +55,9 @@ public class Job extends EnvObject {
     @Expose
     private ZonedDateTime updatedAt;
 
+    @Expose
+    private String logPath;
+
     /**
      * The root node result for job detail
      */
@@ -172,6 +175,14 @@ public class Job extends EnvObject {
 
     public void setCategory(GitEventType category) {
         this.category = category;
+    }
+
+    public String getLogPath() {
+        return logPath;
+    }
+
+    public void setLogPath(String logPath) {
+        this.logPath = logPath;
     }
 
     @Override

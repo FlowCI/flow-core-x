@@ -54,7 +54,7 @@ public class NodeResult extends CreateUpdateObject {
     private String createdBy;
 
     @Expose
-    private String logPath ;
+    private String logPath;
 
     @Expose
     private NodeStatus status = PENDING;

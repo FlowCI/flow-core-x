@@ -20,7 +20,6 @@ import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
 import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
-import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
@@ -38,38 +37,25 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.service.ApplicationEventService;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,9 +93,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     private YmlService ymlService;
-
-    @Autowired
-    private PlatformURL platformURL;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -246,92 +229,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         LOGGER.warn("not found cmdType, cmdType: %s", cmd.getType().toString());
         throw new NotFoundException("not found cmdType");
-    }
-
-
-    @Override
-    public String findNodeLog(String path, Integer number, Integer order) {
-        Job job = find(path, number);
-        NodeResult nodeResult = nodeResultService.find(job.getId(), order);
-        if (nodeResult == null) {
-            throw new IllegalParameterException("Illeal job id or step order number");
-        }
-
-        String cmdId = nodeResult.getCmdId();
-
-        if (Strings.isNullOrEmpty(cmdId)) {
-            throw new IllegalParameterException("The job node without cmd id");
-        }
-
-        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
-        stringBuilder.append("?cmdId=").append(HttpUtil.urlEncode(cmdId)).append("&index=").append(0);
-
-        ObjectWrapper<String> logContent = new ObjectWrapper<>();
-
-        HttpUtil.getResponseEntity(stringBuilder.toString(), entity -> {
-            try {
-                InputStream content = entity.getContent();
-                String log = readZipFile(content);
-                logContent.setInstance(log);
-            } catch (IOException e) {
-                throw new FlowException("Cannot unzip log file for " + cmdId, e);
-            }
-        });
-
-        return logContent.getInstance();
-    }
-
-    @Override
-    public Resource fullJobLog(String path, Integer buildNumber) {
-        Job job = find(path, buildNumber);
-        List<NodeResult> list = nodeResultService.list(job, true);
-        if (list.isEmpty()) {
-            throw new FlowException("node result is empty");
-        }
-
-        StringBuilder stringBuilder = new StringBuilder("");
-
-        Resource allResource;
-        for (NodeResult nodeResult : list) {
-            if (!Strings.isNullOrEmpty(nodeResult.getLogPath())) {
-                Path filePath = Paths.get(nodeResult.getLogPath());
-                FileSystemResource resource = new FileSystemResource(filePath.toFile());
-                try {
-                    stringBuilder.append(readZipFile(resource.getInputStream()));
-                } catch (IOException e) {
-                    stringBuilder.append("");
-                }
-            }
-        }
-
-        InputStream inputStream = new ByteArrayInputStream(
-            stringBuilder.toString().getBytes(AppConfig.DEFAULT_CHARSET));
-
-        allResource = new InputStreamResource(inputStream);
-
-        return allResource;
-    }
-
-    /**
-     * readZipFile
-     */
-    private String readZipFile(InputStream zippedStream) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(zippedStream);) {
-            StringBuilder content = new StringBuilder();
-
-            ZipEntry ze;
-            byte[] buffer = new byte[2048];
-
-            while ((ze = zis.getNextEntry()) != null) {
-
-                int length = 0;
-                while ((length = zis.read(buffer)) > 0) {
-                    content.append(new String(buffer, 0, length, AppConfig.DEFAULT_CHARSET));
-                }
-            }
-
-            return content.toString();
-        }
     }
 
     /**

@@ -18,6 +18,7 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.core.exception.FlowException;
@@ -49,6 +50,9 @@ public class JobController extends NodeController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private LogService logService;
 
     @ModelAttribute
     public void setLocale(@RequestParam(required = false) String locale) {
@@ -263,7 +267,7 @@ public class JobController extends NodeController {
     public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) {
         String path = getNodePathFromUrl();
         try {
-            return jobService.findNodeLog(path, buildNumber, stepOrder);
+            return logService.findNodeLog(path, buildNumber, stepOrder);
         } catch (Throwable e){
             LOGGER.warn("log not found: %s", e.getMessage());
             return StringUtil.EMPTY;
@@ -325,14 +329,9 @@ public class JobController extends NodeController {
     public org.springframework.core.io.Resource jobLog(@PathVariable Integer buildNumber,
         HttpServletResponse httpResponse) {
         String path = getNodePathFromUrl();
-        try {
             httpResponse.setHeader("Content-Disposition",
-                String.format("attachment; filename=%s", String.format("%s-%s.log", path, buildNumber)));
-            return jobService.fullJobLog(path, buildNumber);
-        } catch (Throwable e) {
-            LOGGER.warn("log not found", e.getMessage());
-            throw new FlowException("Log is not found");
-        }
+                String.format("attachment; filename=%s", String.format("%s-%s.zip", path, buildNumber)));
+        return logService.fullJobLog(path, buildNumber);
     }
 
 }

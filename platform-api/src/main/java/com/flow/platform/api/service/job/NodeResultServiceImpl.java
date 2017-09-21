@@ -145,6 +145,12 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         return currentResult;
     }
 
+    @Override
+    public NodeResult update(NodeResult nodeResult) {
+        nodeResultDao.update(nodeResult);
+        return nodeResult;
+    }
+
     private NodeResult createNodeResult(Job job, NodeTree nodeTree, Node node) {
         NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
 

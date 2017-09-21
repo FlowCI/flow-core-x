@@ -60,4 +60,6 @@ public interface NodeResultService {
      * Update node result and recursive bottom up update parent node result by cmd
      */
     NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd);
+
+    NodeResult update(NodeResult nodeResult);
 }

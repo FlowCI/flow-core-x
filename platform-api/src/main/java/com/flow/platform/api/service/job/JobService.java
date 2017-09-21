@@ -61,16 +61,6 @@ public interface JobService {
     List<NodeResult> listNodeResult(String path, Integer number);
 
     /**
-     * get job log
-     */
-    String findNodeLog(String path, Integer buildNumber, Integer stepOrder);
-
-    /**
-     * full job log
-     */
-    org.springframework.core.io.Resource fullJobLog(String path, Integer buildNumber);
-
-    /**
      * create job from node path, copy yml to job yml
      * request agent session from control center
      *
