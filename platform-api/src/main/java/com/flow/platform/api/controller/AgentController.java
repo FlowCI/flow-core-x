@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(path = "/agents")
-public class AgentsController {
+public class AgentController {
 
     @Autowired
     private AgentService agentService;

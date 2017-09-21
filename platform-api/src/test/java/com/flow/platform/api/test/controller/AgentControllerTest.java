@@ -29,7 +29,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 /**
  * @author yh@firim
  */
-public class AgentsControllerTest extends TestBase {
+public class AgentControllerTest extends TestBase {
 
     @Test
     public void should_shutdown_success() throws Exception{
