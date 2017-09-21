@@ -1,6 +1,7 @@
 package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.domain.request.LoginParam;
+import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public interface UserService {
     /**
      * List all users
      */
-    List<User> list(boolean withFlow, boolean withRole);
+    UserListResponse list(boolean withFlow, boolean withRole);
 
     /**
      * Find user by email
@@ -31,10 +32,15 @@ public interface UserService {
      *
      * @param roles role name set, or null for not set to role
      */
-    User register(User user, Set<String> roles);
+    User register(User user, List<String> roles, boolean isSendEmail, List<String> flowsList);
 
     /**
      * Delete a user
      */
     void delete(List<String> emailList);
+
+    /**
+     * update user role
+     */
+    List<User> updateUserRole(List<String> emailList, List<String> roles);
 }

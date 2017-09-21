@@ -17,6 +17,7 @@ package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlDao;
+import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
@@ -26,7 +27,9 @@ import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -82,6 +85,12 @@ public class NodeServiceImpl implements NodeService {
 
     @Autowired
     private Path workspace;
+
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private UserFlowService userFlowService;
 
     @Value(value = "${domain}")
     private String domain;
@@ -265,6 +274,23 @@ public class NodeServiceImpl implements NodeService {
         }
         return hooks;
     }
+
+    @Autowired
+    public List<User> authUsers(List<String> emailList, String flowPath) {
+        List<User> users = userDao.list(emailList);
+        List<String> paths = new ArrayList<>();
+        paths.add(flowPath);
+        Flow flow = findFlow(flowPath);
+        for (User user : users) {
+            if (user != null) {
+                userFlowService.unAssign(user, flow);
+                userFlowService.assign(user, flow);
+                user.setFlows(paths);
+            }
+        }
+        return users;
+    }
+
 
     private String hooksUrl(final Flow flow) {
         return String.format("%s/hooks/git/%s", domain, flow.getName());

@@ -2,14 +2,23 @@ package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserRoleDao;
+import com.flow.platform.api.domain.EmailSettingContent;
+import com.flow.platform.api.domain.MessageType;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.request.LoginParam;
+import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.token.TokenGenerator;
+import com.flow.platform.api.service.MessageService;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.collect.Lists;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,15 +47,28 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private NodeService nodeService;
 
+    @Autowired
+    private UserFlowService userFlowService;
+
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private UserRoleDao userRoleDao;
+
+
     @Value(value = "${expiration.duration}")
     private long expirationDuration;
 
     @Override
-    public List<User> list(boolean withFlow, boolean withRole) {
+    public UserListResponse list(boolean withFlow, boolean withRole) {
         List<User> users = userDao.list();
+        Role role = roleService.find("ADMIN");
+        Long adminCount = userRoleDao.numOfUser(role.getId());
 
+        UserListResponse userListResponse = new UserListResponse(users.size(), adminCount, users);
         if (!withFlow && !withRole) {
-            return users;
+            return userListResponse;
         }
 
         for (User user : users) {
@@ -58,9 +80,10 @@ public class UserServiceImpl implements UserService {
                 List<String> paths = nodeService.listFlowPathByUser(Lists.newArrayList(user.getEmail()));
                 user.setFlows(paths);
             }
+
         }
 
-        return users;
+        return userListResponse;
     }
 
     @Override
@@ -76,7 +99,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User register(User user, Set<String> roles) {
+    public User register(User user, List<String> roles, boolean isSendEmail, List<String> flowsList) {
         String errMsg = "Illegal register request parameter: ";
 
         // Check format
@@ -103,6 +126,24 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordForMD5);
         user = userDao.save(user);
 
+
+        if (isSendEmail){
+            EmailSettingContent emailSettingContent = (EmailSettingContent) messageService.find(MessageType.EMAIl);
+            if (emailSettingContent != null){
+                SmtpUtil.sendEmail(emailSettingContent, user.getEmail(), "邀请您加入项目 [ flow.ci ]",
+                    "你已被邀请加入 FLOW.CI, 用户名:"+ user.getEmail() + "密码:" + user.getPassword());
+            }
+        }
+
+        if (flowsList.size() > 0){
+            for (String flowPath : flowsList){
+                Flow flow = (Flow) nodeService.find(flowPath);
+                if (flow != null){
+                    userFlowService.assign(user, flow);
+                }
+            }
+        }
+
         if (roles == null || roles.isEmpty()) {
             return user;
         }
@@ -126,6 +167,20 @@ public class UserServiceImpl implements UserService {
 
         // delete user
         userDao.deleteList(emailList);
+    }
+
+    @Override
+    public List<User> updateUserRole(List<String> emailList, List<String> roles){
+        List<User> users = userDao.list(emailList);
+        for (User user : users) {
+            for (String roleName : roles) {
+                Role targetRole = roleService.find(roleName);
+                roleService.unAssign(user);
+                roleService.assign(user, targetRole);
+                user.setRoles(roleService.list(user));
+            }
+        }
+        return users;
     }
 
     @Override

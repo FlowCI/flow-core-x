@@ -13,23 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.domain.request;
 
-package com.flow.platform.api.domain.permission;
+import java.util.List;
 
 /**
- * @author yang
+ * @author lhl
  */
-public enum Actions {
+public class FlowAuthUser {
 
-    FLOW_CREATE,
+    private List<String> emailList;
+    private String flowPath;
 
-    FLOW_DELETE,
+    public List<String> getEmailList() {
+        return emailList;
+    }
 
-    FLOW_SHOW,
+    public void setEmailList(List<String> emailList) {
+        this.emailList = emailList;
+    }
 
-    FLOW_SET_ENV,
+    public String getFlowPath() {
+        return flowPath;
+    }
 
-    FLOW_YML,
-
-    FLOW_AUTH
+    public void setFlowPath(String flowPath) {
+        this.flowPath = flowPath;
+    }
 }

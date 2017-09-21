@@ -95,9 +95,9 @@ public class SecurityTest extends TestBase {
         permissionService.assign(ymlOperator, Sets.newHashSet(actionService.find(Actions.FLOW_YML.name())));
 
         // init mock user
-        userForAdmin = userService.register(new User("test1@flow.ci", "test1", "12345"), null);
-        userForUser = userService.register(new User("test2@flow.ci", "test2", "12345"), null);
-        userWithoutAuthority = userService.register(new User("test3@flow.ci", "test3", "12345"), null);
+        userForAdmin = userService.register(new User("test1@flow.ci", "test1", "12345"), null, false, null);
+        userForUser = userService.register(new User("test2@flow.ci", "test2", "12345"), null, false, null);
+        userWithoutAuthority = userService.register(new User("test3@flow.ci", "test3", "12345"), null, false, null);
 
         // assign user for admin role
         roleService.assign(userForAdmin, admin);

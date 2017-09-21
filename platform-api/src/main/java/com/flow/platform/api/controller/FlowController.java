@@ -20,7 +20,9 @@ import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.request.FlowAuthUser;
 import com.flow.platform.api.domain.response.BooleanValue;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -335,5 +337,11 @@ public class FlowController extends NodeController {
     public Node createFromYml(@RequestBody String yml) {
         String path = getNodePathFromUrl();
         return nodeService.createOrUpdate(path, yml);
+    }
+
+    @PostMapping("/{root}/flowAuthUsers")
+    @WebSecurity(action = Actions.FLOW_AUTH)
+    public List<User> flowAuthUsers(@RequestBody FlowAuthUser flowAuthUser){
+        return nodeService.authUsers(flowAuthUser.getEmailList(), flowAuthUser.getFlowPath());
     }
 }

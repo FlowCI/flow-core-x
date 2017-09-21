@@ -1,18 +1,17 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.request.LoginParam;
+import com.flow.platform.api.domain.request.RegisterUserParam;
+import com.flow.platform.api.domain.request.UpdateUserRoleParam;
+import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.UserService;
-import com.google.common.base.Strings;
-import java.util.HashSet;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -59,7 +58,7 @@ public class UserController {
      *  ]
      */
     @GetMapping
-    public List<User> list() {
+    public UserListResponse list() {
         return userService.list(true, true);
     }
 
@@ -97,14 +96,15 @@ public class UserController {
     }
 
     /**
-     * @api {post} /register Register
-     * @apiParam {String} roles Param example: ?roles=admin,user
+     * @api {post} /register
      * @apiParamExample {json} Request-Body:
      *     {
      *         	"email" : "test1@fir.im",
      *         	"username" : "test1",
      *         	"password" : "test1",
-     *         	"roleId" : "developer"
+     *         	"isSendEmail" : "false",
+     *         	"flows": ["xxxx", "xxx"],
+     *         	"roles": ["xxx", "xxxx"]
      *     }
      * @apiName User Register
      * @apiGroup User
@@ -126,20 +126,9 @@ public class UserController {
      *     }
      */
     @PostMapping("/register")
-    public void register(@RequestBody User user, @RequestParam(required = false) String roles) {
-        final Set<String> roleNameSet = new HashSet<>(2);
-
-        // to split roles parameter from xx,xx,xx, to role name set
-        if (!Strings.isNullOrEmpty(roles)) {
-            roles = roles.trim();
-
-            ControllerUtil.extractParam(roles, item -> {
-                roleNameSet.add(item);
-                return null;
-            });
-        }
-
-        userService.register(user, roleNameSet);
+    public void register(@RequestBody RegisterUserParam registerUserParam) {
+        User user = new User(registerUserParam.getEmail(), registerUserParam.getUsername(), registerUserParam.getPassword());
+        userService.register(user, registerUserParam.getRoles(), registerUserParam.isSendEmail(), registerUserParam.getFlows());
     }
 
     /**
@@ -167,4 +156,48 @@ public class UserController {
     public void delete(@RequestBody List<String> emailList) {
         userService.delete(emailList);
     }
+
+    /**
+     * @api {post} /updateUserRole
+     * @apiParamExample {json} Request-Body:
+     *     {
+     *         	"emailList" : ["test1@fir.im", "xxx@fir.im"]
+     *         	"roles": ["xxx", "xxxx"]
+     *     }
+     * @apiName User Update role
+     * @apiGroup User
+     * @apiDescription update user role by request information
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 500 Internal Server Error
+     *     {
+     *         "message": "JSON parse error: java.io.EOFException: End of input at line 6 column 1 path $.roleId; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 6 column 1 path $.roleId"
+     *     }
+     */
+    @PostMapping("/updateUserRole")
+    public List<User> updateRole(@RequestBody UpdateUserRoleParam updateUserRoleParam){
+//        Set<String> roleNameSet  = transformRole(roles);
+        return userService.updateUserRole(updateUserRoleParam.getEmailList(), updateUserRoleParam.getRoles());
+    }
+
+    /**
+    *
+    * to split roles parameter from xx,xx,xx, to role name set
+    */
+//    private Set<String> transformRole(String roles){
+//        final Set<String> roleNameSet = new HashSet<>(2);
+//        if (!Strings.isNullOrEmpty(roles)) {
+//            roles = roles.trim();
+//
+//            ControllerUtil.extractParam(roles, item -> {
+//                roleNameSet.add(item);
+//                return roleNameSet;
+//            });
+//        }
+//        return roleNameSet;
+//    }
+
 }
