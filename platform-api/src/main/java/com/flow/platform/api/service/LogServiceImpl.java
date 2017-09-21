@@ -229,7 +229,9 @@ public class LogServiceImpl implements LogService {
         return logContent.getInstance();
     }
 
-    // save zip log
+    /**
+     * save job zip
+     */
     private File saveJobLog(Job job) {
         String jobPath = String.format("%s/%s/%s", workspace, job.getNodeName(), job.getId().toString());
         String zipPath = jobPath + ".zip";
@@ -249,7 +251,9 @@ public class LogServiceImpl implements LogService {
     }
 
 
-    //read zip log
+    /**
+     * get job zip
+     */
     private File readJobLog(Job job) {
         // read zip log from api
         String jobPath = String.format("%s/%s/%s", workspace, job.getNodeName(), job.getId().toString());
