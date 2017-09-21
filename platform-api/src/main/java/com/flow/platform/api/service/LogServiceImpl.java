@@ -90,7 +90,7 @@ public class LogServiceImpl implements LogService {
         Resource allResource;
 
         // read zip job log
-        File zipFile = readZipLog(job);
+        File zipFile = readJobLog(job);
         job.setLogPath(zipFile.getPath());
         jobService.update(job);
 
@@ -140,7 +140,7 @@ public class LogServiceImpl implements LogService {
     private String readStepLog(Job job, NodeResult nodeResult) {
 
         // read log from api storage
-        String content = readStepLogFromApi(job, nodeResult);
+        String content = readStepLogFromLocal(job, nodeResult);
 
         if (content != null) {
             return content;
@@ -159,7 +159,7 @@ public class LogServiceImpl implements LogService {
     /**
      * read log from api storage
      */
-    private String readStepLogFromApi(Job job, NodeResult nodeResult) {
+    private String readStepLogFromLocal(Job job, NodeResult nodeResult) {
         String jobFolder = workspace + "/" + job.getNodeName() + "/" + job.getId().toString();
 
         String targetFile = jobFolder + '/' + nodeResult.getName() + ".log";
@@ -209,7 +209,7 @@ public class LogServiceImpl implements LogService {
                     String log = ZipUtil.readZipFile(content);
                     logContent.setInstance(log);
 
-                    //save file
+                    //save file to local storage
                     InputStream stream = new ByteArrayInputStream(log.getBytes(AppConfig.DEFAULT_CHARSET));
                     String logPath = saveStepLog(job, stream, nodeResult);
                     if (logPath == null) {
@@ -230,13 +230,14 @@ public class LogServiceImpl implements LogService {
     }
 
     // save zip log
-    private File saveZipLog(Job job) {
-        String jobPath = workspace + "/" + job.getNodeName() + "/" + job.getId().toString();
+    private File saveJobLog(Job job) {
+        String jobPath = String.format("%s/%s/%s", workspace, job.getNodeName(), job.getId().toString());
         String zipPath = jobPath + ".zip";
-        String destPath = jobPath + "/" + job.getId().toString() + ".zip";
+        String destPath = String.format("%s/%s.zip", jobPath, job.getId().toString());
         File folderFile = new File(jobPath);
         File zipFile = new File(zipPath);
         File destFile = new File(destPath);
+
         try {
             ZipUtil.zipFolder(folderFile, zipFile);
             FileUtils.moveFile(zipFile, destFile);
@@ -248,10 +249,10 @@ public class LogServiceImpl implements LogService {
     }
 
 
-    private File readZipLog(Job job) {
+    private File readJobLog(Job job) {
         // read zip log from api
-        String jobPath = workspace + "/" + job.getNodeName() + "/" + job.getId().toString();
-        String zipPath = jobPath + "/" + job.getId().toString() + ".zip";
+        String jobPath = String.format("%s/%s/%s", workspace, job.getNodeName(), job.getId().toString());
+        String zipPath = String.format("%s/%s.zip", jobPath, job.getId().toString());
         File zipFile = new File(zipPath);
         if (zipFile.exists()) {
             return zipFile;
@@ -262,12 +263,13 @@ public class LogServiceImpl implements LogService {
         if (list.isEmpty()) {
             throw new FlowException("node result is empty");
         }
+
         // download all log from cc
         for (NodeResult nodeResult : list) {
             readStepLog(job, nodeResult);
         }
 
-        saveZipLog(job);
+        saveJobLog(job);
         zipFile = new File(zipPath);
 
         return zipFile;
