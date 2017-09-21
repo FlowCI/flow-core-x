@@ -250,7 +250,6 @@ public class LogServiceImpl implements LogService {
         return destFile;
     }
 
-
     /**
      * get job zip
      */
