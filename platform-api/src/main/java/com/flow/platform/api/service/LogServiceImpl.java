@@ -249,6 +249,7 @@ public class LogServiceImpl implements LogService {
     }
 
 
+    //read zip log
     private File readJobLog(Job job) {
         // read zip log from api
         String jobPath = String.format("%s/%s/%s", workspace, job.getNodeName(), job.getId().toString());
