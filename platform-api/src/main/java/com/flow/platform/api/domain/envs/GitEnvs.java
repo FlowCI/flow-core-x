@@ -31,9 +31,18 @@ public enum GitEnvs implements EnvKey {
 
     FLOW_GIT_CHANGELOG,
 
+    /**
+     * @see com.flow.platform.util.git.model.GitEventType
+     */
     FLOW_GIT_EVENT_TYPE,
+
+    FLOW_GIT_COMMIT_ID,
+
+    FLOW_GIT_COMPARE_ID, // 123...456
+
+    FLOW_GIT_AUTHOR,
 
     FLOW_GIT_SSH_PUBLIC_KEY,
 
-    FLOW_GIT_SSH_PRIVATE_KEY;
+    FLOW_GIT_SSH_PRIVATE_KEY
 }

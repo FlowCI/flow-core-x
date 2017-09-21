@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Extract required GitEnv from git event
+ *
  * @author yang
  */
 public class GitEventDataExtractor {
@@ -44,10 +46,14 @@ public class GitEventDataExtractor {
             Map<String, String> info = new HashMap<>();
             info.put(GitEnvs.FLOW_GIT_EVENT_TYPE.name(), pt.getType().name());
             info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pt.getRef()));
+            info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pt.getUsername());
+            info.put(GitEnvs.FLOW_GIT_COMMIT_ID.name(), pt.getAfter());
+            info.put(GitEnvs.FLOW_GIT_COMPARE_ID.name(), pt.getCompare());
 
             if (pt.getCommits().size() > 0) {
                 info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getCommits().get(0).getMessage());
             }
+
             return info;
         }
 

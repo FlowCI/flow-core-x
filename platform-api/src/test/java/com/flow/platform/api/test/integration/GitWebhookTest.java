@@ -19,6 +19,7 @@ package com.flow.platform.api.test.integration;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.envs.EnvKey;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
@@ -150,6 +151,12 @@ public class GitWebhookTest extends TestBase {
         Job created = wrapper.getInstance();
         Assert.assertEquals(flowPath, created.getNodePath());
         Assert.assertEquals(1, created.getNumber().intValue());
+
+        // verify env which needs write to output of root node result
+        for (String outputKey : EnvKey.FOR_OUTPUTS) {
+            boolean isEnvWriteToOutput = created.getRootResult().getOutputs().containsKey(outputKey);
+            Assert.assertTrue(isEnvWriteToOutput);
+        }
 
         // verify flow node yml status
         Node flowNode = nodeService.find(created.getNodePath());

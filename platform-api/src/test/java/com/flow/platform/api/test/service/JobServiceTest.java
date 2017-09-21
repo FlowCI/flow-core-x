@@ -64,7 +64,7 @@ public class JobServiceTest extends TestBase {
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Flow rootForFlow = nodeService.createEmptyFlow("flow1");
-        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL);
+        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null);
     }
 
     @Test
@@ -205,13 +205,13 @@ public class JobServiceTest extends TestBase {
     }
 
     private Job createMockJob(String nodePath) {
-        Job job = jobService.createJob(nodePath, GitEventType.TAG);
+        Job job = jobService.createJob(nodePath, GitEventType.TAG, null);
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());
         Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
 
-        Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.JOB_BUILD_NUMBER));
+        Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER));
 
         // verify root node result for job
         NodeResult rootResult = job.getRootResult();

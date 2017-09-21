@@ -64,6 +64,9 @@ public class GitPushTagEvent extends GitEvent {
 
     private String message;
 
+    @SerializedName(value = "compare")
+    private String compare;
+
     /**
      * Commit info
      */
@@ -128,6 +131,14 @@ public class GitPushTagEvent extends GitEvent {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getCompare() {
+        return compare;
+    }
+
+    public void setCompare(String compare) {
+        this.compare = compare;
     }
 
     public List<GitEventCommit> getCommits() {
