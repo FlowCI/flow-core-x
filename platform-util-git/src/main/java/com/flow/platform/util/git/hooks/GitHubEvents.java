@@ -34,8 +34,6 @@ import java.util.Map;
  */
 public class GitHubEvents {
 
-    private final static String PULL_REQUEST_ACTION_CLOSED = "closed";
-
     public static class Hooks {
 
         public final static String HEADER = "x-github-event";
@@ -169,9 +167,6 @@ public class GitHubEvents {
             PullRequest pullRequest = mr.pullRequest;
 
             GitPullRequestEvent event = new GitPullRequestEvent(gitSource, eventType);
-            if (!mr.action.equals(PULL_REQUEST_ACTION_CLOSED)) {
-                throw new GitException("Invalid GitHub pull request action", null);
-            }
 
             event.setAction(mr.action);
             event.setRequestId(pullRequest.id);

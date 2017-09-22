@@ -38,6 +38,8 @@ public class GitEventDataExtractor {
             info.put(GitEnvs.FLOW_GIT_EVENT_TYPE.name(), pr.getType().name());
             info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pr.getTarget().getBranch()));
             info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pr.getTitle());
+            info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pr.getSubmitter());
+            info.put(GitEnvs.FLOW_GIT_PR_URL.name(), pr.getUrl());
             return info;
         }
 

@@ -123,6 +123,9 @@ public class GitLabHooksEventTest {
         Assert.assertEquals("MS-Viewport", mrEvent.getTitle());
         Assert.assertEquals("opened", mrEvent.getStatus());
         Assert.assertEquals("open", mrEvent.getAction());
+        Assert.assertEquals("http://example.com/diaspora/merge_requests/1", mrEvent.getUrl());
+        Assert.assertEquals("Administrator", mrEvent.getSubmitter());
+        Assert.assertEquals("", mrEvent.getMergedBy());
 
         GitPullRequestInfo target = mrEvent.getTarget();
         Assert.assertEquals("master", target.getBranch());

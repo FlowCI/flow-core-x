@@ -23,6 +23,7 @@ import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
+import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 
 /**
@@ -74,7 +75,69 @@ public class GitLabEvents {
         }
     }
 
+    /**
+     * GitLab MergeRequest only on opened state, the merge request it send PUSH event
+     */
     public static class MergeRequestAdaptor extends GitHookEventAdapter {
+
+        private class RequestRoot {
+
+            @SerializedName("user")
+            private UserInfo user;
+
+            @SerializedName("object_attributes")
+            private ObjectAttributes attrs;
+        }
+
+        private class ObjectAttributes {
+
+            private String title;
+
+            private Integer id;
+
+            private String description;
+
+            private String state;
+
+            private String action;
+
+            private String url;
+
+            @SerializedName("author_id")
+            private Integer authorId;
+
+            @SerializedName("target_branch")
+            private String targetBranch;
+
+            @SerializedName("target_project_id")
+            private Integer targetProjectId;
+
+            @SerializedName("source_branch")
+            private String sourceBranch;
+
+            @SerializedName("source_project_id")
+            private Integer sourceProjectId;
+
+            @SerializedName("last_commit")
+            private LastCommit lastCommit;
+        }
+
+        private class UserInfo {
+
+            private String name;
+
+            private String username;
+
+            @SerializedName("avatar_url")
+            private String avatarUrl;
+        }
+
+        private class LastCommit {
+
+            private String id;
+
+            private String message;
+        }
 
         MergeRequestAdaptor(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
@@ -83,30 +146,34 @@ public class GitLabEvents {
         @Override
         public GitEvent convert(String json) throws GitException {
             try {
-                Map raw = toMap(json);
-                Map attrs = (Map) raw.get("object_attributes");
+                RequestRoot requestRoot = GSON.fromJson(json, RequestRoot.class);
+                UserInfo user = requestRoot.user;
+                ObjectAttributes attrs = requestRoot.attrs;
 
                 GitPullRequestEvent prEvent = new GitPullRequestEvent(gitSource, eventType);
-                prEvent.setTitle(attrs.get("title").toString());
-                prEvent.setRequestId(toInteger(attrs.get("id").toString()));
-                prEvent.setDescription(attrs.get("description").toString());
+                prEvent.setTitle(attrs.title);
+                prEvent.setRequestId(attrs.id);
+                prEvent.setDescription(attrs.description);
+                prEvent.setStatus(attrs.state);
+                prEvent.setAction(attrs.action);
+                prEvent.setUrl(attrs.url);
+                prEvent.setSubmitter(user.name);
+                prEvent.setMergedBy("");
                 prEvent.setTarget(new GitPullRequestInfo());
                 prEvent.setSource(new GitPullRequestInfo());
-                prEvent.setStatus(attrs.get("state").toString());
-                prEvent.setAction(attrs.get("action").toString());
 
                 // set pr target info
                 GitPullRequestInfo target = prEvent.getTarget();
-                target.setBranch(attrs.get("target_branch").toString());
-                target.setProjectId(toInteger(attrs.get("target_project_id").toString()));
+                target.setBranch(attrs.targetBranch);
+                target.setProjectId(attrs.targetProjectId);
 
                 // set pr source info
                 GitPullRequestInfo source = prEvent.getSource();
-                source.setBranch(attrs.get("source_branch").toString());
-                source.setProjectId(toInteger(attrs.get("source_project_id").toString()));
+                source.setBranch(attrs.sourceBranch);
+                source.setProjectId(attrs.sourceProjectId);
 
-                Map lastCommit = (Map) attrs.get("last_commit");
-                source.setSha(lastCommit.get("id").toString());
+                LastCommit lastCommit = attrs.lastCommit;
+                source.setSha(lastCommit.id);
 
                 return prEvent;
             } catch (Throwable e) {

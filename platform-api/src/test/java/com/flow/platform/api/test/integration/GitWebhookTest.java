@@ -74,7 +74,7 @@ public class GitWebhookTest extends TestBase {
     }
 
     @Test
-    public void should_create_job_after_github_webhook_trigger() throws Throwable {
+    public void should_create_job_after_github_push_webhook_trigger() throws Throwable {
         init_flow("git@github.com:flow-ci-plugin/for-testing.git");
 
         MockHttpServletRequestBuilder push = post("/hooks/git/" + flowName)
@@ -92,7 +92,12 @@ public class GitWebhookTest extends TestBase {
     }
 
     @Test
-    public void should_create_job_after_gitlab_webhook_trigger() throws Throwable {
+    public void should_create_job_after_github_tag_webhook_trigger() throws Throwable {
+        
+    }
+
+    @Test
+    public void should_create_job_after_gitlab_push_webhook_trigger() throws Throwable {
         init_flow("git@gitlab.com:yang.guo/for-testing.git");
 
         MockHttpServletRequestBuilder push = post("/hooks/git/" + flowName)

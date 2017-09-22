@@ -1,0 +1,74 @@
+{
+  "object_kind": "push",
+  "event_name": "push",
+  "before": "9dbbd7ee98fc9395b7e06c5e4c1f50dc39675623",
+  "after": "9a90330c430e0847d472a1f5e043d826636cdad3",
+  "ref": "refs/heads/master",
+  "checkout_sha": "9a90330c430e0847d472a1f5e043d826636cdad3",
+  "message": null,
+  "user_id": 859190,
+  "user_name": "yang.guo",
+  "user_username": "yang.guo",
+  "user_email": "benqyang_2006@hotmail.com",
+  "user_avatar": "https://secure.gravatar.com/avatar/0dce14d99e8295e36aca078f195fa0c3?s=80\u0026d=identicon",
+  "project_id": 3923320,
+  "project": {
+    "name": "for-testing",
+    "description": "",
+    "web_url": "https://gitlab.com/yang.guo/for-testing",
+    "avatar_url": null,
+    "git_ssh_url": "git@gitlab.com:yang.guo/for-testing.git",
+    "git_http_url": "https://gitlab.com/yang.guo/for-testing.git",
+    "namespace": "yang.guo",
+    "visibility_level": 20,
+    "path_with_namespace": "yang.guo/for-testing",
+    "default_branch": "master",
+    "ci_config_path": null,
+    "homepage": "https://gitlab.com/yang.guo/for-testing",
+    "url": "git@gitlab.com:yang.guo/for-testing.git",
+    "ssh_url": "git@gitlab.com:yang.guo/for-testing.git",
+    "http_url": "https://gitlab.com/yang.guo/for-testing.git"
+  },
+  "commits": [
+    {
+      "id": "b824012c12a9eb9e2b099f5f79062a334af368d4",
+      "message": "Update README.md 1123",
+      "timestamp": "2017-09-22T05:03:56Z",
+      "url": "https://gitlab.com/yang.guo/for-testing/commit/b824012c12a9eb9e2b099f5f79062a334af368d4",
+      "author": {
+        "name": "yang.guo",
+        "email": "benqyang_2006@hotmail.com"
+      },
+      "added": [],
+      "modified": [
+        "README.md"
+      ],
+      "removed": []
+    },
+    {
+      "id": "9a90330c430e0847d472a1f5e043d826636cdad3",
+      "message": "Merge branch 'develop' into 'master'\n\nUpdate README.md 1123\n\nSee merge request yang.guo/for-testing!2",
+      "timestamp": "2017-09-22T05:06:07Z",
+      "url": "https://gitlab.com/yang.guo/for-testing/commit/9a90330c430e0847d472a1f5e043d826636cdad3",
+      "author": {
+        "name": "yang.guo",
+        "email": "benqyang_2006@hotmail.com"
+      },
+      "added": [],
+      "modified": [
+        "README.md"
+      ],
+      "removed": []
+    }
+  ],
+  "total_commits_count": 2,
+  "repository": {
+    "name": "for-testing",
+    "url": "git@gitlab.com:yang.guo/for-testing.git",
+    "description": "",
+    "homepage": "https://gitlab.com/yang.guo/for-testing",
+    "git_http_url": "https://gitlab.com/yang.guo/for-testing.git",
+    "git_ssh_url": "git@gitlab.com:yang.guo/for-testing.git",
+    "visibility_level": 20
+  }
+}
