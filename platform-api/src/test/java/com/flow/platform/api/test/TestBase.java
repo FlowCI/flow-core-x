@@ -32,6 +32,7 @@ import com.flow.platform.api.dao.user.ActionDao;
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.node.Flow;
@@ -135,6 +136,9 @@ public abstract class TestBase {
     @Autowired
     protected Path workspace;
 
+    @Autowired
+    protected UserFlowDao userFlowDao;
+
     protected MockMvc mockMvc;
 
     @Rule
@@ -208,6 +212,7 @@ public abstract class TestBase {
         actionDao.deleteAll();
         userRoleDao.deleteAll();
         permissionDao.deleteAll();
+        userFlowDao.deleteAll();
     }
 
     @After
