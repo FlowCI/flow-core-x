@@ -23,6 +23,12 @@ package com.flow.platform.util.git.model;
  */
 public class GitPullRequestEvent extends GitEvent {
 
+    public enum State {
+        OPEN,
+
+        CLOSE
+    }
+
     private String title;
 
     private Integer requestId;
@@ -35,7 +41,7 @@ public class GitPullRequestEvent extends GitEvent {
 
     private String description;
 
-    private String status;
+    private State state;
 
     /**
      * Html url for pr
@@ -104,12 +110,12 @@ public class GitPullRequestEvent extends GitEvent {
         this.description = description;
     }
 
-    public String getStatus() {
-        return status;
+    public State getState() {
+        return state;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setState(State state) {
+        this.state = state;
     }
 
     public String getUrl() {

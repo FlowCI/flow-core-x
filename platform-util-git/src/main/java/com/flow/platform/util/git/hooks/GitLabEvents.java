@@ -20,11 +20,13 @@ import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * To adding GitLab web hook,
@@ -79,6 +81,8 @@ public class GitLabEvents {
      * GitLab MergeRequest only on opened state, the merge request it send PUSH event
      */
     public static class MergeRequestAdaptor extends GitHookEventAdapter {
+
+        public final static String STATE_OPEN = "opened";
 
         private class RequestRoot {
 
@@ -151,10 +155,15 @@ public class GitLabEvents {
                 ObjectAttributes attrs = requestRoot.attrs;
 
                 GitPullRequestEvent prEvent = new GitPullRequestEvent(gitSource, eventType);
+
+                // just open state since the close state from PUSH event..
+                if (Objects.equals(attrs.state, STATE_OPEN)) {
+                    prEvent.setState(State.OPEN);
+                }
+
                 prEvent.setTitle(attrs.title);
                 prEvent.setRequestId(attrs.id);
                 prEvent.setDescription(attrs.description);
-                prEvent.setStatus(attrs.state);
                 prEvent.setAction(attrs.action);
                 prEvent.setUrl(attrs.url);
                 prEvent.setSubmitter(user.name);

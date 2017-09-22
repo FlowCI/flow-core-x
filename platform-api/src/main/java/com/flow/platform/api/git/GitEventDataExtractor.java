@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,9 +37,20 @@ public class GitEventDataExtractor {
             GitPullRequestEvent pr = (GitPullRequestEvent) event;
             Map<String, String> info = new HashMap<>();
             info.put(GitEnvs.FLOW_GIT_EVENT_TYPE.name(), pr.getType().name());
-            info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pr.getTarget().getBranch()));
+
+            // the branch is on source for open pr
+            if (pr.getState() == State.OPEN) {
+                info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pr.getSource().getBranch()));
+                info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pr.getSubmitter());
+            }
+
+            // the branch is on target for close pr
+            if (pr.getState() == State.CLOSE) {
+                info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pr.getTarget().getBranch()));
+                info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pr.getMergedBy());
+            }
+
             info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pr.getTitle());
-            info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pr.getSubmitter());
             info.put(GitEnvs.FLOW_GIT_PR_URL.name(), pr.getUrl());
             return info;
         }
@@ -53,6 +65,7 @@ public class GitEventDataExtractor {
             info.put(GitEnvs.FLOW_GIT_COMPARE_URL.name(), pt.getCompareUrl());
             info.put(GitEnvs.FLOW_GIT_COMPARE_ID.name(), pt.getCompareId());
 
+            // TODO: multi change log
             if (pt.getCommits().size() > 0) {
                 info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getCommits().get(0).getMessage());
             }

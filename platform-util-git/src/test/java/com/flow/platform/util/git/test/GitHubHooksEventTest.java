@@ -21,6 +21,7 @@ import com.flow.platform.util.git.hooks.GitHubEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
@@ -116,7 +117,7 @@ public class GitHubHooksEventTest {
         // then: verify merge request event
         Assert.assertEquals(134584493, event.getRequestId().intValue());
         Assert.assertEquals("closed", event.getAction());
-        Assert.assertEquals("closed", event.getStatus());
+        Assert.assertEquals(State.CLOSE, event.getState());
         Assert.assertEquals("Update settings.gradle title", event.getTitle());
         Assert.assertEquals("hello desc", event.getDescription());
         Assert.assertEquals("https://github.com/yang-guo-2016/Test/pull/7", event.getUrl());

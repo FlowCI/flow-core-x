@@ -21,6 +21,7 @@ import com.flow.platform.util.git.hooks.GitLabEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
@@ -107,7 +108,7 @@ public class GitLabHooksEventTest {
     @Test
     public void should_convert_to_pr_event_obj() throws Throwable {
         // given:
-        String prEventContent = loadWebhookSampleJson("gitlab/webhook_pr.json");
+        String prEventContent = loadWebhookSampleJson("gitlab/webhook_pr_open.json");
         Map<String, String> mockHeader = new HashMap<>();
         mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PR);
 
@@ -121,7 +122,7 @@ public class GitLabHooksEventTest {
 
         Assert.assertEquals(99, mrEvent.getRequestId().intValue());
         Assert.assertEquals("MS-Viewport", mrEvent.getTitle());
-        Assert.assertEquals("opened", mrEvent.getStatus());
+        Assert.assertEquals(State.OPEN, mrEvent.getState());
         Assert.assertEquals("open", mrEvent.getAction());
         Assert.assertEquals("http://example.com/diaspora/merge_requests/1", mrEvent.getUrl());
         Assert.assertEquals("Administrator", mrEvent.getSubmitter());

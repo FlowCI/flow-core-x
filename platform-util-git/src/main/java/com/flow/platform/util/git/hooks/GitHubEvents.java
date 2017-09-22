@@ -20,6 +20,7 @@ import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
@@ -173,11 +174,18 @@ public class GitHubEvents {
 
             GitPullRequestEvent event = new GitPullRequestEvent(gitSource, eventType);
 
+            if (Objects.equals(pullRequest.state, STATE_OPEN)) {
+                event.setState(State.OPEN);
+            }
+
+            if (Objects.equals(pullRequest.state, STATE_CLOSE)) {
+                event.setState(State.CLOSE);
+            }
+
             event.setAction(mr.action);
             event.setRequestId(pullRequest.id);
             event.setDescription(pullRequest.desc);
             event.setTitle(pullRequest.title);
-            event.setStatus(pullRequest.state);
             event.setUrl(pullRequest.htmlUrl);
             event.setSubmitter(pullRequest.user.login);
 

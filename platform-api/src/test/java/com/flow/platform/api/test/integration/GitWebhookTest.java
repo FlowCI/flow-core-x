@@ -104,12 +104,12 @@ public class GitWebhookTest extends TestBase {
     }
 
     @Test
-    public void should_create_job_after_github_create_pr_webhook_trigger() throws Throwable {
+    public void should_create_job_after_github_open_pr_webhook_trigger() throws Throwable {
         init_flow("git@github.com:flow-ci-plugin/for-testing.git");
 
-        MockHttpServletRequestBuilder createPr = post("/hook/git/" + flowName)
+        MockHttpServletRequestBuilder createPr = post("/hooks/git/" + flowName)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(getResourceContent("github/pr_create_payload.json"))
+            .content(getResourceContent("github/pr_open_payload.json"))
             .header("x-github-event", "pull_request")
             .header("x-github-delivery", "29087180-8177-11e7-83a4-3b68852f0c9e");
 
@@ -118,7 +118,33 @@ public class GitWebhookTest extends TestBase {
 
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
-//        Assert.assertEquals(job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
+        Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
+        Assert.assertEquals("https://github.com/flow-ci-plugin/for-testing/pull/2",
+            job.getEnv(GitEnvs.FLOW_GIT_PR_URL));
+        Assert.assertEquals("yang-guo-2016", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
+        Assert.assertEquals("Update README.md", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
+    }
+
+    @Test
+    public void should_create_job_after_github_close_pr_webhook_trigger() throws Throwable {
+        init_flow("git@github.com:flow-ci-plugin/for-testing.git");
+
+        MockHttpServletRequestBuilder createPr = post("/hooks/git/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getResourceContent("github/pr_close_payload.json"))
+            .header("x-github-event", "pull_request")
+            .header("x-github-delivery", "29087180-8177-11e7-83a4-3b68852f0c9e");
+
+        Job job = mock_trigger_from_git(createPr);
+        job = jobDao.get(job.getId());
+
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
+        Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
+        Assert.assertEquals("https://github.com/flow-ci-plugin/for-testing/pull/1",
+            job.getEnv(GitEnvs.FLOW_GIT_PR_URL));
+        Assert.assertEquals("yang-guo-2016", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
+        Assert.assertEquals("Develop", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
     }
 
     @Test
