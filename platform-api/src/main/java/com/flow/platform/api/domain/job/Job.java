@@ -22,6 +22,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -29,6 +30,9 @@ import java.util.List;
  */
 
 public class Job extends EnvObject {
+
+    public final static EnumSet<JobStatus> FINISH_STATUS = EnumSet
+        .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.SUCCESS);
 
     private BigInteger id;
 

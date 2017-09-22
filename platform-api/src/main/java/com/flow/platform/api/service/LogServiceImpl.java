@@ -18,7 +18,6 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
@@ -29,7 +28,6 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.util.ObjectWrapper;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +39,6 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -82,9 +79,7 @@ public class LogServiceImpl implements LogService {
         Job job = jobService.find(path, buildNumber);
 
         // only job finish can to download log
-        Set<JobStatus> finishStatus = Sets.newHashSet(JobStatus.FAILURE, JobStatus.SUCCESS, JobStatus.STOPPED);
-
-        if (!finishStatus.contains(job.getStatus())) {
+        if (!Job.FINISH_STATUS.contains(job.getStatus())) {
             throw new FlowException("job must finish");
         }
 
