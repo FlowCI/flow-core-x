@@ -194,7 +194,7 @@ public class LogServiceImpl implements LogService {
         String cmdId = nodeResult.getCmdId();
 
         if (Strings.isNullOrEmpty(cmdId)) {
-            throw new IllegalParameterException("The job node without cmd id");
+            return "";
         }
 
         final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
