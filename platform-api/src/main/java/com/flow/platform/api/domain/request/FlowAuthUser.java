@@ -23,7 +23,6 @@ import java.util.List;
 public class FlowAuthUser {
 
     private List<String> emailList;
-    private String flowPath;
 
     public List<String> getEmailList() {
         return emailList;
@@ -33,11 +32,4 @@ public class FlowAuthUser {
         this.emailList = emailList;
     }
 
-    public String getFlowPath() {
-        return flowPath;
-    }
-
-    public void setFlowPath(String flowPath) {
-        this.flowPath = flowPath;
-    }
 }

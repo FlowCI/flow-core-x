@@ -345,7 +345,6 @@ public class FlowController extends NodeController {
      * @apiParamExample {json} Request-Body:
      *     {
      *         	"emailList" : ["test1@fir.im", "hl@fir.im"]
-     *         	"flowPath": "flowPath"
      *     }
      * @apiGroup Flows
      *
@@ -366,6 +365,7 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/flowAuthUsers")
     @WebSecurity(action = Actions.FLOW_AUTH)
     public List<User> flowAuthUsers(@RequestBody FlowAuthUser flowAuthUser){
-        return nodeService.authUsers(flowAuthUser.getEmailList(), flowAuthUser.getFlowPath());
+        String path = getNodePathFromUrl();
+        return nodeService.authUsers(flowAuthUser.getEmailList(), path);
     }
 }
