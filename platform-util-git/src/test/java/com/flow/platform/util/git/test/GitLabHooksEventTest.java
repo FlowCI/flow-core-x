@@ -60,6 +60,8 @@ public class GitLabHooksEventTest {
         Assert.assertEquals("refs/heads/master", pushEvent.getRef());
         Assert.assertEquals(4, Integer.parseInt(pushEvent.getUserId()));
         Assert.assertEquals("John Smith", pushEvent.getUsername());
+        Assert.assertEquals("95790bf891e7...da1560886d4f", pushEvent.getCompareId());
+        Assert.assertTrue(pushEvent.getCompareUrl().endsWith("compare/" + pushEvent.getCompareId()));
 
         // then: verify push commit info
         List<GitEventCommit> commits = pushEvent.getCommits();
@@ -98,6 +100,8 @@ public class GitLabHooksEventTest {
         Assert.assertEquals("John Smith", tagEvent.getUsername());
         Assert.assertEquals(0, tagEvent.getCommits().size());
         Assert.assertEquals("hello test", tagEvent.getMessage());
+        Assert.assertEquals("82b3d5ae55f7...1.0.0", tagEvent.getCompareId());
+        Assert.assertTrue(tagEvent.getCompareUrl().endsWith("compare/" + tagEvent.getCompareId()));
     }
 
     @Test

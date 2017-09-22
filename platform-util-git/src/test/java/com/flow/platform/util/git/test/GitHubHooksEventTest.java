@@ -49,20 +49,20 @@ public class GitHubHooksEventTest {
         dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
 
         // when:
-        GitPushTagEvent event = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, pushEventContent);
-        Assert.assertNotNull(event);
+        GitPushTagEvent pushEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, pushEventContent);
+        Assert.assertNotNull(pushEvent);
 
         // then: verify event
-        Assert.assertEquals("refs/heads/master", event.getRef());
-        Assert.assertEquals("5a1e8ee1007b742fba00da1f66b0cc5e3bc5f024", event.getBefore());
-        Assert.assertEquals("40d0dd6e8e942643d794d7ed8d27610fb8729914", event.getAfter());
-        Assert.assertEquals("23307997", event.getUserId());
-        Assert.assertEquals("yang-guo-2016", event.getUsername());
-        Assert.assertEquals("5a1e8ee1007b...40d0dd6e8e94", event.getCompareId());
-        Assert.assertNotNull(event.getCompareUrl());
+        Assert.assertEquals("refs/heads/master", pushEvent.getRef());
+        Assert.assertEquals("5a1e8ee1007b742fba00da1f66b0cc5e3bc5f024", pushEvent.getBefore());
+        Assert.assertEquals("40d0dd6e8e942643d794d7ed8d27610fb8729914", pushEvent.getAfter());
+        Assert.assertEquals("23307997", pushEvent.getUserId());
+        Assert.assertEquals("yang-guo-2016", pushEvent.getUsername());
+        Assert.assertEquals("5a1e8ee1007b...40d0dd6e8e94", pushEvent.getCompareId());
+        Assert.assertTrue(pushEvent.getCompareUrl().endsWith("compare/" + pushEvent.getCompareId()));
 
         // then: verify commit
-        List<GitEventCommit> commits = event.getCommits();
+        List<GitEventCommit> commits = pushEvent.getCommits();
         Assert.assertNotNull(commits);
         Assert.assertEquals(1, commits.size());
 
@@ -85,22 +85,22 @@ public class GitHubHooksEventTest {
         dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
 
         // when:
-        GitPushTagEvent event = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, tagEventContent);
-        Assert.assertNotNull(event);
+        GitPushTagEvent tagEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, tagEventContent);
+        Assert.assertNotNull(tagEvent);
 
         // then:
-        Assert.assertEquals(GitSource.GITHUB, event.getGitSource());
-        Assert.assertEquals(GitEventType.TAG, event.getType());
+        Assert.assertEquals(GitSource.GITHUB, tagEvent.getGitSource());
+        Assert.assertEquals(GitEventType.TAG, tagEvent.getType());
 
-        Assert.assertEquals("refs/tags/v1.6", event.getRef());
-        Assert.assertEquals("refs/heads/developer", event.getBaseRef());
-        Assert.assertEquals("0000000000000000000000000000000000000000", event.getBefore());
-        Assert.assertEquals("26d1d0fa6ee44a8f4e02250d13e84bf02722f5e7", event.getAfter());
-        Assert.assertEquals("23307997", event.getUserId());
-        Assert.assertEquals("yang-guo-2016", event.getUsername());
-        Assert.assertEquals("", event.getCompareId());
-        Assert.assertNotNull(event.getCompareUrl());
-        Assert.assertEquals(0, event.getCommits().size());
+        Assert.assertEquals("refs/tags/v1.6", tagEvent.getRef());
+        Assert.assertEquals("refs/heads/developer", tagEvent.getBaseRef());
+        Assert.assertEquals("0000000000000000000000000000000000000000", tagEvent.getBefore());
+        Assert.assertEquals("26d1d0fa6ee44a8f4e02250d13e84bf02722f5e7", tagEvent.getAfter());
+        Assert.assertEquals("23307997", tagEvent.getUserId());
+        Assert.assertEquals("yang-guo-2016", tagEvent.getUsername());
+        Assert.assertEquals("26d1d0fa6ee4...1.6", tagEvent.getCompareId());
+        Assert.assertTrue(tagEvent.getCompareUrl().endsWith("compare/v1.6"));
+        Assert.assertEquals(0, tagEvent.getCommits().size());
     }
 
     @Test

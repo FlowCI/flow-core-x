@@ -44,14 +44,14 @@ public class GitLabEvents {
         public final static String EVENT_TYPE_MR = "Merge Request Hook";
     }
 
-    public static class PushAdapter extends GitHookEventAdapter {
+    public static class PushAndTagAdapter extends GitHookEventAdapter {
 
         private class JsonHelper {
 
             private Map<String, String> repository;
         }
 
-        PushAdapter(GitSource gitSource, GitEventType eventType) {
+        PushAndTagAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
@@ -70,21 +70,6 @@ public class GitLabEvents {
             event.setCompareUrl(compareUrl);
             event.setCompareId(compareId);
 
-            return event;
-        }
-    }
-
-    public static class TagAdapter extends GitHookEventAdapter {
-
-        TagAdapter(GitSource gitSource, GitEventType eventType) {
-            super(gitSource, eventType);
-        }
-
-        @Override
-        public GitEvent convert(String json) throws GitException {
-            GitPushTagEvent event = GSON.fromJson(json, GitPushTagEvent.class);
-            event.setType(eventType);
-            event.setGitSource(gitSource);
             return event;
         }
     }

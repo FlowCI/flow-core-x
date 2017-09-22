@@ -40,20 +40,19 @@ public class GitHookEventFactory {
     private final static Map<String, Map<String, GitHookEventAdapter>> adaptors = new HashMap<>();
 
     static {
-        // init gitlab hook data adaptor
-        Map<String, GitHookEventAdapter> gitlabAdaptors = new HashMap<>(3);
-        gitlabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_MR, new GitLabEvents.MergeRequestAdaptor(GITLAB, MR));
-        gitlabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_PUSH, new GitLabEvents.PushAdapter(GITLAB, PUSH));
-        gitlabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_TAG, new GitLabEvents.TagAdapter(GITLAB, TAG));
-        adaptors.put(GitLabEvents.Hooks.HEADER, gitlabAdaptors);
+        // init GitLab hook data adaptor
+        Map<String, GitHookEventAdapter> gitLabAdaptors = new HashMap<>(3);
+        gitLabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_MR, new GitLabEvents.MergeRequestAdaptor(GITLAB, MR));
+        gitLabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_PUSH, new GitLabEvents.PushAndTagAdapter(GITLAB, PUSH));
+        gitLabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_TAG, new GitLabEvents.PushAndTagAdapter(GITLAB, TAG));
+        adaptors.put(GitLabEvents.Hooks.HEADER, gitLabAdaptors);
 
-        // init github hook data adaptor
-        Map<String, GitHookEventAdapter> githubAdaptors = new HashMap<>(3);
-        githubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PUSH, new GitHubEvents.PushAndTagAdapter(GITHUB, PUSH));
-        githubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_TAG, new GitHubEvents.PushAndTagAdapter(GITHUB, TAG));
-        githubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_MR, new GitHubEvents.MergeRequestAdapter(GITHUB, MR));
-
-        adaptors.put(GitHubEvents.Hooks.HEADER, githubAdaptors);
+        // init GitHub hook data adaptor
+        Map<String, GitHookEventAdapter> gitHubAdaptors = new HashMap<>(3);
+        gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PUSH, new GitHubEvents.PushAndTagAdapter(GITHUB, PUSH));
+        gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_TAG, new GitHubEvents.PushAndTagAdapter(GITHUB, TAG));
+        gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_MR, new GitHubEvents.MergeRequestAdapter(GITHUB, MR));
+        adaptors.put(GitHubEvents.Hooks.HEADER, gitHubAdaptors);
     }
 
     /**

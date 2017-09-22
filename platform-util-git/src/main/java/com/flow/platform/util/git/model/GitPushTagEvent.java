@@ -36,6 +36,13 @@ public class GitPushTagEvent extends GitEvent {
             return beforeShortcut + "..." + afterShortcut;
         }
 
+        if (event.getType() == GitEventType.TAG) {
+            String afterShortcut = event.getAfter().substring(0, 12);
+            int tagVersionIndex = event.getRef().lastIndexOf("v");
+            String tag = event.getRef().substring(tagVersionIndex + 1);
+            return afterShortcut + "..." + tag;
+        }
+
         return "";
     }
 
