@@ -16,8 +16,6 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.envs.EnvKey;
-import com.flow.platform.api.domain.envs.EnvValue;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.util.git.model.GitEventType;
@@ -63,11 +61,6 @@ public interface JobService {
     List<NodeResult> listNodeResult(String path, Integer number);
 
     /**
-     * get job log
-     */
-    String findNodeLog(String path, Integer buildNumber, Integer stepOrder);
-
-    /**
      * create job from node path, copy yml to job yml
      * request agent session from control center
      *
@@ -91,4 +84,9 @@ public interface JobService {
      * stop job
      */
     Job stopJob(String name, Integer buildNumber);
+
+    /**
+     * update job
+     */
+    Job update(Job job);
 }

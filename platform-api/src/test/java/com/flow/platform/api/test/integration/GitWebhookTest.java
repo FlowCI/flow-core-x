@@ -35,6 +35,7 @@ import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -71,7 +72,7 @@ public class GitWebhookTest extends TestBase {
     private SpringContext springContext;
 
     @Before
-    public void before() {
+    public void before() throws IOException {
         stubDemo();
     }
 

@@ -15,21 +15,20 @@
  */
 package com.flow.platform.api.service.job;
 
-import static com.flow.platform.api.domain.job.NodeStatus.*;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
+import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
 import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
-import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.events.JobStatusChangeEvent;
@@ -38,12 +37,10 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
@@ -51,19 +48,14 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
 import com.google.common.collect.Sets;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -102,9 +94,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     private YmlService ymlService;
-
-    @Autowired
-    private PlatformURL platformURL;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -243,61 +232,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         LOGGER.warn("not found cmdType, cmdType: %s", cmd.getType().toString());
         throw new NotFoundException("not found cmdType");
-    }
-
-
-    @Override
-    public String findNodeLog(String path, Integer number, Integer order) {
-        Job job = find(path, number);
-        NodeResult nodeResult = nodeResultService.find(job.getId(), order);
-        if (nodeResult == null) {
-            throw new IllegalParameterException("Illeal job id or step order number");
-        }
-
-        String cmdId = nodeResult.getCmdId();
-
-        if (Strings.isNullOrEmpty(cmdId)) {
-            throw new IllegalParameterException("The job node without cmd id");
-        }
-
-        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
-        stringBuilder.append("?cmdId=").append(HttpUtil.urlEncode(cmdId)).append("&index=").append(0);
-
-        ObjectWrapper<String> logContent = new ObjectWrapper<>();
-
-        HttpUtil.getResponseEntity(stringBuilder.toString(), entity -> {
-            try {
-                InputStream content = entity.getContent();
-                String log = readZipFile(content);
-                logContent.setInstance(log);
-            } catch (IOException e) {
-                throw new FlowException("Cannot unzip log file for " + cmdId, e);
-            }
-        });
-
-        return logContent.getInstance();
-    }
-
-    /**
-     * readZipFile
-     */
-    private String readZipFile(InputStream zippedStream) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(zippedStream);) {
-            StringBuilder content = new StringBuilder();
-
-            ZipEntry ze ;
-            byte[] buffer = new byte[2048];
-
-            while ((ze = zis.getNextEntry()) != null) {
-
-                int length = 0;
-                while ((length = zis.read(buffer)) > 0) {
-                    content.append(new String(buffer, 0, length, AppConfig.DEFAULT_CHARSET));
-                }
-            }
-
-            return content.toString();
-        }
     }
 
     /**
@@ -442,6 +376,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         return runningJob;
     }
 
+
+    @Override
+    public Job update(Job job) {
+        jobDao.update(job);
+        return job;
+    }
 
     /**
      * Update job status by root node result
