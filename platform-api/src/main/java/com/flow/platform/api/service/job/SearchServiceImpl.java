@@ -78,7 +78,7 @@ public class SearchServiceImpl implements SearchService {
             for (Job job : jobs) {
                 if (job.getNumber().toString().equals(words)) { // compare job number
                     copyJobs.add(job);
-                } else if (Strings.isNullOrEmpty(job.getEnv(GitEnvs.FLOW_GIT_BRANCH))) { //compare branch
+                } else if (job.getEnv(GitEnvs.FLOW_GIT_BRANCH) == words) { //compare branch
                     copyJobs.add(job);
                 }
             }
