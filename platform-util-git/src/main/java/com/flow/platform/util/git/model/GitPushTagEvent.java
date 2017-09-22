@@ -32,7 +32,7 @@ public class GitPushTagEvent extends GitEvent {
     public static String buildCompareId(GitPushTagEvent event) {
         if (event.getType() == GitEventType.PUSH) {
             String beforeShortcut = event.getBefore().substring(0, 12);
-            String afterShortcut = event.getBefore().substring(0, 12);
+            String afterShortcut = event.getAfter().substring(0, 12);
             return beforeShortcut + "..." + afterShortcut;
         }
 

@@ -39,7 +39,7 @@ import org.junit.Test;
 /**
  * @author yang
  */
-public class GithubHooksEventTest {
+public class GitHubHooksEventTest {
 
     @Test
     public void should_convert_to_push_event_obj() throws Throwable {
@@ -58,6 +58,8 @@ public class GithubHooksEventTest {
         Assert.assertEquals("40d0dd6e8e942643d794d7ed8d27610fb8729914", event.getAfter());
         Assert.assertEquals("23307997", event.getUserId());
         Assert.assertEquals("yang-guo-2016", event.getUsername());
+        Assert.assertEquals("5a1e8ee1007b...40d0dd6e8e94", event.getCompareId());
+        Assert.assertNotNull(event.getCompareUrl());
 
         // then: verify commit
         List<GitEventCommit> commits = event.getCommits();
@@ -96,6 +98,8 @@ public class GithubHooksEventTest {
         Assert.assertEquals("26d1d0fa6ee44a8f4e02250d13e84bf02722f5e7", event.getAfter());
         Assert.assertEquals("23307997", event.getUserId());
         Assert.assertEquals("yang-guo-2016", event.getUsername());
+        Assert.assertEquals("", event.getCompareId());
+        Assert.assertNotNull(event.getCompareUrl());
         Assert.assertEquals(0, event.getCommits().size());
     }
 
@@ -144,7 +148,7 @@ public class GithubHooksEventTest {
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {
-        URL resource = GitlabHooksEventTest.class.getClassLoader().getResource(classPath);
+        URL resource = GitLabHooksEventTest.class.getClassLoader().getResource(classPath);
         return Files.toString(new File(resource.getFile()), Charset.forName("UTF-8"));
     }
 }

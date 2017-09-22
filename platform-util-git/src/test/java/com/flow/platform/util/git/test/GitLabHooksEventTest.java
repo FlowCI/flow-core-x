@@ -38,7 +38,7 @@ import org.junit.Test;
 /**
  * @author yang
  */
-public class GitlabHooksEventTest {
+public class GitLabHooksEventTest {
 
     @Test
     public void should_convert_to_push_event_obj() throws Throwable {
@@ -131,7 +131,7 @@ public class GitlabHooksEventTest {
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {
-        URL resource = GitlabHooksEventTest.class.getClassLoader().getResource(classPath);
+        URL resource = GitLabHooksEventTest.class.getClassLoader().getResource(classPath);
         return Files.toString(new File(resource.getFile()), Charset.forName("UTF-8"));
     }
 }

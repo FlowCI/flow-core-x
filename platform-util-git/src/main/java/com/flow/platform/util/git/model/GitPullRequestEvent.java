@@ -37,6 +37,21 @@ public class GitPullRequestEvent extends GitEvent {
 
     private String status;
 
+    /**
+     * Html url for pr
+     */
+    private String url;
+
+    /**
+     * Username who submit this pr
+     */
+    private String submitter;
+
+    /**
+     * Username who merge this pr
+     */
+    private String mergedBy;
+
     public GitPullRequestEvent(GitSource gitSource, GitEventType type) {
         super(gitSource, type);
     }
@@ -95,5 +110,29 @@ public class GitPullRequestEvent extends GitEvent {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getSubmitter() {
+        return submitter;
+    }
+
+    public void setSubmitter(String submitter) {
+        this.submitter = submitter;
+    }
+
+    public String getMergedBy() {
+        return mergedBy;
+    }
+
+    public void setMergedBy(String mergedBy) {
+        this.mergedBy = mergedBy;
     }
 }
