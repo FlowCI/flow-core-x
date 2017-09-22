@@ -77,12 +77,11 @@ public class GitLabEvents {
         }
     }
 
-    /**
-     * GitLab MergeRequest only on opened state, the merge request it send PUSH event
-     */
     public static class MergeRequestAdaptor extends GitHookEventAdapter {
 
         public final static String STATE_OPEN = "opened";
+
+        public final static String STATE_CLOSE = "merged";
 
         private class RequestRoot {
 
@@ -156,9 +155,15 @@ public class GitLabEvents {
 
                 GitPullRequestEvent prEvent = new GitPullRequestEvent(gitSource, eventType);
 
-                // just open state since the close state from PUSH event..
                 if (Objects.equals(attrs.state, STATE_OPEN)) {
                     prEvent.setState(State.OPEN);
+                }
+                else if (Objects.equals(attrs.state, STATE_CLOSE)) {
+                    prEvent.setState(State.CLOSE);
+                    prEvent.setMergedBy(user.name);
+                }
+                else {
+                    throw new GitException("The pull request state of GitLab '" + attrs.state + "' not supported");
                 }
 
                 prEvent.setTitle(attrs.title);
@@ -167,7 +172,6 @@ public class GitLabEvents {
                 prEvent.setAction(attrs.action);
                 prEvent.setUrl(attrs.url);
                 prEvent.setSubmitter(user.name);
-                prEvent.setMergedBy("");
                 prEvent.setTarget(new GitPullRequestInfo());
                 prEvent.setSource(new GitPullRequestInfo());
 

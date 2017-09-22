@@ -107,13 +107,13 @@ public class GitWebhookTest extends TestBase {
     public void should_create_job_after_github_open_pr_webhook_trigger() throws Throwable {
         init_flow("git@github.com:flow-ci-plugin/for-testing.git");
 
-        MockHttpServletRequestBuilder createPr = post("/hooks/git/" + flowName)
+        MockHttpServletRequestBuilder openPr = post("/hooks/git/" + flowName)
             .contentType(MediaType.APPLICATION_JSON)
             .content(getResourceContent("github/pr_open_payload.json"))
             .header("x-github-event", "pull_request")
             .header("x-github-delivery", "29087180-8177-11e7-83a4-3b68852f0c9e");
 
-        Job job = mock_trigger_from_git(createPr);
+        Job job = mock_trigger_from_git(openPr);
         job = jobDao.get(job.getId());
 
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
@@ -172,6 +172,54 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals("c9ca9280a567...2d9b3a080c8f", job.getEnv(GitEnvs.FLOW_GIT_COMPARE_ID));
         Assert.assertEquals("https://gitlab.com/yang.guo/for-testing/compare/c9ca9280a567...2d9b3a080c8f",
             job.getEnv(GitEnvs.FLOW_GIT_COMPARE_URL));
+    }
+
+    @Test
+    public void should_create_job_after_gitlab_open_pr_webhook_trigger() throws Throwable {
+        init_flow("git@gitlab.com:yang.guo/for-testing.git");
+
+        // when: mock pr request from gitlab
+        MockHttpServletRequestBuilder openPr = post("/hooks/git/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getResourceContent("gitlab/pr_open_payload.json"))
+            .header("x-gitlab-event", "Merge Request Hook");
+
+        // then: should should be created
+        Job job = mock_trigger_from_git(openPr);
+        job = jobDao.get(job.getId());
+
+        // then: verify job env
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
+        Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
+        Assert.assertEquals("https://gitlab.com/yang.guo/for-testing/merge_requests/1",
+            job.getEnv(GitEnvs.FLOW_GIT_PR_URL));
+        Assert.assertEquals("yang.guo", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
+        Assert.assertEquals("Develop", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
+    }
+
+    @Test
+    public void should_create_job_after_gitlab_close_pr_webhook_trigger() throws Throwable {
+        init_flow("git@gitlab.com:yang.guo/for-testing.git");
+
+        // when: mock pr request from gitlab
+        MockHttpServletRequestBuilder openPr = post("/hooks/git/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getResourceContent("gitlab/pr_close_payload.json"))
+            .header("x-gitlab-event", "Merge Request Hook");
+
+        // then: should should be created
+        Job job = mock_trigger_from_git(openPr);
+        job = jobDao.get(job.getId());
+
+        // then: verify job env
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
+        Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
+        Assert.assertEquals("https://gitlab.com/yang.guo/for-testing/merge_requests/2",
+            job.getEnv(GitEnvs.FLOW_GIT_PR_URL));
+        Assert.assertEquals("yang.guo", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
+        Assert.assertEquals("Update README.md 1123", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
     }
 
     private void init_flow(String gitUrl) throws Throwable {

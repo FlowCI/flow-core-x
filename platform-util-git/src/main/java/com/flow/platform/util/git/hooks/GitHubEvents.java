@@ -177,9 +177,12 @@ public class GitHubEvents {
             if (Objects.equals(pullRequest.state, STATE_OPEN)) {
                 event.setState(State.OPEN);
             }
-
-            if (Objects.equals(pullRequest.state, STATE_CLOSE)) {
+            else if (Objects.equals(pullRequest.state, STATE_CLOSE)) {
                 event.setState(State.CLOSE);
+                event.setMergedBy(pullRequest.mergedBy.login);
+            }
+            else {
+                throw new GitException("The pull request state of GitHub '" + pullRequest.state + "' not supported");
             }
 
             event.setAction(mr.action);
@@ -188,12 +191,6 @@ public class GitHubEvents {
             event.setTitle(pullRequest.title);
             event.setUrl(pullRequest.htmlUrl);
             event.setSubmitter(pullRequest.user.login);
-
-            // merged by only for state closed
-            if (Objects.equals(pullRequest.state, STATE_CLOSE) && pullRequest.mergedBy != null) {
-                event.setMergedBy(pullRequest.mergedBy.login);
-            }
-
             event.setSource(new GitPullRequestInfo());
             event.setTarget(new GitPullRequestInfo());
 
