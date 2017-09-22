@@ -33,16 +33,6 @@ public class UserFlowServiceTest extends TestBase {
     private UserFlowService userFlowService;
 
     @Test
-    public void should_list_flow_by_user(){
-
-    }
-
-    @Test
-    public void should_list_user_by_flow(){
-
-    }
-
-    @Test
     public void should_assign_user_flow(){
 
         final String flowPath = "flow-integration";
@@ -69,15 +59,5 @@ public class UserFlowServiceTest extends TestBase {
         // then:
         usersForFlow = userFlowService.list(flowPath);
         Assert.assertEquals(0, usersForFlow.size());
-    }
-
-    @Test
-    public void should_unassign_flows_by_user(){
-
-    }
-
-    @Test
-    public void should_unassign_flow_by_user(){
-
     }
 }

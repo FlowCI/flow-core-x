@@ -339,6 +339,30 @@ public class FlowController extends NodeController {
         return nodeService.createOrUpdate(path, yml);
     }
 
+    /**
+     * @api {post} /flows/:root/flowAuthUsers
+     * @apiParam {String} root flow node name
+     * @apiParamExample {json} Request-Body:
+     *     {
+     *         	"emailList" : ["test1@fir.im", "hl@fir.im"]
+     *         	"flowPath": "flowPath"
+     *     }
+     * @apiGroup Flows
+     *
+     * @apiSuccessExample {list} Success-Response
+     *  [
+     *    {
+     *      email: "xxxx",
+     *      username: "xxxx",
+     *      flows: [
+     *        "aaa"
+     *      ]
+     *      createdAt: 15123123
+     *      updatedAt: 15123123
+     *    },
+     *    {}
+     *  ]
+     */
     @PostMapping("/{root}/flowAuthUsers")
     @WebSecurity(action = Actions.FLOW_AUTH)
     public List<User> flowAuthUsers(@RequestBody FlowAuthUser flowAuthUser){

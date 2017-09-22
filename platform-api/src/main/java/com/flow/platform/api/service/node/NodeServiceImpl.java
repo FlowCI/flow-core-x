@@ -275,7 +275,7 @@ public class NodeServiceImpl implements NodeService {
         return hooks;
     }
 
-    @Autowired
+    @Override
     public List<User> authUsers(List<String> emailList, String flowPath) {
         List<User> users = userDao.list(emailList);
         List<String> paths = new ArrayList<>();
