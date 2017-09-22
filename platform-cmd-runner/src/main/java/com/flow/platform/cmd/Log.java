@@ -31,9 +31,17 @@ public final class Log {
         this.content = content;
     }
 
+    public Log(Type type, String content, Integer count) {
+        this.type = type;
+        this.content = content;
+        this.number = count;
+    }
+
     private Type type;
 
     private String content;
+
+    private Integer number;
 
     public Type getType() {
         return type;
@@ -43,11 +51,15 @@ public final class Log {
         return content;
     }
 
+    public Integer getNumber() {
+        return number;
+    }
+
     @Override
     public String toString() {
         return "Log{" +
-                "type=" + type +
-                ", content='" + content + '\'' +
-                '}';
+            "type=" + type +
+            ", content='" + content + '\'' +
+            '}';
     }
 }
