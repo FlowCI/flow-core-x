@@ -157,6 +157,7 @@ public class GitLabEvents {
 
                 if (Objects.equals(attrs.state, STATE_OPEN)) {
                     prEvent.setState(State.OPEN);
+                    prEvent.setMergedBy("");
                 }
                 else if (Objects.equals(attrs.state, STATE_CLOSE)) {
                     prEvent.setState(State.CLOSE);
