@@ -17,10 +17,12 @@
 package com.flow.platform.api.domain.job;
 
 import com.flow.platform.api.domain.EnvObject;
+import com.flow.platform.util.git.model.GitEventType;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -28,6 +30,9 @@ import java.util.List;
  */
 
 public class Job extends EnvObject {
+
+    public final static EnumSet<JobStatus> FINISH_STATUS = EnumSet
+        .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.SUCCESS);
 
     private BigInteger id;
 
@@ -43,6 +48,9 @@ public class Job extends EnvObject {
     private String nodeName;
 
     @Expose
+    private GitEventType category = GitEventType.MANUAL;
+
+    @Expose
     private JobStatus status = JobStatus.CREATED;
 
     @Expose
@@ -50,6 +58,9 @@ public class Job extends EnvObject {
 
     @Expose
     private ZonedDateTime updatedAt;
+
+    @Expose
+    private String logPath;
 
     /**
      * The root node result for job detail
@@ -160,6 +171,22 @@ public class Job extends EnvObject {
 
     public void setChildrenResult(List<NodeResult> childrenResult) {
         this.childrenResult = childrenResult;
+    }
+
+    public GitEventType getCategory() {
+        return category;
+    }
+
+    public void setCategory(GitEventType category) {
+        this.category = category;
+    }
+
+    public String getLogPath() {
+        return logPath;
+    }
+
+    public void setLogPath(String logPath) {
+        this.logPath = logPath;
     }
 
     @Override

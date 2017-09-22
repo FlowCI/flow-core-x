@@ -18,12 +18,16 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.response.BooleanValue;
+import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
+import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -41,8 +45,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/jobs")
 public class JobController extends NodeController {
 
+    private final static Logger LOGGER = new Logger(JobController.class);
+
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private LogService logService;
 
     @ModelAttribute
     public void setLocale(@RequestParam(required = false) String locale) {
@@ -130,7 +139,7 @@ public class JobController extends NodeController {
     @PostMapping(path = "/{root}")
     public Job create() {
         String path = getNodePathFromUrl();
-        return jobService.createJob(path);
+        return jobService.createJob(path, GitEventType.MANUAL, null);
     }
 
     /**
@@ -242,6 +251,30 @@ public class JobController extends NodeController {
     }
 
     /**
+     * @api {get} /jobs/:root/:buildNumber/:stepOrder/log Get log
+     * @apiParam {String} root flow node path
+     * @apiParam {String} buildNumber job build number
+     * @apiParam {String} stepOrder step Order
+     * @apiGroup Jobs
+     * @apiDescription Get job log
+     *
+     * @apiSuccessExample {string} Success-Response
+     *
+     *  log content
+     */
+    @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
+    public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) {
+        String path = getNodePathFromUrl();
+        try {
+            return logService.findNodeLog(path, buildNumber, stepOrder);
+        } catch (Throwable e){
+            LOGGER.warn("log not found: %s", e.getMessage());
+            return StringUtil.EMPTY;
+        }
+    }
+
+
+    /**
      * @api {post} /jobs/:root/:buildNumber/stop Stop
      * @apiParam {String} root flow node path
      * @apiParam {String} buildNumber job build number
@@ -280,4 +313,24 @@ public class JobController extends NodeController {
     public Collection<Job> latestStatus(@RequestBody List<String> paths) {
         return jobService.list(paths, true);
     }
+
+
+    /**
+     * @api {get} /jobs/:buildNumber/log/download download job full log
+     * @apiParam {buildNumber} build number
+     * @apiGroup Jobs
+     * @apiDescription build number for job
+     *
+     * @apiSuccessExample {json} Success-Response
+     *   job.log file
+     */
+    @GetMapping(path = "/{root}/{buildNumber}/log/download")
+    public org.springframework.core.io.Resource jobLog(@PathVariable Integer buildNumber,
+        HttpServletResponse httpResponse) {
+        String path = getNodePathFromUrl();
+            httpResponse.setHeader("Content-Disposition",
+                String.format("attachment; filename=%s", String.format("%s-%s.zip", path, buildNumber)));
+        return logService.findJobLog(path, buildNumber);
+    }
+
 }

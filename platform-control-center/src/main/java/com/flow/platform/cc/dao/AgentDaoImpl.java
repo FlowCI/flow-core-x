@@ -57,7 +57,7 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
 
     @Override
     public Agent get(final AgentPath agentPath) {
-        Agent agent = (Agent) execute(session -> (Agent) session
+        Agent agent = execute(session -> (Agent) session
             .createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
             .setParameter("zone", agentPath.getZone())
             .setParameter("name", agentPath.getName())
@@ -67,9 +67,18 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
 
     @Override
     public Agent get(final String sessionId) {
-        Agent agent = (Agent) execute(
+        Agent agent = execute(
             session -> (Agent) session.createQuery("from Agent where sessionId = :sessionId")
                 .setParameter("sessionId", sessionId)
+                .uniqueResult());
+        return agent;
+    }
+
+    @Override
+    public Agent getByToken(String token) {
+        Agent agent = execute(
+            session -> (Agent) session.createQuery("from Agent where token = :token")
+                .setParameter("token", token)
                 .uniqueResult());
         return agent;
     }

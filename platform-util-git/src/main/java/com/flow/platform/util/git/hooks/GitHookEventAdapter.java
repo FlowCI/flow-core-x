@@ -21,8 +21,6 @@ import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.Gson;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * @author yang
@@ -44,12 +42,4 @@ public abstract class GitHookEventAdapter {
     }
 
     public abstract GitEvent convert(String json) throws GitException;
-
-    static Map toMap(String json) {
-        return GSON.fromJson(json, LinkedHashMap.class);
-    }
-
-    static Integer toInteger(String value) {
-        return new Double(value).intValue();
-    }
 }

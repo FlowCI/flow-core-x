@@ -117,9 +117,11 @@ public class HttpUtil {
         return get(url, null, DEFAULT_RETRY_TIME);
     }
 
-    public static String get(final String url,
-                             final Map<String, String> headers,
-                             final int retry) {
+    public static void getResponseEntity(final String url, final Consumer<HttpEntity> entityConsumer) {
+        getHttpEntity(url, null, DEFAULT_RETRY_TIME, entityConsumer);
+    }
+
+    public static String get(final String url, final Map<String, String> headers, final int retry) {
         HttpGet httpGet = new HttpGet(url);
 
         if (headers != null) {
@@ -131,6 +133,21 @@ public class HttpUtil {
         final ObjectWrapper<String> res = new ObjectWrapper<>();
         exec(httpGet, retry, res::setInstance);
         return res.getInstance();
+    }
+
+    public static void getHttpEntity(final String url,
+                                     final Map<String, String> headers,
+                                     final int retry,
+                                     final Consumer<HttpEntity> entityConsumer) {
+        HttpGet httpGet = new HttpGet(url);
+
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                httpGet.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
+        execWithEntity(httpGet, retry, entityConsumer);
     }
 
     /**
@@ -148,6 +165,7 @@ public class HttpUtil {
         return res.getInstance();
     }
 
+    // TODO: optimize consumer
     private static void exec(HttpUriRequest httpUriRequest, Integer tryTimes, Consumer<String> consumer) {
         if (tryTimes == 0) {
             consumer.accept(null);
@@ -180,6 +198,39 @@ public class HttpUtil {
                     httpUriRequest.getURI().toString(), httpUriRequest.getMethod(), e.toString()), e);
 
             exec(httpUriRequest, tryTimes - 1, consumer);
+        }
+    }
+
+    private static void execWithEntity(HttpUriRequest httpUriRequest, Integer tryTimes, Consumer<HttpEntity> consumer) {
+        if (tryTimes == 0) {
+            consumer.accept(null);
+            return;
+        }
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            CloseableHttpResponse response = httpClient.execute(httpUriRequest);
+
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 200) {
+                consumer.accept(response.getEntity());
+                return;
+            }
+
+            execWithEntity(httpUriRequest, tryTimes - 1, consumer);
+
+        } catch (UnsupportedEncodingException | ClientProtocolException e) {
+            // JSON data or http protocol exception, exit directly
+            LOGGER.warn(String
+                .format("url: %s, method: %s, UnsupportedEncodingException | ClientProtocolException e: %s",
+                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod(), e.toString()), e);
+
+            execWithEntity(httpUriRequest, tryTimes - 1, consumer);
+        } catch (IOException e) {
+            LOGGER.warn(String
+                .format("url: %s, method: %s, IOException e: %s",
+                    httpUriRequest.getURI().toString(), httpUriRequest.getMethod(), e.toString()), e);
+
+            execWithEntity(httpUriRequest, tryTimes - 1, consumer);
         }
     }
 }

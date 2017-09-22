@@ -17,12 +17,10 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.git.GitEventDataExtractor;
+import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
-import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
@@ -35,7 +33,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,12 +43,9 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/hooks/git")
-public class GitWebHookController {
+public class GitWebHookController extends NodeController {
 
     private final static Logger LOGGER = new Logger(GitWebHookController.class);
-
-    @Autowired
-    private NodeService nodeService;
 
     @Autowired
     private YmlService ymlService;
@@ -62,10 +56,9 @@ public class GitWebHookController {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
-    @PostMapping(path = "/{flowname}")
-    public void onEventReceived(@PathVariable("flowname") String flowName,
-                                @RequestHeader HttpHeaders headers,
-                                HttpServletRequest request) {
+    @PostMapping(path = "/{root}")
+    public void onEventReceived(@RequestHeader HttpHeaders headers, HttpServletRequest request) {
+        final String path = getNodePathFromUrl();
 
         Map<String, String> headerAsMap = headers.toSingleValueMap();
         String body;
@@ -76,19 +69,19 @@ public class GitWebHookController {
         }
 
         try {
-            final String path = PathUtil.build(flowName);
             final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
             LOGGER.trace("Webhook received: %s", hookEvent.toString());
 
-            // extract git info from event and set to flow env
-            nodeService.setFlowEnv(path, GitEventDataExtractor.extract(hookEvent));
+            // extract git related env variables from event
+            final Map<String, String> gitEnvs = GitEventDataExtractor.extract(hookEvent);
 
             ymlService.loadYmlContent(path, yml -> {
                 LOGGER.trace("Yml content has been loaded for path : " + path);
 
-                // start job
                 try {
-                    Job job = jobService.createJob(path);
+                    // start job
+                    Job job = jobService.createJob(path, hookEvent.getType(), gitEnvs);
+
                     applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
                 } catch (Throwable e) {
                     LOGGER.warn("Fail to create job for path : " + path);

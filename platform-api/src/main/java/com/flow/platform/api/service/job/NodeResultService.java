@@ -42,6 +42,11 @@ public interface NodeResultService {
     NodeResult find(String path, BigInteger jobId);
 
     /**
+     * Get node by job id and step order
+     */
+    NodeResult find(BigInteger jobId, Integer stepOrder);
+
+    /**
      * List all node results for job
      */
     List<NodeResult> list(Job job, boolean childrenOnly);
@@ -55,4 +60,6 @@ public interface NodeResultService {
      * Update node result and recursive bottom up update parent node result by cmd
      */
     NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd);
+
+    NodeResult update(NodeResult nodeResult);
 }

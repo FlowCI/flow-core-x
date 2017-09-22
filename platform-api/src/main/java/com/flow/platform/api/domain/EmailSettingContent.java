@@ -39,7 +39,7 @@ public class EmailSettingContent extends SettingContent {
     private String password;
 
     @Expose
-    private boolean isAuthenticated;
+    private boolean isAuthenticated = true;
 
     public EmailSettingContent(String smtpUrl, Integer smtpPort, String sender) {
         super.setType(MessageType.EMAIl);
@@ -47,6 +47,8 @@ public class EmailSettingContent extends SettingContent {
         this.smtpPort = smtpPort;
         this.sender = sender;
     }
+
+
 
     public String getSmtpUrl() {
         return smtpUrl;

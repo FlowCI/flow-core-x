@@ -16,12 +16,12 @@
 
 package com.flow.platform.util.git.test;
 
-import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
-import com.flow.platform.util.git.hooks.GithubEvents.Hooks;
+import com.flow.platform.util.git.hooks.GitHubEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
@@ -39,7 +39,7 @@ import org.junit.Test;
 /**
  * @author yang
  */
-public class GithubHooksEventTest {
+public class GitHubHooksEventTest {
 
     @Test
     public void should_convert_to_push_event_obj() throws Throwable {
@@ -49,18 +49,20 @@ public class GithubHooksEventTest {
         dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
 
         // when:
-        GitPushTagEvent event = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, pushEventContent);
-        Assert.assertNotNull(event);
+        GitPushTagEvent pushEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, pushEventContent);
+        Assert.assertNotNull(pushEvent);
 
         // then: verify event
-        Assert.assertEquals("refs/heads/master", event.getRef());
-        Assert.assertEquals("5a1e8ee1007b742fba00da1f66b0cc5e3bc5f024", event.getBefore());
-        Assert.assertEquals("40d0dd6e8e942643d794d7ed8d27610fb8729914", event.getAfter());
-        Assert.assertEquals("23307997", event.getUserId());
-        Assert.assertEquals("yang-guo-2016", event.getUsername());
+        Assert.assertEquals("refs/heads/master", pushEvent.getRef());
+        Assert.assertEquals("5a1e8ee1007b742fba00da1f66b0cc5e3bc5f024", pushEvent.getBefore());
+        Assert.assertEquals("40d0dd6e8e942643d794d7ed8d27610fb8729914", pushEvent.getAfter());
+        Assert.assertEquals("23307997", pushEvent.getUserId());
+        Assert.assertEquals("yang-guo-2016", pushEvent.getUsername());
+        Assert.assertEquals("5a1e8ee1007b...40d0dd6e8e94", pushEvent.getCompareId());
+        Assert.assertTrue(pushEvent.getCompareUrl().endsWith("compare/" + pushEvent.getCompareId()));
 
         // then: verify commit
-        List<GitEventCommit> commits = event.getCommits();
+        List<GitEventCommit> commits = pushEvent.getCommits();
         Assert.assertNotNull(commits);
         Assert.assertEquals(1, commits.size());
 
@@ -83,28 +85,30 @@ public class GithubHooksEventTest {
         dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
 
         // when:
-        GitPushTagEvent event = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, tagEventContent);
-        Assert.assertNotNull(event);
+        GitPushTagEvent tagEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, tagEventContent);
+        Assert.assertNotNull(tagEvent);
 
         // then:
-        Assert.assertEquals(GitSource.GITHUB, event.getGitSource());
-        Assert.assertEquals(GitEventType.TAG, event.getType());
+        Assert.assertEquals(GitSource.GITHUB, tagEvent.getGitSource());
+        Assert.assertEquals(GitEventType.TAG, tagEvent.getType());
 
-        Assert.assertEquals("refs/tags/v1.6", event.getRef());
-        Assert.assertEquals("refs/heads/developer", event.getBaseRef());
-        Assert.assertEquals("0000000000000000000000000000000000000000", event.getBefore());
-        Assert.assertEquals("26d1d0fa6ee44a8f4e02250d13e84bf02722f5e7", event.getAfter());
-        Assert.assertEquals("23307997", event.getUserId());
-        Assert.assertEquals("yang-guo-2016", event.getUsername());
-        Assert.assertEquals(0, event.getCommits().size());
+        Assert.assertEquals("refs/tags/v1.6", tagEvent.getRef());
+        Assert.assertEquals("refs/heads/developer", tagEvent.getBaseRef());
+        Assert.assertEquals("0000000000000000000000000000000000000000", tagEvent.getBefore());
+        Assert.assertEquals("26d1d0fa6ee44a8f4e02250d13e84bf02722f5e7", tagEvent.getAfter());
+        Assert.assertEquals("23307997", tagEvent.getUserId());
+        Assert.assertEquals("yang-guo-2016", tagEvent.getUsername());
+        Assert.assertEquals("26d1d0fa6ee4...1.6", tagEvent.getCompareId());
+        Assert.assertTrue(tagEvent.getCompareUrl().endsWith("compare/v1.6"));
+        Assert.assertEquals(0, tagEvent.getCommits().size());
     }
 
     @Test
-    public void should_convert_to_mr_event_obj() throws Throwable {
+    public void should_convert_to_pr_event_obj() throws Throwable {
         // given:
-        String mrEventContent = loadWebhookSampleJson("github/webhook_mr.json");
+        String mrEventContent = loadWebhookSampleJson("github/webhook_pr_close.json");
         Map<String, String> dummyHeader = new HashMap<>();
-        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_MR);
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PR);
 
         // when:
         GitPullRequestEvent event = (GitPullRequestEvent) GitHookEventFactory.build(dummyHeader, mrEventContent);
@@ -113,9 +117,12 @@ public class GithubHooksEventTest {
         // then: verify merge request event
         Assert.assertEquals(134584493, event.getRequestId().intValue());
         Assert.assertEquals("closed", event.getAction());
-        Assert.assertEquals("closed", event.getStatus());
+        Assert.assertEquals(State.CLOSE, event.getState());
         Assert.assertEquals("Update settings.gradle title", event.getTitle());
         Assert.assertEquals("hello desc", event.getDescription());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test/pull/7", event.getUrl());
+        Assert.assertEquals("yang-guo-2016", event.getSubmitter());
+        Assert.assertEquals("yang-guo-2016", event.getMergedBy());
 
         // then: verify source info
         GitPullRequestInfo source = event.getSource();
@@ -132,19 +139,8 @@ public class GithubHooksEventTest {
         Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", source.getSha());
     }
 
-    @Test(expected = GitException.class)
-    public void should_raise_exception_when_mr_action_not_closed() throws Throwable {
-        // when:
-        String mrEventContent = loadWebhookSampleJson("github/webhook_mr_invalid.json");
-        Map<String, String> dummyHeader = new HashMap<>();
-        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_MR);
-
-        // then:
-        GitHookEventFactory.build(dummyHeader, mrEventContent);
-    }
-
     private static String loadWebhookSampleJson(String classPath) throws IOException {
-        URL resource = GitlabHooksEventTest.class.getClassLoader().getResource(classPath);
+        URL resource = GitLabHooksEventTest.class.getClassLoader().getResource(classPath);
         return Files.toString(new File(resource.getFile()), Charset.forName("UTF-8"));
     }
 }

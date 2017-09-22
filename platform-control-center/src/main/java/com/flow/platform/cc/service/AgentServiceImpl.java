@@ -19,8 +19,10 @@ package com.flow.platform.cc.service;
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
@@ -34,8 +36,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -66,7 +70,13 @@ public class AgentServiceImpl implements AgentService {
     private TaskConfig taskConfig;
 
     @Autowired
+    private AgentSettings agentSettings;
+
+    @Autowired
     private BlockingQueue<AgentPath> agentReportQueue;
+
+    @Value("${agent.secret_key}")
+    private String secretKey;
 
     @Override
     public void reportOnline(String zone, Set<String> agents) {
@@ -110,7 +120,7 @@ public class AgentServiceImpl implements AgentService {
         if (Strings.isNullOrEmpty(zone)) {
             return agentDao.list();
         }
-        return listForOnline(zone);
+        return agentDao.list(zone, "createdDate");
     }
 
     @Override
@@ -161,5 +171,51 @@ public class AgentServiceImpl implements AgentService {
         }
 
         LOGGER.traceMarker("sessionTimeoutTask", "end");
+    }
+
+    @Override
+    public Agent create(AgentPath agentPath) {
+        Agent agent = agentDao.get(agentPath);
+        if (agent != null) {
+            throw new IllegalParameterException("agent token is dup");
+        }
+
+        agent = new Agent(agentPath);
+        agent.setCreatedDate(DateUtil.now());
+        agent.setUpdatedDate(DateUtil.now());
+        agent.setStatus(AgentStatus.OFFLINE);
+
+        //random token
+        agent.setToken(UUID.randomUUID().toString());
+        agentDao.save(agent);
+
+        return agent;
+    }
+
+    @Override
+    public String refreshToken(AgentPath agentPath){
+        Agent agent = agentDao.get(agentPath);
+        if (agent != null) {
+            throw new IllegalParameterException("agent token is dup");
+        }
+
+        //random token
+        agent.setToken(UUID.randomUUID().toString());
+        agentDao.save(agent);
+
+        return agent.getToken();
+    }
+
+    @Override
+    public AgentSettings settings(String token) {
+        Agent agent = agentDao.getByToken(token);
+
+        // validate token
+        if (agent == null) {
+            throw new IllegalParameterException("Illegal agent token");
+        }
+
+        agentSettings.setAgentPath(agent.getPath());
+        return agentSettings;
     }
 }

@@ -55,10 +55,7 @@ public class Cmd extends CmdBase {
      */
     private String id;
 
-    /**
-     * Path for full log
-     */
-    private List<String> logPaths = new ArrayList<>(5);
+    private String logPath;
 
     /**
      * Retry time if cmd with cmd queue
@@ -99,13 +96,13 @@ public class Cmd extends CmdBase {
     public void setId(String id) {
         this.id = id;
     }
-
-    public List<String> getLogPaths() {
-        return logPaths;
+    
+    public String getLogPath() {
+        return logPath;
     }
 
-    public void setLogPaths(List<String> logPaths) {
-        this.logPaths = logPaths;
+    public void setLogPath(String logPath) {
+        this.logPath = logPath;
     }
 
     public Integer getRetry() {

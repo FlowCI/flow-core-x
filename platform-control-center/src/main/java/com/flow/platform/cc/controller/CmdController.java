@@ -23,6 +23,7 @@ import com.flow.platform.domain.*;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.google.common.collect.Range;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -148,7 +149,8 @@ public class CmdController {
         }
 
         try {
-            Path filePath = Paths.get(cmd.getLogPaths().get(index));
+            Path filePath = Paths.get(cmd.getLogPath());
+
             FileSystemResource resource = new FileSystemResource(filePath.toFile());
             httpResponse.setHeader("Content-Disposition",
                 String.format("attachment; filename=%s", filePath.getFileName().toString()));

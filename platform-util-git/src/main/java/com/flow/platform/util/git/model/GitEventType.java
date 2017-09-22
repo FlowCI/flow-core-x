@@ -21,13 +21,13 @@ package com.flow.platform.util.git.model;
  */
 public enum GitEventType {
 
+    MANUAL,
+
     PING,
 
     PUSH,
 
-    PR, // open pull request
-
-    MR, // merge request
+    PR, // pull request
 
     TAG;
 }

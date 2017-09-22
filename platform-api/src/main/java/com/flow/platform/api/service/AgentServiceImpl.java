@@ -22,14 +22,18 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.util.PlatformURL;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import com.google.gson.JsonSyntaxException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -113,5 +117,33 @@ public class AgentServiceImpl implements AgentService {
             LOGGER.warnMarker("shutdown", "Illegal shutdown state : " + e.getMessage());
             return false;
         }
+    }
+
+    @Override
+    public Agent create(AgentPath agentPath) {
+        try {
+            String agentJson = HttpUtil.post(platformURL.getAgentTokenUrl(), agentPath.toJson());
+
+            if (Strings.isNullOrEmpty(agentJson)) {
+                throw new FlowException("Unable to create agent via control center");
+            }
+
+            return Agent.parse(agentJson, Agent.class);
+
+        } catch (UnsupportedEncodingException | JsonSyntaxException e) {
+            throw new IllegalStatusException("Unable to create agent", e);
+        }
+    }
+
+    @Override
+    public AgentSettings settings(String token) {
+        String url = platformURL.getAgentDetailUrl() + "?" + "token=" + token;
+        String settingsJson = HttpUtil.get(url);
+
+        if (Strings.isNullOrEmpty(settingsJson)) {
+            throw new IllegalStatusException("Unable to get agent settings from control center");
+        }
+
+        return AgentSettings.parse(settingsJson, AgentSettings.class);
     }
 }

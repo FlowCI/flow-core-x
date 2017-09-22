@@ -9,4 +9,4 @@
 # docker pull rabbitmq:3.6
 
 docker run -d -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 mysql:5.6
-docker run -d --hostname flow-rabbit -p 5672:5672 rabbitmq:3.6
+docker run -d --hostname flow-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3.6-management

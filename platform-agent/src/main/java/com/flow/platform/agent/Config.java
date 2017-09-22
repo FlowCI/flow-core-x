@@ -22,6 +22,7 @@ import com.flow.platform.util.zk.ZKClient;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.http.client.methods.HttpGet;
 
 /**
  * @author gy@fir.im
@@ -146,5 +147,26 @@ public class Config {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static AgentSettings loadAgentConfig(String baseUrl, String token) {
+        String url = new StringBuilder(baseUrl)
+            .append("/agents/settings")
+            .append("?token=")
+            .append(token).toString();
+
+        HttpGet httpGet = new HttpGet(url);
+        AgentSettings agentSettings = null;
+
+        try {
+            String response = ReportManager
+                .httpSend(httpGet, 5, "load agent setting success", "get agent setting error");
+
+            agentSettings = Jsonable.parse(response, AgentSettings.class);
+        } catch (Throwable throwable) {
+            new RuntimeException(String.format("get agent setting error - %s", throwable));
+        }
+
+        return agentSettings;
     }
 }

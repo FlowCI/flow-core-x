@@ -21,6 +21,7 @@ import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.*;
+import java.io.UnsupportedEncodingException;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -28,6 +29,7 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -62,10 +64,10 @@ public class AgentControllerTest extends TestBase {
 
         Thread.sleep(1000);
         // when: send get request
-        MvcResult result = this.mockMvc.perform(get("/agent/list").param("zone", zoneName))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult result = this.mockMvc.perform(get("/agents/list").param("zone", zoneName))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
 
         // then:
         String json = result.getResponse().getContentAsString();
@@ -92,16 +94,72 @@ public class AgentControllerTest extends TestBase {
         Agent agentObj = new Agent(zoneName, agentName);
         agentObj.setStatus(AgentStatus.BUSY);
 
-        MockHttpServletRequestBuilder content = post("/agent/report")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(gsonConfig.toJson(agentObj));
+        MockHttpServletRequestBuilder content = post("/agents/report")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(gsonConfig.toJson(agentObj));
 
         this.mockMvc.perform(content)
-                .andDo(print())
-                .andExpect(status().isOk());
+            .andDo(print())
+            .andExpect(status().isOk());
 
         // then: check status from agent service
         Agent loaded = agentService.find(agentObj.getPath());
         Assert.assertEquals(AgentStatus.BUSY, loaded.getStatus());
+    }
+
+    @Test
+    public void should_create_agent_with_token_and_enable_to_get_setting_by_token() throws Exception {
+        // given:
+        AgentPath agentPath = new AgentPath("default", "test");
+
+        // when: create agent
+        MockHttpServletRequestBuilder content = post("/agents/create")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(agentPath.toJson());
+
+        MvcResult result = this.mockMvc.perform(content)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then: verify agent been created with token
+        String agentJson = result.getResponse().getContentAsString();
+        Assert.assertNotNull(agentJson);
+
+        Agent created = Agent.parse(agentJson, Agent.class);
+        Assert.assertNotNull(created);
+        Assert.assertNotNull(created.getToken());
+
+        // when: to get agent settings by token
+        result = this.mockMvc.perform(get("/agents/settings").param("token", created.getToken()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then:
+        String settingsJson = result.getResponse().getContentAsString();
+
+        AgentSettings agentSettings = AgentSettings.parse(settingsJson, AgentSettings.class);
+        Assert.assertNotNull(agentSettings);
+        Assert.assertEquals("default", agentSettings.getAgentPath().getZone());
+        Assert.assertEquals("test", agentSettings.getAgentPath().getName());
+    }
+
+    @Test
+    public void should_4xx_when_get_agent_settings_via_invalid_token() throws Exception {
+        MvcResult mvcResult = this.mockMvc.perform(get("/agents/settings").param("token", "xxxxxxx"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+    }
+
+    @Test
+    public void should_4xx_when_create_agent_with_invalid_zone_name() throws Exception {
+        AgentPath agentPath = new AgentPath("", "test");
+
+        MockHttpServletRequestBuilder content = post("/agents/create")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(agentPath.toJson());
+
+        MvcResult result = this.mockMvc.perform(content)
+            .andExpect(status().isBadRequest())
+            .andReturn();
     }
 }

@@ -17,10 +17,11 @@
 package com.flow.platform.util.git.test;
 
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
-import com.flow.platform.util.git.hooks.GitlabEvents.Hooks;
+import com.flow.platform.util.git.hooks.GitLabEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
@@ -38,7 +39,7 @@ import org.junit.Test;
 /**
  * @author yang
  */
-public class GitlabHooksEventTest {
+public class GitLabHooksEventTest {
 
     @Test
     public void should_convert_to_push_event_obj() throws Throwable {
@@ -60,6 +61,8 @@ public class GitlabHooksEventTest {
         Assert.assertEquals("refs/heads/master", pushEvent.getRef());
         Assert.assertEquals(4, Integer.parseInt(pushEvent.getUserId()));
         Assert.assertEquals("John Smith", pushEvent.getUsername());
+        Assert.assertEquals("95790bf891e7...da1560886d4f", pushEvent.getCompareId());
+        Assert.assertTrue(pushEvent.getCompareUrl().endsWith("compare/" + pushEvent.getCompareId()));
 
         // then: verify push commit info
         List<GitEventCommit> commits = pushEvent.getCommits();
@@ -98,14 +101,16 @@ public class GitlabHooksEventTest {
         Assert.assertEquals("John Smith", tagEvent.getUsername());
         Assert.assertEquals(0, tagEvent.getCommits().size());
         Assert.assertEquals("hello test", tagEvent.getMessage());
+        Assert.assertEquals("82b3d5ae55f7...1.0.0", tagEvent.getCompareId());
+        Assert.assertTrue(tagEvent.getCompareUrl().endsWith("compare/" + tagEvent.getCompareId()));
     }
 
     @Test
     public void should_convert_to_pr_event_obj() throws Throwable {
         // given:
-        String prEventContent = loadWebhookSampleJson("gitlab/webhook_mr.json");
+        String prEventContent = loadWebhookSampleJson("gitlab/webhook_pr_open.json");
         Map<String, String> mockHeader = new HashMap<>();
-        mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_MR);
+        mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PR);
 
         // when:
         GitPullRequestEvent mrEvent = (GitPullRequestEvent) GitHookEventFactory.build(mockHeader, prEventContent);
@@ -113,12 +118,15 @@ public class GitlabHooksEventTest {
 
         // then:
         Assert.assertEquals(GitSource.GITLAB, mrEvent.getGitSource());
-        Assert.assertEquals(GitEventType.MR, mrEvent.getType());
+        Assert.assertEquals(GitEventType.PR, mrEvent.getType());
 
         Assert.assertEquals(99, mrEvent.getRequestId().intValue());
         Assert.assertEquals("MS-Viewport", mrEvent.getTitle());
-        Assert.assertEquals("opened", mrEvent.getStatus());
+        Assert.assertEquals(State.OPEN, mrEvent.getState());
         Assert.assertEquals("open", mrEvent.getAction());
+        Assert.assertEquals("http://example.com/diaspora/merge_requests/1", mrEvent.getUrl());
+        Assert.assertEquals("Administrator", mrEvent.getSubmitter());
+        Assert.assertEquals("", mrEvent.getMergedBy());
 
         GitPullRequestInfo target = mrEvent.getTarget();
         Assert.assertEquals("master", target.getBranch());
@@ -131,7 +139,7 @@ public class GitlabHooksEventTest {
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {
-        URL resource = GitlabHooksEventTest.class.getClassLoader().getResource(classPath);
+        URL resource = GitLabHooksEventTest.class.getClassLoader().getResource(classPath);
         return Files.toString(new File(resource.getFile()), Charset.forName("UTF-8"));
     }
 }

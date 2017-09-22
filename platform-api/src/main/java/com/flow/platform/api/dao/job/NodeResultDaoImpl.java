@@ -61,6 +61,15 @@ public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult
     }
 
     @Override
+    public NodeResult get(BigInteger jobId, Integer stepOrder) {
+        return execute(session -> session
+            .createQuery("from NodeResult where key.jobId = :jobId and order = :stepOrder", NodeResult.class)
+            .setParameter("jobId", jobId)
+            .setParameter("stepOrder", stepOrder)
+            .uniqueResult());
+    }
+
+    @Override
     public List<NodeResult> list(BigInteger jobId) {
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();

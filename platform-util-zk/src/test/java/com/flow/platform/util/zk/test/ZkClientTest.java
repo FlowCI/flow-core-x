@@ -72,6 +72,11 @@ public class ZkClientTest {
     }
 
     @Test
+    public void should_return_false_if_node_not_exist() throws Throwable {
+        Assert.assertFalse(zkClient.exist("/hello/not-exit"));
+    }
+
+    @Test
     public void should_create_and_delete_zk_node() throws Throwable {
         // init:
         String path1 = "/flow-test";

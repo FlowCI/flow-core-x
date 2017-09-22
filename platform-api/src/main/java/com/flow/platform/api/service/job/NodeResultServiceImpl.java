@@ -17,6 +17,7 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.NodeResultDao;
+import com.flow.platform.api.domain.envs.EnvKey;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;
@@ -37,6 +38,7 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,6 +82,8 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         // save empty node result for root node
         NodeResult rootResult = createNodeResult(job, nodeTree, nodeTree.root());
         rootResult.setOrder(order);
+        fillRootResultOutputsFromJob(job, rootResult);
+
         nodeResultDao.save(rootResult);
         resultList.add(rootResult);
 
@@ -89,6 +93,11 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
     @Override
     public NodeResult find(String path, BigInteger jobId) {
         return nodeResultDao.get(new NodeResultKey(jobId, path));
+    }
+
+    @Override
+    public NodeResult find(BigInteger jobId, Integer stepOrder) {
+        return nodeResultDao.get(jobId, stepOrder);
     }
 
     @Override
@@ -140,6 +149,27 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         return currentResult;
     }
 
+    @Override
+    public NodeResult update(NodeResult nodeResult) {
+        nodeResultDao.update(nodeResult);
+        return nodeResult;
+    }
+
+    /**
+     * Find env variables which should write to root result output
+     */
+    private void fillRootResultOutputsFromJob(Job job, NodeResult rootNodeResult) {
+        for (Map.Entry<String, String> entry : job.getEnvs().entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            if (EnvKey.FOR_OUTPUTS.contains(key)) {
+                rootNodeResult.getOutputs().put(key, value);
+            }
+        }
+    }
+
+
     private NodeResult createNodeResult(Job job, NodeTree nodeTree, Node node) {
         NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());
 
@@ -169,7 +199,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         }
 
         currentResult.setStatus(newStatus);
-        currentResult.setLogPaths(cmd.getLogPaths());
+        currentResult.setLogPath(cmd.getLogPath());
 
         CmdResult cmdResult = cmd.getCmdResult();
         if (cmdResult != null) {

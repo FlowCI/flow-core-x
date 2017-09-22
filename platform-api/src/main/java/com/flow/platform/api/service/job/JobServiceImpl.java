@@ -15,8 +15,8 @@
  */
 package com.flow.platform.api.service.job;
 
-import static com.flow.platform.api.domain.job.NodeStatus.*;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
+import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
 import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
@@ -26,9 +26,9 @@ import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.events.JobStatusChangeEvent;
@@ -48,11 +48,13 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -122,12 +124,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         if (latestOnly) {
             jobDao.latestByPath(paths);
         }
-
         return jobDao.listByPath(paths);
     }
 
     @Override
-    public Job createJob(String path) {
+    public Job createJob(String path, GitEventType eventType, Map<String, String> envs) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
@@ -154,10 +155,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
+        job.setCategory(eventType);
 
         // setup job env variables
-        job.putEnv(JobEnvs.JOB_BUILD_NUMBER, job.getNumber().toString());
+        job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
+        job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
+
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
+        EnvUtil.merge(envs, job.getEnvs(), true);
 
         //save job
         jobDao.save(job);
@@ -173,6 +178,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // to create agent session for job
         String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+
         job.setSessionId(sessionId);
         updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
         return job;
@@ -283,6 +289,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // start run flow
         job.setSessionId(cmd.getSessionId());
+
+        job.putEnv(JobEnvs.FLOW_JOB_AGENT_INFO, cmd.getAgentPath().toString());
+
         updateJobStatusAndSave(job, JobStatus.RUNNING);
 
         run(tree.first(), job);
@@ -365,6 +374,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         return runningJob;
+    }
+
+
+    @Override
+    public Job update(Job job) {
+        jobDao.update(job);
+        return job;
     }
 
     /**

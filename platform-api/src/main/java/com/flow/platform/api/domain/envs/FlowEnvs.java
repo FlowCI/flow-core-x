@@ -32,6 +32,11 @@ public enum FlowEnvs implements EnvKey {
     FLOW_YML_STATUS,
 
     /**
+     * Indicate deploy key name
+     */
+    FLOW_DEPLOY_KEY_NAME,
+
+    /**
      * For yml error message while loading yml from git
      */
     FLOW_YML_ERROR_MSG;

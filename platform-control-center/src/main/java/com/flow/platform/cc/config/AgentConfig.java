@@ -40,15 +40,19 @@ public class AgentConfig {
     @Value("${agent.config.cmd_log_url}")
     private String cmdLogUrl;
 
+    @Value("${zk.host}")
+    private String zookeeperUrl;
+
     @PostConstruct
-    public void init () {
+    public void init() {
         LOGGER.trace("Real time log ws url: %s", cmdRtLogUrl);
         LOGGER.trace("Report cmd status url: %s", cmdReportUrl);
         LOGGER.trace("Upload cmd zip log url: %s", cmdLogUrl);
+        LOGGER.trace("zookeeper url: %s", zookeeperUrl);
     }
 
     @Bean
     public AgentSettings agentSettings() {
-        return new AgentSettings(cmdRtLogUrl, cmdReportUrl, cmdLogUrl);
+        return new AgentSettings(cmdRtLogUrl, cmdReportUrl, cmdLogUrl, zookeeperUrl);
     }
 }

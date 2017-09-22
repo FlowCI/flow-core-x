@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.response;
+package com.flow.platform.core.response;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
