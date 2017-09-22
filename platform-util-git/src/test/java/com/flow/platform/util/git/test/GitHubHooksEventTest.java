@@ -120,6 +120,9 @@ public class GitHubHooksEventTest {
         Assert.assertEquals("closed", event.getStatus());
         Assert.assertEquals("Update settings.gradle title", event.getTitle());
         Assert.assertEquals("hello desc", event.getDescription());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test/pull/7", event.getUrl());
+        Assert.assertEquals("yang-guo-2016", event.getSubmitter());
+        Assert.assertEquals("yang-guo-2016", event.getMergedBy());
 
         // then: verify source info
         GitPullRequestInfo source = event.getSource();

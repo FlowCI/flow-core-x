@@ -94,7 +94,7 @@ public class GitHubEvents {
 
     public static class MergeRequestAdapter extends GitHookEventAdapter {
 
-        private class MergeRequest {
+        private class RequestRoot {
 
             private String action;
 
@@ -110,6 +110,9 @@ public class GitHubEvents {
 
             private String title;
 
+            @SerializedName("html_url")
+            private String htmlUrl;
+
             @SerializedName("body")
             private String desc;
 
@@ -118,6 +121,12 @@ public class GitHubEvents {
 
             @SerializedName("base")
             private PrInfo target;
+
+            @SerializedName("user")
+            private UserInfo user;
+
+            @SerializedName("merged_by")
+            private UserInfo mergedBy;
         }
 
         private class PrInfo {
@@ -137,13 +146,26 @@ public class GitHubEvents {
             private String name;
         }
 
+        private class UserInfo {
+
+            private String login; // GitHub username
+
+            private String id;
+
+            @SerializedName("avatar_url")
+            private String avatarUrl;
+
+            @SerializedName("site_admin")
+            private Boolean isSiteAdmin;
+        }
+
         public MergeRequestAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
         @Override
         public GitEvent convert(String json) throws GitException {
-            MergeRequest mr = GSON.fromJson(json, MergeRequest.class);
+            RequestRoot mr = GSON.fromJson(json, RequestRoot.class);
             PullRequest pullRequest = mr.pullRequest;
 
             GitPullRequestEvent event = new GitPullRequestEvent(gitSource, eventType);
@@ -156,6 +178,9 @@ public class GitHubEvents {
             event.setDescription(pullRequest.desc);
             event.setTitle(pullRequest.title);
             event.setStatus(pullRequest.state);
+            event.setUrl(pullRequest.htmlUrl);
+            event.setSubmitter(pullRequest.user.login);
+            event.setMergedBy(pullRequest.mergedBy.login);
             event.setSource(new GitPullRequestInfo());
             event.setTarget(new GitPullRequestInfo());
 
