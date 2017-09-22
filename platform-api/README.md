@@ -57,5 +57,7 @@
 #### Git Pull Request Event
 
 **FLOW_GIT_BRANCH**: readonly, the source branch when open pr, target branch when close pr
+
+**FLOW_GIT_AUTHOR**: readonly, the submitter when open pr, merged by user when close pr
  
 **FLOW_GIT_PR_URL**: readonly, the html pr url of git repo
