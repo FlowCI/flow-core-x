@@ -35,6 +35,8 @@ public class UserController {
      *
      * @apiSuccessExample {json} Success-Response
      *  [
+     *      total: 8,
+     *      adminCount: 2,
      *      {
      *          email: xxx,
      *          username: xxx,

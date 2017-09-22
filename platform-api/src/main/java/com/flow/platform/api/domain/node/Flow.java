@@ -25,9 +25,6 @@ public class Flow extends Node<Step> {
     @Expose
     private String createdBy;
 
-//    private List<String> createdBy = new ArrayList<>();
-
-
     @Expose
     protected ZonedDateTime createdAt;
 
@@ -58,15 +55,6 @@ public class Flow extends Node<Step> {
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
     }
-
-//    public List<String> getCreatedBy() {
-//        return createdBy;
-//    }
-//
-//    public void setCreatedBy(List<String> createdBy) {
-//        this.createdBy = createdBy;
-//    }
-
 
     public ZonedDateTime getCreatedAt() {
         return createdAt;
