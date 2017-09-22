@@ -31,7 +31,7 @@ import java.util.Map;
  *
  * @author yang
  */
-public class GitlabEvents {
+public class GitLabEvents {
 
     public static class Hooks {
 
@@ -46,6 +46,11 @@ public class GitlabEvents {
 
     public static class PushAdapter extends GitHookEventAdapter {
 
+        private class JsonHelper {
+
+            private Map<String, String> repository;
+        }
+
         PushAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
@@ -53,8 +58,18 @@ public class GitlabEvents {
         @Override
         public GitEvent convert(String json) throws GitException {
             GitPushTagEvent event = GSON.fromJson(json, GitPushTagEvent.class);
+            JsonHelper jsonHelper = GSON.fromJson(json, JsonHelper.class);
+
             event.setType(eventType);
             event.setGitSource(gitSource);
+
+            // set compare id and url
+            String compareId = GitPushTagEvent.buildCompareId(event);
+            String compareUrl = jsonHelper.repository.get("homepage") + "/compare/" + compareId;
+
+            event.setCompareUrl(compareUrl);
+            event.setCompareId(compareId);
+
             return event;
         }
     }
@@ -110,7 +125,7 @@ public class GitlabEvents {
 
                 return prEvent;
             } catch (Throwable e) {
-                throw new GitException("Illegal gitlab pull request data", e);
+                throw new GitException("Illegal GitLab pull request data", e);
             }
         }
     }

@@ -32,7 +32,7 @@ import java.util.Map;
  *
  * @author yang
  */
-public class GithubEvents {
+public class GitHubEvents {
 
     private final static String PULL_REQUEST_ACTION_CLOSED = "closed";
 
@@ -86,6 +86,7 @@ public class GithubEvents {
                 event.setUsername(sender.get("login"));
             }
 
+            event.setCompareId(GitPushTagEvent.buildCompareId(event));
             event.setGitSource(gitSource);
             return event;
         }

@@ -18,7 +18,7 @@ package com.flow.platform.util.git.test;
 
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
-import com.flow.platform.util.git.hooks.GithubEvents.Hooks;
+import com.flow.platform.util.git.hooks.GitHubEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;

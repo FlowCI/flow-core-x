@@ -48,7 +48,8 @@ public class GitEventDataExtractor {
             info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pt.getRef()));
             info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pt.getUsername());
             info.put(GitEnvs.FLOW_GIT_COMMIT_ID.name(), pt.getAfter());
-            info.put(GitEnvs.FLOW_GIT_COMPARE_ID.name(), pt.getCompare());
+            info.put(GitEnvs.FLOW_GIT_COMPARE_URL.name(), pt.getCompareUrl());
+            info.put(GitEnvs.FLOW_GIT_COMPARE_ID.name(), pt.getCompareId());
 
             if (pt.getCommits().size() > 0) {
                 info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getCommits().get(0).getMessage());

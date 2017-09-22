@@ -154,8 +154,8 @@ public class GitWebhookTest extends TestBase {
 
         // verify env which needs write to output of root node result
         for (String outputKey : EnvKey.FOR_OUTPUTS) {
-            boolean isEnvWriteToOutput = created.getRootResult().getOutputs().containsKey(outputKey);
-            Assert.assertTrue(isEnvWriteToOutput);
+            String envValue = created.getRootResult().getOutputs().get(outputKey);
+            Assert.assertTrue(envValue != null);
         }
 
         // verify flow node yml status
