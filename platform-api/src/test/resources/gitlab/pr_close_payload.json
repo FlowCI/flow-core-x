@@ -1,0 +1,121 @@
+{
+  "object_kind": "merge_request",
+  "user": {
+    "name": "yang.guo",
+    "username": "yang.guo",
+    "avatar_url": "https://secure.gravatar.com/avatar/0dce14d99e8295e36aca078f195fa0c3?s=80&d=identicon"
+  },
+  "project": {
+    "name": "for-testing",
+    "description": "",
+    "web_url": "https://gitlab.com/yang.guo/for-testing",
+    "avatar_url": null,
+    "git_ssh_url": "git@gitlab.com:yang.guo/for-testing.git",
+    "git_http_url": "https://gitlab.com/yang.guo/for-testing.git",
+    "namespace": "yang.guo",
+    "visibility_level": 20,
+    "path_with_namespace": "yang.guo/for-testing",
+    "default_branch": "master",
+    "ci_config_path": null,
+    "homepage": "https://gitlab.com/yang.guo/for-testing",
+    "url": "git@gitlab.com:yang.guo/for-testing.git",
+    "ssh_url": "git@gitlab.com:yang.guo/for-testing.git",
+    "http_url": "https://gitlab.com/yang.guo/for-testing.git"
+  },
+  "object_attributes": {
+    "id": 5119197,
+    "target_branch": "master",
+    "source_branch": "develop",
+    "source_project_id": 3923320,
+    "author_id": 859190,
+    "assignee_id": null,
+    "title": "Update README.md 1123",
+    "created_at": "2017-09-22 05:05:30 UTC",
+    "updated_at": "2017-09-22 05:06:09 UTC",
+    "milestone_id": null,
+    "state": "merged",
+    "merge_status": "can_be_merged",
+    "target_project_id": 3923320,
+    "iid": 2,
+    "description": "",
+    "updated_by_id": null,
+    "merge_error": null,
+    "merge_params": {
+      "force_remove_source_branch": "0"
+    },
+    "merge_when_pipeline_succeeds": false,
+    "merge_user_id": null,
+    "merge_commit_sha": "9a90330c430e0847d472a1f5e043d826636cdad3",
+    "deleted_at": null,
+    "approvals_before_merge": null,
+    "rebase_commit_sha": null,
+    "in_progress_merge_commit_sha": null,
+    "lock_version": null,
+    "time_estimate": 0,
+    "squash": false,
+    "last_edited_at": null,
+    "last_edited_by_id": null,
+    "head_pipeline_id": null,
+    "ref_fetched": true,
+    "merge_jid": "af0cca047e2d7d327650f6f7",
+    "source": {
+      "name": "for-testing",
+      "description": "",
+      "web_url": "https://gitlab.com/yang.guo/for-testing",
+      "avatar_url": null,
+      "git_ssh_url": "git@gitlab.com:yang.guo/for-testing.git",
+      "git_http_url": "https://gitlab.com/yang.guo/for-testing.git",
+      "namespace": "yang.guo",
+      "visibility_level": 20,
+      "path_with_namespace": "yang.guo/for-testing",
+      "default_branch": "master",
+      "ci_config_path": null,
+      "homepage": "https://gitlab.com/yang.guo/for-testing",
+      "url": "git@gitlab.com:yang.guo/for-testing.git",
+      "ssh_url": "git@gitlab.com:yang.guo/for-testing.git",
+      "http_url": "https://gitlab.com/yang.guo/for-testing.git"
+    },
+    "target": {
+      "name": "for-testing",
+      "description": "",
+      "web_url": "https://gitlab.com/yang.guo/for-testing",
+      "avatar_url": null,
+      "git_ssh_url": "git@gitlab.com:yang.guo/for-testing.git",
+      "git_http_url": "https://gitlab.com/yang.guo/for-testing.git",
+      "namespace": "yang.guo",
+      "visibility_level": 20,
+      "path_with_namespace": "yang.guo/for-testing",
+      "default_branch": "master",
+      "ci_config_path": null,
+      "homepage": "https://gitlab.com/yang.guo/for-testing",
+      "url": "git@gitlab.com:yang.guo/for-testing.git",
+      "ssh_url": "git@gitlab.com:yang.guo/for-testing.git",
+      "http_url": "https://gitlab.com/yang.guo/for-testing.git"
+    },
+    "last_commit": {
+      "id": "b824012c12a9eb9e2b099f5f79062a334af368d4",
+      "message": "Update README.md 1123",
+      "timestamp": "2017-09-22T05:03:56+00:00",
+      "url": "https://gitlab.com/yang.guo/for-testing/commit/b824012c12a9eb9e2b099f5f79062a334af368d4",
+      "author": {
+        "name": "yang.guo",
+        "email": "benqyang_2006@hotmail.com"
+      }
+    },
+    "work_in_progress": false,
+    "total_time_spent": 0,
+    "human_total_time_spent": null,
+    "human_time_estimate": null,
+    "url": "https://gitlab.com/yang.guo/for-testing/merge_requests/2",
+    "action": "merge"
+  },
+  "labels": [
+
+  ],
+  "repository": {
+    "name": "for-testing",
+    "url": "git@gitlab.com:yang.guo/for-testing.git",
+    "description": "",
+    "homepage": "https://gitlab.com/yang.guo/for-testing"
+  }
+}

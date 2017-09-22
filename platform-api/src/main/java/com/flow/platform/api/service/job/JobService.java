@@ -21,7 +21,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.util.git.model.GitEventType;
 import java.math.BigInteger;
 import java.util.List;
-import javax.annotation.Resource;
+import java.util.Map;
 
 /**
  * @author yh@firim
@@ -65,9 +65,10 @@ public interface JobService {
      * request agent session from control center
      *
      * @param path any node path
+     * @param envs the input environment variables
      * @return job with children node result
      */
-    Job createJob(String path, GitEventType build_category);
+    Job createJob(String path, GitEventType eventType, Map<String, String> envs);
 
     /**
      * handle callback

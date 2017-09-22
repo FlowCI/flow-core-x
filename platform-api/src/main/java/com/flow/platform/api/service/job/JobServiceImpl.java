@@ -54,6 +54,7 @@ import com.google.common.collect.Sets;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -127,7 +128,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public Job createJob(String path, GitEventType jobCategory) {
+    public Job createJob(String path, GitEventType eventType, Map<String, String> envs) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
@@ -154,12 +155,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
-        job.setCategory(jobCategory);
+        job.setCategory(eventType);
 
         // setup job env variables
-        job.putEnv(JobEnvs.JOB_BUILD_CATEGORY, jobCategory.name());
-        job.putEnv(JobEnvs.JOB_BUILD_NUMBER, job.getNumber().toString());
+        job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
+        job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
+
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
+        EnvUtil.merge(envs, job.getEnvs(), true);
 
         //save job
         jobDao.save(job);
@@ -287,7 +290,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // start run flow
         job.setSessionId(cmd.getSessionId());
 
-        job.putEnv(JobEnvs.JOB_AGENT_INFO, cmd.getAgentPath().toString());
+        job.putEnv(JobEnvs.FLOW_JOB_AGENT_INFO, cmd.getAgentPath().toString());
 
         updateJobStatusAndSave(job, JobStatus.RUNNING);
 

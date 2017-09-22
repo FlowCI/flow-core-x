@@ -120,7 +120,7 @@ public class AgentServiceImpl implements AgentService {
         if (Strings.isNullOrEmpty(zone)) {
             return agentDao.list();
         }
-        return listForOnline(zone);
+        return agentDao.list(zone, "createdDate");
     }
 
     @Override
@@ -173,10 +173,8 @@ public class AgentServiceImpl implements AgentService {
         LOGGER.traceMarker("sessionTimeoutTask", "end");
     }
 
-
     @Override
-    public String createToken(AgentPath agentPath) {
-
+    public Agent create(AgentPath agentPath) {
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
             throw new IllegalParameterException("agent token is dup");
@@ -186,15 +184,16 @@ public class AgentServiceImpl implements AgentService {
         agent.setCreatedDate(DateUtil.now());
         agent.setUpdatedDate(DateUtil.now());
         agent.setStatus(AgentStatus.OFFLINE);
+
         //random token
         agent.setToken(UUID.randomUUID().toString());
         agentDao.save(agent);
 
-        return agent.getToken();
+        return agent;
     }
 
+    @Override
     public String refreshToken(AgentPath agentPath){
-
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
             throw new IllegalParameterException("agent token is dup");
@@ -208,12 +207,12 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public AgentSettings getInfo(String token) {
+    public AgentSettings settings(String token) {
         Agent agent = agentDao.getByToken(token);
 
         // validate token
         if (agent == null) {
-            throw new IllegalParameterException("token error");
+            throw new IllegalParameterException("Illegal agent token");
         }
 
         agentSettings.setAgentPath(agent.getPath());

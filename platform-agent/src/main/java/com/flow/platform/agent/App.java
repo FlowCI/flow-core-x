@@ -17,6 +17,8 @@
 package com.flow.platform.agent;
 
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.zk.ZKClient;
+import java.io.IOException;
 
 /**
  * @author gy@fir.im
@@ -25,10 +27,9 @@ public class App {
 
     private final static Logger LOGGER = new Logger(App.class);
 
+    private static AgentManager agentManager;
+
     public static void main(String args[]) {
-        String zkHome = null; // zookeeper address
-        String zone = null; // agent zone
-        String name = null; // agent name
 
         String baseUrl = null;
         String token = null;
@@ -67,8 +68,8 @@ public class App {
         }
 
         try {
-            AgentManager client = new AgentManager(Config.zkUrl(), Config.zkTimeout(), Config.zone(), Config.name());
-            new Thread(client).start();
+            agentManager = new AgentManager(Config.zkUrl(), Config.zkTimeout(), Config.zone(), Config.name());
+            new Thread(agentManager).start();
         } catch (Throwable e) {
             LOGGER.error("Got exception when agent running", e);
             Runtime.getRuntime().exit(1);
@@ -79,6 +80,14 @@ public class App {
 
         @Override
         public void run() {
+            if (agentManager != null) {
+                try {
+                    agentManager.close();
+                } catch (IOException ignore) {
+
+                }
+            }
+
             LOGGER.trace("========= Agent end =========");
             LOGGER.trace("========= JVM EXIT =========");
         }

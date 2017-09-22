@@ -53,7 +53,7 @@ public class JobControllerTest extends TestBase {
     public void should_show_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -76,7 +76,7 @@ public class JobControllerTest extends TestBase {
     public void should_stop_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -98,7 +98,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_step_log_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -114,7 +114,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_job_zip_error() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -129,7 +129,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_job_zip_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         job.setStatus(JobStatus.SUCCESS);

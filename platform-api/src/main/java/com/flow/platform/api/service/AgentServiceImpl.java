@@ -32,6 +32,7 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import com.google.gson.JsonSyntaxException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -119,29 +120,30 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public String createToken(AgentPath agentPath) {
-        String post = null;
+    public Agent create(AgentPath agentPath) {
         try {
-            post = HttpUtil.post(platformURL.getAgentTokenUrl(), Jsonable.GSON_CONFIG.toJson(agentPath));
-            if (Strings.isNullOrEmpty(post)) {
-                throw new FlowException("get token error");
+            String agentJson = HttpUtil.post(platformURL.getAgentTokenUrl(), agentPath.toJson());
+
+            if (Strings.isNullOrEmpty(agentJson)) {
+                throw new FlowException("Unable to create agent via control center");
             }
-        } catch (UnsupportedEncodingException e) {
-            throw new FlowException("get token error", e);
+
+            return Agent.parse(agentJson, Agent.class);
+
+        } catch (UnsupportedEncodingException | JsonSyntaxException e) {
+            throw new IllegalStatusException("Unable to create agent", e);
         }
-        return post;
     }
 
     @Override
-    public String getInfo(String token) {
+    public AgentSettings settings(String token) {
+        String url = platformURL.getAgentDetailUrl() + "?" + "token=" + token;
+        String settingsJson = HttpUtil.get(url);
 
-        String url = new StringBuilder(platformURL.getAgentDetailUrl()).append("?").append("token=" + token).toString();
-        String res = HttpUtil.get(url);
-
-        if (res == null) {
-            throw new FlowException("get agent info error");
+        if (Strings.isNullOrEmpty(settingsJson)) {
+            throw new IllegalStatusException("Unable to get agent settings from control center");
         }
 
-        return res;
+        return AgentSettings.parse(settingsJson, AgentSettings.class);
     }
 }

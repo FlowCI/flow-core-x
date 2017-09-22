@@ -87,9 +87,9 @@ public interface AgentService {
     void sessionTimeoutTask();
 
     /**
-     * create token
+     * Create agent and return token
      */
-    String createToken(AgentPath agentPath);
+    Agent create(AgentPath agentPath);
 
     /**
      * refresh token
@@ -97,10 +97,10 @@ public interface AgentService {
     String refreshToken(AgentPath agentPath);
 
     /**
-     * get agent info by agent id
+     * Get agent setting by token
      *
      * @param token token
      * @return agent setting
      */
-    AgentSettings getInfo(String token);
+    AgentSettings settings(String token);
 }

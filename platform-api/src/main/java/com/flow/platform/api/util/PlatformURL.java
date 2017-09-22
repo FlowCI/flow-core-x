@@ -44,16 +44,19 @@ public class PlatformURL {
 
 
     public PlatformURL(String baseURL) {
-        cmdUrl = String.format("%s%s", baseURL, "cmd/send");
         queueUrl = String.format("%s%s", baseURL, "cmd/queue/send");
+
+        cmdUrl = String.format("%s%s", baseURL, "cmd/send");
         cmdStopUrl = String.format("%s%s", baseURL, "cmd/stop/");
         cmdDownloadLogUrl = String.format("%s%s", baseURL, "cmd/log/download");
-        agentUrl = String.format("%s%s", baseURL, "agent/list");
-        agentInfoUrl = String.format("%s%s", baseURL, "agent/findAgentBySessionId");
+
         sysIndexUrl = String.format("%s%s", baseURL, "index");
         sysInfoUrl = String.format("%s%s", baseURL, "sys/info");
-        agentTokenUrl = String.format("%s%s", baseURL, "agent/token");
-        agentDetailUrl = String.format("%s%s", baseURL, "agent/info");
+
+        agentUrl = String.format("%s%s", baseURL, "agents/list");
+        agentInfoUrl = String.format("%s%s", baseURL, "agents/findAgentBySessionId");
+        agentTokenUrl = String.format("%s%s", baseURL, "agents/token");
+        agentDetailUrl = String.format("%s%s", baseURL, "agents/info");
     }
 
     public String getAgentTokenUrl() {
