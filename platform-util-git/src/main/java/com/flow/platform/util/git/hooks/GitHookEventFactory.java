@@ -24,8 +24,6 @@ import static com.flow.platform.util.git.model.GitSource.GITLAB;
 
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEvent;
-import com.flow.platform.util.git.model.GitEventType;
-import com.flow.platform.util.git.model.GitSource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,6 +50,7 @@ public class GitHookEventFactory {
         // init github hook data adaptor
         Map<String, GitHookEventAdapter> githubAdaptors = new HashMap<>(3);
         githubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PUSH, new GitHubEvents.PushAndTagAdapter(GITHUB, PUSH));
+        githubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_TAG, new GitHubEvents.PushAndTagAdapter(GITHUB, TAG));
         githubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_MR, new GitHubEvents.MergeRequestAdapter(GITHUB, MR));
 
         adaptors.put(GitHubEvents.Hooks.HEADER, githubAdaptors);
