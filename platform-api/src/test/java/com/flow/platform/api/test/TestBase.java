@@ -208,10 +208,7 @@ public abstract class TestBase {
             stubFor(com.github.tomakehurst.wiremock.client.WireMock
                 .get(urlPathEqualTo("/cmd/log/download"))
                 .willReturn(aResponse().withBody(org.apache.commons.io.IOUtils.toByteArray(inputStream))));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Throwable throwable) {
         }
     }
 
