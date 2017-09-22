@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.util.git.model.GitEventType;
 import java.math.BigInteger;
 import java.util.List;
+import javax.annotation.Resource;
 
 /**
  * @author yh@firim
@@ -60,11 +61,6 @@ public interface JobService {
     List<NodeResult> listNodeResult(String path, Integer number);
 
     /**
-     * get job log
-     */
-    String findNodeLog(String path, Integer buildNumber, Integer stepOrder);
-
-    /**
      * create job from node path, copy yml to job yml
      * request agent session from control center
      *
@@ -87,4 +83,9 @@ public interface JobService {
      * stop job
      */
     Job stopJob(String name, Integer buildNumber);
+
+    /**
+     * update job
+     */
+    Job update(Job job);
 }

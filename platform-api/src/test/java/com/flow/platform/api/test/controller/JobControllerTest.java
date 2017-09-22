@@ -22,13 +22,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.git.model.GitEventType;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -36,6 +45,9 @@ import org.springframework.test.web.servlet.MvcResult;
  * @author yh@firim
  */
 public class JobControllerTest extends TestBase {
+
+    @Autowired
+    private Path workspace;
 
     @Test
     public void should_show_job_success() throws Exception {
@@ -78,9 +90,67 @@ public class JobControllerTest extends TestBase {
         Job jobLoaded = Jsonable.GSON_CONFIG.fromJson(response, Job.class);
         Assert.assertNotNull(jobLoaded);
 
-
         Job loadedJob = requestToShowJob(job.getNodePath(), job.getNumber());
         Assert.assertEquals(NodeStatus.STOPPED, loadedJob.getRootResult().getStatus());
+    }
+
+    @Test
+    public void should_get_step_log_success() throws Exception {
+        stubDemo();
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG);
+
+        job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
+        jobDao.update(job);
+
+        MvcResult mvcResult = this.mockMvc.perform(
+            get(String.format("/jobs/%s/%s/1/log", job.getNodeName(), job.getNumber()))
+        ).andExpect(status().isOk()).andReturn();
+        String response = mvcResult.getResponse().getContentAsString();
+        Assert.assertNotNull(response);
+    }
+
+    @Test
+    public void should_get_job_zip_error() throws Exception {
+        stubDemo();
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG);
+
+        job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
+        jobDao.update(job);
+        MvcResult mvcResult = this.mockMvc.perform(
+            get(String.format("/jobs/%s/%s/log/download", job.getNodeName(), job.getNumber()))
+        ).andExpect(status().isBadRequest()).andReturn();
+        String response = mvcResult.getResponse().getContentAsString();
+        Assert.assertNotNull(response);
+    }
+
+    @Test
+    public void should_get_job_zip_success() throws Exception {
+        stubDemo();
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG);
+
+        job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
+        job.setStatus(JobStatus.SUCCESS);
+        jobDao.update(job);
+
+        List<NodeResult> nodeResultList = nodeResultService.list(job, true);
+        for (NodeResult nodeResult : nodeResultList) {
+            nodeResult.setCmdId("xxxx");
+            nodeResultService.update(nodeResult);
+        }
+
+        MvcResult mvcResult = this.mockMvc.perform(
+            get(String.format("/jobs/%s/%s/log/download", job.getNodeName(), job.getNumber()))
+        ).andExpect(status().isOk()).andReturn();
+        String response = mvcResult.getResponse().getContentAsString();
+        Assert.assertNotNull(response);
+
+        Path zipLog = Paths
+            .get(workspace.toString(), job.getNodeName(), "log", job.getId().toString(), job.getId().toString() + ".zip");
+        File zipFile = new File(zipLog.toString());
+        Assert.assertEquals(true, zipFile.exists());
     }
 
     private Job requestToShowJob(String path, Integer buildNumber) throws Exception {
@@ -100,4 +170,5 @@ public class JobControllerTest extends TestBase {
 
         return mvcResult.getResponse().getContentAsString();
     }
+
 }
