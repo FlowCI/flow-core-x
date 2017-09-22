@@ -21,6 +21,9 @@ package com.flow.platform.api.domain.envs;
  */
 public enum GitEnvs implements EnvKey {
 
+    /**
+     * @see com.flow.platform.util.git.model.GitSource
+     */
     FLOW_GIT_SOURCE,
 
     FLOW_GIT_URL,
@@ -35,6 +38,11 @@ public enum GitEnvs implements EnvKey {
      * @see com.flow.platform.util.git.model.GitEventType
      */
     FLOW_GIT_EVENT_TYPE,
+
+    /**
+     * @see com.flow.platform.util.git.model.GitSource
+     */
+    FLOW_GIT_EVENT_SOURCE,
 
     FLOW_GIT_COMMIT_ID,
 

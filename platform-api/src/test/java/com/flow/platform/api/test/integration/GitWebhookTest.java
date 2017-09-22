@@ -94,6 +94,8 @@ public class GitWebhookTest extends TestBase {
 
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GitEventType.PUSH.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals(GitSource.GITHUB.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_SOURCE));
+
         Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("Update .flow.yml for github", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
         Assert.assertEquals("yang-guo-2016", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
@@ -118,6 +120,8 @@ public class GitWebhookTest extends TestBase {
 
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals(GitSource.GITHUB.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_SOURCE));
+
         Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("https://github.com/flow-ci-plugin/for-testing/pull/2",
             job.getEnv(GitEnvs.FLOW_GIT_PR_URL));
@@ -140,6 +144,8 @@ public class GitWebhookTest extends TestBase {
 
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals(GitSource.GITHUB.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_SOURCE));
+
         Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("https://github.com/flow-ci-plugin/for-testing/pull/1",
             job.getEnv(GitEnvs.FLOW_GIT_PR_URL));
@@ -163,8 +169,10 @@ public class GitWebhookTest extends TestBase {
         envKeySet.remove(GitEnvs.FLOW_GIT_PR_URL.name());
         verifyRootNodeResultOutput(job, envKeySet);
 
-        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE.name()));
-        Assert.assertEquals(GitEventType.PUSH.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE.name()));
+        Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
+        Assert.assertEquals(GitEventType.PUSH.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals(GitSource.GITLAB.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_SOURCE));
+
         Assert.assertEquals("Update .flow.yml for gitlab", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG.name()));
         Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("yang.guo", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
@@ -191,6 +199,8 @@ public class GitWebhookTest extends TestBase {
         // then: verify job env
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals(GitSource.GITLAB.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_SOURCE));
+
         Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("https://gitlab.com/yang.guo/for-testing/merge_requests/1",
             job.getEnv(GitEnvs.FLOW_GIT_PR_URL));
@@ -215,6 +225,8 @@ public class GitWebhookTest extends TestBase {
         // then: verify job env
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
+        Assert.assertEquals(GitSource.GITLAB.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_SOURCE));
+
         Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("https://gitlab.com/yang.guo/for-testing/merge_requests/2",
             job.getEnv(GitEnvs.FLOW_GIT_PR_URL));

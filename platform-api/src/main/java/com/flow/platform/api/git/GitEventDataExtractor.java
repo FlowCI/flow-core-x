@@ -35,8 +35,9 @@ public class GitEventDataExtractor {
     public static Map<String, String> extract(GitEvent event) {
         if (event instanceof GitPullRequestEvent) {
             GitPullRequestEvent pr = (GitPullRequestEvent) event;
-            Map<String, String> info = new HashMap<>();
+            Map<String, String> info = new HashMap<>(6);
             info.put(GitEnvs.FLOW_GIT_EVENT_TYPE.name(), pr.getType().name());
+            info.put(GitEnvs.FLOW_GIT_EVENT_SOURCE.name(), pr.getGitSource().name());
 
             // the branch is on source for open pr
             if (pr.getState() == State.OPEN) {
@@ -57,8 +58,9 @@ public class GitEventDataExtractor {
 
         if (event instanceof GitPushTagEvent) {
             GitPushTagEvent pt = (GitPushTagEvent) event;
-            Map<String, String> info = new HashMap<>();
+            Map<String, String> info = new HashMap<>(7);
             info.put(GitEnvs.FLOW_GIT_EVENT_TYPE.name(), pt.getType().name());
+            info.put(GitEnvs.FLOW_GIT_EVENT_SOURCE.name(), pt.getGitSource().name());
             info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pt.getRef()));
             info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pt.getUsername());
             info.put(GitEnvs.FLOW_GIT_COMMIT_ID.name(), pt.getAfter());
