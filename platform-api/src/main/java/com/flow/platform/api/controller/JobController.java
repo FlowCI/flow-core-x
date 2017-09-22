@@ -16,9 +16,11 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.job.SearchService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
@@ -47,6 +49,9 @@ public class JobController extends NodeController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private SearchService searchService;
 
     @ModelAttribute
     public void setLocale(@RequestParam(required = false) String locale) {
@@ -307,5 +312,17 @@ public class JobController extends NodeController {
     @PostMapping(path = "/status/latest")
     public Collection<Job> latestStatus(@RequestBody List<String> paths) {
         return jobService.list(paths, true);
+    }
+
+    @PostMapping(path = "/{root}/search")
+    public List<Job> search(@RequestBody SearchCondition condition){
+        String path = getNodePathFromUrl();
+
+        List<String> paths = null;
+        if (path != null) {
+            paths = Lists.newArrayList(path);
+        }
+
+        return searchService.search(condition, paths);
     }
 }
