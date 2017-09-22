@@ -29,6 +29,7 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.util.ObjectWrapper;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,12 +38,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -62,8 +63,8 @@ public class LogServiceImpl implements LogService {
     @Autowired
     private PlatformURL platformURL;
 
-    @Value("${api.workspace}")
-    private String workspace;
+    @Autowired
+    private Path workspace;
 
     @Override
     public String findNodeLog(String path, Integer number, Integer order) {
@@ -77,12 +78,12 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public Resource fullJobLog(String path, Integer buildNumber) {
+    public Resource findJobLog(String path, Integer buildNumber) {
         Job job = jobService.find(path, buildNumber);
 
         // only job finish can to download log
-        ArrayList<JobStatus> finishStatus = new ArrayList<>(
-            Arrays.asList(JobStatus.FAILURE, JobStatus.SUCCESS, JobStatus.STOPPED));
+        Set<JobStatus> finishStatus = Sets.newHashSet(JobStatus.FAILURE, JobStatus.SUCCESS, JobStatus.STOPPED);
+
         if (!finishStatus.contains(job.getStatus())) {
             throw new FlowException("job must finish");
         }
@@ -109,11 +110,10 @@ public class LogServiceImpl implements LogService {
      * save step log to workspace/:flowName/:jobId/
      */
     private String saveStepLog(Job job, InputStream inputStream, NodeResult nodeResult) {
-        String jobFolder = workspace + "/" + job.getNodeName() + "/" + job.getId().toString();
+        Path jobPath = getJobLogPath(job);
+        Path targetPath = Paths.get(jobPath.toString(), nodeResult.getName() + ".log");
 
-        String targetFile = jobFolder + '/' + nodeResult.getName() + ".log";
-
-        File flowFolderFile = new File(jobFolder);
+        File flowFolderFile = new File(jobPath.toString());
         if (!flowFolderFile.exists()) {
             flowFolderFile.mkdirs();
         }
@@ -123,7 +123,7 @@ public class LogServiceImpl implements LogService {
             buffers = new byte[inputStream.available()];
             inputStream.read(buffers);
 
-            File file = new File(targetFile);
+            File file = new File(targetPath.toString());
             try (OutputStream outputStream = new FileOutputStream(file)) {
                 outputStream.write(buffers);
             }
@@ -131,11 +131,11 @@ public class LogServiceImpl implements LogService {
             return null;
         }
 
-        return targetFile;
+        return targetPath.toString();
     }
 
     /**
-     * read step log from workspace/:flowName/:jobId/
+     * read step log from workspace/:flowName/log/:jobId/
      */
     private String readStepLog(Job job, NodeResult nodeResult) {
 
@@ -160,11 +160,11 @@ public class LogServiceImpl implements LogService {
      * read log from api storage
      */
     private String readStepLogFromLocal(Job job, NodeResult nodeResult) {
-        String jobFolder = String.format("%s/%s/%s", workspace, job.getNodeName(), job.getId().toString());
+        Path jobPath = getJobLogPath(job);
 
-        String targetFile = String.format("%s/%s.log", jobFolder, nodeResult.getName());
+        Path targetPath = Paths.get(jobPath.toString(), nodeResult.getName() + ".log");
 
-        File file = new File(targetFile);
+        File file = new File(targetPath.toString());
         if (!file.exists()) {
             return null;
         }
@@ -233,12 +233,12 @@ public class LogServiceImpl implements LogService {
      * save job zip
      */
     private File saveJobLog(Job job) {
-        String jobPath = String.format("%s/%s/%s", workspace, job.getNodeName(), job.getId().toString());
-        String zipPath = jobPath + ".zip";
-        String destPath = String.format("%s/%s.zip", jobPath, job.getId().toString());
-        File folderFile = new File(jobPath);
-        File zipFile = new File(zipPath);
-        File destFile = new File(destPath);
+        Path jobPath = getJobLogPath(job);
+        Path zipPath = Paths.get(jobPath.getParent().toString(), job.getId().toString() + ".zip");
+        Path destPath = Paths.get(jobPath.toString(), job.getId().toString() + ".zip");
+        File folderFile = new File(jobPath.toString());
+        File zipFile = new File(zipPath.toString());
+        File destFile = new File(destPath.toString());
 
         try {
             ZipUtil.zipFolder(folderFile, zipFile);
@@ -255,9 +255,9 @@ public class LogServiceImpl implements LogService {
      */
     private File readJobLog(Job job) {
         // read zip log from api
-        String jobPath = String.format("%s/%s/%s", workspace, job.getNodeName(), job.getId().toString());
-        String zipPath = String.format("%s/%s.zip", jobPath, job.getId().toString());
-        File zipFile = new File(zipPath);
+        Path jobPath = getJobLogPath(job);
+        Path zipPath = Paths.get(jobPath.toString(), job.getId().toString() + ".zip");
+        File zipFile = new File(zipPath.toString());
         if (zipFile.exists()) {
             return zipFile;
         }
@@ -274,8 +274,15 @@ public class LogServiceImpl implements LogService {
         }
 
         saveJobLog(job);
-        zipFile = new File(zipPath);
+        zipFile = new File(zipPath.toString());
 
         return zipFile;
+    }
+
+    /**
+     * get job log path
+     */
+    private Path getJobLogPath(Job job) {
+        return Paths.get(workspace.toString(), job.getNodeName(), "log", job.getId().toString());
     }
 }

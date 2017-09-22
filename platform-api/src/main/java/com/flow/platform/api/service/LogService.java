@@ -31,6 +31,6 @@ public interface LogService {
     /**
      * get full job log
      */
-    Resource fullJobLog(String path, Integer buildNumber);
+    Resource findJobLog(String path, Integer buildNumber);
 
 }

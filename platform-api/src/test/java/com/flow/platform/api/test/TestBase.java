@@ -19,6 +19,8 @@ import com.flow.platform.api.config.WebConfig;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,6 +46,11 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
+import com.sun.javafx.tools.packager.JarSignature.InputStreamSource;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import javax.annotation.Resource;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -51,6 +58,7 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -68,6 +76,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import sun.misc.IOUtils;
 
 /**
  * @author yh@fir.im
@@ -188,6 +197,22 @@ public abstract class TestBase {
             .post(urlEqualTo("/agent/shutdown?zone=default&name=machine&password=123456"))
             .willReturn(aResponse()
                 .withBody(Jsonable.GSON_CONFIG.toJson(true))));
+
+        ClassLoader classLoader = TestBase.class.getClassLoader();
+        URL resource = classLoader.getResource("step_log.zip");
+        File path = new File(resource.getFile());
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(path);
+            org.springframework.core.io.Resource res = new InputStreamResource(inputStream);
+            stubFor(com.github.tomakehurst.wiremock.client.WireMock
+                .get(urlPathEqualTo("/cmd/log/download"))
+                .willReturn(aResponse().withBody(org.apache.commons.io.IOUtils.toByteArray(inputStream))));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public String performRequestWith200Status(MockHttpServletRequestBuilder builder) throws Exception {

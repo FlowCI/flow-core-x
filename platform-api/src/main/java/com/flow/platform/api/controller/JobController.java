@@ -21,7 +21,6 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.I18nUtil;
-import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitEventType;
@@ -331,7 +330,7 @@ public class JobController extends NodeController {
         String path = getNodePathFromUrl();
             httpResponse.setHeader("Content-Disposition",
                 String.format("attachment; filename=%s", String.format("%s-%s.zip", path, buildNumber)));
-        return logService.fullJobLog(path, buildNumber);
+        return logService.findJobLog(path, buildNumber);
     }
 
 }
