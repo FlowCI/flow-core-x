@@ -25,6 +25,7 @@ import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * To adding GitHub web hook, should select 'Let me select individual events'
@@ -44,7 +45,7 @@ public class GitHubEvents {
 
         public final static String EVENT_TYPE_TAG = "push";
 
-        public final static String EVENT_TYPE_MR = "pull_request";
+        public final static String EVENT_TYPE_PR = "pull_request";
     }
 
     /**
@@ -91,6 +92,10 @@ public class GitHubEvents {
     }
 
     public static class MergeRequestAdapter extends GitHookEventAdapter {
+
+        public final static String STATE_OPEN = "open";
+
+        public final static String STATE_CLOSE = "closed";
 
         private class RequestRoot {
 
@@ -175,7 +180,12 @@ public class GitHubEvents {
             event.setStatus(pullRequest.state);
             event.setUrl(pullRequest.htmlUrl);
             event.setSubmitter(pullRequest.user.login);
-            event.setMergedBy(pullRequest.mergedBy.login);
+
+            // merged by only for state closed
+            if (Objects.equals(pullRequest.state, STATE_CLOSE) && pullRequest.mergedBy != null) {
+                event.setMergedBy(pullRequest.mergedBy.login);
+            }
+
             event.setSource(new GitPullRequestInfo());
             event.setTarget(new GitPullRequestInfo());
 

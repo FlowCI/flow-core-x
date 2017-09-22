@@ -107,9 +107,9 @@ public class GitLabHooksEventTest {
     @Test
     public void should_convert_to_pr_event_obj() throws Throwable {
         // given:
-        String prEventContent = loadWebhookSampleJson("gitlab/webhook_mr.json");
+        String prEventContent = loadWebhookSampleJson("gitlab/webhook_pr.json");
         Map<String, String> mockHeader = new HashMap<>();
-        mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_MR);
+        mockHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PR);
 
         // when:
         GitPullRequestEvent mrEvent = (GitPullRequestEvent) GitHookEventFactory.build(mockHeader, prEventContent);
@@ -117,7 +117,7 @@ public class GitLabHooksEventTest {
 
         // then:
         Assert.assertEquals(GitSource.GITLAB, mrEvent.getGitSource());
-        Assert.assertEquals(GitEventType.MR, mrEvent.getType());
+        Assert.assertEquals(GitEventType.PR, mrEvent.getType());
 
         Assert.assertEquals(99, mrEvent.getRequestId().intValue());
         Assert.assertEquals("MS-Viewport", mrEvent.getTitle());

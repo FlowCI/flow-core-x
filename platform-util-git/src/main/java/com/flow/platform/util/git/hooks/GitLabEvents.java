@@ -42,7 +42,7 @@ public class GitLabEvents {
 
         public final static String EVENT_TYPE_TAG = "Tag Push Hook";
 
-        public final static String EVENT_TYPE_MR = "Merge Request Hook";
+        public final static String EVENT_TYPE_PR = "Merge Request Hook";
     }
 
     public static class PushAndTagAdapter extends GitHookEventAdapter {
