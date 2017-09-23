@@ -17,9 +17,8 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
 import com.flow.platform.api.util.NodeUtil;
@@ -142,7 +141,7 @@ public class GitServiceImpl implements GitService {
         GitClientBuilder builder;
         try {
             builder = builderClass
-                .getConstructor(Flow.class, Path.class)
+                .getConstructor(Node.class, Path.class)
                 .newInstance(node, gitSourcePath(node));
         } catch (Throwable e) {
             throw new IllegalStatusException("Fail to create GitClientBuilder instance: " + e.getMessage());

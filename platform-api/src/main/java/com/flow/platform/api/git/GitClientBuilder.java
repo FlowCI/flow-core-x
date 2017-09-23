@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.git;
 
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.util.git.GitClient;
 import java.nio.file.Path;
 
@@ -35,9 +35,9 @@ public abstract class GitClientBuilder {
      */
     protected Path sourceFolder;
 
-    public GitClientBuilder(final Flow flow, final Path sourceFolder) {
-        this.url = flow.getEnv(GitEnvs.FLOW_GIT_URL);
-        this.branch = flow.getEnv(GitEnvs.FLOW_GIT_BRANCH);
+    public GitClientBuilder(final Node node, final Path sourceFolder) {
+        this.url = node.getEnv(GitEnvs.FLOW_GIT_URL);
+        this.branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH);
         this.sourceFolder = sourceFolder;
     }
 
