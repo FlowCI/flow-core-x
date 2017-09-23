@@ -31,7 +31,7 @@ import com.flow.platform.api.exception.NodeSettingsException;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.service.GitService;
-import com.flow.platform.api.task.CloneAndVerifyYmlTask;
+import com.flow.platform.api.task.UpdateNodeYmlTask;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -178,7 +178,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
             ThreadPoolTaskExecutor executor = findThreadPoolFromCache(flow.getPath());
 
             // async to load yml file
-            executor.execute(new CloneAndVerifyYmlTask(flow, nodeService, gitService, callback));
+            executor.execute(new UpdateNodeYmlTask(flow, nodeService, gitService, callback));
         } catch (ExecutionException e) {
             LOGGER.warn("Fail to get task executor for node: " + flow.getPath());
             nodeService.updateYmlState(flow, YmlStatusValue.ERROR, e.getMessage());
