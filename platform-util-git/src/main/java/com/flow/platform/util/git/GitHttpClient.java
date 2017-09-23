@@ -35,6 +35,7 @@ public class GitHttpClient extends AbstractGitClient {
 
     @Override
     protected <T extends TransportCommand> T buildCommand(T command) {
-        return null;
+        command.setCredentialsProvider(usernameProvider);
+        return command;
     }
 }

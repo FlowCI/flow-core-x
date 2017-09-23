@@ -16,6 +16,7 @@
 
 package com.flow.platform.util.git;
 
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.git.model.GitCommit;
 import com.google.common.base.Strings;
 import java.io.BufferedReader;
@@ -138,7 +139,7 @@ public abstract class AbstractGitClient implements GitClient {
             }
             pullCommand.call();
         } catch (Throwable e) {
-            throw new GitException("Fail to pull with specific files", e);
+            throw new GitException("Fail to pull with specific files", ExceptionUtil.findRootCause(e));
         }
     }
 
@@ -162,7 +163,7 @@ public abstract class AbstractGitClient implements GitClient {
                 .setTimeout(GIT_TRANS_TIMEOUT)
                 .setRemote(gitUrl)).call();
         } catch (GitAPIException e) {
-            throw new GitException("Fail to list tags from remote repo", e);
+            throw new GitException("Fail to list tags from remote repo", ExceptionUtil.findRootCause(e));
         }
     }
 
