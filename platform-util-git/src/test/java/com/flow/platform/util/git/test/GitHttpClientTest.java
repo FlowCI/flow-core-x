@@ -17,7 +17,6 @@
 package com.flow.platform.util.git.test;
 
 import com.flow.platform.util.git.GitHttpClient;
-import com.flow.platform.util.git.GitSshClient;
 import com.google.common.collect.Sets;
 import java.io.File;
 import java.nio.file.Paths;

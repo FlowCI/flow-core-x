@@ -20,6 +20,7 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.git.GitClientBuilder;
+import com.flow.platform.api.git.GitHttpClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -56,6 +57,7 @@ public class GitServiceImpl implements GitService {
     @PostConstruct
     public void init() {
         clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
+        clientBuilderType.put(GitSource.UNDEFINED_HTTP, GitHttpClientBuilder.class);
     }
 
     @Override
