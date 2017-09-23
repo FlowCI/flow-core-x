@@ -43,7 +43,8 @@ public class GitSshClientTest {
 
     @Test
     public void should_load_all_branch_and_tags() throws Throwable {
-        GitSshClient client = new GitSshClient(TEST_GIT_SSH_URL, null);
+        String tmpPath = folder.getRoot().getAbsolutePath();
+        GitSshClient client = new GitSshClient(TEST_GIT_SSH_URL, Paths.get(tmpPath));
 
         // load all branches
         Collection<Ref> branches = client.branches();
@@ -62,7 +63,7 @@ public class GitSshClientTest {
         String tmpPath = folder.getRoot().getAbsolutePath();
 
         GitSshClient gitClient = new GitSshClient(TEST_GIT_SSH_URL, Paths.get(tmpPath));
-        gitClient.clone("develop", null, Sets.newHashSet(".flow.yml"), null);
+        gitClient.clone("develop", Sets.newHashSet(".flow.yml"), null);
 
         final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml", "README.md");
 

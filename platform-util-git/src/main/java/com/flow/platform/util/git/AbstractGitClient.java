@@ -18,16 +18,27 @@ package com.flow.platform.util.git;
 
 import com.flow.platform.util.git.model.GitCommit;
 import com.google.common.base.Strings;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 
@@ -36,8 +47,16 @@ import org.eclipse.jgit.revwalk.RevWalk;
  */
 public abstract class AbstractGitClient implements GitClient {
 
+    protected static final int GIT_TRANS_TIMEOUT = 30; // in seconds
+
+    /**
+     * The url of git repo
+     */
     protected String gitUrl;
 
+    /**
+     * The dir of .git file, ex: /targetDir/.git
+     */
     protected Path targetDir; // target base directory
 
     public AbstractGitClient(String gitUrl, Path baseDir) {
@@ -68,11 +87,48 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
-    public void pull(String branch, Integer depth, ProgressMonitor monitor) throws GitException {
-        if (depth != null) {
-            throw new GitException("JGit api doesn't support shallow clone");
+    public File clone(String branch, boolean noCheckout) throws GitException {
+        checkGitUrl();
+
+        CloneCommand cloneCommand = Git.cloneRepository()
+            .setURI(gitUrl)
+            .setNoCheckout(noCheckout)
+            .setBranch(branch)
+            .setDirectory(targetDir.toFile());
+
+        try (Git git = buildCommand(cloneCommand).call()) {
+            return git.getRepository().getDirectory();
+        } catch (GitAPIException e) {
+            throw new GitException("Fail to clone git repo", e);
+        }
+    }
+
+    @Override
+    public File clone(String branch, Set<String> checkoutFiles,ProgressMonitor monitor) throws GitException {
+        checkGitUrl();
+
+        File gitDir = getGitPath().toFile();
+
+        // open existing git folder to verification
+        if (gitDir.exists()) {
+            try (Git git = gitOpen()) {
+
+            } catch (GitException e) {
+                throw new GitException("Fail to open existing git repo at: " + gitDir, e);
+            }
         }
 
+        // git init
+        else {
+            initGit(checkoutFiles);
+        }
+
+        pull(branch, monitor);
+        return gitDir;
+    }
+
+    @Override
+    public void pull(String branch, ProgressMonitor monitor) throws GitException {
         try (Git git = gitOpen()) {
             PullCommand pullCommand = pullCommand(branch, git);
             if (monitor != null) {
@@ -88,19 +144,25 @@ public abstract class AbstractGitClient implements GitClient {
 
     @Override
     public Collection<Ref> branches() throws GitException {
-        try (Git git = gitOpen()) {
-            return git.branchList().call();
+        try {
+            return buildCommand(Git.lsRemoteRepository()
+                .setHeads(true)
+                .setTimeout(GIT_TRANS_TIMEOUT)
+                .setRemote(gitUrl)).call();
         } catch (GitAPIException e) {
-            throw new GitException("Fail to list branches", e);
+            throw new GitException("Fail to list branches from remote repo", e);
         }
     }
 
     @Override
     public Collection<Ref> tags() throws GitException {
-        try (Git git = gitOpen()) {
-            return git.tagList().call();
+        try {
+            return buildCommand(Git.lsRemoteRepository()
+                .setTags(true)
+                .setTimeout(GIT_TRANS_TIMEOUT)
+                .setRemote(gitUrl)).call();
         } catch (GitAPIException e) {
-            throw new GitException("Fail to list tags", e);
+            throw new GitException("Fail to list tags from remote repo", e);
         }
     }
 
@@ -128,25 +190,6 @@ public abstract class AbstractGitClient implements GitClient {
         }
     }
 
-    protected PullCommand pullCommand(String branch, Git git) {
-        if (Strings.isNullOrEmpty(branch)) {
-            return git.pull();
-        }
-        return git.pull().setRemoteBranchName(branch);
-    }
-
-    Git gitOpen() throws GitException {
-        try {
-            return Git.open(getGitPath().toFile());
-        } catch (IOException e) {
-            throw new GitException("Fail to open .git folder", e);
-        }
-    }
-
-    Path getGitPath() {
-        return Paths.get(targetDir.toString(), ".git");
-    }
-
     @Override
     public String toString() {
         return "GitClient{" +
@@ -156,9 +199,108 @@ public abstract class AbstractGitClient implements GitClient {
             '}';
     }
 
+    /**
+     * Git command builder
+     */
+    protected abstract  <T extends TransportCommand> T buildCommand(T command);
+
+    /**
+     * Create local .git with remote info
+     *
+     * @return .git file path, /targetDir/.git
+     */
+    private File initGit(Set<String> checkoutFiles) throws GitException {
+        try (Git git = Git.init().setDirectory(targetDir.toFile()).call()) {
+            Repository repository = git.getRepository();
+            File gitDir = repository.getDirectory();
+            setSparseCheckout(gitDir, checkoutFiles);
+            configRemote(repository.getConfig(), "origin", gitUrl);
+            return gitDir;
+        } catch (GitAPIException e) {
+            throw new GitException("Fail to init git repo at: " + targetDir, e);
+        }
+    }
+
+    private Git gitOpen() throws GitException {
+        try {
+            return Git.open(getGitPath().toFile());
+        } catch (IOException e) {
+            throw new GitException("Fail to open .git folder", e);
+        }
+    }
+
+    private Path getGitPath() {
+        return Paths.get(targetDir.toString(), ".git");
+    }
+
+    private void checkGitUrl() {
+        if (Strings.isNullOrEmpty(gitUrl)) {
+            throw new IllegalStateException("Please provides git url");
+        }
+    }
+
+    private PullCommand pullCommand(String branch, Git git) {
+        if (Strings.isNullOrEmpty(branch)) {
+            return buildCommand(git.pull());
+        }
+        return buildCommand(git.pull().setRemoteBranchName(branch)).setTimeout(GIT_TRANS_TIMEOUT);
+    }
+
+    private void configRemote(StoredConfig config, String name, String url) throws GitException {
+        try {
+            config.setString("remote", name, "url", url);
+            config.setString("remote", name, "fetch", "+refs/heads/*:refs/remotes/origin/*");
+            config.save();
+        } catch (IOException e) {
+            throw new GitException("Fail to config remote git url", e);
+        }
+    }
+
+    private void setSparseCheckout(File gitDir, Set<String> checkoutFiles) throws GitException {
+        try (Git git = gitOpen()) {
+            StoredConfig config = git.getRepository().getConfig();
+            config.setBoolean("core", null, "sparseCheckout", true);
+            config.save();
+
+            Path sparseCheckoutPath = Paths.get(gitDir.getAbsolutePath(), "info", "sparse-checkout");
+            try {
+                Files.createDirectory(sparseCheckoutPath.getParent());
+                Files.createFile(sparseCheckoutPath);
+            } catch (FileAlreadyExistsException ignore) {
+            }
+
+            Charset charset = Charset.forName("UTF-8");
+
+            // load all existing
+            Set<String> exists = new HashSet<>();
+            try (BufferedReader reader = Files.newBufferedReader(sparseCheckoutPath, charset)) {
+                exists.add(reader.readLine());
+            }
+
+            // write
+            try (BufferedWriter writer = Files.newBufferedWriter(sparseCheckoutPath, charset)) {
+                if (!exists.isEmpty()) {
+                    writer.newLine();
+                }
+
+                for (String checkoutFile : checkoutFiles) {
+                    if (exists.contains(checkoutFile)) {
+                        continue;
+                    }
+                    writer.write(checkoutFile);
+                    writer.newLine();
+                }
+            }
+
+        } catch (Throwable e) {
+            throw new GitException("Fail to set sparse checkout config", e);
+        }
+    }
+
     private class DebugProgressMonitor implements ProgressMonitor {
 
         private String task;
+
         private int totalWork;
 
         @Override

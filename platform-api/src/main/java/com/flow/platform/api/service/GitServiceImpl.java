@@ -67,7 +67,7 @@ public class GitServiceImpl implements GitService {
             progressListener.onStart();
         }
 
-        client.clone(branch, null, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
+        client.clone(branch, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
 
         if (progressListener != null) {
             progressListener.onFinish();
