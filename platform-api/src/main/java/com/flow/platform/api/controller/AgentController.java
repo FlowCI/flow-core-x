@@ -18,8 +18,10 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.response.BooleanValue;
+import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
@@ -38,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(path = "/agents")
-public class AgentController {
+public class AgentController extends ApplicationEventService {
 
     @Autowired
     private AgentService agentService;
@@ -176,6 +178,6 @@ public class AgentController {
      */
     @PostMapping(path = "/callback")
     public void callback(@RequestBody Agent agent) {
-
+        this.dispatchEvent(new AgentStatusChangeEvent(this, agent));
     }
 }
