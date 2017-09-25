@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git.model;
+package com.flow.platform.api.exception;
+
+import com.flow.platform.core.exception.FlowException;
 
 /**
  * @author yang
  */
-public enum GitSource {
+public class JsonException extends FlowException {
 
-    UNDEFINED_SSH,
+    public JsonException(String description, Throwable e) {
+        super(description, e);
+    }
 
-    UNDEFINED_HTTP,
-
-    GITLAB,
-
-    GITHUB,
-
-    CODING,
-
-    OSCHINA,
-
-    BITBUCKET
-
+    public JsonException(String message) {
+        super(message);
+    }
 }

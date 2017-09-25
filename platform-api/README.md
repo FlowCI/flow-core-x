@@ -38,11 +38,17 @@
 
 **FLOW_GIT_EVENT_SOURCE**: readonly and from git event
 
-**FLOW_GIT_EVENT_TYPE**: {MANUAL | PUSH | PR | TAG} readonly and from git event 
+**FLOW_GIT_EVENT_TYPE**: {MANUAL | PUSH | PR | TAG} readonly and from git event
+ 
+**FLOW_GIT_CREDENTIAL**: credential name used for git
 
 **FLOW_GIT_SSH_PRIVATE_KEY**: readonly
 
 **FLOW_GIT_SSH_PUBLIC_KEY**: readonly
+
+**FLOW_GIT_HTTP_USER**:
+
+**FLOW_GIT_HTTP_PASS**:
 
 #### Git Push or Tag Event
 
