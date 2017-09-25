@@ -171,7 +171,8 @@ public class AgentServiceTest extends TestBase {
 
         // when: report status
         AgentPath pathObj = new AgentPath(zoneName, agentName);
-        agentService.updateStatus(pathObj, AgentStatus.BUSY);
+        Agent created = agentService.find(pathObj);
+        agentService.updateStatus(created, AgentStatus.BUSY);
 
         // then:
         Agent exit = agentService.find(pathObj);
@@ -184,7 +185,8 @@ public class AgentServiceTest extends TestBase {
         String agentName = "test-agent-for-status-exception";
 
         AgentPath pathObj = new AgentPath(zoneName, agentName);
-        agentService.updateStatus(pathObj, AgentStatus.BUSY);
+        Agent notExist = new Agent(pathObj);
+        agentService.updateStatus(notExist, AgentStatus.BUSY);
     }
 
     @Test

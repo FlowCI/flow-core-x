@@ -20,6 +20,7 @@ import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
@@ -29,8 +30,10 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -40,6 +43,7 @@ import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -124,18 +128,20 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public void save(Agent agent) {
-        agentDao.update(agent);
-    }
-
-    @Override
-    public void updateStatus(AgentPath path, AgentStatus status) {
-        Agent exist = find(path);
-        if (exist == null) {
-            throw new AgentErr.NotFoundException(path.getName());
+    public void updateStatus(Agent agent, AgentStatus status) {
+        if (!agentDao.exist(agent.getPath())) {
+            throw new AgentErr.NotFoundException(agent.getName());
         }
-        exist.setStatus(status);
-        agentDao.update(exist);
+
+        boolean statusIsChanged = agent.getStatus().equals(status);
+
+        agent.setStatus(status);
+        agentDao.update(agent);
+
+        // send webhook if status changed
+        if (statusIsChanged) {
+
+        }
     }
 
     @Override
@@ -194,7 +200,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public String refreshToken(AgentPath agentPath){
+    public String refreshToken(AgentPath agentPath) {
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
             throw new IllegalParameterException(String.format("The agent '%s' has already exsited", agentPath));

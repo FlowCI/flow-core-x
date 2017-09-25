@@ -16,13 +16,16 @@
 
 package com.flow.platform.domain;
 
+import com.google.gson.annotations.Expose;
+
 /**
  * The domain entity support webhook
  *
  * @author yang
  */
-public abstract class WebHookable extends Jsonable {
+public abstract class Webhookable extends Jsonable {
 
+    @Expose
     protected String webhook;
 
     public String getWebhook() {

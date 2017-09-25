@@ -16,12 +16,11 @@
 
 package com.flow.platform.cc.consumer;
 
-import com.flow.platform.cc.dao.AgentDao;
+import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.core.consumer.QueueConsumer;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
-import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +44,7 @@ public class AgentReportQueueConsumer extends QueueConsumer<AgentPath> {
     private BlockingQueue<AgentPath> agentReportQueue;
 
     @Autowired
-    private AgentDao agentDao;
+    private AgentService agentService;
 
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
@@ -79,26 +78,22 @@ public class AgentReportQueueConsumer extends QueueConsumer<AgentPath> {
      */
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void reportOnline(AgentPath key) {
-        Agent exist = agentDao.get(key);
+        Agent exist = agentService.find(key);
 
         // create new agent with idle status
         if (exist == null) {
             try {
-                Agent agent = new Agent(key);
-                agent.setCreatedDate(DateUtil.now());
-                agent.setUpdatedDate(DateUtil.now());
-                agent.setStatus(AgentStatus.IDLE);
-                agentDao.save(agent);
+                exist = agentService.create(key, null);
+                LOGGER.trace("Create agent %s from ReportOnline", key);
             } catch (DataIntegrityViolationException ignore) {
                 // agent been created at some other threads
+                return;
             }
-            return;
         }
 
         // update exist offline agent to idle status
         if (exist.getStatus() == AgentStatus.OFFLINE) {
-            exist.setStatus(AgentStatus.IDLE);
-            agentDao.update(exist);
+            agentService.updateStatus(exist, AgentStatus.IDLE);
         }
     }
 }

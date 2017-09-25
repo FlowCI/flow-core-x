@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * @author gy@fir.im
  */
-public abstract class CmdBase extends WebHookable {
+public abstract class CmdBase extends Webhookable {
 
     /**
      * Destination of command

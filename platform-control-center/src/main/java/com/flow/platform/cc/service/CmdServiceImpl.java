@@ -238,7 +238,6 @@ public class CmdServiceImpl implements CmdService {
             throw new IllegalArgumentException("Cmd does not exist");
         }
 
-
         //TODO: missing unit test
         // set cmd status in sequence
         if (!cmd.addStatus(statusItem.getStatus())) {
@@ -321,7 +320,8 @@ public class CmdServiceImpl implements CmdService {
             }
         }
 
-        agentService.updateStatus(agentPath, isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
+        Agent agent = agentService.find(agentPath);
+        agentService.updateStatus(agent, isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
     }
 
     /**

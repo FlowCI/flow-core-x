@@ -67,14 +67,9 @@ public interface AgentService {
     List<Agent> findAvailable(String zone);
 
     /**
-     * Save agent properties
+     * Save agent status and other properties, and send agent webhook
      */
-    void save(Agent agent);
-
-    /**
-     * Update agent status
-     */
-    void updateStatus(AgentPath path, AgentStatus status);
+    void updateStatus(Agent agent, AgentStatus status);
 
     /**
      * Is agent session timeout
