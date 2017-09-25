@@ -128,6 +128,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
+    @Transactional(noRollbackFor = FlowException.class)
     public Job createJob(String path, GitEventType eventType, Map<String, String> envs) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
@@ -177,10 +178,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setChildrenResult(resultList);
 
         // to create agent session for job
-        String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+        try {
+            String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+            job.setSessionId(sessionId);
+            updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+        } catch (IllegalStatusException e) {
+            updateJobStatusAndSave(job, JobStatus.FAILURE);
+        }
 
-        job.setSessionId(sessionId);
-        updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
         return job;
     }
 
