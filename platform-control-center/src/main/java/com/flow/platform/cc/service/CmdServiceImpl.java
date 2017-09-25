@@ -39,7 +39,6 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
-import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -61,7 +60,6 @@ import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import javax.annotation.PostConstruct;
-import org.omg.PortableServer.THREAD_POLICY_ID;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -321,7 +319,7 @@ public class CmdServiceImpl implements CmdService {
         }
 
         Agent agent = agentService.find(agentPath);
-        agentService.updateStatus(agent, isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
+        agentService.saveWithStatus(agent, isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
     }
 
     /**

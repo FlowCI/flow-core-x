@@ -69,7 +69,7 @@ public interface AgentService {
     /**
      * Save agent status and other properties, and send agent webhook
      */
-    void updateStatus(Agent agent, AgentStatus status);
+    void saveWithStatus(Agent agent, AgentStatus status);
 
     /**
      * Is agent session timeout

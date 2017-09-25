@@ -93,7 +93,7 @@ public class AgentReportQueueConsumer extends QueueConsumer<AgentPath> {
 
         // update exist offline agent to idle status
         if (exist.getStatus() == AgentStatus.OFFLINE) {
-            agentService.updateStatus(exist, AgentStatus.IDLE);
+            agentService.saveWithStatus(exist, AgentStatus.IDLE);
         }
     }
 }

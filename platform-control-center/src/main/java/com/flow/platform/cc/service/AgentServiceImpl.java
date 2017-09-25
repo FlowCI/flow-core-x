@@ -91,7 +91,6 @@ public class AgentServiceImpl implements AgentService {
         for (String agent : agents) {
             AgentPath key = new AgentPath(zone, agent);
             try {
-
                 agentReportQueue.put(key);
             } catch (InterruptedException ignore) {
                 LOGGER.warn("InterruptedException when agent report online");
@@ -128,7 +127,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public void updateStatus(Agent agent, AgentStatus status) {
+    public void saveWithStatus(Agent agent, AgentStatus status) {
         if (!agentDao.exist(agent.getPath())) {
             throw new AgentErr.NotFoundException(agent.getName());
         }
@@ -151,7 +150,6 @@ public class AgentServiceImpl implements AgentService {
         }
 
         long sessionAlive = ChronoUnit.SECONDS.between(agent.getSessionDate(), compareDate);
-
         return sessionAlive >= timeoutInSeconds;
     }
 

@@ -172,7 +172,7 @@ public class AgentServiceTest extends TestBase {
         // when: report status
         AgentPath pathObj = new AgentPath(zoneName, agentName);
         Agent created = agentService.find(pathObj);
-        agentService.updateStatus(created, AgentStatus.BUSY);
+        agentService.saveWithStatus(created, AgentStatus.BUSY);
 
         // then:
         Agent exit = agentService.find(pathObj);
@@ -186,7 +186,7 @@ public class AgentServiceTest extends TestBase {
 
         AgentPath pathObj = new AgentPath(zoneName, agentName);
         Agent notExist = new Agent(pathObj);
-        agentService.updateStatus(notExist, AgentStatus.BUSY);
+        agentService.saveWithStatus(notExist, AgentStatus.BUSY);
     }
 
     @Test

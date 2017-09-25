@@ -297,7 +297,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             target.setSessionId(existSessionId);
             target.setSessionDate(ZonedDateTime.now());
             target.setStatus(AgentStatus.BUSY);
-            agentService.updateStatus(target, AgentStatus.BUSY);
+            agentService.saveWithStatus(target, AgentStatus.BUSY);
 
             logger.debug("Agent session been created: %s %s", target.getPath(), target.getSessionId());
         }
@@ -323,7 +323,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
             // release session from target
             target.setSessionId(null);
-            agentService.updateStatus(target, AgentStatus.IDLE);
+            agentService.saveWithStatus(target, AgentStatus.IDLE);
         }
 
         private List<Cmd> getRunningCmdForRunShell(String sessionId) {
@@ -364,7 +364,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
                 if (!target.isAvailable()) {
                     throw new AgentErr.NotAvailableException(target.getName());
                 }
-                agentService.updateStatus(target, AgentStatus.BUSY);
+                agentService.saveWithStatus(target, AgentStatus.BUSY);
             }
 
             sendCmdToAgent(target, cmd);
@@ -398,7 +398,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             }
 
             // set agent to offline
-            agentService.updateStatus(target, AgentStatus.OFFLINE);
+            agentService.saveWithStatus(target, AgentStatus.OFFLINE);
         }
     }
 
@@ -431,7 +431,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             }
 
             // set agent to offline
-            agentService.updateStatus(target, AgentStatus.OFFLINE);
+            agentService.saveWithStatus(target, AgentStatus.OFFLINE);
             logger.trace("Agent been shutdown: %s", target.getPath());
         }
     }

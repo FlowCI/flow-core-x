@@ -96,6 +96,6 @@ public class AgentController {
             throw new IllegalArgumentException("Agent path and status are required");
         }
 
-        agentService.updateStatus(agent, agent.getStatus());
+        agentService.saveWithStatus(agent, agent.getStatus());
     }
 }
