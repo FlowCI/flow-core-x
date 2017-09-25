@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.service;
 
+import com.flow.platform.core.service.WebhookService;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
@@ -27,7 +28,7 @@ import java.util.Set;
 /**
  * @author gy@fir.im
  */
-public interface AgentService {
+public interface AgentService extends WebhookService {
 
     int AGENT_SESSION_TIMEOUT_TASK_PERIOD = 60 * 1000; // millisecond
 

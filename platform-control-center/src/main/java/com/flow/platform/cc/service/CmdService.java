@@ -17,9 +17,9 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.core.service.WebhookService;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
 import java.util.List;
@@ -29,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author gy@fir.im
  */
-public interface CmdService {
+public interface CmdService extends WebhookService {
 
     Integer DEFAULT_CMD_TIMEOUT = 600; // in seconds 10 mins
 
@@ -93,9 +93,4 @@ public interface CmdService {
      * Record full zipped log to store
      */
     void saveLog(String cmdId, MultipartFile file);
-
-    /**
-     * Invoke webhook url to report Cmd
-     */
-    void webhookCallback(CmdBase cmdBase);
 }

@@ -75,7 +75,8 @@ public class AppConfig extends AppConfigBase {
     }
 
     @Bean
-    protected ThreadPoolTaskExecutor taskExecutor() {
+    @Override
+    public ThreadPoolTaskExecutor taskExecutor() {
         return executor;
     }
 

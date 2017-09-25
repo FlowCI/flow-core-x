@@ -30,7 +30,8 @@ import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.cc.task.CmdWebhookTask;
+import com.flow.platform.core.service.WebhookServiceImplBase;
+import com.flow.platform.core.task.WebhookCallBackTask;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -77,7 +78,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional(isolation = Isolation.REPEATABLE_READ)
-public class CmdServiceImpl implements CmdService {
+public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
 
@@ -101,9 +102,6 @@ public class CmdServiceImpl implements CmdService {
 
     @Autowired
     private AgentDao agentDao;
-
-    @Autowired
-    private Executor taskExecutor;
 
     @Autowired
     private RabbitTemplate cmdQueueTemplate;
@@ -276,15 +274,6 @@ public class CmdServiceImpl implements CmdService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public void webhookCallback(CmdBase cmdBase) {
-        if (cmdBase == null || cmdBase.getWebhook() == null) {
-            return;
-        }
-
-        taskExecutor.execute(new CmdWebhookTask(cmdBase));
     }
 
     /**
