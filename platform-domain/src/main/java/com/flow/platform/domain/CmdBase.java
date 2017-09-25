@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * @author gy@fir.im
  */
-public abstract class CmdBase extends Jsonable {
+public abstract class CmdBase extends WebHookable {
 
     /**
      * Destination of command
@@ -73,11 +73,6 @@ public abstract class CmdBase extends Jsonable {
      * Filter for env input to CmdResult.output map
      */
     protected String outputEnvFilter;
-
-    /**
-     * Url for report cmd status to other system
-     */
-    protected String webhook;
 
     /**
      * Extra info used for webhook callback
@@ -188,14 +183,6 @@ public abstract class CmdBase extends Jsonable {
 
     public void setOutputEnvFilter(String outputEnvFilter) {
         this.outputEnvFilter = outputEnvFilter;
-    }
-
-    public String getWebhook() {
-        return webhook;
-    }
-
-    public void setWebhook(String webhook) {
-        this.webhook = webhook;
     }
 
     public String getExtra() {

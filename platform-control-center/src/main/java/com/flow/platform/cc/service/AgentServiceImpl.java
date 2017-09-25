@@ -174,7 +174,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent create(AgentPath agentPath) {
+    public Agent create(AgentPath agentPath, String webhook) {
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
             throw new IllegalParameterException(String.format("The agent '%s' has already exsited", agentPath));
@@ -184,6 +184,7 @@ public class AgentServiceImpl implements AgentService {
         agent.setCreatedDate(DateUtil.now());
         agent.setUpdatedDate(DateUtil.now());
         agent.setStatus(AgentStatus.OFFLINE);
+        agent.setWebhook(webhook);
 
         //random token
         agent.setToken(UUID.randomUUID().toString());

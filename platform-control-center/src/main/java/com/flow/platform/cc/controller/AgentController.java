@@ -64,7 +64,7 @@ public class AgentController {
         if (Strings.isNullOrEmpty(agentPath.getName()) || Strings.isNullOrEmpty(agentPath.getZone())) {
             throw new IllegalParameterException("miss required params ");
         }
-        return agentService.create(agentPath);
+        return agentService.create(agentPath, null);
     }
 
     @PostMapping(path = "/token/refresh")

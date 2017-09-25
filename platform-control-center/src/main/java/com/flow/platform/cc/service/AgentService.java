@@ -89,7 +89,7 @@ public interface AgentService {
     /**
      * Create agent and return token
      */
-    Agent create(AgentPath agentPath);
+    Agent create(AgentPath agentPath, String webhook);
 
     /**
      * refresh token

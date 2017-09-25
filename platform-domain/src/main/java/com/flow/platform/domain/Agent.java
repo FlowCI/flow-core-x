@@ -22,7 +22,7 @@ import java.time.ZonedDateTime;
 /**
  * @author gy@fir.im
  */
-public class Agent extends Jsonable {
+public class Agent extends WebHookable {
 
     /**
      * Composite key
