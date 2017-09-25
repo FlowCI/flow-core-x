@@ -177,7 +177,7 @@ public class AgentServiceImpl implements AgentService {
     public Agent create(AgentPath agentPath) {
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
-            throw new IllegalParameterException("agent token is dup");
+            throw new IllegalParameterException(String.format("The agent '%s' has already exsited", agentPath));
         }
 
         agent = new Agent(agentPath);
@@ -196,7 +196,7 @@ public class AgentServiceImpl implements AgentService {
     public String refreshToken(AgentPath agentPath){
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
-            throw new IllegalParameterException("agent token is dup");
+            throw new IllegalParameterException(String.format("The agent '%s' has already exsited", agentPath));
         }
 
         //random token
