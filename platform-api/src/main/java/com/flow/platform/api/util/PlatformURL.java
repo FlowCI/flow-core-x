@@ -49,7 +49,7 @@ public class PlatformURL {
 
         agentUrl = String.format("%s%s", baseURL, "agents/list");
         agentCreateUrl = String.format("%s%s", baseURL, "agents/create");
-        agentSettingsUrl = String.format("%s%s", baseURL, "agents/info");
+        agentSettingsUrl = String.format("%s%s", baseURL, "agents/settings");
     }
 
     public String getAgentCreateUrl() {
@@ -82,5 +82,19 @@ public class PlatformURL {
 
     public String getSysInfoUrl() {
         return sysInfoUrl;
+    }
+
+    @Override
+    public String toString() {
+        return "PlatformURL{" +
+            "cmdUrl='" + cmdUrl + '\'' +
+            ", queueUrl='" + queueUrl + '\'' +
+            ", agentUrl='" + agentUrl + '\'' +
+            ", agentSettingsUrl='" + agentSettingsUrl + '\'' +
+            ", sysInfoUrl='" + sysInfoUrl + '\'' +
+            ", sysIndexUrl='" + sysIndexUrl + '\'' +
+            ", agentCreateUrl='" + agentCreateUrl + '\'' +
+            ", cmdDownloadLogUrl='" + cmdDownloadLogUrl + '\'' +
+            '}';
     }
 }
