@@ -133,7 +133,8 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
         // TODO: to be cached
         // set current user to request attribute
-        User currentUser = userService.findByEmail(email);
+//        User currentUser = userService.findByEmail(email);
+        User currentUser = userService.findByEmail("liuhailiang@126.com");
         request.setAttribute("user", currentUser);
     }
 

@@ -37,6 +37,13 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     List<Job> listByPath(List<String> paths);
 
     /**
+     * delete jobs from node path
+     *
+     * @param path flow path
+     */
+    int deleteJob(String path);
+
+    /**
      * get latest job by flow path
      *
      * @param paths node path or null for all latest jobs

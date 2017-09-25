@@ -74,6 +74,11 @@ public class UserFlowServiceImpl implements UserFlowService{
     }
 
     @Override
+    public void unAssign(Flow flow){
+        userFlowDao.deleteByFlowPath(flow.getPath());
+    }
+
+    @Override
     public void unAssign(User user, Flow flow) {
         UserFlow userFlow = userFlowDao.get(new UserFlowKey(flow.getPath(), user.getEmail()));
         if (userFlow != null) {

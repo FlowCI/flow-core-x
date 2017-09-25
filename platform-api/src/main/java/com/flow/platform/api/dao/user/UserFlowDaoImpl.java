@@ -71,10 +71,10 @@ public class UserFlowDaoImpl extends AbstractBaseDao<UserFlowKey, UserFlow> impl
     }
 
     @Override
-    public int deleteByFlowPat(String flowPath) {
+    public int deleteByFlowPath(String rootPath) {
         return execute(session -> session
             .createQuery("delete from UserFlow where key.flowPath = ?")
-            .setParameter(0, flowPath)
+            .setParameter(0, rootPath)
             .executeUpdate());
     }
 }

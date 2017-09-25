@@ -15,7 +15,7 @@ public interface UserService {
     /**
      * List all users
      */
-    UserListResponse list(boolean withFlow, boolean withRole);
+    List<User> list(boolean withFlow, boolean withRole);
 
     /**
      * Find user by email
@@ -43,4 +43,8 @@ public interface UserService {
      * update user role
      */
     List<User> updateUserRole(List<String> emailList, List<String> roles);
+
+    Long adminUserCount();
+
+    int usersCount();
 }

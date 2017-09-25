@@ -10,10 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 
 /**
@@ -61,7 +61,11 @@ public class UserController {
      */
     @GetMapping
     public UserListResponse list() {
-        return userService.list(true, true);
+        int userCount = userService.usersCount();
+        Long userAdminCount = userService.adminUserCount();
+        List<User> users = userService.list(true, true);
+        UserListResponse userListResponse = new UserListResponse(userCount, userAdminCount, users);
+        return userListResponse;
     }
 
     /**
@@ -128,9 +132,10 @@ public class UserController {
      *     }
      */
     @PostMapping("/register")
-    public void register(@RequestBody RegisterUserParam registerUserParam) {
+    public void register(@RequestBody RegisterUserParam registerUserParam, @RequestAttribute(value = "user", required = false) User currentUser) {
         User user = new User(registerUserParam.getEmail(), registerUserParam.getUsername(), registerUserParam.getPassword());
-        userService.register(user, registerUserParam.getRoles(), registerUserParam.isSendEmail(), registerUserParam.getFlows());
+        userService.register(user, registerUserParam.getRoles(), registerUserParam.isSendEmail(),
+                             registerUserParam.getFlows());
     }
 
     /**
@@ -179,27 +184,9 @@ public class UserController {
      *         "message": "JSON parse error: java.io.EOFException: End of input at line 6 column 1 path $.roleId; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 6 column 1 path $.roleId"
      *     }
      */
-    @PostMapping("/updateUserRole")
+    @PostMapping("/role/update")
     public List<User> updateRole(@RequestBody UpdateUserRoleParam updateUserRoleParam){
-//        Set<String> roleNameSet  = transformRole(roles);
         return userService.updateUserRole(updateUserRoleParam.getEmailList(), updateUserRoleParam.getRoles());
     }
-
-    /**
-    *
-    * to split roles parameter from xx,xx,xx, to role name set
-    */
-//    private Set<String> transformRole(String roles){
-//        final Set<String> roleNameSet = new HashSet<>(2);
-//        if (!Strings.isNullOrEmpty(roles)) {
-//            roles = roles.trim();
-//
-//            ControllerUtil.extractParam(roles, item -> {
-//                roleNameSet.add(item);
-//                return roleNameSet;
-//            });
-//        }
-//        return roleNameSet;
-//    }
 
 }

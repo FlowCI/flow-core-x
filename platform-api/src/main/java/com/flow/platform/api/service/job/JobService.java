@@ -47,6 +47,11 @@ public interface JobService {
     String findYml(String path, Integer number);
 
     /**
+     * delete jobs by flowPath
+     */
+    void deleteJob(String path);
+
+    /**
      * List all jobs by given path
      *
      * @param paths job node path
@@ -77,10 +82,6 @@ public interface JobService {
      * handle callback
      **/
     void callback(CmdCallbackQueueItem cmdQueueItem);
-
-    /**
-     * send cmd to queue
-     */
     void enterQueue(CmdCallbackQueueItem cmdQueueItem);
 
     /**

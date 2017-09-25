@@ -45,6 +45,11 @@ public interface UserFlowService {
     void unAssign(User user);
 
     /**
+     * Un-assign a flow for all users
+     */
+    void unAssign(Flow flow);
+
+    /**
      * Un-assign a user form flow
      */
     void unAssign(User user, Flow flow);

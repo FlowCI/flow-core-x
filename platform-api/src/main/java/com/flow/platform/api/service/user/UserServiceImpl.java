@@ -61,14 +61,11 @@ public class UserServiceImpl implements UserService {
     private long expirationDuration;
 
     @Override
-    public UserListResponse list(boolean withFlow, boolean withRole) {
+    public List<User> list(boolean withFlow, boolean withRole) {
         List<User> users = userDao.list();
-        Role role = roleService.find("ADMIN");
-        Long adminCount = userRoleDao.numOfUser(role.getId());
 
-        UserListResponse userListResponse = new UserListResponse(users.size(), adminCount, users);
         if (!withFlow && !withRole) {
-            return userListResponse;
+            return users;
         }
 
         for (User user : users) {
@@ -83,7 +80,7 @@ public class UserServiceImpl implements UserService {
 
         }
 
-        return userListResponse;
+        return users;
     }
 
     @Override
@@ -124,6 +121,7 @@ public class UserServiceImpl implements UserService {
         // Insert the user info into the database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
         user.setPassword(passwordForMD5);
+//        user.setCreatedBy(currentUser.getEmail());
         user = userDao.save(user);
 
 
@@ -136,8 +134,8 @@ public class UserServiceImpl implements UserService {
         }
 
         if (flowsList.size() > 0){
-            for (String flowPath : flowsList){
-                Flow flow = (Flow) nodeService.find(flowPath);
+            for (String rootPath : flowsList){
+                Flow flow = (Flow) nodeService.find(rootPath);
                 if (flow != null){
                     userFlowService.assign(user, flow);
                 }
@@ -173,9 +171,9 @@ public class UserServiceImpl implements UserService {
     public List<User> updateUserRole(List<String> emailList, List<String> roles){
         List<User> users = userDao.list(emailList);
         for (User user : users) {
+            roleService.unAssign(user);
             for (String roleName : roles) {
                 Role targetRole = roleService.find(roleName);
-                roleService.unAssign(user);
                 roleService.assign(user, targetRole);
                 user.setRoles(roleService.list(user));
             }
@@ -186,6 +184,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByEmail(String email){
         return userDao.get(email);
+    }
+
+    @Override
+    public Long adminUserCount(){
+        Role role = roleService.find("ADMIN");
+        return userRoleDao.numOfUser(role.getId());
+    }
+
+    @Override
+    public int usersCount(){
+        List<User> users = userDao.list();
+        return users.size();
     }
 
     /**
@@ -306,4 +316,5 @@ public class UserServiceImpl implements UserService {
     private Boolean passwordOfUsernameIsTrue(String username, String password) {
         return userDao.passwordOfUsernameIsTrue(username, password);
     }
+
 }

@@ -23,7 +23,7 @@ import com.google.gson.annotations.Expose;
  */
 public class Role extends CreateUpdateObject {
 
-    @Expose
+//    @Expose
     private Integer id;
 
     @Expose

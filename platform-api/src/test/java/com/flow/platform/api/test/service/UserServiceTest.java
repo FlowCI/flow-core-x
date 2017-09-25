@@ -11,6 +11,7 @@ import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.StringEncodeUtil;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -62,7 +63,10 @@ public class UserServiceTest extends TestBase {
     @Test
     public void should_list_user_with_flow_and_role() {
         // given: user with roles
-        userService.register(user, roles, false, null);
+//        userService.register(user, roles, false, null);
+
+        userService.register(user, roles, false,
+            Lists.newArrayList(createFlow().getPath()));
 
         // given: flows with created by
         Flow flow = nodeService.createEmptyFlow("flow-test");
@@ -71,11 +75,11 @@ public class UserServiceTest extends TestBase {
         flowDao.update(flow);
 
         // when: load path list by createdBy
-        UserListResponse users = userService.list(true, true);
-        Assert.assertEquals(1, users.getUsers().size());
+        List<User> users = userService.list(true, true);
+        Assert.assertEquals(1, users.size());
 
         // then:
-        User user = users.getUsers().get(0);
+        User user = users.get(0);
         Assert.assertEquals(1, user.getFlows().size());
         Assert.assertEquals("flow-test", user.getFlows().get(0));
 
@@ -100,7 +104,9 @@ public class UserServiceTest extends TestBase {
 
     @Test
     public void should_register_success() {
-        userService.register(user, null, false, null);
+        userService.register(user, roles, false,
+            Lists.newArrayList(createFlow().getPath()));
+//        userService.register(user, null, false, null);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
     }
 
@@ -114,5 +120,19 @@ public class UserServiceTest extends TestBase {
         emailList.add("liangpengyv@fir.im");
         userService.delete(emailList);
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
+    }
+
+    private Flow createFlow(){
+        String path = "test";
+        return nodeService.createEmptyFlow(path);
+    }
+
+    private User currentUser(){
+        User user = new User();
+        user.setEmail("test@fir.im");
+        user.setUsername("test");
+        user.setPassword("testfir.im");
+        userDao.save(user);
+        return user;
     }
 }

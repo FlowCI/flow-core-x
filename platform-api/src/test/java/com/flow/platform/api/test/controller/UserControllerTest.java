@@ -1,9 +1,14 @@
 package com.flow.platform.api.test.controller;
 
 import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserRoleDao;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +32,12 @@ public class UserControllerTest extends TestBase {
     @Autowired
     private UserDao userDao;
 
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private UserRoleDao userRoleDao;
+
     private User user;
 
     @Before
@@ -35,7 +46,8 @@ public class UserControllerTest extends TestBase {
         user.setEmail("liangpengyv@fir.im");
         user.setUsername("liangpengyv");
         user.setPassword("liangpengyv");
-        userService.register(user, null, false, null);
+        userService.register(user, Lists.newArrayList(createRole().getName()),
+                            false, Lists.newArrayList(createFlow().getPath()));
         user.setPassword("liangpengyv");
     }
 
@@ -88,14 +100,16 @@ public class UserControllerTest extends TestBase {
         MvcResult mvcResult;
 
         // register success: response 200; userinfo is inserted into database
-        requestContent = "{ \"email\" : \"test1@fir.im\", \"username\" : \"test1\", \"password\" : \"test1\", \"roleId\" : \"developer\" }";
+        requestContent = "{ \"email\" : \"testRegister@fir.im\", \"username\" : \"testRegister\", \"password\" : \"liangpengyv\", \"isSendEmail\" : \"false\", "
+            + "\"flows\": [\"test\"], \"roles\" : [\"admin\"] }";
         mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON)
             .content(requestContent);
         mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
-        Assert.assertNotNull(userDao.get("test1@fir.im"));
+        Assert.assertNotNull(userDao.get("testRegister@fir.im"));
 
         // register failed: response 400; return error description message
-        requestContent = "{ \"email\" : \"liangpengyv@fir.im\", \"username\" : \"liangpengyv\", \"password\" : \"liangpengyv\", \"roleId\" : \"developer\" }";
+        requestContent = "{ \"email\" : \"testRegister@fir.im\", \"username\" : \"testRegister\", \"password\" : \"liangpengyv\", \"isSendEmail\" : \"false\", "
+            + "\"flows\": [\"test\"], \"roles\" : [\"admin\"] }";
         mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON)
             .content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is4xxClientError()).andReturn();
@@ -135,4 +149,27 @@ public class UserControllerTest extends TestBase {
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertEquals("{\"message\"", responseContent.substring(0, 10));
     }
+
+    @Test
+    public void should_update_users_roles() throws Throwable{
+        String requestContent;
+        MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
+
+        requestContent = "{ \"emailList\": [\"liangpengyv@fir.im\"], \"roles\" : [\"admin\"] }";
+        mockHttpServletRequestBuilder = post("/user/role/update").contentType(MediaType.APPLICATION_JSON)
+            .content(requestContent);
+        mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
+
+        Assert.assertEquals(1, userRoleDao.list("liangpengyv@fir.im").size());
+    }
+
+    private Role createRole(){
+        return roleService.create("admin", "");
+    }
+
+    private Flow createFlow(){
+        String path = "test";
+        return nodeService.createEmptyFlow(path);
+    }
+
 }

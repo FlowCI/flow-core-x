@@ -362,7 +362,7 @@ public class FlowController extends NodeController {
      *    {}
      *  ]
      */
-    @PostMapping("/{root}/flowAuthUsers")
+    @PostMapping("/{root}/users/auth")
     @WebSecurity(action = Actions.FLOW_AUTH)
     public List<User> flowAuthUsers(@RequestBody FlowAuthUser flowAuthUser){
         String path = getNodePathFromUrl();

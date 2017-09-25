@@ -48,6 +48,6 @@ public interface UserFlowDao extends BaseDao<UserFlowKey, UserFlow> {
     /**
      * Delete all user flow record by flow path
      */
-    int deleteByFlowPat(String flowPath);
+    int deleteByFlowPath(String rootPath);
 
 }

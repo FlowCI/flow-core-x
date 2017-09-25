@@ -275,6 +275,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         return logContent.getInstance();
     }
 
+    @Override
+    public void deleteJob(String path){
+        jobDao.deleteJob(path);
+    }
+
     /**
      * readZipFile
      */

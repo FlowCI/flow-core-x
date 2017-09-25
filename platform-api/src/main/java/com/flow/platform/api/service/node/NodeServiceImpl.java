@@ -29,6 +29,7 @@ import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
@@ -40,6 +41,7 @@ import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
+import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,6 +93,9 @@ public class NodeServiceImpl implements NodeService {
 
     @Autowired
     private UserFlowService userFlowService;
+
+    @Autowired
+    private JobService jobService;
 
     @Value(value = "${domain}")
     private String domain;
@@ -195,6 +200,12 @@ public class NodeServiceImpl implements NodeService {
         String rootPath = PathUtil.rootPath(path);
         Flow flow = findFlow(rootPath);
 
+        // delete related userAuth
+        userFlowService.unAssign(flow);
+
+        // delete job
+        jobService.deleteJob(rootPath);
+
         // delete flow
         flowDao.delete(flow);
 
@@ -276,17 +287,16 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<User> authUsers(List<String> emailList, String flowPath) {
+    public List<User> authUsers(List<String> emailList, String rootPath) {
         List<User> users = userDao.list(emailList);
-        List<String> paths = new ArrayList<>();
-        paths.add(flowPath);
-        Flow flow = findFlow(flowPath);
+
+        List<String> paths = Lists.newArrayList(rootPath);
+
+        Flow flow = findFlow(rootPath);
         for (User user : users) {
-            if (user != null) {
-                userFlowService.unAssign(user, flow);
-                userFlowService.assign(user, flow);
-                user.setFlows(paths);
-            }
+            userFlowService.unAssign(user, flow);
+            userFlowService.assign(user, flow);
+            user.setFlows(paths);
         }
         return users;
     }
