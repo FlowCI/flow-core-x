@@ -16,7 +16,7 @@
 
 package com.flow.platform.util.git.test;
 
-import com.flow.platform.util.git.GitSshClient;
+import com.flow.platform.util.git.GitHttpClient;
 import com.google.common.collect.Sets;
 import java.io.File;
 import java.nio.file.Paths;
@@ -25,7 +25,6 @@ import java.util.Set;
 import org.eclipse.jgit.lib.Ref;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -33,10 +32,9 @@ import org.junit.rules.TemporaryFolder;
 /**
  * @author yang
  */
-@Ignore("ignore since this test need to set ssh public key into git hub")
-public class GitSshClientTest {
+public class GitHttpClientTest {
 
-    private final static String TEST_GIT_SSH_URL = "git@github.com:flow-ci-plugin/for-testing.git";
+    private final static String TEST_GIT_HTTP_URL = "https://github.com/flow-ci-plugin/for-testing.git";
 
     @Rule
     public TemporaryFolder folder= new TemporaryFolder();
@@ -44,7 +42,7 @@ public class GitSshClientTest {
     @Test
     public void should_load_all_branch_and_tags() throws Throwable {
         String tmpPath = folder.getRoot().getAbsolutePath();
-        GitSshClient client = new GitSshClient(TEST_GIT_SSH_URL, Paths.get(tmpPath));
+        GitHttpClient client = new GitHttpClient(TEST_GIT_HTTP_URL, Paths.get(tmpPath), "", "");
 
         // load all branches
         Collection<Ref> branches = client.branches();
@@ -62,13 +60,14 @@ public class GitSshClientTest {
         // when: clone only for plugin config file
         String tmpPath = folder.getRoot().getAbsolutePath();
 
-        GitSshClient gitClient = new GitSshClient(TEST_GIT_SSH_URL, Paths.get(tmpPath));
-        gitClient.clone("develop", Sets.newHashSet(".flow.yml"), null);
+        // set username and password to empty string since the repo is public
+        GitHttpClient client = new GitHttpClient(TEST_GIT_HTTP_URL, Paths.get(tmpPath), "", "");
+        client.clone("develop", Sets.newHashSet(".flow.yml"), null);
 
         final Set<String> acceptedFiles = Sets.newHashSet(".git", ".flow.yml", "README.md");
 
         // then:
-        File[] files = gitClient.targetPath().toFile().listFiles();
+        File[] files = client.targetPath().toFile().listFiles();
         Assert.assertEquals(3, files.length);
         for (File file : files) {
             Assert.assertTrue(acceptedFiles.contains(file.getName()));

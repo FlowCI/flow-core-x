@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package com.flow.platform.util.git.model;
+package com.flow.platform.api.exception;
+
+import com.flow.platform.core.exception.FlowException;
 
 /**
  * @author yang
  */
-public enum GitSource {
+public class NodeSettingsException extends FlowException {
 
-    UNDEFINED_SSH,
-
-    UNDEFINED_HTTP,
-
-    GITLAB,
-
-    GITHUB,
-
-    CODING,
-
-    OSCHINA,
-
-    BITBUCKET
-
+    public NodeSettingsException(String message) {
+        super(message);
+    }
 }

@@ -17,15 +17,21 @@
 package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.dao.YmlDao;
+import com.flow.platform.api.domain.credential.Credential;
+import com.flow.platform.api.domain.credential.CredentialType;
+import com.flow.platform.api.domain.credential.RSACredentialDetail;
+import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.exception.NodeSettingsException;
 import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.service.GitService;
-import com.flow.platform.api.task.CloneAndVerifyYmlTask;
+import com.flow.platform.api.task.UpdateNodeYmlTask;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -35,6 +41,8 @@ import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.model.GitSource;
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
@@ -74,6 +82,9 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private CredentialService credentialService;
 
     @Autowired
     private YmlDao ymlDao;
@@ -158,6 +169,8 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
             throw new IllegalStatusException("Yml file is loading");
         }
 
+        findNodeCredential(flow);
+
         // update FLOW_YML_STATUS to LOADING
         nodeService.updateYmlState(flow, YmlStatusValue.GIT_CONNECTING, null);
 
@@ -165,7 +178,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
             ThreadPoolTaskExecutor executor = findThreadPoolFromCache(flow.getPath());
 
             // async to load yml file
-            executor.execute(new CloneAndVerifyYmlTask(flow, nodeService, gitService, callback));
+            executor.execute(new UpdateNodeYmlTask(flow, nodeService, gitService, callback));
         } catch (ExecutionException e) {
             LOGGER.warn("Fail to get task executor for node: " + flow.getPath());
             nodeService.updateYmlState(flow, YmlStatusValue.ERROR, e.getMessage());
@@ -189,6 +202,51 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
         LOGGER.trace("Yml loading task been stopped for path %s", path);
         nodeService.updateYmlState(flow, YmlStatusValue.NOT_FOUND, null);
+    }
+
+    /**
+     * Find FLOW_GIT_CREDENTIAL and load from CredentialService
+     */
+    private void findNodeCredential(Node node) {
+        String rsaOrUsernameCredentialName = node.getEnv(GitEnvs.FLOW_GIT_CREDENTIAL);
+
+        if (Strings.isNullOrEmpty(rsaOrUsernameCredentialName)) {
+            return;
+        }
+
+        try {
+            Credential credential = credentialService.find(rsaOrUsernameCredentialName);
+            CredentialType credentialType = credential.getType();
+
+            // for git ssh client needs rsa credential
+            if (credentialType.equals(CredentialType.RSA)) {
+                if (!node.getEnv(GitEnvs.FLOW_GIT_SOURCE).equals(GitSource.UNDEFINED_SSH.name())) {
+                    throw new NodeSettingsException("The SSH git source need RSA credential");
+                }
+
+                RSACredentialDetail credentialDetail = (RSACredentialDetail) credential.getDetail();
+                node.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, credentialDetail.getPrivateKey());
+                node.putEnv(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY, credentialDetail.getPublicKey());
+                return;
+            }
+
+            // for git http client needs username credential
+            if (credentialType.equals(CredentialType.USERNAME)) {
+                if (!node.getEnv(GitEnvs.FLOW_GIT_SOURCE).equals(GitSource.UNDEFINED_HTTP.name())) {
+                    throw new NodeSettingsException("The HTTP git source need USERNAME credential");
+                }
+
+                UsernameCredentialDetail credentialDetail = (UsernameCredentialDetail) credential.getDetail();
+                node.putEnv(GitEnvs.FLOW_GIT_HTTP_USER, credentialDetail.getUsername());
+                node.putEnv(GitEnvs.FLOW_GIT_HTTP_PASS, credentialDetail.getPassword());
+                return;
+            }
+
+            throw new NodeSettingsException("Unsupported credential settings");
+
+        } catch (IllegalParameterException ignore) {
+            // credential not found
+        }
     }
 
     private ThreadPoolTaskExecutor findThreadPoolFromCache(String path) throws ExecutionException {
