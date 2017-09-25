@@ -21,6 +21,7 @@ import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
@@ -54,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional(isolation = Isolation.REPEATABLE_READ)
-public class AgentServiceImpl implements AgentService {
+public class AgentServiceImpl extends WebhookServiceImplBase implements AgentService {
 
     private final static Logger LOGGER = new Logger(AgentService.class);
 
@@ -132,14 +133,14 @@ public class AgentServiceImpl implements AgentService {
             throw new AgentErr.NotFoundException(agent.getName());
         }
 
-        boolean statusIsChanged = agent.getStatus().equals(status);
+        boolean statusIsChanged = !agent.getStatus().equals(status);
 
         agent.setStatus(status);
         agentDao.update(agent);
 
         // send webhook if status changed
         if (statusIsChanged) {
-
+            this.webhookCallback(agent);
         }
     }
 

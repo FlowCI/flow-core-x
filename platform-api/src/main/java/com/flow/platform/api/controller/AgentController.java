@@ -154,4 +154,28 @@ public class AgentController {
         Boolean t = agentService.shutdown(zone, name, password);
         return new BooleanValue(t);
     }
+
+    /**
+     * @api {Post} /agents/callback Callback
+     * @apiName AgentCallback
+     * @apiParam {json} Request-Body
+     *  {
+     *      path: {
+     *          zone: xxx,
+     *          name: xxx
+     *      },
+     *      concurrentProc: 1,
+     *      status: IDLE,
+     *      sessionId: xxxxx,
+     *      sessionDate: xxx,
+     *      token: xxxx,
+     *      createdDate: xxx,
+     *      updatedDate: xxx
+     *  }
+     * @apiDescription: Callback API for agent webhook when agent status changed
+     */
+    @PostMapping(path = "/callback")
+    public void callback(@RequestBody Agent agent) {
+
+    }
 }

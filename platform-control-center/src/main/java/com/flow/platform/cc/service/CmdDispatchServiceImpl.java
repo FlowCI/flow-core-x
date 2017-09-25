@@ -296,7 +296,6 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
             target.setSessionId(existSessionId);
             target.setSessionDate(ZonedDateTime.now());
-            target.setStatus(AgentStatus.BUSY);
             agentService.saveWithStatus(target, AgentStatus.BUSY);
 
             logger.debug("Agent session been created: %s %s", target.getPath(), target.getSessionId());
@@ -340,7 +339,6 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
                 if (!cmd.isCurrent()) {
                     iterator.remove();
-                    continue;
                 }
             }
 
