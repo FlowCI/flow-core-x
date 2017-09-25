@@ -17,6 +17,7 @@
 package com.flow.platform.domain;
 
 import com.google.common.base.Strings;
+import com.google.gson.annotations.Expose;
 
 /**
  * Agent path in zookeeper
@@ -27,8 +28,10 @@ public class AgentPath extends Jsonable {
 
     private final static String RESERVED_CHAR = "#";
 
+    @Expose
     private String zone;
 
+    @Expose
     private String name;
 
     public AgentPath(String zone, String name) {
