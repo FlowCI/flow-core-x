@@ -285,18 +285,15 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public void deleteJob(String path){
-        List<String> paths = null;
-        if (path != null) {
-            paths = Lists.newArrayList(path);
-        }
-
+    public void deleteJob(String path) {
+        List<String> paths = Lists.newArrayList(path);
         List<Job> jobs = list(paths, false);
-        for (Job job : jobs){
+
+        for (Job job : jobs) {
             jobYmlDao.delete(jobYmlDao.get(job.getId()));
 
             List<NodeResult> nodeResults = nodeResultDao.list(job.getId());
-            for(NodeResult nodeResult: nodeResults){
+            for (NodeResult nodeResult : nodeResults) {
                 nodeResultDao.delete(nodeResult);
             }
             jobDao.delete(job);
@@ -310,7 +307,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         try (ZipInputStream zis = new ZipInputStream(zippedStream);) {
             StringBuilder content = new StringBuilder();
 
-            ZipEntry ze ;
+            ZipEntry ze;
             byte[] buffer = new byte[2048];
 
             while ((ze = zis.getNextEntry()) != null) {

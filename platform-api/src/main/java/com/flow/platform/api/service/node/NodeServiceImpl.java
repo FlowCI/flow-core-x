@@ -53,12 +53,14 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
 
 /**
  * @author yh@firim
  */
 @Service(value = "nodeService")
+@Transactional
 public class NodeServiceImpl implements NodeService {
 
     private final Logger LOGGER = new Logger(NodeService.class);
