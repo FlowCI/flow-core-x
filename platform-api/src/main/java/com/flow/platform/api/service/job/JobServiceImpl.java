@@ -22,6 +22,8 @@ import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.JobYmlDao;
+import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.JobEnvs;
@@ -54,6 +56,7 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -104,6 +107,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     private PlatformURL platformURL;
+
+    @Autowired
+    private NodeResultDao nodeResultDao;
+
+    @Autowired
+    private JobYmlDao jobYmlDao;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -277,7 +286,21 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     public void deleteJob(String path){
-        jobDao.deleteJob(path);
+        List<String> paths = null;
+        if (path != null) {
+            paths = Lists.newArrayList(path);
+        }
+
+        List<Job> jobs = list(paths, false);
+        for (Job job : jobs){
+            jobYmlDao.delete(jobYmlDao.get(job.getId()));
+
+            List<NodeResult> nodeResults = nodeResultDao.list(job.getId());
+            for(NodeResult nodeResult: nodeResults){
+                nodeResultDao.delete(nodeResult);
+            }
+            jobDao.delete(job);
+        }
     }
 
     /**
