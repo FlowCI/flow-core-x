@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service;
  * @author yh@firim
  */
 
-@Service(value = "agentService")
+@Service
 public class AgentServiceImpl implements AgentService {
 
     private final Logger LOGGER = new Logger(AgentService.class);
@@ -122,7 +122,7 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public Agent create(AgentPath agentPath) {
         try {
-            String agentJson = HttpUtil.post(platformURL.getAgentTokenUrl(), agentPath.toJson());
+            String agentJson = HttpUtil.post(platformURL.getAgentCreateUrl(), agentPath.toJson());
 
             if (Strings.isNullOrEmpty(agentJson)) {
                 throw new FlowException("Unable to create agent via control center");
@@ -137,7 +137,7 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public AgentSettings settings(String token) {
-        String url = platformURL.getAgentDetailUrl() + "?" + "token=" + token;
+        String url = platformURL.getAgentSettingsUrl() + "?" + "token=" + token;
         String settingsJson = HttpUtil.get(url);
 
         if (Strings.isNullOrEmpty(settingsJson)) {

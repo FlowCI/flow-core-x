@@ -22,7 +22,6 @@ import com.flow.platform.api.domain.MessageSetting;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
 import com.flow.platform.api.util.SmtpUtil;
-import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Service;
  * @author yh@firim
  */
 
-@Service(value = "messageService")
+@Service
 public class MessageServiceImpl implements MessageService {
 
     private final static Logger LOGGER = new Logger(MessageService.class);
