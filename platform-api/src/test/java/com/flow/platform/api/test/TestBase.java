@@ -41,6 +41,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.job.SearchService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
@@ -125,6 +126,9 @@ public abstract class TestBase {
 
     @Autowired
     protected NodeResultService nodeResultService;
+
+    @Autowired
+    protected SearchService searchService;
 
     @Autowired
     protected WebApplicationContext webAppContext;

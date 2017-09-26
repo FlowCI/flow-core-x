@@ -40,6 +40,7 @@ public class SearchServiceImpl implements SearchService {
         conditions.add(new KeywordCondition());
         conditions.add(new BranchCondition());
         conditions.add(new GitCondition());
+        conditions.add(new CreatorCondition());
     }
 
     @Autowired
@@ -117,6 +118,25 @@ public class SearchServiceImpl implements SearchService {
             List<Job> copyJobs = new LinkedList<>();
             for (Job job : jobs) {
                 if (job.getCategory() == searchCondition.getGitEventType()) {
+                    copyJobs.add(job);
+                }
+            }
+
+            return copyJobs;
+        }
+    }
+
+    static class CreatorCondition implements Condition {
+
+        @Override
+        public List<Job> match(SearchCondition searchCondition, List<Job> jobs) {
+            if (searchCondition.getCreator() == null) {
+                return jobs;
+            }
+
+            List<Job> copyJobs = new LinkedList<>();
+            for (Job job : jobs) {
+                if (searchCondition.getCreator().equals(job.getCreatedBy())) {
                     copyJobs.add(job);
                 }
             }

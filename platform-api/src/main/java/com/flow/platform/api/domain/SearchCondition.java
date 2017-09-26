@@ -29,6 +29,24 @@ public class SearchCondition {
 
     private GitEventType gitEventType;
 
+    private String creator;
+
+    public SearchCondition(String keyword, String branch, GitEventType gitEventType) {
+        this.keyword = keyword;
+        this.branch = branch;
+        this.gitEventType = gitEventType;
+    }
+
+    public SearchCondition(String keyword, String branch, GitEventType gitEventType, String creator) {
+        this.keyword = keyword;
+        this.branch = branch;
+        this.gitEventType = gitEventType;
+        this.creator = creator;
+    }
+
+    public SearchCondition() {
+    }
+
     public String getKeyword() {
         return keyword;
     }
@@ -51,6 +69,14 @@ public class SearchCondition {
 
     public void setGitEventType(GitEventType gitEventType) {
         this.gitEventType = gitEventType;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 
     @Override

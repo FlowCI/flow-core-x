@@ -319,6 +319,25 @@ public class JobController extends NodeController {
         return jobService.list(paths, true);
     }
 
+
+    /**
+     * @api {post} /jobs/:root/search search jobs
+     * @apiParam {String} root flow node name
+     * @apiParamExample {json} Request-Body:
+     *  {
+     *      keyword: xxx,
+     *      branch: xxx,
+     *      gitEventType: xxxx,
+     *      creator: xxxx
+     *  }
+     * @apiGroup Jobs
+     * @apiDescription search jobs by diff condition
+     *
+     * @apiSuccessExample {json} Success-Response
+     * [
+     *   .. jobs
+     * ]
+     */
     @PostMapping(path = "/{root}/search")
     public List<Job> search(@RequestBody SearchCondition condition){
         String path = getNodePathFromUrl();
