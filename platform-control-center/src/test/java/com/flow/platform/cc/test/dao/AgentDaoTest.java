@@ -96,6 +96,7 @@ public class AgentDaoTest extends TestBase {
 
         Agent agent1 = new Agent(zone, "agent-1");
         agent1.setStatus(AgentStatus.OFFLINE);
+        agent1.setWebhook("http://test.com/agent/callback");
         agentDao.save(agent1);
 
         Agent agent2 = new Agent(zone, "agent-2");
@@ -112,6 +113,7 @@ public class AgentDaoTest extends TestBase {
 
         // then:
         Assert.assertEquals(2, numOfUpdate);
+        Assert.assertEquals("http://test.com/agent/callback", agentDao.get(agent1.getPath()).getWebhook());
         Assert.assertEquals(AgentStatus.IDLE, agentDao.get(agent1.getPath()).getStatus());
         Assert.assertEquals(AgentStatus.IDLE, agentDao.get(agent2.getPath()).getStatus());
         Assert.assertEquals(AgentStatus.BUSY, agentDao.get(agent3.getPath()).getStatus());

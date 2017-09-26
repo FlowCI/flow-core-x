@@ -296,8 +296,8 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
             target.setSessionId(existSessionId);
             target.setSessionDate(ZonedDateTime.now());
-            target.setStatus(AgentStatus.BUSY);
-            agentService.save(target);
+            agentService.saveWithStatus(target, AgentStatus.BUSY);
+
             logger.debug("Agent session been created: %s %s", target.getPath(), target.getSessionId());
         }
     }
@@ -321,9 +321,8 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             }
 
             // release session from target
-            target.setStatus(AgentStatus.IDLE);
             target.setSessionId(null);
-            agentService.save(target);
+            agentService.saveWithStatus(target, AgentStatus.IDLE);
         }
 
         private List<Cmd> getRunningCmdForRunShell(String sessionId) {
@@ -340,7 +339,6 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
                 if (!cmd.isCurrent()) {
                     iterator.remove();
-                    continue;
                 }
             }
 
@@ -364,9 +362,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
                 if (!target.isAvailable()) {
                     throw new AgentErr.NotAvailableException(target.getName());
                 }
-
-                target.setStatus(AgentStatus.BUSY);
-                agentService.save(target);
+                agentService.saveWithStatus(target, AgentStatus.BUSY);
             }
 
             sendCmdToAgent(target, cmd);
@@ -400,8 +396,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             }
 
             // set agent to offline
-            target.setStatus(AgentStatus.OFFLINE);
-            agentService.save(target);
+            agentService.saveWithStatus(target, AgentStatus.OFFLINE);
         }
     }
 
@@ -434,8 +429,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             }
 
             // set agent to offline
-            target.setStatus(AgentStatus.OFFLINE);
-            agentService.save(target);
+            agentService.saveWithStatus(target, AgentStatus.OFFLINE);
             logger.trace("Agent been shutdown: %s", target.getPath());
         }
     }

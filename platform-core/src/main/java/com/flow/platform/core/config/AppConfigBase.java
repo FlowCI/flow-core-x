@@ -27,6 +27,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.ResourcePropertySource;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
@@ -37,6 +38,9 @@ public abstract class AppConfigBase {
 
     @Autowired
     private Environment env;
+
+    @Bean
+    public abstract ThreadPoolTaskExecutor taskExecutor();
 
     @Bean
     public SpringContext springContext() {

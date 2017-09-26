@@ -18,37 +18,23 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.config.WebSocketConfig;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.push.PushHandler;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.core.http.converter.RawGsonMessageConverter;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 /**
  * @author yang
  */
-public abstract class JobPushHandler {
+public abstract class JobEventPushHandler extends PushHandler {
 
     @Autowired
-    protected SimpMessagingTemplate template;
-
-    @Autowired
-    protected RawGsonMessageConverter jsonConverter;
-
-    @Autowired
-    protected JobService jobService;
+    private JobService jobService;
 
     protected void push(BigInteger jobId) {
         Job job = jobService.find(jobId);
-        String jobInJson = jsonConverter.getGsonForWriter().toJson(job);
-        String jobTopic = jobEventBuilder(job);
-        template.convertAndSend(jobTopic, jobInJson);
+        String jobTopic = String.format("%s/%s-%s", WebSocketConfig.TOPIC_FOR_JOB, job.getNodePath(), job.getNumber());
+        super.push(jobTopic, job);
     }
 
-    /**
-     * Generate job event topic path, /topic/job/{node path}-{build number}
-     */
-    protected static String jobEventBuilder(Job job) {
-        return String.format("%s/%s-%s", WebSocketConfig.TOPIC_FOR_JOB, job.getNodePath(), job.getNumber());
-    }
 }

@@ -16,9 +16,10 @@
 
 package com.flow.platform.api.config;
 
+import com.flow.platform.api.consumer.AgentStatusEventConsumer;
 import com.flow.platform.api.consumer.CmdLoggingConsumer;
-import com.flow.platform.api.consumer.JobStatusEventPushHandler;
-import com.flow.platform.api.consumer.NodeStatusEventPushHandler;
+import com.flow.platform.api.consumer.JobStatusEventConsumer;
+import com.flow.platform.api.consumer.NodeStatusEventConsumer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -48,19 +49,26 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer im
 
     public final static String TOPIC_FOR_CMD = "/topic/cmd";
 
+    public final static String TOPIC_FOR_AGENT = "/topic/agent";
+
     @Bean
     public WebSocketHandler cmdLoggingConsumer() {
         return new CmdLoggingConsumer();
     }
 
     @Bean
-    public JobStatusEventPushHandler jobEventHandler() {
-        return new JobStatusEventPushHandler();
+    public JobStatusEventConsumer jobEventConsumer() {
+        return new JobStatusEventConsumer();
     }
 
     @Bean
-    public NodeStatusEventPushHandler nodeEventHandler() {
-        return new NodeStatusEventPushHandler();
+    public NodeStatusEventConsumer nodeEventConsumer() {
+        return new NodeStatusEventConsumer();
+    }
+
+    @Bean
+    public AgentStatusEventConsumer agentEventConsumer() {
+        return new AgentStatusEventConsumer();
     }
 
     @Override
@@ -71,7 +79,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer im
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker(TOPIC_FOR_JOB, TOPIC_FOR_CMD);
+        config.enableSimpleBroker(TOPIC_FOR_JOB, TOPIC_FOR_CMD, TOPIC_FOR_AGENT);
         config.setApplicationDestinationPrefixes("/app");
     }
 

@@ -21,6 +21,7 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.util.DateUtil;
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.HashSet;
@@ -152,14 +153,15 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
     }
 
     @Override
-    public void update(final Agent obj) {
-        execute(session -> {
-            obj.setUpdatedDate(DateUtil.now());
-            session.update(obj);
-            return null;
+    public boolean exist(AgentPath path) {
+        return execute(session -> {
+            final String queryString = "select path.name from Agent where path.name = :name and path.zone = :zone";
+            return !Strings.isNullOrEmpty(session.createQuery(queryString, String.class)
+                .setParameter("name", path.getName())
+                .setParameter("zone", path.getZone())
+                .uniqueResult());
         });
     }
-
 
     @Override
     public int batchUpdateStatus(String zone, AgentStatus status, Set<String> agents, boolean isNot) {
