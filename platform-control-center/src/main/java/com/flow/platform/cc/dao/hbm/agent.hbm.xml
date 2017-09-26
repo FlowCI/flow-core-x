@@ -10,10 +10,11 @@
       <key-property name="name" type="string" length="100" column="agent_name"/>
     </composite-id>
 
-    <property name="concurrentProc" column="concurrent_proc"></property>
-    <property name="sessionId" length="50" column="session_id"></property>
-    <property name="sessionDate" column="session_date"></property>
-    <property name="token" column="token"></property>
+    <property name="concurrentProc" column="concurrent_proc"/>
+    <property name="sessionId" length="50" column="session_id"/>
+    <property name="sessionDate" column="session_date"/>
+    <property name="token" column="token"/>
+    <property name="webhook" column="webhook"/>
 
     <property name="status" column="status" length="10" not-null="true">
       <type name="org.hibernate.type.EnumType">

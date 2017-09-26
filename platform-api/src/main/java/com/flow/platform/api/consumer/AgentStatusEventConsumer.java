@@ -16,24 +16,23 @@
 
 package com.flow.platform.api.consumer;
 
-import com.flow.platform.api.domain.job.NodeResultKey;
-import com.flow.platform.api.events.NodeStatusChangeEvent;
-import com.flow.platform.util.Logger;
+import com.flow.platform.api.config.WebSocketConfig;
+import com.flow.platform.api.events.AgentStatusChangeEvent;
+import com.flow.platform.api.push.PushHandler;
+import com.flow.platform.domain.Agent;
 import org.springframework.context.ApplicationListener;
 
 /**
  * @author yang
  */
-public class NodeStatusEventPushHandler extends JobPushHandler implements ApplicationListener<NodeStatusChangeEvent> {
-
-    private final static Logger LOGGER = new Logger(NodeStatusEventPushHandler.class);
+public class AgentStatusEventConsumer extends PushHandler implements ApplicationListener<AgentStatusChangeEvent> {
 
     @Override
-    public void onApplicationEvent(NodeStatusChangeEvent event) {
-        NodeResultKey resultKey = event.getResultKey();
-        LOGGER.debug("Node result %s status change event from %s to %s",
-            resultKey.getPath(), event.getFrom(), event.getTo());
+    public void onApplicationEvent(AgentStatusChangeEvent event) {
+        final Agent agent = event.getAgent();
+        final String topic = String
+            .format("%s/%s-%s", WebSocketConfig.TOPIC_FOR_AGENT, agent.getZone(), agent.getName());
 
-        push(resultKey.getJobId());
+        super.push(topic, agent);
     }
 }

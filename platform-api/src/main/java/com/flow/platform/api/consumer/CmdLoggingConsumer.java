@@ -16,10 +16,7 @@
 
 package com.flow.platform.api.consumer;
 
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.TextMessage;
