@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
  */
 
 @Service(value = "searchService")
-public class SearchServiceImpl implements SearchService {
+public class JobSearchServiceImpl implements JobSearchService {
 
     private static List<Condition> conditions = new ArrayList<>(3);
 
@@ -58,7 +58,7 @@ public class SearchServiceImpl implements SearchService {
         return jobs;
     }
 
-    interface Condition {
+    private interface Condition {
 
         List<Job> match(SearchCondition searchCondition, List<Job> jobs);
     }
@@ -67,7 +67,7 @@ public class SearchServiceImpl implements SearchService {
     /**
      * keyword search match  number or  branch
      */
-    static class KeywordCondition implements Condition {
+    private static class KeywordCondition implements Condition {
 
         @Override
         public List<Job> match(SearchCondition searchCondition, List<Job> jobs) {
@@ -93,7 +93,7 @@ public class SearchServiceImpl implements SearchService {
     /**
      * branch search
      */
-    static class BranchCondition implements Condition {
+    private static class BranchCondition implements Condition {
 
         @Override
         public List<Job> match(SearchCondition searchCondition, List<Job> jobs) {
@@ -116,7 +116,7 @@ public class SearchServiceImpl implements SearchService {
     /**
      * git type search
      */
-    static class GitCondition implements Condition {
+    private static class GitCondition implements Condition {
 
         @Override
         public List<Job> match(SearchCondition searchCondition, List<Job> jobs) {
@@ -138,7 +138,7 @@ public class SearchServiceImpl implements SearchService {
     /**
      * creator search
      */
-    static class CreatorCondition implements Condition {
+    private static class CreatorCondition implements Condition {
 
         @Override
         public List<Job> match(SearchCondition searchCondition, List<Job> jobs) {

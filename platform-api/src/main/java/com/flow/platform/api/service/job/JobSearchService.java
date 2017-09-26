@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * @author yh@firim
  */
-public interface SearchService {
+public interface JobSearchService {
 
     List<Job> search(SearchCondition searchCondition, List<String> paths);
 }

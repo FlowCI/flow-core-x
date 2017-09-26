@@ -21,7 +21,7 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.api.service.job.SearchService;
+import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
@@ -53,7 +53,7 @@ public class JobController extends NodeController {
     private JobService jobService;
 
     @Autowired
-    private SearchService searchService;
+    private JobSearchService searchService;
 
     @Autowired
     private LogService logService;
