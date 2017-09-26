@@ -18,6 +18,7 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.util.git.GitException;
+import java.util.List;
 
 /**
  * To fetch related git repo info
@@ -51,4 +52,14 @@ public interface GitService {
      * @return file content
      */
     String clone(Node node, String filePath, ProgressListener progress) throws GitException;
+
+    /**
+     * Fetch branches from git repo
+     */
+    List<String> branches(Node node);
+
+    /**
+     * Fetch tags from git repo
+     */
+    List<String> tags(Node node);
 }
