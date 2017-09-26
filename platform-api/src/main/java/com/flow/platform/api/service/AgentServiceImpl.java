@@ -27,6 +27,7 @@ import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentPathWithWebhook;
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
@@ -62,6 +63,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private CmdService cmdService;
+
+    @Value(value = "${domain}")
+    private String domain;
 
     @Override
     public List<AgentWithFlow> list() {
@@ -122,7 +126,8 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public Agent create(AgentPath agentPath) {
         try {
-            String agentJson = HttpUtil.post(platformURL.getAgentCreateUrl(), agentPath.toJson());
+            AgentPathWithWebhook pathWithWebhook = new AgentPathWithWebhook(agentPath, buildAgentWebhook());
+            final String agentJson = HttpUtil.post(platformURL.getAgentCreateUrl(), pathWithWebhook.toJson());
 
             if (Strings.isNullOrEmpty(agentJson)) {
                 throw new FlowException("Unable to create agent via control center");
@@ -145,5 +150,9 @@ public class AgentServiceImpl implements AgentService {
         }
 
         return AgentSettings.parse(settingsJson, AgentSettings.class);
+    }
+
+    private String buildAgentWebhook() {
+        return domain + "/agents/callback";
     }
 }
