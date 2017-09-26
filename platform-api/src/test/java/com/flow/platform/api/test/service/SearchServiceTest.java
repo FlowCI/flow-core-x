@@ -24,7 +24,9 @@ import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitEventType;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,18 +40,18 @@ public class SearchServiceTest extends TestBase {
     public void before_test() throws IOException {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job jobManual = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL);
-        jobManual.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
+        Map<String, String> envs = new HashMap<>();
+        envs.put(GitEnvs.FLOW_GIT_BRANCH.toString(), "master");
+        Job jobManual = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs);
         jobManual.setCreatedBy("yh@fir.im");
         jobDao.update(jobManual);
 
-        Job jobBranchCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL);
+        Job jobBranchCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs);
         jobBranchCondition.putEnv(GitEnvs.FLOW_GIT_BRANCH, "develop");
         jobBranchCondition.setCreatedBy("will@fir.im");
         jobDao.update(jobBranchCondition);
 
-        Job jobTagCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.PR);
-        jobTagCondition.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
+        Job jobTagCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, envs);
         jobTagCondition.setCreatedBy("yh@fir.im");
         jobDao.update(jobTagCondition);
 
