@@ -30,9 +30,7 @@ public class AgentStatusEventConsumer extends PushHandler implements Application
     @Override
     public void onApplicationEvent(AgentStatusChangeEvent event) {
         final Agent agent = event.getAgent();
-        final String topic = String
-            .format("%s/%s-%s", WebSocketConfig.TOPIC_FOR_AGENT, agent.getZone(), agent.getName());
-
+        final String topic = String.format("%s/%s", WebSocketConfig.TOPIC_FOR_AGENT, agent.getPath().toString());
         super.push(topic, agent);
     }
 }
