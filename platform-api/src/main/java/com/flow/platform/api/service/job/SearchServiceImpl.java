@@ -17,7 +17,6 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.SearchCondition;
-import com.flow.platform.api.domain.envs.EnvKey;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.google.common.base.Strings;
@@ -64,6 +63,10 @@ public class SearchServiceImpl implements SearchService {
         List<Job> match(SearchCondition searchCondition, List<Job> jobs);
     }
 
+
+    /**
+     * keyword search match  number or  branch
+     */
     static class KeywordCondition implements Condition {
 
         @Override
@@ -87,6 +90,9 @@ public class SearchServiceImpl implements SearchService {
         }
     }
 
+    /**
+     * branch search
+     */
     static class BranchCondition implements Condition {
 
         @Override
@@ -107,6 +113,9 @@ public class SearchServiceImpl implements SearchService {
         }
     }
 
+    /**
+     * git type search
+     */
     static class GitCondition implements Condition {
 
         @Override
@@ -126,6 +135,9 @@ public class SearchServiceImpl implements SearchService {
         }
     }
 
+    /**
+     * creator search
+     */
     static class CreatorCondition implements Condition {
 
         @Override
