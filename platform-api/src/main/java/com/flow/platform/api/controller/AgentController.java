@@ -20,7 +20,9 @@ import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentSettings;
 import com.google.common.base.Strings;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(path = "/agents")
-public class AgentsController {
+public class AgentController {
 
     @Autowired
     private AgentService agentService;
@@ -66,6 +68,67 @@ public class AgentsController {
     }
 
     /**
+     * @api {Post} /agents Create
+     * @apiName Create Agent
+     * @apiGroup Agent
+     * @apiDescripton Create agent and return agent object with token
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *  HTTP/1.1 200 OK
+     *
+     *  {
+     *      path: {
+     *          zone: xxx,
+     *          name: xxx
+     *      },
+     *      concurrentProc: 1,
+     *      status: OFFLINE | IDLE | BUSY,
+     *      sessionId: xxxx-xxx-xxx,
+     *      sessionDate: 15123321,
+     *      token: xx-xxx-xxx
+     *      createdDate: 15123321,
+     *      updatedDate: 15123321,
+     *  }
+     */
+    @PostMapping(path = "/create")
+    public Agent create(@RequestBody AgentPath agentPath) {
+        if (agentPath.isEmpty()) {
+            throw new IllegalParameterException("Zone and agent name are required");
+        }
+
+        return agentService.create(agentPath);
+    }
+
+    /**
+     * @api {Get} /agents/settings Agent Settings
+     * @apiParam {String} token The agent token via ?token=xxx
+     * @apiName Get Agent Settings
+     * @apiGroup Agent
+     * @apiDescription Get agent settings from control center by token
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *  HTTP/1.1 200 OK
+     *
+     *  {
+     *      agentPath: {
+     *          zone: xxx,
+     *          name: xxx
+     *      },
+     *      webSocketUrl: http://xxxx,
+     *      cmdStatusUrl: http://xxx,
+     *      cmdLogUrl: http://xxxx,
+     *      zookeeperUrl: localhost:2181
+     *  }
+     */
+    @GetMapping(path = "/settings")
+    public AgentSettings getInfo(@RequestParam String token) {
+        if(Strings.isNullOrEmpty(token)){
+            throw new IllegalParameterException("miss required params ");
+        }
+        return agentService.settings(token);
+    }
+
+    /**
      * @api {Post} /agents/shutdown shutdown
      * @apiName AgentShutdown
      * @apiParam {String} [zone] agent zone name
@@ -76,6 +139,7 @@ public class AgentsController {
      *
      * @apiSuccessExample {String} Success-Response:
      *  HTTP/1.1 200 OK
+     *
      *  {
      *      value: true or false
      *  }
@@ -90,21 +154,4 @@ public class AgentsController {
         Boolean t = agentService.shutdown(zone, name, password);
         return new BooleanValue(t);
     }
-
-    @PostMapping(path = "/token")
-    public String createToken(@RequestBody AgentPath agentPath) {
-        if (Strings.isNullOrEmpty(agentPath.getName()) || Strings.isNullOrEmpty(agentPath.getZone())) {
-            throw new IllegalParameterException("miss required params ");
-        }
-        return agentService.createToken(agentPath);
-    }
-
-    @GetMapping(path = "/info")
-    public String getInfo(@RequestParam String token) {
-        if(Strings.isNullOrEmpty(token)){
-            throw new IllegalParameterException("miss required params ");
-        }
-        return agentService.getInfo(token);
-    }
-
 }

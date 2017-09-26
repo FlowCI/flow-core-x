@@ -16,19 +16,22 @@
 
 package com.flow.platform.domain;
 
-import java.io.Serializable;
+import com.google.common.base.Strings;
+import com.google.gson.annotations.Expose;
 
 /**
  * Agent path in zookeeper
  *
  * @author gy@fir.im
  */
-public class AgentPath implements Serializable {
+public class AgentPath extends Jsonable {
 
     private final static String RESERVED_CHAR = "#";
 
+    @Expose
     private String zone;
 
+    @Expose
     private String name;
 
     public AgentPath(String zone, String name) {
@@ -62,6 +65,13 @@ public class AgentPath implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    /**
+     * Is empty zone and name
+     */
+    public boolean isEmpty() {
+        return Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name);
     }
 
     @Override

@@ -14,44 +14,46 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
-import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.config.WebConfig;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.config.AppConfig;
+import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.dao.FlowDao;
+import com.flow.platform.api.dao.MessageSettingDao;
+import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
-import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.dao.user.ActionDao;
-import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.PermissionDao;
+import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
-import com.flow.platform.api.dao.YmlDao;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.job.SearchService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
-import com.sun.javafx.tools.packager.JarSignature.InputStreamSource;
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
-import javax.annotation.Resource;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -69,15 +71,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import sun.misc.IOUtils;
 
 /**
  * @author yh@fir.im

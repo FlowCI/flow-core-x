@@ -48,7 +48,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author yh@firim
  */
-@Service(value = "logService")
+@Service
 public class LogServiceImpl implements LogService {
 
     @Autowired

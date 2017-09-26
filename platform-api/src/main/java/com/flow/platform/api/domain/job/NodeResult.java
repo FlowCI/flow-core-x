@@ -16,7 +16,13 @@
 
 package com.flow.platform.api.domain.job;
 
-import static com.flow.platform.api.domain.job.NodeStatus.*;
+import static com.flow.platform.api.domain.job.NodeStatus.ENQUEUE;
+import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
+import static com.flow.platform.api.domain.job.NodeStatus.PENDING;
+import static com.flow.platform.api.domain.job.NodeStatus.RUNNING;
+import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
+import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
+import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
@@ -24,7 +30,7 @@ import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +48,7 @@ public class NodeResult extends CreateUpdateObject {
     private NodeResultKey key;
 
     @Expose
-    private Map<String, String> outputs = new HashMap<>();
+    private Map<String, String> outputs = new LinkedHashMap<>();
 
     @Expose
     private Long duration = 0L;

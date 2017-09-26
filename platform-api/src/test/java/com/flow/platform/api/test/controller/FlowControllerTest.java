@@ -68,7 +68,7 @@ public class FlowControllerTest extends TestBase {
 
     @Test
     public void should_get_env_value() throws Throwable {
-        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/env/FLOW_STATUS");
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/env").param("key", "FLOW_STATUS");
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
         Assert.assertEquals("{\"FLOW_STATUS\":\"PENDING\"}", result.getResponse().getContentAsString());

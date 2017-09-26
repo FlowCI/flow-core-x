@@ -19,27 +19,27 @@ package com.flow.platform.api.git;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.util.git.GitClient;
+import com.flow.platform.util.git.GitHttpClient;
 import java.nio.file.Path;
 
 /**
  * @author yang
  */
-public abstract class GitClientBuilder {
+public class GitHttpClientBuilder extends GitClientBuilder {
 
-    protected String url;
+    private final String user;
 
-    protected String branch;
+    private final String pass;
 
-    /**
-     * The folder path for git clone
-     */
-    protected Path sourceFolder;
+    public GitHttpClientBuilder(Node node, Path sourceFolder) {
+        super(node, sourceFolder);
 
-    public GitClientBuilder(final Node node, final Path sourceFolder) {
-        this.url = node.getEnv(GitEnvs.FLOW_GIT_URL);
-        this.branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH);
-        this.sourceFolder = sourceFolder;
+        user = node.getEnv(GitEnvs.FLOW_GIT_HTTP_USER);
+        pass = node.getEnv(GitEnvs.FLOW_GIT_HTTP_PASS);
     }
 
-    public abstract GitClient build();
+    @Override
+    public GitClient build() {
+        return new GitHttpClient(url, sourceFolder, user, pass);
+    }
 }

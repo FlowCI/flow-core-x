@@ -21,6 +21,7 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.*;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,7 +35,7 @@ import org.apache.curator.utils.ZKPaths;
 /**
  * @author gy@fir.im
  */
-public class AgentManager implements Runnable, TreeCacheListener {
+public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable {
 
     private final static Logger LOGGER = new Logger(AgentManager.class);
 
@@ -63,6 +64,10 @@ public class AgentManager implements Runnable, TreeCacheListener {
         this.name = name;
         this.zonePath = ZKPaths.makePath(Config.ZK_ROOT, this.zone);
         this.nodePath = ZKPaths.makePath(this.zonePath, this.name);
+    }
+
+    public ZKClient getZkClient() {
+        return zkClient;
     }
 
     public String getNodePath() {
@@ -117,6 +122,12 @@ public class AgentManager implements Runnable, TreeCacheListener {
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        removeZkNode();
+        stop();
+    }
+
     /**
      * Force to exit current agent
      */
@@ -162,5 +173,9 @@ public class AgentManager implements Runnable, TreeCacheListener {
         String path = zkClient.createEphemeral(nodePath, null);
         zkClient.watchTree(path, this);
         return path;
+    }
+
+    private void removeZkNode() {
+        zkClient.delete(nodePath, false);
     }
 }

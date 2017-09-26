@@ -54,7 +54,7 @@ public class NodeResultServiceTest extends TestBase {
     public void should_save_job_node_by_job() throws IOException {
         // when: create node result list from job
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null);
 
         // then: check node result is created
         List<NodeResult> list = nodeResultService.list(job, false);
@@ -79,7 +79,7 @@ public class NodeResultServiceTest extends TestBase {
     public void should_update_node_status_with_skip_set() throws Throwable {
         // given:
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
         List<NodeResult> list = nodeResultService.list(job, false);
         Assert.assertEquals(5, list.size());
 

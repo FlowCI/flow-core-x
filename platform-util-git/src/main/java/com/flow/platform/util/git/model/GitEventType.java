@@ -27,9 +27,7 @@ public enum GitEventType {
 
     PUSH,
 
-    PR, // open pull request
-
-    MR, // merge request
+    PR, // pull request
 
     TAG;
 }

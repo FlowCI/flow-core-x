@@ -99,6 +99,8 @@ public class AppConfig extends AppConfigBase {
 
     @Bean
     public PlatformURL platformURL() {
-        return new PlatformURL(platFormBaseURL);
+        PlatformURL platformURL = new PlatformURL(platFormBaseURL);
+        LOGGER.trace(platformURL.toString());
+        return platformURL;
     }
 }

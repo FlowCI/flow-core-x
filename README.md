@@ -58,7 +58,7 @@ Start agent by following command:
 
 ### Build by docker
 
-Run `./build-docker.sh` will generate required docker images and images for flow.ci `flow.ci.backend` and `flow.ci.agent`.
+Run `./build-docker.sh` will generate required docker images `flow.ci.backend` for back-end and `flow.ci.agent` for agent.
 
 **To start flow.ci backend services**
 

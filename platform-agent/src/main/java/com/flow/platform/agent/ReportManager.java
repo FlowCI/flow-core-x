@@ -101,9 +101,9 @@ public class ReportManager {
     }
 
     private void cmdReportSync(final String cmdId,
-        final CmdStatus status,
-        final CmdResult result,
-        final int retry) throws IOException {
+                               final CmdStatus status,
+                               final CmdResult result,
+                               final int retry) throws IOException {
 
         if (!Config.isReportCmdStatus()) {
             LOGGER.trace("Cmd report toggle is disabled");
@@ -147,9 +147,9 @@ public class ReportManager {
     }
 
     public static String httpSend(final HttpUriRequest request,
-        final int retry,
-        final String successMsg,
-        final String failMsg) {
+                                  final int retry,
+                                  final String successMsg,
+                                  final String failMsg) {
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpResponse response = client.execute(request);

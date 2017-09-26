@@ -144,7 +144,7 @@ public class JobController extends NodeController {
     @PostMapping(path = "/{root}")
     public Job create() {
         String path = getNodePathFromUrl();
-        return jobService.createJob(path, GitEventType.MANUAL);
+        return jobService.createJob(path, GitEventType.MANUAL, null);
     }
 
     /**

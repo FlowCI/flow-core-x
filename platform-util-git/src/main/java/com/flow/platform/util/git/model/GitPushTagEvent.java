@@ -27,6 +27,26 @@ import java.util.List;
 public class GitPushTagEvent extends GitEvent {
 
     /**
+     * To generate compare id as {12}...{12}
+     */
+    public static String buildCompareId(GitPushTagEvent event) {
+        if (event.getType() == GitEventType.PUSH) {
+            String beforeShortcut = event.getBefore().substring(0, 12);
+            String afterShortcut = event.getAfter().substring(0, 12);
+            return beforeShortcut + "..." + afterShortcut;
+        }
+
+        if (event.getType() == GitEventType.TAG) {
+            String afterShortcut = event.getAfter().substring(0, 12);
+            int tagVersionIndex = event.getRef().lastIndexOf("v");
+            String tag = event.getRef().substring(tagVersionIndex + 1);
+            return afterShortcut + "..." + tag;
+        }
+
+        return "";
+    }
+
+    /**
      * Commit SHA before event
      */
     @SerializedName(value = "before")
@@ -34,15 +54,15 @@ public class GitPushTagEvent extends GitEvent {
 
     /**
      * Commit SHA after event
-     *  - Gitlab: after
-     *  - Github: head
+     * - Gitlab: after
+     * - Github: head
      */
     @SerializedName(value = "after", alternate = "head")
     private String after;
 
     /**
      * Branch ref info
-     *  - Gitlab: ex: refs/heads/master
+     * - Gitlab: ex: refs/heads/master
      */
     @SerializedName(value = "ref")
     private String ref;
@@ -63,6 +83,14 @@ public class GitPushTagEvent extends GitEvent {
     private String username;
 
     private String message;
+
+    @SerializedName(value = "compare")
+    private String compareUrl;
+
+    /**
+     * Compare id with 123...123 format
+     */
+    private String compareId;
 
     /**
      * Commit info
@@ -128,6 +156,22 @@ public class GitPushTagEvent extends GitEvent {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getCompareUrl() {
+        return compareUrl;
+    }
+
+    public void setCompareUrl(String compareUrl) {
+        this.compareUrl = compareUrl;
+    }
+
+    public String getCompareId() {
+        return compareId;
+    }
+
+    public void setCompareId(String compareId) {
+        this.compareId = compareId;
     }
 
     public List<GitEventCommit> getCommits() {

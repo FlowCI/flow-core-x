@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -161,9 +162,9 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {get} /flows/:rootenv/:key Get Env
+     * @api {get} /flows/:root/env Get Env
      * @apiParam {String} root root node name
-     * @apiParam {String} [key] env variable name
+     * @apiParam {String} [key] env variable name, ex: http://xxxx/flows/xx/env?key=FLOW_GIT_WEBHOOK
      * @apiGroup Flows
      * @apiDescription Get node env by path or name
      *
@@ -172,9 +173,9 @@ public class FlowController extends NodeController {
      *      FLOW_ENV_VAR: xxx
      *  }
      */
-    @GetMapping(path = "/{root}/env/{key}")
+    @GetMapping(path = "/{root}/env")
     @WebSecurity(action = Actions.FLOW_SHOW)
-    public Map<String, String> getFlowEnv(@PathVariable(required = false) String key) {
+    public Map<String, String> getFlowEnv(@RequestParam(required = false) String key) {
         return super.getEnv(key);
     }
 

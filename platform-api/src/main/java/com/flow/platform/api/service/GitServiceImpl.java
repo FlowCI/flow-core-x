@@ -17,10 +17,10 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.git.GitClientBuilder;
+import com.flow.platform.api.git.GitHttpClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -57,6 +57,7 @@ public class GitServiceImpl implements GitService {
     @PostConstruct
     public void init() {
         clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
+        clientBuilderType.put(GitSource.UNDEFINED_HTTP, GitHttpClientBuilder.class);
     }
 
     @Override
@@ -68,7 +69,7 @@ public class GitServiceImpl implements GitService {
             progressListener.onStart();
         }
 
-        client.clone(branch, null, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
+        client.clone(branch, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
 
         if (progressListener != null) {
             progressListener.onFinish();
@@ -142,7 +143,7 @@ public class GitServiceImpl implements GitService {
         GitClientBuilder builder;
         try {
             builder = builderClass
-                .getConstructor(Flow.class, Path.class)
+                .getConstructor(Node.class, Path.class)
                 .newInstance(node, gitSourcePath(node));
         } catch (Throwable e) {
             throw new IllegalStatusException("Fail to create GitClientBuilder instance: " + e.getMessage());

@@ -26,42 +26,38 @@ public class PlatformURL {
 
     private String queueUrl;
 
-    private String cmdStopUrl;
-
     private String agentUrl;
 
-    private String agentDetailUrl;
+    private String agentSettingsUrl;
 
     private String sysInfoUrl;
 
     private String sysIndexUrl;
 
-    private String agentTokenUrl;
-
-    private String agentInfoUrl;
+    private String agentCreateUrl;
 
     private String cmdDownloadLogUrl;
 
-
     public PlatformURL(String baseURL) {
-        cmdUrl = String.format("%s%s", baseURL, "cmd/send");
         queueUrl = String.format("%s%s", baseURL, "cmd/queue/send");
-        cmdStopUrl = String.format("%s%s", baseURL, "cmd/stop/");
+
+        cmdUrl = String.format("%s%s", baseURL, "cmd/send");
         cmdDownloadLogUrl = String.format("%s%s", baseURL, "cmd/log/download");
-        agentUrl = String.format("%s%s", baseURL, "agent/list");
-        agentInfoUrl = String.format("%s%s", baseURL, "agent/findAgentBySessionId");
+
         sysIndexUrl = String.format("%s%s", baseURL, "index");
         sysInfoUrl = String.format("%s%s", baseURL, "sys/info");
-        agentTokenUrl = String.format("%s%s", baseURL, "agent/token");
-        agentDetailUrl = String.format("%s%s", baseURL, "agent/info");
+
+        agentUrl = String.format("%s%s", baseURL, "agents/list");
+        agentCreateUrl = String.format("%s%s", baseURL, "agents/create");
+        agentSettingsUrl = String.format("%s%s", baseURL, "agents/settings");
     }
 
-    public String getAgentTokenUrl() {
-        return agentTokenUrl;
+    public String getAgentCreateUrl() {
+        return agentCreateUrl;
     }
 
-    public String getAgentDetailUrl() {
-        return agentDetailUrl;
+    public String getAgentSettingsUrl() {
+        return agentSettingsUrl;
     }
 
     public String getCmdUrl() {
@@ -72,10 +68,6 @@ public class PlatformURL {
         return queueUrl;
     }
 
-    public String getCmdStopUrl() {
-        return cmdStopUrl;
-    }
-
     public String getCmdDownloadLogUrl() {
         return cmdDownloadLogUrl;
     }
@@ -84,15 +76,25 @@ public class PlatformURL {
         return agentUrl;
     }
 
-    public String getAgentInfoUrl() {
-        return agentInfoUrl;
-    }
-
     public String getSysIndexUrl() {
         return sysIndexUrl;
     }
 
     public String getSysInfoUrl() {
         return sysInfoUrl;
+    }
+
+    @Override
+    public String toString() {
+        return "PlatformURL{" +
+            "cmdUrl='" + cmdUrl + '\'' +
+            ", queueUrl='" + queueUrl + '\'' +
+            ", agentUrl='" + agentUrl + '\'' +
+            ", agentSettingsUrl='" + agentSettingsUrl + '\'' +
+            ", sysInfoUrl='" + sysInfoUrl + '\'' +
+            ", sysIndexUrl='" + sysIndexUrl + '\'' +
+            ", agentCreateUrl='" + agentCreateUrl + '\'' +
+            ", cmdDownloadLogUrl='" + cmdDownloadLogUrl + '\'' +
+            '}';
     }
 }

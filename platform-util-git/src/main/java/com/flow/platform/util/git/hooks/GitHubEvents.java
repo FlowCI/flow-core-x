@@ -20,11 +20,13 @@ import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * To adding GitHub web hook, should select 'Let me select individual events'
@@ -32,9 +34,7 @@ import java.util.Map;
  *
  * @author yang
  */
-public class GithubEvents {
-
-    private final static String PULL_REQUEST_ACTION_CLOSED = "closed";
+public class GitHubEvents {
 
     public static class Hooks {
 
@@ -46,7 +46,7 @@ public class GithubEvents {
 
         public final static String EVENT_TYPE_TAG = "push";
 
-        public final static String EVENT_TYPE_MR = "pull_request";
+        public final static String EVENT_TYPE_PR = "pull_request";
     }
 
     /**
@@ -86,6 +86,7 @@ public class GithubEvents {
                 event.setUsername(sender.get("login"));
             }
 
+            event.setCompareId(GitPushTagEvent.buildCompareId(event));
             event.setGitSource(gitSource);
             return event;
         }
@@ -93,7 +94,11 @@ public class GithubEvents {
 
     public static class MergeRequestAdapter extends GitHookEventAdapter {
 
-        private class MergeRequest {
+        public final static String STATE_OPEN = "open";
+
+        public final static String STATE_CLOSE = "closed";
+
+        private class RequestRoot {
 
             private String action;
 
@@ -109,6 +114,9 @@ public class GithubEvents {
 
             private String title;
 
+            @SerializedName("html_url")
+            private String htmlUrl;
+
             @SerializedName("body")
             private String desc;
 
@@ -117,6 +125,12 @@ public class GithubEvents {
 
             @SerializedName("base")
             private PrInfo target;
+
+            @SerializedName("user")
+            private UserInfo user;
+
+            @SerializedName("merged_by")
+            private UserInfo mergedBy;
         }
 
         private class PrInfo {
@@ -136,25 +150,47 @@ public class GithubEvents {
             private String name;
         }
 
+        private class UserInfo {
+
+            private String login; // GitHub username
+
+            private String id;
+
+            @SerializedName("avatar_url")
+            private String avatarUrl;
+
+            @SerializedName("site_admin")
+            private Boolean isSiteAdmin;
+        }
+
         public MergeRequestAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
         @Override
         public GitEvent convert(String json) throws GitException {
-            MergeRequest mr = GSON.fromJson(json, MergeRequest.class);
+            RequestRoot mr = GSON.fromJson(json, RequestRoot.class);
             PullRequest pullRequest = mr.pullRequest;
 
             GitPullRequestEvent event = new GitPullRequestEvent(gitSource, eventType);
-            if (!mr.action.equals(PULL_REQUEST_ACTION_CLOSED)) {
-                throw new GitException("Invalid GitHub pull request action", null);
+
+            if (Objects.equals(pullRequest.state, STATE_OPEN)) {
+                event.setState(State.OPEN);
+            }
+            else if (Objects.equals(pullRequest.state, STATE_CLOSE)) {
+                event.setState(State.CLOSE);
+                event.setMergedBy(pullRequest.mergedBy.login);
+            }
+            else {
+                throw new GitException("The pull request state of GitHub '" + pullRequest.state + "' not supported");
             }
 
             event.setAction(mr.action);
             event.setRequestId(pullRequest.id);
             event.setDescription(pullRequest.desc);
             event.setTitle(pullRequest.title);
-            event.setStatus(pullRequest.state);
+            event.setUrl(pullRequest.htmlUrl);
+            event.setSubmitter(pullRequest.user.login);
             event.setSource(new GitPullRequestInfo());
             event.setTarget(new GitPullRequestInfo());
 
