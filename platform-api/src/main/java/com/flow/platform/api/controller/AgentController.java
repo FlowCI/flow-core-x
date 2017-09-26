@@ -174,6 +174,7 @@ public class AgentController extends ApplicationEventService {
      *      createdDate: xxx,
      *      updatedDate: xxx
      *  }
+     * @apiGroup Agent
      * @apiDescription: Callback API for agent webhook when agent status changed
      */
     @PostMapping(path = "/callback")
