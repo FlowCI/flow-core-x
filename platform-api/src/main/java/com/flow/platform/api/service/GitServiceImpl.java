@@ -34,10 +34,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,6 +80,28 @@ public class GitServiceImpl implements GitService {
         }
 
         return fetch(client, filePath);
+    }
+
+    @Override
+    public List<String> branches(Node node) {
+        GitClient client = gitClientInstance(node);
+        try {
+            Collection<Ref> branches = client.branches();
+            return toRefString(branches);
+        } catch (GitException e) {
+            throw new IllegalStatusException("Cannot load branch list from git: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<String> tags(Node node) {
+        GitClient client = gitClientInstance(node);
+        try {
+            Collection<Ref> tags = client.tags();
+            return toRefString(tags);
+        } catch (GitException e) {
+            throw new IllegalStatusException("Cannot load tag list from git: " + e.getMessage());
+        }
     }
 
     private static class GitCloneProgressMonitor implements ProgressMonitor {
@@ -124,6 +150,22 @@ public class GitServiceImpl implements GitService {
         }
     }
 
+    private List<String> toRefString(Collection<Ref> refs) {
+        List<String> refStringList = new ArrayList<>(refs.size());
+
+        for (Ref ref : refs) {
+            // convert ref name from ref/head/master to master
+            String refName = ref.getName();
+            int lastIndexOfSlash = refName.lastIndexOf('/');
+            String simpleName = refName.substring(lastIndexOfSlash + 1);
+
+            // add to result list
+            refStringList.add(simpleName);
+        }
+
+        return refStringList;
+    }
+
     /**
      * Init git client from flow env
      *
@@ -132,6 +174,8 @@ public class GitServiceImpl implements GitService {
      * - FLOW_GIT_BRANCH
      * - FLOW_GIT_SSH_PRIVATE_KEY
      * - FLOW_GIT_SSH_PUBLIC_KEY
+     * - FLOW_GIT_HTTP_USER
+     * - FLOW_GIT_HTTP_PASS
      */
     private GitClient gitClientInstance(Node node) {
         GitSource source = GitSource.valueOf(node.getEnv(GitEnvs.FLOW_GIT_SOURCE));

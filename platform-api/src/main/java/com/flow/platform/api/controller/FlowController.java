@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.security.WebSecurity;
+import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
@@ -45,6 +46,9 @@ public class FlowController extends NodeController {
 
     @Autowired
     private YmlService ymlService;
+
+    @Autowired
+    private GitService gitService;
 
     @GetMapping
     @WebSecurity(action = Actions.FLOW_SHOW)
@@ -198,22 +202,42 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {get} /flows/webhooks Webhooks
+     * @api {get} /flows/:root/branches List Branches
+     * @apiParam {String} root flow node name
      * @apiGroup Flows
-     * @apiDescription List all web hooks of flow
      *
      * @apiSuccessExample {json} Success-Response
+     *
      *  [
-     *      {
-     *          path: /flow-path,
-     *          hook: http://xxx.hook.url
-     *      }
+     *      master,
+     *      develop,
+     *      feature/xxx/xxx
      *  ]
      */
-    @GetMapping("/webhooks")
-    @WebSecurity(action = Actions.FLOW_SHOW)
-    public List<Webhook> listFlowWebhooks() {
-        return nodeService.listWebhooks();
+    @GetMapping("/{root}/branches")
+    public List<String> listBranches() {
+        String path = getNodePathFromUrl();
+        Node root = nodeService.find(path);
+        return gitService.branches(root);
+    }
+
+    /**
+     * @api {get} /flows/:root/tags List Tags
+     * @apiParam {String} root flow node name
+     * @apiGroup Flows
+     *
+     * @apiSuccessExample {json} Success-Response
+     *
+     *  [
+     *      v1.0,
+     *      v2.0
+     *  ]
+     */
+    @GetMapping("/{root}/tags")
+    public List<String> listTags() {
+        String path = getNodePathFromUrl();
+        Node root = nodeService.find(path);
+        return gitService.tags(root);
     }
 
     /**
