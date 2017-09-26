@@ -292,13 +292,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new NotFoundException("Cannot fond related node tree for job: " + job.getId());
         }
 
-        // start run flow
+        // set job properties
         job.setSessionId(cmd.getSessionId());
-
         job.putEnv(JobEnvs.FLOW_JOB_AGENT_INFO, cmd.getAgentPath().toString());
-
         updateJobStatusAndSave(job, JobStatus.RUNNING);
 
+        // start run flow from fist node
         run(tree.first(), job);
     }
 
