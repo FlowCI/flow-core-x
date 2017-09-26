@@ -16,8 +16,6 @@
 
 package com.flow.platform.api.domain;
 
-import com.flow.platform.util.git.model.GitEventType;
-
 /**
  * @author yh@firim
  */
@@ -27,20 +25,20 @@ public class SearchCondition {
 
     private String branch;
 
-    private GitEventType gitEventType;
+    private String category;
 
     private String creator;
 
-    public SearchCondition(String keyword, String branch, GitEventType gitEventType) {
+    public SearchCondition(String keyword, String branch, String gitEventType) {
         this.keyword = keyword;
         this.branch = branch;
-        this.gitEventType = gitEventType;
+        this.category = gitEventType;
     }
 
-    public SearchCondition(String keyword, String branch, GitEventType gitEventType, String creator) {
+    public SearchCondition(String keyword, String branch, String gitEventType, String creator) {
         this.keyword = keyword;
         this.branch = branch;
-        this.gitEventType = gitEventType;
+        this.category = gitEventType;
         this.creator = creator;
     }
 
@@ -63,12 +61,12 @@ public class SearchCondition {
         this.branch = branch;
     }
 
-    public GitEventType getGitEventType() {
-        return gitEventType;
+    public String getCategory() {
+        return category;
     }
 
-    public void setGitEventType(GitEventType gitEventType) {
-        this.gitEventType = gitEventType;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getCreator() {
@@ -84,7 +82,7 @@ public class SearchCondition {
         return "SearchCondition{" +
             "keyword='" + keyword + '\'' +
             ", branch='" + branch + '\'' +
-            ", gitEventType=" + gitEventType +
+            ", category=" + category +
             '}';
     }
 
@@ -105,14 +103,14 @@ public class SearchCondition {
         if (branch != null ? !branch.equals(that.branch) : that.branch != null) {
             return false;
         }
-        return gitEventType == that.gitEventType;
+        return category == that.category;
     }
 
     @Override
     public int hashCode() {
         int result = keyword != null ? keyword.hashCode() : 0;
         result = 31 * result + (branch != null ? branch.hashCode() : 0);
-        result = 31 * result + (gitEventType != null ? gitEventType.hashCode() : 0);
+        result = 31 * result + (category != null ? category.hashCode() : 0);
         return result;
     }
 }

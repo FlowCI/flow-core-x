@@ -29,12 +29,14 @@ import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -150,6 +152,10 @@ public class JobController extends NodeController {
     /**
      * @api {get} /jobs/:root List
      * @apiParam {String} [root] flow node path, return all jobs if not presented
+     * @apiParam {String} [keyword] search keyword
+     * @apiParam {String} [branch] search branch
+     * @apiParam {String} [category] git event type
+     * @apiParam {String} [creator] creator
      * @apiGroup Jobs
      * @apiDescription Get jobs by node path or list all jobs
      *
@@ -165,7 +171,7 @@ public class JobController extends NodeController {
      *  ]
      */
     @GetMapping(path = "/{root}")
-    public Collection<Job> index() {
+    public List<Job> index(@RequestParam Map<String, String> allParams,  SearchCondition condition) {
         String path = getNodePathFromUrl();
 
         List<String> paths = null;
@@ -173,7 +179,7 @@ public class JobController extends NodeController {
             paths = Lists.newArrayList(path);
         }
 
-        return jobService.list(paths, false);
+        return searchService.search(condition, paths);
     }
 
     /**

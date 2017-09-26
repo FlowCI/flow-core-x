@@ -72,12 +72,12 @@ public class SearchServiceTest extends TestBase {
         List<String> paths = new ArrayList<>();
         paths.add("flow1");
         List<Job> jobs = searchService.search(searchCondition, paths);
-        Assert.assertEquals(2, jobs.size());
+        Assert.assertEquals(3, jobs.size());
     }
 
     @Test
     public void should_get_event_jobs_success() {
-        SearchCondition searchCondition = new SearchCondition(null, null, GitEventType.PR);
+        SearchCondition searchCondition = new SearchCondition(null, null, "PR");
         List<String> paths = new ArrayList<>();
         paths.add("flow1");
         List<Job> jobs = searchService.search(searchCondition, paths);
@@ -104,7 +104,7 @@ public class SearchServiceTest extends TestBase {
 
     @Test
     public void should_get_branch_and_pr_jobs_success() {
-        SearchCondition searchCondition = new SearchCondition(null, "master", GitEventType.PR);
+        SearchCondition searchCondition = new SearchCondition(null, "master", "PR");
         List<String> paths = new ArrayList<>();
         paths.add("flow1");
         List<Job> jobs = searchService.search(searchCondition, paths);
