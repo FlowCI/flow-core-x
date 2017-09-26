@@ -32,7 +32,7 @@ import java.util.List;
 public class Job extends EnvObject {
 
     public final static EnumSet<JobStatus> FINISH_STATUS = EnumSet
-        .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.SUCCESS);
+        .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.SUCCESS, JobStatus.TIMEOUT);
 
     private BigInteger id;
 

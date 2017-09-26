@@ -52,11 +52,13 @@ import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -439,9 +441,34 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return;
         }
 
+        //if job has finish not to update status
+        if (Job.FINISH_STATUS.contains(originStatus)) {
+            return;
+        }
         job.setStatus(newStatus);
         jobDao.save(job);
 
         this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
+    }
+
+    @Override
+    @Scheduled(fixedDelay = 2 * 1000)
+    public void checkTimeoutTask() {
+        LOGGER.trace("job timeout task start");
+        ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(2); // 6 second not running is timeout
+        List<Job> jobs = jobDao.listTimeoutJob(JobStatus.SESSION_CREATING, finishZoneDateTime);
+        for (Job job : jobs) {
+            updateJobAndNodeResultTimeout(job);
+        }
+        LOGGER.trace("job timeout task end");
+    }
+
+    private void updateJobAndNodeResultTimeout(Job job) {
+        updateJobStatusAndSave(job, JobStatus.TIMEOUT);
+        List<NodeResult> list = nodeResultService.list(job, false);
+        for (NodeResult nodeResult : list) {
+            nodeResult.setStatus(NodeStatus.TIMEOUT);
+            nodeResultService.update(nodeResult);
+        }
     }
 }

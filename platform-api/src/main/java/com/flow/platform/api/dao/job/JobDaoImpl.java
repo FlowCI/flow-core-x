@@ -17,12 +17,22 @@
 package com.flow.platform.api.dao.job;
 
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.dao.util.JobConvertUtil;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.springframework.stereotype.Repository;
@@ -148,6 +158,24 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             }
 
             return integer;
+        });
+    }
+
+    @Override
+    public List<Job> listTimeoutJob(JobStatus status, ZonedDateTime zonedDateTime) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> from = select.from(Job.class);
+
+            Predicate createdPredicate = builder.lessThan(from.get("createdAt"), zonedDateTime);
+            Predicate statusPredicate = builder.equal(from.get("status"), status);
+
+            select.where(createdPredicate, statusPredicate);
+
+            return session.createQuery(select).list();
+
         });
     }
 
