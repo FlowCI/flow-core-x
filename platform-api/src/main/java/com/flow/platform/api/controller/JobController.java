@@ -16,10 +16,12 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
@@ -49,6 +51,9 @@ public class JobController extends NodeController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private JobSearchService searchService;
 
     @Autowired
     private LogService logService;
@@ -314,6 +319,36 @@ public class JobController extends NodeController {
         return jobService.list(paths, true);
     }
 
+
+    /**
+     * @api {post} /jobs/:root/search search jobs
+     * @apiParam {String} root flow node name
+     * @apiParamExample {json} Request-Body:
+     *  {
+     *      keyword: xxx,
+     *      branch: xxx,
+     *      gitEventType: xxxx,
+     *      creator: xxxx
+     *  }
+     * @apiGroup Jobs
+     * @apiDescription search jobs by diff condition
+     *
+     * @apiSuccessExample {json} Success-Response
+     * [
+     *   .. jobs
+     * ]
+     */
+    @PostMapping(path = "/{root}/search")
+    public List<Job> search(@RequestBody SearchCondition condition){
+        String path = getNodePathFromUrl();
+
+        List<String> paths = null;
+        if (path != null) {
+            paths = Lists.newArrayList(path);
+        }
+
+        return searchService.search(condition, paths);
+    }
 
     /**
      * @api {get} /jobs/:buildNumber/log/download download job full log
