@@ -59,10 +59,6 @@ public class LogEventHandler implements LogListener {
     private FileOutputStream stdoutLogStream;
     private ZipOutputStream stdoutLogZipStream;
 
-    private Path stderrLogPath;
-    private FileOutputStream stderrLogStream;
-    private ZipOutputStream stderrLogZipStream;
-
     private Session wsSession;
 
     public LogEventHandler(Cmd cmd) {
@@ -98,11 +94,6 @@ public class LogEventHandler implements LogListener {
 
         // write stdout & stderr
         writeZipStream(stdoutLogZipStream, log.getContent());
-
-        // write stderr only
-        if (log.getType() == Log.Type.STDERR) {
-            writeZipStream(stderrLogZipStream, log.getContent());
-        }
     }
 
     private void sendRealTimeLog(Log log) {
@@ -127,14 +118,10 @@ public class LogEventHandler implements LogListener {
         if (closeZipAndFileStream(stdoutLogZipStream, stdoutLogStream)) {
             renameAndUpload(stdoutLogPath, Log.Type.STDOUT);
         }
-
-        if (closeZipAndFileStream(stderrLogZipStream, stderrLogStream)) {
-            renameAndUpload(stderrLogPath, Log.Type.STDERR);
-        }
     }
 
     public String websocketLogFormat(Log log) {
-        return String.format("%s#%s#%s#%s", cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
+        return String.format("%s#%s#%s#%s#%s", log.getNumber(), cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
             log.getContent());
     }
 
@@ -234,7 +221,6 @@ public class LogEventHandler implements LogListener {
         Path stdoutPath = Paths.get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDOUT, true));
         Files.deleteIfExists(stdoutPath);
 
-
         stdoutLogPath = Files.createFile(stdoutPath);
 
         // init zip stream for stdout log
@@ -242,18 +228,6 @@ public class LogEventHandler implements LogListener {
         stdoutLogZipStream = new ZipOutputStream(stdoutLogStream);
         ZipEntry outEntry = new ZipEntry(cmd.getId() + ".out");
         stdoutLogZipStream.putNextEntry(outEntry);
-
-        // init zipped log file for tmp
-        Path stderrPath = Paths
-            .get(DEFAULT_LOG_PATH.toString(), getLogFileName(cmd, Log.Type.STDERR, true));
-        Files.deleteIfExists(stderrPath);
-        stderrLogPath = Files.createFile(stderrPath);
-
-        // init zip stream for stderr log
-        stderrLogStream = new FileOutputStream(stderrLogPath.toFile());
-        stderrLogZipStream = new ZipOutputStream(stderrLogStream);
-        ZipEntry errEntry = new ZipEntry(cmd.getId() + ".err");
-        stderrLogZipStream.putNextEntry(errEntry);
     }
 
     private String getLogFileName(Cmd cmd, Log.Type logType, boolean isTemp) {

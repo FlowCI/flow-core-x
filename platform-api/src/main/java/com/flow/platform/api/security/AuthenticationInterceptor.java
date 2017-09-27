@@ -160,8 +160,4 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         }
         return false;
     }
-
-    public User currentUser(){
-        return userService.findByEmail("admin@admin.com");
-    }
 }

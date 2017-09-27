@@ -26,6 +26,8 @@
 
     <property name="createdBy" type="string" column="created_by"/>
 
+    <property name="logPath" type="string" column="log_path"/>
+
     <property name="status" column="job_status" length="20" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">com.flow.platform.api.domain.job.JobStatus</param>
@@ -77,7 +79,7 @@
     <property name="exitCode" type="integer" column="exit_code"/>
     <property name="cmdId" type="string" column="cmd_id"/>
     <property name="outputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="outputs"/>
-    <property name="logPaths" type="com.flow.platform.core.dao.adaptor.list.ListAdaptor" column="log_paths"/>
+    <property name="logPath" type="string" column="log_path"/>
     <property name="createdBy" type="string" column="created_by"/>
 
     <property name="nodeTag" column="type" length="10" not-null="true">
@@ -101,7 +103,7 @@
     </property>
 
     <property name="startTime" type="java.time.ZonedDateTime">
-      <column name="started_at" sql-type="timestamp NULL"  default="NULL"/>
+      <column name="started_at" sql-type="timestamp NULL" default="NULL"/>
     </property>
 
     <property name="createdAt" type="java.time.ZonedDateTime">

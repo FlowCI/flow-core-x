@@ -17,8 +17,8 @@
 package com.flow.platform.api.git;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitSshClient;
@@ -29,6 +29,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
+ * Build SSH git client with FLOW_GIT_SSH_PRIVATE_KEY and FLOW_GIT_SSH_PUBLIC_KEY
+ *
  * @author yang
  */
 public class GitSshClientBuilder extends GitClientBuilder {
@@ -41,10 +43,10 @@ public class GitSshClientBuilder extends GitClientBuilder {
 
     private String publicKey;
 
-    public GitSshClientBuilder(final Flow flow, final Path sourceFolder) {
-        super(flow, sourceFolder);
-        privateKey = flow.getEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY);
-        publicKey = flow.getEnv(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY);
+    public GitSshClientBuilder(final Node node, final Path sourceFolder) {
+        super(node, sourceFolder);
+        privateKey = node.getEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY);
+        publicKey = node.getEnv(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY);
     }
 
     @Override

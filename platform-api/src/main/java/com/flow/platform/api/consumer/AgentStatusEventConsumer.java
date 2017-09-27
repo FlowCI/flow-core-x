@@ -16,23 +16,21 @@
 
 package com.flow.platform.api.consumer;
 
-import com.flow.platform.api.events.JobStatusChangeEvent;
-import com.flow.platform.util.Logger;
+import com.flow.platform.api.config.WebSocketConfig;
+import com.flow.platform.api.events.AgentStatusChangeEvent;
+import com.flow.platform.api.push.PushHandler;
+import com.flow.platform.domain.Agent;
 import org.springframework.context.ApplicationListener;
 
 /**
- * To handle JobStatusChangeEvent and NodeResultStatusChangeEvent
- *
  * @author yang
  */
-public class JobStatusEventPushHandler extends JobPushHandler implements ApplicationListener<JobStatusChangeEvent> {
-
-    private final static Logger LOGGER = new Logger(JobStatusEventPushHandler.class);
+public class AgentStatusEventConsumer extends PushHandler implements ApplicationListener<AgentStatusChangeEvent> {
 
     @Override
-    public void onApplicationEvent(JobStatusChangeEvent event) {
-        LOGGER.debug("Job %s status change event from %s to %s", event.getJobId(), event.getFrom(), event.getTo());
-
-        push(event.getJobId());
+    public void onApplicationEvent(AgentStatusChangeEvent event) {
+        final Agent agent = event.getAgent();
+        final String topic = String.format("%s/%s", WebSocketConfig.TOPIC_FOR_AGENT, agent.getPath().toString());
+        super.push(topic, agent);
     }
 }

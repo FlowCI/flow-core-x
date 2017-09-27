@@ -16,6 +16,8 @@
 
 package com.flow.platform.domain;
 
+import com.google.gson.annotations.Expose;
+
 /**
  * Config for agent
  *
@@ -24,26 +26,34 @@ package com.flow.platform.domain;
 public class AgentSettings extends Jsonable {
 
     /**
+     * Set agent zone and name
+     */
+    @Expose
+    private AgentPath agentPath;
+
+    /**
      * web socket url for upload real time logging
      */
+    @Expose
     private String webSocketUrl;
 
     /**
      * Url for report cmd status
      */
+    @Expose
     private String cmdStatusUrl;
 
     /**
      * Url for upload full zipped cmd log
      */
+    @Expose
     private String cmdLogUrl;
 
     /**
      * Url for zookeeper
      */
+    @Expose
     private String zookeeperUrl;
-
-    private AgentPath agentPath;
 
     public AgentSettings() {
     }

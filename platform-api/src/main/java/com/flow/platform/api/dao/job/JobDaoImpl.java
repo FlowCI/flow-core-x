@@ -16,13 +16,19 @@
 
 package com.flow.platform.api.dao.job;
 
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.dao.util.JobConvertUtil;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
+import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.springframework.stereotype.Repository;
@@ -166,6 +172,24 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             .createQuery("delete from Job where nodePath = ?")
             .setParameter(0, path)
             .executeUpdate());
+    }
+
+    @Override
+    public List<Job> listJob(ZonedDateTime zonedDateTime, JobStatus... status) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> from = select.from(Job.class);
+
+            Predicate createdPredicate = builder.lessThan(from.get("updatedAt"), zonedDateTime);
+            Predicate statusPredicate = from.get("status").in(status);
+
+            select.where(createdPredicate, statusPredicate);
+
+            return session.createQuery(select).list();
+
+        });
     }
 
     private static boolean hasCollection(final Collection<String> data) {

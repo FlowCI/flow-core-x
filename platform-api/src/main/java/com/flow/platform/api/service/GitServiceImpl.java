@@ -17,10 +17,10 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.git.GitClientBuilder;
+import com.flow.platform.api.git.GitHttpClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -34,10 +34,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,6 +61,7 @@ public class GitServiceImpl implements GitService {
     @PostConstruct
     public void init() {
         clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
+        clientBuilderType.put(GitSource.UNDEFINED_HTTP, GitHttpClientBuilder.class);
     }
 
     @Override
@@ -68,13 +73,35 @@ public class GitServiceImpl implements GitService {
             progressListener.onStart();
         }
 
-        client.clone(branch, null, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
+        client.clone(branch, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
 
         if (progressListener != null) {
             progressListener.onFinish();
         }
 
         return fetch(client, filePath);
+    }
+
+    @Override
+    public List<String> branches(Node node) {
+        GitClient client = gitClientInstance(node);
+        try {
+            Collection<Ref> branches = client.branches();
+            return toRefString(branches);
+        } catch (GitException e) {
+            throw new IllegalStatusException("Cannot load branch list from git: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<String> tags(Node node) {
+        GitClient client = gitClientInstance(node);
+        try {
+            Collection<Ref> tags = client.tags();
+            return toRefString(tags);
+        } catch (GitException e) {
+            throw new IllegalStatusException("Cannot load tag list from git: " + e.getMessage());
+        }
     }
 
     private static class GitCloneProgressMonitor implements ProgressMonitor {
@@ -123,6 +150,22 @@ public class GitServiceImpl implements GitService {
         }
     }
 
+    private List<String> toRefString(Collection<Ref> refs) {
+        List<String> refStringList = new ArrayList<>(refs.size());
+
+        for (Ref ref : refs) {
+            // convert ref name from ref/head/master to master
+            String refName = ref.getName();
+            int lastIndexOfSlash = refName.lastIndexOf('/');
+            String simpleName = refName.substring(lastIndexOfSlash + 1);
+
+            // add to result list
+            refStringList.add(simpleName);
+        }
+
+        return refStringList;
+    }
+
     /**
      * Init git client from flow env
      *
@@ -131,6 +174,8 @@ public class GitServiceImpl implements GitService {
      * - FLOW_GIT_BRANCH
      * - FLOW_GIT_SSH_PRIVATE_KEY
      * - FLOW_GIT_SSH_PUBLIC_KEY
+     * - FLOW_GIT_HTTP_USER
+     * - FLOW_GIT_HTTP_PASS
      */
     private GitClient gitClientInstance(Node node) {
         GitSource source = GitSource.valueOf(node.getEnv(GitEnvs.FLOW_GIT_SOURCE));
@@ -142,7 +187,7 @@ public class GitServiceImpl implements GitService {
         GitClientBuilder builder;
         try {
             builder = builderClass
-                .getConstructor(Flow.class, Path.class)
+                .getConstructor(Node.class, Path.class)
                 .newInstance(node, gitSourcePath(node));
         } catch (Throwable e) {
             throw new IllegalStatusException("Fail to create GitClientBuilder instance: " + e.getMessage());

@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
  * @author yh@firim
  */
 
-@Service(value = "messageService")
+@Service
 public class MessageServiceImpl implements MessageService {
 
     private final static Logger LOGGER = new Logger(MessageService.class);

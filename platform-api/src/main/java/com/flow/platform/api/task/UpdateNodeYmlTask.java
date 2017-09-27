@@ -29,7 +29,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * Task to clone from git repo and verify yml content is valid
+ * Task to clone from git repo and create or update yml content of node
  * then write status and error message to
  *
  *   - FLOW_YML_STATUS
@@ -37,9 +37,9 @@ import java.util.function.Consumer;
  *
  * @author yang
  */
-public class CloneAndVerifyYmlTask implements Runnable {
+public class UpdateNodeYmlTask implements Runnable {
 
-    private final static Logger LOGGER = new Logger(CloneAndVerifyYmlTask.class);
+    private final static Logger LOGGER = new Logger(UpdateNodeYmlTask.class);
 
     private final Flow flow;
 
@@ -49,10 +49,10 @@ public class CloneAndVerifyYmlTask implements Runnable {
 
     private final Consumer<Yml> callback;
 
-    public CloneAndVerifyYmlTask(Flow flow,
-                                 NodeService nodeService,
-                                 GitService gitService,
-                                 Consumer<Yml> callback) {
+    public UpdateNodeYmlTask(Flow flow,
+                             NodeService nodeService,
+                             GitService gitService,
+                             Consumer<Yml> callback) {
         this.flow = flow;
         this.nodeService = nodeService;
         this.gitService = gitService;

@@ -44,9 +44,6 @@ public class JobNodeServiceImpl implements JobNodeService {
     @Autowired
     private JobYmlDao jobYmlDao;
 
-    @Autowired
-    private ThreadLocal<User> currentUser;
-
     // 1 day expire
     private Cache<BigInteger, NodeTree> nodeCache = CacheBuilder
         .newBuilder()
@@ -56,7 +53,6 @@ public class JobNodeServiceImpl implements JobNodeService {
     @Override
     public void save(final BigInteger jobId, final String yml) {
         JobYml jobYmlStorage = new JobYml(jobId, yml);
-        jobYmlStorage.setCreatedBy(currentUser.get().getEmail());
         jobYmlDao.saveOrUpdate(jobYmlStorage);
         nodeCache.invalidate(jobId);
     }

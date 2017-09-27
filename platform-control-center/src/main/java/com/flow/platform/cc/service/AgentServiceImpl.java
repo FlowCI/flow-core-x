@@ -20,6 +20,8 @@ import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
@@ -29,8 +31,10 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -40,6 +44,7 @@ import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -50,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional(isolation = Isolation.REPEATABLE_READ)
-public class AgentServiceImpl implements AgentService {
+public class AgentServiceImpl extends WebhookServiceImplBase implements AgentService {
 
     private final static Logger LOGGER = new Logger(AgentService.class);
 
@@ -87,7 +92,6 @@ public class AgentServiceImpl implements AgentService {
         for (String agent : agents) {
             AgentPath key = new AgentPath(zone, agent);
             try {
-
                 agentReportQueue.put(key);
             } catch (InterruptedException ignore) {
                 LOGGER.warn("InterruptedException when agent report online");
@@ -120,22 +124,24 @@ public class AgentServiceImpl implements AgentService {
         if (Strings.isNullOrEmpty(zone)) {
             return agentDao.list();
         }
-        return listForOnline(zone);
+        return agentDao.list(zone, "createdDate");
     }
 
     @Override
-    public void save(Agent agent) {
-        agentDao.update(agent);
-    }
-
-    @Override
-    public void updateStatus(AgentPath path, AgentStatus status) {
-        Agent exist = find(path);
-        if (exist == null) {
-            throw new AgentErr.NotFoundException(path.getName());
+    public void saveWithStatus(Agent agent, AgentStatus status) {
+        if (!agentDao.exist(agent.getPath())) {
+            throw new AgentErr.NotFoundException(agent.getName());
         }
-        exist.setStatus(status);
-        agentDao.update(exist);
+
+        boolean statusIsChanged = !agent.getStatus().equals(status);
+
+        agent.setStatus(status);
+        agentDao.update(agent);
+
+        // send webhook if status changed
+        if (statusIsChanged) {
+            this.webhookCallback(agent);
+        }
     }
 
     @Override
@@ -145,7 +151,6 @@ public class AgentServiceImpl implements AgentService {
         }
 
         long sessionAlive = ChronoUnit.SECONDS.between(agent.getSessionDate(), compareDate);
-
         return sessionAlive >= timeoutInSeconds;
     }
 
@@ -173,31 +178,31 @@ public class AgentServiceImpl implements AgentService {
         LOGGER.traceMarker("sessionTimeoutTask", "end");
     }
 
-
     @Override
-    public String createToken(AgentPath agentPath) {
-
+    public Agent create(AgentPath agentPath, String webhook) {
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
-            throw new IllegalParameterException("agent token is dup");
+            throw new IllegalParameterException(String.format("The agent '%s' has already exsited", agentPath));
         }
 
         agent = new Agent(agentPath);
         agent.setCreatedDate(DateUtil.now());
         agent.setUpdatedDate(DateUtil.now());
         agent.setStatus(AgentStatus.OFFLINE);
+        agent.setWebhook(webhook);
+
         //random token
         agent.setToken(UUID.randomUUID().toString());
         agentDao.save(agent);
 
-        return agent.getToken();
+        return agent;
     }
 
-    public String refreshToken(AgentPath agentPath){
-
+    @Override
+    public String refreshToken(AgentPath agentPath) {
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
-            throw new IllegalParameterException("agent token is dup");
+            throw new IllegalParameterException(String.format("The agent '%s' has already exsited", agentPath));
         }
 
         //random token
@@ -208,12 +213,12 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public AgentSettings getInfo(String token) {
+    public AgentSettings settings(String token) {
         Agent agent = agentDao.getByToken(token);
 
         // validate token
         if (agent == null) {
-            throw new IllegalParameterException("token error");
+            throw new IllegalParameterException("Illegal agent token");
         }
 
         agentSettings.setAgentPath(agent.getPath());

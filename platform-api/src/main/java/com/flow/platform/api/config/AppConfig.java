@@ -84,6 +84,7 @@ public class AppConfig extends AppConfigBase {
     }
 
     @Bean
+    @Override
     public ThreadPoolTaskExecutor taskExecutor() {
         return ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
     }
@@ -105,6 +106,8 @@ public class AppConfig extends AppConfigBase {
 
     @Bean
     public PlatformURL platformURL() {
-        return new PlatformURL(platFormBaseURL);
+        PlatformURL platformURL = new PlatformURL(platFormBaseURL);
+        LOGGER.trace(platformURL.toString());
+        return platformURL;
     }
 }

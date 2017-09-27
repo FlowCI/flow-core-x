@@ -56,6 +56,11 @@ public interface AgentDao extends BaseDao<AgentPath, Agent> {
     Agent getByToken(String token);
 
     /**
+     * Check agent is existed
+     */
+    boolean exist(AgentPath path);
+
+    /**
      * Batch update agent status by zone
      *
      * @param zone target zone name

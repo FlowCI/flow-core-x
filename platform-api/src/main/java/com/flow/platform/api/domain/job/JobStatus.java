@@ -31,5 +31,7 @@ public enum JobStatus {
 
     FAILURE, // finished with error
 
-    STOPPED // manual stop the job
+    STOPPED, // manual stop the job
+
+    TIMEOUT // job running timeout
 }

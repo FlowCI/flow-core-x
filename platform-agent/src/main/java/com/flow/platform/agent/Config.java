@@ -150,7 +150,11 @@ public class Config {
     }
 
     public static AgentSettings loadAgentConfig(String baseUrl, String token) {
-        String url = new StringBuilder(baseUrl).append("/agents/info").append("?token=" + token).toString();
+        String url = new StringBuilder(baseUrl)
+            .append("/agents/settings")
+            .append("?token=")
+            .append(token).toString();
+
         HttpGet httpGet = new HttpGet(url);
         AgentSettings agentSettings = null;
 

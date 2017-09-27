@@ -64,7 +64,7 @@ public class JobServiceTest extends TestBase {
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Flow rootForFlow = nodeService.createEmptyFlow("flow1");
-        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL);
+        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null);
     }
 
     @Test
@@ -204,14 +204,25 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());
     }
 
+    @Test
+    public void should_job_time_out() throws IOException, InterruptedException {
+        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
+        Thread.sleep(7000);
+        jobService.checkTimeoutTask();
+        Job jobRes = jobDao.get(rootForFlow.getPath(), job.getNumber());
+        Assert.assertEquals(JobStatus.TIMEOUT, jobRes.getStatus());
+        Assert.assertEquals(NodeStatus.TIMEOUT, jobRes.getRootResult().getStatus());
+    }
+
     private Job createMockJob(String nodePath) {
-        Job job = jobService.createJob(nodePath, GitEventType.TAG);
+        Job job = jobService.createJob(nodePath, GitEventType.TAG, null);
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());
         Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
 
-        Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.JOB_BUILD_NUMBER));
+        Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER));
 
         // verify root node result for job
         NodeResult rootResult = job.getRootResult();

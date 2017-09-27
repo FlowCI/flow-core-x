@@ -131,7 +131,7 @@ public class NodeServiceImpl implements NodeService {
         }
 
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
-        flow.setCreatedBy(currentUser.get().getEmail());
+//        flow.setCreatedBy(currentUser.get().getEmail());
 
         // persistent flow type node to flow table with env which from yml
         EnvUtil.merge(rootFromYml, flow, true);

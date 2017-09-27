@@ -24,6 +24,7 @@ import com.flow.platform.api.domain.request.EmailListParam;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
+import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -47,6 +49,9 @@ public class FlowController extends NodeController {
 
     @Autowired
     private YmlService ymlService;
+
+    @Autowired
+    private GitService gitService;
 
     @GetMapping
     @WebSecurity(action = Actions.FLOW_SHOW)
@@ -164,9 +169,9 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {get} /flows/:rootenv/:key Get Env
+     * @api {get} /flows/:root/env Get Env
      * @apiParam {String} root root node name
-     * @apiParam {String} [key] env variable name
+     * @apiParam {String} [key] env variable name, ex: http://xxxx/flows/xx/env?key=FLOW_GIT_WEBHOOK
      * @apiGroup Flows
      * @apiDescription Get node env by path or name
      *
@@ -175,9 +180,9 @@ public class FlowController extends NodeController {
      *      FLOW_ENV_VAR: xxx
      *  }
      */
-    @GetMapping(path = "/{root}/env/{key}")
+    @GetMapping(path = "/{root}/env")
     @WebSecurity(action = Actions.FLOW_SHOW)
-    public Map<String, String> getFlowEnv(@PathVariable(required = false) String key) {
+    public Map<String, String> getFlowEnv(@RequestParam(required = false) String key) {
         return super.getEnv(key);
     }
 
@@ -200,22 +205,42 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {get} /flows/webhooks Webhooks
+     * @api {get} /flows/:root/branches List Branches
+     * @apiParam {String} root flow node name
      * @apiGroup Flows
-     * @apiDescription List all web hooks of flow
      *
      * @apiSuccessExample {json} Success-Response
+     *
      *  [
-     *      {
-     *          path: /flow-path,
-     *          hook: http://xxx.hook.url
-     *      }
+     *      master,
+     *      develop,
+     *      feature/xxx/xxx
      *  ]
      */
-    @GetMapping("/webhooks")
-    @WebSecurity(action = Actions.FLOW_SHOW)
-    public List<Webhook> listFlowWebhooks() {
-        return nodeService.listWebhooks();
+    @GetMapping("/{root}/branches")
+    public List<String> listBranches() {
+        String path = getNodePathFromUrl();
+        Node root = nodeService.find(path);
+        return gitService.branches(root);
+    }
+
+    /**
+     * @api {get} /flows/:root/tags List Tags
+     * @apiParam {String} root flow node name
+     * @apiGroup Flows
+     *
+     * @apiSuccessExample {json} Success-Response
+     *
+     *  [
+     *      v1.0,
+     *      v2.0
+     *  ]
+     */
+    @GetMapping("/{root}/tags")
+    public List<String> listTags() {
+        String path = getNodePathFromUrl();
+        Node root = nodeService.find(path);
+        return gitService.tags(root);
     }
 
     /**

@@ -61,10 +61,12 @@ public class CmdServiceImpl implements CmdService {
         cmdInfo.setWebhook(buildCmdWebhook(job));
         LOGGER.traceMarker("CreateSession", "job id - %s", job.getId());
 
+        // TODO: handle 500 error message from control center
+
         // create session
         Cmd cmd = sendToQueue(cmdInfo, retry);
         if (cmd == null) {
-            throw new IllegalStatusException("Unable to create session since cmd return null");
+            throw new IllegalStatusException("Unable to create session since");
         }
 
         if (Strings.isNullOrEmpty(cmd.getSessionId())) {
@@ -96,7 +98,7 @@ public class CmdServiceImpl implements CmdService {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setInputs(node.getEnvs());
         cmdInfo.setWebhook(buildCmdWebhook(job));
-        cmdInfo.setOutputEnvFilter("FLOW_");
+        cmdInfo.setOutputEnvFilter("FLOW_OUTPUT");
         cmdInfo.setSessionId(job.getSessionId());
         cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
         cmdInfo.setCustomizedId(cmdId);

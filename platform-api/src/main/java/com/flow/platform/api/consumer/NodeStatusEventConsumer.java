@@ -24,9 +24,9 @@ import org.springframework.context.ApplicationListener;
 /**
  * @author yang
  */
-public class NodeStatusEventPushHandler extends JobPushHandler implements ApplicationListener<NodeStatusChangeEvent> {
+public class NodeStatusEventConsumer extends JobEventPushHandler implements ApplicationListener<NodeStatusChangeEvent> {
 
-    private final static Logger LOGGER = new Logger(NodeStatusEventPushHandler.class);
+    private final static Logger LOGGER = new Logger(NodeStatusEventConsumer.class);
 
     @Override
     public void onApplicationEvent(NodeStatusChangeEvent event) {

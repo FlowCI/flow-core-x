@@ -23,6 +23,8 @@ public enum GitSource {
 
     UNDEFINED_SSH,
 
+    UNDEFINED_HTTP,
+
     GITLAB,
 
     GITHUB,

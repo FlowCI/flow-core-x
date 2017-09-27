@@ -46,8 +46,11 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
             return;
         }
 
-        // parse log item "zone#agent#cmdId#content" and send to event "zone:agent"
-        int zoneIndex = logItem.indexOf('#', 0);
+        // parse log item "index#zone#agent#cmdId#content" and send to event "zone:agent"
+        int numberIndex = logItem.indexOf('#', 0);
+        String number = logItem.substring(0, numberIndex);
+
+        int zoneIndex = logItem.indexOf('#', numberIndex + 1);
         String zone = logItem.substring(0, zoneIndex);
 
         int agentIndex = logItem.indexOf('#', zoneIndex + 1);
@@ -59,6 +62,7 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
         String content = logItem.substring(cmdIdIndex + 1);
 
         String event = String.format("/topic/cmd/%s", cmdId);
-        template.convertAndSend(event, content);
+        
+        template.convertAndSend(event, "{\"number\": \"" + number + "\", \"content\": \"" + content + "\"}");
     }
 }

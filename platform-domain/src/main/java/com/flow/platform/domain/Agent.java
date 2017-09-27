@@ -16,52 +16,61 @@
 
 package com.flow.platform.domain;
 
+import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
 
 /**
  * @author gy@fir.im
  */
-public class Agent extends Jsonable {
+public class Agent extends Webhookable {
 
     /**
      * Composite key
      */
+    @Expose
     private AgentPath path;
 
     /**
      * Max concurrent proc number
      */
+    @Expose
     private Integer concurrentProc = 1;
 
     /**
      * Agent busy or idle
      */
+    @Expose
     private AgentStatus status = AgentStatus.OFFLINE;
 
     /**
      * Reserved for session id
      */
+    @Expose
     private String sessionId;
 
     /**
      * The date to start session
      */
+    @Expose
     private ZonedDateTime sessionDate;
+
+    /**
+     * agent token
+     */
+    @Expose
+    private String token;
 
     /**
      * Created date
      */
+    @Expose
     private ZonedDateTime createdDate;
 
     /**
      * Updated date
      */
+    @Expose
     private ZonedDateTime updatedDate;
-
-    /**
-     * agent token
-     */
-    private String token;
 
     public Agent() {
     }
