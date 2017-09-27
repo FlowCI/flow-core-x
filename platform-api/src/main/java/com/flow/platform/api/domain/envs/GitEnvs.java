@@ -46,6 +46,8 @@ public enum GitEnvs implements EnvKey {
 
     FLOW_GIT_COMMIT_ID,
 
+    FLOW_GIT_COMMIT_URL, // http://git.com/xx/xxx
+
     FLOW_GIT_COMPARE_ID, // 123...456
 
     FLOW_GIT_COMPARE_URL, // http://github.com/xxx/123...456

@@ -18,6 +18,8 @@ package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEvent;
+import com.flow.platform.util.git.model.GitEventAuthor;
+import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestEvent.State;
@@ -58,7 +60,12 @@ public class GitHubEvents {
 
             private Boolean created;
 
-            private Map<String, String> sender;
+            private GitEventAuthor pusher;
+
+            private GitEventAuthor sender;
+
+            @SerializedName("head_commit")
+            private GitEventCommit headCommit;
         }
 
         PushAndTagAdapter(GitSource gitSource, GitEventType eventType) {
@@ -80,14 +87,14 @@ public class GitHubEvents {
                 event.setType(GitEventType.PUSH);
             }
 
-            Map<String, String> sender = helper.sender;
-            if (sender != null) {
-                event.setUserId(sender.get("id"));
-                event.setUsername(sender.get("login"));
-            }
+            event.setUserId(helper.sender.getId());
+            event.setUserEmail(helper.pusher.getEmail());
+            event.setUsername(helper.pusher.getName());
 
+            event.setHeadCommitUrl(helper.headCommit.getUrl());
             event.setCompareId(GitPushTagEvent.buildCompareId(event));
             event.setGitSource(gitSource);
+
             return event;
         }
     }

@@ -22,7 +22,9 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitHttpClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
+import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.UnsupportedException;
 import com.flow.platform.util.Logger;
@@ -66,6 +68,7 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public String clone(Node node, String filePath, ProgressListener progressListener) throws GitException {
+        checkRequiredEnv(node);
         String branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(node);
 
@@ -84,6 +87,7 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public List<String> branches(Node node) {
+        checkRequiredEnv(node);
         GitClient client = gitClientInstance(node);
         try {
             Collection<Ref> branches = client.branches();
@@ -95,12 +99,19 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public List<String> tags(Node node) {
+        checkRequiredEnv(node);
         GitClient client = gitClientInstance(node);
         try {
             Collection<Ref> tags = client.tags();
             return toRefString(tags);
         } catch (GitException e) {
             throw new IllegalStatusException("Cannot load tag list from git: " + e.getMessage());
+        }
+    }
+
+    private void checkRequiredEnv(Node node) {
+        if (!EnvUtil.hasRequiredEnvKey(node, REQUIRED_ENVS)) {
+            throw new IllegalParameterException("Missing required env variables");
         }
     }
 

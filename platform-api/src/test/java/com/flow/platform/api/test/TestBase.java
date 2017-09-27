@@ -168,7 +168,7 @@ public abstract class TestBase {
     public void setFlowToReady(Node flowNode) {
         Map<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.StatusValue.READY.value());
-        nodeService.setFlowEnv(flowNode.getPath(), envs);
+        nodeService.addFlowEnv(flowNode.getPath(), envs);
     }
 
     public void stubDemo() {

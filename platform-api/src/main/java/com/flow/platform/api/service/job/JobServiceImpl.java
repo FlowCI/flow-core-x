@@ -154,7 +154,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         String yml = null;
         try {
-            yml = ymlService.getYmlContent(root.getPath());
+            yml = ymlService.getYmlContent(root);
             if (Strings.isNullOrEmpty(yml)) {
                 throw new IllegalStatusException("Yml is loading for path " + path);
             }

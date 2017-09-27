@@ -83,7 +83,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GIT_SSH_URL);
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        nodeService.setFlowEnv(flow.getPath(), env);
+        flow = nodeService.addFlowEnv(flow.getPath(), env);
 
         Flow loaded = (Flow) nodeService.find(flow.getPath());
         Assert.assertNotNull(loaded);
@@ -117,7 +117,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GIT_SSH_URL);
         env.put(GitEnvs.FLOW_GIT_CREDENTIAL.name(), rsaCredentialName);
-        nodeService.setFlowEnv(flow.getPath(), env);
+        flow = nodeService.addFlowEnv(flow.getPath(), env);
 
         // async to clone and return .flow.yml content
         final String loadedYml = loadYml(flow);
@@ -138,7 +138,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GIT_SSH_URL);
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), "invalid ssh key xxxx");
-        nodeService.setFlowEnv(flow.getPath(), env);
+        flow = nodeService.addFlowEnv(flow.getPath(), env);
 
         // async to clone and return .flow.yml content
         loadYml(flow);
@@ -156,7 +156,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_URL.name(), GIT_HTTP_URL);
         env.put(GitEnvs.FLOW_GIT_HTTP_USER.name(), "");
         env.put(GitEnvs.FLOW_GIT_HTTP_PASS.name(), "");
-        nodeService.setFlowEnv(flow.getPath(), env);
+        flow = nodeService.addFlowEnv(flow.getPath(), env);
 
         // async to clone and return .flow.yml content
         final String loadedYml = loadYml(flow);
@@ -174,11 +174,11 @@ public class CreateFlowTest extends TestBase {
         FileSystemUtils.deleteRecursively(Paths.get(workspace.toString(), "flow-integration").toFile());
     }
 
-    private String loadYml(Node node) throws InterruptedException {
+    private String loadYml(Flow node) throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
         final ObjectWrapper<String> ymlWrapper = new ObjectWrapper<>();
 
-        ymlService.loadYmlContent(node.getPath(), ymlStorage -> {
+        ymlService.loadYmlContent(node, ymlStorage -> {
             ymlWrapper.setInstance(ymlStorage.getFile());
             latch.countDown();
         });

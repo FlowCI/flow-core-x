@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,7 +105,7 @@ public class NodeServiceImpl implements NodeService {
         try {
             // merge name to yml
             yml = NodeUtil.mergeNameToYml(flow.getName(), yml);
-            rootFromYml = ymlService.verifyYml(path, yml);
+            rootFromYml = ymlService.verifyYml(flow, yml);
         } catch (IllegalParameterException | YmlException e) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());
             return flow;
@@ -226,7 +227,7 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public Flow setFlowEnv(String path, Map<String, String> envs) {
+    public Flow addFlowEnv(String path, Map<String, String> envs) {
         Flow flow = findFlow(path);
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
@@ -236,17 +237,29 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo) {
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
+    public Flow delFlowEnv(String path, Set<String> keys) {
+        Flow flow = findFlow(path);
 
-        if (!Strings.isNullOrEmpty(errorInfo)) {
-            flow.putEnv(FlowEnvs.FLOW_YML_ERROR_MSG, errorInfo);
-        } else {
-            flow.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
+        for (String keyToRemove : keys) {
+            flow.removeEnv(keyToRemove);
         }
 
-        LOGGER.debug("Update '%s' yml status to %s", flow.getName(), state);
         flowDao.update(flow);
+        return flow;
+    }
+
+    @Override
+    public void updateYmlState(Node root, FlowEnvs.YmlStatusValue state, String errorInfo) {
+        root.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
+
+        if (!Strings.isNullOrEmpty(errorInfo)) {
+            root.putEnv(FlowEnvs.FLOW_YML_ERROR_MSG, errorInfo);
+        } else {
+            root.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
+        }
+
+        LOGGER.debug("Update '%s' yml status to %s", root.getName(), state);
+        flowDao.update((Flow) root);
     }
 
     @Override

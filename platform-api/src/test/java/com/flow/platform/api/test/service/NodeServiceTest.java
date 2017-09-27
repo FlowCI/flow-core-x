@@ -73,7 +73,7 @@ public class NodeServiceTest extends TestBase {
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_SP_1", "111");
         flowEnv.put("FLOW_SP_2", "222");
-        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+        nodeService.addFlowEnv(emptyFlow.getPath(), flowEnv);
 
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
@@ -112,7 +112,7 @@ public class NodeServiceTest extends TestBase {
 
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_YML_STATUS", "LOADING");
-        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+        nodeService.addFlowEnv(emptyFlow.getPath(), flowEnv);
 
         // when:
         nodeService.createOrUpdate(emptyFlow.getPath(), "");
@@ -130,7 +130,7 @@ public class NodeServiceTest extends TestBase {
 
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_YML_STATUS", "LOADING");
-        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+        nodeService.addFlowEnv(emptyFlow.getPath(), flowEnv);
 
         // when:
         nodeService.createOrUpdate(emptyFlow.getPath(), "xxxx");
@@ -181,7 +181,7 @@ public class NodeServiceTest extends TestBase {
         envs.put("FLOW_NEW_1", "hello");
         envs.put("FLOW_NEW_2", "world");
         envs.put("FLOW_NEW_3", "done");
-        nodeService.setFlowEnv(root.getPath(), envs);
+        nodeService.addFlowEnv(root.getPath(), envs);
 
         // then:
         String webhook = String.format("%s/hooks/git/%s", domain, emptyFlow.getName());
@@ -223,7 +223,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("FOUND", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // then: should raise YmlParseException
-        ymlService.getYmlContent(root.getPath());
+        ymlService.getYmlContent(root);
     }
 
     @Test(expected = IllegalParameterException.class)
@@ -235,16 +235,16 @@ public class NodeServiceTest extends TestBase {
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
-        Assert.assertNotNull(ymlService.getYmlContent(root.getPath()));
+        Assert.assertNotNull(ymlService.getYmlContent(root));
 
-        // when:
+        // when: delete flow
         nodeService.delete(root.getPath());
 
-        // then:
+        // then: flow should be null
         Assert.assertNull(nodeService.find(root.getPath()));
         Assert.assertEquals(false, Files.exists(NodeUtil.workspacePath(workspace, root)));
 
         // then: should raise illegal parameter exception since flow doesn't exist
-        ymlService.getYmlContent(root.getPath());
+        ymlService.getYmlContent(root);
     }
 }

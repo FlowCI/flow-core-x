@@ -45,6 +45,11 @@ public interface CredentialService {
     Credential find(String name);
 
     /**
+     * Check credential is existed
+     */
+    boolean existed(String name);
+
+    /**
      * Delete credential by name
      */
     void delete(String name);

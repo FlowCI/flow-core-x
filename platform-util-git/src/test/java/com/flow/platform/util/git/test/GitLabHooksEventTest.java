@@ -61,6 +61,9 @@ public class GitLabHooksEventTest {
         Assert.assertEquals("refs/heads/master", pushEvent.getRef());
         Assert.assertEquals(4, Integer.parseInt(pushEvent.getUserId()));
         Assert.assertEquals("John Smith", pushEvent.getUsername());
+        Assert.assertEquals("john@example.com", pushEvent.getUserEmail());
+        Assert.assertEquals("http://example.com/mike/diaspora/commit/da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
+            pushEvent.getHeadCommitUrl());
         Assert.assertEquals("95790bf891e7...da1560886d4f", pushEvent.getCompareId());
         Assert.assertTrue(pushEvent.getCompareUrl().endsWith("compare/" + pushEvent.getCompareId()));
 
@@ -99,9 +102,12 @@ public class GitLabHooksEventTest {
         Assert.assertEquals("refs/tags/v1.0.0", tagEvent.getRef());
         Assert.assertEquals(1, Integer.parseInt(tagEvent.getUserId()));
         Assert.assertEquals("John Smith", tagEvent.getUsername());
+        Assert.assertNull(tagEvent.getUserEmail());
         Assert.assertEquals(0, tagEvent.getCommits().size());
         Assert.assertEquals("hello test", tagEvent.getMessage());
         Assert.assertEquals("82b3d5ae55f7...1.0.0", tagEvent.getCompareId());
+        Assert.assertEquals("http://example.com/jsmith/example/commit/82b3d5ae55f7080f1e6022629cdb57bfae7cccc7",
+            tagEvent.getHeadCommitUrl());
         Assert.assertTrue(tagEvent.getCompareUrl().endsWith("compare/" + tagEvent.getCompareId()));
     }
 

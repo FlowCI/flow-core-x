@@ -33,6 +33,8 @@ public class GitEventCommit implements Serializable {
 
     private String timestamp;
 
+    private String url;
+
     private GitEventAuthor author;
 
     private List<String> added;
@@ -70,6 +72,14 @@ public class GitEventCommit implements Serializable {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public GitEventAuthor getAuthor() {

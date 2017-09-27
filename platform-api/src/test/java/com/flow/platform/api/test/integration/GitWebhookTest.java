@@ -35,6 +35,7 @@ import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,7 +90,7 @@ public class GitWebhookTest extends TestBase {
         Job job = mock_trigger_from_git(push);
         job = jobDao.get(job.getId());
 
-        Set<String> envKeySet = ObjectUtil.deepCopy(EnvKey.FOR_OUTPUTS);
+        Set<String> envKeySet = Sets.newHashSet(ObjectUtil.deepCopy(EnvKey.FOR_OUTPUTS));
         envKeySet.remove(GitEnvs.FLOW_GIT_PR_URL.name());
         verifyRootNodeResultOutput(job, envKeySet);
 
@@ -166,7 +167,7 @@ public class GitWebhookTest extends TestBase {
         Job job = mock_trigger_from_git(push);
         job = jobDao.get(job.getId());
 
-        Set<String> envKeySet = ObjectUtil.deepCopy(EnvKey.FOR_OUTPUTS);
+        Set<String> envKeySet = Sets.newHashSet(ObjectUtil.deepCopy(EnvKey.FOR_OUTPUTS));
         envKeySet.remove(GitEnvs.FLOW_GIT_PR_URL.name());
         verifyRootNodeResultOutput(job, envKeySet);
 
@@ -246,7 +247,7 @@ public class GitWebhookTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_URL.name(), gitUrl);
         env.put(GitEnvs.FLOW_GIT_BRANCH.name(), "develop");
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        nodeService.setFlowEnv(flowPath, env);
+        nodeService.addFlowEnv(flowPath, env);
 
         Node loaded = nodeService.find(flowPath);
 
@@ -273,7 +274,8 @@ public class GitWebhookTest extends TestBase {
         springContext.removeApplicationListener(listener);
 
         // verify yml is updated
-        Assert.assertNotNull(ymlService.getYmlContent(flowPath));
+        Node root = nodeService.find(flowPath);
+        Assert.assertNotNull(ymlService.getYmlContent(root));
 
         // verify job is created
         Job created = wrapper.getInstance();
