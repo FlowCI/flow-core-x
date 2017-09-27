@@ -87,6 +87,7 @@ public class GitPushTagEvent extends GitEvent {
     @SerializedName(value = "user_name")
     private String username;
 
+    @SerializedName(value = "user_email")
     private String userEmail;
 
     private String message;
