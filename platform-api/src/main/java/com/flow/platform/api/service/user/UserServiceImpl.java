@@ -9,6 +9,7 @@ import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.user.Role;
+import com.flow.platform.api.domain.user.RoleName;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.service.MessageService;
@@ -191,7 +192,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Long adminUserCount(){
-        Role role = roleService.find("ADMIN");
+        Role role = roleService.find(RoleName.ADMIN.getName());
         return userRoleDao.numOfUser(role.getId());
     }
 
