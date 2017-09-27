@@ -464,7 +464,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    @Scheduled(fixedDelay = 6 * 1000, initialDelay = 6 * 1000)
+    @Scheduled(fixedDelay = 60 * 1000, initialDelay = 60 * 1000)
     public void checkTimeoutTask() {
         if (!isJobTimeoutExecuteTimeout) {
             return;

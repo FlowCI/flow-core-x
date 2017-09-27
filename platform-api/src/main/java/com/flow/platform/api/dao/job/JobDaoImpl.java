@@ -165,7 +165,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             CriteriaQuery<Job> select = builder.createQuery(Job.class);
             Root<Job> from = select.from(Job.class);
 
-            Predicate createdPredicate = builder.lessThan(from.get("createdAt"), zonedDateTime);
+            Predicate createdPredicate = builder.lessThan(from.get("updatedAt"), zonedDateTime);
             Predicate statusPredicate = from.get("status").in(status);
 
             select.where(createdPredicate, statusPredicate);
