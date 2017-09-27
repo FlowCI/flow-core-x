@@ -63,7 +63,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.context",
     "com.flow.platform.api.util",
     "com.flow.platform.api.consumer",
-    "com.flow.platform.api.context"})
+    "com.flow.platform.api.initializers"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
@@ -83,7 +83,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
             .allowedOrigins("*")
             .allowedMethods("*")
             .allowCredentials(true)
-            .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "authenticate", "library");
+            .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "X-Authorization", "authenticate", "library");
     }
 
     @Bean
@@ -110,7 +110,12 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Bean
     public AuthenticationInterceptor authInterceptor() {
         List<RequestMatcher> matchers = Lists.newArrayList(
-            new AntPathRequestMatcher("/flows/**")
+            new AntPathRequestMatcher("/flows/**"),
+            new AntPathRequestMatcher("/user/register"),
+            new AntPathRequestMatcher("/jobs/**"),
+            new AntPathRequestMatcher("/credentials/**"),
+            new AntPathRequestMatcher("/actions/**"),
+            new AntPathRequestMatcher("/message/**")
         );
         return new AuthenticationInterceptor(matchers);
     }

@@ -19,11 +19,13 @@ import com.flow.platform.api.dao.user.ActionDao;
 import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.domain.request.ActionParam;
 import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.google.common.base.Strings;
 import java.util.Collection;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +42,10 @@ public class ActionServiceImpl implements ActionService {
 
     @Autowired
     private PermissionDao permissionDao;
+
+    @Autowired
+    protected ThreadLocal<User> currentUser;
+
 
     @Override
     public Action find(String name) {
@@ -66,6 +72,8 @@ public class ActionServiceImpl implements ActionService {
             action.setAlias(name);
         }
 
+        action.setCreatedBy(currentUser.get().getEmail());
+
         return actionDao.save(action);
     }
 
@@ -74,6 +82,7 @@ public class ActionServiceImpl implements ActionService {
         Action action = find(name);
         action.setAlias(body.getAlias());
         action.setDescription(body.getDescription());
+        action.setCreatedBy(currentUser.get().getEmail());
         action.setTag(body.getTag());
 
         actionDao.update(action);
@@ -102,4 +111,5 @@ public class ActionServiceImpl implements ActionService {
     public List<Action> list(Collection<String> actions) {
         return actionDao.list(actions);
     }
+
 }

@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * @author lhl
  */
-public class FlowAuthUser {
+public class EmailListParam {
 
     private List<String> emailList;
 

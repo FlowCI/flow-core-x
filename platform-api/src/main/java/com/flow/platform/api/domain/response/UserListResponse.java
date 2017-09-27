@@ -26,7 +26,7 @@ import java.util.List;
 public class UserListResponse extends Jsonable{
 
     @Expose
-    private Integer total;
+    private Long total;
 
     @Expose
     private Long adminCount;
@@ -34,7 +34,7 @@ public class UserListResponse extends Jsonable{
     @Expose
     private List<User> users;
 
-    public UserListResponse(Integer total, Long adminCount, List<User> users) {
+    public UserListResponse(Long total, Long adminCount, List<User> users) {
         this.total = total;
         this.adminCount = adminCount;
         this.users = users;
@@ -44,11 +44,11 @@ public class UserListResponse extends Jsonable{
         this.adminCount = adminCount;
     }
 
-    public Integer getTotal() {
+    public Long getTotal() {
         return total;
     }
 
-    public void setTotal(Integer total) {
+    public void setTotal(Long total) {
         this.total = total;
     }
 

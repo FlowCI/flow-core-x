@@ -24,6 +24,7 @@ import com.flow.platform.api.domain.credential.IosCredentialDetail;
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.StringUtil;
@@ -37,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +53,9 @@ public class CredentialServiceImpl implements CredentialService {
 
     @Autowired
     private CredentialDao credentialDao;
+
+    @Autowired
+    protected ThreadLocal<User> currentUser;
 
     private final Map<CredentialType, DetailHandler> handlerMapping = new HashMap<>();
 
@@ -84,6 +89,7 @@ public class CredentialServiceImpl implements CredentialService {
 
         credential.setType(detail.getType());
         credential.setDetail(detail);
+        credential.setCreatedBy(currentUser.get().getEmail());
         credentialDao.saveOrUpdate(credential);
 
         return credentialDao.get(name);

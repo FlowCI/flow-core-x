@@ -68,20 +68,15 @@ public class UserServiceTest extends TestBase {
         userService.register(user, roles, false,
             Lists.newArrayList(createFlow().getPath()));
 
-        // given: flows with created by
-        Flow flow = nodeService.createEmptyFlow("flow-test");
-//        flow.getCreatedBy().add("liangpengyv@fir.im");
-        flow.setCreatedBy("liangpengyv@fir.im");
-        flowDao.update(flow);
+        nodeService.createEmptyFlow("flow-test");
 
-        // when: load path list by createdBy
         List<User> users = userService.list(true, true);
-        Assert.assertEquals(1, users.size());
+        Assert.assertEquals(2, users.size());
 
         // then:
-        User user = users.get(0);
+        User user = users.get(1);
         Assert.assertEquals(1, user.getFlows().size());
-        Assert.assertEquals("flow-test", user.getFlows().get(0));
+        Assert.assertEquals("test", user.getFlows().get(0));
 
         Assert.assertEquals(2, user.getRoles().size());
     }
@@ -125,14 +120,5 @@ public class UserServiceTest extends TestBase {
     private Flow createFlow(){
         String path = "test";
         return nodeService.createEmptyFlow(path);
-    }
-
-    private User currentUser(){
-        User user = new User();
-        user.setEmail("test@fir.im");
-        user.setUsername("test");
-        user.setPassword("testfir.im");
-        userDao.save(user);
-        return user;
     }
 }

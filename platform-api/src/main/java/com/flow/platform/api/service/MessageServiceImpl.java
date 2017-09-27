@@ -21,11 +21,12 @@ import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageSetting;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.util.SmtpUtil;
-import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import java.time.ZonedDateTime;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,9 +42,13 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     private MessageSettingDao messageDao;
 
+    @Autowired
+    protected ThreadLocal<User> currentUser;
+
     @Override
     public SettingContent save(SettingContent t) {
         MessageSetting messageSetting = new MessageSetting(t, ZonedDateTime.now(), ZonedDateTime.now());
+        messageSetting.setCreatedBy(currentUser.get().getEmail());
         if (findSettingByType(t.getType()) == null) {
             messageDao.save(messageSetting);
         } else {
@@ -96,6 +101,5 @@ public class MessageServiceImpl implements MessageService {
         }
         return null;
     }
-
 
 }

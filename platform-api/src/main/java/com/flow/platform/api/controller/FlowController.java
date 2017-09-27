@@ -20,7 +20,7 @@ import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.request.FlowAuthUser;
+import com.flow.platform.api.domain.request.EmailListParam;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
@@ -28,6 +28,7 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -364,8 +365,8 @@ public class FlowController extends NodeController {
      */
     @PostMapping("/{root}/users/auth")
     @WebSecurity(action = Actions.FLOW_AUTH)
-    public List<User> flowAuthUsers(@RequestBody FlowAuthUser flowAuthUser){
+    public List<User> flowAuthUsers(@RequestBody EmailListParam emailListParam){
         String path = getNodePathFromUrl();
-        return nodeService.authUsers(flowAuthUser.getEmailList(), path);
+        return nodeService.authUsers(emailListParam.getEmailList(), path);
     }
 }

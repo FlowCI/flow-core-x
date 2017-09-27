@@ -135,8 +135,8 @@ public class UserControllerTest extends TestBase {
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 
         // delete success: response 200; userinfo is deleted from database
-        requestContent = "[ \"liangpengyv@fir.im\" ]";
-        mockMvc.perform(delete("/user")
+        requestContent = "{ \"emailList\" : [\"liangpengyv@fir.im\"]}";
+        mockMvc.perform(post("/user/delete")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestContent)).andExpect(status().isOk()).andReturn();
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));

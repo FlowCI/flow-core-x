@@ -1,5 +1,6 @@
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.request.EmailListParam;
 import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.request.RegisterUserParam;
 import com.flow.platform.api.domain.request.UpdateUserRoleParam;
@@ -7,7 +8,6 @@ import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -61,7 +61,7 @@ public class UserController {
      */
     @GetMapping
     public UserListResponse list() {
-        int userCount = userService.usersCount();
+        Long userCount = userService.usersCount();
         Long userAdminCount = userService.adminUserCount();
         List<User> users = userService.list(true, true);
         UserListResponse userListResponse = new UserListResponse(userCount, userAdminCount, users);
@@ -159,9 +159,9 @@ public class UserController {
      *         "message": "JSON parse error: java.io.EOFException: End of input at line 4 column 1 path $[2]; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 4 column 1 path $[2]"
      *     }
      */
-    @DeleteMapping
-    public void delete(@RequestBody List<String> emailList) {
-        userService.delete(emailList);
+    @PostMapping(path = "/delete")
+    public void delete(@RequestBody EmailListParam emailListParam) {
+        userService.delete(emailListParam.getEmailList());
     }
 
     /**

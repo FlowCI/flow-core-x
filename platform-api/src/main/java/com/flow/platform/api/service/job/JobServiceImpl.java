@@ -34,6 +34,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
@@ -66,6 +67,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -113,6 +115,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     private JobYmlDao jobYmlDao;
+
+    @Autowired
+    protected ThreadLocal<User> currentUser;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -175,6 +180,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
         job.setCategory(jobCategory);
+        job.setCreatedBy(currentUser.get().getEmail());
 
         // setup job env variables
         job.putEnv(JobEnvs.JOB_BUILD_CATEGORY, jobCategory.name());
@@ -286,17 +292,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     public void deleteJob(String path) {
-        List<String> paths = Lists.newArrayList(path);
-        List<Job> jobs = list(paths, false);
-
-        for (Job job : jobs) {
-            jobYmlDao.delete(jobYmlDao.get(job.getId()));
-
-            List<NodeResult> nodeResults = nodeResultDao.list(job.getId());
-            for (NodeResult nodeResult : nodeResults) {
-                nodeResultDao.delete(nodeResult);
-            }
-            jobDao.delete(job);
+        List<BigInteger> jobIds = jobDao.findJobIdsByPath(path);
+        // TODO :  Late optimization and paging jobIds
+        if (jobIds.size() > 0){
+            jobYmlDao.deleteList(jobIds);
+            nodeResultDao.deleteList(jobIds);
+            jobDao.deleteJob(path);
         }
     }
 
@@ -522,4 +523,5 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
     }
+
 }

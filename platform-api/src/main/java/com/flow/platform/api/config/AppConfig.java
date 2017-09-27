@@ -17,6 +17,7 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
@@ -75,6 +76,11 @@ public class AppConfig extends AppConfigBase {
         } catch (IOException e) {
             throw new RuntimeException("Fail to create flow.ci api working dir", e);
         }
+    }
+
+    @Bean
+    public ThreadLocal<User> currentUser() {
+        return new ThreadLocal<>();
     }
 
     @Bean

@@ -26,6 +26,7 @@ import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.NodeStatusChangeEvent;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -57,6 +58,9 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
     @Autowired
     private JobNodeService jobNodeService;
 
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
     @Override
     public List<NodeResult> create(Job job) {
         NodeTree nodeTree = jobNodeService.get(job.getId());
@@ -71,6 +75,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         int order = 1;
         for (Node node : nodeTree.children()) {
             NodeResult nodeResult = createNodeResult(job, nodeTree, node);
+            nodeResult.setCreatedBy(currentUser.get().getEmail());
             nodeResult.setOrder(order++);
 
             nodeResultDao.save(nodeResult);
@@ -80,6 +85,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         // save empty node result for root node
         NodeResult rootResult = createNodeResult(job, nodeTree, nodeTree.root());
         rootResult.setOrder(order);
+        rootResult.setCreatedBy(currentUser.get().getEmail());
         nodeResultDao.save(rootResult);
         resultList.add(rootResult);
 

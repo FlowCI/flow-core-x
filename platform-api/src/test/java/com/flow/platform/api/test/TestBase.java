@@ -38,6 +38,7 @@ import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.NodeService;
@@ -139,6 +140,10 @@ public abstract class TestBase {
     @Autowired
     protected UserFlowDao userFlowDao;
 
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
+
     protected MockMvc mockMvc;
 
     @Rule
@@ -147,6 +152,14 @@ public abstract class TestBase {
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
+        User user = userDao.get("admin@admin.com");
+        if (user == null){
+            User testUser = new User("admin@admin.com", "admin", "123456");
+            userDao.save(testUser);
+            currentUser.set(testUser);
+        } else {
+            currentUser.set(user);
+        }
     }
 
     public String getResourceContent(String fileName) throws IOException {

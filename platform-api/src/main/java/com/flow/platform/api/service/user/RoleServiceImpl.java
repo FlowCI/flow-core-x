@@ -27,6 +27,7 @@ import com.flow.platform.core.exception.IllegalStatusException;
 import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,9 @@ public class RoleServiceImpl implements RoleService {
 
     @Autowired
     private UserRoleDao userRoleDao;
+
+    @Autowired
+    protected ThreadLocal<User> currentUser;
 
     @Override
     public Role find(Integer roleId) {
@@ -72,16 +76,19 @@ public class RoleServiceImpl implements RoleService {
             throw new IllegalParameterException("The name of role must be provided");
         }
 
-        Role role = roleDao.get(name);
-        if (role != null) {
+        Role existRole = roleDao.get(name);
+        if (existRole != null) {
             throw new IllegalParameterException("The name of role is already presented");
         }
-
-        return roleDao.save(new Role(name, desc));
+        Role role = new Role(name, desc);
+        role.setCreatedBy(currentUser.get().getEmail());
+        roleDao.save(role);
+        return role;
     }
 
     @Override
     public void update(Role role) {
+        role.setCreatedBy(currentUser.get().getEmail());
         roleDao.update(role);
     }
 
@@ -140,4 +147,5 @@ public class RoleServiceImpl implements RoleService {
             userRoleDao.delete(userRole);
         }
     }
+
 }

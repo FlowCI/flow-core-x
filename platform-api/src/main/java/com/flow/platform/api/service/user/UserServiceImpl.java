@@ -2,12 +2,12 @@ package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.request.LoginParam;
-import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.token.TokenGenerator;
@@ -16,10 +16,8 @@ import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.google.common.collect.Lists;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -56,6 +54,11 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRoleDao userRoleDao;
 
+    @Autowired
+    private UserFlowDao userFlowDao;
+
+    @Autowired
+    protected ThreadLocal<User> currentUser;
 
     @Value(value = "${expiration.duration}")
     private long expirationDuration;
@@ -74,8 +77,7 @@ public class UserServiceImpl implements UserService {
             }
 
             if (withFlow) {
-                List<String> paths = nodeService.listFlowPathByUser(Lists.newArrayList(user.getEmail()));
-                user.setFlows(paths);
+                user.setFlows(userFlowDao.listByEmail(user.getEmail()));
             }
 
         }
@@ -121,7 +123,7 @@ public class UserServiceImpl implements UserService {
         // Insert the user info into the database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
         user.setPassword(passwordForMD5);
-//        user.setCreatedBy(currentUser.getEmail());
+        user.setCreatedBy(currentUser.get().getEmail());
         user = userDao.save(user);
 
 
@@ -157,10 +159,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(List<String> emailList) {
-        // un-assign user from role
+        // un-assign user from role and flow
         List<User> users = userDao.list(emailList);
         for (User user : users) {
             roleService.unAssign(user);
+            userFlowService.unAssign(user);
         }
 
         // delete user
@@ -176,6 +179,7 @@ public class UserServiceImpl implements UserService {
                 Role targetRole = roleService.find(roleName);
                 roleService.assign(user, targetRole);
                 user.setRoles(roleService.list(user));
+                user.setFlows(userFlowDao.listByEmail(user.getEmail()));
             }
         }
         return users;
@@ -193,9 +197,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int usersCount(){
+    public Long usersCount(){
         List<User> users = userDao.list();
-        return users.size();
+        Long userCount = new Long(users.size());
+        return userCount;
     }
 
     /**

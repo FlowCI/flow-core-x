@@ -30,6 +30,7 @@ import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
@@ -99,6 +100,12 @@ public class NodeServiceImpl implements NodeService {
     @Autowired
     private JobService jobService;
 
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    protected ThreadLocal<User> currentUser;
+
     @Value(value = "${domain}")
     private String domain;
 
@@ -124,6 +131,7 @@ public class NodeServiceImpl implements NodeService {
         }
 
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
+        flow.setCreatedBy(currentUser.get().getEmail());
 
         // persistent flow type node to flow table with env which from yml
         EnvUtil.merge(rootFromYml, flow, true);
@@ -239,7 +247,10 @@ public class NodeServiceImpl implements NodeService {
         flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
         flow.putEnv(FlowEnvs.FLOW_STATUS, StatusValue.PENDING);
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND);
+        flow.setCreatedBy(currentUser.get().getEmail());
         flow = flowDao.save(flow);
+
+        userFlowService.assign(currentUser.get(),flow);
 
         return flow;
     }
@@ -298,11 +309,11 @@ public class NodeServiceImpl implements NodeService {
         for (User user : users) {
             userFlowService.unAssign(user, flow);
             userFlowService.assign(user, flow);
+            user.setRoles(roleService.list(user));
             user.setFlows(paths);
         }
         return users;
     }
-
 
     private String hooksUrl(final Flow flow) {
         return String.format("%s/hooks/git/%s", domain, flow.getName());

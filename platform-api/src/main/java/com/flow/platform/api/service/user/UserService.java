@@ -44,7 +44,13 @@ public interface UserService {
      */
     List<User> updateUserRole(List<String> emailList, List<String> roles);
 
+    /**
+     * calculate user for admin count
+     */
     Long adminUserCount();
 
-    int usersCount();
+    /**
+     * calculate user total
+     */
+    Long usersCount();
 }

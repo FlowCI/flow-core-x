@@ -57,6 +57,9 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
     @Autowired
     private TokenGenerator tokenGenerator;
 
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
     /**
      * Requests needs to verify token
      */
@@ -81,6 +84,9 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
+        User user = userService.findByEmail("admin@admin.com");
+        currentUser.set(user);
+
         if (!enableAuth) {
             return true;
         }
@@ -96,6 +102,12 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
             return false;
         }
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+        throws Exception {
+        currentUser.remove();
     }
 
     private void doVerify(HttpServletRequest request, Object handler) {
@@ -120,7 +132,9 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         // find annotation
         WebSecurity securityAnnotation = handlerMethod.getMethodAnnotation(WebSecurity.class);
         if (securityAnnotation == null) {
-            return;
+            User user = userService.findByEmail("admin@admin.com");
+            currentUser.set(user);
+//            return;
         }
 
         // find action for request
@@ -133,9 +147,9 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
         // TODO: to be cached
         // set current user to request attribute
-//        User currentUser = userService.findByEmail(email);
-        User currentUser = userService.findByEmail("liuhailiang@126.com");
-        request.setAttribute("user", currentUser);
+        User user = userService.findByEmail(email);
+        currentUser.set(user);
+//        request.setAttribute("user", currentUser);
     }
 
     private boolean isNeedToVerify(HttpServletRequest request) {
@@ -145,5 +159,9 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
             }
         }
         return false;
+    }
+
+    public User currentUser(){
+        return userService.findByEmail("admin@admin.com");
     }
 }

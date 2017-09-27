@@ -32,29 +32,27 @@ public class UserFlowServiceTest extends TestBase {
     @Autowired
     private UserFlowService userFlowService;
 
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
     @Test
     public void should_assign_user_flow(){
 
         final String flowPath = "flow-integration";
-        final String email = "test@fir.im";
 
-        User user = new User(email, "test", "12345");
-        userDao.save(user);
-        Assert.assertNotNull(userDao.get(user.getEmail()));
+        Assert.assertNotNull(userDao.get(currentUser.get().getEmail()));
 
         Flow flow = nodeService.createEmptyFlow(flowPath);
         Assert.assertNotNull(nodeService.find(flowPath));
 
-        // when: assign user to role
-        userFlowService.assign(user, flow);
 
         // then:
         List<User> usersForFlow = userFlowService.list(flowPath);
         Assert.assertEquals(1, usersForFlow.size());
-        Assert.assertEquals(user, usersForFlow.get(0));
+        Assert.assertEquals(currentUser.get(), usersForFlow.get(0));
 
         // when: un-assign user to role
-        userFlowService.unAssign(user, flow);
+        userFlowService.unAssign(currentUser.get(), flow);
 
         // then:
         usersForFlow = userFlowService.list(flowPath);

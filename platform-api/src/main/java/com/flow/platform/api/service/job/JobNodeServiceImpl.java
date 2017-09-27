@@ -16,8 +16,10 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.JobYmlDao;
+import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.api.domain.node.NodeTree;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.google.common.cache.Cache;
@@ -42,6 +44,9 @@ public class JobNodeServiceImpl implements JobNodeService {
     @Autowired
     private JobYmlDao jobYmlDao;
 
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
     // 1 day expire
     private Cache<BigInteger, NodeTree> nodeCache = CacheBuilder
         .newBuilder()
@@ -51,6 +56,7 @@ public class JobNodeServiceImpl implements JobNodeService {
     @Override
     public void save(final BigInteger jobId, final String yml) {
         JobYml jobYmlStorage = new JobYml(jobId, yml);
+        jobYmlStorage.setCreatedBy(currentUser.get().getEmail());
         jobYmlDao.saveOrUpdate(jobYmlStorage);
         nodeCache.invalidate(jobId);
     }

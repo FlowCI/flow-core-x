@@ -27,6 +27,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -93,6 +95,16 @@ public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult
             update.where(builder.equal(root.get("key").get("jobId"), jobId));
 
             return session.createQuery(update).executeUpdate();
+        });
+    }
+
+    @Override
+    public void deleteList(List<BigInteger> jobIds){
+        execute((Session session) -> {
+            String delete = String.format("delete from NodeResult where job_id in (:list)");
+            Query query = session.createQuery(delete);
+            query.setParameterList("list", jobIds);
+            return true;
         });
     }
 }
