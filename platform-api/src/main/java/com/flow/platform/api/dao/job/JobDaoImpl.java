@@ -162,7 +162,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
-    public List<Job> listTimeoutJob(JobStatus status, ZonedDateTime zonedDateTime) {
+    public List<Job> listJob(ZonedDateTime zonedDateTime, JobStatus... status) {
         return execute((Session session) -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
 
@@ -170,7 +170,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             Root<Job> from = select.from(Job.class);
 
             Predicate createdPredicate = builder.lessThan(from.get("createdAt"), zonedDateTime);
-            Predicate statusPredicate = builder.equal(from.get("status"), status);
+            Predicate statusPredicate = from.get("status").in(status);
 
             select.where(createdPredicate, statusPredicate);
 

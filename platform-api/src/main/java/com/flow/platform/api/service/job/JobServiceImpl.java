@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -75,6 +76,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private Integer RETRY_TIMEs = 5;
 
     private final Integer createSessionRetryTimes = 5;
+
+    @Value("${task.job.toggle.execution_timeout}")
+    private Boolean isJobExecuteTimeout;
 
     @Autowired
     private NodeResultService nodeResultService;
@@ -159,6 +163,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
         job.setCategory(eventType);
+        job.setCreatedAt(ZonedDateTime.now());
+        job.setUpdatedAt(ZonedDateTime.now());
 
         // setup job env variables
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
@@ -452,18 +458,37 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    @Scheduled(fixedDelay = 2 * 1000)
+    @Scheduled(fixedDelay = 6 * 1000, initialDelay = 6 * 1000)
     public void checkTimeoutTask() {
+        if (!isJobExecuteTimeout) {
+            return;
+        }
+
         LOGGER.trace("job timeout task start");
-        ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(2); // 6 second not running is timeout
-        List<Job> jobs = jobDao.listTimeoutJob(JobStatus.SESSION_CREATING, finishZoneDateTime);
+
+        // create session job timeout 6s time out
+        ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(6);
+        List<Job> jobs = jobDao.listJob(finishZoneDateTime, JobStatus.SESSION_CREATING);
         for (Job job : jobs) {
             updateJobAndNodeResultTimeout(job);
         }
+
+        // running job timeout 1h time out
+        ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(3600);
+        List<Job> runningJobs = jobDao.listJob(finishRunningZoneDateTime, JobStatus.RUNNING);
+        for (Job job : runningJobs) {
+            updateJobAndNodeResultTimeout(job);
+        }
+
         LOGGER.trace("job timeout task end");
     }
 
     private void updateJobAndNodeResultTimeout(Job job) {
+        // if job is running , please delete session first
+        if (job.getStatus() == JobStatus.RUNNING) {
+            cmdService.deleteSession(job);
+        }
+
         updateJobStatusAndSave(job, JobStatus.TIMEOUT);
         List<NodeResult> list = nodeResultService.list(job, false);
         for (NodeResult nodeResult : list) {
