@@ -79,6 +79,10 @@ public interface JobService {
      * handle callback
      **/
     void callback(CmdCallbackQueueItem cmdQueueItem);
+
+    /**
+     * send cmd to queue
+     */
     void enterQueue(CmdCallbackQueueItem cmdQueueItem);
 
     /**

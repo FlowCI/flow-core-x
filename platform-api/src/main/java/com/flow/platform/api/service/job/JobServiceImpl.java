@@ -118,9 +118,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private YmlService ymlService;
 
     @Autowired
-    private PlatformURL platformURL;
-
-    @Autowired
     private NodeResultDao nodeResultDao;
 
     @Autowired

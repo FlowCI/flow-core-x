@@ -68,10 +68,10 @@ public class UserRoleInit implements ContextEvent {
             roleDao.save(sysRoleUser);
         }
 
-        // create sys user_role relation
-//        Role role = roleService.find(RoleName.ADMIN.getName());
-////        roleService.unAssign(user, role);
-//        roleService.assign(user, role);
+//         create sys user_role relation
+        Role role = roleService.find(RoleName.ADMIN.getName());
+        User sysUser = userDao.get("admin@admin.com");
+        roleService.assign(sysUser, role);
     }
 
     @Override

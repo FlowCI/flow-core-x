@@ -80,12 +80,15 @@ public class SecurityTest extends TestBase {
         authInterceptor.enable();
 
         // init two roles admin and user
-        Role admin = roleService.create("ROLE_ADMIN", null);
+        Role admin = new Role("ROLE_ADMIN", null);
+        roleDao.save(admin);
         Set<Action> adminActions = new HashSet<>();
 
-        Role user = roleService.create("ROLE_USER", null);
+        Role user = new Role("ROLE_USER", null);
+        roleDao.save(user);
 
-        Role ymlOperator = roleService.create("ROLE_YML", null);
+        Role ymlOperator = new Role("ROLE_YML", null);
+        roleDao.save(ymlOperator);
 
         // init all defined actions
         for(Actions item : Actions.values()) {
@@ -102,7 +105,7 @@ public class SecurityTest extends TestBase {
         // init mock user
         userForAdmin = userService.register(new User("test1@flow.ci", "test1", "12345"),
                                             Lists.newArrayList("ROLE_ADMIN"), false,
-                                            Lists.newArrayList(flowName));
+                                            Lists.newArrayList("flow2"));
 
         userForUser = userService.register(new User("test2@flow.ci", "test2", "12345"),
                                             Lists.newArrayList("ROLE_USER"), false,
