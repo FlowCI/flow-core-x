@@ -16,19 +16,15 @@
 
 package com.flow.platform.api.dao.job;
 
+import com.flow.platform.api.dao.util.JobConvertUtil;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.dao.util.JobConvertUtil;
 import com.flow.platform.core.dao.AbstractBaseDao;
-import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentPath;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
