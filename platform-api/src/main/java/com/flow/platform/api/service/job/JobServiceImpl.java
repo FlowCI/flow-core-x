@@ -52,11 +52,14 @@ import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +76,15 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private Integer RETRY_TIMEs = 5;
 
     private final Integer createSessionRetryTimes = 5;
+
+    @Value("${task.job.toggle.execution_timeout}")
+    private Boolean isJobTimeoutExecuteTimeout;
+
+    @Value("${task.job.toggle.execution_create_session_duration}")
+    private Long jobExecuteTimeoutCreateSessionDuration;
+
+    @Value("${task.job.toggle.execution_running_duration}")
+    private Long jobExecuteTimeoutRunningDuration;
 
     @Autowired
     private NodeResultService nodeResultService;
@@ -157,6 +169,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
         job.setCategory(eventType);
+        job.setCreatedAt(ZonedDateTime.now());
+        job.setUpdatedAt(ZonedDateTime.now());
 
         // setup job env variables
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
@@ -439,9 +453,53 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return;
         }
 
+        //if job has finish not to update status
+        if (Job.FINISH_STATUS.contains(originStatus)) {
+            return;
+        }
         job.setStatus(newStatus);
         jobDao.save(job);
 
         this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
+    }
+
+    @Override
+    @Scheduled(fixedDelay = 60 * 1000, initialDelay = 60 * 1000)
+    public void checkTimeoutTask() {
+        if (!isJobTimeoutExecuteTimeout) {
+            return;
+        }
+
+        LOGGER.trace("job timeout task start");
+
+        // create session job timeout 6s time out
+        ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutCreateSessionDuration);
+        List<Job> jobs = jobDao.listJob(finishZoneDateTime, JobStatus.SESSION_CREATING);
+        for (Job job : jobs) {
+            updateJobAndNodeResultTimeout(job);
+        }
+
+        // running job timeout 1h time out
+        ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutRunningDuration);
+        List<Job> runningJobs = jobDao.listJob(finishRunningZoneDateTime, JobStatus.RUNNING);
+        for (Job job : runningJobs) {
+            updateJobAndNodeResultTimeout(job);
+        }
+
+        LOGGER.trace("job timeout task end");
+    }
+
+    private void updateJobAndNodeResultTimeout(Job job) {
+        // if job is running , please delete session first
+        if (job.getStatus() == JobStatus.RUNNING) {
+            cmdService.deleteSession(job);
+        }
+
+        updateJobStatusAndSave(job, JobStatus.TIMEOUT);
+        List<NodeResult> list = nodeResultService.list(job, false);
+        for (NodeResult nodeResult : list) {
+            nodeResult.setStatus(NodeStatus.TIMEOUT);
+            nodeResultService.update(nodeResult);
+        }
     }
 }

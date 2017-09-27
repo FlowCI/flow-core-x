@@ -204,6 +204,17 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());
     }
 
+    @Test
+    public void should_job_time_out() throws IOException, InterruptedException {
+        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
+        Thread.sleep(7000);
+        jobService.checkTimeoutTask();
+        Job jobRes = jobDao.get(rootForFlow.getPath(), job.getNumber());
+        Assert.assertEquals(JobStatus.TIMEOUT, jobRes.getStatus());
+        Assert.assertEquals(NodeStatus.TIMEOUT, jobRes.getRootResult().getStatus());
+    }
+
     private Job createMockJob(String nodePath) {
         Job job = jobService.createJob(nodePath, GitEventType.TAG, null);
         Assert.assertNotNull(job.getId());

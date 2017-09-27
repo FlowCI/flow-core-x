@@ -89,4 +89,9 @@ public interface JobService {
      * update job
      */
     Job update(Job job);
+
+    /**
+     * check timeout job
+     */
+    void checkTimeoutTask();
 }
