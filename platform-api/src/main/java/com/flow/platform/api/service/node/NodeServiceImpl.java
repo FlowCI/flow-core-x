@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -223,11 +224,23 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public Flow setFlowEnv(String path, Map<String, String> envs) {
+    public Flow addFlowEnv(String path, Map<String, String> envs) {
         Flow flow = findFlow(path);
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
         // sync latest env into flow table
+        flowDao.update(flow);
+        return flow;
+    }
+
+    @Override
+    public Flow delFlowEnv(String path, Set<String> keys) {
+        Flow flow = findFlow(path);
+
+        for (String keyToRemove : keys) {
+            flow.removeEnv(keyToRemove);
+        }
+
         flowDao.update(flow);
         return flow;
     }
