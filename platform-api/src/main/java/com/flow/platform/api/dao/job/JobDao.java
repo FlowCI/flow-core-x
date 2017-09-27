@@ -55,5 +55,8 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      */
     Integer maxBuildNumber(String path);
 
+    /**
+     * show expired jobs
+     */
     List<Job> listJob(ZonedDateTime zonedDateTime, JobStatus... status);
 }
