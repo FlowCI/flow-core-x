@@ -273,7 +273,8 @@ public class GitWebhookTest extends TestBase {
         springContext.removeApplicationListener(listener);
 
         // verify yml is updated
-        Assert.assertNotNull(ymlService.getYmlContent(flowPath));
+        Node root = nodeService.find(flowPath);
+        Assert.assertNotNull(ymlService.getYmlContent(root));
 
         // verify job is created
         Job created = wrapper.getInstance();

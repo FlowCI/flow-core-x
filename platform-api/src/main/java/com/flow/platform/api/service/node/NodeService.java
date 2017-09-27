@@ -90,7 +90,7 @@ public interface NodeService {
     /**
      * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG
      */
-    void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo);
+    void updateYmlState(Node root, FlowEnvs.YmlStatusValue state, String errorInfo);
 
     /**
      * list current flows with path, name, created at and updated at

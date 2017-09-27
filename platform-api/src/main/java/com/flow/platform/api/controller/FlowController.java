@@ -290,7 +290,8 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_SHOW)
     public String getRawYml() {
         String path = getNodePathFromUrl();
-        return ymlService.getYmlContent(path);
+        Flow root = nodeService.findFlow(path);
+        return ymlService.getYmlContent(root);
     }
 
     /**
@@ -317,7 +318,8 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_YML)
     public Node loadRawYmlFromGit() {
         String path = getNodePathFromUrl();
-        return ymlService.loadYmlContent(path, null);
+        Flow root = nodeService.findFlow(path);
+        return ymlService.loadYmlContent(root, null);
     }
 
     /**
@@ -331,7 +333,8 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_YML)
     public void stopLoadYml() {
         String path = getNodePathFromUrl();
-        ymlService.stopLoadYmlContent(path);
+        Flow root = nodeService.findFlow(path);
+        ymlService.stopLoadYmlContent(root);
     }
 
     /**
@@ -358,7 +361,8 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_YML)
     public void ymlVerification(@RequestBody String yml) {
         String path = getNodePathFromUrl();
-        ymlService.verifyYml(path, yml);
+        Flow root = nodeService.findFlow(path);
+        ymlService.verifyYml(root, yml);
     }
 
     /**

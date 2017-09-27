@@ -28,41 +28,41 @@ public interface YmlService {
     /**
      * Verify yml format
      *
-     * @param path any path
+     * @param root root node
      * @param yml yml content
      * @return Node from yml
      */
-    Node verifyYml(String path, String yml);
+    Node verifyYml(Node root, String yml);
 
     /**
      * Find raw yml file content by node path from
      * - yam storage
      * - flow workspace if yml storage not found
      *
-     * @param path any node path
+     * @param root root node
      * @return <p> - yml content - empty string while loading </p>
      * @throws com.flow.platform.core.exception.NotFoundException if FLOW_YML_STATUS is NOT_FOUND
      * @throws com.flow.platform.api.exception.YmlException if FLOW_YML_STATUS is ERROR
      * @throws IllegalStateException if FLOW_YML_STATUS is illegal
      */
-    String getYmlContent(String path);
+    String getYmlContent(Node root);
 
 
     /**
      * Load yml content from git repo in async and create tree from yml,
      * Then call "getYmlContent" to get yml
      *
-     * @param path any node path
+     * @param root root node
      * @param callback method on yml loaded
      * @return flow node instance
      */
-    Node loadYmlContent(String path, Consumer<Yml> callback);
+    Node loadYmlContent(Node root, Consumer<Yml> callback);
 
     /**
      * Stop yml content loading thread
      *
-     * @param path
+     * @param root root node
      */
-    void stopLoadYmlContent(String path);
+    void stopLoadYmlContent(Node root);
 
 }
