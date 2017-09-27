@@ -61,6 +61,11 @@ public class GitPushTagEvent extends GitEvent {
     private String after;
 
     /**
+     * The url for head commit
+     */
+    private String headCommitUrl;
+
+    /**
      * Branch ref info
      * - Gitlab: ex: refs/heads/master
      */
@@ -81,6 +86,8 @@ public class GitPushTagEvent extends GitEvent {
      */
     @SerializedName(value = "user_name")
     private String username;
+
+    private String userEmail;
 
     private String message;
 
@@ -118,6 +125,14 @@ public class GitPushTagEvent extends GitEvent {
         this.after = after;
     }
 
+    public String getHeadCommitUrl() {
+        return headCommitUrl;
+    }
+
+    public void setHeadCommitUrl(String headCommitUrl) {
+        this.headCommitUrl = headCommitUrl;
+    }
+
     public String getRef() {
         return ref;
     }
@@ -148,6 +163,14 @@ public class GitPushTagEvent extends GitEvent {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
     public String getMessage() {
