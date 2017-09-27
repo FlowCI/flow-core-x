@@ -87,7 +87,7 @@ public class NodeServiceImpl implements NodeService {
     private String domain;
 
     @Override
-    public Node createOrUpdate(final String path, final String yml) {
+    public Node createOrUpdate(final String path, String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
 
         if (Strings.isNullOrEmpty(yml)) {
@@ -99,8 +99,11 @@ public class NodeServiceImpl implements NodeService {
             throw new IllegalStatusException("Node status not correct, should be READY for FLOW_STATUS");
         }
 
+
         Node rootFromYml;
         try {
+            // merge name to yml
+            yml = NodeUtil.mergeNameToYml(flow.getName(), yml);
             rootFromYml = ymlService.verifyYml(path, yml);
         } catch (IllegalParameterException | YmlException e) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());

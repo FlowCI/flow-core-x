@@ -24,6 +24,7 @@ import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.util.NodeUtil;
 import com.google.common.io.Files;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import org.junit.Assert;
@@ -51,8 +52,12 @@ public class NodeUtilYmlTest {
     }
 
     @Test
-    public void should_create_node_by_file() {
-        Node node = NodeUtil.buildFromYml(ymlSampleFile);
+    public void should_create_node_by_file() throws IOException {
+
+        String ymlString = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
+
+        ymlString = NodeUtil.mergeNameToYml("flow1", ymlString);
+        Node node = NodeUtil.buildFromYml(ymlString);
 
         // verify flow
         Assert.assertTrue(node instanceof Flow);
@@ -92,7 +97,7 @@ public class NodeUtilYmlTest {
     public void should_create_node_by_string() throws Throwable {
         String yamlRaw = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
         Node node = NodeUtil.buildFromYml(yamlRaw);
-        Assert.assertEquals("flow1", node.getName());
+        Assert.assertEquals(null, node.getName());
 
         String yml = new Yaml().dump(node);
         Assert.assertNotNull(yml);

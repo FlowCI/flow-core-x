@@ -101,7 +101,7 @@ public class NodeServiceTest extends TestBase {
         // then:
         Yml yaml = ymlDao.get(root.getPath());
         Assert.assertNotNull(yaml);
-        Assert.assertEquals(resourceContent, yaml.getFile());
+        Assert.assertNotEquals(resourceContent, yaml.getFile());
     }
 
     @Test
@@ -212,7 +212,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("FOUND", loaded.getEnv("FLOW_YML_STATUS"));
     }
 
-    @Test(expected = YmlException.class)
+    @Test
     public void should_error_if_node_path_is_not_for_flow() throws Throwable {
         Flow emptyFlow = nodeService.createEmptyFlow("flow-name-not-same");
         setFlowToReady(emptyFlow);
@@ -220,8 +220,7 @@ public class NodeServiceTest extends TestBase {
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
-        // then: FLOW_YML_STATUS should be ERROR
-        Assert.assertEquals("ERROR", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals("FOUND", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // then: should raise YmlParseException
         ymlService.getYmlContent(root.getPath());
