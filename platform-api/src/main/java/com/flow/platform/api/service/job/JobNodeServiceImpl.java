@@ -16,10 +16,8 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.JobYmlDao;
-import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.api.domain.node.NodeTree;
-import com.flow.platform.api.domain.user.User;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.google.common.cache.Cache;

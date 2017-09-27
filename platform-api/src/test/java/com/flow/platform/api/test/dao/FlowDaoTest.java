@@ -42,7 +42,6 @@ public class FlowDaoTest extends TestBase {
         flow = new Flow("/flow", "flow");
         flow.setCreatedAt(ZonedDateTime.now());
         flow.setUpdatedAt(ZonedDateTime.now());
-//        flow.getCreatedBy().add("admin@flow.ci");
         flow.setCreatedBy("admin@flow.ci");
         flowDao.save(flow);
     }

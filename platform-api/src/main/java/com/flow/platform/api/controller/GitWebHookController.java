@@ -57,9 +57,6 @@ public class GitWebHookController extends NodeController {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
-    @Autowired
-    private ThreadLocal<User> currentUser;
-
     @PostMapping(path = "/{root}")
     public void onEventReceived(@RequestHeader HttpHeaders headers, HttpServletRequest request) {
         final String path = getNodePathFromUrl();

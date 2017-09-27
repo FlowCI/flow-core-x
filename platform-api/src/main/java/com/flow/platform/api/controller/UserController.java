@@ -10,7 +10,6 @@ import com.flow.platform.api.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -132,7 +131,7 @@ public class UserController {
      *     }
      */
     @PostMapping("/register")
-    public void register(@RequestBody RegisterUserParam registerUserParam, @RequestAttribute(value = "user", required = false) User currentUser) {
+    public void register(@RequestBody RegisterUserParam registerUserParam) {
         User user = new User(registerUserParam.getEmail(), registerUserParam.getUsername(), registerUserParam.getPassword());
         userService.register(user, registerUserParam.getRoles(), registerUserParam.isSendEmail(),
                              registerUserParam.getFlows());
