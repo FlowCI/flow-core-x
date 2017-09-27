@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.user.User;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author yh@firim
@@ -80,7 +81,12 @@ public interface NodeService {
     /**
      * Merge new env to flow node evn and sync to yml
      */
-    Flow setFlowEnv(String path, Map<String, String> envs);
+    Flow addFlowEnv(String path, Map<String, String> envs);
+
+    /**
+     * Delete flow env
+     */
+    Flow delFlowEnv(String path, Set<String> keys);
 
     /**
      * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG

@@ -159,9 +159,8 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     public Node loadYmlContent(final String path, final Consumer<Yml> callback) {
         final String rootPath = PathUtil.rootPath(path);
         final Flow flow = nodeService.findFlow(rootPath);
-        final Set<String> requiredEnvSet = Sets.newHashSet(GitEnvs.FLOW_GIT_URL.name(), GitEnvs.FLOW_GIT_SOURCE.name());
 
-        if (!EnvUtil.hasRequired(flow, requiredEnvSet)) {
+        if (!EnvUtil.hasRequiredEnvKey(flow, GitService.REQUIRED_ENVS)) {
             throw new IllegalParameterException("Missing required envs: FLOW_GIT_URL FLOW_GIT_SOURCE");
         }
 

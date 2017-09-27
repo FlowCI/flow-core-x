@@ -43,8 +43,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -175,8 +177,8 @@ public class CredentialController {
     }
 
     /**
-     * @api {post} /credentials/:name CreateOrUpdate
-     * @apiParam {String} name Credential name to create or update
+     * @api {post} /credentials/:name Create
+     * @apiParam {String} name Credential name to create
      *
      * @apiParamExample {multipart} RSA-Multipart-Body:
      *  Create RSA credential, putblic key and private key are optional,
@@ -245,38 +247,75 @@ public class CredentialController {
      *      - content: pp.mobileprovision file content
      *
      * @apiGroup Credenital
-     * @apiDescription Create or update credentials with content-type multipart/form-data or application/json,
-     *  for json request body, just reference on multipart detail part
+     * @apiDescription Create credentials with content-type multipart/form-data or application/json,
+     *  for json request body, just reference on multipart detail part, the name cannot be duplicated
      *
      * @apiSuccessExample {json} Success-Response
      *
      *  reference on List item
      */
     @PostMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Credential createOrUpdate(@PathVariable String name,
-                                     @RequestPart(name = "detail") CredentialDetail detail,
-                                     @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
-                                     @RequestPart(name = "p12-files", required = false) MultipartFile[] p12Files,
-                                     @RequestPart(name = "pp-files", required = false) MultipartFile[] ppFiles) {
+    public Credential create(@PathVariable String name,
+                             @RequestPart(name = "detail") CredentialDetail detail,
+                             @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
+                             @RequestPart(name = "p12-files", required = false) MultipartFile[] p12Files,
+                             @RequestPart(name = "pp-files", required = false) MultipartFile[] ppFiles) {
 
-        try {
-            handleAndroidFile(detail, androidFile);
-            handleIosFile(detail, p12Files, ppFiles);
-
-            Credential credential = credentialService.createOrUpdate(name, detail);
-            return credential;
-        } catch (IOException e) {
-            throw new IllegalStatusException("Cannot save credential file with io error: " + e.getMessage());
+        if (credentialService.existed(name)) {
+            throw new IllegalParameterException("Duplicate credential name");
         }
+
+        return createOrUpdate(name, detail, androidFile, p12Files, ppFiles);
+    }
+
+    /**
+     * @api {patch} /credentials/:name Update
+     * @apiParam {String} name Credential name to update
+     *
+     * @apiParamExample {multipart} RSA-Multipart-Body:
+     *  the same as create
+     *
+     * @apiGroup Credenital
+     */
+    @PatchMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Credential update(@PathVariable String name,
+                             @RequestPart(name = "detail") CredentialDetail detail,
+                             @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
+                             @RequestPart(name = "p12-files", required = false) MultipartFile[] p12Files,
+                             @RequestPart(name = "pp-files", required = false) MultipartFile[] ppFiles) {
+
+        // check name is existed
+        if (!credentialService.existed(name)) {
+            throw new IllegalParameterException("Credential name does not existed");
+        }
+
+        return createOrUpdate(name, detail, androidFile, p12Files, ppFiles);
     }
 
     @PostMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Credential createOrUpdate(@PathVariable String name,
-                                     @RequestBody CredentialDetail detail) {
+    public Credential create(@PathVariable String name,
+                             @RequestBody CredentialDetail detail) {
+
+        if (credentialService.existed(name)) {
+            throw new IllegalParameterException("Duplicate credential name");
+        }
 
         Credential credential = credentialService.createOrUpdate(name, detail);
         return credential;
     }
+
+    @PatchMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Credential update(@PathVariable String name,
+                             @RequestBody CredentialDetail detail) {
+        // check name is existed
+        if (!credentialService.existed(name)) {
+            throw new IllegalParameterException("Credential name does not existed");
+        }
+
+        Credential credential = credentialService.createOrUpdate(name, detail);
+        return credential;
+    }
+
 
     /**
      * @api {delete} /credentials/:name Delete
@@ -303,6 +342,22 @@ public class CredentialController {
     @GetMapping(path = "/rsa")
     public RSAKeyPair getKeys() {
         return credentialService.generateRsaKey();
+    }
+
+    private Credential createOrUpdate(String name,
+                                      CredentialDetail detail,
+                                      MultipartFile androidFile,
+                                      MultipartFile[] p12Files,
+                                      MultipartFile[] ppFiles) {
+        try {
+            handleAndroidFile(detail, androidFile);
+            handleIosFile(detail, p12Files, ppFiles);
+
+            Credential credential = credentialService.createOrUpdate(name, detail);
+            return credential;
+        } catch (IOException e) {
+            throw new IllegalStatusException("Cannot save credential file with io error: " + e.getMessage());
+        }
     }
 
     private void handleAndroidFile(CredentialDetail detail, MultipartFile file) throws IOException {

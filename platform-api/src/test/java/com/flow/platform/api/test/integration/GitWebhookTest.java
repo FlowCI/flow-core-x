@@ -247,7 +247,7 @@ public class GitWebhookTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_URL.name(), gitUrl);
         env.put(GitEnvs.FLOW_GIT_BRANCH.name(), "develop");
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        nodeService.setFlowEnv(flowPath, env);
+        nodeService.addFlowEnv(flowPath, env);
 
         Node loaded = nodeService.find(flowPath);
 

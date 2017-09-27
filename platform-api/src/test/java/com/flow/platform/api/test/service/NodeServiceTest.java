@@ -73,7 +73,7 @@ public class NodeServiceTest extends TestBase {
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_SP_1", "111");
         flowEnv.put("FLOW_SP_2", "222");
-        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+        nodeService.addFlowEnv(emptyFlow.getPath(), flowEnv);
 
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
@@ -112,7 +112,7 @@ public class NodeServiceTest extends TestBase {
 
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_YML_STATUS", "LOADING");
-        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+        nodeService.addFlowEnv(emptyFlow.getPath(), flowEnv);
 
         // when:
         nodeService.createOrUpdate(emptyFlow.getPath(), "");
@@ -130,7 +130,7 @@ public class NodeServiceTest extends TestBase {
 
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_YML_STATUS", "LOADING");
-        nodeService.setFlowEnv(emptyFlow.getPath(), flowEnv);
+        nodeService.addFlowEnv(emptyFlow.getPath(), flowEnv);
 
         // when:
         nodeService.createOrUpdate(emptyFlow.getPath(), "xxxx");
@@ -181,7 +181,7 @@ public class NodeServiceTest extends TestBase {
         envs.put("FLOW_NEW_1", "hello");
         envs.put("FLOW_NEW_2", "world");
         envs.put("FLOW_NEW_3", "done");
-        nodeService.setFlowEnv(root.getPath(), envs);
+        nodeService.addFlowEnv(root.getPath(), envs);
 
         // then:
         String webhook = String.format("%s/hooks/git/%s", domain, emptyFlow.getName());

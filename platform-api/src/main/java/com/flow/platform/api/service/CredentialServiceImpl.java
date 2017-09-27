@@ -96,6 +96,11 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
+    public boolean existed(String name) {
+        return credentialDao.get(name) != null;
+    }
+
+    @Override
     public Credential find(String name) {
         Credential credential = credentialDao.get(name);
 

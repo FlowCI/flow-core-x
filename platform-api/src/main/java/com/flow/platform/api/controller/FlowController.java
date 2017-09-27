@@ -28,7 +28,9 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -136,7 +138,7 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {post} /flows/:root/env Set Env Variables
+     * @api {post} /flows/:root/env Add Env Variables
      * @apiParam {String} root flow node name will be set env variables
      * @apiParamExample {json} Request-Body:
      *  {
@@ -144,7 +146,7 @@ public class FlowController extends NodeController {
      *      FLOW_ENV_VAR_1: xxx
      *  }
      * @apiGroup Flows
-     * @apiDescription Write env variables to flow env variables, overwrite if env existed
+     * @apiDescription Add env variables to flow env variables, overwrite if env existed
      *
      * @apiSuccessExample {json} Success-Response
      *  {
@@ -160,9 +162,39 @@ public class FlowController extends NodeController {
      */
     @PostMapping("/{root}/env")
     @WebSecurity(action = Actions.FLOW_SET_ENV)
-    public Node setFlowEnv(@RequestBody Map<String, String> envs) {
+    public Node addFlowEnv(@RequestBody Map<String, String> envs) {
         String path = getNodePathFromUrl();
-        return nodeService.setFlowEnv(path, envs);
+        return nodeService.addFlowEnv(path, envs);
+    }
+
+    /**
+     * @api {delete} /flows/:root/env Del Env Variables
+     * @apiParam {String} root flow node name will be set env variables
+     * @apiParamExample {json} Request-Body:
+     *  [
+     *      FLOW_ENV_VAR_2,
+     *      FLOW_ENV_VAR_1
+     *  ]
+     * @apiGroup Flows
+     * @apiDescription Delete env variables to flow env variables
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      path: /flow-name,
+     *      name: flow-name,
+     *      createdAt: 15123123
+     *      updatedAt: 15123123
+     *      envs: {
+     *          FLOW_ENV_VAR_3: xxx,
+     *          FLOW_ENV_VAR_4: xxx
+     *      }
+     *  }
+     */
+    @DeleteMapping("/{root}/env")
+    @WebSecurity(action = Actions.FLOW_SET_ENV)
+    public Node delFlowEnv(@RequestBody Set<String> envKeys) {
+        String path = getNodePathFromUrl();
+        return nodeService.delFlowEnv(path, envKeys);
     }
 
     /**
