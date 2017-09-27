@@ -78,7 +78,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private final Integer createSessionRetryTimes = 5;
 
     @Value("${task.job.toggle.execution_timeout}")
-    private Boolean isJobExecuteTimeout;
+    private Boolean isJobTimeoutExecuteTimeout;
+
+    @Value("${task.job.toggle.execution_create_session_duration}")
+    private Long jobExecuteTimeoutCreateSessionDuration;
+
+    @Value("${task.job.toggle.execution_running_duration}")
+    private Long jobExecuteTimeoutRunningDuration;
 
     @Autowired
     private NodeResultService nodeResultService;
@@ -460,21 +466,21 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     @Scheduled(fixedDelay = 6 * 1000, initialDelay = 6 * 1000)
     public void checkTimeoutTask() {
-        if (!isJobExecuteTimeout) {
+        if (!isJobTimeoutExecuteTimeout) {
             return;
         }
 
         LOGGER.trace("job timeout task start");
 
         // create session job timeout 6s time out
-        ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(6);
+        ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutCreateSessionDuration);
         List<Job> jobs = jobDao.listJob(finishZoneDateTime, JobStatus.SESSION_CREATING);
         for (Job job : jobs) {
             updateJobAndNodeResultTimeout(job);
         }
 
         // running job timeout 1h time out
-        ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(3600);
+        ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutRunningDuration);
         List<Job> runningJobs = jobDao.listJob(finishRunningZoneDateTime, JobStatus.RUNNING);
         for (Job job : runningJobs) {
             updateJobAndNodeResultTimeout(job);
