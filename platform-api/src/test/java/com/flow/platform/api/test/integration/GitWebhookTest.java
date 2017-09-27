@@ -101,7 +101,11 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("Update .flow.yml for github", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
         Assert.assertEquals("yang-guo-2016", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
+        Assert.assertEquals("gy@fir.im", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR_EMAIL));
         Assert.assertEquals("daedd0ff0feca54f4642a872081418d1510b4368", job.getEnv(GitEnvs.FLOW_GIT_COMMIT_ID));
+        Assert.assertEquals(
+            "https://github.com/flow-ci-plugin/for-testing/commit/daedd0ff0feca54f4642a872081418d1510b4368",
+            job.getEnv(GitEnvs.FLOW_GIT_COMMIT_URL));
         Assert.assertEquals("9436bd5e0c06...daedd0ff0fec", job.getEnv(GitEnvs.FLOW_GIT_COMPARE_ID));
         Assert.assertEquals("https://github.com/flow-ci-plugin/for-testing/compare/9436bd5e0c06...daedd0ff0fec",
             job.getEnv(GitEnvs.FLOW_GIT_COMPARE_URL));
@@ -178,9 +182,14 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals("Update .flow.yml for gitlab", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG.name()));
         Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("yang.guo", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
+        Assert.assertEquals("benqyang_2006@hotmail.com", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR_EMAIL));
         Assert.assertEquals("2d9b3a080c8fb653686cd56ccf8c0a6b50ba47d3", job.getEnv(GitEnvs.FLOW_GIT_COMMIT_ID));
+        Assert.assertEquals(
+            "https://gitlab.com/yang.guo/for-testing/commit/2d9b3a080c8fb653686cd56ccf8c0a6b50ba47d3",
+            job.getEnv(GitEnvs.FLOW_GIT_COMMIT_URL));
         Assert.assertEquals("c9ca9280a567...2d9b3a080c8f", job.getEnv(GitEnvs.FLOW_GIT_COMPARE_ID));
-        Assert.assertEquals("https://gitlab.com/yang.guo/for-testing/compare/c9ca9280a567...2d9b3a080c8f",
+        Assert.assertEquals(
+            "https://gitlab.com/yang.guo/for-testing/compare/c9ca9280a567...2d9b3a080c8f",
             job.getEnv(GitEnvs.FLOW_GIT_COMPARE_URL));
     }
 

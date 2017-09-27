@@ -56,6 +56,8 @@ public enum GitEnvs implements EnvKey {
 
     FLOW_GIT_AUTHOR,
 
+    FLOW_GIT_AUTHOR_EMAIL,
+
     /**
      * The credential name used for git
      */
