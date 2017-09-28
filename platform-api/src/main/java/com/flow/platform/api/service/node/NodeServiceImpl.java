@@ -88,7 +88,7 @@ public class NodeServiceImpl implements NodeService {
     private String domain;
 
     @Override
-    public Node createOrUpdate(final String path, final String yml) {
+    public Node createOrUpdate(final String path, String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
 
         if (Strings.isNullOrEmpty(yml)) {
@@ -137,7 +137,7 @@ public class NodeServiceImpl implements NodeService {
 
                 // has related yml
                 if (ymlStorage != null) {
-                    NodeTree newTree = new NodeTree(ymlStorage.getFile());
+                    NodeTree newTree = new NodeTree(ymlStorage.getFile(), flow.getName());
                     Node root = newTree.root();
 
                     // should merge env from flow dao and yml

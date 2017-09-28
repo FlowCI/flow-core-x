@@ -60,7 +60,7 @@ public class NodeResultServiceTest extends TestBase {
         List<NodeResult> list = nodeResultService.list(job, false);
         Assert.assertEquals(5, list.size());
 
-        NodeTree nodeTree = jobNodeService.get(job.getId());
+        NodeTree nodeTree = jobNodeService.get(job);
 
         // then: check cmd id is defined if the node is runnable
         for (NodeResult nodeResult : list) {

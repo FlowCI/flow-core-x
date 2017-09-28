@@ -103,12 +103,9 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
     @Override
     public Node verifyYml(final Node root, final String yml) {
-        Node rootFromYml = NodeUtil.buildFromYml(yml);
-        if (root.equals(rootFromYml)) {
-            return rootFromYml;
-        }
+        Node rootFromYml = NodeUtil.buildFromYml(yml, root.getName());
 
-        throw new YmlException("Flow name in yml not match the path");
+        return rootFromYml;
     }
 
     @Override

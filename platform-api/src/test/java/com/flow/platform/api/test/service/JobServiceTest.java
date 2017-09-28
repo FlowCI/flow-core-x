@@ -145,7 +145,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
 
         // then: check job tree data is correct
-        NodeTree tree = jobNodeService.get(job.getId());
+        NodeTree tree = jobNodeService.get(job);
         List<Node> steps = tree.children();
         Assert.assertEquals(7, steps.size());
 
@@ -231,7 +231,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertTrue(rootResult.getOutputs().isEmpty());
         Assert.assertEquals(NodeStatus.PENDING, rootResult.getStatus());
 
-        NodeTree nodeTree = jobNodeService.get(job.getId());
+        NodeTree nodeTree = jobNodeService.get(job);
 
         // verify child node result list
         List<NodeResult> childrenResult = job.getChildrenResult();
