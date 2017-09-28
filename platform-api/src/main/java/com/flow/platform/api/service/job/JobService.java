@@ -18,10 +18,12 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.util.git.model.GitEventType;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author yh@firim
@@ -61,27 +63,38 @@ public interface JobService {
     List<Job> list(List<String> paths, boolean latestOnly);
 
     /**
-     * list node results
+     * List node results
      */
     List<NodeResult> listNodeResult(String path, Integer number);
 
     /**
-     * create job from node path, copy yml to job yml
+     * Create job from node path, copy yml to job yml
      * request agent session from control center
      *
      * @param path any node path
      * @param envs the input environment variables
      * @return job with children node result
      */
-    Job createJob(String path, GitEventType eventType, Map<String, String> envs);
+    Job createJob(String path, GitEventType eventType, Map<String, String> envs, User user);
 
     /**
-     * handle callback
+     * Create job after loading yml
+     *
+     * @param onJobCreated callback
+     */
+    void createJobAndYmlLoad(String path,
+                             GitEventType eventType,
+                             Map<String, String> envs,
+                             User user,
+                             Consumer<Job> onJobCreated);
+
+    /**
+     * Process cmd callback from queue
      **/
     void callback(CmdCallbackQueueItem cmdQueueItem);
 
     /**
-     * send cmd to queue
+     * Enqueue cmd callback item
      */
     void enterQueue(CmdCallbackQueueItem cmdQueueItem);
 

@@ -19,9 +19,11 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
@@ -36,7 +38,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,6 +53,9 @@ public class JobController extends NodeController {
     private final static Logger LOGGER = new Logger(JobController.class);
 
     @Autowired
+    private YmlService ymlService;
+
+    @Autowired
     private JobService jobService;
 
     @Autowired
@@ -59,6 +63,9 @@ public class JobController extends NodeController {
 
     @Autowired
     private LogService logService;
+
+    @Autowired
+    private ThreadLocal<User> currentUser;
 
     @ModelAttribute
     public void setLocale(@RequestParam(required = false) String locale) {
@@ -80,73 +87,14 @@ public class JobController extends NodeController {
      * @api {post} /jobs/:root Create
      * @apiParam {String} root flow node path
      * @apiGroup Jobs
-     * @apiDescription Create job by flow node path,
+     * @apiDescription Create job by flow node path, the async call since it will load yml from git
      * FLOW_STATUS must be READY and YML contnet must be provided
      *
-     * @apiSuccessExample {json} Success-Response
-     *  {
-     *      nodePath: flow-integration,
-     *      number: 1,
-     *      nodeName: flow-integration,
-     *      status: CREATED,
-     *      envs: {
-     *          FLOW_GIT_BRANCH: xxx
-     *          FLOW_GIT_: xxx
-     *      }
-     *      createdAt: 154123211,
-     *      updatedAt: 154123211,
-     *      result: {
-     *          key: {
-     *             path: flow-integration
-     *          },
-     *          outputs: {
-     *              FLOW_ENV_OUT_1: xxxx,
-     *              FLOW_ENV_OUT_2: xxxx
-     *          },
-     *          duration: 0,
-     *          status: PENDING,
-     *          cmdId: xxxx,
-     *          nodeTag: FLOW,
-     *          order: 5
-     *          startTime: 154123211,
-     *          finishTime: 154123211,
-     *          createdAt: 154123211,
-     *          updatedAt: 154123211
-     *      },
-     *
-     *      childrenResult: [
-     *          {
-     *              key: {
-     *                  path: flow-integration/step1
-     *              },
-     *              duration: 0,
-     *              status: PENDING,
-     *              cmdId: xxx,
-     *              outputs: {
-     *                  FLOW_ENV_OUT_1: xx
-     *              },
-     *              order: 0
-     *          },
-     *
-     *          {
-     *              key: {
-     *                  path: flow-integration/step2
-     *              },
-     *              duration: 0,
-     *              status: PENDING,
-     *              cmdId: xxx,
-     *              outputs: {
-     *                  FLOW_ENV_OUT_1: xx
-     *              },
-     *              order: 1
-     *          }
-     *      ]
-     *  }
      */
     @PostMapping(path = "/{root}")
-    public Job create() {
+    public void create() {
         String path = getNodePathFromUrl();
-        return jobService.createJob(path, GitEventType.MANUAL, null);
+        jobService.createJobAndYmlLoad(path, GitEventType.MANUAL, null, currentUser.get(), null);
     }
 
     /**
@@ -284,7 +232,6 @@ public class JobController extends NodeController {
         }
     }
 
-
     /**
      * @api {post} /jobs/:root/:buildNumber/stop Stop
      * @apiParam {String} root flow node path
@@ -324,7 +271,6 @@ public class JobController extends NodeController {
     public Collection<Job> latestStatus(@RequestBody List<String> paths) {
         return jobService.list(paths, true);
     }
-
 
     /**
      * @api {post} /jobs/:root/search search jobs

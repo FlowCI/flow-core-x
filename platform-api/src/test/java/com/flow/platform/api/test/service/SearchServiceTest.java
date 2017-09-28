@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitEventType;
 import java.io.IOException;
@@ -39,22 +40,22 @@ public class SearchServiceTest extends TestBase {
     @Before
     public void before_test() throws IOException {
         stubDemo();
+
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Map<String, String> envs = new HashMap<>();
         envs.put(GitEnvs.FLOW_GIT_BRANCH.toString(), "master");
-        Job jobManual = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs);
+        Job jobManual = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
         jobManual.setCreatedBy("yh@fir.im");
         jobDao.update(jobManual);
 
-        Job jobBranchCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs);
+        Job jobBranchCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
         jobBranchCondition.putEnv(GitEnvs.FLOW_GIT_BRANCH, "develop");
         jobBranchCondition.setCreatedBy("will@fir.im");
         jobDao.update(jobBranchCondition);
 
-        Job jobTagCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, envs);
+        Job jobTagCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, envs, mockUser);
         jobTagCondition.setCreatedBy("yh@fir.im");
         jobDao.update(jobTagCondition);
-
     }
 
     @Test

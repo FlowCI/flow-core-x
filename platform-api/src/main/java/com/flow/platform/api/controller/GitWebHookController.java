@@ -16,13 +16,10 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.api.service.node.YmlService;
-import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
@@ -51,9 +48,6 @@ public class GitWebHookController extends NodeController {
     private final static Logger LOGGER = new Logger(GitWebHookController.class);
 
     @Autowired
-    private YmlService ymlService;
-
-    @Autowired
     private JobService jobService;
 
     @Autowired
@@ -77,20 +71,11 @@ public class GitWebHookController extends NodeController {
 
             // extract git related env variables from event, and temporary set to node for git loading
             final Map<String, String> gitEnvs = GitEventDataExtractor.extract(hookEvent);
-            final Flow flow = nodeService.findFlow(path);
-            EnvUtil.merge(gitEnvs, flow.getEnvs(), true);
 
-            ymlService.loadYmlContent(flow, yml -> {
-                LOGGER.trace("Yml content has been loaded for path : " + path);
+            final User user = new User("undefined", "undefined", "");
 
-                try {
-                    // start job
-                    Job job = jobService.createJob(path, hookEvent.getType(), gitEnvs);
-
-                    applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
-                } catch (Throwable e) {
-                    LOGGER.warn("Fail to create job for path : " + path);
-                }
+            jobService.createJobAndYmlLoad(path, hookEvent.getType(), gitEnvs, user, (job) -> {
+                applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
             });
 
         } catch (GitException | FlowException e) {

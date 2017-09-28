@@ -31,6 +31,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -64,7 +65,7 @@ public class JobServiceTest extends TestBase {
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Flow rootForFlow = nodeService.createEmptyFlow("flow1");
-        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null);
+        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
     }
 
     @Test
@@ -207,7 +208,7 @@ public class JobServiceTest extends TestBase {
     @Test
     public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
         Thread.sleep(7000);
 
         // when: check job timeout
@@ -229,7 +230,7 @@ public class JobServiceTest extends TestBase {
     }
 
     private Job createMockJob(String nodePath) {
-        Job job = jobService.createJob(nodePath, GitEventType.TAG, null);
+        Job job = jobService.createJob(nodePath, GitEventType.TAG, null, mockUser);
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());

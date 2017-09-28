@@ -16,12 +16,11 @@
 
 package com.flow.platform.api.test.security;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.dao.user.UserDao;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Role;
@@ -30,7 +29,6 @@ import com.flow.platform.api.security.AuthenticationInterceptor;
 import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.service.user.ActionService;
 import com.flow.platform.api.service.user.PermissionService;
-import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
 import com.google.common.collect.Lists;
@@ -50,9 +48,6 @@ public class SecurityTest extends TestBase {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private RoleService roleService;
 
     @Autowired
     private PermissionService permissionService;
@@ -149,7 +144,7 @@ public class SecurityTest extends TestBase {
             .andExpect(status().isUnauthorized());
 
         // unable to delete flow
-        this.mockMvc.perform(requestWithUser(post("/flows/" + flowName + "/delete"), userForUser))
+        this.mockMvc.perform(requestWithUser(delete("/flows/" + flowName), userForUser))
             .andExpect(status().isUnauthorized());
     }
 
@@ -168,7 +163,7 @@ public class SecurityTest extends TestBase {
             .andExpect(status().isOk());
 
         // enable to delete flow
-        this.mockMvc.perform(requestWithUser(post("/flows/" + flowName + "/delete"), userForAdmin))
+        this.mockMvc.perform(requestWithUser(delete("/flows/" + flowName), userForAdmin))
             .andExpect(status().isOk());
     }
 

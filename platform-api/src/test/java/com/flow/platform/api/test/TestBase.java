@@ -152,10 +152,12 @@ public abstract class TestBase {
     @Autowired
     private ThreadLocal<User> currentUser;
 
-    protected MockMvc mockMvc;
-
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
+
+    protected MockMvc mockMvc;
+
+    protected User mockUser = new User("test@flow.ci", "ut", "");
 
     @Before
     public void beforeEach() throws IOException, InterruptedException {

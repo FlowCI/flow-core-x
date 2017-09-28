@@ -30,11 +30,13 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
+import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -62,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -118,9 +121,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Autowired
     private JobYmlDao jobYmlDao;
 
-    @Autowired
-    protected ThreadLocal<User> currentUser;
-
     @Value(value = "${domain}")
     private String domain;
 
@@ -158,10 +158,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     @Transactional(noRollbackFor = FlowException.class)
-    public Job createJob(String path, GitEventType eventType, Map<String, String> envs) {
+    public Job createJob(String path, GitEventType eventType, Map<String, String> envs, User user) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
+        }
+
+        if (user == null) {
+            throw new IllegalParameterException("User is required while create job");
         }
 
         String status = root.getEnv(FlowEnvs.FLOW_STATUS);
@@ -186,7 +190,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
         job.setCategory(eventType);
-
+        job.setCreatedBy(user.getEmail());
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
 
@@ -197,10 +201,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         EnvUtil.merge(envs, job.getEnvs(), true);
-
-        if (eventType == GitEventType.MANUAL) {
-            job.setCreatedBy(currentUser().getEmail());
-        }
 
         //save job
         jobDao.save(job);
@@ -224,6 +224,31 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         return job;
+    }
+
+    @Override
+    public void createJobAndYmlLoad(String path,
+                                    GitEventType eventType,
+                                    Map<String, String> envs,
+                                    User user,
+                                    Consumer<Job> onJobCreated) {
+
+        final Flow flow = nodeService.findFlow(path);
+        EnvUtil.merge(envs, flow.getEnvs(), true);
+
+        ymlService.loadYmlContent(flow, yml -> {
+            LOGGER.trace("Yml content has been loaded for path : " + path);
+
+            try {
+                Job job = this.createJob(path, eventType, envs, user);
+
+                if (onJobCreated != null) {
+                    onJobCreated.accept(job);
+                }
+            } catch (Throwable e) {
+                LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
+            }
+        });
     }
 
     @Override
@@ -481,13 +506,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     /**
-     * Save job instance with new job status and boardcast JobStatusChangeEvent
+     * Update job instance with new job status and boardcast JobStatusChangeEvent
      */
     private void updateJobStatusAndSave(Job job, JobStatus newStatus) {
         JobStatus originStatus = job.getStatus();
 
         if (originStatus == newStatus) {
-            jobDao.save(job);
+            jobDao.update(job);
             return;
         }
 
@@ -496,7 +521,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return;
         }
         job.setStatus(newStatus);
-        jobDao.save(job);
+        jobDao.update(job);
 
         this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
     }
@@ -540,12 +565,5 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private String logUrl(final Job job) {
         Path path = Paths.get(domain, "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
         return path.toString();
-    }
-
-    private User currentUser() {
-        if (currentUser.get() == null) {
-            throw new NotFoundException(String.format("user not found"));
-        }
-        return currentUser.get();
     }
 }

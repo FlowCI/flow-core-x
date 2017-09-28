@@ -27,11 +27,9 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.git.model.GitEventType;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -53,7 +51,7 @@ public class JobControllerTest extends TestBase {
     public void should_show_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -76,7 +74,7 @@ public class JobControllerTest extends TestBase {
     public void should_stop_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -98,7 +96,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_step_log_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -114,7 +112,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_job_zip_error() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -129,7 +127,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_job_zip_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         job.setStatus(JobStatus.SUCCESS);
@@ -148,7 +146,8 @@ public class JobControllerTest extends TestBase {
         Assert.assertNotNull(response);
 
         Path zipLog = Paths
-            .get(workspace.toString(), job.getNodeName(), "log", job.getId().toString(), job.getId().toString() + ".zip");
+            .get(workspace.toString(), job.getNodeName(), "log", job.getId().toString(),
+                job.getId().toString() + ".zip");
         File zipFile = new File(zipLog.toString());
         Assert.assertEquals(true, zipFile.exists());
     }
