@@ -39,6 +39,11 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     List<Job> listByPath(List<String> paths);
 
     /**
+     * show expired jobs
+     */
+    List<Job> listForExpired(ZonedDateTime updatedTime, JobStatus... status);
+
+    /**
      * get latest job by flow path
      *
      * @param paths node path or null for all latest jobs
@@ -54,9 +59,4 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      * get max build number for node path
      */
     Integer maxBuildNumber(String path);
-
-    /**
-     * show expired jobs
-     */
-    List<Job> listJob(ZonedDateTime zonedDateTime, JobStatus... status);
 }

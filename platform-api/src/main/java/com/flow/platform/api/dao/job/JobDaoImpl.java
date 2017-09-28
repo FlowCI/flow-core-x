@@ -128,6 +128,24 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
+    public List<Job> listForExpired(ZonedDateTime updatedTime, JobStatus... status) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> from = select.from(Job.class);
+
+            Predicate createdPredicate = builder.lessThan(from.get("updatedAt"), updatedTime);
+            Predicate statusPredicate = from.get("status").in(status);
+
+            select.where(createdPredicate, statusPredicate);
+
+            return session.createQuery(select).list();
+
+        });
+    }
+
+    @Override
     public Job get(String path, Integer number) {
         return execute((Session session) -> {
             NativeQuery nativeQuery = session.createNativeQuery(
@@ -154,24 +172,6 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             }
 
             return integer;
-        });
-    }
-
-    @Override
-    public List<Job> listJob(ZonedDateTime zonedDateTime, JobStatus... status) {
-        return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-
-            CriteriaQuery<Job> select = builder.createQuery(Job.class);
-            Root<Job> from = select.from(Job.class);
-
-            Predicate createdPredicate = builder.lessThan(from.get("updatedAt"), zonedDateTime);
-            Predicate statusPredicate = from.get("status").in(status);
-
-            select.where(createdPredicate, statusPredicate);
-
-            return session.createQuery(select).list();
-
         });
     }
 
