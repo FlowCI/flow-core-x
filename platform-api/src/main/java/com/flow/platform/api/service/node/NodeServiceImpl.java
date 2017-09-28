@@ -109,7 +109,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     private String domain;
 
     @Override
-    public Node createOrUpdate(final String path, final String yml) {
+    public Node createOrUpdate(final String path, String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
 
         if (Strings.isNullOrEmpty(yml)) {
@@ -123,7 +123,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
         Node rootFromYml;
         try {
-            rootFromYml = ymlService.verifyYml(path, yml);
+            rootFromYml = ymlService.verifyYml(flow, yml);
         } catch (IllegalParameterException | YmlException e) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());
             return flow;
@@ -158,7 +158,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
                 // has related yml
                 if (ymlStorage != null) {
-                    NodeTree newTree = new NodeTree(ymlStorage.getFile());
+                    NodeTree newTree = new NodeTree(ymlStorage.getFile(), flow.getName());
                     Node root = newTree.root();
 
                     // should merge env from flow dao and yml
@@ -276,17 +276,17 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
-    public void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo) {
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
+    public void updateYmlState(Node root, FlowEnvs.YmlStatusValue state, String errorInfo) {
+        root.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
 
         if (!Strings.isNullOrEmpty(errorInfo)) {
-            flow.putEnv(FlowEnvs.FLOW_YML_ERROR_MSG, errorInfo);
+            root.putEnv(FlowEnvs.FLOW_YML_ERROR_MSG, errorInfo);
         } else {
-            flow.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
+            root.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
         }
 
-        LOGGER.debug("Update '%s' yml status to %s", flow.getName(), state);
-        flowDao.update(flow);
+        LOGGER.debug("Update '%s' yml status to %s", root.getName(), state);
+        flowDao.update((Flow) root);
     }
 
     @Override

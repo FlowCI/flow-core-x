@@ -134,7 +134,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     public String findYml(String path, Integer number) {
         Job job = find(path, number);
-        return jobNodeService.find(job.getId()).getFile();
+        return jobNodeService.find(job).getFile();
     }
 
     @Override
@@ -166,7 +166,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         String yml = null;
         try {
-            yml = ymlService.getYmlContent(root.getPath());
+            yml = ymlService.getYmlContent(root);
             if (Strings.isNullOrEmpty(yml)) {
                 throw new IllegalStatusException("Yml is loading for path " + path);
             }
@@ -200,7 +200,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         jobDao.save(job);
 
         // create yml snapshot for job
-        jobNodeService.save(job.getId(), yml);
+        jobNodeService.save(job, yml);
 
         // init for node result and set to job object
         List<NodeResult> resultList = nodeResultService.create(job);
@@ -291,7 +291,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalParameterException("Cannot run node with null value");
         }
 
-        NodeTree tree = jobNodeService.get(job.getId());
+        NodeTree tree = jobNodeService.get(job);
 
         if (!tree.canRun(node.getPath())) {
             // run next node
@@ -329,7 +329,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         // run step
-        NodeTree tree = jobNodeService.get(job.getId());
+        NodeTree tree = jobNodeService.get(job);
         if (tree == null) {
             throw new NotFoundException("Cannot fond related node tree for job: " + job.getId());
         }
@@ -347,7 +347,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
      * Run shell callback
      */
     private void onRunShellCallback(String path, Cmd cmd, Job job) {
-        NodeTree tree = jobNodeService.get(job.getId());
+        NodeTree tree = jobNodeService.get(job);
         Node node = tree.find(path);
         Node next = tree.next(path);
 
@@ -421,7 +421,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         return runningJob;
     }
-
 
     @Override
     public Job update(Job job) {

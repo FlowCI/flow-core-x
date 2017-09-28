@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.domain.envs;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 
 /**
@@ -27,10 +27,11 @@ public interface EnvKey {
     /**
      * The env variable should write to root node result output
      */
-    Set<String> FOR_OUTPUTS = Sets.newHashSet(
+    Set<String> FOR_OUTPUTS = ImmutableSet.of(
         GitEnvs.FLOW_GIT_BRANCH.name(),
         GitEnvs.FLOW_GIT_CHANGELOG.name(),
         GitEnvs.FLOW_GIT_COMMIT_ID.name(),
+        GitEnvs.FLOW_GIT_COMMIT_URL.name(),
         GitEnvs.FLOW_GIT_COMPARE_ID.name(),
         GitEnvs.FLOW_GIT_COMPARE_URL.name(),
         GitEnvs.FLOW_GIT_AUTHOR.name(),

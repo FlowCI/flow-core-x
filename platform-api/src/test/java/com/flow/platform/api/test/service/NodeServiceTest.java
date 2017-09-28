@@ -212,7 +212,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("FOUND", loaded.getEnv("FLOW_YML_STATUS"));
     }
 
-    @Test(expected = YmlException.class)
+    @Test
     public void should_error_if_node_path_is_not_for_flow() throws Throwable {
         Flow emptyFlow = nodeService.createEmptyFlow("flow-name-not-same");
         setFlowToReady(emptyFlow);
@@ -220,11 +220,10 @@ public class NodeServiceTest extends TestBase {
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
-        // then: FLOW_YML_STATUS should be ERROR
-        Assert.assertEquals("ERROR", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals("FOUND", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // then: should raise YmlParseException
-        ymlService.getYmlContent(root.getPath());
+        ymlService.getYmlContent(root);
     }
 
     @Test(expected = IllegalParameterException.class)
@@ -236,16 +235,16 @@ public class NodeServiceTest extends TestBase {
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
-        Assert.assertNotNull(ymlService.getYmlContent(root.getPath()));
+        Assert.assertNotNull(ymlService.getYmlContent(root));
 
-        // when:
+        // when: delete flow
         nodeService.delete(root.getPath());
 
-        // then:
+        // then: flow should be null
         Assert.assertNull(nodeService.find(root.getPath()));
         Assert.assertEquals(false, Files.exists(NodeUtil.workspacePath(workspace, root)));
 
         // then: should raise illegal parameter exception since flow doesn't exist
-        ymlService.getYmlContent(root.getPath());
+        ymlService.getYmlContent(root);
     }
 }

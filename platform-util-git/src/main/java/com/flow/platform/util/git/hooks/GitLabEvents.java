@@ -51,7 +51,12 @@ public class GitLabEvents {
 
         private class JsonHelper {
 
-            private Map<String, String> repository;
+            private Repository repository;
+        }
+
+        private class Repository {
+
+            private String homepage;
         }
 
         PushAndTagAdapter(GitSource gitSource, GitEventType eventType) {
@@ -66,12 +71,17 @@ public class GitLabEvents {
             event.setType(eventType);
             event.setGitSource(gitSource);
 
-            // set compare id and url
-            String compareId = GitPushTagEvent.buildCompareId(event);
-            String compareUrl = jsonHelper.repository.get("homepage") + "/compare/" + compareId;
+            // set head commit url
+            final String headCommitUrl = jsonHelper.repository.homepage + "/commit/" + event.getAfter();
+            event.setHeadCommitUrl(headCommitUrl);
 
-            event.setCompareUrl(compareUrl);
+            // set compare id
+            final String compareId = GitPushTagEvent.buildCompareId(event);
             event.setCompareId(compareId);
+
+            // set compare url
+            final String compareUrl = jsonHelper.repository.homepage + "/compare/" + compareId;
+            event.setCompareUrl(compareUrl);
 
             return event;
         }

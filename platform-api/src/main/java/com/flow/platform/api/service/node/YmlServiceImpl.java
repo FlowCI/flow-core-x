@@ -21,12 +21,11 @@ import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.exception.NodeSettingsException;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CredentialService;
@@ -34,7 +33,6 @@ import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.task.UpdateNodeYmlTask;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
-import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -104,25 +102,16 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
-    public Node verifyYml(final String path, final String yml) {
-        final String rootPath = PathUtil.rootPath(path);
-        final Flow flow = nodeService.findFlow(rootPath);
+    public Node verifyYml(final Node root, final String yml) {
+        Node rootFromYml = NodeUtil.buildFromYml(yml, root.getName());
 
-        Node rootFromYml = NodeUtil.buildFromYml(yml);
-        if (flow.equals(rootFromYml)) {
-            return rootFromYml;
-        }
-
-        throw new YmlException("Flow name in yml not match the path");
+        return rootFromYml;
     }
 
     @Override
-    public String getYmlContent(final String path) {
-        final String rootPath = PathUtil.rootPath(path);
-        final Flow flow = nodeService.findFlow(rootPath);
-
+    public String getYmlContent(final Node root) {
         // check FLOW_YML_STATUS
-        String ymlStatus = flow.getEnv(FlowEnvs.FLOW_YML_STATUS);
+        String ymlStatus = root.getEnv(FlowEnvs.FLOW_YML_STATUS);
 
         // for LOADING status if FLOW_YML_STATUS start with GIT_xxx
         if (YmlStatusValue.isLoadingStatus(ymlStatus)) {
@@ -133,10 +122,12 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FOUND.value())) {
 
             // load from database
-            Yml ymlStorage = ymlDao.get(rootPath);
+            Yml ymlStorage = ymlDao.get(root.getPath());
             if (ymlStorage != null) {
                 return ymlStorage.getFile();
             }
+
+            throw new IllegalParameterException("The yml cannot find by path: " + root.getPath());
         }
 
         // for NOT_FOUND status
@@ -154,51 +145,45 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
-    public Node loadYmlContent(final String path, final Consumer<Yml> callback) {
-        final String rootPath = PathUtil.rootPath(path);
-        final Flow flow = nodeService.findFlow(rootPath);
-
-        if (!EnvUtil.hasRequiredEnvKey(flow, GitService.REQUIRED_ENVS)) {
+    public Node loadYmlContent(final Node root, final Consumer<Yml> callback) {
+        if (!EnvUtil.hasRequiredEnvKey(root, GitService.REQUIRED_ENVS)) {
             throw new IllegalParameterException("Missing required envs: FLOW_GIT_URL FLOW_GIT_SOURCE");
         }
 
-        if (YmlStatusValue.isLoadingStatus(flow.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
+        if (YmlStatusValue.isLoadingStatus(root.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
             throw new IllegalStatusException("Yml file is loading");
         }
 
-        findNodeCredential(flow);
+        findNodeCredential(root);
 
         // update FLOW_YML_STATUS to LOADING
-        nodeService.updateYmlState(flow, YmlStatusValue.GIT_CONNECTING, null);
+        nodeService.updateYmlState(root, YmlStatusValue.GIT_CONNECTING, null);
 
         try {
-            ThreadPoolTaskExecutor executor = findThreadPoolFromCache(flow.getPath());
+            ThreadPoolTaskExecutor executor = findThreadPoolFromCache(root.getPath());
 
             // async to load yml file
-            executor.execute(new UpdateNodeYmlTask(flow, nodeService, gitService, callback));
+            executor.execute(new UpdateNodeYmlTask(root, nodeService, gitService, callback));
         } catch (ExecutionException e) {
-            LOGGER.warn("Fail to get task executor for node: " + flow.getPath());
-            nodeService.updateYmlState(flow, YmlStatusValue.ERROR, e.getMessage());
+            LOGGER.warn("Fail to get task executor for node: " + root.getPath());
+            nodeService.updateYmlState(root, YmlStatusValue.ERROR, e.getMessage());
         }
 
-        return flow;
+        return root;
     }
 
     @Override
-    public void stopLoadYmlContent(String path) {
-        final String rootPath = PathUtil.rootPath(path);
-        final Flow flow = nodeService.findFlow(rootPath);
-
-        ThreadPoolTaskExecutor executor = nodeThreadPool.getIfPresent(flow.getPath());
+    public void stopLoadYmlContent(final Node root) {
+        ThreadPoolTaskExecutor executor = nodeThreadPool.getIfPresent(root.getPath());
         if (executor == null || executor.getActiveCount() == 0) {
             return;
         }
 
         executor.shutdown();
-        nodeThreadPool.invalidate(flow.getPath());
+        nodeThreadPool.invalidate(root.getPath());
 
-        LOGGER.trace("Yml loading task been stopped for path %s", path);
-        nodeService.updateYmlState(flow, YmlStatusValue.NOT_FOUND, null);
+        LOGGER.trace("Yml loading task been stopped for path %s", root.getPath());
+        nodeService.updateYmlState(root, YmlStatusValue.NOT_FOUND, null);
     }
 
     /**

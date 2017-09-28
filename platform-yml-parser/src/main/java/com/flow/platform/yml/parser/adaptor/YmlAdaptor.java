@@ -72,6 +72,8 @@ public abstract class YmlAdaptor<T> {
 
         while (raw != Object.class) {
             Field[] fields = raw.getDeclaredFields();
+            Method[] methods = raw.getDeclaredMethods();
+
             for (Field field : fields) {
 
                 // find field annotations
@@ -86,35 +88,26 @@ public abstract class YmlAdaptor<T> {
                 if (ignoreField(field)) {
                     continue;
                 }
+                setValueToField(o, field, instance, ymlSerializer, clazz);
+            }
 
-                Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
+            for (Method method : methods) {
+                // find field annotations
+                YmlSerializer ymlSerializer = method.getAnnotation(YmlSerializer.class);
 
-                // required field
-                if (requiredField(field)) {
-                    if (obj == null) {
-                        throw new YmlParseException(String.format("required field - %s", field.getName()));
-                    }
-                }
-
-                if (obj == null) {
+                //filter no annotations method
+                if (noAnnotationMethod(method)) {
                     continue;
                 }
 
-                field.setAccessible(true);
-
-                // read field value
-                Object value = doRead(field, obj, clazz);
-
-                try {
-                    field.set(instance, value);
-
-                } catch (Throwable throwable) {
-                    throw new YmlParseException(String.format("field - %s set value error", field.getName()),
-                        throwable);
+                //filter ignore method
+                if (ignoreMethod(method)) {
+                    continue;
                 }
 
-                // validate field
-                validate(field, instance);
+                Field field = matchFieldFromMethod(clazz, method);
+
+                setValueToField(o, field, instance, ymlSerializer, clazz);
             }
 
             raw = raw.getSuperclass();
@@ -123,11 +116,41 @@ public abstract class YmlAdaptor<T> {
         return instance;
     }
 
+    private <T> void setValueToField(Object o, Field field, T instance, YmlSerializer ymlSerializer, Class<T> clazz) {
+        Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
+
+        // required field
+        if (requiredField(field)) {
+            if (obj == null) {
+                throw new YmlParseException(String.format("required field - %s", field.getName()));
+            }
+        }
+
+        if (obj == null) {
+            return;
+        }
+
+        field.setAccessible(true);
+
+        // read field value
+        Object value = doRead(field, obj, clazz, ymlSerializer);
+
+        try {
+            field.set(instance, value);
+
+        } catch (Throwable throwable) {
+            throw new YmlParseException(String.format("field - %s set value error", field.getName()),
+                throwable);
+        }
+
+        // validate field
+        validate(field, instance, ymlSerializer);
+    }
+
     /**
      * auto select adaptor or annotation provider
      */
-    protected <T> Object doWrite(Field field, T t) {
-        YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
+    protected <T> Object doWrite(Field field, T t, YmlSerializer ymlSerializer) {
 
         // get field type
         Type fieldType = getClazz(field, t.getClass());
@@ -161,13 +184,12 @@ public abstract class YmlAdaptor<T> {
     /**
      * validate field's value
      */
-    public static <T> void validate(Field field, T instance) {
-        YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
+    public static <T> void validate(Field field, T instance, YmlSerializer ymlSerializer) {
         if (ymlSerializer.validator() != EmptyValidator.class) {
             YmlValidator validator;
-            Object value = null;
+            Object value;
             try {
-                validator = (YmlValidator) ymlSerializer.validator().newInstance();
+                validator = ymlSerializer.validator().newInstance();
                 value = field.get(instance);
             } catch (Throwable throwable) {
                 throw new YmlFormatException(String
@@ -189,8 +211,7 @@ public abstract class YmlAdaptor<T> {
      * @param clazz field's clazz
      * @return Object
      */
-    public Object doRead(Field field, Object obj, Class<?> clazz) {
-        YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
+    public Object doRead(Field field, Object obj, Class<?> clazz, YmlSerializer ymlSerializer) {
 
         // get field type
         Type fieldType = getClazz(field, clazz);
@@ -206,7 +227,7 @@ public abstract class YmlAdaptor<T> {
         // annotation provide adaptor
         if (ymlSerializer.adaptor() != EmptyAdapter.class) {
             try {
-                YmlAdaptor instance = (YmlAdaptor) ymlSerializer.adaptor().newInstance();
+                YmlAdaptor instance = ymlSerializer.adaptor().newInstance();
                 return instance.read(obj);
             } catch (Throwable throwable) {
                 throw new YmlParseException("create instance adaptor", throwable);
@@ -228,6 +249,7 @@ public abstract class YmlAdaptor<T> {
 
             while (raw != Object.class) {
                 Field[] fields = raw.getDeclaredFields();
+                Method[] methods = raw.getMethods();
                 for (Field field : fields) {
                     // 获取 field 对应的值
                     YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
@@ -237,9 +259,23 @@ public abstract class YmlAdaptor<T> {
                     }
 
                     field.setAccessible(true);
+                    Object value = doWrite(field, clazz, ymlSerializer);
+                    map.put(getAnnotationMappingName(field.getName(), ymlSerializer), value);
+                }
+
+                for (Method method : methods) {
+                    // 获取 field 对应的值
+                    YmlSerializer ymlSerializer = method.getAnnotation(YmlSerializer.class);
+
+                    if (noAnnotationMethod(method)) {
+                        continue;
+                    }
+
+                    Field field = matchFieldFromMethod(clazz.getClass(), method);
+                    field.setAccessible(true);
 
                     map.put(getAnnotationMappingName(field.getName(), ymlSerializer),
-                        doWrite(field, clazz));
+                        doWrite(field, clazz, ymlSerializer));
                 }
 
                 raw = raw.getSuperclass();
@@ -305,6 +341,32 @@ public abstract class YmlAdaptor<T> {
         return false;
     }
 
+
+    /**
+     * filter no annotation method
+     */
+    private Boolean noAnnotationMethod(Method method) {
+        YmlSerializer annotation = method.getAnnotation(YmlSerializer.class);
+        if (annotation == null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * filter ignore method
+     */
+    private Boolean ignoreMethod(Method method) {
+        YmlSerializer annotation = method.getAnnotation(YmlSerializer.class);
+        if (annotation.ignore()) {
+            return true;
+        }
+
+        return false;
+    }
+
+
     /**
      * get all fields
      *
@@ -364,5 +426,36 @@ public abstract class YmlAdaptor<T> {
         } catch (Throwable throwable) {
             return null;
         }
+    }
+
+    private Field matchFieldFromMethod(Class<?> clazz, Method method) {
+        Class<?> raw = clazz;
+        String fieldName = splitNameFromMethod(method);
+        while (raw != Object.class) {
+            Field[] fields = raw.getDeclaredFields();
+            for (Field field : fields) {
+                if (field.getName().equals(fieldName)) {
+                    return field;
+                }
+            }
+            raw = raw.getSuperclass();
+        }
+        return null;
+    }
+
+    private String splitNameFromMethod(Method method) {
+        String name = null;
+        if (method.getName().contains("set")) {
+            name = method.getName().split("set")[1];
+            if (name != null) {
+                return name.toLowerCase();
+            }
+        }
+
+        if (method.getName().contains("get")) {
+            name = method.getName().split("get")[1].toLowerCase();
+        }
+
+        return name;
     }
 }

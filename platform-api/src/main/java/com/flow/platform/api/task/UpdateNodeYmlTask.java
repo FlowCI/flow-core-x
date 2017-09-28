@@ -17,10 +17,10 @@
 package com.flow.platform.api.task;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.util.ExceptionUtil;
@@ -41,7 +41,7 @@ public class UpdateNodeYmlTask implements Runnable {
 
     private final static Logger LOGGER = new Logger(UpdateNodeYmlTask.class);
 
-    private final Flow flow;
+    private final Node root;
 
     private final NodeService nodeService;
 
@@ -49,11 +49,11 @@ public class UpdateNodeYmlTask implements Runnable {
 
     private final Consumer<Yml> callback;
 
-    public UpdateNodeYmlTask(Flow flow,
+    public UpdateNodeYmlTask(Node root,
                              NodeService nodeService,
                              GitService gitService,
                              Consumer<Yml> callback) {
-        this.flow = flow;
+        this.root = root;
         this.nodeService = nodeService;
         this.gitService = gitService;
         this.callback = callback;
@@ -63,28 +63,28 @@ public class UpdateNodeYmlTask implements Runnable {
     public void run() {
         String yml;
         try {
-            yml = gitService.clone(flow, AppConfig.DEFAULT_YML_FILE, new GitProgressListener());
+            yml = gitService.clone(root, AppConfig.DEFAULT_YML_FILE, new GitProgressListener());
         } catch (Throwable e) {
             // check yml status is running since exception will be throw if manual stop the git clone thread
-            if (YmlStatusValue.isLoadingStatus(flow.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
+            if (YmlStatusValue.isLoadingStatus(root.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
                 Throwable rootCause = ExceptionUtil.findRootCause(e);
                 LOGGER.error("Unable to clone from git repo", rootCause);
-                nodeService.updateYmlState(flow, YmlStatusValue.ERROR, rootCause.getMessage());
+                nodeService.updateYmlState(root, YmlStatusValue.ERROR, rootCause.getMessage());
             }
             return;
         }
 
         try {
-            nodeService.createOrUpdate(flow.getPath(), yml);
+            nodeService.createOrUpdate(root.getPath(), yml);
         } catch (Throwable e) {
             LOGGER.warn("Fail to create or update yml in node");
         }
 
-        LOGGER.trace("Node %s FLOW_YML_STATUS is: %s", flow.getName(), flow.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        LOGGER.trace("Node %s FLOW_YML_STATUS is: %s", root.getName(), root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // call consumer
         if (callback != null) {
-            callback.accept(new Yml(flow.getPath(), yml));
+            callback.accept(new Yml(root.getPath(), yml));
         }
     }
 
@@ -102,8 +102,8 @@ public class UpdateNodeYmlTask implements Runnable {
 
         @Override
         public void onProgressing(String task, int total, int progress) {
-            if (!Objects.equals(flow.getEnv(FlowEnvs.FLOW_YML_STATUS), YmlStatusValue.GIT_LOADING.value())) {
-                nodeService.updateYmlState(flow, YmlStatusValue.GIT_LOADING, null);
+            if (!Objects.equals(root.getEnv(FlowEnvs.FLOW_YML_STATUS), YmlStatusValue.GIT_LOADING.value())) {
+                nodeService.updateYmlState(root, YmlStatusValue.GIT_LOADING, null);
             }
         }
 
@@ -114,7 +114,7 @@ public class UpdateNodeYmlTask implements Runnable {
 
         @Override
         public void onFinish() {
-            nodeService.updateYmlState(flow, YmlStatusValue.GIT_LOADED, null);
+            nodeService.updateYmlState(root, YmlStatusValue.GIT_LOADED, null);
         }
     }
 }
