@@ -205,14 +205,27 @@ public class JobServiceTest extends TestBase {
     }
 
     @Test
-    public void should_job_time_out() throws IOException, InterruptedException {
+    public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null);
         Thread.sleep(7000);
+
+        // when: check job timeout
         jobService.checkTimeoutTask();
+
+        // then: job status should be timeout
         Job jobRes = jobDao.get(rootForFlow.getPath(), job.getNumber());
         Assert.assertEquals(JobStatus.TIMEOUT, jobRes.getStatus());
         Assert.assertEquals(NodeStatus.TIMEOUT, jobRes.getRootResult().getStatus());
+
+        // when: mock some callback for job
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setSessionId("xxxx");
+        cmd.setStatus(CmdStatus.SENT);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+
+        // then:
+        Assert.assertEquals(JobStatus.TIMEOUT, jobService.find(job.getId()).getStatus());
     }
 
     private Job createMockJob(String nodePath) {

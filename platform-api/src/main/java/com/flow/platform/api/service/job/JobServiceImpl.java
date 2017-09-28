@@ -55,6 +55,8 @@ import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
 import com.google.common.collect.Sets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -118,6 +120,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     protected ThreadLocal<User> currentUser;
+
+    @Value(value = "${domain}")
+    private String domain;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -188,6 +193,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // setup job env variables
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
+        job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
 
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         EnvUtil.merge(envs, job.getEnvs(), true);
@@ -225,6 +231,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         BigInteger jobId = cmdQueueItem.getJobId();
         Cmd cmd = cmdQueueItem.getCmd();
         Job job = jobDao.get(jobId);
+
+        if (Job.FINISH_STATUS.contains(job.getStatus())) {
+            LOGGER.trace("Reject cmd callback since job %s already in finish status", job.getId());
+            return;
+        }
 
         if (cmd.getType() == CmdType.CREATE_SESSION) {
 
@@ -501,14 +512,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // create session job timeout 6s time out
         ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutCreateSessionDuration);
-        List<Job> jobs = jobDao.listJob(finishZoneDateTime, JobStatus.SESSION_CREATING);
+        List<Job> jobs = jobDao.listForExpired(finishZoneDateTime, JobStatus.SESSION_CREATING);
         for (Job job : jobs) {
             updateJobAndNodeResultTimeout(job);
         }
 
         // running job timeout 1h time out
         ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutRunningDuration);
-        List<Job> runningJobs = jobDao.listJob(finishRunningZoneDateTime, JobStatus.RUNNING);
+        List<Job> runningJobs = jobDao.listForExpired(finishRunningZoneDateTime, JobStatus.RUNNING);
         for (Job job : runningJobs) {
             updateJobAndNodeResultTimeout(job);
         }
@@ -523,11 +534,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         updateJobStatusAndSave(job, JobStatus.TIMEOUT);
-        List<NodeResult> list = nodeResultService.list(job, false);
-        for (NodeResult nodeResult : list) {
-            nodeResult.setStatus(NodeStatus.TIMEOUT);
-            nodeResultService.update(nodeResult);
-        }
+        nodeResultService.updateStatus(job, NodeStatus.TIMEOUT, NodeResult.FINISH_STATUS);
+    }
+
+    private String logUrl(final Job job) {
+        Path path = Paths.get(domain, "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
+        return path.toString();
     }
 
     private User currentUser() {

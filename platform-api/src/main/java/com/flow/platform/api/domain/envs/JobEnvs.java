@@ -25,6 +25,8 @@ public enum JobEnvs implements EnvKey {
 
     FLOW_JOB_BUILD_CATEGORY,
 
-    FLOW_JOB_AGENT_INFO
+    FLOW_JOB_AGENT_INFO,
+
+    FLOW_JOB_LOG_PATH
 
 }
