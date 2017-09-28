@@ -23,6 +23,7 @@ import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
@@ -92,7 +93,7 @@ public class GitWebHookController extends NodeController {
                 }
             });
 
-        } catch (GitException e) {
+        } catch (GitException | FlowException e) {
             LOGGER.warn("Cannot process web hook event: %s", e.getMessage());
         }
     }
