@@ -151,7 +151,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     public List<Job> list(List<String> paths, boolean latestOnly) {
         if (latestOnly) {
-            jobDao.latestByPath(paths);
+          return jobDao.latestByPath(paths);
         }
         return jobDao.listByPath(paths);
     }
