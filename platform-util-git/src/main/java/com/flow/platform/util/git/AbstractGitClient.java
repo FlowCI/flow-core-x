@@ -42,6 +42,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.util.FileUtils;
 
 /**
  * @author yang
@@ -105,24 +106,22 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
-    public File clone(String branch, Set<String> checkoutFiles,ProgressMonitor monitor) throws GitException {
+    public File clone(String branch, Set<String> checkoutFiles, ProgressMonitor monitor) throws GitException {
         checkGitUrl();
 
         File gitDir = getGitPath().toFile();
 
-        // open existing git folder to verification
+        // delete existing git folder since may have conflict
         if (gitDir.exists()) {
-            try (Git git = gitOpen()) {
-
-            } catch (GitException e) {
-                throw new GitException("Fail to open existing git repo at: " + gitDir, e);
+            try {
+                FileUtils.delete(gitDir.getParentFile(), FileUtils.RECURSIVE);
+            } catch (IOException e) {
+                // IO error on delete existing folder
             }
         }
 
         // git init
-        else {
-            initGit(checkoutFiles);
-        }
+        initGit(checkoutFiles);
 
         pull(branch, monitor);
         return gitDir;
@@ -203,7 +202,7 @@ public abstract class AbstractGitClient implements GitClient {
     /**
      * Git command builder
      */
-    protected abstract  <T extends TransportCommand> T buildCommand(T command);
+    protected abstract <T extends TransportCommand> T buildCommand(T command);
 
     /**
      * Create local .git with remote info
