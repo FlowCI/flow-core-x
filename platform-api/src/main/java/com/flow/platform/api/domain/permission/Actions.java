@@ -29,5 +29,7 @@ public enum Actions {
 
     FLOW_SET_ENV,
 
-    FLOW_YML
+    FLOW_YML,
+
+    FLOW_AUTH
 }

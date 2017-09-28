@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.security;
 
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
+
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.AccessDeniedException;
@@ -57,6 +59,9 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
     @Autowired
     private TokenGenerator tokenGenerator;
 
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
     /**
      * Requests needs to verify token
      */
@@ -81,11 +86,14 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
+        User user = userService.findByEmail(DEFAULT_USER_EMAIL);
+        currentUser.set(user);
+
         if (!enableAuth) {
             return true;
         }
 
-        if(!isNeedToVerify(request)) {
+        if (!isNeedToVerify(request)) {
             return true;
         }
 
@@ -96,6 +104,12 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
             return false;
         }
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+        throws Exception {
+        currentUser.remove();
     }
 
     private void doVerify(HttpServletRequest request, Object handler) {
@@ -120,6 +134,8 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         // find annotation
         WebSecurity securityAnnotation = handlerMethod.getMethodAnnotation(WebSecurity.class);
         if (securityAnnotation == null) {
+            User user = userService.findByEmail(DEFAULT_USER_EMAIL);
+            currentUser.set(user);
             return;
         }
 
@@ -133,8 +149,9 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
         // TODO: to be cached
         // set current user to request attribute
-        User currentUser = userService.findByEmail(email);
-        request.setAttribute("user", currentUser);
+        User user = userService.findByEmail(email);
+        currentUser.set(user);
+        // request.setAttribute("user", currentUser);
     }
 
     private boolean isNeedToVerify(HttpServletRequest request) {

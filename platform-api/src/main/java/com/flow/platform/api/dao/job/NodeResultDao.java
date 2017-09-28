@@ -47,4 +47,11 @@ public interface NodeResultDao extends BaseDao<NodeResultKey, NodeResult> {
      * Update status to all node result by job id
      */
     int update(BigInteger jobId, NodeStatus target);
+
+    /**
+     * delete nodeResult by jobIds
+     *
+     * @param jobIds jobIds
+     */
+    void delete(List<BigInteger> jobIds);
 }

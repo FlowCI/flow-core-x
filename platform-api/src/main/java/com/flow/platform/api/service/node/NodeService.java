@@ -19,6 +19,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.user.User;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -106,4 +107,6 @@ public interface NodeService {
      * List webhooks for all flow
      */
     List<Webhook> listWebhooks();
+
+    List<User> authUsers(List<String> emailList, String rootPath);
 }

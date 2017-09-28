@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao.job;
+package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.job.JobYml;
-import com.flow.platform.core.dao.BaseDao;
-import java.math.BigInteger;
-import java.util.List;
+import com.flow.platform.api.domain.user.User;
+import com.flow.platform.core.exception.NotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author lhl
  */
-public interface JobYmlDao extends BaseDao<BigInteger, JobYml> {
 
-    /**
-     * delete jobYml by jobIds
-     *
-     * @param jobIds jobIds
-     */
-    void delete(List<BigInteger> jobIds);
+public class CurrentUser {
 
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
+    public User currentUser() {
+        if (currentUser.get() == null) {
+            throw new NotFoundException(String.format("user not found"));
+        }
+        return currentUser.get();
+    }
 }

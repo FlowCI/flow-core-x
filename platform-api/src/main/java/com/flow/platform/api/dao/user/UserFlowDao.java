@@ -13,23 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao.job;
+package com.flow.platform.api.dao.user;
 
-import com.flow.platform.api.domain.job.JobYml;
+import com.flow.platform.api.domain.user.UserFlow;
+import com.flow.platform.api.domain.user.UserFlowKey;
 import com.flow.platform.core.dao.BaseDao;
-import java.math.BigInteger;
 import java.util.List;
 
 /**
  * @author lhl
  */
-public interface JobYmlDao extends BaseDao<BigInteger, JobYml> {
+public interface UserFlowDao extends BaseDao<UserFlowKey, UserFlow> {
 
     /**
-     * delete jobYml by jobIds
-     *
-     * @param jobIds jobIds
+     * List flow path for user email
      */
-    void delete(List<BigInteger> jobIds);
+    List<String> listByEmail(String email);
+
+    /**
+     * List user emails for flow path
+     */
+    List<String> listByFlowPath(String flowPath);
+
+    /**
+     * Get number of user for flow
+     */
+    Long numOfUser(String flowPath);
+
+    /**
+     * Delete all user flow record by email
+     */
+    int deleteByEmail(String email);
+
+    /**
+     * Delete all user flow record by flow path
+     */
+    int deleteByFlowPath(String rootPath);
 
 }

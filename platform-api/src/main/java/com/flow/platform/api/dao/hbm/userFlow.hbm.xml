@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.api.domain">
+  <class name="com.flow.platform.api.domain.user.UserFlow" table="user_flow">
+
+    <composite-id name="key" class="com.flow.platform.api.domain.user.UserFlowKey">
+      <key-property name="flowPath" type="string" column="flow_path"/>
+      <key-property name="email" type="string" length="100" column="user_email"/>
+    </composite-id>
+
+    <property name="createdBy" type="string" column="created_by"/>
+
+    <property name="createdAt" type="java.time.ZonedDateTime">
+      <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+
+    <property name="updatedAt" type="java.time.ZonedDateTime" update="false">
+      <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    </property>
+
+  </class>
+</hibernate-mapping>

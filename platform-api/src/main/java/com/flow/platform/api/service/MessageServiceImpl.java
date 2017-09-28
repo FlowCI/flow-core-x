@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class MessageServiceImpl implements MessageService {
+public class MessageServiceImpl extends CurrentUser implements MessageService {
 
     private final static Logger LOGGER = new Logger(MessageService.class);
 
@@ -43,6 +43,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public SettingContent save(SettingContent t) {
         MessageSetting messageSetting = new MessageSetting(t, ZonedDateTime.now(), ZonedDateTime.now());
+        messageSetting.setCreatedBy(currentUser().getEmail());
         if (findSettingByType(t.getType()) == null) {
             messageDao.save(messageSetting);
         } else {
@@ -70,7 +71,7 @@ public class MessageServiceImpl implements MessageService {
         MessageSetting messageSetting = findSettingByType(t.getType());
 
         //if not exist to save
-        if(messageSetting == null){
+        if (messageSetting == null) {
             return save(t);
         }
         messageSetting.setContent(t);
@@ -95,6 +96,5 @@ public class MessageServiceImpl implements MessageService {
         }
         return null;
     }
-
 
 }

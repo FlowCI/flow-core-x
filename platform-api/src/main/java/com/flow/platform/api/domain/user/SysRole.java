@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao.job;
-
-import com.flow.platform.api.domain.job.JobYml;
-import com.flow.platform.core.dao.BaseDao;
-import java.math.BigInteger;
-import java.util.List;
+package com.flow.platform.api.domain.user;
 
 /**
  * @author lhl
  */
-public interface JobYmlDao extends BaseDao<BigInteger, JobYml> {
+public enum SysRole {
 
-    /**
-     * delete jobYml by jobIds
-     *
-     * @param jobIds jobIds
-     */
-    void delete(List<BigInteger> jobIds);
+    ADMIN,
+
+    USER
 
 }

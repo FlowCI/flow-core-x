@@ -17,6 +17,7 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
@@ -60,6 +61,10 @@ public class AppConfig extends AppConfigBase {
 
     public final static long ALLOW_SIZE = 2 * 1024 * 1024;
 
+    public final static String DEFAULT_USER_EMAIL = "admin@flow.ci";
+    public final static String DEFAULT_USER_NAME = "admin";
+    public final static String DEFAULT_USER_PASSWORD = "123456";
+
     @Value("${api.workspace}")
     private String workspace;
 
@@ -75,6 +80,11 @@ public class AppConfig extends AppConfigBase {
         } catch (IOException e) {
             throw new RuntimeException("Fail to create flow.ci api working dir", e);
         }
+    }
+
+    @Bean
+    public ThreadLocal<User> currentUser() {
+        return new ThreadLocal<>();
     }
 
     @Bean

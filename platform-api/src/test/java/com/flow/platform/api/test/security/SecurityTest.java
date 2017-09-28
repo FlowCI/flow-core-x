@@ -20,6 +20,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Role;
@@ -31,6 +33,7 @@ import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Set;
@@ -63,6 +66,7 @@ public class SecurityTest extends TestBase {
     @Autowired
     private AuthenticationInterceptor authInterceptor;
 
+
     private User userForAdmin;
 
     private User userForUser;
@@ -76,12 +80,15 @@ public class SecurityTest extends TestBase {
         authInterceptor.enable();
 
         // init two roles admin and user
-        Role admin = roleService.create("ROLE_ADMIN", null);
+        Role admin = new Role("ROLE_ADMIN", null);
+        roleDao.save(admin);
         Set<Action> adminActions = new HashSet<>();
 
-        Role user = roleService.create("ROLE_USER", null);
+        Role user = new Role("ROLE_USER", null);
+        roleDao.save(user);
 
-        Role ymlOperator = roleService.create("ROLE_YML", null);
+        Role ymlOperator = new Role("ROLE_YML", null);
+        roleDao.save(ymlOperator);
 
         // init all defined actions
         for(Actions item : Actions.values()) {
@@ -92,19 +99,21 @@ public class SecurityTest extends TestBase {
         // assign actions to admin,user and yml role
         permissionService.assign(admin, adminActions);
         permissionService.assign(user, Sets.newHashSet(actionService.find(Actions.FLOW_SHOW.name())));
+        permissionService.assign(user, Sets.newHashSet(actionService.find(Actions.FLOW_YML.name())));
         permissionService.assign(ymlOperator, Sets.newHashSet(actionService.find(Actions.FLOW_YML.name())));
 
         // init mock user
-        userForAdmin = userService.register(new User("test1@flow.ci", "test1", "12345"), null);
-        userForUser = userService.register(new User("test2@flow.ci", "test2", "12345"), null);
-        userWithoutAuthority = userService.register(new User("test3@flow.ci", "test3", "12345"), null);
+        userForAdmin = userService.register(new User("test1@flow.ci", "test1", "12345"),
+                                            Lists.newArrayList("ROLE_ADMIN"), false,
+                                            Lists.newArrayList("flow2"));
 
-        // assign user for admin role
-        roleService.assign(userForAdmin, admin);
+        userForUser = userService.register(new User("test2@flow.ci", "test2", "12345"),
+                                            Lists.newArrayList("ROLE_USER"), false,
+                                            Lists.newArrayList(flowName));
+        userWithoutAuthority = userService.register(new User("test3@flow.ci", "test3", "12345"),
+            Lists.newArrayList("ROLE_YML"), false,
+            Lists.newArrayList(flowName));
 
-        // assign user for normal user and yml operator role
-        roleService.assign(userForUser, user);
-        roleService.assign(userForUser, ymlOperator);
     }
 
     @Test
@@ -172,4 +181,5 @@ public class SecurityTest extends TestBase {
         String token = tokenGenerator.create(user.getEmail(), 100);
         return builder.header(AuthenticationInterceptor.TOKEN_HEADER_PARAM, token);
     }
+
 }

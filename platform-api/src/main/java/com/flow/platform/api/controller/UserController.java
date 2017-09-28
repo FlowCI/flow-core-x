@@ -1,20 +1,18 @@
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.request.LoginParam;
+import com.flow.platform.api.domain.request.RegisterUserParam;
+import com.flow.platform.api.domain.request.UpdateUserRoleParam;
+import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.UserService;
-import com.google.common.base.Strings;
-import java.util.HashSet;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 
 /**
@@ -36,6 +34,8 @@ public class UserController {
      *
      * @apiSuccessExample {json} Success-Response
      *  [
+     *      total: 8,
+     *      adminCount: 2,
      *      {
      *          email: xxx,
      *          username: xxx,
@@ -59,8 +59,12 @@ public class UserController {
      *  ]
      */
     @GetMapping
-    public List<User> list() {
-        return userService.list(true, true);
+    public UserListResponse list() {
+        Long userCount = userService.usersCount();
+        Long userAdminCount = userService.adminUserCount();
+        List<User> users = userService.list(true, true);
+        UserListResponse userListResponse = new UserListResponse(userCount, userAdminCount, users);
+        return userListResponse;
     }
 
     /**
@@ -97,14 +101,19 @@ public class UserController {
     }
 
     /**
-     * @api {post} /register Register
-     * @apiParam {String} roles Param example: ?roles=admin,user
+     * @api {post} /register
      * @apiParamExample {json} Request-Body:
      *     {
      *         	"email" : "test1@fir.im",
      *         	"username" : "test1",
      *         	"password" : "test1",
-     *         	"roleId" : "developer"
+     *         	"isSendEmail" : "false",
+     *         	"flows": {
+     *         	    "arrays": ["xxxx", "xxx"]
+     *         	},
+     *         	"roles": {
+     *         	    "arrays": ["xxx", "xxxx"]
+     *         	}
      *     }
      * @apiName User Register
      * @apiGroup User
@@ -126,20 +135,10 @@ public class UserController {
      *     }
      */
     @PostMapping("/register")
-    public void register(@RequestBody User user, @RequestParam(required = false) String roles) {
-        final Set<String> roleNameSet = new HashSet<>(2);
-
-        // to split roles parameter from xx,xx,xx, to role name set
-        if (!Strings.isNullOrEmpty(roles)) {
-            roles = roles.trim();
-
-            ControllerUtil.extractParam(roles, item -> {
-                roleNameSet.add(item);
-                return null;
-            });
-        }
-
-        userService.register(user, roleNameSet);
+    public void register(@RequestBody RegisterUserParam registerUserParam) {
+        User user = new User(registerUserParam.getEmail(), registerUserParam.getUsername(), registerUserParam.getPassword());
+        userService.register(user, registerUserParam.getRoles().getArrays(), registerUserParam.isSendEmail(),
+                             registerUserParam.getFlows().getArrays());
     }
 
     /**
@@ -149,10 +148,9 @@ public class UserController {
      * @apiDescription Delete user by email
      *
      * @apiParamExample {json} Request-Example:
-     *     [
-     *         "test1@fir.im",
-     *         "test2@fir.im"
-     *     ]
+     *     {
+     *         "arrays": ["test1@fir.im","test2@fir.im"]
+     *     }
      *
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
@@ -163,8 +161,38 @@ public class UserController {
      *         "message": "JSON parse error: java.io.EOFException: End of input at line 4 column 1 path $[2]; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 4 column 1 path $[2]"
      *     }
      */
-    @DeleteMapping
-    public void delete(@RequestBody List<String> emailList) {
-        userService.delete(emailList);
+    @PostMapping(path = "/delete")
+    public void delete(@RequestBody ListParam<String> listParam) {
+        userService.delete(listParam.getArrays());
     }
+
+    /**
+     * @api {post} /updateUserRole
+     * @apiParamExample {json} Request-Body:
+     *     {
+     *         	"emailList" : {
+     *         	    "arrays": ["test1@fir.im", "xxx@fir.im"]
+     *         	}
+     *         	"roles": {
+     *         	    "arrays": ["xxx", "xxxx"]
+     *         	}
+     *     }
+     * @apiName User Update role
+     * @apiGroup User
+     * @apiDescription update user role by request information
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 500 Internal Server Error
+     *     {
+     *         "message": "JSON parse error: java.io.EOFException: End of input at line 6 column 1 path $.roleId; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 6 column 1 path $.roleId"
+     *     }
+     */
+    @PostMapping("/role/update")
+    public List<User> updateRole(@RequestBody UpdateUserRoleParam updateUserRoleParam){
+        return userService.updateUserRole(updateUserRoleParam.getEmailList().getArrays(), updateUserRoleParam.getRoles().getArrays());
+    }
+
 }

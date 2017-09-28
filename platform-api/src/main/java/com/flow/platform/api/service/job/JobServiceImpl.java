@@ -21,6 +21,8 @@ import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
 import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
 import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.JobYmlDao;
+import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.JobEnvs;
@@ -31,6 +33,7 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
@@ -50,8 +53,8 @@ import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import java.math.BigInteger;
+import com.google.common.collect.Sets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
@@ -108,6 +111,15 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     private YmlService ymlService;
+
+    @Autowired
+    private NodeResultDao nodeResultDao;
+
+    @Autowired
+    private JobYmlDao jobYmlDao;
+
+    @Autowired
+    protected ThreadLocal<User> currentUser;
 
     @Value(value = "${domain}")
     private String domain;
@@ -174,6 +186,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
         job.setCategory(eventType);
+
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
 
@@ -184,6 +197,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         EnvUtil.merge(envs, job.getEnvs(), true);
+
+        if (eventType == GitEventType.MANUAL) {
+            job.setCreatedBy(currentUser().getEmail());
+        }
 
         //save job
         jobDao.save(job);
@@ -262,6 +279,17 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         LOGGER.warn("not found cmdType, cmdType: %s", cmd.getType().toString());
         throw new NotFoundException("not found cmdType");
+    }
+
+    @Override
+    public void deleteJob(String path) {
+        List<BigInteger> jobIds = jobDao.findJobIdsByPath(path);
+        // TODO :  Late optimization and paging jobIds
+        if (jobIds.size() > 0) {
+            jobYmlDao.delete(jobIds);
+            nodeResultDao.delete(jobIds);
+            jobDao.deleteJob(path);
+        }
     }
 
     /**
@@ -512,5 +540,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private String logUrl(final Job job) {
         Path path = Paths.get(domain, "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
         return path.toString();
+    }
+
+    private User currentUser() {
+        if (currentUser.get() == null) {
+            throw new NotFoundException(String.format("user not found"));
+        }
+        return currentUser.get();
     }
 }

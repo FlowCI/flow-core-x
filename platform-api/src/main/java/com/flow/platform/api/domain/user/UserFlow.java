@@ -21,49 +21,20 @@ import com.google.gson.annotations.Expose;
 /**
  * @author lhl
  */
-public class Role extends CreateUpdateObject {
-
-    private Integer id;
+public class UserFlow extends CreateUpdateObject {
 
     @Expose
-    private String name;
-
-    @Expose
-    private String description;
+    private UserFlowKey key;
 
     @Expose
     private String createdBy;
 
-    public Role() {
+    public UserFlowKey getKey() {
+        return key;
     }
 
-    public Role(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+    public void setKey(UserFlowKey key) {
+        this.key = key;
     }
 
     public String getCreatedBy() {
@@ -72,6 +43,26 @@ public class Role extends CreateUpdateObject {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public UserFlow() {
+    }
+
+    public UserFlow(String flowPath, String email) {
+        this(new UserFlowKey(flowPath, email));
+    }
+
+    public UserFlow(UserFlowKey userFlowKey) {
+        this.key = userFlowKey;
+    }
+
+
+    public String getFlowPath() {
+        return this.key.getFlowPath();
+    }
+
+    public String getEmail() {
+        return this.key.getEmail();
     }
 
     @Override
@@ -83,24 +74,26 @@ public class Role extends CreateUpdateObject {
             return false;
         }
 
-        Role role = (Role) o;
+        UserFlow userFlow = (UserFlow) o;
 
-        return id.equals(role.id);
+        if (key != null ? !key.equals(userFlow.key) : userFlow.key != null) {
+            return false;
+        }
+        return createdBy != null ? createdBy.equals(userFlow.createdBy) : userFlow.createdBy == null;
     }
-
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (description != null ? description.hashCode() : 0);
+        int result = key != null ? key.hashCode() : 0;
+        result = 31 * result + (createdBy != null ? createdBy.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "Role{" +
-            "name='" + name + '\'' +
-            ", description='" + description + '\'' +
+        return "UserFlow{" +
+            "key=" + key +
+            ", createdBy='" + createdBy + '\'' +
             '}';
     }
 }

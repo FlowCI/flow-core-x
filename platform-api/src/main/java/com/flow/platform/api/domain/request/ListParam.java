@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.dao.job;
+package com.flow.platform.api.domain.request;
 
-import com.flow.platform.api.domain.job.JobYml;
-import com.flow.platform.core.dao.BaseDao;
-import java.math.BigInteger;
+import com.google.gson.annotations.Expose;
 import java.util.List;
 
 /**
  * @author lhl
  */
-public interface JobYmlDao extends BaseDao<BigInteger, JobYml> {
+public class ListParam<T> {
 
-    /**
-     * delete jobYml by jobIds
-     *
-     * @param jobIds jobIds
-     */
-    void delete(List<BigInteger> jobIds);
+    @Expose
+    private List<T> arrays;
 
+    public List<T> getArrays() {
+        return arrays;
+    }
+
+    public void setArrays(List<T> arrays) {
+        this.arrays = arrays;
+    }
 }

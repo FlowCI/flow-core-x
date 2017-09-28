@@ -175,6 +175,23 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         });
     }
 
+    @Override
+    public List<BigInteger> findJobIdsByPath(String path) {
+        return execute(session -> session
+            .createQuery("select id from Job where nodePath = ?", BigInteger.class)
+            .setParameter(0, path)
+            .list());
+    }
+
+
+    @Override
+    public int deleteJob(String path) {
+        return execute(session -> session
+            .createQuery("delete from Job where nodePath = ?")
+            .setParameter(0, path)
+            .executeUpdate());
+    }
+
     private static boolean hasCollection(final Collection<String> data) {
         return data != null && data.size() > 0;
     }

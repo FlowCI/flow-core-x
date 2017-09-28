@@ -14,6 +14,9 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -33,12 +36,14 @@ import com.flow.platform.api.dao.user.ActionDao;
 import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.job.NodeResultService;
+import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
@@ -141,6 +146,12 @@ public abstract class TestBase {
     @Autowired
     protected Path workspace;
 
+    @Autowired
+    protected UserFlowDao userFlowDao;
+
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
     protected MockMvc mockMvc;
 
     @Rule
@@ -149,6 +160,14 @@ public abstract class TestBase {
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
+        User user = userDao.get(DEFAULT_USER_EMAIL);
+        if (user == null) {
+            User testUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
+            userDao.save(testUser);
+            currentUser.set(testUser);
+        } else {
+            currentUser.set(user);
+        }
     }
 
     public String getResourceContent(String fileName) throws IOException {
@@ -227,6 +246,7 @@ public abstract class TestBase {
         actionDao.deleteAll();
         userRoleDao.deleteAll();
         permissionDao.deleteAll();
+        userFlowDao.deleteAll();
     }
 
     @After

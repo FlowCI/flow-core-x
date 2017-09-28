@@ -19,7 +19,9 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.response.BooleanValue;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.YmlService;
@@ -394,5 +396,35 @@ public class FlowController extends NodeController {
     public Node createFromYml(@RequestBody String yml) {
         String path = getNodePathFromUrl();
         return nodeService.createOrUpdate(path, yml);
+    }
+
+    /**
+     * @api {post} /flows/:root/users/auth
+     * @apiParam {String} root flow node name
+     * @apiParamExample {json} Request-Body:
+     *     {
+     *         	"arrays" : ["test1@fir.im", "hl@fir.im"]
+     *     }
+     * @apiGroup Flows
+     *
+     * @apiSuccessExample {list} Success-Response
+     *  [
+     *    {
+     *      email: "xxxx",
+     *      username: "xxxx",
+     *      flows: [
+     *        "aaa"
+     *      ]
+     *      createdAt: 15123123
+     *      updatedAt: 15123123
+     *    },
+     *    {}
+     *  ]
+     */
+    @PostMapping("/{root}/users/auth")
+    @WebSecurity(action = Actions.FLOW_AUTH)
+    public List<User> flowAuthUsers(@RequestBody ListParam<String> listParam){
+        String path = getNodePathFromUrl();
+        return nodeService.authUsers(listParam.getArrays(), path);
     }
 }
