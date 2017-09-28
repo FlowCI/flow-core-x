@@ -234,6 +234,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());
+        Assert.assertEquals(mockUser.getEmail(), job.getCreatedBy());
         Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
 
         Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER));

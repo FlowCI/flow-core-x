@@ -158,13 +158,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     @Transactional(noRollbackFor = FlowException.class)
-    public Job createJob(String path, GitEventType eventType, Map<String, String> envs, User user) {
+    public Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
         }
 
-        if (user == null) {
+        if (creator == null) {
             throw new IllegalParameterException("User is required while create job");
         }
 
@@ -190,7 +190,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
         job.setCategory(eventType);
-        job.setCreatedBy(user.getEmail());
+        job.setCreatedBy(creator.getEmail());
         job.setCreatedAt(ZonedDateTime.now());
         job.setUpdatedAt(ZonedDateTime.now());
 
@@ -230,7 +230,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     public void createJobAndYmlLoad(String path,
                                     GitEventType eventType,
                                     Map<String, String> envs,
-                                    User user,
+                                    User creator,
                                     Consumer<Job> onJobCreated) {
 
         final Flow flow = nodeService.findFlow(path);
@@ -240,7 +240,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             LOGGER.trace("Yml content has been loaded for path : " + path);
 
             try {
-                Job job = this.createJob(path, eventType, envs, user);
+                Job job = this.createJob(path, eventType, envs, creator);
 
                 if (onJobCreated != null) {
                     onJobCreated.accept(job);

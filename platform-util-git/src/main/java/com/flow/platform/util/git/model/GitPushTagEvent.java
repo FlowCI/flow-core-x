@@ -87,9 +87,6 @@ public class GitPushTagEvent extends GitEvent {
     @SerializedName(value = "user_name")
     private String username;
 
-    @SerializedName(value = "user_email")
-    private String userEmail;
-
     private String message;
 
     @SerializedName(value = "compare")
@@ -164,14 +161,6 @@ public class GitPushTagEvent extends GitEvent {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getUserEmail() {
-        return userEmail;
-    }
-
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
     }
 
     public String getMessage() {

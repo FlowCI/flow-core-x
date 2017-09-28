@@ -72,20 +72,26 @@ public interface JobService {
      * request agent session from control center
      *
      * @param path any node path
-     * @param envs the input environment variables
+     * @param eventType the trigger type
+     * @param envs the input environment variables, set to null if not available
+     * @param creator the user who create job
      * @return job with children node result
      */
-    Job createJob(String path, GitEventType eventType, Map<String, String> envs, User user);
+    Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator);
 
     /**
-     * Create job after loading yml
+     * Create job after loading yml, in async mode
      *
+     * @param path any node path
+     * @param eventType the trigger type
+     * @param envs the input environment variables, set to null if not available
+     * @param creator the user who create job
      * @param onJobCreated callback
      */
     void createJobAndYmlLoad(String path,
                              GitEventType eventType,
                              Map<String, String> envs,
-                             User user,
+                             User creator,
                              Consumer<Job> onJobCreated);
 
     /**

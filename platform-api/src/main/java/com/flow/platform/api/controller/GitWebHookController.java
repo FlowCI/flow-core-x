@@ -23,6 +23,7 @@ import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.model.GitEvent;
@@ -72,7 +73,8 @@ public class GitWebHookController extends NodeController {
             // extract git related env variables from event, and temporary set to node for git loading
             final Map<String, String> gitEnvs = GitEventDataExtractor.extract(hookEvent);
 
-            final User user = new User("undefined", "undefined", "");
+            // get user email from git event
+            final User user = new User(hookEvent.getUserEmail(), StringUtil.EMPTY, StringUtil.EMPTY);
 
             jobService.createJobAndYmlLoad(path, hookEvent.getType(), gitEnvs, user, (job) -> {
                 applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));

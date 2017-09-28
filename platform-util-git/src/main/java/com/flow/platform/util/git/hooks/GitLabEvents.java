@@ -87,7 +87,7 @@ public class GitLabEvents {
         }
     }
 
-    public static class MergeRequestAdaptor extends GitHookEventAdapter {
+    public static class PullRequestAdaptor extends GitHookEventAdapter {
 
         public final static String STATE_OPEN = "opened";
 
@@ -152,7 +152,7 @@ public class GitLabEvents {
             private String message;
         }
 
-        MergeRequestAdaptor(GitSource gitSource, GitEventType eventType) {
+        PullRequestAdaptor(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
@@ -183,6 +183,7 @@ public class GitLabEvents {
                 prEvent.setAction(attrs.action);
                 prEvent.setUrl(attrs.url);
                 prEvent.setSubmitter(user.name);
+                prEvent.setUserEmail(user.name); // cannot get user email from pr data
                 prEvent.setTarget(new GitPullRequestInfo());
                 prEvent.setSource(new GitPullRequestInfo());
 

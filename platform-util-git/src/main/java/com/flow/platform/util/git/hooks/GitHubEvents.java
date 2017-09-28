@@ -88,8 +88,8 @@ public class GitHubEvents {
             }
 
             event.setUserId(helper.sender.getId());
-            event.setUserEmail(helper.pusher.getEmail());
             event.setUsername(helper.pusher.getName());
+            event.setUserEmail(helper.pusher.getEmail());
 
             event.setHeadCommitUrl(helper.headCommit.getUrl());
             event.setCompareId(GitPushTagEvent.buildCompareId(event));
@@ -99,7 +99,7 @@ public class GitHubEvents {
         }
     }
 
-    public static class MergeRequestAdapter extends GitHookEventAdapter {
+    public static class PullRequestAdapter extends GitHookEventAdapter {
 
         public final static String STATE_OPEN = "open";
 
@@ -170,7 +170,7 @@ public class GitHubEvents {
             private Boolean isSiteAdmin;
         }
 
-        public MergeRequestAdapter(GitSource gitSource, GitEventType eventType) {
+        public PullRequestAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
@@ -198,6 +198,7 @@ public class GitHubEvents {
             event.setTitle(pullRequest.title);
             event.setUrl(pullRequest.htmlUrl);
             event.setSubmitter(pullRequest.user.login);
+            event.setUserEmail(pullRequest.user.login); //cannot get user email from pr data
             event.setSource(new GitPullRequestInfo());
             event.setTarget(new GitPullRequestInfo());
 

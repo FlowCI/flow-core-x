@@ -146,7 +146,7 @@ public class CmdWebhookControllerTest extends TestBase {
         // init
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
 
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, null);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
         Step step2 = (Step) nodeService.find("flow1/step2");
         Step step1 = (Step) nodeService.find("flow1/step1");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
@@ -192,7 +192,7 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_with_timeout_but_allow_failure() throws Throwable {
         Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, null);
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
         final String sessionId = "1111111";
 
         // when: create session
