@@ -41,6 +41,7 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.git.model.GitEventType;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -227,6 +228,21 @@ public class JobServiceTest extends TestBase {
 
         // then:
         Assert.assertEquals(JobStatus.TIMEOUT, jobService.find(job.getId()).getStatus());
+    }
+
+    @Test
+    public void getLatestByPath() throws IOException{
+        Node rootForFlow = createRootFlow("flowTest", "demo_flow1.yaml");
+        createMockJob(rootForFlow.getPath());
+        createMockJob(rootForFlow.getPath());
+
+        Assert.assertEquals(2, jobDao.list().size());
+
+        List<String> rootPath = Lists.newArrayList(rootForFlow.getPath());
+        List<Job> jobs = jobService.list(rootPath,true);
+        Assert.assertEquals(1, jobs.size());
+        Assert.assertEquals("2", jobs.get(0).getNumber().toString());
+
     }
 
     private Job createMockJob(String nodePath) {
