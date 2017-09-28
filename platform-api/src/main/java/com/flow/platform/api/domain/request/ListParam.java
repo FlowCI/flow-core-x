@@ -15,29 +15,22 @@
  */
 package com.flow.platform.api.domain.request;
 
+import com.google.gson.annotations.Expose;
 import java.util.List;
 
 /**
  * @author lhl
  */
-public class UpdateUserRoleParam {
+public class ListParam <T> {
 
-    private ListParam<String> emailList;
-    private ListParam<String> roles;
+    @Expose
+    private List<T> arrays;
 
-    public ListParam<String> getRoles() {
-        return roles;
+    public List<T> getArrays() {
+        return arrays;
     }
 
-    public void setRoles(ListParam<String> roles) {
-        this.roles = roles;
-    }
-
-    public ListParam<String> getEmailList() {
-        return emailList;
-    }
-
-    public void setEmailList(ListParam<String> emailList) {
-        this.emailList = emailList;
+    public void setArrays(List<T> arrays) {
+        this.arrays = arrays;
     }
 }

@@ -40,24 +40,19 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.service.ApplicationEventService;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
 import com.google.common.collect.Sets;
 import java.time.ZonedDateTime;
@@ -65,8 +60,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -200,9 +193,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         EnvUtil.merge(envs, job.getEnvs(), true);
 
-
-        if (eventType == GitEventType.MANUAL){
-            job.setCreatedBy(currentUser.get().getEmail());
+        if (eventType == GitEventType.MANUAL) {
+            job.setCreatedBy(currentUser().getEmail());
         }
 
         //save job
@@ -284,9 +276,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     public void deleteJob(String path) {
         List<BigInteger> jobIds = jobDao.findJobIdsByPath(path);
         // TODO :  Late optimization and paging jobIds
-        if (jobIds.size() > 0){
-            jobYmlDao.deleteList(jobIds);
-            nodeResultDao.deleteList(jobIds);
+        if (jobIds.size() > 0) {
+            jobYmlDao.delete(jobIds);
+            nodeResultDao.delete(jobIds);
             jobDao.deleteJob(path);
         }
     }
@@ -540,5 +532,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             nodeResult.setStatus(NodeStatus.TIMEOUT);
             nodeResultService.update(nodeResult);
         }
+    }
+
+    private User currentUser() {
+        if (currentUser.get() == null) {
+            throw new NotFoundException(String.format("user not found"));
+        }
+        return currentUser.get();
     }
 }

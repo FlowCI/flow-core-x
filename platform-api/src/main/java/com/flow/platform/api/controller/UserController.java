@@ -1,6 +1,6 @@
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.request.EmailListParam;
+import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.request.RegisterUserParam;
 import com.flow.platform.api.domain.request.UpdateUserRoleParam;
@@ -108,8 +108,12 @@ public class UserController {
      *         	"username" : "test1",
      *         	"password" : "test1",
      *         	"isSendEmail" : "false",
-     *         	"flows": ["xxxx", "xxx"],
-     *         	"roles": ["xxx", "xxxx"]
+     *         	"flows": {
+     *         	    "arrays": ["xxxx", "xxx"]
+     *         	},
+     *         	"roles": {
+     *         	    "arrays": ["xxx", "xxxx"]
+     *         	}
      *     }
      * @apiName User Register
      * @apiGroup User
@@ -133,8 +137,8 @@ public class UserController {
     @PostMapping("/register")
     public void register(@RequestBody RegisterUserParam registerUserParam) {
         User user = new User(registerUserParam.getEmail(), registerUserParam.getUsername(), registerUserParam.getPassword());
-        userService.register(user, registerUserParam.getRoles(), registerUserParam.isSendEmail(),
-                             registerUserParam.getFlows());
+        userService.register(user, registerUserParam.getRoles().getArrays(), registerUserParam.isSendEmail(),
+                             registerUserParam.getFlows().getArrays());
     }
 
     /**
@@ -144,10 +148,9 @@ public class UserController {
      * @apiDescription Delete user by email
      *
      * @apiParamExample {json} Request-Example:
-     *     [
-     *         "test1@fir.im",
-     *         "test2@fir.im"
-     *     ]
+     *     {
+     *         "arrays": ["test1@fir.im","test2@fir.im"]
+     *     }
      *
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
@@ -159,16 +162,20 @@ public class UserController {
      *     }
      */
     @PostMapping(path = "/delete")
-    public void delete(@RequestBody EmailListParam emailListParam) {
-        userService.delete(emailListParam.getEmailList());
+    public void delete(@RequestBody ListParam<String> listParam) {
+        userService.delete(listParam.getArrays());
     }
 
     /**
      * @api {post} /updateUserRole
      * @apiParamExample {json} Request-Body:
      *     {
-     *         	"emailList" : ["test1@fir.im", "xxx@fir.im"]
-     *         	"roles": ["xxx", "xxxx"]
+     *         	"emailList" : {
+     *         	    "arrays": ["test1@fir.im", "xxx@fir.im"]
+     *         	}
+     *         	"roles": {
+     *         	    "arrays": ["xxx", "xxxx"]
+     *         	}
      *     }
      * @apiName User Update role
      * @apiGroup User
@@ -185,7 +192,7 @@ public class UserController {
      */
     @PostMapping("/role/update")
     public List<User> updateRole(@RequestBody UpdateUserRoleParam updateUserRoleParam){
-        return userService.updateUserRole(updateUserRoleParam.getEmailList(), updateUserRoleParam.getRoles());
+        return userService.updateUserRole(updateUserRoleParam.getEmailList().getArrays(), updateUserRoleParam.getRoles().getArrays());
     }
 
 }

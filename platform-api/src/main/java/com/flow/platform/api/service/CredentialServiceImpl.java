@@ -49,13 +49,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class CredentialServiceImpl implements CredentialService {
+public class CredentialServiceImpl extends CurrentUser implements CredentialService {
 
     @Autowired
     private CredentialDao credentialDao;
-
-    @Autowired
-    protected ThreadLocal<User> currentUser;
 
     private final Map<CredentialType, DetailHandler> handlerMapping = new HashMap<>();
 
@@ -89,7 +86,7 @@ public class CredentialServiceImpl implements CredentialService {
 
         credential.setType(detail.getType());
         credential.setDetail(detail);
-        credential.setCreatedBy(currentUser.get().getEmail());
+        credential.setCreatedBy(currentUser().getEmail());
         credentialDao.saveOrUpdate(credential);
 
         return credentialDao.get(name);

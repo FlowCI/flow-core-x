@@ -15,11 +15,18 @@
  */
 package com.flow.platform.api.initializers;
 
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
+
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.RoleName;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.domain.user.UserRole;
+import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.core.context.ContextEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +48,16 @@ public class UserRoleInit implements ContextEvent {
     @Autowired
     private UserDao userDao;
 
+    @Autowired
+    private UserRoleDao userRoleDao;
+
     @Override
     public void start(){
 
         // create sys user
-        User user = userDao.get("admin@admin.com");
+        User user = userDao.get(DEFAULT_USER_EMAIL);
         if (user == null){
-            User sysUser = new User("admin@admin.com", "admin", "123456");
+            User sysUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
             sysUser.setCreatedBy("system created");
             userDao.save(sysUser);
         }
@@ -68,10 +78,14 @@ public class UserRoleInit implements ContextEvent {
             roleDao.save(sysRoleUser);
         }
 
-//         create sys user_role relation
+        // create sys user_role relation
         Role role = roleService.find(RoleName.ADMIN.getName());
-        User sysUser = userDao.get("admin@admin.com");
-        roleService.assign(sysUser, role);
+        User sysUser = userDao.get(DEFAULT_USER_EMAIL);
+        UserRole userRole = userRoleDao.get(new UserRoleKey(role.getId(), sysUser.getEmail()));
+        if (userRole == null){
+            roleService.assign(sysUser, role);
+        }
+
     }
 
     @Override

@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.domain.request;
+package com.flow.platform.api.service;
 
-import java.util.List;
+import com.flow.platform.api.domain.user.User;
+import com.flow.platform.core.exception.NotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author lhl
  */
-public class EmailListParam {
 
-    private List<String> emailList;
+public class CurrentUser {
 
-    public List<String> getEmailList() {
-        return emailList;
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
+    public User currentUser() {
+        if (currentUser.get() == null) {
+            throw new NotFoundException(String.format("user not found"));
+        }
+        return currentUser.get();
     }
-
-    public void setEmailList(List<String> emailList) {
-        this.emailList = emailList;
-    }
-
 }

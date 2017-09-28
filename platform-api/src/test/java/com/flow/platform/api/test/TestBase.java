@@ -14,6 +14,9 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -149,7 +152,6 @@ public abstract class TestBase {
     @Autowired
     private ThreadLocal<User> currentUser;
 
-
     protected MockMvc mockMvc;
 
     @Rule
@@ -158,9 +160,9 @@ public abstract class TestBase {
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
-        User user = userDao.get("admin@admin.com");
+        User user = userDao.get(DEFAULT_USER_EMAIL);
         if (user == null){
-            User testUser = new User("admin@admin.com", "admin", "123456");
+            User testUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
             userDao.save(testUser);
             currentUser.set(testUser);
         } else {

@@ -101,7 +101,7 @@ public class UserControllerTest extends TestBase {
 
         // register success: response 200; userinfo is inserted into database
         requestContent = "{ \"email\" : \"testRegister@fir.im\", \"username\" : \"testRegister\", \"password\" : \"liangpengyv\", \"isSendEmail\" : \"false\", "
-            + "\"flows\": [\"test\"], \"roles\" : [\"admin\"] }";
+            + "\"flows\": {\"arrays\": [\"test\"]}, \"roles\": {\"arrays\": [\"admin_test\"]}}";
         mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON)
             .content(requestContent);
         mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
@@ -109,7 +109,7 @@ public class UserControllerTest extends TestBase {
 
         // register failed: response 400; return error description message
         requestContent = "{ \"email\" : \"testRegister@fir.im\", \"username\" : \"testRegister\", \"password\" : \"liangpengyv\", \"isSendEmail\" : \"false\", "
-            + "\"flows\": [\"test\"], \"roles\" : [\"admin\"] }";
+            + "\"flows\": {\"arrays\": [\"test\"]}, \"roles\": {\"arrays\": [\"admin_test\"]}}";
         mockHttpServletRequestBuilder = post("/user/register").contentType(MediaType.APPLICATION_JSON)
             .content(requestContent);
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is4xxClientError()).andReturn();
@@ -135,7 +135,7 @@ public class UserControllerTest extends TestBase {
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 
         // delete success: response 200; userinfo is deleted from database
-        requestContent = "{ \"emailList\" : [\"liangpengyv@fir.im\"]}";
+        requestContent = "{ \"arrays\" : [\"liangpengyv@fir.im\"]}";
         mockMvc.perform(post("/user/delete")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestContent)).andExpect(status().isOk()).andReturn();
@@ -143,7 +143,7 @@ public class UserControllerTest extends TestBase {
 
         //delete failed: response 500; return error description message
         requestContent = "abcdefg";
-        mvcResult = mockMvc.perform(delete("/user")
+        mvcResult = mockMvc.perform(post("/user/delete")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestContent)).andExpect(status().is5xxServerError()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
@@ -155,7 +155,8 @@ public class UserControllerTest extends TestBase {
         String requestContent;
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
 
-        requestContent = "{ \"emailList\": [\"liangpengyv@fir.im\"], \"roles\" : [\"admin\"] }";
+        requestContent = "{ \"emailList\": {\"arrays\": [\"liangpengyv@fir.im\"]}, "
+                         + "\"roles\" : {\"arrays\": [\"admin_test\"]}}";
         mockHttpServletRequestBuilder = post("/user/role/update").contentType(MediaType.APPLICATION_JSON)
             .content(requestContent);
         mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
@@ -164,7 +165,7 @@ public class UserControllerTest extends TestBase {
     }
 
     private Role createRole(){
-        return roleService.create("admin", "");
+        return roleService.create("admin_test", "");
     }
 
     private Flow createFlow(){

@@ -12,6 +12,7 @@ import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.RoleName;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.token.TokenGenerator;
+import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.api.service.MessageService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.SmtpUtil;
@@ -31,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service(value = "userService")
 @Transactional
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends CurrentUser implements UserService {
 
     @Autowired
     private UserDao userDao;
@@ -56,9 +57,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserFlowDao userFlowDao;
-
-    @Autowired
-    protected ThreadLocal<User> currentUser;
 
     @Value(value = "${expiration.duration}")
     private long expirationDuration;
@@ -123,7 +121,7 @@ public class UserServiceImpl implements UserService {
         // Insert the user info into the database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
         user.setPassword(passwordForMD5);
-        user.setCreatedBy(currentUser.get().getEmail());
+        user.setCreatedBy(currentUser().getEmail());
         user = userDao.save(user);
 
 

@@ -40,7 +40,7 @@ public class JobYmlDaoImpl extends AbstractBaseDao<BigInteger, JobYml> implement
     }
 
     @Override
-    public void deleteList(List<BigInteger> jobIds) {
+    public void delete(List<BigInteger> jobIds) {
         execute((Session session) -> {
             String delete = String.format("delete from JobYml where job_id in (:list)");
             Query query = session.createQuery(delete);

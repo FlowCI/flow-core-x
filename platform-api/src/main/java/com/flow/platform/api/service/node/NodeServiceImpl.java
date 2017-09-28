@@ -29,6 +29,7 @@ import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
@@ -63,7 +64,7 @@ import org.springframework.util.FileSystemUtils;
  */
 @Service(value = "nodeService")
 @Transactional
-public class NodeServiceImpl implements NodeService {
+public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     private final Logger LOGGER = new Logger(NodeService.class);
 
@@ -104,9 +105,6 @@ public class NodeServiceImpl implements NodeService {
     @Autowired
     private RoleService roleService;
 
-    @Autowired
-    protected ThreadLocal<User> currentUser;
-
     @Value(value = "${domain}")
     private String domain;
 
@@ -132,7 +130,6 @@ public class NodeServiceImpl implements NodeService {
         }
 
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
-//        flow.setCreatedBy(currentUser.get().getEmail());
 
         // persistent flow type node to flow table with env which from yml
         EnvUtil.merge(rootFromYml, flow, true);
@@ -248,10 +245,10 @@ public class NodeServiceImpl implements NodeService {
         flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
         flow.putEnv(FlowEnvs.FLOW_STATUS, StatusValue.PENDING);
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND);
-        flow.setCreatedBy(currentUser.get().getEmail());
+        flow.setCreatedBy(currentUser().getEmail());
         flow = flowDao.save(flow);
 
-        userFlowService.assign(currentUser.get(),flow);
+        userFlowService.assign(currentUser(),flow);
 
         return flow;
     }

@@ -30,6 +30,6 @@ public interface JobYmlDao extends BaseDao<BigInteger, JobYml> {
      *
      * @param jobIds jobIds
      */
-    void deleteList(List<BigInteger> jobIds);
+    void delete(List<BigInteger> jobIds);
 
 }

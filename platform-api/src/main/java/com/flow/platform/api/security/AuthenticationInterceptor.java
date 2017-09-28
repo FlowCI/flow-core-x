@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.security;
 
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
+
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.AccessDeniedException;
@@ -84,7 +86,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
-        User user = userService.findByEmail("admin@admin.com");
+        User user = userService.findByEmail(DEFAULT_USER_EMAIL);
         currentUser.set(user);
 
         if (!enableAuth) {
@@ -132,7 +134,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         // find annotation
         WebSecurity securityAnnotation = handlerMethod.getMethodAnnotation(WebSecurity.class);
         if (securityAnnotation == null) {
-            User user = userService.findByEmail("admin@admin.com");
+            User user = userService.findByEmail(DEFAULT_USER_EMAIL);
             currentUser.set(user);
 //            return;
         }

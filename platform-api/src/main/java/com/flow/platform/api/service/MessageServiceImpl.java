@@ -35,20 +35,17 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class MessageServiceImpl implements MessageService {
+public class MessageServiceImpl extends CurrentUser implements MessageService {
 
     private final static Logger LOGGER = new Logger(MessageService.class);
 
     @Autowired
     private MessageSettingDao messageDao;
 
-    @Autowired
-    protected ThreadLocal<User> currentUser;
-
     @Override
     public SettingContent save(SettingContent t) {
         MessageSetting messageSetting = new MessageSetting(t, ZonedDateTime.now(), ZonedDateTime.now());
-        messageSetting.setCreatedBy(currentUser.get().getEmail());
+        messageSetting.setCreatedBy(currentUser().getEmail());
         if (findSettingByType(t.getType()) == null) {
             messageDao.save(messageSetting);
         } else {

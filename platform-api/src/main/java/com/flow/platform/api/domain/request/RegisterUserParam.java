@@ -30,9 +30,9 @@ public class RegisterUserParam {
 
     private boolean isSendEmail;
 
-    private List<String> flows;
+    private ListParam<String> flows;
 
-    private List<String> roles;
+    private ListParam<String> roles;
 
 
     public String getEmail() {
@@ -67,19 +67,19 @@ public class RegisterUserParam {
         isSendEmail = sendEmail;
     }
 
-    public List<String> getFlows() {
+    public ListParam<String> getFlows() {
         return flows;
     }
 
-    public void setFlows(List<String> flows) {
+    public void setFlows(ListParam<String> flows) {
         this.flows = flows;
     }
 
-    public List<String> getRoles() {
+    public ListParam<String> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<String> roles) {
+    public void setRoles(ListParam<String> roles) {
         this.roles = roles;
     }
 }

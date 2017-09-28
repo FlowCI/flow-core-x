@@ -61,6 +61,10 @@ public class AppConfig extends AppConfigBase {
 
     public final static long ALLOW_SIZE = 2 * 1024 * 1024;
 
+    public final static String DEFAULT_USER_EMAIL = "admin@flow.ci";
+    public final static String DEFAULT_USER_NAME = "admin";
+    public final static String DEFAULT_USER_PASSWORD = "123456";
+
     @Value("${api.workspace}")
     private String workspace;
 

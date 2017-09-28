@@ -53,5 +53,5 @@ public interface NodeResultDao extends BaseDao<NodeResultKey, NodeResult> {
      *
      * @param jobIds  jobIds
      */
-    void deleteList(List<BigInteger> jobIds);
+    void delete(List<BigInteger> jobIds);
 }

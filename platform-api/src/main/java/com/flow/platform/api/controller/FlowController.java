@@ -19,7 +19,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.request.EmailListParam;
+import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
@@ -399,7 +399,7 @@ public class FlowController extends NodeController {
      * @apiParam {String} root flow node name
      * @apiParamExample {json} Request-Body:
      *     {
-     *         	"emailList" : ["test1@fir.im", "hl@fir.im"]
+     *         	"arrays" : ["test1@fir.im", "hl@fir.im"]
      *     }
      * @apiGroup Flows
      *
@@ -419,8 +419,8 @@ public class FlowController extends NodeController {
      */
     @PostMapping("/{root}/users/auth")
     @WebSecurity(action = Actions.FLOW_AUTH)
-    public List<User> flowAuthUsers(@RequestBody EmailListParam emailListParam){
+    public List<User> flowAuthUsers(@RequestBody ListParam<String> listParam){
         String path = getNodePathFromUrl();
-        return nodeService.authUsers(emailListParam.getEmailList(), path);
+        return nodeService.authUsers(listParam.getArrays(), path);
     }
 }

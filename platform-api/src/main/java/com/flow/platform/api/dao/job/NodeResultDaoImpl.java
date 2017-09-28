@@ -99,7 +99,7 @@ public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult
     }
 
     @Override
-    public void deleteList(List<BigInteger> jobIds){
+    public void delete(List<BigInteger> jobIds){
         execute((Session session) -> {
             String delete = String.format("delete from NodeResult where job_id in (:list)");
             Query query = session.createQuery(delete);
