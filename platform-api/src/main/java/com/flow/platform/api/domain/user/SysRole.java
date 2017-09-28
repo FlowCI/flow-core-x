@@ -22,6 +22,6 @@ public enum SysRole {
 
     ADMIN,
 
-    USER,
+    USER
 
 }

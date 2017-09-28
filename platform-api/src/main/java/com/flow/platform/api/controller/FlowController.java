@@ -399,7 +399,7 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {post} /flows/:root/flowAuthUsers
+     * @api {post} /flows/:root/users/auth
      * @apiParam {String} root flow node name
      * @apiParamExample {json} Request-Body:
      *     {
