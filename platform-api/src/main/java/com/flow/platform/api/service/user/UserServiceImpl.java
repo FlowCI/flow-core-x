@@ -9,7 +9,7 @@ import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.user.Role;
-import com.flow.platform.api.domain.user.RoleName;
+import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.service.CurrentUser;
@@ -75,6 +75,9 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             }
 
             if (withFlow) {
+                // for find flow by createdBy
+                // List<String> paths = nodeService.listFlowPathByUser(Lists.newArrayList(user.getEmail()))
+                // user.setFlows(paths);
                 user.setFlows(userFlowDao.listByEmail(user.getEmail()));
             }
 
@@ -124,19 +127,18 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         user.setCreatedBy(currentUser().getEmail());
         user = userDao.save(user);
 
-
-        if (isSendEmail){
+        if (isSendEmail) {
             EmailSettingContent emailSettingContent = (EmailSettingContent) messageService.find(MessageType.EMAIl);
-            if (emailSettingContent != null){
+            if (emailSettingContent != null) {
                 SmtpUtil.sendEmail(emailSettingContent, user.getEmail(), "邀请您加入项目 [ flow.ci ]",
-                    "你已被邀请加入 FLOW.CI, 用户名:"+ user.getEmail() + "密码:" + user.getPassword());
+                    "你已被邀请加入 FLOW.CI, 用户名:" + user.getEmail() + "密码:" + user.getPassword());
             }
         }
 
-        if (flowsList.size() > 0){
-            for (String rootPath : flowsList){
+        if (flowsList.size() > 0) {
+            for (String rootPath : flowsList) {
                 Flow flow = (Flow) nodeService.find(rootPath);
-                if (flow != null){
+                if (flow != null) {
                     userFlowService.assign(user, flow);
                 }
             }
@@ -169,7 +171,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     }
 
     @Override
-    public List<User> updateUserRole(List<String> emailList, List<String> roles){
+    public List<User> updateUserRole(List<String> emailList, List<String> roles) {
         List<User> users = userDao.list(emailList);
         for (User user : users) {
             roleService.unAssign(user);
@@ -184,18 +186,18 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     }
 
     @Override
-    public User findByEmail(String email){
+    public User findByEmail(String email) {
         return userDao.get(email);
     }
 
     @Override
-    public Long adminUserCount(){
-        Role role = roleService.find(RoleName.ADMIN.getName());
+    public Long adminUserCount() {
+        Role role = roleService.find(SysRole.ADMIN.name());
         return userRoleDao.numOfUser(role.getId());
     }
 
     @Override
-    public Long usersCount(){
+    public Long usersCount() {
         List<User> users = userDao.list();
         Long userCount = new Long(users.size());
         return userCount;

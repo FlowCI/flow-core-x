@@ -93,7 +93,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
             return true;
         }
 
-        if(!isNeedToVerify(request)) {
+        if (!isNeedToVerify(request)) {
             return true;
         }
 
@@ -136,7 +136,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         if (securityAnnotation == null) {
             User user = userService.findByEmail(DEFAULT_USER_EMAIL);
             currentUser.set(user);
-//            return;
+            return;
         }
 
         // find action for request
@@ -151,7 +151,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
         // set current user to request attribute
         User user = userService.findByEmail(email);
         currentUser.set(user);
-//        request.setAttribute("user", currentUser);
+        // request.setAttribute("user", currentUser);
     }
 
     private boolean isNeedToVerify(HttpServletRequest request) {

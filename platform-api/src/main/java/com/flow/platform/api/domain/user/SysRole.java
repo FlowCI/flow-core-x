@@ -18,27 +18,10 @@ package com.flow.platform.api.domain.user;
 /**
  * @author lhl
  */
-public enum RoleName {
+public enum SysRole {
 
-    ADMIN("ADMIN", 0),
+    ADMIN,
 
-    USER("USER", 1);
+    USER,
 
-    private String name;
-
-    private int index;
-
-    RoleName(String name, int index) {
-        this.name = name;
-        this.index = index;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-
-    public int getIndex() {
-        return index;
-    }
 }

@@ -27,7 +27,6 @@ import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
-import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.NodeStatusChangeEvent;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.exception.IllegalStatusException;

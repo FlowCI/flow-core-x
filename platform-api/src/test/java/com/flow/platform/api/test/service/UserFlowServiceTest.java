@@ -36,7 +36,7 @@ public class UserFlowServiceTest extends TestBase {
     private ThreadLocal<User> currentUser;
 
     @Test
-    public void should_assign_user_flow(){
+    public void should_assign_user_flow() {
 
         final String flowPath = "flow-integration";
 
@@ -44,7 +44,6 @@ public class UserFlowServiceTest extends TestBase {
 
         Flow flow = nodeService.createEmptyFlow(flowPath);
         Assert.assertNotNull(nodeService.find(flowPath));
-
 
         // then:
         List<User> usersForFlow = userFlowService.list(flowPath);

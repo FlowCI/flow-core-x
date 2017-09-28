@@ -117,7 +117,7 @@ public class UserServiceTest extends TestBase {
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
     }
 
-    private Flow createFlow(){
+    private Flow createFlow() {
         String path = "test";
         return nodeService.createEmptyFlow(path);
     }

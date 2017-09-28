@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * @author lhl
  */
-public class ListParam <T> {
+public class ListParam<T> {
 
     @Expose
     private List<T> arrays;

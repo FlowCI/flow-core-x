@@ -1,11 +1,9 @@
 package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.domain.request.LoginParam;
-import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author liangpengyv

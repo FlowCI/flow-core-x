@@ -161,7 +161,7 @@ public abstract class TestBase {
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         User user = userDao.get(DEFAULT_USER_EMAIL);
-        if (user == null){
+        if (user == null) {
             User testUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
             userDao.save(testUser);
             currentUser.set(testUser);

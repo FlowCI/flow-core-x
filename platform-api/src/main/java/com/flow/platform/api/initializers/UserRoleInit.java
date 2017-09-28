@@ -23,7 +23,7 @@ import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.user.Role;
-import com.flow.platform.api.domain.user.RoleName;
+import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.domain.user.UserRole;
 import com.flow.platform.api.domain.user.UserRoleKey;
@@ -51,45 +51,49 @@ public class UserRoleInit implements ContextEvent {
     @Autowired
     private UserRoleDao userRoleDao;
 
+    @Autowired
+    private ThreadLocal<User> currentUser;
+
     @Override
-    public void start(){
+    public void start() {
 
         // create sys user
         User user = userDao.get(DEFAULT_USER_EMAIL);
-        if (user == null){
+        if (user == null) {
             User sysUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
             sysUser.setCreatedBy("system created");
             userDao.save(sysUser);
         }
 
         // create sys roleAdmin
-        Role roleAdmin = roleDao.get(RoleName.ADMIN.getName());
-        if (roleAdmin == null){
-            Role sysRoleAdmin = new Role(RoleName.ADMIN.getName(), "create default role for admin");
+        Role roleAdmin = roleDao.get(SysRole.ADMIN.name());
+        if (roleAdmin == null) {
+            Role sysRoleAdmin = new Role(SysRole.ADMIN.name(), "create default role for admin");
             sysRoleAdmin.setCreatedBy("system created");
             roleDao.save(sysRoleAdmin);
         }
 
         // create sys roleUser
-        Role roleUser = roleDao.get(RoleName.USER.getName());
-        if (roleUser == null){
-            Role sysRoleUser = new Role(RoleName.USER.getName(), "create default role for user");
+        Role roleUser = roleDao.get(SysRole.USER.name());
+        if (roleUser == null) {
+            Role sysRoleUser = new Role(SysRole.USER.name(), "create default role for user");
             sysRoleUser.setCreatedBy("system created");
             roleDao.save(sysRoleUser);
         }
 
         // create sys user_role relation
-        Role role = roleService.find(RoleName.ADMIN.getName());
+        Role role = roleService.find(SysRole.ADMIN.name());
         User sysUser = userDao.get(DEFAULT_USER_EMAIL);
         UserRole userRole = userRoleDao.get(new UserRoleKey(role.getId(), sysUser.getEmail()));
-        if (userRole == null){
+        if (userRole == null) {
+            currentUser.set(sysUser);
             roleService.assign(sysUser, role);
         }
 
     }
 
     @Override
-    public void stop(){
+    public void stop() {
 
     }
 }

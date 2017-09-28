@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.domain.user.UserFlow;
 import com.flow.platform.api.domain.user.UserFlowKey;
+import com.flow.platform.api.service.CurrentUser;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class UserFlowServiceImpl implements UserFlowService{
+public class UserFlowServiceImpl extends CurrentUser implements UserFlowService {
 
     @Autowired
     private UserFlowDao userFlowDao;
@@ -65,6 +66,7 @@ public class UserFlowServiceImpl implements UserFlowService{
     @Override
     public void assign(User user, Flow flow) {
         UserFlow userFlow = new UserFlow(flow.getPath(), user.getEmail());
+        userFlow.setCreatedBy(currentUser().getEmail());
         userFlowDao.save(userFlow);
     }
 
@@ -74,7 +76,7 @@ public class UserFlowServiceImpl implements UserFlowService{
     }
 
     @Override
-    public void unAssign(Flow flow){
+    public void unAssign(Flow flow) {
         userFlowDao.deleteByFlowPath(flow.getPath());
     }
 

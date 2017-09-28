@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * @author lhl
  */
-public class UserListResponse extends Jsonable{
+public class UserListResponse extends Jsonable {
 
     @Expose
     private Long total;

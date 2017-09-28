@@ -248,7 +248,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         flow.setCreatedBy(currentUser().getEmail());
         flow = flowDao.save(flow);
 
-        userFlowService.assign(currentUser(),flow);
+        userFlowService.assign(currentUser(), flow);
 
         return flow;
     }

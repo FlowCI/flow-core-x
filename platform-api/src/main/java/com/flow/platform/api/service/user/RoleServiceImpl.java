@@ -129,6 +129,7 @@ public class RoleServiceImpl extends CurrentUser implements RoleService {
     @Override
     public void assign(User user, Role role) {
         UserRole userRole = new UserRole(role.getId(), user.getEmail());
+        userRole.setCreatedBy(currentUser().getEmail());
         userRoleDao.save(userRole);
     }
 

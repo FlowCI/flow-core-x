@@ -180,7 +180,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
-
         job.setCategory(eventType);
 
         job.setCreatedAt(ZonedDateTime.now());
@@ -271,7 +270,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         throw new NotFoundException("not found cmdType");
     }
 
-
     @Override
     public void deleteJob(String path) {
         List<BigInteger> jobIds = jobDao.findJobIdsByPath(path);
@@ -282,7 +280,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             jobDao.deleteJob(path);
         }
     }
-
 
     /**
      * run node

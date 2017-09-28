@@ -17,7 +17,6 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.job.JobService;

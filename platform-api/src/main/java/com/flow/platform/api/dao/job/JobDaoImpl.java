@@ -158,7 +158,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
-    public List<BigInteger> findJobIdsByPath(String path){
+    public List<BigInteger> findJobIdsByPath(String path) {
         return execute(session -> session
             .createQuery("select id from Job where nodePath = ?", BigInteger.class)
             .setParameter(0, path)
@@ -167,7 +167,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
 
 
     @Override
-    public int deleteJob(String path){
+    public int deleteJob(String path) {
         return execute(session -> session
             .createQuery("delete from Job where nodePath = ?")
             .setParameter(0, path)
