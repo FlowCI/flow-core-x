@@ -215,6 +215,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         Cmd cmd = cmdQueueItem.getCmd();
         Job job = jobDao.get(jobId);
 
+        if (Job.FINISH_STATUS.contains(job.getStatus())) {
+            LOGGER.trace("Reject cmd callback since job %s already in finish status", job.getId());
+            return;
+        }
+
         if (cmd.getType() == CmdType.CREATE_SESSION) {
 
             // TODO: refactor to find(id, timeout)
@@ -501,11 +506,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         updateJobStatusAndSave(job, JobStatus.TIMEOUT);
-        List<NodeResult> list = nodeResultService.list(job, false);
-        for (NodeResult nodeResult : list) {
-            nodeResult.setStatus(NodeStatus.TIMEOUT);
-            nodeResultService.update(nodeResult);
-        }
+        nodeResultService.updateStatus(job, NodeStatus.TIMEOUT, NodeResult.FINISH_STATUS);
     }
 
     private String logUrl(final Job job) {
