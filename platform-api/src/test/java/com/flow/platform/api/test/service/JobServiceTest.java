@@ -241,7 +241,7 @@ public class JobServiceTest extends TestBase {
         NodeResult rootResult = job.getRootResult();
         Assert.assertNotNull(rootResult);
         Assert.assertEquals(NodeTag.FLOW, rootResult.getNodeTag());
-        Assert.assertTrue(rootResult.getOutputs().isEmpty());
+        Assert.assertNotNull(rootResult.getOutputs());
         Assert.assertEquals(NodeStatus.PENDING, rootResult.getStatus());
 
         NodeTree nodeTree = jobNodeService.get(job);
