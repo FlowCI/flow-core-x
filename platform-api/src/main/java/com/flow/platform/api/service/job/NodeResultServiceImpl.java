@@ -128,7 +128,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
             }
 
             nodeResult.setStatus(targetStatus);
-            nodeResultDao.save(nodeResult);
+            nodeResultDao.update(nodeResult);
             this.dispatchEvent(new NodeStatusChangeEvent(this, nodeResult.getKey(), originStatus, targetStatus));
         }
     }
@@ -168,7 +168,6 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
             }
         }
     }
-
 
     private NodeResult createNodeResult(Job job, NodeTree nodeTree, Node node) {
         NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());

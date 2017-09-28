@@ -394,7 +394,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         return runningJob;
     }
 
-
     @Override
     public Job update(Job job) {
         jobDao.update(job);

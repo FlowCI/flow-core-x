@@ -40,7 +40,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String logItem = message.getPayload();
-        LOGGER.debug(logItem);
 
         if (logItem.length() < MIN_LENGTH_LOG) {
             return;
