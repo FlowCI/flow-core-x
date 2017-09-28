@@ -113,7 +113,7 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {post} /flows/:root/delete Delete
+     * @api {delete} /flows/:root/delete Delete
      * @apiParam {String} root flow node name will be deleted
      * @apiDescription Delete flow node by name and return flow node object
      * @apiGroup Flows
@@ -130,7 +130,7 @@ public class FlowController extends NodeController {
      *      }
      *  }
      */
-    @PostMapping(path = "/{root}/delete")
+    @DeleteMapping(path = "/{root}")
     @WebSecurity(action = Actions.FLOW_DELETE)
     public Node delete() {
         String path = getNodePathFromUrl();
