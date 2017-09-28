@@ -103,7 +103,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
     @Override
     public Node verifyYml(final Node root, final String yml) {
-        Node rootFromYml = NodeUtil.buildFromYml(yml);
+        Node rootFromYml = NodeUtil.buildFromYml(yml, root.getName());
         if (root.equals(rootFromYml)) {
             return rootFromYml;
         }

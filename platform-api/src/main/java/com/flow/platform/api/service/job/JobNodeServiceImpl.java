@@ -16,6 +16,7 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.JobYmlDao;
+import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.core.exception.NotFoundException;
@@ -49,18 +50,19 @@ public class JobNodeServiceImpl implements JobNodeService {
         .maximumSize(1000).build();
 
     @Override
-    public void save(final BigInteger jobId, final String yml) {
-        JobYml jobYmlStorage = new JobYml(jobId, yml);
+    public void save(final Job job, final String yml) {
+        JobYml jobYmlStorage = new JobYml(job.getId(), yml);
         jobYmlDao.saveOrUpdate(jobYmlStorage);
-        nodeCache.invalidate(jobId);
+        nodeCache.invalidate(job.getId());
     }
 
     @Override
-    public NodeTree get(final BigInteger jobId) {
+    public NodeTree get(final Job job) {
         try {
-            return nodeCache.get(jobId, () -> {
-                JobYml jobYml = find(jobId);
-                return new NodeTree(jobYml.getFile());
+            return nodeCache.get(job.getId(), () -> {
+                JobYml jobYml = find(job);
+
+                return new NodeTree(jobYml.getFile(), job.getNodeName());
             });
         } catch (ExecutionException e) {
             LOGGER.warn(String.format("get yaml from jobYamlService error - %s", e));
@@ -69,11 +71,10 @@ public class JobNodeServiceImpl implements JobNodeService {
     }
 
     @Override
-    public JobYml find(BigInteger jobId) {
-        JobYml jobYml = jobYmlDao.get(jobId);
-
+    public JobYml find(Job job) {
+        JobYml jobYml = jobYmlDao.get(job.getId());
         if (jobYml == null) {
-            throw new NotFoundException(String.format("Job node of job '%s' not found", jobId));
+            throw new NotFoundException(String.format("Job node of job '%s' not found", job.getId()));
         }
 
         return jobYml;

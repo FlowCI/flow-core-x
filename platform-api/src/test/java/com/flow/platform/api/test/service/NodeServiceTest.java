@@ -101,7 +101,7 @@ public class NodeServiceTest extends TestBase {
         // then:
         Yml yaml = ymlDao.get(root.getPath());
         Assert.assertNotNull(yaml);
-        Assert.assertNotEquals(resourceContent, yaml.getFile());
+        Assert.assertEquals(resourceContent, yaml.getFile());
     }
 
     @Test

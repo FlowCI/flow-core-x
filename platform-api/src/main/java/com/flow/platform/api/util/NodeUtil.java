@@ -49,33 +49,15 @@ public class NodeUtil {
      * @param path file path
      * @return node tree
      */
-    public static Node buildFromYml(File path) {
+    public static Node buildFromYml(File path, String root) {
         try {
             String ymlString = Files.toString(path, AppConfig.DEFAULT_CHARSET);
-            return buildFromYml(ymlString);
+            return buildFromYml(ymlString, root);
         } catch (YmlException e) {
             throw e;
         } catch (Throwable ignore) {
             return null;
         }
-    }
-
-    public static String mergeNameToYml(String name, String yml) {
-        Flow[] flows;
-        try {
-            flows = YmlParser.fromYml(yml, Flow[].class);
-        } catch (YmlParseException e) {
-            throw new YmlException("Yml parser error", e);
-        } catch (YmlFormatException e) {
-            throw new YmlException("Yml validate error", e);
-        }
-
-        if (Strings.isNullOrEmpty(flows[0].getName())) {
-            flows[0].setName(name);
-            return YmlParser.toYml(flows);
-        }
-
-        return yml;
     }
 
     /**
@@ -85,7 +67,7 @@ public class NodeUtil {
      * @return root node of yml
      * @throws YmlException if yml format is illegal
      */
-    public static Node buildFromYml(String yml) {
+    public static Node buildFromYml(String yml, String root) {
 
         Flow[] flows;
         try {
@@ -101,6 +83,7 @@ public class NodeUtil {
             throw new YmlException("Unsupported multiple flows definition");
         }
 
+        flows[0].setName(root);
         buildNodeRelation(flows[0]);
         return flows[0];
     }

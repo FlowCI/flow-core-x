@@ -69,7 +69,7 @@ public class JobControllerTest extends TestBase {
         // when: load yml
         String ymlForJob = requestToGetYml(job.getNodePath(), job.getNumber());
         String originYml = getResourceContent("flow.yaml");
-        Assert.assertNotEquals(originYml, ymlForJob);
+        Assert.assertEquals(originYml, ymlForJob);
     }
 
     @Test

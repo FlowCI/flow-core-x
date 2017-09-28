@@ -48,7 +48,7 @@ public class NodeUtilYmlTest {
 
     @Test(expected = YmlException.class)
     public void should_raise_yml_exception_if_incorrect_format() {
-        NodeUtil.buildFromYml("hello test");
+        NodeUtil.buildFromYml("hello test", "flow");
     }
 
     @Test
@@ -56,8 +56,7 @@ public class NodeUtilYmlTest {
 
         String ymlString = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
 
-        ymlString = NodeUtil.mergeNameToYml("flow1", ymlString);
-        Node node = NodeUtil.buildFromYml(ymlString);
+        Node node = NodeUtil.buildFromYml(ymlString, "flow1");
 
         // verify flow
         Assert.assertTrue(node instanceof Flow);
@@ -96,8 +95,8 @@ public class NodeUtilYmlTest {
     @Test
     public void should_create_node_by_string() throws Throwable {
         String yamlRaw = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
-        Node node = NodeUtil.buildFromYml(yamlRaw);
-        Assert.assertEquals(null, node.getName());
+        Node node = NodeUtil.buildFromYml(yamlRaw, "flow");
+        Assert.assertEquals("flow", node.getName());
 
         String yml = new Yaml().dump(node);
         Assert.assertNotNull(yml);

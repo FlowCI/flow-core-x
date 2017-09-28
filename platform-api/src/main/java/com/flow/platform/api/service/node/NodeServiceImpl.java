@@ -100,11 +100,8 @@ public class NodeServiceImpl implements NodeService {
             throw new IllegalStatusException("Node status not correct, should be READY for FLOW_STATUS");
         }
 
-
         Node rootFromYml;
         try {
-            // merge name to yml
-            yml = NodeUtil.mergeNameToYml(flow.getName(), yml);
             rootFromYml = ymlService.verifyYml(flow, yml);
         } catch (IllegalParameterException | YmlException e) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());
@@ -140,7 +137,7 @@ public class NodeServiceImpl implements NodeService {
 
                 // has related yml
                 if (ymlStorage != null) {
-                    NodeTree newTree = new NodeTree(ymlStorage.getFile());
+                    NodeTree newTree = new NodeTree(ymlStorage.getFile(), flow.getName());
                     Node root = newTree.root();
 
                     // should merge env from flow dao and yml

@@ -61,7 +61,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
     @Override
     public List<NodeResult> create(Job job) {
-        NodeTree nodeTree = jobNodeService.get(job.getId());
+        NodeTree nodeTree = jobNodeService.get(job);
 
         if (nodeTree == null) {
             throw new IllegalStatusException("Job related node is empty, please check");

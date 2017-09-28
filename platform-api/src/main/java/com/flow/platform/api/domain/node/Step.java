@@ -66,9 +66,4 @@ public class Step extends Node<Step> {
         return super.getName();
     }
 
-    @YmlSerializer
-    @Override
-    public void setName(String name) {
-        super.setName(name);
-    }
 }
