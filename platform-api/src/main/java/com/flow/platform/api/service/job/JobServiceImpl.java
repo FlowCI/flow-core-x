@@ -52,6 +52,8 @@ import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -106,6 +108,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     private YmlService ymlService;
+
+    @Value(value = "${domain}")
+    private String domain;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -175,6 +180,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // setup job env variables
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
+        job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
 
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         EnvUtil.merge(envs, job.getEnvs(), true);
@@ -500,5 +506,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             nodeResult.setStatus(NodeStatus.TIMEOUT);
             nodeResultService.update(nodeResult);
         }
+    }
+
+    private String logUrl(final Job job) {
+        Path path = Paths.get(domain, "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
+        return path.toString();
     }
 }
