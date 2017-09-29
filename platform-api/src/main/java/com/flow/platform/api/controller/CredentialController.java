@@ -26,6 +26,7 @@ import com.flow.platform.api.domain.file.PasswordFileResource;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.http.converter.RawGsonMessageConverter;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.google.common.base.Strings;
@@ -77,6 +78,9 @@ public class CredentialController {
 
     @Autowired
     private Path workspace;
+
+    @Autowired
+    private RawGsonMessageConverter jsonConverter;
 
     /**
      * @api {get} /credentials List
@@ -256,7 +260,7 @@ public class CredentialController {
      */
     @PostMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Credential create(@PathVariable String name,
-                             @RequestPart(name = "detail") CredentialDetail detail,
+                             @RequestParam(name = "detail") String detailJson,
                              @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
                              @RequestPart(name = "p12-files", required = false) MultipartFile[] p12Files,
                              @RequestPart(name = "pp-files", required = false) MultipartFile[] ppFiles) {
@@ -265,6 +269,7 @@ public class CredentialController {
             throw new IllegalParameterException("Duplicate credential name");
         }
 
+        CredentialDetail detail = jsonConverter.getGsonForReader().fromJson(detailJson, CredentialDetail.class);
         return createOrUpdate(name, detail, androidFile, p12Files, ppFiles);
     }
 
@@ -279,7 +284,7 @@ public class CredentialController {
      */
     @PatchMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Credential update(@PathVariable String name,
-                             @RequestPart(name = "detail") CredentialDetail detail,
+                             @RequestParam(name = "detail") String detailJson,
                              @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
                              @RequestPart(name = "p12-files", required = false) MultipartFile[] p12Files,
                              @RequestPart(name = "pp-files", required = false) MultipartFile[] ppFiles) {
@@ -289,6 +294,7 @@ public class CredentialController {
             throw new IllegalParameterException("Credential name does not existed");
         }
 
+        CredentialDetail detail = jsonConverter.getGsonForReader().fromJson(detailJson, CredentialDetail.class);
         return createOrUpdate(name, detail, androidFile, p12Files, ppFiles);
     }
 

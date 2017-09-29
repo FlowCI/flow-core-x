@@ -22,11 +22,15 @@ import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -72,6 +76,33 @@ public class NodeResultServiceTest extends TestBase {
         // then: check flow node result is created
         NodeResult rootNodeResult = list.get(list.size() - 1);
         Assert.assertEquals(NodeTag.FLOW, rootNodeResult.getNodeTag());
+    }
+
+    @Test
+    public void should_correct_update_node_status_from_cmd() throws Throwable {
+        // given: create job
+        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+        Node firstStep = jobNodeService.get(job).find("flow1/step1");
+
+        // when: mock first step is logged
+        Cmd cmd = new Cmd();
+        cmd.setStatus(CmdStatus.LOGGED);
+        cmd.setCmdResult(new CmdResult(0));
+        nodeResultService.updateStatusByCmd(job, firstStep, cmd);
+
+        // then:
+        NodeResult firstStepResult = nodeResultService.find(firstStep.getPath(), job.getId());
+        Assert.assertEquals(NodeStatus.SUCCESS, firstStepResult.getStatus());
+
+        // when: mock first step send with running status after logged
+        cmd.setStatus(CmdStatus.RUNNING);
+        cmd.setCmdResult(new CmdResult(null));
+        nodeResultService.updateStatusByCmd(job, firstStep, cmd);
+
+        // then: the node result should be SUCCESS as well
+        firstStepResult = nodeResultService.find(firstStep.getPath(), job.getId());
+        Assert.assertEquals(NodeStatus.SUCCESS, firstStepResult.getStatus());
     }
 
     @Test

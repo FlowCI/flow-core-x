@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service.job;
 
+import static com.flow.platform.api.domain.envs.FlowEnvs.*;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
 import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
@@ -25,6 +26,7 @@ import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
@@ -168,8 +170,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalParameterException("User is required while create job");
         }
 
-        String status = root.getEnv(FlowEnvs.FLOW_STATUS);
-        if (Strings.isNullOrEmpty(status) || !status.equals(FlowEnvs.StatusValue.READY.value())) {
+        String status = root.getEnv(FLOW_STATUS);
+        if (Strings.isNullOrEmpty(status) || !status.equals(StatusValue.READY.value())) {
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
@@ -233,7 +235,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                                     User creator,
                                     Consumer<Job> onJobCreated) {
 
-        final Flow flow = nodeService.findFlow(path);
+        // find flow and reset yml status
+        Flow flow = nodeService.findFlow(path);
+        flow = nodeService.addFlowEnv(flow.getPath(), EnvUtil.build(FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
+
+        // merge input env to flow for git loading, not save to flow since the envs is for job
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
         ymlService.loadYmlContent(flow, yml -> {

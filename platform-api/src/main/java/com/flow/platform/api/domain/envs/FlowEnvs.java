@@ -63,17 +63,17 @@ public enum FlowEnvs implements EnvKey {
 
     public enum YmlStatusValue implements EnvValue {
 
-        NOT_FOUND("NOT_FOUND"),
+        NOT_FOUND("NOT_FOUND"), // init status
 
-        GIT_CONNECTING("GIT_CONNECTING"),
+        GIT_CONNECTING("GIT_CONNECTING"), // on git connection
 
-        GIT_LOADING("GIT_LOADING"),
+        GIT_LOADING("GIT_LOADING"), // git clone in progress
 
-        GIT_LOADED("GIT_LOADED"),
+        GIT_LOADED("GIT_LOADED"), // git clone is finished
 
-        FOUND("FOUND"),
+        FOUND("FOUND"), // flow yml is created
 
-        ERROR("ERROR");
+        ERROR("ERROR"); // flow yml has error
 
         private String value;
 
@@ -92,7 +92,15 @@ public enum FlowEnvs implements EnvKey {
         }
 
         public static boolean isLoadingStatus(String value) {
-            return !Strings.isNullOrEmpty(value) && value.startsWith("GIT_");
+            if (Strings.isNullOrEmpty(value)) {
+                return false;
+            }
+
+            if (value.equals(GIT_LOADED.value())) {
+                return false;
+            }
+
+            return value.equals(GIT_CONNECTING.value()) || value.equals(GIT_LOADING.value());
         }
     }
 

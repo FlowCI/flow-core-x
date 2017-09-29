@@ -59,7 +59,7 @@ public class CmdWebhookController {
 
         try {
             BigInteger jobId = new BigInteger(jobIdStr);
-            LOGGER.trace("Webhook received: Cmd {%s : %s : %s : %s}",
+            LOGGER.trace("Cmd Webhook received: Cmd {%s : %s : %s : %s}",
                 cmd.getType(),
                 cmd.getStatus(),
                 cmd.getId(),

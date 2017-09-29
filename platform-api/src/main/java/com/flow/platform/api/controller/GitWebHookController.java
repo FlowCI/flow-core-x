@@ -75,7 +75,7 @@ public class GitWebHookController extends NodeController {
 
         try {
             final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
-            LOGGER.trace("Webhook received: %s", hookEvent.toString());
+            LOGGER.trace("Git Webhook received: %s", hookEvent.toString());
 
             // reset flow yml status to not found otherwise yml cannot start to load
             nodeService.addFlowEnv(path, EnvUtil.build(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
