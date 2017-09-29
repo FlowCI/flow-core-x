@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.domain.envs;
 
+import com.google.common.base.Strings;
+
 /**
  * @author yang
  */
@@ -90,7 +92,7 @@ public enum FlowEnvs implements EnvKey {
         }
 
         public static boolean isLoadingStatus(String value) {
-            return value.startsWith("GIT_");
+            return !Strings.isNullOrEmpty(value) && value.startsWith("GIT_");
         }
     }
 
