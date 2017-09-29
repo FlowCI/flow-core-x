@@ -20,7 +20,6 @@ import com.flow.platform.api.domain.EmailSettingContent;
 import java.util.Properties;
 import javax.mail.Authenticator;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -49,12 +48,13 @@ public class SmtpUtil {
         });
         try {
 
-            Message message = new MimeMessage(session);
+            MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(emailSetting.getSender()));
             message.setRecipients(Message.RecipientType.TO,
                 InternetAddress.parse(acceptor));
-            message.setSubject(subject);
-            message.setText(body);
+
+            message.setSubject(subject, "utf8");
+            message.setContent(body, "text/html;charset=utf8");
             Transport.send(message);
 
         } catch (Throwable throwable) {
