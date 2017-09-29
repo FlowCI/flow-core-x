@@ -17,9 +17,11 @@
 package com.flow.platform.api.util;
 
 import com.flow.platform.api.domain.envs.EnvKey;
+import com.flow.platform.api.domain.envs.EnvValue;
 import com.flow.platform.api.domain.node.Node;
 import com.google.common.base.Strings;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -96,5 +98,15 @@ public class EnvUtil {
         }
 
         targetEnv.put(key, value);
+    }
+
+    public static Map<String, String> build(String key, String value) {
+        HashMap<String, String> single = new HashMap<>(1);
+        single.put(key, value);
+        return single;
+    }
+
+    public static Map<String, String> build(EnvKey key, EnvValue value) {
+        return build(key.name(), value.value());
     }
 }

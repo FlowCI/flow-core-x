@@ -16,10 +16,14 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
@@ -49,6 +53,9 @@ public class GitWebHookController extends NodeController {
     private final static Logger LOGGER = new Logger(GitWebHookController.class);
 
     @Autowired
+    private NodeService nodeService;
+
+    @Autowired
     private JobService jobService;
 
     @Autowired
@@ -69,6 +76,9 @@ public class GitWebHookController extends NodeController {
         try {
             final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
             LOGGER.trace("Webhook received: %s", hookEvent.toString());
+
+            // reset flow yml status to not found otherwise yml cannot start to load
+            nodeService.addFlowEnv(path, EnvUtil.build(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
 
             // extract git related env variables from event, and temporary set to node for git loading
             final Map<String, String> gitEnvs = GitEventDataExtractor.extract(hookEvent);
