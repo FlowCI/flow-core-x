@@ -18,10 +18,9 @@ package com.flow.platform.api.git;
 
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitHttpClient;
-import com.google.common.base.Strings;
 import java.nio.file.Path;
 
 /**
@@ -29,9 +28,9 @@ import java.nio.file.Path;
  */
 public class GitHttpClientBuilder extends GitClientBuilder {
 
-    private final String user;
+    private String user;
 
-    private final String pass;
+    private String pass;
 
     public GitHttpClientBuilder(Node node, Path sourceFolder) {
         super(node, sourceFolder);
@@ -42,9 +41,14 @@ public class GitHttpClientBuilder extends GitClientBuilder {
 
     @Override
     public GitClient build() {
-        if (Strings.isNullOrEmpty(user) || Strings.isNullOrEmpty(pass)) {
-            throw new IllegalParameterException("Username or password of http connection are required");
+        if (user == null) {
+            user = StringUtil.EMPTY;
         }
+
+        if (pass == null) {
+            pass = StringUtil.EMPTY;
+        }
+
         return new GitHttpClient(url, sourceFolder, user, pass);
     }
 }
