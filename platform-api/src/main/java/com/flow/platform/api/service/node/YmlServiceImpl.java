@@ -147,7 +147,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     @Override
     public Node loadYmlContent(final Node root, final Consumer<Yml> callback) {
         if (!EnvUtil.hasRequiredEnvKey(root, GitService.REQUIRED_ENVS)) {
-            throw new IllegalParameterException("Missing required envs: FLOW_GIT_URL FLOW_GIT_SOURCE");
+            throw new IllegalParameterException("Missing git settings: FLOW_GIT_URL and FLOW_GIT_SOURCE");
         }
 
         if (YmlStatusValue.isLoadingStatus(root.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
