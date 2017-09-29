@@ -33,7 +33,7 @@ public abstract class JobEventPushHandler extends PushHandler {
 
     protected void push(BigInteger jobId) {
         Job job = jobService.find(jobId);
-        String jobTopic = String.format("%s/%s-%s", WebSocketConfig.TOPIC_FOR_JOB, job.getNodePath(), job.getNumber());
+        String jobTopic = String.format("%s/%s", WebSocketConfig.TOPIC_FOR_JOB, job.getNodePath());
         super.push(jobTopic, job);
     }
 
