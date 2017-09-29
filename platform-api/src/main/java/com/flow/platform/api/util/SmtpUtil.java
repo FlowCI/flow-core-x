@@ -18,6 +18,7 @@ package com.flow.platform.api.util;
 
 import com.flow.platform.api.domain.EmailSettingContent;
 import java.util.Properties;
+import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
@@ -32,21 +33,20 @@ import javax.mail.internet.MimeMessage;
 public class SmtpUtil {
 
     public static void sendEmail(EmailSettingContent emailSetting, String acceptor, String subject, String body) {
-
         Properties props = buildProperty(emailSetting);
-        Session session = Session.getDefaultInstance(props,
-            new javax.mail.Authenticator() {
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    String username = null;
-                    String password = null;
-                    if (emailSetting.isAuthenticated()) {
-                        username = emailSetting.getUsername();
-                        password = emailSetting.getPassword();
-                    }
-                    return new PasswordAuthentication(username, password);
-                }
-            });
 
+        Session session = Session.getDefaultInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                String username = null;
+                String password = null;
+                if (emailSetting.isAuthenticated()) {
+                    username = emailSetting.getUsername();
+                    password = emailSetting.getPassword();
+                }
+                return new PasswordAuthentication(username, password);
+            }
+        });
         try {
 
             Message message = new MimeMessage(session);
@@ -55,16 +55,11 @@ public class SmtpUtil {
                 InternetAddress.parse(acceptor));
             message.setSubject(subject);
             message.setText(body);
-
             Transport.send(message);
 
-            System.out.println("Done");
-
-        } catch (MessagingException e) {
-            throw new RuntimeException(e);
+        } catch (Throwable throwable) {
         }
     }
-
 
     /**
      * authentication
@@ -74,7 +69,6 @@ public class SmtpUtil {
         Properties props = buildProperty(emailSetting);
 
         Session session = Session.getDefaultInstance(props, null);
-
         try {
             Transport transport = session.getTransport("smtp");
             String username = null;
