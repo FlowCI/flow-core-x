@@ -186,8 +186,8 @@ public class CredentialControllerTest extends TestBase {
         detail.setKeyStorePassword("54321");
 
         performRequestWith200Status(fileUpload(getUrlForCredential(credentialName))
-            .file(createDetailPart(detail))
             .file(createAndroidFilePart("file-name.jks"))
+            .param("detail", detail.toJson())
         );
 
         // then:
@@ -219,12 +219,13 @@ public class CredentialControllerTest extends TestBase {
         detail.getP12s().add(new PasswordFileResource("p12-3.p12", null, "123123"));
 
         performRequestWith200Status(fileUpload(getUrlForCredential(credentialName))
-            .file(createDetailPart(detail))
             .file(createIosP12Part("p12-1.p12"))
             .file(createIosP12Part("p12-2.p12"))
             .file(createIosP12Part("p12-3.p12"))
             .file(createIosProvisionProfilePart("pp1.mobileprovision"))
-            .file(createIosProvisionProfilePart("pp2.mobileprovision")));
+            .file(createIosProvisionProfilePart("pp2.mobileprovision"))
+            .param("detail", detail.toJson())
+        );
 
         // when: load credential after created
         String response = performRequestWith200Status(get(getUrlForCredential(credentialName)));
@@ -249,10 +250,6 @@ public class CredentialControllerTest extends TestBase {
 
     private String getUrlForCredential(String credentialName) {
         return "/credentials/" + credentialName;
-    }
-
-    private MockMultipartFile createDetailPart(CredentialDetail detail) {
-        return new MockMultipartFile("detail", "", "application/json", detail.toBytes());
     }
 
     private MockMultipartFile createAndroidFilePart(String name) {

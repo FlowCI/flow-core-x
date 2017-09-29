@@ -18,15 +18,15 @@ package com.flow.platform.api.service.node;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.dao.user.UserDao;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.node.NodeTree;
-import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
@@ -37,7 +37,6 @@ import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -49,13 +48,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
 
@@ -115,10 +114,6 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         if (Strings.isNullOrEmpty(yml)) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.NOT_FOUND, null);
             return flow;
-        }
-
-        if (!Objects.equals(flow.getEnv(FlowEnvs.FLOW_STATUS), StatusValue.READY.value())) {
-            throw new IllegalStatusException("Node status not correct, should be READY for FLOW_STATUS");
         }
 
         Node rootFromYml;

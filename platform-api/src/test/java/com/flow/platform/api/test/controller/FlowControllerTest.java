@@ -135,7 +135,7 @@ public class FlowControllerTest extends TestBase {
         // then:
         String response = result.getResponse().getContentAsString();
         ResponseError error = ResponseError.parse(response, ResponseError.class);
-        Assert.assertTrue(error.getMessage().contains("Missing required envs"));
+        Assert.assertTrue(error.getMessage().contains("Missing git settings"));
     }
 
     @Test

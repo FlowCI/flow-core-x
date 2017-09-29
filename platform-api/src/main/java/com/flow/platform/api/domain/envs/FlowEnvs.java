@@ -24,7 +24,7 @@ import com.google.common.base.Strings;
 public enum FlowEnvs implements EnvKey {
 
     /**
-     * Indicate flow is ready to run
+     * Indicate flow is configured for git
      */
     FLOW_STATUS,
 
