@@ -31,7 +31,6 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
-import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.IllegalStatusException;

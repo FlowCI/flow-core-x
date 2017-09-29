@@ -72,6 +72,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -153,7 +154,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     public List<Job> list(List<String> paths, boolean latestOnly) {
         if (latestOnly) {
-          return jobDao.latestByPath(paths);
+            return jobDao.latestByPath(paths);
         }
         return jobDao.listByPath(paths);
     }
@@ -269,26 +270,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         if (cmd.getType() == CmdType.CREATE_SESSION) {
-
-            // TODO: refactor to find(id, timeout)
-            if (job == null) {
-                if (cmdQueueItem.getRetryTimes() < RETRY_TIMEs) {
-                    try {
-                        Thread.sleep(1000);
-                        LOGGER.traceMarker("Callback", "Job not found, retry times - %s jobId - %s",
-                            cmdQueueItem.getRetryTimes(), jobId);
-                    } catch (Throwable throwable) {
-                    }
-
-                    cmdQueueItem.plus();
-                    enterQueue(cmdQueueItem);
-                    return;
-                }
-
-                LOGGER.warn("job not found, jobId: %s", jobId);
-                throw new NotFoundException("job not found");
-            }
-
             onCreateSessionCallback(job, cmd);
             return;
         }
@@ -428,6 +409,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void enterQueue(CmdCallbackQueueItem cmdQueueItem) {
         try {
             cmdBaseBlockingQueue.put(cmdQueueItem);
@@ -561,7 +543,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private void updateJobAndNodeResultTimeout(Job job) {
         // if job is running , please delete session first
         if (job.getStatus() == JobStatus.RUNNING) {
-            cmdService.deleteSession(job);
+            try {
+                cmdService.deleteSession(job);
+            } catch (Throwable e) {
+                LOGGER.warn(
+                    "Error on delete session for job %s: %s",
+                    job.getId(),
+                    ExceptionUtil.findRootCause(e).getMessage());
+            }
         }
 
         updateJobStatusAndSave(job, JobStatus.TIMEOUT);

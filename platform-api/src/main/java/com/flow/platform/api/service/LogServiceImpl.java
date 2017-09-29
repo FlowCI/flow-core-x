@@ -44,11 +44,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author yh@firim
  */
 @Service
+@Transactional
 public class LogServiceImpl implements LogService {
 
     @Autowired
@@ -68,7 +70,7 @@ public class LogServiceImpl implements LogService {
         Job job = jobService.find(path, number);
         NodeResult nodeResult = nodeResultService.find(job.getId(), order);
         if (nodeResult == null) {
-            throw new IllegalParameterException("Illeal job id or step order number");
+            throw new IllegalParameterException("Illegal job id or step order number");
         }
 
         return readStepLog(job, nodeResult);
