@@ -131,7 +131,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             EmailSettingContent emailSettingContent = (EmailSettingContent) messageService.find(MessageType.EMAIl);
             if (emailSettingContent != null) {
                 SmtpUtil.sendEmail(emailSettingContent, user.getEmail(), "邀请您加入项目 [ flow.ci ]",
-                    "你已被邀请加入 FLOW.CI, 用户名:" + user.getEmail() + "密码:" + user.getPassword());
+                    "你已被邀请加入 FLOW.CI, 用户名:" + user.getUsername());
             }
         }
 
