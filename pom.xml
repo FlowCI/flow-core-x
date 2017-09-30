@@ -22,6 +22,7 @@
     <module>platform-util-git</module>
     <module>platform-core</module>
     <module>platform-yml-parser</module>
+    <module>platform-util-http</module>
   </modules>
 
   <properties>
