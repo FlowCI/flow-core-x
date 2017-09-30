@@ -28,7 +28,6 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;

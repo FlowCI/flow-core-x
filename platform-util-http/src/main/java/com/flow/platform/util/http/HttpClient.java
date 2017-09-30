@@ -101,9 +101,23 @@ public class HttpClient {
         return this;
     }
 
-    public HttpClient addHeader(String name, String value) {
+    public HttpClient withHeader(String name, String value) {
         requireHttpRequestInstance();
         httpRequest.addHeader(name, value);
+        return this;
+    }
+
+    public HttpClient withHeader(Map<String, String> headers) {
+        requireHttpRequestInstance();
+
+        if (headers == null || headers.isEmpty()) {
+            return this;
+        }
+
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            withHeader(entry.getKey(), entry.getValue());
+        }
+
         return this;
     }
 
