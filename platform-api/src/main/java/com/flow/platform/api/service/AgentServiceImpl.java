@@ -52,6 +52,8 @@ public class AgentServiceImpl implements AgentService {
 
     private final Logger LOGGER = new Logger(AgentService.class);
 
+    private final int httpRetryTimes = 5;
+
     @Value(value = "${platform.zone}")
     private String zone;
 
@@ -69,7 +71,10 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public List<AgentWithFlow> list() {
-        String res = HttpClient.build(platformURL.getAgentUrl()).get().bodyAsString().getBody();
+        String res = HttpClient.build(platformURL.getAgentUrl())
+            .get()
+            .retry(httpRetryTimes)
+            .bodyAsString().getBody();
 
         if (Strings.isNullOrEmpty(res)) {
             throw new HttpException("Unable to load agent list");
@@ -129,11 +134,10 @@ public class AgentServiceImpl implements AgentService {
         try {
             AgentPathWithWebhook pathWithWebhook = new AgentPathWithWebhook(agentPath, buildAgentWebhook());
 
-            final String agentJson = HttpClient
-                .build(platformURL.getAgentCreateUrl())
+            final String agentJson = HttpClient.build(platformURL.getAgentCreateUrl())
                 .post(pathWithWebhook.toJson())
-                .bodyAsString()
-                .getBody();
+                .retry(httpRetryTimes)
+                .bodyAsString().getBody();
 
             if (Strings.isNullOrEmpty(agentJson)) {
                 throw new HttpException("Unable to create agent via control center");
@@ -149,7 +153,10 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public AgentSettings settings(String token) {
         String url = platformURL.getAgentSettingsUrl() + "?" + "token=" + token;
-        String settingsJson = HttpClient.build(url).get().bodyAsString().getBody();
+        String settingsJson = HttpClient.build(url)
+            .get()
+            .retry(httpRetryTimes)
+            .bodyAsString().getBody();
 
         if (Strings.isNullOrEmpty(settingsJson)) {
             throw new HttpException("Unable to get agent settings from control center");

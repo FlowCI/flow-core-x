@@ -47,6 +47,8 @@ public class CmdServiceImpl implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
 
+    private final int httpRetryTimes = 5;
+
     @Autowired
     private PlatformURL platformURL;
 
@@ -136,7 +138,10 @@ public class CmdServiceImpl implements CmdService {
      * Send cmd to control center directly
      */
     private Cmd sendDirectly(CmdInfo cmdInfo) throws UnsupportedEncodingException {
-        String res = HttpClient.build(platformURL.getCmdUrl()).post(cmdInfo.toJson()).bodyAsString().getBody();
+        String res = HttpClient.build(platformURL.getCmdUrl())
+            .post(cmdInfo.toJson())
+            .retry(httpRetryTimes)
+            .bodyAsString().getBody();
 
         if (Strings.isNullOrEmpty(res)) {
             throw new HttpException(String.format("Error on send cmd: %s - %s", cmdInfo.getExtra(), cmdInfo));
@@ -153,7 +158,10 @@ public class CmdServiceImpl implements CmdService {
         stringBuilder.append("?priority=1&retry=").append(retry);
 
         try {
-            String res = HttpClient.build(stringBuilder.toString()).post(cmdInfo.toJson()).bodyAsString().getBody();
+            String res = HttpClient.build(stringBuilder.toString())
+                .post(cmdInfo.toJson())
+                .retry(httpRetryTimes)
+                .bodyAsString().getBody();
 
             if (Strings.isNullOrEmpty(res)) {
                 String message = String.format(
