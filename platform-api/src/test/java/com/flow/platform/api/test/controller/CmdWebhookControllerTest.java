@@ -34,6 +34,7 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.git.model.GitEventType;
+import com.flow.platform.util.http.HttpURL;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -261,7 +262,7 @@ public class CmdWebhookControllerTest extends TestBase {
 
     private MvcResult performMockHttpRequest(Cmd cmd, Job job) throws Throwable {
         MockHttpServletRequestBuilder content = post(
-            "/hooks/cmd?identifier=" + HttpUtil.urlEncode(job.getId().toString()))
+            "/hooks/cmd?identifier=" + HttpURL.encode(job.getId().toString()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(cmd.toJson());
 

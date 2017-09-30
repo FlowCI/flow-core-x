@@ -27,6 +27,7 @@ import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.util.ObjectWrapper;
+import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -195,7 +196,7 @@ public class LogServiceImpl implements LogService {
         }
 
         final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
-        stringBuilder.append("?cmdId=").append(HttpUtil.urlEncode(cmdId)).append("&index=").append(0);
+        stringBuilder.append("?cmdId=").append(HttpURL.encode(cmdId)).append("&index=").append(0);
 
         ObjectWrapper<String> logContent = new ObjectWrapper<>();
 

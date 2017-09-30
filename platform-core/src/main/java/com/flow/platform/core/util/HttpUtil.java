@@ -48,34 +48,6 @@ public class HttpUtil {
 
     private final static Logger LOGGER = new Logger(HttpUtil.class);
 
-    public static String urlEncode(String str) {
-        try {
-            return URLEncoder.encode(str, "UTF-8");
-        } catch (Throwable ignore) {
-            return null;
-        }
-    }
-
-    public static String urlDecode(String str) {
-        try {
-            return URLDecoder.decode(str, "UTF-8");
-        } catch (Throwable ignore) {
-            return null;
-        }
-    }
-
-    /**
-     * Build basic http authorization header by user and pass
-     */
-    public static Map<String, String> buildHttpBasicAuthHeader(final String user, final String pass) {
-        byte[] encodedBytes = Base64.encodeBase64((user + ":" + pass).getBytes());
-        String userPass = new String(encodedBytes);
-
-        Map<String, String> header = new HashMap<>(1);
-        header.put("Authorization", "Basic " + userPass);
-        return header;
-    }
-
     /**
      * http post
      *

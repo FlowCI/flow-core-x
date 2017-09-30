@@ -20,6 +20,7 @@ import com.flow.platform.core.exception.IllegalURLException;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
 import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.http.HttpClient;
 import com.google.common.base.Strings;
 import com.google.gson.annotations.SerializedName;
 import java.io.UnsupportedEncodingException;
@@ -61,7 +62,8 @@ public class MQLoader implements SystemInfoLoader {
     @Override
     public SystemInfo load() {
         String url = mqMgrUrl + "/api/overview";
-        Map<String, String> authHeader = HttpUtil.buildHttpBasicAuthHeader(mqMgrUser, mqMgrPass);
+        Map<String, String> authHeader = HttpClient.buildHttpBasicAuthHeader(mqMgrUser, mqMgrPass);
+
         try {
             String responseBody = HttpUtil.get(url, authHeader, 1);
             if (Strings.isNullOrEmpty(responseBody)) {

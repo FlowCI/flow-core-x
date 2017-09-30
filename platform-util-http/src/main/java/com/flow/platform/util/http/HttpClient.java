@@ -22,9 +22,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -40,6 +43,25 @@ import org.apache.http.util.EntityUtils;
  */
 public class HttpClient {
 
+    /**
+     * Build basic http authorization header by user and pass
+     */
+    public static Map<String, String> buildHttpBasicAuthHeader(final String user, final String pass) {
+        byte[] encodedBytes = Base64.encodeBase64((user + ":" + pass).getBytes());
+        String userPass = new String(encodedBytes);
+
+        Map<String, String> header = new HashMap<>(1);
+        header.put("Authorization", "Basic " + userPass);
+        return header;
+    }
+
+    /**
+     * Create http client instance
+     */
+    public static HttpClient build(String url) {
+        return new HttpClient(url);
+    }
+
     private final String url;
 
     private HttpRequestBase httpRequest;
@@ -51,10 +73,6 @@ public class HttpClient {
     private CloseableHttpResponse failureResponse;
 
     private List<Throwable> exceptions = new LinkedList<>();
-
-    public static HttpClient build(String url) {
-        return new HttpClient(url);
-    }
 
     private HttpClient(String url) {
         this.url = url;

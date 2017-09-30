@@ -30,6 +30,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.io.UnsupportedEncodingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,6 +176,6 @@ public class CmdServiceImpl implements CmdService {
      * Build cmd callback webhook url with job id as identifier
      */
     private String buildCmdWebhook(Job job) {
-        return domain + "/hooks/cmd?identifier=" + HttpUtil.urlEncode(job.getId().toString());
+        return domain + "/hooks/cmd?identifier=" + HttpURL.encode(job.getId().toString());
     }
 }
