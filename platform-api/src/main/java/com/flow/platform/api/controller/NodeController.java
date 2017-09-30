@@ -46,15 +46,14 @@ import org.springframework.web.servlet.HandlerMapping;
 })
 public class NodeController {
 
-    protected final static String PATH_VAR_ROOT = "root";
-
-    protected final static String PATH_VAR_CHILD = "child";
-
     @Autowired
     protected NodeService nodeService;
 
+    /**
+     * The current node path from {@see NodeControllerAdvice}
+     */
     @Autowired
-    protected HttpServletRequest request;
+    protected ThreadLocal<String> currentNodePath;
 
     /**
      * @api {get} /nodes/:root/:child/env/:key Get Env
@@ -71,7 +70,7 @@ public class NodeController {
      */
     @GetMapping(path = "/env")
     public Map<String, String> getEnv(@RequestParam(required = false) String key) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
 
         // check is path for root name
         if (PathUtil.isRootName(path)) {
@@ -96,15 +95,5 @@ public class NodeController {
         Map<String, String> singleEnv = new HashMap<>(1);
         singleEnv.put(key, env);
         return singleEnv;
-    }
-
-    protected String getNodePathFromUrl() {
-        Map<String, String> attributes =
-            (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-
-        String root = attributes.get(PATH_VAR_ROOT);
-        String child = attributes.get(PATH_VAR_CHILD);
-
-        return PathUtil.build(root, child);
     }
 }

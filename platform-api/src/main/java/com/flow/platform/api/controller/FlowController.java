@@ -78,11 +78,13 @@ public class FlowController extends NodeController {
     @GetMapping(path = {"/{root}", "/{root}/show"})
     @WebSecurity(action = Actions.FLOW_SHOW)
     public Node show() {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         Node node = nodeService.find(path);
+
         if (node == null) {
             throw new IllegalParameterException(String.format("The flow name %s doesn't exist", path));
         }
+
         return node;
     }
 
@@ -108,8 +110,7 @@ public class FlowController extends NodeController {
     @PostMapping(path = {"/{root}", "/{root}/create"})
     @WebSecurity(action = Actions.FLOW_CREATE)
     public Node createEmptyFlow() {
-        String path = getNodePathFromUrl();
-        return nodeService.createEmptyFlow(path);
+        return nodeService.createEmptyFlow(currentNodePath.get());
     }
 
     /**
@@ -133,8 +134,7 @@ public class FlowController extends NodeController {
     @DeleteMapping(path = "/{root}")
     @WebSecurity(action = Actions.FLOW_DELETE)
     public Node delete() {
-        String path = getNodePathFromUrl();
-        return nodeService.delete(path);
+        return nodeService.delete(currentNodePath.get());
     }
 
     /**
@@ -163,8 +163,7 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/env")
     @WebSecurity(action = Actions.FLOW_SET_ENV)
     public Node addFlowEnv(@RequestBody Map<String, String> envs) {
-        String path = getNodePathFromUrl();
-        return nodeService.addFlowEnv(path, envs);
+        return nodeService.addFlowEnv(currentNodePath.get(), envs);
     }
 
     /**
@@ -193,8 +192,7 @@ public class FlowController extends NodeController {
     @DeleteMapping("/{root}/env")
     @WebSecurity(action = Actions.FLOW_SET_ENV)
     public Node delFlowEnv(@RequestBody Set<String> envKeys) {
-        String path = getNodePathFromUrl();
-        return nodeService.delFlowEnv(path, envKeys);
+        return nodeService.delFlowEnv(currentNodePath.get(), envKeys);
     }
 
     /**
@@ -228,8 +226,7 @@ public class FlowController extends NodeController {
     @GetMapping("/{root}/exist")
     @WebSecurity(action = Actions.FLOW_SHOW)
     public BooleanValue isFlowNameExist() {
-        String path = getNodePathFromUrl();
-        boolean exist = nodeService.exist(path);
+        boolean exist = nodeService.exist(currentNodePath.get());
         return new BooleanValue(exist);
     }
 
@@ -248,8 +245,7 @@ public class FlowController extends NodeController {
      */
     @GetMapping("/{root}/branches")
     public List<String> listBranches() {
-        String path = getNodePathFromUrl();
-        Node root = nodeService.find(path);
+        Node root = nodeService.find(currentNodePath.get());
         return gitService.branches(root);
     }
 
@@ -267,8 +263,7 @@ public class FlowController extends NodeController {
      */
     @GetMapping("/{root}/tags")
     public List<String> listTags() {
-        String path = getNodePathFromUrl();
-        Node root = nodeService.find(path);
+        Node root = nodeService.find(currentNodePath.get());
         return gitService.tags(root);
     }
 
@@ -291,8 +286,7 @@ public class FlowController extends NodeController {
     @GetMapping(value = "/{root}/yml")
     @WebSecurity(action = Actions.FLOW_SHOW)
     public String getRawYml() {
-        String path = getNodePathFromUrl();
-        Flow root = nodeService.findFlow(path);
+        Flow root = nodeService.findFlow(currentNodePath.get());
         return ymlService.getYmlContent(root);
     }
 
@@ -319,8 +313,7 @@ public class FlowController extends NodeController {
     @GetMapping("/{root}/yml/load")
     @WebSecurity(action = Actions.FLOW_YML)
     public Node loadRawYmlFromGit() {
-        String path = getNodePathFromUrl();
-        Flow root = nodeService.findFlow(path);
+        Flow root = nodeService.findFlow(currentNodePath.get());
         return ymlService.loadYmlContent(root, null);
     }
 
@@ -334,8 +327,7 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/yml/stop")
     @WebSecurity(action = Actions.FLOW_YML)
     public void stopLoadYml() {
-        String path = getNodePathFromUrl();
-        Flow root = nodeService.findFlow(path);
+        Flow root = nodeService.findFlow(currentNodePath.get());
         ymlService.stopLoadYmlContent(root);
     }
 
@@ -362,8 +354,7 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/yml/verify")
     @WebSecurity(action = Actions.FLOW_YML)
     public void ymlVerification(@RequestBody String yml) {
-        String path = getNodePathFromUrl();
-        Flow root = nodeService.findFlow(path);
+        Flow root = nodeService.findFlow(currentNodePath.get());
         ymlService.verifyYml(root, yml);
     }
 
@@ -394,8 +385,7 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/yml/create")
     @WebSecurity(action = Actions.FLOW_CREATE)
     public Node createFromYml(@RequestBody String yml) {
-        String path = getNodePathFromUrl();
-        return nodeService.createOrUpdate(path, yml);
+        return nodeService.createOrUpdate(currentNodePath.get(), yml);
     }
 
     /**
@@ -424,7 +414,6 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/users/auth")
     @WebSecurity(action = Actions.FLOW_AUTH)
     public List<User> flowAuthUsers(@RequestBody ListParam<String> listParam){
-        String path = getNodePathFromUrl();
-        return nodeService.authUsers(listParam.getArrays(), path);
+        return nodeService.authUsers(listParam.getArrays(), currentNodePath.get());
     }
 }

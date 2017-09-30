@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -93,7 +94,7 @@ public class JobController extends NodeController {
      */
     @PostMapping(path = "/{root}")
     public void create() {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         jobService.createJobAndYmlLoad(path, GitEventType.MANUAL, null, currentUser.get(), null);
     }
 
@@ -120,7 +121,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}")
     public List<Job> index(@RequestParam Map<String, String> allParams,  SearchCondition condition) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
 
         List<String> paths = null;
         if (path != null) {
@@ -144,8 +145,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}")
     public Job show(@PathVariable Integer buildNumber) {
-        String path = getNodePathFromUrl();
-        return jobService.find(path, buildNumber);
+        return jobService.find(currentNodePath.get(), buildNumber);
     }
 
     /**
@@ -166,7 +166,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/yml")
     public String yml(@PathVariable Integer buildNumber) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         return jobService.findYml(path, buildNumber);
     }
 
@@ -205,7 +205,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/nodes")
     public List<NodeResult> indexNodeResults(@PathVariable Integer buildNumber) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         return jobService.listNodeResult(path, buildNumber);
     }
 
@@ -223,7 +223,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
     public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         try {
             return logService.findNodeLog(path, buildNumber, stepOrder);
         } catch (Throwable e){
@@ -246,7 +246,7 @@ public class JobController extends NodeController {
      */
     @PostMapping(path = "/{root}/{buildNumber}/stop")
     public Job stopJob(@PathVariable Integer buildNumber) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         return jobService.stopJob(path, buildNumber);
     }
 
@@ -292,7 +292,7 @@ public class JobController extends NodeController {
      */
     @PostMapping(path = "/{root}/search")
     public List<Job> search(@RequestBody SearchCondition condition){
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
 
         List<String> paths = null;
         if (path != null) {
@@ -312,11 +312,12 @@ public class JobController extends NodeController {
      *   job.log file
      */
     @GetMapping(path = "/{root}/{buildNumber}/log/download")
-    public org.springframework.core.io.Resource jobLog(@PathVariable Integer buildNumber,
-        HttpServletResponse httpResponse) {
-        String path = getNodePathFromUrl();
-            httpResponse.setHeader("Content-Disposition",
-                String.format("attachment; filename=%s", String.format("%s-%s.zip", path, buildNumber)));
+    public Resource jobLog(@PathVariable Integer buildNumber,
+                           HttpServletResponse httpResponse) {
+        String path = currentNodePath.get();
+        httpResponse.setHeader(
+            "Content-Disposition",
+            String.format("attachment; filename=%s", String.format("%s-%s.zip", path, buildNumber)));
         return logService.findJobLog(path, buildNumber);
     }
 

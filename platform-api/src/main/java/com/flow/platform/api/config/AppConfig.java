@@ -88,6 +88,11 @@ public class AppConfig extends AppConfigBase {
     }
 
     @Bean
+    public ThreadLocal<String> currentNodePath() {
+        return new ThreadLocal<>();
+    }
+
+    @Bean
     @Override
     public ThreadPoolTaskExecutor taskExecutor() {
         return ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
