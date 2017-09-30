@@ -15,8 +15,6 @@
  */
 package com.flow.platform.api.domain.request;
 
-import java.util.List;
-
 /**
  * @author lhl
  */

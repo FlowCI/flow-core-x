@@ -15,14 +15,13 @@
  */
 package com.flow.platform.api.domain.request;
 
-import java.util.List;
-
 /**
  * @author lhl
  */
 public class UpdateUserRoleParam {
 
     private ListParam<String> emailList;
+
     private ListParam<String> roles;
 
     public ListParam<String> getRoles() {
