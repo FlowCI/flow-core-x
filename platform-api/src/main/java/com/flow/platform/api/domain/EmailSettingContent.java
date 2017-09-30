@@ -35,7 +35,6 @@ public class EmailSettingContent extends SettingContent {
     @Expose
     private String username;
 
-    @Expose
     private String password;
 
     @Expose
