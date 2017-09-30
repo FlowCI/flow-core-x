@@ -51,10 +51,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
 
@@ -110,6 +110,10 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Override
     public Node createOrUpdate(final String path, String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
+
+        if (!checkFlowName(flow.getName())) {
+            throw new IllegalParameterException("flowName format not true");
+        }
 
         if (Strings.isNullOrEmpty(yml)) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.NOT_FOUND, null);
@@ -233,6 +237,10 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         Flow flow = new Flow(PathUtil.build(flowName), flowName);
         treeCache.invalidate(flow.getPath());
 
+        if (!checkFlowName(flow.getName())) {
+            throw new IllegalParameterException("flowName format not true");
+        }
+
         if (exist(flow.getPath())) {
             throw new IllegalParameterException("Flow name already existed");
         }
@@ -323,4 +331,15 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     private String hooksUrl(final Flow flow) {
         return String.format("%s/hooks/git/%s", domain, flow.getName());
     }
+
+    private Boolean checkFlowName(String flowName) {
+        if (flowName == null || flowName.trim().equals("")) {
+            return false;
+        }
+        if (!Pattern.compile("^\\w{5,20}$").matcher(flowName).matches()) {
+            return false;
+        }
+        return true;
+    }
+
 }
