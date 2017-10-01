@@ -65,19 +65,19 @@ public class CmdServiceImpl implements CmdService {
         cmdInfo.setWebhook(buildCmdWebhook(job));
         LOGGER.traceMarker("CreateSession", "job id - %s", job.getId());
 
-        // TODO: handle 500 error message from control center
-
         // create session
-        Cmd cmd = sendToQueue(cmdInfo, retry);
-        if (cmd == null) {
-            throw new IllegalStatusException("Unable to create session since");
-        }
+        try {
+            Cmd cmd = sendToQueue(cmdInfo, retry);
 
-        if (Strings.isNullOrEmpty(cmd.getSessionId())) {
-            throw new IllegalStatusException("Invalid session id");
-        }
+            if (Strings.isNullOrEmpty(cmd.getSessionId())) {
+                throw new IllegalStatusException("Invalid session id");
+            }
 
-        return cmd.getSessionId();
+            return cmd.getSessionId();
+        } catch (Throwable e) {
+            throw new IllegalStatusException(
+                "Unable to create session since: " + ExceptionUtil.findRootCause(e).getMessage());
+        }
     }
 
     /**
@@ -175,9 +175,8 @@ public class CmdServiceImpl implements CmdService {
             }
 
             return Jsonable.parse(res, Cmd.class);
-        } catch (Throwable ignore) {
-            LOGGER.warnMarker("SendToQueue", "Unexpected exception", ignore);
-            return null;
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("Unable to send cmd since: ", e);
         }
     }
 
