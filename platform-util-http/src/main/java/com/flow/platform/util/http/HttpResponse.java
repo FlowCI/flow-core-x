@@ -62,6 +62,10 @@ public class HttpResponse<T> {
         return statusCode == EXCEPTION_STATUS_CODE;
     }
 
+    public boolean hasSuccess() {
+        return statusCode == 200;
+    }
+
     public T getBody() {
         return body;
     }

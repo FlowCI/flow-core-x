@@ -33,6 +33,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -91,6 +92,13 @@ public class HttpClient {
         return this;
     }
 
+    public HttpClient post(HttpEntity entity) {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(entity);
+        httpRequest = httpPost;
+        return this;
+    }
+
     public HttpClient post() {
         httpRequest = new HttpPost(url);
         return this;
@@ -98,6 +106,11 @@ public class HttpClient {
 
     public HttpClient get() {
         httpRequest = new HttpGet(url);
+        return this;
+    }
+
+    public HttpClient withContentType(final ContentType contentType) {
+        withHeader("Content-Type", contentType.toString());
         return this;
     }
 

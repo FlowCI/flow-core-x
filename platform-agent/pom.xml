@@ -41,6 +41,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.flow.platform</groupId>
+      <artifactId>platform-util-http</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.glassfish.tyrus</groupId>
       <artifactId>tyrus-server</artifactId>
     </dependency>
