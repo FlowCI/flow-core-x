@@ -90,7 +90,7 @@ public class AgentController {
      *
      * @param agent agent objc
      */
-    @PostMapping(path = "/report", consumes = "application/json")
+    @PostMapping(path = "/report")
     public void reportStatus(@RequestBody Agent agent) {
         if (agent.getPath() == null || agent.getStatus() == null) {
             throw new IllegalArgumentException("Agent path and status are required");
