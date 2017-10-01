@@ -43,7 +43,7 @@ public class CmdResultController {
      * @param cmdIdList
      * @return
      */
-    @PostMapping(path = "/list", consumes = "application/json")
+    @PostMapping(path = "/list")
     public Collection<CmdResult> list(@RequestBody Set<String> cmdIdList) {
         return cmdService.listResult(cmdIdList);
     }

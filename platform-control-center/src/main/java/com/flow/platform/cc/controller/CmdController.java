@@ -65,13 +65,13 @@ public class CmdController {
     /**
      * Send command to agent
      */
-    @PostMapping(path = "/send", consumes = "application/json")
+    @PostMapping(path = "/send")
     public Cmd sendCommand(@RequestBody CmdInfo cmd) {
         Cmd cmdToExec = cmdService.create(cmd);
         return cmdDispatchService.dispatch(cmdToExec.getId(), false);
     }
 
-    @PostMapping(path = "/queue/send", consumes = "application/json")
+    @PostMapping(path = "/queue/send")
     public Cmd sendCommandToQueue(@RequestBody CmdInfo cmd, @RequestParam int priority, @RequestParam int retry) {
         if (!Range.closed(1, 255).contains(priority)) {
             throw new IllegalParameterException("Illegal priority value should between (1 - 255)");
@@ -103,7 +103,7 @@ public class CmdController {
      *
      * @param reportData only need id, status and result
      */
-    @PostMapping(path = "/report", consumes = "application/json")
+    @PostMapping(path = "/report")
     public void report(@RequestBody CmdReport reportData) {
         if (reportData.getId() == null || reportData.getStatus() == null || reportData.getResult() == null) {
             throw new IllegalArgumentException("Cmd id, status and cmd result are required");
@@ -116,7 +116,7 @@ public class CmdController {
     /**
      * List commands by agent path
      */
-    @PostMapping(path = "/list", consumes = "application/json")
+    @PostMapping(path = "/list")
     public Collection<Cmd> list(@RequestBody AgentPath agentPath) {
         return cmdService.listByAgentPath(agentPath);
     }

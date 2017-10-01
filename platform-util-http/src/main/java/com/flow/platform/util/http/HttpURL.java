@@ -14,14 +14,30 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.exception;
+package com.flow.platform.util.http;
+
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public class HttpException extends FlowException {
+public class HttpURL {
 
-    public HttpException(String description) {
-        super(description, null);
+    public static String encode(String str) {
+        try {
+            return URLEncoder.encode(str, "UTF-8");
+        } catch (Throwable ignore) {
+            return null;
+        }
     }
+
+    public static String decode(String str) {
+        try {
+            return URLDecoder.decode(str, "UTF-8");
+        } catch (Throwable ignore) {
+            return null;
+        }
+    }
+
 }

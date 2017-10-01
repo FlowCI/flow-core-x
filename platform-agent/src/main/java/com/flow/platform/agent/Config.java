@@ -18,11 +18,12 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.http.HttpClient;
+import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.zk.ZKClient;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.curator.utils.ZKPaths;
-import org.apache.http.client.methods.HttpGet;
 
 /**
  * @author gy@fir.im
@@ -150,23 +151,18 @@ public class Config {
     }
 
     public static AgentSettings loadAgentConfig(String baseUrl, String token) {
-        String url = new StringBuilder(baseUrl)
+        final String url = new StringBuilder(baseUrl)
             .append("/agents/settings")
             .append("?token=")
             .append(token).toString();
 
-        HttpGet httpGet = new HttpGet(url);
-        AgentSettings agentSettings = null;
+        HttpResponse<String> response = HttpClient.build(url).get().retry(5).bodyAsString();
 
-        try {
-            String response = ReportManager
-                .httpSend(httpGet, 5, "load agent setting success", "get agent setting error");
-
-            agentSettings = Jsonable.parse(response, AgentSettings.class);
-        } catch (Throwable throwable) {
-            new RuntimeException(String.format("get agent setting error - %s", throwable));
+        if (!response.hasSuccess()) {
+            String err = "Unable to load agent setting with http status " + response.getStatusCode();
+            throw new IllegalStateException(err);
         }
 
-        return agentSettings;
+        return Jsonable.parse(response.getBody(), AgentSettings.class);
     }
 }

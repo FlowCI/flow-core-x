@@ -25,8 +25,10 @@ import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.api.util.ZipUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.util.ObjectWrapper;
+import com.flow.platform.util.StringUtil;
+import com.flow.platform.util.http.HttpClient;
+import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -66,6 +68,7 @@ public class LogServiceImpl implements LogService {
     private Path workspace;
 
     @Override
+    @Transactional(readOnly = true)
     public String findNodeLog(String path, Integer number, Integer order) {
         Job job = jobService.find(path, number);
         NodeResult nodeResult = nodeResultService.find(job.getId(), order);
@@ -187,37 +190,35 @@ public class LogServiceImpl implements LogService {
      * read log from cc
      */
     private String readStepLogFromCC(Job job, NodeResult nodeResult) {
-
         String cmdId = nodeResult.getCmdId();
 
         if (Strings.isNullOrEmpty(cmdId)) {
-            return "";
+            return StringUtil.EMPTY;
         }
 
-        final StringBuilder stringBuilder = new StringBuilder(platformURL.getCmdDownloadLogUrl());
-        stringBuilder.append("?cmdId=").append(HttpUtil.urlEncode(cmdId)).append("&index=").append(0);
-
+        final String url = platformURL.getCmdDownloadLogUrl() + "?cmdId=" + HttpURL.encode(cmdId) + "&index=" + 0;
         ObjectWrapper<String> logContent = new ObjectWrapper<>();
 
-        HttpUtil.getResponseEntity(stringBuilder.toString(), entity -> {
+        HttpClient.build(url).get().bodyAsStream((response) -> {
+            if (response.getBody() == null) {
+                logContent.setInstance(StringUtil.EMPTY);
+                return;
+            }
+
             try {
-                if (entity != null) {
-                    InputStream content = entity.getContent();
-                    String log = ZipUtil.readZipFile(content);
-                    logContent.setInstance(log);
+                String log = ZipUtil.readZipFile(response.getBody());
+                logContent.setInstance(log);
 
-                    //save file to local storage
-                    InputStream stream = new ByteArrayInputStream(log.getBytes(AppConfig.DEFAULT_CHARSET));
-                    String logPath = saveStepLog(job, stream, nodeResult);
-                    if (logPath == null) {
-                        throw new FlowException("store log to api error");
-                    }
+                //save file to local storage
+                InputStream stream = new ByteArrayInputStream(log.getBytes(AppConfig.DEFAULT_CHARSET));
+                String logPath = saveStepLog(job, stream, nodeResult);
 
-                    nodeResult.setLogPath(logPath);
-                    nodeResultService.update(nodeResult);
-                } else {
-                    logContent.setInstance("");
+                if (logPath == null) {
+                    throw new FlowException("store log to api error");
                 }
+
+                nodeResult.setLogPath(logPath);
+                nodeResultService.update(nodeResult);
             } catch (IOException e) {
                 throw new FlowException("Cannot unzip log file for " + cmdId, e);
             }
