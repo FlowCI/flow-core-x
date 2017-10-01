@@ -16,10 +16,14 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.job.JobSearchService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
@@ -27,8 +31,10 @@ import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,10 +54,19 @@ public class JobController extends NodeController {
     private final static Logger LOGGER = new Logger(JobController.class);
 
     @Autowired
+    private YmlService ymlService;
+
+    @Autowired
     private JobService jobService;
 
     @Autowired
+    private JobSearchService searchService;
+
+    @Autowired
     private LogService logService;
+
+    @Autowired
+    private ThreadLocal<User> currentUser;
 
     @ModelAttribute
     public void setLocale(@RequestParam(required = false) String locale) {
@@ -73,78 +88,23 @@ public class JobController extends NodeController {
      * @api {post} /jobs/:root Create
      * @apiParam {String} root flow node path
      * @apiGroup Jobs
-     * @apiDescription Create job by flow node path,
+     * @apiDescription Create job by flow node path, the async call since it will load yml from git
      * FLOW_STATUS must be READY and YML contnet must be provided
      *
-     * @apiSuccessExample {json} Success-Response
-     *  {
-     *      nodePath: flow-integration,
-     *      number: 1,
-     *      nodeName: flow-integration,
-     *      status: CREATED,
-     *      envs: {
-     *          FLOW_GIT_BRANCH: xxx
-     *          FLOW_GIT_: xxx
-     *      }
-     *      createdAt: 154123211,
-     *      updatedAt: 154123211,
-     *      result: {
-     *          key: {
-     *             path: flow-integration
-     *          },
-     *          outputs: {
-     *              FLOW_ENV_OUT_1: xxxx,
-     *              FLOW_ENV_OUT_2: xxxx
-     *          },
-     *          duration: 0,
-     *          status: PENDING,
-     *          cmdId: xxxx,
-     *          nodeTag: FLOW,
-     *          order: 5
-     *          startTime: 154123211,
-     *          finishTime: 154123211,
-     *          createdAt: 154123211,
-     *          updatedAt: 154123211
-     *      },
-     *
-     *      childrenResult: [
-     *          {
-     *              key: {
-     *                  path: flow-integration/step1
-     *              },
-     *              duration: 0,
-     *              status: PENDING,
-     *              cmdId: xxx,
-     *              outputs: {
-     *                  FLOW_ENV_OUT_1: xx
-     *              },
-     *              order: 0
-     *          },
-     *
-     *          {
-     *              key: {
-     *                  path: flow-integration/step2
-     *              },
-     *              duration: 0,
-     *              status: PENDING,
-     *              cmdId: xxx,
-     *              outputs: {
-     *                  FLOW_ENV_OUT_1: xx
-     *              },
-     *              order: 1
-     *          }
-     *      ]
-     *  }
      */
     @PostMapping(path = "/{root}")
-    public Job create() {
-        String path = getNodePathFromUrl();
-        return jobService.createJob(path, GitEventType.MANUAL, null);
+    public void create() {
+        String path = currentNodePath.get();
+        jobService.createJobAndYmlLoad(path, GitEventType.MANUAL, null, currentUser.get(), null);
     }
 
     /**
      * @api {get} /jobs/:root List
      * @apiParam {String} [root] flow node path, return all jobs if not presented
+     * @apiParam {String} [keyword] search keyword
+     * @apiParam {String} [branch] search branch
+     * @apiParam {String} [category] git event type
+     * @apiParam {String} [creator] creator
      * @apiGroup Jobs
      * @apiDescription Get jobs by node path or list all jobs
      *
@@ -160,15 +120,15 @@ public class JobController extends NodeController {
      *  ]
      */
     @GetMapping(path = "/{root}")
-    public Collection<Job> index() {
-        String path = getNodePathFromUrl();
+    public List<Job> index(@RequestParam Map<String, String> allParams,  SearchCondition condition) {
+        String path = currentNodePath.get();
 
         List<String> paths = null;
         if (path != null) {
             paths = Lists.newArrayList(path);
         }
 
-        return jobService.list(paths, false);
+        return searchService.search(condition, paths);
     }
 
     /**
@@ -185,8 +145,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}")
     public Job show(@PathVariable Integer buildNumber) {
-        String path = getNodePathFromUrl();
-        return jobService.find(path, buildNumber);
+        return jobService.find(currentNodePath.get(), buildNumber);
     }
 
     /**
@@ -207,7 +166,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/yml")
     public String yml(@PathVariable Integer buildNumber) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         return jobService.findYml(path, buildNumber);
     }
 
@@ -246,7 +205,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/nodes")
     public List<NodeResult> indexNodeResults(@PathVariable Integer buildNumber) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         return jobService.listNodeResult(path, buildNumber);
     }
 
@@ -264,7 +223,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
     public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         try {
             return logService.findNodeLog(path, buildNumber, stepOrder);
         } catch (Throwable e){
@@ -272,7 +231,6 @@ public class JobController extends NodeController {
             return StringUtil.EMPTY;
         }
     }
-
 
     /**
      * @api {post} /jobs/:root/:buildNumber/stop Stop
@@ -288,7 +246,7 @@ public class JobController extends NodeController {
      */
     @PostMapping(path = "/{root}/{buildNumber}/stop")
     public Job stopJob(@PathVariable Integer buildNumber) {
-        String path = getNodePathFromUrl();
+        String path = currentNodePath.get();
         return jobService.stopJob(path, buildNumber);
     }
 
@@ -314,6 +272,35 @@ public class JobController extends NodeController {
         return jobService.list(paths, true);
     }
 
+    /**
+     * @api {post} /jobs/:root/search search jobs
+     * @apiParam {String} root flow node name
+     * @apiParamExample {json} Request-Body:
+     *  {
+     *      keyword: xxx,
+     *      branch: xxx,
+     *      gitEventType: xxxx,
+     *      creator: xxxx
+     *  }
+     * @apiGroup Jobs
+     * @apiDescription search jobs by diff condition
+     *
+     * @apiSuccessExample {json} Success-Response
+     * [
+     *   .. jobs
+     * ]
+     */
+    @PostMapping(path = "/{root}/search")
+    public List<Job> search(@RequestBody SearchCondition condition){
+        String path = currentNodePath.get();
+
+        List<String> paths = null;
+        if (path != null) {
+            paths = Lists.newArrayList(path);
+        }
+
+        return searchService.search(condition, paths);
+    }
 
     /**
      * @api {get} /jobs/:buildNumber/log/download download job full log
@@ -325,11 +312,12 @@ public class JobController extends NodeController {
      *   job.log file
      */
     @GetMapping(path = "/{root}/{buildNumber}/log/download")
-    public org.springframework.core.io.Resource jobLog(@PathVariable Integer buildNumber,
-        HttpServletResponse httpResponse) {
-        String path = getNodePathFromUrl();
-            httpResponse.setHeader("Content-Disposition",
-                String.format("attachment; filename=%s", String.format("%s-%s.zip", path, buildNumber)));
+    public Resource jobLog(@PathVariable Integer buildNumber,
+                           HttpServletResponse httpResponse) {
+        String path = currentNodePath.get();
+        httpResponse.setHeader(
+            "Content-Disposition",
+            String.format("attachment; filename=%s", String.format("%s-%s.zip", path, buildNumber)));
         return logService.findJobLog(path, buildNumber);
     }
 

@@ -17,6 +17,7 @@
 package com.flow.platform.api.config;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
@@ -60,6 +61,10 @@ public class AppConfig extends AppConfigBase {
 
     public final static long ALLOW_SIZE = 2 * 1024 * 1024;
 
+    public final static String DEFAULT_USER_EMAIL = "admin@flow.ci";
+    public final static String DEFAULT_USER_NAME = "admin";
+    public final static String DEFAULT_USER_PASSWORD = "123456";
+
     @Value("${api.workspace}")
     private String workspace;
 
@@ -78,6 +83,17 @@ public class AppConfig extends AppConfigBase {
     }
 
     @Bean
+    public ThreadLocal<User> currentUser() {
+        return new ThreadLocal<>();
+    }
+
+    @Bean
+    public ThreadLocal<String> currentNodePath() {
+        return new ThreadLocal<>();
+    }
+
+    @Bean
+    @Override
     public ThreadPoolTaskExecutor taskExecutor() {
         return ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
     }
@@ -99,6 +115,8 @@ public class AppConfig extends AppConfigBase {
 
     @Bean
     public PlatformURL platformURL() {
-        return new PlatformURL(platFormBaseURL);
+        PlatformURL platformURL = new PlatformURL(platFormBaseURL);
+        LOGGER.trace(platformURL.toString());
+        return platformURL;
     }
 }

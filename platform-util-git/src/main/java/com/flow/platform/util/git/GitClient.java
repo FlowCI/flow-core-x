@@ -34,33 +34,32 @@ public interface GitClient {
     /**
      * Git clone from remote url
      *
+     * @param branch branch to clone, can be set to null
      * @param noCheckout git clone xxxx --no-checkout, only clone .git dir
      * @return .git folder path
      */
-    File clone(boolean noCheckout) throws GitException;
+    File clone(String branch, boolean noCheckout) throws GitException;
 
     /**
      * Git clone from remote url with specific checkout files
      * Just pull latest if .git folder existed
      *
      * @param branch branch to clone, can be set to null
-     * @param depth git --depth param, can be set to null
      * @param checkoutFiles specific checkout file
      * @param monitor git progress monitor, can be null
      * @return .git folder path
      * @throws GitException if git clone fail
      */
-    File clone(String branch, Integer depth, Set<String> checkoutFiles, ProgressMonitor monitor) throws GitException;
+    File clone(String branch, Set<String> checkoutFiles, ProgressMonitor monitor) throws GitException;
 
     /**
      * Git pull with depth
      *
      * @param branch branch to pull, can be set to null
-     * @param depth git pull depth, can be set to null
      * @param monitor git progress monitor, can be null
      * @throws GitException if git pull fail
      */
-    void pull(String branch, Integer depth, ProgressMonitor monitor) throws GitException;
+    void pull(String branch, ProgressMonitor monitor) throws GitException;
 
     /**
      * Load all branches from git

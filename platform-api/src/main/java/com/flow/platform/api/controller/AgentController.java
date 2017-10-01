@@ -18,8 +18,10 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.response.BooleanValue;
+import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
@@ -38,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(path = "/agents")
-public class AgentController {
+public class AgentController extends ApplicationEventService {
 
     @Autowired
     private AgentService agentService;
@@ -153,5 +155,30 @@ public class AgentController {
         }
         Boolean t = agentService.shutdown(zone, name, password);
         return new BooleanValue(t);
+    }
+
+    /**
+     * @api {Post} /agents/callback Callback
+     * @apiName AgentCallback
+     * @apiParam {json} Request-Body
+     *  {
+     *      path: {
+     *          zone: xxx,
+     *          name: xxx
+     *      },
+     *      concurrentProc: 1,
+     *      status: IDLE,
+     *      sessionId: xxxxx,
+     *      sessionDate: xxx,
+     *      token: xxxx,
+     *      createdDate: xxx,
+     *      updatedDate: xxx
+     *  }
+     * @apiGroup Agent
+     * @apiDescription: Callback API for agent webhook when agent status changed
+     */
+    @PostMapping(path = "/callback")
+    public void callback(@RequestBody Agent agent) {
+        this.dispatchEvent(new AgentStatusChangeEvent(this, agent));
     }
 }

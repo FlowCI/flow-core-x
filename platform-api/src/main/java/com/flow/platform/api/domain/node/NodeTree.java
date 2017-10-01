@@ -48,8 +48,8 @@ public class NodeTree {
         fill(this.root);
     }
 
-    public NodeTree(String yml) {
-        root = NodeUtil.buildFromYml(yml); // build from yml
+    public NodeTree(String yml, String rootName) {
+        root = NodeUtil.buildFromYml(yml, rootName); // build from yml
         fill(this.root);
     }
 

@@ -17,44 +17,53 @@ package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlDao;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.node.NodeTree;
-import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
+import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.service.CurrentUser;
+import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.user.RoleService;
+import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
+import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
 
 /**
  * @author yh@firim
  */
 @Service(value = "nodeService")
-public class NodeServiceImpl implements NodeService {
+@Transactional
+public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     private final Logger LOGGER = new Logger(NodeService.class);
 
@@ -83,25 +92,37 @@ public class NodeServiceImpl implements NodeService {
     @Autowired
     private Path workspace;
 
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private UserFlowService userFlowService;
+
+    @Autowired
+    private JobService jobService;
+
+    @Autowired
+    private RoleService roleService;
+
     @Value(value = "${domain}")
     private String domain;
 
     @Override
-    public Node createOrUpdate(final String path, final String yml) {
+    public Node createOrUpdate(final String path, String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
+
+        if (!checkFlowName(flow.getName())) {
+            throw new IllegalParameterException("flowName format not true");
+        }
 
         if (Strings.isNullOrEmpty(yml)) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.NOT_FOUND, null);
             return flow;
         }
 
-        if (!Objects.equals(flow.getEnv(FlowEnvs.FLOW_STATUS), StatusValue.READY.value())) {
-            throw new IllegalStatusException("Node status not correct, should be READY for FLOW_STATUS");
-        }
-
         Node rootFromYml;
         try {
-            rootFromYml = ymlService.verifyYml(path, yml);
+            rootFromYml = ymlService.verifyYml(flow, yml);
         } catch (IllegalParameterException | YmlException e) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());
             return flow;
@@ -136,7 +157,7 @@ public class NodeServiceImpl implements NodeService {
 
                 // has related yml
                 if (ymlStorage != null) {
-                    NodeTree newTree = new NodeTree(ymlStorage.getFile());
+                    NodeTree newTree = new NodeTree(ymlStorage.getFile(), flow.getName());
                     Node root = newTree.root();
 
                     // should merge env from flow dao and yml
@@ -186,6 +207,12 @@ public class NodeServiceImpl implements NodeService {
         String rootPath = PathUtil.rootPath(path);
         Flow flow = findFlow(rootPath);
 
+        // delete related userAuth
+        userFlowService.unAssign(flow);
+
+        // delete job
+        jobService.deleteJob(rootPath);
+
         // delete flow
         flowDao.delete(flow);
 
@@ -210,6 +237,10 @@ public class NodeServiceImpl implements NodeService {
         Flow flow = new Flow(PathUtil.build(flowName), flowName);
         treeCache.invalidate(flow.getPath());
 
+        if (!checkFlowName(flow.getName())) {
+            throw new IllegalParameterException("flowName format not true");
+        }
+
         if (exist(flow.getPath())) {
             throw new IllegalParameterException("Flow name already existed");
         }
@@ -217,13 +248,16 @@ public class NodeServiceImpl implements NodeService {
         flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
         flow.putEnv(FlowEnvs.FLOW_STATUS, StatusValue.PENDING);
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND);
+        flow.setCreatedBy(currentUser().getEmail());
         flow = flowDao.save(flow);
+
+        userFlowService.assign(currentUser(), flow);
 
         return flow;
     }
 
     @Override
-    public Flow setFlowEnv(String path, Map<String, String> envs) {
+    public Flow addFlowEnv(String path, Map<String, String> envs) {
         Flow flow = findFlow(path);
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
@@ -233,17 +267,29 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public void updateYmlState(Flow flow, FlowEnvs.YmlStatusValue state, String errorInfo) {
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
+    public Flow delFlowEnv(String path, Set<String> keys) {
+        Flow flow = findFlow(path);
 
-        if (!Strings.isNullOrEmpty(errorInfo)) {
-            flow.putEnv(FlowEnvs.FLOW_YML_ERROR_MSG, errorInfo);
-        } else {
-            flow.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
+        for (String keyToRemove : keys) {
+            flow.removeEnv(keyToRemove);
         }
 
-        LOGGER.debug("Update '%s' yml status to %s", flow.getName(), state);
         flowDao.update(flow);
+        return flow;
+    }
+
+    @Override
+    public void updateYmlState(Node root, FlowEnvs.YmlStatusValue state, String errorInfo) {
+        root.putEnv(FlowEnvs.FLOW_YML_STATUS, state);
+
+        if (!Strings.isNullOrEmpty(errorInfo)) {
+            root.putEnv(FlowEnvs.FLOW_YML_ERROR_MSG, errorInfo);
+        } else {
+            root.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
+        }
+
+        LOGGER.debug("Update '%s' yml status to %s", root.getName(), state);
+        flowDao.update((Flow) root);
     }
 
     @Override
@@ -266,7 +312,34 @@ public class NodeServiceImpl implements NodeService {
         return hooks;
     }
 
+    @Override
+    public List<User> authUsers(List<String> emailList, String rootPath) {
+        List<User> users = userDao.list(emailList);
+
+        List<String> paths = Lists.newArrayList(rootPath);
+
+        Flow flow = findFlow(rootPath);
+        for (User user : users) {
+            userFlowService.unAssign(user, flow);
+            userFlowService.assign(user, flow);
+            user.setRoles(roleService.list(user));
+            user.setFlows(paths);
+        }
+        return users;
+    }
+
     private String hooksUrl(final Flow flow) {
         return String.format("%s/hooks/git/%s", domain, flow.getName());
     }
+
+    private Boolean checkFlowName(String flowName) {
+        if (flowName == null || flowName.trim().equals("")) {
+            return false;
+        }
+        if (!Pattern.compile("^\\w{5,20}$").matcher(flowName).matches()) {
+            return false;
+        }
+        return true;
+    }
+
 }

@@ -40,6 +40,7 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.git.model.GitEventType;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -64,7 +65,7 @@ public class JobServiceTest extends TestBase {
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Flow rootForFlow = nodeService.createEmptyFlow("flow1");
-        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null);
+        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
     }
 
     @Test
@@ -145,7 +146,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
 
         // then: check job tree data is correct
-        NodeTree tree = jobNodeService.get(job.getId());
+        NodeTree tree = jobNodeService.get(job);
         List<Node> steps = tree.children();
         Assert.assertEquals(7, steps.size());
 
@@ -204,11 +205,51 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());
     }
 
+    @Test
+    public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
+        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+        Thread.sleep(7000);
+
+        // when: check job timeout
+        jobService.checkTimeoutTask();
+
+        // then: job status should be timeout
+        Job jobRes = jobDao.get(rootForFlow.getPath(), job.getNumber());
+        Assert.assertEquals(JobStatus.TIMEOUT, jobRes.getStatus());
+        Assert.assertEquals(NodeStatus.TIMEOUT, jobRes.getRootResult().getStatus());
+
+        // when: mock some callback for job
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setSessionId("xxxx");
+        cmd.setStatus(CmdStatus.SENT);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+
+        // then:
+        Assert.assertEquals(JobStatus.TIMEOUT, jobService.find(job.getId()).getStatus());
+    }
+
+    @Test
+    public void getLatestByPath() throws IOException{
+        Node rootForFlow = createRootFlow("flowTest", "demo_flow1.yaml");
+        createMockJob(rootForFlow.getPath());
+        createMockJob(rootForFlow.getPath());
+
+        Assert.assertEquals(2, jobDao.list().size());
+
+        List<String> rootPath = Lists.newArrayList(rootForFlow.getPath());
+        List<Job> jobs = jobService.list(rootPath,true);
+        Assert.assertEquals(1, jobs.size());
+        Assert.assertEquals("2", jobs.get(0).getNumber().toString());
+
+    }
+
     private Job createMockJob(String nodePath) {
-        Job job = jobService.createJob(nodePath, GitEventType.TAG, null);
+        Job job = jobService.createJob(nodePath, GitEventType.TAG, null, mockUser);
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());
+        Assert.assertEquals(mockUser.getEmail(), job.getCreatedBy());
         Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
 
         Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER));
@@ -217,10 +258,10 @@ public class JobServiceTest extends TestBase {
         NodeResult rootResult = job.getRootResult();
         Assert.assertNotNull(rootResult);
         Assert.assertEquals(NodeTag.FLOW, rootResult.getNodeTag());
-        Assert.assertTrue(rootResult.getOutputs().isEmpty());
+        Assert.assertNotNull(rootResult.getOutputs());
         Assert.assertEquals(NodeStatus.PENDING, rootResult.getStatus());
 
-        NodeTree nodeTree = jobNodeService.get(job.getId());
+        NodeTree nodeTree = jobNodeService.get(job);
 
         // verify child node result list
         List<NodeResult> childrenResult = job.getChildrenResult();

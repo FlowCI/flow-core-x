@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
 
@@ -45,15 +46,14 @@ import org.springframework.web.servlet.HandlerMapping;
 })
 public class NodeController {
 
-    protected final static String PATH_VAR_ROOT = "root";
-
-    protected final static String PATH_VAR_CHILD = "child";
-
     @Autowired
     protected NodeService nodeService;
 
+    /**
+     * The current node path from {@see NodeControllerAdvice}
+     */
     @Autowired
-    protected HttpServletRequest request;
+    protected ThreadLocal<String> currentNodePath;
 
     /**
      * @api {get} /nodes/:root/:child/env/:key Get Env
@@ -68,9 +68,9 @@ public class NodeController {
      *      FLOW_ENV_VAR: xxx
      *  }
      */
-    @GetMapping(path = "/env/{key}")
-    public Map<String, String> getEnv(@PathVariable(required = false) String key) {
-        String path = getNodePathFromUrl();
+    @GetMapping(path = "/env")
+    public Map<String, String> getEnv(@RequestParam(required = false) String key) {
+        String path = currentNodePath.get();
 
         // check is path for root name
         if (PathUtil.isRootName(path)) {
@@ -95,15 +95,5 @@ public class NodeController {
         Map<String, String> singleEnv = new HashMap<>(1);
         singleEnv.put(key, env);
         return singleEnv;
-    }
-
-    protected String getNodePathFromUrl() {
-        Map<String, String> attributes =
-            (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-
-        String root = attributes.get(PATH_VAR_ROOT);
-        String child = attributes.get(PATH_VAR_CHILD);
-
-        return PathUtil.build(root, child);
     }
 }

@@ -16,10 +16,7 @@
 
 package com.flow.platform.api.consumer;
 
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.TextMessage;
@@ -43,7 +40,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String logItem = message.getPayload();
-        LOGGER.debug(logItem);
 
         if (logItem.length() < MIN_LENGTH_LOG) {
             return;

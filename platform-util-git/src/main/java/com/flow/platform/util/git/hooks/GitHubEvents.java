@@ -18,6 +18,8 @@ package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEvent;
+import com.flow.platform.util.git.model.GitEventAuthor;
+import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestEvent.State;
@@ -58,7 +60,12 @@ public class GitHubEvents {
 
             private Boolean created;
 
-            private Map<String, String> sender;
+            private GitEventAuthor pusher;
+
+            private GitEventAuthor sender;
+
+            @SerializedName("head_commit")
+            private GitEventCommit headCommit;
         }
 
         PushAndTagAdapter(GitSource gitSource, GitEventType eventType) {
@@ -80,19 +87,19 @@ public class GitHubEvents {
                 event.setType(GitEventType.PUSH);
             }
 
-            Map<String, String> sender = helper.sender;
-            if (sender != null) {
-                event.setUserId(sender.get("id"));
-                event.setUsername(sender.get("login"));
-            }
+            event.setUserId(helper.sender.getId());
+            event.setUsername(helper.pusher.getName());
+            event.setUserEmail(helper.pusher.getEmail());
 
+            event.setHeadCommitUrl(helper.headCommit.getUrl());
             event.setCompareId(GitPushTagEvent.buildCompareId(event));
             event.setGitSource(gitSource);
+
             return event;
         }
     }
 
-    public static class MergeRequestAdapter extends GitHookEventAdapter {
+    public static class PullRequestAdapter extends GitHookEventAdapter {
 
         public final static String STATE_OPEN = "open";
 
@@ -163,7 +170,7 @@ public class GitHubEvents {
             private Boolean isSiteAdmin;
         }
 
-        public MergeRequestAdapter(GitSource gitSource, GitEventType eventType) {
+        public PullRequestAdapter(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
@@ -191,6 +198,7 @@ public class GitHubEvents {
             event.setTitle(pullRequest.title);
             event.setUrl(pullRequest.htmlUrl);
             event.setSubmitter(pullRequest.user.login);
+            event.setUserEmail(pullRequest.user.login); //cannot get user email from pr data
             event.setSource(new GitPullRequestInfo());
             event.setTarget(new GitPullRequestInfo());
 

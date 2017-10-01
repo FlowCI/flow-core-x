@@ -22,15 +22,16 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.util.PlatformURL;
-import com.flow.platform.core.exception.FlowException;
+import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentPathWithWebhook;
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.http.HttpClient;
 import com.google.common.base.Strings;
 import com.google.gson.JsonSyntaxException;
 import java.io.UnsupportedEncodingException;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -46,10 +48,12 @@ import org.springframework.stereotype.Service;
  * @author yh@firim
  */
 
-@Service(value = "agentService")
+@Service
 public class AgentServiceImpl implements AgentService {
 
     private final Logger LOGGER = new Logger(AgentService.class);
+
+    private final int httpRetryTimes = 5;
 
     @Value(value = "${platform.zone}")
     private String zone;
@@ -63,11 +67,18 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private CmdService cmdService;
 
+    @Value(value = "${domain}")
+    private String domain;
+
     @Override
     public List<AgentWithFlow> list() {
-        String res = HttpUtil.get(platformURL.getAgentUrl());
-        if (res == null) {
-            throw new RuntimeException("Get Agent List error");
+        String res = HttpClient.build(platformURL.getAgentUrl())
+            .get()
+            .retry(httpRetryTimes)
+            .bodyAsString().getBody();
+
+        if (Strings.isNullOrEmpty(res)) {
+            throw new HttpException("Unable to load agent list");
         }
 
         Agent[] agents = Jsonable.GSON_CONFIG.fromJson(res, Agent[].class);
@@ -122,10 +133,16 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public Agent create(AgentPath agentPath) {
         try {
-            String agentJson = HttpUtil.post(platformURL.getAgentTokenUrl(), agentPath.toJson());
+            AgentPathWithWebhook pathWithWebhook = new AgentPathWithWebhook(agentPath, buildAgentWebhook());
+
+            final String agentJson = HttpClient.build(platformURL.getAgentCreateUrl())
+                .post(pathWithWebhook.toJson())
+                .withContentType(ContentType.APPLICATION_JSON)
+                .retry(httpRetryTimes)
+                .bodyAsString().getBody();
 
             if (Strings.isNullOrEmpty(agentJson)) {
-                throw new FlowException("Unable to create agent via control center");
+                throw new HttpException("Unable to create agent via control center");
             }
 
             return Agent.parse(agentJson, Agent.class);
@@ -137,13 +154,20 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public AgentSettings settings(String token) {
-        String url = platformURL.getAgentDetailUrl() + "?" + "token=" + token;
-        String settingsJson = HttpUtil.get(url);
+        String url = platformURL.getAgentSettingsUrl() + "?" + "token=" + token;
+        String settingsJson = HttpClient.build(url)
+            .get()
+            .retry(httpRetryTimes)
+            .bodyAsString().getBody();
 
         if (Strings.isNullOrEmpty(settingsJson)) {
-            throw new IllegalStatusException("Unable to get agent settings from control center");
+            throw new HttpException("Unable to get agent settings from control center");
         }
 
         return AgentSettings.parse(settingsJson, AgentSettings.class);
+    }
+
+    private String buildAgentWebhook() {
+        return domain + "/agents/callback";
     }
 }

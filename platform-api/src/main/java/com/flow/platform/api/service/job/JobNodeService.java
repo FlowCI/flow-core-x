@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service.job;
 
+import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.api.domain.node.NodeTree;
 import java.math.BigInteger;
@@ -27,17 +28,17 @@ public interface JobNodeService {
     /**
      * save yml to db
      */
-    void save(BigInteger jobId, String yml);
+    void save(Job job, String yml);
 
 
     /**
      * get node tree by job
      */
-    NodeTree get(BigInteger jobId);
+    NodeTree get(Job job);
 
     /**
      * Get job yml data
      */
-    JobYml find(BigInteger jobId);
+    JobYml find(Job job);
 
 }

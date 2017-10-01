@@ -16,12 +16,12 @@
 
 package com.flow.platform.cc.test.controller;
 
+import com.flow.platform.domain.AgentPathWithWebhook;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.*;
-import java.io.UnsupportedEncodingException;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -29,7 +29,6 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -110,7 +109,8 @@ public class AgentControllerTest extends TestBase {
     @Test
     public void should_create_agent_with_token_and_enable_to_get_setting_by_token() throws Exception {
         // given:
-        AgentPath agentPath = new AgentPath("default", "test");
+        final String webhook = "http://flow.ci/agent/callback";
+        AgentPathWithWebhook agentPath = new AgentPathWithWebhook("default", "test", webhook);
 
         // when: create agent
         MockHttpServletRequestBuilder content = post("/agents/create")
@@ -128,6 +128,7 @@ public class AgentControllerTest extends TestBase {
         Agent created = Agent.parse(agentJson, Agent.class);
         Assert.assertNotNull(created);
         Assert.assertNotNull(created.getToken());
+        Assert.assertEquals(webhook, created.getWebhook());
 
         // when: to get agent settings by token
         result = this.mockMvc.perform(get("/agents/settings").param("token", created.getToken()))

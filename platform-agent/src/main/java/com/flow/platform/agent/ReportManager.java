@@ -19,25 +19,18 @@ package com.flow.platform.agent;
 import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
-import java.io.IOException;
+import com.flow.platform.util.http.HttpClient;
+import com.flow.platform.util.http.HttpResponse;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 
 /**
  * For reporting status
@@ -75,97 +68,59 @@ public class ReportManager {
      * Report cmd status in sync
      */
     public boolean cmdReportSync(final String cmdId, final CmdStatus status, final CmdResult result) {
-        try {
-            cmdReportSync(cmdId, status, result, 5);
+        if (!Config.isReportCmdStatus()) {
+            LOGGER.trace("Cmd report toggle is disabled");
             return true;
-        } catch (IOException e) {
-            LOGGER.error("IOException when close http client", e);
-            return false;
+        }
+
+        // build post body
+        final CmdReport postCmd = new CmdReport(cmdId, status, result);
+        final String url = Config.agentSettings().getCmdStatusUrl();
+
+        try {
+            HttpResponse<String> response = HttpClient.build(url)
+                .post(postCmd.toJson())
+                .retry(5)
+                .withContentType(ContentType.APPLICATION_JSON)
+                .bodyAsString();
+
+            if (!response.hasSuccess()) {
+                LOGGER.warn("Fail to report cmd status to %s with status %s", url, response.getStatusCode());
+                return false;
+            }
+
+            LOGGER.trace("Cmd %s report status %s with result %s", cmdId, status, result);
+            return true;
         } catch (Throwable e) {
-            LOGGER.error("Fail to report status after 5 times", e);
+            LOGGER.warn("Fail to report cmd %s status since %s'", cmdId, ExceptionUtil.findRootCause(e).getMessage());
             return false;
         }
     }
 
     public boolean cmdLogUploadSync(final String cmdId, final Path path) {
-        try {
-            cmdLogUploadSync(cmdId, path, 5);
-            return true;
-        } catch (IOException e) {
-            LOGGER.error("IOException when close http client", e);
-            return false;
-        } catch (Throwable e) {
-            LOGGER.error("Fail to upload cmd log after 5 times", e);
-            return false;
-        }
-    }
-
-    private void cmdReportSync(final String cmdId,
-                               final CmdStatus status,
-                               final CmdResult result,
-                               final int retry) throws IOException {
-
-        if (!Config.isReportCmdStatus()) {
-            LOGGER.trace("Cmd report toggle is disabled");
-            return;
-        }
-
-        // build post body
-        CmdReport postCmd = new CmdReport(cmdId, status, result);
-
-        String url = Config.agentSettings().getCmdStatusUrl();
-        HttpPost post = new HttpPost(url);
-
-        StringEntity entity = new StringEntity(postCmd.toJson(), ContentType.APPLICATION_JSON);
-        post.setEntity(entity);
-
-        String successMsg = String.format("Cmd %s report status %s with result %s", cmdId, status, result);
-        String failMsg = String.format("Fail to report cmd status to : %s", url);
-        httpSend(post, retry, successMsg, failMsg);
-    }
-
-    private void cmdLogUploadSync(final String cmdId, final Path logPath, final int retry) throws IOException {
         if (!Config.isUploadLog()) {
             LOGGER.trace("Log upload toggle is disabled");
-            return;
+            return true;
         }
 
-        FileBody zippedFile = new FileBody(logPath.toFile(), ContentType.create("application/zip"));
         HttpEntity entity = MultipartEntityBuilder.create()
-            .addPart("file", zippedFile)
+            .addPart("file", new FileBody(path.toFile(), ContentType.create("application/zip")))
             .addPart("cmdId", new StringBody(cmdId, ContentType.TEXT_PLAIN))
             .setContentType(ContentType.MULTIPART_FORM_DATA)
             .build();
 
         String url = Config.agentSettings().getCmdLogUrl();
-        HttpPost post = new HttpPost(url);
-        post.setEntity(entity);
+        HttpResponse<String> response = HttpClient.build(url)
+            .post(entity)
+            .retry(5)
+            .bodyAsString();
 
-        String successMsg = String.format("Zipped cmd log uploaded %s", logPath);
-        String failMsg = String.format("Fail to upload zipped cmd log to : %s ", url);
-        httpSend(post, retry, successMsg, failMsg);
-    }
-
-    public static String httpSend(final HttpUriRequest request,
-                                  final int retry,
-                                  final String successMsg,
-                                  final String failMsg) {
-
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpResponse response = client.execute(request);
-            int code = response.getStatusLine().getStatusCode();
-            if (code != HttpStatus.SC_OK) {
-                throw new RuntimeException(failMsg);
-            }
-
-            LOGGER.trace(successMsg);
-            ResponseHandler<String> handler = new BasicResponseHandler();
-            return handler.handleResponse(response);
-        } catch (Throwable e) {
-            if (retry > 0) {
-                return httpSend(request, retry - 1, successMsg, failMsg);
-            }
-            throw new RuntimeException(e);
+        if (response.hasSuccess()) {
+            LOGGER.warn("Fail to upload zipped cmd log to : %s ", url);
+            return false;
         }
+
+        LOGGER.trace("Zipped cmd log uploaded %s", path);
+        return true;
     }
 }

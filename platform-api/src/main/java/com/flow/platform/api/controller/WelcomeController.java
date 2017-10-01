@@ -7,8 +7,7 @@ import com.flow.platform.core.service.SysInfoService;
 import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Category;
-import com.flow.platform.core.util.HttpUtil;
-import com.google.common.base.Strings;
+import com.flow.platform.util.http.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +89,7 @@ public class WelcomeController {
         systems.add(sysInfoService.system());
 
         try {
-            String res = HttpUtil.get(platformURL.getSysIndexUrl());
+            String res = HttpClient.build(platformURL.getSysIndexUrl()).get().bodyAsString().getBody();
             systems.add(PropertySystemInfo.parse(res, PropertySystemInfo.class));
         } catch (Throwable e) {
             throw new IllegalStatusException("Unable to load system info from control center");

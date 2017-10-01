@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.domain.user.UserRole;
 import com.flow.platform.api.domain.user.UserRoleKey;
+import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.google.common.base.Strings;
@@ -37,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class RoleServiceImpl implements RoleService {
+public class RoleServiceImpl extends CurrentUser implements RoleService {
 
     @Autowired
     private UserDao userDao;
@@ -72,16 +73,19 @@ public class RoleServiceImpl implements RoleService {
             throw new IllegalParameterException("The name of role must be provided");
         }
 
-        Role role = roleDao.get(name);
-        if (role != null) {
+        Role existRole = roleDao.get(name);
+        if (existRole != null) {
             throw new IllegalParameterException("The name of role is already presented");
         }
-
-        return roleDao.save(new Role(name, desc));
+        Role role = new Role(name, desc);
+        role.setCreatedBy(currentUser().getEmail());
+        roleDao.save(role);
+        return role;
     }
 
     @Override
     public void update(Role role) {
+        role.setCreatedBy(currentUser().getEmail());
         roleDao.update(role);
     }
 
@@ -125,6 +129,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public void assign(User user, Role role) {
         UserRole userRole = new UserRole(role.getId(), user.getEmail());
+        userRole.setCreatedBy(currentUser().getEmail());
         userRoleDao.save(userRole);
     }
 
@@ -140,4 +145,5 @@ public class RoleServiceImpl implements RoleService {
             userRoleDao.delete(userRole);
         }
     }
+
 }

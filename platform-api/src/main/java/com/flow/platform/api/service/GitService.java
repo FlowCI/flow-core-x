@@ -16,8 +16,13 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.envs.EnvKey;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.util.git.GitException;
+import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * To fetch related git repo info
@@ -28,6 +33,8 @@ public interface GitService {
 
     // the folder in the flow workspace
     String SOURCE_FOLDER_NAME = "source";
+
+    Set<EnvKey> REQUIRED_ENVS = ImmutableSet.of(GitEnvs.FLOW_GIT_URL, GitEnvs.FLOW_GIT_SOURCE);
 
     interface ProgressListener {
 
@@ -51,4 +58,14 @@ public interface GitService {
      * @return file content
      */
     String clone(Node node, String filePath, ProgressListener progress) throws GitException;
+
+    /**
+     * Fetch branches from git repo
+     */
+    List<String> branches(Node node);
+
+    /**
+     * Fetch tags from git repo
+     */
+    List<String> tags(Node node);
 }

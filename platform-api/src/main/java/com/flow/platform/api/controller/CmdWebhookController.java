@@ -18,10 +18,10 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.core.util.HttpUtil;
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ public class CmdWebhookController {
 
     @PostMapping(path = "")
     public void execute(@RequestBody Cmd cmd, @RequestParam String identifier) {
-        String jobIdStr = HttpUtil.urlDecode(identifier);
+        String jobIdStr = HttpURL.encode(identifier);
 
         if (Strings.isNullOrEmpty(jobIdStr)) {
             throw new IllegalParameterException("Invalid 'identifier' parameter");
@@ -59,7 +59,7 @@ public class CmdWebhookController {
 
         try {
             BigInteger jobId = new BigInteger(jobIdStr);
-            LOGGER.trace("Webhook received: Cmd {%s : %s : %s : %s}",
+            LOGGER.trace("Cmd Webhook received: Cmd {%s : %s : %s : %s}",
                 cmd.getType(),
                 cmd.getStatus(),
                 cmd.getId(),

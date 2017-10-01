@@ -51,7 +51,12 @@ public class GitLabEvents {
 
         private class JsonHelper {
 
-            private Map<String, String> repository;
+            private Repository repository;
+        }
+
+        private class Repository {
+
+            private String homepage;
         }
 
         PushAndTagAdapter(GitSource gitSource, GitEventType eventType) {
@@ -66,18 +71,23 @@ public class GitLabEvents {
             event.setType(eventType);
             event.setGitSource(gitSource);
 
-            // set compare id and url
-            String compareId = GitPushTagEvent.buildCompareId(event);
-            String compareUrl = jsonHelper.repository.get("homepage") + "/compare/" + compareId;
+            // set head commit url
+            final String headCommitUrl = jsonHelper.repository.homepage + "/commit/" + event.getAfter();
+            event.setHeadCommitUrl(headCommitUrl);
 
-            event.setCompareUrl(compareUrl);
+            // set compare id
+            final String compareId = GitPushTagEvent.buildCompareId(event);
             event.setCompareId(compareId);
+
+            // set compare url
+            final String compareUrl = jsonHelper.repository.homepage + "/compare/" + compareId;
+            event.setCompareUrl(compareUrl);
 
             return event;
         }
     }
 
-    public static class MergeRequestAdaptor extends GitHookEventAdapter {
+    public static class PullRequestAdaptor extends GitHookEventAdapter {
 
         public final static String STATE_OPEN = "opened";
 
@@ -142,7 +152,7 @@ public class GitLabEvents {
             private String message;
         }
 
-        MergeRequestAdaptor(GitSource gitSource, GitEventType eventType) {
+        PullRequestAdaptor(GitSource gitSource, GitEventType eventType) {
             super(gitSource, eventType);
         }
 
@@ -173,6 +183,7 @@ public class GitLabEvents {
                 prEvent.setAction(attrs.action);
                 prEvent.setUrl(attrs.url);
                 prEvent.setSubmitter(user.name);
+                prEvent.setUserEmail(user.name); // cannot get user email from pr data
                 prEvent.setTarget(new GitPullRequestInfo());
                 prEvent.setSource(new GitPullRequestInfo());
 

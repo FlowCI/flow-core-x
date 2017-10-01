@@ -16,12 +16,12 @@
 
 package com.flow.platform.cc.controller;
 
+import com.flow.platform.domain.AgentPathWithWebhook;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
-import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,16 +60,16 @@ public class AgentController {
     }
 
     @PostMapping(path = "/create")
-    public Agent create(@RequestBody AgentPath agentPath) {
-        if (Strings.isNullOrEmpty(agentPath.getName()) || Strings.isNullOrEmpty(agentPath.getZone())) {
+    public Agent create(@RequestBody AgentPathWithWebhook agentInfo) {
+        if (agentInfo.isEmpty()) {
             throw new IllegalParameterException("miss required params ");
         }
-        return agentService.create(agentPath);
+        return agentService.create(agentInfo, agentInfo.getWebhook());
     }
 
     @PostMapping(path = "/token/refresh")
     public String refreshToken(@RequestBody AgentPath agentPath) {
-        if (Strings.isNullOrEmpty(agentPath.getName()) || Strings.isNullOrEmpty(agentPath.getZone())) {
+        if (agentPath.isEmpty()) {
             throw new IllegalParameterException("miss required params ");
         }
         return agentService.refreshToken(agentPath);
@@ -90,11 +90,12 @@ public class AgentController {
      *
      * @param agent agent objc
      */
-    @PostMapping(path = "/report", consumes = "application/json")
+    @PostMapping(path = "/report")
     public void reportStatus(@RequestBody Agent agent) {
         if (agent.getPath() == null || agent.getStatus() == null) {
             throw new IllegalArgumentException("Agent path and status are required");
         }
-        agentService.updateStatus(agent.getPath(), agent.getStatus());
+
+        agentService.saveWithStatus(agent, agent.getStatus());
     }
 }

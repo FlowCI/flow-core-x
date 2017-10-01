@@ -38,6 +38,8 @@ public class NodeResult extends CreateUpdateObject {
 
     public final static EnumSet<NodeStatus> RUNNING_STATUS = EnumSet.of(PENDING, RUNNING, ENQUEUE);
 
+    public final static EnumSet<NodeStatus> FINISH_STATUS = EnumSet.of(SUCCESS, TIMEOUT, FAILURE, STOPPED);
+
     public final static EnumSet<NodeStatus> SUCCESS_STATUS = EnumSet.of(SUCCESS);
 
     public final static EnumSet<NodeStatus> FAILURE_STATUS = EnumSet.of(TIMEOUT, FAILURE);

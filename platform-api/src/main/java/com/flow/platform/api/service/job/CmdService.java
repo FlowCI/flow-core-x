@@ -18,6 +18,7 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.CmdInfo;
 
@@ -32,6 +33,7 @@ public interface CmdService {
      * Send create session cmd job async
      *
      * @return session id
+     * @throws IllegalStatusException throw when cannot create session
      */
     String createSession(Job job, Integer retry);
 

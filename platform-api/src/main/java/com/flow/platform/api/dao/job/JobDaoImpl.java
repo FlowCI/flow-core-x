@@ -16,13 +16,19 @@
 
 package com.flow.platform.api.dao.job;
 
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.dao.util.JobConvertUtil;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
+import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.springframework.stereotype.Repository;
@@ -122,6 +128,24 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
+    public List<Job> listForExpired(ZonedDateTime updatedTime, JobStatus... status) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+
+            CriteriaQuery<Job> select = builder.createQuery(Job.class);
+            Root<Job> from = select.from(Job.class);
+
+            Predicate createdPredicate = builder.lessThan(from.get("updatedAt"), updatedTime);
+            Predicate statusPredicate = from.get("status").in(status);
+
+            select.where(createdPredicate, statusPredicate);
+
+            return session.createQuery(select).list();
+
+        });
+    }
+
+    @Override
     public Job get(String path, Integer number) {
         return execute((Session session) -> {
             NativeQuery nativeQuery = session.createNativeQuery(
@@ -149,6 +173,23 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
 
             return integer;
         });
+    }
+
+    @Override
+    public List<BigInteger> findJobIdsByPath(String path) {
+        return execute(session -> session
+            .createQuery("select id from Job where nodePath = ?", BigInteger.class)
+            .setParameter(0, path)
+            .list());
+    }
+
+
+    @Override
+    public int deleteJob(String path) {
+        return execute(session -> session
+            .createQuery("delete from Job where nodePath = ?")
+            .setParameter(0, path)
+            .executeUpdate());
     }
 
     private static boolean hasCollection(final Collection<String> data) {

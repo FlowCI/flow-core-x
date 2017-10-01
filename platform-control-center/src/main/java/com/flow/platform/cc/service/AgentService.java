@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.service;
 
+import com.flow.platform.core.service.WebhookService;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
@@ -27,7 +28,7 @@ import java.util.Set;
 /**
  * @author gy@fir.im
  */
-public interface AgentService {
+public interface AgentService extends WebhookService {
 
     int AGENT_SESSION_TIMEOUT_TASK_PERIOD = 60 * 1000; // millisecond
 
@@ -67,14 +68,9 @@ public interface AgentService {
     List<Agent> findAvailable(String zone);
 
     /**
-     * Save agent properties
+     * Save agent status and other properties, and send agent webhook
      */
-    void save(Agent agent);
-
-    /**
-     * Update agent status
-     */
-    void updateStatus(AgentPath path, AgentStatus status);
+    void saveWithStatus(Agent agent, AgentStatus status);
 
     /**
      * Is agent session timeout
@@ -89,7 +85,7 @@ public interface AgentService {
     /**
      * Create agent and return token
      */
-    Agent create(AgentPath agentPath);
+    Agent create(AgentPath agentPath, String webhook);
 
     /**
      * refresh token

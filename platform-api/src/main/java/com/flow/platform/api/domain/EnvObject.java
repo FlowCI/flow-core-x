@@ -62,4 +62,8 @@ public abstract class EnvObject extends Jsonable {
     public void removeEnv(EnvKey key) {
         envs.remove(key.name());
     }
+
+    public void removeEnv(String key) {
+        envs.remove(key);
+    }
 }

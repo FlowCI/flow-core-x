@@ -19,7 +19,7 @@ package com.flow.platform.core.exception;
 /**
  * @author yh@firim
  */
-public class HttpException extends FlowException{
+public class HttpException extends FlowException {
 
     public HttpException(String description) {
         super(description, null);

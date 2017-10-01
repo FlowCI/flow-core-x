@@ -18,7 +18,6 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.sysinfo.GroupSystemInfo;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.core.service.SysInfoServiceImplBase;
 import com.flow.platform.core.sysinfo.AppServerLoader;
 import com.flow.platform.core.sysinfo.DBInfoLoader;
@@ -27,6 +26,8 @@ import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Category;
 import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.core.sysinfo.SystemInfoLoader;
+import com.flow.platform.util.http.HttpClient;
+import com.google.common.base.Strings;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
@@ -79,10 +80,13 @@ public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
         @Override
         public SystemInfo load() {
-            String response = HttpUtil.get(platformURL.getSysInfoUrl() + "/" + type.name().toLowerCase());
-            if (response == null) {
+            String url = platformURL.getSysInfoUrl() + "/" + type.name().toLowerCase();
+            String response = HttpClient.build(url).get().bodyAsString().getBody();
+
+            if (Strings.isNullOrEmpty(response)) {
                 return null;
             }
+
             return SystemInfo.parse(response, GroupSystemInfo.class);
         }
     }

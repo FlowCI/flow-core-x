@@ -17,9 +17,11 @@
 package com.flow.platform.api.dao.job;
 
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
@@ -37,6 +39,25 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     List<Job> listByPath(List<String> paths);
 
     /**
+     * delete jobs by node path
+     *
+     * @param path node path
+     */
+    int deleteJob(String path);
+
+    /**
+     * get jobIds by node path
+     *
+     * @param path node path
+     */
+    List<BigInteger> findJobIdsByPath(String path);
+
+    /**
+     * show expired jobs
+     */
+    List<Job> listForExpired(ZonedDateTime updatedTime, JobStatus... status);
+
+    /**
      * get latest job by flow path
      *
      * @param paths node path or null for all latest jobs
@@ -52,5 +73,4 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      * get max build number for node path
      */
     Integer maxBuildNumber(String path);
-
 }

@@ -14,6 +14,9 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
+import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -33,12 +36,15 @@ import com.flow.platform.api.dao.user.ActionDao;
 import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.job.NodeResultService;
+import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
@@ -120,6 +126,9 @@ public abstract class TestBase {
     protected NodeResultService nodeResultService;
 
     @Autowired
+    protected JobSearchService searchService;
+
+    @Autowired
     protected WebApplicationContext webAppContext;
 
     @Autowired
@@ -137,14 +146,30 @@ public abstract class TestBase {
     @Autowired
     protected Path workspace;
 
-    protected MockMvc mockMvc;
+    @Autowired
+    protected UserFlowDao userFlowDao;
+
+    @Autowired
+    private ThreadLocal<User> currentUser;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
+    protected MockMvc mockMvc;
+
+    protected User mockUser = new User("test@flow.ci", "ut", "");
+
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
+        User user = userDao.get(DEFAULT_USER_EMAIL);
+        if (user == null) {
+            User testUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
+            userDao.save(testUser);
+            currentUser.set(testUser);
+        } else {
+            currentUser.set(user);
+        }
     }
 
     public String getResourceContent(String fileName) throws IOException {
@@ -164,7 +189,7 @@ public abstract class TestBase {
     public void setFlowToReady(Node flowNode) {
         Map<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.StatusValue.READY.value());
-        nodeService.setFlowEnv(flowNode.getPath(), envs);
+        nodeService.addFlowEnv(flowNode.getPath(), envs);
     }
 
     public void stubDemo() {
@@ -223,6 +248,7 @@ public abstract class TestBase {
         actionDao.deleteAll();
         userRoleDao.deleteAll();
         permissionDao.deleteAll();
+        userFlowDao.deleteAll();
     }
 
     @After

@@ -23,11 +23,10 @@ import com.google.gson.annotations.Expose;
  */
 public class Role extends CreateUpdateObject {
 
-    @Expose
     private Integer id;
 
     @Expose
-    private String name; // it must be start with ROLE_
+    private String name;
 
     @Expose
     private String description;

@@ -19,6 +19,7 @@ import com.flow.platform.api.dao.user.ActionDao;
 import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.domain.request.ActionParam;
 import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.google.common.base.Strings;
@@ -33,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class ActionServiceImpl implements ActionService {
+public class ActionServiceImpl extends CurrentUser implements ActionService {
 
     @Autowired
     private ActionDao actionDao;
@@ -66,6 +67,8 @@ public class ActionServiceImpl implements ActionService {
             action.setAlias(name);
         }
 
+        action.setCreatedBy(currentUser().getEmail());
+
         return actionDao.save(action);
     }
 
@@ -74,6 +77,7 @@ public class ActionServiceImpl implements ActionService {
         Action action = find(name);
         action.setAlias(body.getAlias());
         action.setDescription(body.getDescription());
+        action.setCreatedBy(currentUser().getEmail());
         action.setTag(body.getTag());
 
         actionDao.update(action);
@@ -102,4 +106,5 @@ public class ActionServiceImpl implements ActionService {
     public List<Action> list(Collection<String> actions) {
         return actionDao.list(actions);
     }
+
 }

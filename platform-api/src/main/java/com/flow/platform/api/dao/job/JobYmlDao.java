@@ -18,10 +18,18 @@ package com.flow.platform.api.dao.job;
 import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
+import java.util.List;
 
 /**
  * @author lhl
  */
 public interface JobYmlDao extends BaseDao<BigInteger, JobYml> {
+
+    /**
+     * delete jobYml by jobIds
+     *
+     * @param jobIds jobIds
+     */
+    void delete(List<BigInteger> jobIds);
 
 }

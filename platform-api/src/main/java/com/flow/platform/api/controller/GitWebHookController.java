@@ -16,13 +16,18 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.git.GitEventDataExtractor;
 import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.api.service.node.YmlService;
+import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.model.GitEvent;
@@ -48,7 +53,7 @@ public class GitWebHookController extends NodeController {
     private final static Logger LOGGER = new Logger(GitWebHookController.class);
 
     @Autowired
-    private YmlService ymlService;
+    private NodeService nodeService;
 
     @Autowired
     private JobService jobService;
@@ -58,7 +63,7 @@ public class GitWebHookController extends NodeController {
 
     @PostMapping(path = "/{root}")
     public void onEventReceived(@RequestHeader HttpHeaders headers, HttpServletRequest request) {
-        final String path = getNodePathFromUrl();
+        final String path = currentNodePath.get();
 
         Map<String, String> headerAsMap = headers.toSingleValueMap();
         String body;
@@ -70,25 +75,22 @@ public class GitWebHookController extends NodeController {
 
         try {
             final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
-            LOGGER.trace("Webhook received: %s", hookEvent.toString());
+            LOGGER.trace("Git Webhook received: %s", hookEvent.toString());
 
-            // extract git related env variables from event
+            // reset flow yml status to not found otherwise yml cannot start to load
+            nodeService.addFlowEnv(path, EnvUtil.build(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
+
+            // extract git related env variables from event, and temporary set to node for git loading
             final Map<String, String> gitEnvs = GitEventDataExtractor.extract(hookEvent);
 
-            ymlService.loadYmlContent(path, yml -> {
-                LOGGER.trace("Yml content has been loaded for path : " + path);
+            // get user email from git event
+            final User user = new User(hookEvent.getUserEmail(), StringUtil.EMPTY, StringUtil.EMPTY);
 
-                try {
-                    // start job
-                    Job job = jobService.createJob(path, hookEvent.getType(), gitEnvs);
-
-                    applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
-                } catch (Throwable e) {
-                    LOGGER.warn("Fail to create job for path : " + path);
-                }
+            jobService.createJobAndYmlLoad(path, hookEvent.getType(), gitEnvs, user, (job) -> {
+                applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
             });
 
-        } catch (GitException e) {
+        } catch (GitException | FlowException e) {
             LOGGER.warn("Cannot process web hook event: %s", e.getMessage());
         }
     }

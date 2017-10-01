@@ -19,13 +19,16 @@ package com.flow.platform.api.test.service;
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.GitService.ProgressListener;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitSource;
 import java.nio.file.Path;
+import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.FileSystemUtils;
@@ -41,14 +44,19 @@ public class GitServiceTest extends TestBase {
     @Autowired
     private Path workspace;
 
+    private Node node;
+
+    @Before
+    public void initNodeWithGitInfo() throws Throwable {
+        node = new Flow("flow-test", "flow-test");
+        node.putEnv(GitEnvs.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
+        node.putEnv(GitEnvs.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
+        node.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
+    }
+
     @Test
     public void should_clone_git_file_with_ssh_pk() throws Throwable {
-        Flow dummyFlow = new Flow("/flow-test", "flow-test");
-        dummyFlow.putEnv(GitEnvs.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
-        dummyFlow.putEnv(GitEnvs.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
-        dummyFlow.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
-
-        String content = gitService.clone(dummyFlow, AppConfig.DEFAULT_YML_FILE, new ProgressListener() {
+        String content = gitService.clone(node, AppConfig.DEFAULT_YML_FILE, new ProgressListener() {
 
             @Override
             public void onStart() {
@@ -77,6 +85,20 @@ public class GitServiceTest extends TestBase {
             }
         });
         Assert.assertNotNull(content);
+    }
+
+    @Test
+    public void should_list_branches_of_git_repo() {
+        List<String> branches = gitService.branches(node);
+        Assert.assertNotNull(branches);
+        Assert.assertEquals("develop", branches.get(0));
+        Assert.assertEquals("master", branches.get(1));
+    }
+
+    @Test
+    public void should_list_tags_of_git_repo() {
+        List<String> tags = gitService.tags(node);
+        Assert.assertNotNull(tags);
     }
 
     @After

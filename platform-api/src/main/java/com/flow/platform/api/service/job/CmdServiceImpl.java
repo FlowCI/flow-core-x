@@ -21,7 +21,6 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.core.util.HttpUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
@@ -30,8 +29,11 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.http.HttpClient;
+import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.io.UnsupportedEncodingException;
+import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,8 @@ import org.springframework.stereotype.Service;
 public class CmdServiceImpl implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
+
+    private final int httpRetryTimes = 5;
 
     @Autowired
     private PlatformURL platformURL;
@@ -62,16 +66,18 @@ public class CmdServiceImpl implements CmdService {
         LOGGER.traceMarker("CreateSession", "job id - %s", job.getId());
 
         // create session
-        Cmd cmd = sendToQueue(cmdInfo, retry);
-        if (cmd == null) {
-            throw new IllegalStatusException("Unable to create session since cmd return null");
-        }
+        try {
+            Cmd cmd = sendToQueue(cmdInfo, retry);
 
-        if (Strings.isNullOrEmpty(cmd.getSessionId())) {
-            throw new IllegalStatusException("Invalid session id");
-        }
+            if (Strings.isNullOrEmpty(cmd.getSessionId())) {
+                throw new IllegalStatusException("Invalid session id");
+            }
 
-        return cmd.getSessionId();
+            return cmd.getSessionId();
+        } catch (Throwable e) {
+            throw new IllegalStatusException(
+                "Unable to create session since: " + ExceptionUtil.findRootCause(e).getMessage());
+        }
     }
 
     /**
@@ -133,11 +139,13 @@ public class CmdServiceImpl implements CmdService {
      * Send cmd to control center directly
      */
     private Cmd sendDirectly(CmdInfo cmdInfo) throws UnsupportedEncodingException {
-        String cmdUrl = platformURL.getCmdUrl();
-        String res = HttpUtil.post(cmdUrl, cmdInfo.toJson());
+        String res = HttpClient.build(platformURL.getCmdUrl())
+            .post(cmdInfo.toJson())
+            .withContentType(ContentType.APPLICATION_JSON)
+            .retry(httpRetryTimes)
+            .bodyAsString().getBody();
 
-        if (res == null) {
-            LOGGER.warn("Error on send cmd: %s - %s", cmdUrl, cmdInfo);
+        if (Strings.isNullOrEmpty(res)) {
             throw new HttpException(String.format("Error on send cmd: %s - %s", cmdInfo.getExtra(), cmdInfo));
         }
 
@@ -152,20 +160,23 @@ public class CmdServiceImpl implements CmdService {
         stringBuilder.append("?priority=1&retry=").append(retry);
 
         try {
-            String res = HttpUtil.post(stringBuilder.toString(), cmdInfo.toJson());
+            String res = HttpClient.build(stringBuilder.toString())
+                .post(cmdInfo.toJson())
+                .withContentType(ContentType.APPLICATION_JSON)
+                .retry(httpRetryTimes)
+                .bodyAsString().getBody();
 
-            if (res == null) {
-                String message = String
-                    .format("post session to queue error, cmdUrl: %s, cmdInfo: %s", stringBuilder, cmdInfo.toJson());
-
-                LOGGER.warn(message);
+            if (Strings.isNullOrEmpty(res)) {
+                String message = String.format(
+                    "post session to queue error, cmdUrl: %s, cmdInfo: %s",
+                    stringBuilder,
+                    cmdInfo.toJson());
                 throw new HttpException(message);
             }
 
             return Jsonable.parse(res, Cmd.class);
-        } catch (Throwable ignore) {
-            LOGGER.warnMarker("SendToQueue", "Unexpected exception", ignore);
-            return null;
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("Unable to send cmd since: ", e);
         }
     }
 
@@ -173,6 +184,6 @@ public class CmdServiceImpl implements CmdService {
      * Build cmd callback webhook url with job id as identifier
      */
     private String buildCmdWebhook(Job job) {
-        return domain + "/hooks/cmd?identifier=" + HttpUtil.urlEncode(job.getId().toString());
+        return domain + "/hooks/cmd?identifier=" + HttpURL.encode(job.getId().toString());
     }
 }

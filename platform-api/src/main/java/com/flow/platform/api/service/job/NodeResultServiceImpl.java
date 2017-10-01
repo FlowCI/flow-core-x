@@ -61,7 +61,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
     @Override
     public List<NodeResult> create(Job job) {
-        NodeTree nodeTree = jobNodeService.get(job.getId());
+        NodeTree nodeTree = jobNodeService.get(job);
 
         if (nodeTree == null) {
             throw new IllegalStatusException("Job related node is empty, please check");
@@ -128,7 +128,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
             }
 
             nodeResult.setStatus(targetStatus);
-            nodeResultDao.save(nodeResult);
+            nodeResultDao.update(nodeResult);
             this.dispatchEvent(new NodeStatusChangeEvent(this, nodeResult.getKey(), originStatus, targetStatus));
         }
     }
@@ -168,7 +168,6 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
             }
         }
     }
-
 
     private NodeResult createNodeResult(Job job, NodeTree nodeTree, Node node) {
         NodeResult nodeResult = new NodeResult(job.getId(), node.getPath());

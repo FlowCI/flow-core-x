@@ -2,15 +2,23 @@ package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.user.UserFlowDao;
+import com.flow.platform.api.dao.user.UserRoleDao;
+import com.flow.platform.api.domain.EmailSettingContent;
+import com.flow.platform.api.domain.MessageType;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.user.Role;
+import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.token.TokenGenerator;
+import com.flow.platform.api.service.CurrentUser;
+import com.flow.platform.api.service.MessageService;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.google.common.collect.Lists;
-import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service(value = "userService")
 @Transactional
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends CurrentUser implements UserService {
 
     @Autowired
     private UserDao userDao;
@@ -37,6 +45,18 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private UserFlowService userFlowService;
+
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private UserRoleDao userRoleDao;
+
+    @Autowired
+    private UserFlowDao userFlowDao;
 
     @Value(value = "${expiration.duration}")
     private long expirationDuration;
@@ -55,9 +75,12 @@ public class UserServiceImpl implements UserService {
             }
 
             if (withFlow) {
-                List<String> paths = nodeService.listFlowPathByUser(Lists.newArrayList(user.getEmail()));
-                user.setFlows(paths);
+                // for find flow by createdBy
+                // List<String> paths = nodeService.listFlowPathByUser(Lists.newArrayList(user.getEmail()))
+                // user.setFlows(paths);
+                user.setFlows(userFlowDao.listByEmail(user.getEmail()));
             }
+
         }
 
         return users;
@@ -76,7 +99,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User register(User user, Set<String> roles) {
+    public User register(User user, List<String> roles, boolean isSendEmail, List<String> flowsList) {
         String errMsg = "Illegal register request parameter: ";
 
         // Check format
@@ -101,7 +124,25 @@ public class UserServiceImpl implements UserService {
         // Insert the user info into the database
         String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
         user.setPassword(passwordForMD5);
+        user.setCreatedBy(currentUser().getEmail());
         user = userDao.save(user);
+
+        if (isSendEmail) {
+            EmailSettingContent emailSettingContent = (EmailSettingContent) messageService.find(MessageType.EMAIl);
+            if (emailSettingContent != null) {
+                SmtpUtil.sendEmail(emailSettingContent, user.getEmail(), "邀请您加入项目 [ flow.ci ]",
+                    "你已被邀请加入 FLOW.CI, 用户名:" + user.getUsername());
+            }
+        }
+
+        if (flowsList.size() > 0) {
+            for (String rootPath : flowsList) {
+                Flow flow = (Flow) nodeService.find(rootPath);
+                if (flow != null) {
+                    userFlowService.assign(user, flow);
+                }
+            }
+        }
 
         if (roles == null || roles.isEmpty()) {
             return user;
@@ -118,10 +159,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(List<String> emailList) {
-        // un-assign user from role
+        // un-assign user from role and flow
         List<User> users = userDao.list(emailList);
         for (User user : users) {
             roleService.unAssign(user);
+            userFlowService.unAssign(user);
         }
 
         // delete user
@@ -129,8 +171,36 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findByEmail(String email){
+    public List<User> updateUserRole(List<String> emailList, List<String> roles) {
+        List<User> users = userDao.list(emailList);
+        for (User user : users) {
+            roleService.unAssign(user);
+            for (String roleName : roles) {
+                Role targetRole = roleService.find(roleName);
+                roleService.assign(user, targetRole);
+                user.setRoles(roleService.list(user));
+                user.setFlows(userFlowDao.listByEmail(user.getEmail()));
+            }
+        }
+        return users;
+    }
+
+    @Override
+    public User findByEmail(String email) {
         return userDao.get(email);
+    }
+
+    @Override
+    public Long adminUserCount() {
+        Role role = roleService.find(SysRole.ADMIN.name());
+        return userRoleDao.numOfUser(role.getId());
+    }
+
+    @Override
+    public Long usersCount() {
+        List<User> users = userDao.list();
+        Long userCount = new Long(users.size());
+        return userCount;
     }
 
     /**
@@ -251,4 +321,5 @@ public class UserServiceImpl implements UserService {
     private Boolean passwordOfUsernameIsTrue(String username, String password) {
         return userDao.passwordOfUsernameIsTrue(username, password);
     }
+
 }

@@ -15,23 +15,30 @@
  */
 package com.flow.platform.api.service.job;
 
+import static com.flow.platform.api.domain.envs.FlowEnvs.*;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
 import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
 import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
 import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.JobYmlDao;
+import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
+import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -50,15 +57,22 @@ import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import java.math.BigInteger;
+import com.google.common.collect.Sets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -73,6 +87,15 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private Integer RETRY_TIMEs = 5;
 
     private final Integer createSessionRetryTimes = 5;
+
+    @Value("${task.job.toggle.execution_timeout}")
+    private Boolean isJobTimeoutExecuteTimeout;
+
+    @Value("${task.job.toggle.execution_create_session_duration}")
+    private Long jobExecuteTimeoutCreateSessionDuration;
+
+    @Value("${task.job.toggle.execution_running_duration}")
+    private Long jobExecuteTimeoutRunningDuration;
 
     @Autowired
     private NodeResultService nodeResultService;
@@ -95,6 +118,15 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Autowired
     private YmlService ymlService;
 
+    @Autowired
+    private NodeResultDao nodeResultDao;
+
+    @Autowired
+    private JobYmlDao jobYmlDao;
+
+    @Value(value = "${domain}")
+    private String domain;
+
     @Override
     public Job find(String flowName, Integer number) {
         Job job = jobDao.get(flowName, number);
@@ -110,7 +142,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     public String findYml(String path, Integer number) {
         Job job = find(path, number);
-        return jobNodeService.find(job.getId()).getFile();
+        return jobNodeService.find(job).getFile();
     }
 
     @Override
@@ -122,26 +154,31 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     public List<Job> list(List<String> paths, boolean latestOnly) {
         if (latestOnly) {
-            jobDao.latestByPath(paths);
+            return jobDao.latestByPath(paths);
         }
         return jobDao.listByPath(paths);
     }
 
     @Override
-    public Job createJob(String path, GitEventType eventType, Map<String, String> envs) {
+    @Transactional(noRollbackFor = FlowException.class)
+    public Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
         }
 
-        String status = root.getEnv(FlowEnvs.FLOW_STATUS);
-        if (Strings.isNullOrEmpty(status) || !status.equals(FlowEnvs.StatusValue.READY.value())) {
+        if (creator == null) {
+            throw new IllegalParameterException("User is required while create job");
+        }
+
+        String status = root.getEnv(FLOW_STATUS);
+        if (Strings.isNullOrEmpty(status) || !status.equals(StatusValue.READY.value())) {
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
         String yml = null;
         try {
-            yml = ymlService.getYmlContent(root.getPath());
+            yml = ymlService.getYmlContent(root);
             if (Strings.isNullOrEmpty(yml)) {
                 throw new IllegalStatusException("Yml is loading for path " + path);
             }
@@ -156,10 +193,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setNodeName(root.getName());
         job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
         job.setCategory(eventType);
+        job.setCreatedBy(creator.getEmail());
+        job.setCreatedAt(ZonedDateTime.now());
+        job.setUpdatedAt(ZonedDateTime.now());
 
         // setup job env variables
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
+        job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
 
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         EnvUtil.merge(envs, job.getEnvs(), true);
@@ -168,7 +209,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         jobDao.save(job);
 
         // create yml snapshot for job
-        jobNodeService.save(job.getId(), yml);
+        jobNodeService.save(job, yml);
 
         // init for node result and set to job object
         List<NodeResult> resultList = nodeResultService.create(job);
@@ -177,11 +218,44 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setChildrenResult(resultList);
 
         // to create agent session for job
-        String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+        try {
+            String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+            job.setSessionId(sessionId);
+            updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+        } catch (IllegalStatusException e) {
+            updateJobStatusAndSave(job, JobStatus.FAILURE);
+        }
 
-        job.setSessionId(sessionId);
-        updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
         return job;
+    }
+
+    @Override
+    public void createJobAndYmlLoad(String path,
+                                    GitEventType eventType,
+                                    Map<String, String> envs,
+                                    User creator,
+                                    Consumer<Job> onJobCreated) {
+
+        // find flow and reset yml status
+        Flow flow = nodeService.findFlow(path);
+        flow = nodeService.addFlowEnv(flow.getPath(), EnvUtil.build(FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
+
+        // merge input env to flow for git loading, not save to flow since the envs is for job
+        EnvUtil.merge(envs, flow.getEnvs(), true);
+
+        ymlService.loadYmlContent(flow, yml -> {
+            LOGGER.trace("Yml content has been loaded for path : " + path);
+
+            try {
+                Job job = this.createJob(path, eventType, envs, creator);
+
+                if (onJobCreated != null) {
+                    onJobCreated.accept(job);
+                }
+            } catch (Throwable e) {
+                LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
+            }
+        });
     }
 
     @Override
@@ -190,27 +264,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         Cmd cmd = cmdQueueItem.getCmd();
         Job job = jobDao.get(jobId);
 
+        if (Job.FINISH_STATUS.contains(job.getStatus())) {
+            LOGGER.trace("Reject cmd callback since job %s already in finish status", job.getId());
+            return;
+        }
+
         if (cmd.getType() == CmdType.CREATE_SESSION) {
-
-            // TODO: refactor to find(id, timeout)
-            if (job == null) {
-                if (cmdQueueItem.getRetryTimes() < RETRY_TIMEs) {
-                    try {
-                        Thread.sleep(1000);
-                        LOGGER.traceMarker("Callback", "Job not found, retry times - %s jobId - %s",
-                            cmdQueueItem.getRetryTimes(), jobId);
-                    } catch (Throwable throwable) {
-                    }
-
-                    cmdQueueItem.plus();
-                    enterQueue(cmdQueueItem);
-                    return;
-                }
-
-                LOGGER.warn("job not found, jobId: %s", jobId);
-                throw new NotFoundException("job not found");
-            }
-
             onCreateSessionCallback(job, cmd);
             return;
         }
@@ -234,6 +293,17 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         throw new NotFoundException("not found cmdType");
     }
 
+    @Override
+    public void deleteJob(String path) {
+        List<BigInteger> jobIds = jobDao.findJobIdsByPath(path);
+        // TODO :  Late optimization and paging jobIds
+        if (jobIds.size() > 0) {
+            jobYmlDao.delete(jobIds);
+            nodeResultDao.delete(jobIds);
+            jobDao.deleteJob(path);
+        }
+    }
+
     /**
      * run node
      *
@@ -244,7 +314,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalParameterException("Cannot run node with null value");
         }
 
-        NodeTree tree = jobNodeService.get(job.getId());
+        NodeTree tree = jobNodeService.get(job);
 
         if (!tree.canRun(node.getPath())) {
             // run next node
@@ -282,18 +352,17 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         // run step
-        NodeTree tree = jobNodeService.get(job.getId());
+        NodeTree tree = jobNodeService.get(job);
         if (tree == null) {
             throw new NotFoundException("Cannot fond related node tree for job: " + job.getId());
         }
 
-        // start run flow
+        // set job properties
         job.setSessionId(cmd.getSessionId());
-
         job.putEnv(JobEnvs.FLOW_JOB_AGENT_INFO, cmd.getAgentPath().toString());
-
         updateJobStatusAndSave(job, JobStatus.RUNNING);
 
+        // start run flow from fist node
         run(tree.first(), job);
     }
 
@@ -301,7 +370,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
      * Run shell callback
      */
     private void onRunShellCallback(String path, Cmd cmd, Job job) {
-        NodeTree tree = jobNodeService.get(job.getId());
+        NodeTree tree = jobNodeService.get(job);
         Node node = tree.find(path);
         Node next = tree.next(path);
 
@@ -340,6 +409,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void enterQueue(CmdCallbackQueueItem cmdQueueItem) {
         try {
             cmdBaseBlockingQueue.put(cmdQueueItem);
@@ -375,7 +445,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         return runningJob;
     }
-
 
     @Override
     public Job update(Job job) {
@@ -425,19 +494,71 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     /**
-     * Save job instance with new job status and boardcast JobStatusChangeEvent
+     * Update job instance with new job status and boardcast JobStatusChangeEvent
      */
     private void updateJobStatusAndSave(Job job, JobStatus newStatus) {
         JobStatus originStatus = job.getStatus();
 
         if (originStatus == newStatus) {
-            jobDao.save(job);
+            jobDao.update(job);
             return;
         }
 
+        //if job has finish not to update status
+        if (Job.FINISH_STATUS.contains(originStatus)) {
+            return;
+        }
         job.setStatus(newStatus);
-        jobDao.save(job);
+        jobDao.update(job);
 
         this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
+    }
+
+    @Override
+    @Scheduled(fixedDelay = 60 * 1000, initialDelay = 60 * 1000)
+    public void checkTimeoutTask() {
+        if (!isJobTimeoutExecuteTimeout) {
+            return;
+        }
+
+        LOGGER.trace("job timeout task start");
+
+        // create session job timeout 6s time out
+        ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutCreateSessionDuration);
+        List<Job> jobs = jobDao.listForExpired(finishZoneDateTime, JobStatus.SESSION_CREATING);
+        for (Job job : jobs) {
+            updateJobAndNodeResultTimeout(job);
+        }
+
+        // running job timeout 1h time out
+        ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutRunningDuration);
+        List<Job> runningJobs = jobDao.listForExpired(finishRunningZoneDateTime, JobStatus.RUNNING);
+        for (Job job : runningJobs) {
+            updateJobAndNodeResultTimeout(job);
+        }
+
+        LOGGER.trace("job timeout task end");
+    }
+
+    private void updateJobAndNodeResultTimeout(Job job) {
+        // if job is running , please delete session first
+        if (job.getStatus() == JobStatus.RUNNING) {
+            try {
+                cmdService.deleteSession(job);
+            } catch (Throwable e) {
+                LOGGER.warn(
+                    "Error on delete session for job %s: %s",
+                    job.getId(),
+                    ExceptionUtil.findRootCause(e).getMessage());
+            }
+        }
+
+        updateJobStatusAndSave(job, JobStatus.TIMEOUT);
+        nodeResultService.updateStatus(job, NodeStatus.TIMEOUT, NodeResult.FINISH_STATUS);
+    }
+
+    private String logUrl(final Job job) {
+        Path path = Paths.get(domain, "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
+        return path.toString();
     }
 }

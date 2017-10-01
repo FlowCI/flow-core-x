@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 package com.flow.platform.api.dao.job;
+
 import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import java.math.BigInteger;
+import java.util.List;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -34,5 +38,19 @@ public class JobYmlDaoImpl extends AbstractBaseDao<BigInteger, JobYml> implement
     @Override
     protected String getKeyName() {
         return "jobId";
+    }
+
+    @Override
+    public void delete(List<BigInteger> jobIds) {
+        execute((Session session) -> {
+            String delete = String.format("delete from JobYml where job_id in (:list)");
+            Query query = session.createQuery(delete);
+            query.setParameterList("list", jobIds);
+            int affectedRows = query.executeUpdate();
+            if (affectedRows == jobIds.size()) {
+                return true;
+            }
+            return false;
+        });
     }
 }

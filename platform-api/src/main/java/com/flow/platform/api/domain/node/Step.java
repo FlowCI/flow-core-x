@@ -59,4 +59,11 @@ public class Step extends Node<Step> {
     public void setChildren(List<Step> children) {
         super.setChildren(children);
     }
+
+    @YmlSerializer
+    @Override
+    public String getName() {
+        return super.getName();
+    }
+
 }

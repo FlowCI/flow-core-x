@@ -46,6 +46,8 @@ public enum GitEnvs implements EnvKey {
 
     FLOW_GIT_COMMIT_ID,
 
+    FLOW_GIT_COMMIT_URL, // http://git.com/xx/xxx
+
     FLOW_GIT_COMPARE_ID, // 123...456
 
     FLOW_GIT_COMPARE_URL, // http://github.com/xxx/123...456
@@ -54,7 +56,18 @@ public enum GitEnvs implements EnvKey {
 
     FLOW_GIT_AUTHOR,
 
+    FLOW_GIT_AUTHOR_EMAIL,
+
+    /**
+     * The credential name used for git
+     */
+    FLOW_GIT_CREDENTIAL,
+
     FLOW_GIT_SSH_PUBLIC_KEY,
 
-    FLOW_GIT_SSH_PRIVATE_KEY
+    FLOW_GIT_SSH_PRIVATE_KEY,
+
+    FLOW_GIT_HTTP_USER,
+
+    FLOW_GIT_HTTP_PASS
 }

@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class CredentialServiceImpl implements CredentialService {
+public class CredentialServiceImpl extends CurrentUser implements CredentialService {
 
     @Autowired
     private CredentialDao credentialDao;
@@ -84,9 +84,15 @@ public class CredentialServiceImpl implements CredentialService {
 
         credential.setType(detail.getType());
         credential.setDetail(detail);
+        credential.setCreatedBy(currentUser().getEmail());
         credentialDao.saveOrUpdate(credential);
 
         return credentialDao.get(name);
+    }
+
+    @Override
+    public boolean existed(String name) {
+        return credentialDao.get(name) != null;
     }
 
     @Override

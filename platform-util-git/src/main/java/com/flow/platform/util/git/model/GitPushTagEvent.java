@@ -61,6 +61,11 @@ public class GitPushTagEvent extends GitEvent {
     private String after;
 
     /**
+     * The url for head commit
+     */
+    private String headCommitUrl;
+
+    /**
      * Branch ref info
      * - Gitlab: ex: refs/heads/master
      */
@@ -116,6 +121,14 @@ public class GitPushTagEvent extends GitEvent {
 
     public void setAfter(String after) {
         this.after = after;
+    }
+
+    public String getHeadCommitUrl() {
+        return headCommitUrl;
+    }
+
+    public void setHeadCommitUrl(String headCommitUrl) {
+        this.headCommitUrl = headCommitUrl;
     }
 
     public String getRef() {

@@ -4,13 +4,16 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.request.LoginParam;
+import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.StringEncodeUtil;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -40,7 +43,7 @@ public class UserServiceTest extends TestBase {
 
     private LoginParam loginForm;
 
-    private final Set<String> roles = Sets.newHashSet("ROLE_ADMIN", "ROLE_USER");
+    List<String> roles = new ArrayList<>();
 
     @Before
     public void beforeTest() {
@@ -50,6 +53,8 @@ public class UserServiceTest extends TestBase {
         user.setPassword("liangpengyv");
 
         // create roles
+        roles.add("ROLE_ADMIN");
+        roles.add("ROLE_USER");
         for (String role : roles) {
             roleService.create(role, null);
         }
@@ -58,21 +63,20 @@ public class UserServiceTest extends TestBase {
     @Test
     public void should_list_user_with_flow_and_role() {
         // given: user with roles
-        userService.register(user, roles);
+//        userService.register(user, roles, false, null);
 
-        // given: flows with created by
-        Flow flow = nodeService.createEmptyFlow("flow-test");
-        flow.setCreatedBy("liangpengyv@fir.im");
-        flowDao.update(flow);
+        userService.register(user, roles, false,
+            Lists.newArrayList(createFlow().getPath()));
 
-        // when: load path list by createdBy
+        nodeService.createEmptyFlow("flow-test");
+
         List<User> users = userService.list(true, true);
-        Assert.assertEquals(1, users.size());
+        Assert.assertEquals(2, users.size());
 
         // then:
-        User user = users.get(0);
+        User user = users.get(1);
         Assert.assertEquals(1, user.getFlows().size());
-        Assert.assertEquals("flow-test", user.getFlows().get(0));
+        Assert.assertEquals("test", user.getFlows().get(0));
 
         Assert.assertEquals(2, user.getRoles().size());
     }
@@ -95,7 +99,9 @@ public class UserServiceTest extends TestBase {
 
     @Test
     public void should_register_success() {
-        userService.register(user, null);
+        userService.register(user, roles, false,
+            Lists.newArrayList(createFlow().getPath()));
+//        userService.register(user, null, false, null);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
     }
 
@@ -109,5 +115,10 @@ public class UserServiceTest extends TestBase {
         emailList.add("liangpengyv@fir.im");
         userService.delete(emailList);
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
+    }
+
+    private Flow createFlow() {
+        String path = "test";
+        return nodeService.createEmptyFlow(path);
     }
 }

@@ -58,12 +58,14 @@ public class GitEventDataExtractor {
 
         if (event instanceof GitPushTagEvent) {
             GitPushTagEvent pt = (GitPushTagEvent) event;
-            Map<String, String> info = new HashMap<>(7);
+            Map<String, String> info = new HashMap<>(10);
             info.put(GitEnvs.FLOW_GIT_EVENT_TYPE.name(), pt.getType().name());
             info.put(GitEnvs.FLOW_GIT_EVENT_SOURCE.name(), pt.getGitSource().name());
             info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pt.getRef()));
             info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pt.getUsername());
+            info.put(GitEnvs.FLOW_GIT_AUTHOR_EMAIL.name(), pt.getUserEmail());
             info.put(GitEnvs.FLOW_GIT_COMMIT_ID.name(), pt.getAfter());
+            info.put(GitEnvs.FLOW_GIT_COMMIT_URL.name(), pt.getHeadCommitUrl());
             info.put(GitEnvs.FLOW_GIT_COMPARE_URL.name(), pt.getCompareUrl());
             info.put(GitEnvs.FLOW_GIT_COMPARE_ID.name(), pt.getCompareId());
 

@@ -114,9 +114,11 @@ public class AgentSettings extends Jsonable {
     @Override
     public String toString() {
         return "AgentSettings{" +
+            "agentPath=" + agentPath +
             ", webSocketUrl='" + webSocketUrl + '\'' +
             ", cmdStatusUrl='" + cmdStatusUrl + '\'' +
             ", cmdLogUrl='" + cmdLogUrl + '\'' +
-            "} ";
+            ", zookeeperUrl='" + zookeeperUrl + '\'' +
+            "} " + super.toString();
     }
 }

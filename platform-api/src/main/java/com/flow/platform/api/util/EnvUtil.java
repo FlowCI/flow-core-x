@@ -16,8 +16,13 @@
 
 package com.flow.platform.api.util;
 
+import com.flow.platform.api.domain.envs.EnvKey;
+import com.flow.platform.api.domain.envs.EnvValue;
 import com.flow.platform.api.domain.node.Node;
 import com.google.common.base.Strings;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -27,7 +32,7 @@ import java.util.Set;
  */
 public class EnvUtil {
 
-    public static boolean hasRequired(Node node, Set<String> requiredEnvSet) {
+    public static boolean hasRequired(Node node, Collection<String> requiredEnvSet) {
         for (String requiredKey : requiredEnvSet) {
             if (!node.getEnvs().containsKey(requiredKey)) {
                 return false;
@@ -40,6 +45,18 @@ public class EnvUtil {
         }
 
         return true;
+    }
+
+    public static boolean hasRequiredEnvKey(Node node, Collection<EnvKey> requiredEnvSet) {
+        return hasRequired(node, toString(requiredEnvSet));
+    }
+
+    public static Collection<String> toString(Collection<EnvKey> keySet) {
+        Set<String> strSet = new HashSet<>(keySet.size());
+        for (EnvKey key : keySet) {
+            strSet.add(key.name());
+        }
+        return strSet;
     }
 
     /**
@@ -81,5 +98,15 @@ public class EnvUtil {
         }
 
         targetEnv.put(key, value);
+    }
+
+    public static Map<String, String> build(String key, String value) {
+        HashMap<String, String> single = new HashMap<>(1);
+        single.put(key, value);
+        return single;
+    }
+
+    public static Map<String, String> build(EnvKey key, EnvValue value) {
+        return build(key.name(), value.value());
     }
 }

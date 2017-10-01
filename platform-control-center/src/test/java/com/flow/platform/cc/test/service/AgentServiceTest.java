@@ -16,6 +16,13 @@
 
 package com.flow.platform.cc.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.ZoneService;
@@ -28,11 +35,14 @@ import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
+import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +55,9 @@ import org.springframework.beans.factory.annotation.Value;
 public class AgentServiceTest extends TestBase {
 
     private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8088);
 
     @Autowired
     private AgentService agentService;
@@ -63,6 +76,32 @@ public class AgentServiceTest extends TestBase {
 
     @Value("${agent.config.cmd_log_url}")
     private String cmdLogUrl;
+
+    @Test
+    public void should_create_agent_and_send_webhook_if_agent_status_changed() throws Throwable {
+        // given: mock agent webhook callback
+        String webhook = "http://localhost:8088/agent/callback";
+        stubFor(post(urlEqualTo("/agent/callback")).willReturn(aResponse().withStatus(200)));
+
+        // when:
+        AgentPath agentPath = new AgentPath("default", "hello-agent");
+        agentService.create(agentPath, webhook);
+
+        // then:
+        Agent loaded = agentService.find(agentPath);
+        Assert.assertNotNull(loaded);
+        Assert.assertEquals(agentPath, loaded.getPath());
+        Assert.assertEquals(webhook, loaded.getWebhook());
+        Assert.assertEquals(AgentStatus.OFFLINE, loaded.getStatus());
+
+        // when: mock agent status changed
+        agentService.saveWithStatus(loaded, AgentStatus.IDLE);
+        Thread.sleep(1000); // wait for webhook callback
+
+        // then: check webhook is send or not
+        CountMatchingStrategy strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
+        verify(strategy, postRequestedFor(urlEqualTo("/agent/callback")));
+    }
 
     @Test
     public void should_has_agent_config_in_zone_data() throws Throwable {
@@ -171,7 +210,8 @@ public class AgentServiceTest extends TestBase {
 
         // when: report status
         AgentPath pathObj = new AgentPath(zoneName, agentName);
-        agentService.updateStatus(pathObj, AgentStatus.BUSY);
+        Agent created = agentService.find(pathObj);
+        agentService.saveWithStatus(created, AgentStatus.BUSY);
 
         // then:
         Agent exit = agentService.find(pathObj);
@@ -184,7 +224,8 @@ public class AgentServiceTest extends TestBase {
         String agentName = "test-agent-for-status-exception";
 
         AgentPath pathObj = new AgentPath(zoneName, agentName);
-        agentService.updateStatus(pathObj, AgentStatus.BUSY);
+        Agent notExist = new Agent(pathObj);
+        agentService.saveWithStatus(notExist, AgentStatus.BUSY);
     }
 
     @Test

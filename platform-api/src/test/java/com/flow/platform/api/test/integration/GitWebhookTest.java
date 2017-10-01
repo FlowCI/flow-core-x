@@ -35,6 +35,7 @@ import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,7 +90,7 @@ public class GitWebhookTest extends TestBase {
         Job job = mock_trigger_from_git(push);
         job = jobDao.get(job.getId());
 
-        Set<String> envKeySet = ObjectUtil.deepCopy(EnvKey.FOR_OUTPUTS);
+        Set<String> envKeySet = Sets.newHashSet(ObjectUtil.deepCopy(EnvKey.FOR_OUTPUTS));
         envKeySet.remove(GitEnvs.FLOW_GIT_PR_URL.name());
         verifyRootNodeResultOutput(job, envKeySet);
 
@@ -100,7 +101,11 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("Update .flow.yml for github", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
         Assert.assertEquals("yang-guo-2016", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
+        Assert.assertEquals("gy@fir.im", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR_EMAIL));
         Assert.assertEquals("daedd0ff0feca54f4642a872081418d1510b4368", job.getEnv(GitEnvs.FLOW_GIT_COMMIT_ID));
+        Assert.assertEquals(
+            "https://github.com/flow-ci-plugin/for-testing/commit/daedd0ff0feca54f4642a872081418d1510b4368",
+            job.getEnv(GitEnvs.FLOW_GIT_COMMIT_URL));
         Assert.assertEquals("9436bd5e0c06...daedd0ff0fec", job.getEnv(GitEnvs.FLOW_GIT_COMPARE_ID));
         Assert.assertEquals("https://github.com/flow-ci-plugin/for-testing/compare/9436bd5e0c06...daedd0ff0fec",
             job.getEnv(GitEnvs.FLOW_GIT_COMPARE_URL));
@@ -166,7 +171,7 @@ public class GitWebhookTest extends TestBase {
         Job job = mock_trigger_from_git(push);
         job = jobDao.get(job.getId());
 
-        Set<String> envKeySet = ObjectUtil.deepCopy(EnvKey.FOR_OUTPUTS);
+        Set<String> envKeySet = Sets.newHashSet(ObjectUtil.deepCopy(EnvKey.FOR_OUTPUTS));
         envKeySet.remove(GitEnvs.FLOW_GIT_PR_URL.name());
         verifyRootNodeResultOutput(job, envKeySet);
 
@@ -177,9 +182,14 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals("Update .flow.yml for gitlab", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG.name()));
         Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("yang.guo", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
+        Assert.assertEquals("benqyang_2006@hotmail.com", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR_EMAIL));
         Assert.assertEquals("2d9b3a080c8fb653686cd56ccf8c0a6b50ba47d3", job.getEnv(GitEnvs.FLOW_GIT_COMMIT_ID));
+        Assert.assertEquals(
+            "https://gitlab.com/yang.guo/for-testing/commit/2d9b3a080c8fb653686cd56ccf8c0a6b50ba47d3",
+            job.getEnv(GitEnvs.FLOW_GIT_COMMIT_URL));
         Assert.assertEquals("c9ca9280a567...2d9b3a080c8f", job.getEnv(GitEnvs.FLOW_GIT_COMPARE_ID));
-        Assert.assertEquals("https://gitlab.com/yang.guo/for-testing/compare/c9ca9280a567...2d9b3a080c8f",
+        Assert.assertEquals(
+            "https://gitlab.com/yang.guo/for-testing/compare/c9ca9280a567...2d9b3a080c8f",
             job.getEnv(GitEnvs.FLOW_GIT_COMPARE_URL));
     }
 
@@ -246,7 +256,7 @@ public class GitWebhookTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_URL.name(), gitUrl);
         env.put(GitEnvs.FLOW_GIT_BRANCH.name(), "develop");
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        nodeService.setFlowEnv(flowPath, env);
+        nodeService.addFlowEnv(flowPath, env);
 
         Node loaded = nodeService.find(flowPath);
 
@@ -273,7 +283,8 @@ public class GitWebhookTest extends TestBase {
         springContext.removeApplicationListener(listener);
 
         // verify yml is updated
-        Assert.assertNotNull(ymlService.getYmlContent(flowPath));
+        Node root = nodeService.find(flowPath);
+        Assert.assertNotNull(ymlService.getYmlContent(root));
 
         // verify job is created
         Job created = wrapper.getInstance();

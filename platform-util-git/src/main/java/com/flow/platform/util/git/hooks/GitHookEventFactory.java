@@ -23,6 +23,8 @@ import static com.flow.platform.util.git.model.GitSource.GITHUB;
 import static com.flow.platform.util.git.model.GitSource.GITLAB;
 
 import com.flow.platform.util.git.GitException;
+import com.flow.platform.util.git.hooks.GitHubEvents.PullRequestAdapter;
+import com.flow.platform.util.git.hooks.GitLabEvents.PullRequestAdaptor;
 import com.flow.platform.util.git.model.GitEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,14 +44,14 @@ public class GitHookEventFactory {
     static {
         // init GitLab hook data adaptor
         Map<String, GitHookEventAdapter> gitLabAdaptors = new HashMap<>(3);
-        gitLabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_PR, new GitLabEvents.MergeRequestAdaptor(GITLAB, PR));
+        gitLabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_PR, new PullRequestAdaptor(GITLAB, PR));
         gitLabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_PUSH, new GitLabEvents.PushAndTagAdapter(GITLAB, PUSH));
         gitLabAdaptors.put(GitLabEvents.Hooks.EVENT_TYPE_TAG, new GitLabEvents.PushAndTagAdapter(GITLAB, TAG));
         adaptors.put(GitLabEvents.Hooks.HEADER, gitLabAdaptors);
 
         // init GitHub hook data adaptor
         Map<String, GitHookEventAdapter> gitHubAdaptors = new HashMap<>(3);
-        gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PR, new GitHubEvents.MergeRequestAdapter(GITHUB, PR));
+        gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PR, new PullRequestAdapter(GITHUB, PR));
         gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PUSH, new GitHubEvents.PushAndTagAdapter(GITHUB, PUSH));
         gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_TAG, new GitHubEvents.PushAndTagAdapter(GITHUB, TAG));
         adaptors.put(GitHubEvents.Hooks.HEADER, gitHubAdaptors);

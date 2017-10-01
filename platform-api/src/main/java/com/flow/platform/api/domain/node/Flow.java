@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.domain.node;
 
+import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -72,4 +73,9 @@ public class Flow extends Node<Step> {
         this.updatedAt = updatedAt;
     }
 
+    @YmlSerializer(required = false)
+    @Override
+    public String getName() {
+        return super.getName();
+    }
 }
