@@ -33,6 +33,7 @@ import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.io.UnsupportedEncodingException;
+import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -140,6 +141,7 @@ public class CmdServiceImpl implements CmdService {
     private Cmd sendDirectly(CmdInfo cmdInfo) throws UnsupportedEncodingException {
         String res = HttpClient.build(platformURL.getCmdUrl())
             .post(cmdInfo.toJson())
+            .withContentType(ContentType.APPLICATION_JSON)
             .retry(httpRetryTimes)
             .bodyAsString().getBody();
 
@@ -160,6 +162,7 @@ public class CmdServiceImpl implements CmdService {
         try {
             String res = HttpClient.build(stringBuilder.toString())
                 .post(cmdInfo.toJson())
+                .withContentType(ContentType.APPLICATION_JSON)
                 .retry(httpRetryTimes)
                 .bodyAsString().getBody();
 

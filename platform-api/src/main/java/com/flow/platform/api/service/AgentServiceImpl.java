@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -136,6 +137,7 @@ public class AgentServiceImpl implements AgentService {
 
             final String agentJson = HttpClient.build(platformURL.getAgentCreateUrl())
                 .post(pathWithWebhook.toJson())
+                .withContentType(ContentType.APPLICATION_JSON)
                 .retry(httpRetryTimes)
                 .bodyAsString().getBody();
 

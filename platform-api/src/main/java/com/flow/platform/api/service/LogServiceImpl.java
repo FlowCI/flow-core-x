@@ -68,6 +68,7 @@ public class LogServiceImpl implements LogService {
     private Path workspace;
 
     @Override
+    @Transactional(readOnly = true)
     public String findNodeLog(String path, Integer number, Integer order) {
         Job job = jobService.find(path, number);
         NodeResult nodeResult = nodeResultService.find(job.getId(), order);
