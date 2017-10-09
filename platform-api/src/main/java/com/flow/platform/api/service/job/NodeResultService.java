@@ -52,14 +52,20 @@ public interface NodeResultService {
     List<NodeResult> list(Job job, boolean childrenOnly);
 
     /**
-     * Update all node result status to target but skip set of some node status
+     * Update all node result status to target but skip set of node status for children node result
+     *
+     * @param job target job
+     * @param targetStatus the target root status
+     * @param skipped children node status do not deal with
      */
     void updateStatus(Job job, NodeStatus targetStatus, Set<NodeStatus> skipped);
 
     /**
      * Update node result and recursive bottom up update parent node result by cmd
+     *
+     * @param errorMsg error message for current job node result, can be null
      */
-    NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd);
+    NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd, String errorMsg);
 
     NodeResult update(NodeResult nodeResult);
 }

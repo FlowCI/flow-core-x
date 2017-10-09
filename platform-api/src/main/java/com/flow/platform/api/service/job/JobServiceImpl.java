@@ -25,7 +25,6 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
@@ -38,7 +37,6 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
-import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -334,7 +332,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         } catch (IllegalStatusException e) {
             CmdInfo rawCmd = (CmdInfo) e.getData();
             rawCmd.setStatus(CmdStatus.EXCEPTION);
-            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(rawCmd));
+            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(rawCmd), e.getMessage());
         }
     }
 
@@ -381,7 +379,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         Node next = tree.next(path);
 
         // bottom up recursive update node result
-        NodeResult nodeResult = nodeResultService.updateStatusByCmd(job, node, cmd);
+        NodeResult nodeResult = nodeResultService.updateStatusByCmd(job, node, cmd, null);
         LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
         // no more node to run and status is not running
