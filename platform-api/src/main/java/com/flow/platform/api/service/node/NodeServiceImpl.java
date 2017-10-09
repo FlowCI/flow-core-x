@@ -238,7 +238,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         treeCache.invalidate(flow.getPath());
 
         if (!checkFlowName(flow.getName())) {
-            throw new IllegalParameterException("flowName format not true");
+            throw new IllegalParameterException("Flow name format not true");
         }
 
         if (exist(flow.getPath())) {
@@ -336,9 +336,11 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         if (flowName == null || flowName.trim().equals("")) {
             return false;
         }
+
         if (!Pattern.compile("^\\w{5,20}$").matcher(flowName).matches()) {
             return false;
         }
+
         return true;
     }
 

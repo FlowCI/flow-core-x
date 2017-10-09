@@ -41,7 +41,9 @@
 
     <property name="sessionId" type="string" column="session_id" index="true"/>
     <property name="envs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="envs"/>
-    <property name="failureMessage" column="failure_msg"/>
+    <property name="failureMessage">
+      <column name="failure_msg" sql-type="longtext"/>
+    </property>
     <property name="createdBy" type="string" column="created_by"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
@@ -109,7 +111,9 @@
       <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
     </property>
 
-    <property name="failureMessage" column="failure_msg"/>
+    <property name="failureMessage">
+      <column name="failure_msg" sql-type="longtext"/>
+    </property>
     <property name="order" column="node_order" not-null="true"/>
     <property name="createdBy" type="string" column="created_by"/>
   </class>

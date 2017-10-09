@@ -223,6 +223,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             job.setSessionId(sessionId);
             updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
         } catch (IllegalStatusException e) {
+            job.setFailureMessage("Unable to create session since : " + e.getMessage());
             updateJobStatusAndSave(job, JobStatus.FAILURE);
         }
 
@@ -342,11 +343,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         if (cmd.getStatus() != CmdStatus.SENT) {
 
             if (cmd.getRetry() > 1) {
-                LOGGER.trace("Create Session fail but retrying: %s", cmd.getStatus().getName());
+                LOGGER.trace("Create session failure but retrying: %s", cmd.getStatus().getName());
                 return;
             }
 
-            LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
+            final String errMsg = "Create session failure with cmd status: " + cmd.getStatus().getName();
+            LOGGER.warn(errMsg);
+
+            job.setFailureMessage(errMsg);
             updateJobStatusAndSave(job, JobStatus.FAILURE);
             return;
         }
@@ -477,7 +481,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     private Job find(Job job) {
         if (job == null) {
-            throw new NotFoundException("job is not found");
+            throw new NotFoundException("Job is not found");
         }
 
         List<NodeResult> childrenResult = nodeResultService.list(job, true);
