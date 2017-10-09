@@ -16,40 +16,41 @@
 
 package com.flow.platform.api.util;
 
+import com.flow.platform.util.http.HttpURL;
+
 /**
  * @author yh@firim
  */
 
 public class PlatformURL {
 
-    private String cmdUrl;
+    private final String cmdUrl;
 
-    private String queueUrl;
+    private final String queueUrl;
 
-    private String agentUrl;
+    private final String agentUrl;
 
-    private String agentSettingsUrl;
+    private final String agentSettingsUrl;
 
-    private String sysInfoUrl;
+    private final String sysInfoUrl;
 
-    private String sysIndexUrl;
+    private final String sysIndexUrl;
 
-    private String agentCreateUrl;
+    private final String agentCreateUrl;
 
-    private String cmdDownloadLogUrl;
+    private final String cmdDownloadLogUrl;
 
     public PlatformURL(String baseURL) {
-        queueUrl = String.format("%s%s", baseURL, "cmd/queue/send");
+        queueUrl = HttpURL.build(baseURL).append("cmd/queue/send").toString();
+        cmdUrl = HttpURL.build(baseURL).append("cmd/send").toString();
+        cmdDownloadLogUrl = HttpURL.build(baseURL).append("cmd/log/download").toString();
 
-        cmdUrl = String.format("%s%s", baseURL, "cmd/send");
-        cmdDownloadLogUrl = String.format("%s%s", baseURL, "cmd/log/download");
+        sysIndexUrl = HttpURL.build(baseURL).append("index").toString();
+        sysInfoUrl = HttpURL.build(baseURL).append("sys/info").toString();
 
-        sysIndexUrl = String.format("%s%s", baseURL, "index");
-        sysInfoUrl = String.format("%s%s", baseURL, "sys/info");
-
-        agentUrl = String.format("%s%s", baseURL, "agents/list");
-        agentCreateUrl = String.format("%s%s", baseURL, "agents/create");
-        agentSettingsUrl = String.format("%s%s", baseURL, "agents/settings");
+        agentUrl = HttpURL.build(baseURL).append("agents/list").toString();
+        agentCreateUrl = HttpURL.build(baseURL).append("agents/create").toString();
+        agentSettingsUrl = HttpURL.build(baseURL).append("agents/settings").toString();
     }
 
     public String getAgentCreateUrl() {
