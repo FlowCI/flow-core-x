@@ -16,13 +16,24 @@
 
 package com.flow.platform.util.http;
 
+import com.flow.platform.util.CollectionUtil;
+import com.flow.platform.util.StringUtil;
+import com.google.common.base.Strings;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.apache.commons.codec.binary.StringUtils;
 
 /**
  * @author yang
  */
 public class HttpURL {
+
+    public final static String SLASH = "/";
 
     public static String encode(String str) {
         try {
@@ -40,4 +51,55 @@ public class HttpURL {
         }
     }
 
+
+    public static HttpURL build(String url) {
+        return new HttpURL(url);
+    }
+
+    private StringBuilder builder;
+
+    private Map<String, String> params = new LinkedHashMap<>();
+
+    private HttpURL(String url) {
+        if (Strings.isNullOrEmpty(url)) {
+            throw new IllegalArgumentException("Illegal url string");
+        }
+        builder = new StringBuilder(StringUtil.trimEnd(url, SLASH));
+    }
+
+    public HttpURL append(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            return this;
+        }
+
+        builder.append(SLASH).append(StringUtil.trim(path, SLASH));
+        return this;
+    }
+
+    public HttpURL withParam(String name, String value) {
+        params.put(name, value);
+        return this;
+    }
+
+    public String toString() {
+        StringBuilder paramsBuilder = new StringBuilder();
+
+        if (!CollectionUtil.isNullOrEmpty(params)) {
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                paramsBuilder.append("&")
+                    .append(entry.getKey())
+                    .append("=")
+                    .append(encode(entry.getValue()));
+            }
+
+            paramsBuilder.deleteCharAt(0);
+            builder.append("?").append(paramsBuilder);
+        }
+
+        return builder.toString();
+    }
+
+    public URL toURL() throws MalformedURLException {
+        return new URL(toString());
+    }
 }
