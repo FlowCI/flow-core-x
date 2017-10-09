@@ -111,17 +111,14 @@ public class CmdServiceImpl implements CmdService {
             LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());
             sendDirectly(cmdInfo);
         } catch (Throwable e) {
-            String rootCause = ExceptionUtil.findRootCause(e).getMessage();
-            LOGGER.warnMarker("RunShell", "Unexpected exception: %s", rootCause);
-
-            /// set cmd status to exception
-            cmdInfo.setStatus(CmdStatus.EXCEPTION);
-            cmdInfo.setExtra("Unexpected exception: " + rootCause);
+            final String rootCause = ExceptionUtil.findRootCause(e).getMessage();
+            final IllegalStatusException exception = new IllegalStatusException(rootCause);
+            exception.setData(cmdInfo);
+            throw exception;
         }
 
         return cmdInfo;
     }
-
 
     @Override
     public void shutdown(AgentPath path, String password) {
@@ -139,17 +136,17 @@ public class CmdServiceImpl implements CmdService {
      * Send cmd to control center directly
      */
     private Cmd sendDirectly(CmdInfo cmdInfo) throws UnsupportedEncodingException {
-        String res = HttpClient.build(platformURL.getCmdUrl())
+        HttpResponse<String> response = HttpClient.build(platformURL.getCmdUrl())
             .post(cmdInfo.toJson())
             .withContentType(ContentType.APPLICATION_JSON)
             .retry(httpRetryTimes)
-            .bodyAsString().getBody();
+            .bodyAsString();
 
-        if (Strings.isNullOrEmpty(res)) {
-            throw new HttpException(String.format("Error on send cmd: %s - %s", cmdInfo.getExtra(), cmdInfo));
+        if (!response.hasSuccess()) {
+            throw new HttpException(String.format("Send cmd failure: %s", cmdInfo.getExtra()));
         }
 
-        return Jsonable.parse(res, Cmd.class);
+        return Jsonable.parse(response.getBody(), Cmd.class);
     }
 
     /**

@@ -214,7 +214,7 @@ public class NodeServiceTest extends TestBase {
 
     @Test
     public void should_error_if_node_path_is_not_for_flow() throws Throwable {
-        Flow emptyFlow = nodeService.createEmptyFlow("flow-name-not-same");
+        Flow emptyFlow = nodeService.createEmptyFlow("flow_name_not_same");
         setFlowToReady(emptyFlow);
 
         String resourceContent = getResourceContent("demo_flow.yaml");

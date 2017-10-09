@@ -37,8 +37,7 @@ public class UserFlowServiceTest extends TestBase {
 
     @Test
     public void should_assign_user_flow() {
-
-        final String flowPath = "flow-integration";
+        final String flowPath = "flow_integration";
 
         Assert.assertNotNull(userDao.get(currentUser.get().getEmail()));
 

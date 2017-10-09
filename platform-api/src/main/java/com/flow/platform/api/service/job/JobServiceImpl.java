@@ -328,11 +328,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
 
         // to run node with customized cmd id
-        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
-        CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
-
-        if (cmd.getStatus() == CmdStatus.EXCEPTION) {
-            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(cmd));
+        try {
+            NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+            CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
+        } catch (IllegalStatusException e) {
+            CmdInfo rawCmd = (CmdInfo) e.getData();
+            rawCmd.setStatus(CmdStatus.EXCEPTION);
+            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(rawCmd));
         }
     }
 

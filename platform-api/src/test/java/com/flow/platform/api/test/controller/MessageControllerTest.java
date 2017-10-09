@@ -89,8 +89,7 @@ public class MessageControllerTest extends TestBase {
 
             String response = mvcResult.getResponse().getContentAsString();
             EmailSettingContent setting = Jsonable.GSON_CONFIG.fromJson(response, EmailSettingContent.class);
-
-            Assert.assertEquals(emailSetting.getPassword(), setting.getPassword());
+            Assert.assertNull(setting.getPassword()); // password should be hidden
         } catch (Exception e) {
             e.printStackTrace();
         }

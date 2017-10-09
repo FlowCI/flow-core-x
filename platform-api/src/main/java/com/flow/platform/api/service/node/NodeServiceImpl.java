@@ -337,7 +337,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             return false;
         }
 
-        if (!Pattern.compile("^\\w{5,20}$").matcher(flowName).matches()) {
+        if (!Pattern.compile("^\\w{4,20}$").matcher(flowName).matches()) {
             return false;
         }
 

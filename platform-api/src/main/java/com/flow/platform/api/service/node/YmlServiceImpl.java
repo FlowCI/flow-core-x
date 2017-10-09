@@ -137,7 +137,8 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
         // for ERROR status
         if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.ERROR.value())) {
-            throw new YmlException("Illegal yml format");
+            final String errorMessage = root.getEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
+            throw new YmlException("Yml failure : " + errorMessage);
         }
 
         // yml has not been load
