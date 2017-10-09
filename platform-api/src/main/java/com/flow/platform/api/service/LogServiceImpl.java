@@ -80,6 +80,7 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Resource findJobLog(String path, Integer buildNumber) {
         Job job = jobService.find(path, buildNumber);
 
