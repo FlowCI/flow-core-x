@@ -23,9 +23,6 @@
     </property>
 
     <property name="nodeName" column="node_name" length="50" not-null="true"/>
-
-    <property name="createdBy" type="string" column="created_by"/>
-
     <property name="logPath" type="string" column="log_path"/>
 
     <property name="status" column="job_status" length="20" not-null="true">
@@ -43,8 +40,11 @@
     </property>
 
     <property name="sessionId" type="string" column="session_id" index="true"/>
-
     <property name="envs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="envs"/>
+    <property name="failureMessage">
+      <column name="failure_msg" sql-type="longtext"/>
+    </property>
+    <property name="createdBy" type="string" column="created_by"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
@@ -80,7 +80,6 @@
     <property name="cmdId" type="string" column="cmd_id"/>
     <property name="outputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="outputs"/>
     <property name="logPath" type="string" column="log_path"/>
-    <property name="createdBy" type="string" column="created_by"/>
 
     <property name="nodeTag" column="type" length="10" not-null="true">
       <type name="org.hibernate.type.EnumType">
@@ -95,8 +94,6 @@
         <param name="useNamed">true</param>
       </type>
     </property>
-
-    <property name="order" column="node_order" not-null="true"/>
 
     <property name="finishTime" type="java.time.ZonedDateTime">
       <column name="finished_at" sql-type="timestamp NULL" default="NULL"/>
@@ -113,5 +110,11 @@
     <property name="updatedAt" type="java.time.ZonedDateTime" update="false">
       <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
     </property>
+
+    <property name="failureMessage">
+      <column name="failure_msg" sql-type="longtext"/>
+    </property>
+    <property name="order" column="node_order" not-null="true"/>
+    <property name="createdBy" type="string" column="created_by"/>
   </class>
 </hibernate-mapping>

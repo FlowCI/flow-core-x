@@ -48,7 +48,7 @@ public class GitServiceTest extends TestBase {
 
     @Before
     public void initNodeWithGitInfo() throws Throwable {
-        node = new Flow("flow-test", "flow-test");
+        node = new Flow("flow_test", "flow_test");
         node.putEnv(GitEnvs.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
         node.putEnv(GitEnvs.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
         node.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));

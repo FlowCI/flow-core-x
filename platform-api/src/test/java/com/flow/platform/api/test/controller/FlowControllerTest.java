@@ -41,7 +41,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  */
 public class FlowControllerTest extends TestBase {
 
-    private final String flowName = "flow-default";
+    private final String flowName = "flow_default";
 
     @Before
     public void initToCreateEmptyFlow() throws Throwable {

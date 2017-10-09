@@ -77,11 +77,13 @@ public class JobDaoTest extends TestBase {
         Job loaded = jobDao.get(job.getId());
         loaded.setNodePath("flow/sss");
         loaded.setNodeName("sss");
-        jobDao.update(job);
+        loaded.setFailureMessage("Failure message");
+        jobDao.update(loaded);
 
         Job updated = jobDao.get(job.getId());
         Assert.assertEquals(loaded.getId(), updated.getId());
-        Assert.assertNotEquals(loaded.getNodePath(), updated.getNodePath());
+        Assert.assertEquals(loaded.getNodePath(), updated.getNodePath());
+        Assert.assertEquals("Failure message", updated.getFailureMessage());
     }
 
     @Test
