@@ -62,7 +62,6 @@ public class Job extends EnvObject {
     @Expose
     private ZonedDateTime updatedAt;
 
-    @Expose
     private String logPath;
 
     /**
