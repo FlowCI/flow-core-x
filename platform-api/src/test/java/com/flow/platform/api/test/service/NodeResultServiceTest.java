@@ -86,19 +86,14 @@ public class NodeResultServiceTest extends TestBase {
         Node firstStep = jobNodeService.get(job).find("flow1/step1");
 
         // when: mock first step is logged
-        Cmd cmd = new Cmd();
-        cmd.setStatus(CmdStatus.LOGGED);
-        cmd.setCmdResult(new CmdResult(0));
-        nodeResultService.updateStatusByCmd(job, firstStep, cmd);
+        nodeResultService.updateStatusByCmd(job, firstStep, createMockSuccessCmd(), null);
 
         // then:
         NodeResult firstStepResult = nodeResultService.find(firstStep.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.SUCCESS, firstStepResult.getStatus());
 
         // when: mock first step send with running status after logged
-        cmd.setStatus(CmdStatus.RUNNING);
-        cmd.setCmdResult(new CmdResult(null));
-        nodeResultService.updateStatusByCmd(job, firstStep, cmd);
+        nodeResultService.updateStatusByCmd(job, firstStep, createMockRunningCmd(), null);
 
         // then: the node result should be SUCCESS as well
         firstStepResult = nodeResultService.find(firstStep.getPath(), job.getId());
@@ -114,17 +109,15 @@ public class NodeResultServiceTest extends TestBase {
         Assert.assertEquals(5, list.size());
 
         // when: set node result with diff status
-        NodeResult resultForSuccess = list.get(0);
-        resultForSuccess.setStatus(SUCCESS);
-        nodeResultDao.update(resultForSuccess);
+        Node step11 = jobNodeService.get(job).find("flow1/step1/step11");
+        nodeResultService.updateStatusByCmd(job, step11, createMockSuccessCmd(), null);
 
-        NodeResult resultForTimeout = list.get(2);
-        resultForTimeout.setStatus(TIMEOUT);
-        nodeResultDao.update(resultForTimeout);
+        Node step1 = jobNodeService.get(job).find("flow1/step1");
+        nodeResultService.updateStatusByCmd(job, step1, createMockTimeOutCmd(), null);
 
-        NodeResult resultForFailure = list.get(3);
-        resultForFailure.setStatus(FAILURE);
-        nodeResultDao.update(resultForFailure);
+        Node step2 = jobNodeService.get(job).find("flow1/step2");
+        NodeResult resultForStep2 = nodeResultService.updateStatusByCmd(job, step2, createMockFailureCmd(), "Failure");
+        Assert.assertEquals("Failure", resultForStep2.getFailureMessage());
 
         nodeResultService.updateStatus(job, STOPPED, Sets.newHashSet(SUCCESS, FAILURE, TIMEOUT));
 
@@ -134,5 +127,33 @@ public class NodeResultServiceTest extends TestBase {
         Assert.assertEquals(TIMEOUT, nodeResultService.find("flow1/step1", job.getId()).getStatus());
         Assert.assertEquals(FAILURE, nodeResultService.find("flow1/step2", job.getId()).getStatus());
         Assert.assertEquals(STOPPED, nodeResultService.find("flow1", job.getId()).getStatus());
+    }
+
+    private Cmd createMockSuccessCmd() {
+        Cmd cmd = new Cmd();
+        cmd.setStatus(CmdStatus.LOGGED);
+        cmd.setCmdResult(new CmdResult(0));
+        return cmd;
+    }
+
+    private Cmd createMockRunningCmd() {
+        Cmd cmd = new Cmd();
+        cmd.setStatus(CmdStatus.RUNNING);
+        cmd.setCmdResult(new CmdResult(null));
+        return cmd;
+    }
+
+    private Cmd createMockTimeOutCmd() {
+        Cmd cmd = new Cmd();
+        cmd.setStatus(CmdStatus.TIMEOUT_KILL);
+        cmd.setCmdResult(new CmdResult(null));
+        return cmd;
+    }
+
+    private Cmd createMockFailureCmd() {
+        Cmd cmd = new Cmd();
+        cmd.setStatus(CmdStatus.EXCEPTION);
+        cmd.setCmdResult(new CmdResult(null));
+        return cmd;
     }
 }

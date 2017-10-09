@@ -41,9 +41,7 @@ public class UserServiceTest extends TestBase {
 
     private User user;
 
-    private LoginParam loginForm;
-
-    List<String> roles = new ArrayList<>();
+    private List<String> roles = new ArrayList<>();
 
     @Before
     public void beforeTest() {
@@ -68,7 +66,7 @@ public class UserServiceTest extends TestBase {
         userService.register(user, roles, false,
             Lists.newArrayList(createFlow().getPath()));
 
-        nodeService.createEmptyFlow("flow-test");
+        nodeService.createEmptyFlow("flow_test");
 
         List<User> users = userService.list(true, true);
         Assert.assertEquals(2, users.size());
@@ -87,7 +85,7 @@ public class UserServiceTest extends TestBase {
         userDao.save(user);
         Assert.assertNotNull(userDao.get("liangpengyv@fir.im"));
 
-        loginForm = new LoginParam();
+        LoginParam loginForm = new LoginParam();
         loginForm.setEmailOrUsername("liangpengyv@fir.im");
         loginForm.setPassword("liangpengyv");
         String msg = userService.login(loginForm);

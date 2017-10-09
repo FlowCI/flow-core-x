@@ -71,7 +71,7 @@ public class CreateFlowTest extends TestBase {
 
     @Before
     public void before() {
-        flow = nodeService.createEmptyFlow("/flow-integration");
+        flow = nodeService.createEmptyFlow("flow_integration");
         setFlowToReady(flow);
         Assert.assertNotNull(nodeService.find(flow.getPath()));
     }

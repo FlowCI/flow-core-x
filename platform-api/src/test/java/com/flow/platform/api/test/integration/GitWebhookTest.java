@@ -59,7 +59,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @FixMethodOrder(value = MethodSorters.JVM)
 public class GitWebhookTest extends TestBase {
 
-    private final String flowName = "flow-integration";
+    private final String flowName = "flow_integration";
 
     private final String flowPath = PathUtil.build(flowName);
 

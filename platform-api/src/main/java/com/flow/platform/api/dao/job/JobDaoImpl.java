@@ -21,9 +21,9 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import com.flow.platform.util.CollectionUtil;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -91,15 +91,18 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public List<Job> latestByPath(List<String> paths) {
         return execute((Session session) -> {
             final StringBuilder query = new StringBuilder(JOB_QUERY);
-            if (hasCollection(paths)) {
+
+            if (!CollectionUtil.isNullOrEmpty(paths)) {
                 query.append(" where id in (select max(id) from job where node_path in (:paths) group by node_path)");
             } else {
                 query.append(" where id in (select max(id) from job group by node_path)");
             }
 
-            NativeQuery nativeQuery = session.createNativeQuery(query.toString())
+            NativeQuery nativeQuery = session
+                .createNativeQuery(query.toString())
                 .setResultSetMapping("MappingJobResult");
-            if (hasCollection(paths)) {
+
+            if (!CollectionUtil.isNullOrEmpty(paths)) {
                 nativeQuery.setParameterList("paths", paths);
             }
 
@@ -112,13 +115,15 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public List<Job> listByPath(final List<String> paths) {
         return execute((Session session) -> {
             final StringBuilder query = new StringBuilder(JOB_QUERY);
-            if (hasCollection(paths)) {
+
+            if (!CollectionUtil.isNullOrEmpty(paths)) {
                 query.append(" where job.node_path in (:paths) order by job.created_at desc ");
             }
 
             NativeQuery nativeQuery = session.createNativeQuery(query.toString())
                 .setResultSetMapping("MappingJobResult");
-            if (hasCollection(paths)) {
+
+            if (!CollectionUtil.isNullOrEmpty(paths)) {
                 nativeQuery.setParameterList("paths", paths);
             }
 
@@ -190,9 +195,5 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             .createQuery("delete from Job where nodePath = ?")
             .setParameter(0, path)
             .executeUpdate());
-    }
-
-    private static boolean hasCollection(final Collection<String> data) {
-        return data != null && data.size() > 0;
     }
 }
