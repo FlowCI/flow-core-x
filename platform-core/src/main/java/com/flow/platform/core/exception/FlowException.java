@@ -16,10 +16,14 @@
 
 package com.flow.platform.core.exception;
 
+import java.io.Serializable;
+
 /**
  * @author gy@fir.im
  */
 public class FlowException extends RuntimeException {
+
+    private Serializable data;
 
     public FlowException(String description, Throwable e) {
         super(description, e);
@@ -27,5 +31,13 @@ public class FlowException extends RuntimeException {
 
     public FlowException(String message) {
         super(message);
+    }
+
+    public Serializable getData() {
+        return data;
+    }
+
+    public void setData(Serializable data) {
+        this.data = data;
     }
 }

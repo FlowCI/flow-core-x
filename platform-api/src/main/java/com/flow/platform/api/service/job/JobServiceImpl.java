@@ -25,7 +25,6 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
@@ -38,7 +37,6 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
-import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -223,6 +221,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             job.setSessionId(sessionId);
             updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
         } catch (IllegalStatusException e) {
+            job.setFailureMessage("Unable to create session since : " + e.getMessage());
             updateJobStatusAndSave(job, JobStatus.FAILURE);
         }
 
@@ -327,11 +326,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
 
         // to run node with customized cmd id
-        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
-        CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
-
-        if (cmd.getStatus() == CmdStatus.EXCEPTION) {
-            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(cmd));
+        try {
+            NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+            CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
+        } catch (IllegalStatusException e) {
+            CmdInfo rawCmd = (CmdInfo) e.getData();
+            rawCmd.setStatus(CmdStatus.EXCEPTION);
+            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(rawCmd), e.getMessage());
         }
     }
 
@@ -342,11 +343,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         if (cmd.getStatus() != CmdStatus.SENT) {
 
             if (cmd.getRetry() > 1) {
-                LOGGER.trace("Create Session fail but retrying: %s", cmd.getStatus().getName());
+                LOGGER.trace("Create session failure but retrying: %s", cmd.getStatus().getName());
                 return;
             }
 
-            LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
+            final String errMsg = "Create session failure with cmd status: " + cmd.getStatus().getName();
+            LOGGER.warn(errMsg);
+
+            job.setFailureMessage(errMsg);
             updateJobStatusAndSave(job, JobStatus.FAILURE);
             return;
         }
@@ -375,7 +379,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         Node next = tree.next(path);
 
         // bottom up recursive update node result
-        NodeResult nodeResult = nodeResultService.updateStatusByCmd(job, node, cmd);
+        NodeResult nodeResult = nodeResultService.updateStatusByCmd(job, node, cmd, null);
         LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
         // no more node to run and status is not running
@@ -477,7 +481,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     private Job find(Job job) {
         if (job == null) {
-            throw new NotFoundException("job is not found");
+            throw new NotFoundException("Job is not found");
         }
 
         List<NodeResult> childrenResult = nodeResultService.list(job, true);

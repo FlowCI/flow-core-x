@@ -123,31 +123,29 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
     @Override
     public void updateStatus(Job job, NodeStatus targetStatus, Set<NodeStatus> skipped) {
-        List<NodeResult> list = list(job, false);
+        List<NodeResult> children = list(job, true);
 
-        for (NodeResult nodeResult : list) {
+        // update children node result status
+        for (NodeResult nodeResult : children) {
             if (skipped.contains(nodeResult.getStatus())) {
                 continue;
             }
 
-            NodeStatus originStatus = nodeResult.getStatus();
-
-            if (originStatus == targetStatus) {
-                continue;
-            }
-
-            nodeResult.setStatus(targetStatus);
-            nodeResultDao.update(nodeResult);
-            this.dispatchEvent(new NodeStatusChangeEvent(this, nodeResult.getKey(), originStatus, targetStatus));
+            updateNodeResultStatus(nodeResult, targetStatus);
         }
+
+        // update root node result status
+        NodeTree nodeTree = jobNodeService.get(job);
+        NodeResult rootResult = nodeResultDao.get(new NodeResultKey(job.getId(), nodeTree.root().getPath()));
+        updateNodeResultStatus(rootResult, targetStatus);
     }
 
     @Override
-    public NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd) {
+    public NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd, String errorMsg) {
         NodeResult currentResult = find(node.getPath(), job.getId());
 
         NodeStatus originStatus = currentResult.getStatus();
-        NodeStatus newStatus = updateCurrent(node, currentResult, cmd);
+        NodeStatus newStatus = updateCurrent(node, currentResult, cmd, errorMsg);
 
         updateParent(job, node);
 
@@ -162,6 +160,17 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
     public NodeResult update(NodeResult nodeResult) {
         nodeResultDao.update(nodeResult);
         return nodeResult;
+    }
+
+    private void updateNodeResultStatus(NodeResult nodeResult, NodeStatus targetStatus) {
+        NodeStatus originStatus = nodeResult.getStatus();
+        if (originStatus == targetStatus) {
+            return;
+        }
+
+        nodeResult.setStatus(targetStatus);
+        nodeResultDao.update(nodeResult);
+        this.dispatchEvent(new NodeStatusChangeEvent(this, nodeResult.getKey(), originStatus, targetStatus));
     }
 
     /**
@@ -192,7 +201,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         return nodeResult;
     }
 
-    private NodeStatus updateCurrent(Node current, NodeResult currentResult, Cmd cmd) {
+    private NodeStatus updateCurrent(Node current, NodeResult currentResult, Cmd cmd, String errorMsg) {
         boolean isAllowFailure = false;
         if (current instanceof Step) {
             isAllowFailure = ((Step) current).getAllowFailure();
@@ -208,6 +217,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
         currentResult.setStatus(newStatus);
         currentResult.setLogPath(cmd.getLogPath());
+        currentResult.setFailureMessage(errorMsg);
 
         CmdResult cmdResult = cmd.getCmdResult();
         if (cmdResult != null) {

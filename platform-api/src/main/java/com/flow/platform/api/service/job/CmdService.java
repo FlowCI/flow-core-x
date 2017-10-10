@@ -45,7 +45,8 @@ public interface CmdService {
     /**
      * Send run shell cmd by node for job
      *
-     * @return CmdInfo instance, CmdStatus will be exception if fail to send
+     * @return CmdInfo instance
+     * @throws IllegalStatusException throw cmd cannot be sent
      */
     CmdInfo runShell(Job job, Node node, String cmdId);
 
