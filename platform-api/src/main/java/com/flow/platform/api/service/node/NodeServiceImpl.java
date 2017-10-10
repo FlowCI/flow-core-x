@@ -222,8 +222,11 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         // delete local flow folder
         Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);
         FileSystemUtils.deleteRecursively(flowWorkspace.toFile());
-
         treeCache.invalidate(rootPath);
+
+        // stop yml loading tasks
+        ymlService.stopLoadYmlContent(flow);
+
         return flow;
     }
 
@@ -238,7 +241,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         treeCache.invalidate(flow.getPath());
 
         if (!checkFlowName(flow.getName())) {
-            throw new IllegalParameterException("Flow name format not true");
+            throw new IllegalParameterException("Illegal flow name");
         }
 
         if (exist(flow.getPath())) {

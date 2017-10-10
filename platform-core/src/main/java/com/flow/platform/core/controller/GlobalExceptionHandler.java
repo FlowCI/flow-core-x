@@ -37,11 +37,4 @@ public class GlobalExceptionHandler {
     public ResponseError handleFlowException(HttpServletRequest request, FlowException e) {
         return new ResponseError(e.getMessage());
     }
-
-    @ExceptionHandler(Throwable.class)
-    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-    @ResponseBody
-    public ResponseError handleFatalException(HttpServletRequest request, Throwable e) {
-        return new ResponseError(e.getMessage());
-    }
 }
