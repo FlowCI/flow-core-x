@@ -25,7 +25,6 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
@@ -38,7 +37,6 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
-import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -176,17 +174,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
-        String yml = null;
-        try {
-            yml = ymlService.getYmlContent(root);
-            if (Strings.isNullOrEmpty(yml)) {
-                throw new IllegalStatusException("Yml is loading for path " + path);
-            }
-        } catch (FlowException e) {
-            LOGGER.error("Fail to find yml content", e);
-            throw e;
-        }
-
         // create job
         Job job = new Job(CommonUtil.randomId());
         job.setNodePath(root.getPath());
@@ -201,40 +188,22 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
         job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
+        job.setStatus(JobStatus.CREATED);
 
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         EnvUtil.merge(envs, job.getEnvs(), true);
 
         //save job
-        jobDao.save(job);
-
-        // create yml snapshot for job
-        jobNodeService.save(job, yml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult);
-        job.setChildrenResult(resultList);
-
-        // to create agent session for job
-        try {
-            String sessionId = cmdService.createSession(job, createSessionRetryTimes);
-            job.setSessionId(sessionId);
-            updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
-        } catch (IllegalStatusException e) {
-            updateJobStatusAndSave(job, JobStatus.FAILURE);
-        }
-
-        return job;
+        return jobDao.save(job);
     }
 
     @Override
+    @Transactional(noRollbackFor = FlowException.class)
     public void createJobAndYmlLoad(String path,
-                                    GitEventType eventType,
-                                    Map<String, String> envs,
-                                    User creator,
-                                    Consumer<Job> onJobCreated) {
+        GitEventType eventType,
+        Map<String, String> envs,
+        User creator,
+        Consumer<Job> onJobCreated) {
 
         // find flow and reset yml status
         Flow flow = nodeService.findFlow(path);
@@ -243,18 +212,52 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // merge input env to flow for git loading, not save to flow since the envs is for job
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
+        // create job
+        Job job = createJob(path, eventType, envs, creator);
+
+        try {
+            if (onJobCreated != null) {
+                onJobCreated.accept(job);
+            }
+            updateJobStatusAndSave(job, JobStatus.YML_LOADING);
+        } catch (Throwable e) {
+            LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
+        }
+
+        // load yml
         ymlService.loadYmlContent(flow, yml -> {
             LOGGER.trace("Yml content has been loaded for path : " + path);
+            Node root = nodeService.find(PathUtil.rootPath(path));
 
+            String loadedYml = null;
             try {
-                Job job = this.createJob(path, eventType, envs, creator);
-
-                if (onJobCreated != null) {
-                    onJobCreated.accept(job);
+                loadedYml = ymlService.getYmlContent(root);
+                if (Strings.isNullOrEmpty(loadedYml)) {
+                    throw new IllegalStatusException("Yml is loading for path " + path);
                 }
-            } catch (Throwable e) {
-                LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
+            } catch (FlowException e) {
+                LOGGER.error("Fail to find yml content", e);
+                throw e;
             }
+
+            // create yml snapshot for job
+            jobNodeService.save(job, loadedYml);
+
+            // init for node result and set to job object
+            List<NodeResult> resultList = nodeResultService.create(job);
+            NodeResult rootResult = resultList.remove(resultList.size() - 1);
+            job.setRootResult(rootResult);
+            job.setChildrenResult(resultList);
+
+            // to create agent session for job
+            try {
+                String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+                job.setSessionId(sessionId);
+                updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+            } catch (IllegalStatusException e) {
+                updateJobStatusAndSave(job, JobStatus.FAILURE);
+            }
+
         });
     }
 

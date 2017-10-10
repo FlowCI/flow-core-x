@@ -105,7 +105,9 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         List<NodeResult> list = nodeResultDao.list(job.getId());
 
         if (childrenOnly) {
-            list.remove(list.size() - 1);
+            if (list.size() > 0) {
+                list.remove(list.size() - 1);
+            }
             return list;
         }
 
