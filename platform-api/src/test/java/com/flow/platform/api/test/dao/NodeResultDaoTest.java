@@ -15,6 +15,8 @@
  */
 package com.flow.platform.api.test.dao;
 
+import static junit.framework.TestCase.fail;
+
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
@@ -24,6 +26,7 @@ import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.core.exception.NotFoundException;
 import java.time.ZonedDateTime;
 import org.junit.Assert;
 import org.junit.Test;
@@ -108,7 +111,11 @@ public class NodeResultDaoTest extends TestBase {
         nodeResultDao.save(jobNode);
 
         nodeResultDao.delete(jobNode);
-        NodeResult job_node = nodeResultService.find(job.getNodePath(), job.getId());
-        Assert.assertEquals(null, job_node);
+        try {
+            nodeResultService.find(job.getNodePath(), job.getId());
+            fail();
+        } catch (NotFoundException e) {
+            Assert.assertEquals(NotFoundException.class, e.getClass());
+        }
     }
 }
