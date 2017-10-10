@@ -330,11 +330,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
 
         // to run node with customized cmd id
-        NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
-        CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
-
-        if (cmd.getStatus() == CmdStatus.EXCEPTION) {
-            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(cmd));
+        try {
+            NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+            CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
+        } catch (IllegalStatusException e) {
+            CmdInfo rawCmd = (CmdInfo) e.getData();
+            rawCmd.setStatus(CmdStatus.EXCEPTION);
+            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(rawCmd), e.getMessage());
         }
     }
 
@@ -345,11 +347,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         if (cmd.getStatus() != CmdStatus.SENT) {
 
             if (cmd.getRetry() > 1) {
-                LOGGER.trace("Create Session fail but retrying: %s", cmd.getStatus().getName());
+                LOGGER.trace("Create session failure but retrying: %s", cmd.getStatus().getName());
                 return;
             }
 
-            LOGGER.warn("Create Session Error Session Status - %s", cmd.getStatus().getName());
+            final String errMsg = "Create session failure with cmd status: " + cmd.getStatus().getName();
+            LOGGER.warn(errMsg);
+
+            job.setFailureMessage(errMsg);
             updateJobStatusAndSave(job, JobStatus.FAILURE);
             return;
         }
@@ -378,7 +383,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         Node next = tree.next(path);
 
         // bottom up recursive update node result
-        NodeResult nodeResult = nodeResultService.updateStatusByCmd(job, node, cmd);
+        NodeResult nodeResult = nodeResultService.updateStatusByCmd(job, node, cmd, null);
         LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
         // no more node to run and status is not running
@@ -480,7 +485,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     private Job find(Job job) {
         if (job == null) {
-            throw new NotFoundException("job is not found");
+            throw new NotFoundException("Job is not found");
         }
 
         List<NodeResult> childrenResult = nodeResultService.list(job, true);

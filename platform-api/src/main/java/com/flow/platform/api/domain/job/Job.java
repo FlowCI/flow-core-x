@@ -64,6 +64,9 @@ public class Job extends EnvObject {
 
     private String logPath;
 
+    @Expose
+    private String failureMessage;
+
     /**
      * The root node result for job detail
      */
@@ -189,6 +192,14 @@ public class Job extends EnvObject {
 
     public void setLogPath(String logPath) {
         this.logPath = logPath;
+    }
+
+    public String getFailureMessage() {
+        return failureMessage;
+    }
+
+    public void setFailureMessage(String failureMessage) {
+        this.failureMessage = failureMessage;
     }
 
     @Override

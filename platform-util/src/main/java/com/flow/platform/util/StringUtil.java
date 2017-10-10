@@ -16,6 +16,8 @@
 
 package com.flow.platform.util;
 
+import com.google.common.base.Strings;
+
 /**
  * @author yang
  */
@@ -23,7 +25,7 @@ public class StringUtil {
 
     public final static String EMPTY = "";
 
-    public static boolean isNullOrEmptyForItems(String... strings) {
+    public static boolean isNullOrEmptyForItems(final String... strings) {
         if (CollectionUtil.isNullOrEmpty(strings)) {
             return true;
         }
@@ -40,5 +42,34 @@ public class StringUtil {
         }
 
         return true;
+    }
+
+    public static String trim(final String raw, final String trimStr) {
+        String str = trimStart(raw, trimStr);
+        return trimEnd(str, trimStr);
+    }
+
+    public static String trimEnd(final String raw, final String trimStr) {
+        if (Strings.isNullOrEmpty(trimStr)) {
+            return raw;
+        }
+
+        if (raw.endsWith(trimStr)) {
+            return raw.substring(0, raw.length() - trimStr.length());
+        }
+
+        return raw;
+    }
+
+    public static String trimStart(final String raw, final String trimStr) {
+        if (Strings.isNullOrEmpty(trimStr)) {
+            return raw;
+        }
+
+        if (raw.startsWith(trimStr)) {
+            return raw.substring(trimStr.length());
+        }
+
+        return raw;
     }
 }

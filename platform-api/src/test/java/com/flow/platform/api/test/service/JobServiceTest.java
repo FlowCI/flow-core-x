@@ -40,6 +40,7 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.git.model.GitEventType;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -66,6 +67,21 @@ public class JobServiceTest extends TestBase {
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Flow rootForFlow = nodeService.createEmptyFlow("flow1");
         jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+    }
+
+    @Test
+    public void should_job_failure_since_cannot_create_session() throws Throwable {
+        // given: clean up all mock url to simulate create session cmd failure
+        wireMockRule.resetAll();
+
+        // when: create job
+        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+
+        // then: verify job status and failure message
+        Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
+        Assert.assertNotNull(job.getFailureMessage());
+        Assert.assertTrue(job.getFailureMessage().startsWith("Unable to create session"));
     }
 
     @Test
@@ -124,7 +140,7 @@ public class JobServiceTest extends TestBase {
     public void should_run_job_with_success_status() throws Throwable {
         // given:
         final String sessionId = "session-id-1";
-        Node root = createRootFlow("flow-run-job", "for_job_service_run_job.yaml");
+        Node root = createRootFlow("flow_run_job", "for_job_service_run_job.yaml");
 
         // when: create job and job should be SESSION_CREATING
         Job job = createMockJob(root.getPath());

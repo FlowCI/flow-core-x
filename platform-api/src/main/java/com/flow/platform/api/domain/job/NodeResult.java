@@ -28,10 +28,8 @@ import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class NodeResult extends CreateUpdateObject {
@@ -59,9 +57,6 @@ public class NodeResult extends CreateUpdateObject {
     private Integer exitCode;
 
     @Expose
-    private String createdBy;
-
-    @Expose
     private String logPath;
 
     @Expose
@@ -83,7 +78,13 @@ public class NodeResult extends CreateUpdateObject {
     private String name; // node name
 
     @Expose
+    private String failureMessage;
+
+    @Expose
     private Integer order;
+
+    @Expose
+    private String createdBy;
 
     public NodeResult() {
     }
@@ -222,6 +223,14 @@ public class NodeResult extends CreateUpdateObject {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public String getFailureMessage() {
+        return failureMessage;
+    }
+
+    public void setFailureMessage(String failureMessage) {
+        this.failureMessage = failureMessage;
     }
 
     @Override

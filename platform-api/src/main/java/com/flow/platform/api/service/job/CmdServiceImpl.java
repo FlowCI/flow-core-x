@@ -30,6 +30,7 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
+import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.io.UnsupportedEncodingException;
@@ -75,8 +76,7 @@ public class CmdServiceImpl implements CmdService {
 
             return cmd.getSessionId();
         } catch (Throwable e) {
-            throw new IllegalStatusException(
-                "Unable to create session since: " + ExceptionUtil.findRootCause(e).getMessage());
+            throw new IllegalStatusException(ExceptionUtil.findRootCause(e).getMessage());
         }
     }
 
@@ -111,17 +111,14 @@ public class CmdServiceImpl implements CmdService {
             LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());
             sendDirectly(cmdInfo);
         } catch (Throwable e) {
-            String rootCause = ExceptionUtil.findRootCause(e).getMessage();
-            LOGGER.warnMarker("RunShell", "Unexpected exception: %s", rootCause);
-
-            /// set cmd status to exception
-            cmdInfo.setStatus(CmdStatus.EXCEPTION);
-            cmdInfo.setExtra("Unexpected exception: " + rootCause);
+            final String rootCause = ExceptionUtil.findRootCause(e).getMessage();
+            final IllegalStatusException exception = new IllegalStatusException(rootCause);
+            exception.setData(cmdInfo);
+            throw exception;
         }
 
         return cmdInfo;
     }
-
 
     @Override
     public void shutdown(AgentPath path, String password) {
@@ -139,42 +136,43 @@ public class CmdServiceImpl implements CmdService {
      * Send cmd to control center directly
      */
     private Cmd sendDirectly(CmdInfo cmdInfo) throws UnsupportedEncodingException {
-        String res = HttpClient.build(platformURL.getCmdUrl())
+        HttpResponse<String> response = HttpClient.build(platformURL.getCmdUrl())
             .post(cmdInfo.toJson())
             .withContentType(ContentType.APPLICATION_JSON)
             .retry(httpRetryTimes)
-            .bodyAsString().getBody();
+            .bodyAsString();
 
-        if (Strings.isNullOrEmpty(res)) {
-            throw new HttpException(String.format("Error on send cmd: %s - %s", cmdInfo.getExtra(), cmdInfo));
+        if (!response.hasSuccess()) {
+            throw new HttpException(String.format("Send cmd failure: %s", cmdInfo.getExtra()));
         }
 
-        return Jsonable.parse(res, Cmd.class);
+        return Jsonable.parse(response.getBody(), Cmd.class);
     }
 
     /**
      * Send cmd to control center cmd queue
+     *
+     * @throws HttpException
+     * @throws IllegalStatusException
      */
     private Cmd sendToQueue(CmdInfo cmdInfo, Integer retry) {
         final StringBuilder stringBuilder = new StringBuilder(platformURL.getQueueUrl());
         stringBuilder.append("?priority=1&retry=").append(retry);
 
         try {
-            String res = HttpClient.build(stringBuilder.toString())
+
+            HttpResponse<String> response = HttpClient.build(stringBuilder.toString())
                 .post(cmdInfo.toJson())
                 .withContentType(ContentType.APPLICATION_JSON)
                 .retry(httpRetryTimes)
-                .bodyAsString().getBody();
+                .bodyAsString();
 
-            if (Strings.isNullOrEmpty(res)) {
-                String message = String.format(
-                    "post session to queue error, cmdUrl: %s, cmdInfo: %s",
-                    stringBuilder,
-                    cmdInfo.toJson());
+            if (!response.hasSuccess()) {
+                final String message = "Create session cmd to queue failure for url: %s" + stringBuilder;
                 throw new HttpException(message);
             }
 
-            return Jsonable.parse(res, Cmd.class);
+            return Jsonable.parse(response.getBody(), Cmd.class);
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("Unable to send cmd since: ", e);
         }
