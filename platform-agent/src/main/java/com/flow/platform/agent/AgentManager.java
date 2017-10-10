@@ -21,7 +21,6 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.*;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -183,6 +182,6 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
     }
 
     private void removeZkNode() {
-        zkClient.delete(nodePath, false);
+        zkClient.deleteWithoutGuaranteed(nodePath, false);
     }
 }

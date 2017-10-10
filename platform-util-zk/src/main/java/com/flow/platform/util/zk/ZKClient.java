@@ -208,6 +208,24 @@ public class ZKClient implements Closeable {
         }
     }
 
+    public void deleteWithoutGuaranteed(String path, boolean isDeleteChildren) {
+        try {
+            if (!exist(path)) {
+                return;
+            }
+
+            DeleteBuilder builder = client.delete();
+
+            if (isDeleteChildren) {
+                builder.deletingChildrenIfNeeded().forPath(path);
+            } else {
+                builder.forPath(path);
+            }
+        } catch (Throwable e) {
+            throw checkException(String.format("Fail to delete node of path: %s", path), e);
+        }
+    }
+
     public boolean watchNode(String path, NodeCacheListener listener) {
         if (!exist(path)) {
             return false; // node doesn't exist
