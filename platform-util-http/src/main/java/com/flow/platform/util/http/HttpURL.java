@@ -23,10 +23,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.apache.commons.codec.binary.StringUtils;
 
 /**
  * @author yang
