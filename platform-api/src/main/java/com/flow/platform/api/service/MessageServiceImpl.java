@@ -21,8 +21,13 @@ import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageSetting;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
+import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.SmtpUtil;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
+import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +45,9 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
     @Autowired
     private MessageSettingDao messageDao;
 
+    @Autowired
+    private JobService jobService;
+
     @Override
     public SettingContent save(SettingContent t) {
         MessageSetting messageSetting = new MessageSetting(t, ZonedDateTime.now(), ZonedDateTime.now());
@@ -55,8 +63,9 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
     @Override
     public SettingContent find(MessageType type) {
         if (findSettingByType(type) == null) {
-            return null;
+            throw new NotFoundException("setting content not found");
         }
+
         return findSettingByType(type).getContent();
     }
 
@@ -97,4 +106,11 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
         return null;
     }
 
+    @Override
+    public void sendMessage(BigInteger jobId, JobStatus status) {
+        EmailSettingContent emailSettingContent = (EmailSettingContent) find(MessageType.EMAIl);
+
+
+        Job job = jobService.find(jobId);
+    }
 }

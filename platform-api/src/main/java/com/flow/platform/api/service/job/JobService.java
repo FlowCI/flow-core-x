@@ -89,10 +89,10 @@ public interface JobService {
      * @param onJobCreated callback
      */
     void createJobAndYmlLoad(String path,
-                             GitEventType eventType,
-                             Map<String, String> envs,
-                             User creator,
-                             Consumer<Job> onJobCreated);
+        GitEventType eventType,
+        Map<String, String> envs,
+        User creator,
+        Consumer<Job> onJobCreated);
 
     /**
      * Process cmd callback from queue

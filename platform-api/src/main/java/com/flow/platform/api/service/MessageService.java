@@ -19,6 +19,8 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
+import com.flow.platform.api.domain.job.JobStatus;
+import java.math.BigInteger;
 
 /**
  * @author yh@firim
@@ -35,4 +37,6 @@ public interface MessageService {
     SettingContent update(SettingContent t);
 
     Boolean authEmailSetting(EmailSettingContent emailSetting);
+
+    void sendMessage(BigInteger jobId, JobStatus status);
 }

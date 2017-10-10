@@ -16,9 +16,13 @@
 
 package com.flow.platform.api.consumer;
 
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.util.Logger;
+import java.math.BigInteger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.core.task.TaskExecutor;
 
 /**
  * To handle JobStatusChangeEvent and NodeResultStatusChangeEvent
@@ -29,10 +33,19 @@ public class JobStatusEventConsumer extends JobEventPushHandler implements Appli
 
     private final static Logger LOGGER = new Logger(JobStatusEventConsumer.class);
 
+    @Autowired
+    private TaskExecutor taskExecutor;
+
     @Override
     public void onApplicationEvent(JobStatusChangeEvent event) {
         LOGGER.debug("Job %s status change event from %s to %s", event.getJobId(), event.getFrom(), event.getTo());
 
         push(event.getJobId());
+    }
+
+    private void sendFailEmail(BigInteger jobId, JobStatus jobStatus) {
+        taskExecutor.execute(() -> {
+
+        });
     }
 }
