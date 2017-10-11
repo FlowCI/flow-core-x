@@ -28,16 +28,16 @@ import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
+import java.io.StringWriter;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.velocity.VelocityEngineUtils;
 
 /**
  * @author yh@firim
@@ -135,25 +135,40 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
         // find job
         Job job = jobService.find(jobId);
 
-        // bind model to email template
-        Map model = new HashMap();
-        model.put("job", job);
-        model.put("detailUrl", String.format("%s/flows/%s/jobs/%s", webDomain, job.getNodeName(), job.getNumber()));
-        // TODO: replace this by StringWriter
-        String text = VelocityEngineUtils
-            .mergeTemplateIntoString(velocityEngine, "email/failure_email.vm", model);
+        bindModelAndSendMessage(job, emailSettingContent);
+    }
 
-        // send email to creator
-        SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), FAILURE_TEMPLATE_SUBJECT, text);
-        LOGGER.traceMarker("sendMessage", String.format("send message to %s success", job.getCreatedBy()));
+    /**
+     * bind model and send message all member
+     */
+    private void bindModelAndSendMessage(Job job, EmailSettingContent emailSettingContent) {
 
-        // send email to member of this flow
-        List<User> members = userFlowService.list(job.getNodePath());
-        for (User member : members) {
-            SmtpUtil.sendEmail(emailSettingContent, member.getEmail(), FAILURE_TEMPLATE_SUBJECT, text);
-            LOGGER.traceMarker("sendMessage", String.format("send message to %s success", member.getEmail()));
+        try {
+
+            // bind model to email template
+            Template template = velocityEngine.getTemplate("email/failure_email.vm");
+            VelocityContext velocityContext = new VelocityContext();
+            velocityContext.put("job", job);
+            velocityContext
+                .put("detailUrl", String.format("%s/flows/%s/jobs/%s", webDomain, job.getNodeName(), job.getNumber()));
+            StringWriter stringWriter = new StringWriter();
+            template.merge(velocityContext, stringWriter);
+            String text = stringWriter.toString();
+            
+            // send email to creator
+            SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), FAILURE_TEMPLATE_SUBJECT, text);
+            LOGGER.traceMarker("sendMessage", String.format("send message to %s success", job.getCreatedBy()));
+
+            // send email to member of this flow
+            List<User> members = userFlowService.list(job.getNodePath());
+            for (User member : members) {
+                SmtpUtil.sendEmail(emailSettingContent, member.getEmail(), FAILURE_TEMPLATE_SUBJECT, text);
+                LOGGER.traceMarker("sendMessage", String.format("send message to %s success", member.getEmail()));
+            }
+
+            LOGGER.traceMarker("sendMessage", "send message to all member success");
+        } catch (Throwable e) {
+            LOGGER.traceMarker("sendMessage", String.format("send message to all member error : %s", e));
         }
-
-        LOGGER.traceMarker("sendMessage", "send message to all member success");
     }
 }
