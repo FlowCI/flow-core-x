@@ -57,19 +57,7 @@ public class CmdWebhookControllerTest extends TestBase {
         // given: flow with two steps , step1 and step2
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
-
-        String loadedYml = null;
-        loadedYml = ymlService.getYmlContent(rootForFlow);
-
-        // create yml snapshot for job
-        jobNodeService.save(job, loadedYml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult);
-        job.setChildrenResult(resultList);
-
+        build_relation(rootForFlow, job);
         final String sessionId = "1111111";
 
         // when: create session
@@ -162,17 +150,7 @@ public class CmdWebhookControllerTest extends TestBase {
 
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
 
-        String loadedYml = null;
-        loadedYml = ymlService.getYmlContent(rootForFlow);
-
-        // create yml snapshot for job
-        jobNodeService.save(job, loadedYml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult1);
-        job.setChildrenResult(resultList);
+        build_relation(rootForFlow, job);
 
         Step step2 = (Step) nodeService.find("flow1/step2");
         Step step1 = (Step) nodeService.find("flow1/step1");
@@ -220,17 +198,8 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_callback_with_timeout_but_allow_failure() throws Throwable {
         Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
-        String loadedYml = null;
-        loadedYml = ymlService.getYmlContent(rootForFlow);
 
-        // create yml snapshot for job
-        jobNodeService.save(job, loadedYml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult1);
-        job.setChildrenResult(resultList);
+        build_relation(rootForFlow, job);
 
         final String sessionId = "1111111";
 

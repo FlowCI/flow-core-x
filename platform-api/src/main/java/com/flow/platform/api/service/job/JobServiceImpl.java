@@ -211,17 +211,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // merge input env to flow for git loading, not save to flow since the envs is for job
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
-        // create job
+//        create job
         Job job = createJob(path, eventType, envs, creator);
-
-        try {
-            if (onJobCreated != null) {
-                onJobCreated.accept(job);
-            }
-            updateJobStatusAndSave(job, JobStatus.YML_LOADING);
-        } catch (Throwable e) {
-            LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
-        }
+        updateJobStatusAndSave(job, JobStatus.YML_LOADING);
 
         // load yml
         ymlService.loadYmlContent(flow, yml -> {
@@ -239,7 +231,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                 throw e;
             }
 
-            // create yml snapshot for job
+//            create yml snapshot for job
             jobNodeService.save(job, loadedYml);
 
             // init for node result and set to job object
@@ -255,6 +247,15 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                 updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
             } catch (IllegalStatusException e) {
                 updateJobStatusAndSave(job, JobStatus.FAILURE);
+            }
+
+            try {
+                if (onJobCreated != null) {
+                    onJobCreated.accept(job);
+                }
+
+            } catch (Throwable e) {
+                LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
             }
 
         });
@@ -460,6 +461,28 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     /**
+     * Update job instance with new job status and boardcast JobStatusChangeEvent
+     */
+    @Override
+    public void updateJobStatusAndSave(Job job, JobStatus newStatus) {
+        JobStatus originStatus = job.getStatus();
+
+        if (originStatus == newStatus) {
+            jobDao.update(job);
+            return;
+        }
+
+        //if job has finish not to update status
+        if (Job.FINISH_STATUS.contains(originStatus)) {
+            return;
+        }
+        job.setStatus(newStatus);
+        jobDao.update(job);
+
+        this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
+    }
+
+    /**
      * Update job status by root node result
      */
     private NodeResult setJobStatusByRootResult(Job job) {
@@ -498,27 +521,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private void stopJob(Job job) {
         setJobStatusByRootResult(job);
         cmdService.deleteSession(job);
-    }
-
-    /**
-     * Update job instance with new job status and boardcast JobStatusChangeEvent
-     */
-    private void updateJobStatusAndSave(Job job, JobStatus newStatus) {
-        JobStatus originStatus = job.getStatus();
-
-        if (originStatus == newStatus) {
-            jobDao.update(job);
-            return;
-        }
-
-        //if job has finish not to update status
-        if (Job.FINISH_STATUS.contains(originStatus)) {
-            return;
-        }
-        job.setStatus(newStatus);
-        jobDao.update(job);
-
-        this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
     }
 
     @Override

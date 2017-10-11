@@ -59,17 +59,7 @@ public class NodeResultServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
 
-        String loadedYml = null;
-        loadedYml = ymlService.getYmlContent(rootForFlow);
-
-        // create yml snapshot for job
-        jobNodeService.save(job, loadedYml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult1);
-        job.setChildrenResult(resultList);
+        build_relation(rootForFlow, job);
 
         // then: check node result is created
         List<NodeResult> list = nodeResultService.list(job, false);
@@ -95,17 +85,8 @@ public class NodeResultServiceTest extends TestBase {
         // given: create job
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
-        String loadedYml = null;
-        loadedYml = ymlService.getYmlContent(rootForFlow);
 
-        // create yml snapshot for job
-        jobNodeService.save(job, loadedYml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult1);
-        job.setChildrenResult(resultList);
+        build_relation(rootForFlow, job);
 
         Node firstStep = jobNodeService.get(job).find("flow1/step1");
 
@@ -129,17 +110,8 @@ public class NodeResultServiceTest extends TestBase {
         // given:
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
-        String loadedYml = null;
-        loadedYml = ymlService.getYmlContent(rootForFlow);
 
-        // create yml snapshot for job
-        jobNodeService.save(job, loadedYml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult1);
-        job.setChildrenResult(resultList);
+        build_relation(rootForFlow, job);
 
         List<NodeResult> list = nodeResultService.list(job, false);
         Assert.assertEquals(5, list.size());

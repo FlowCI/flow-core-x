@@ -79,18 +79,18 @@ public class JobServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
 
-        String loadedYml = ymlService.getYmlContent(rootForFlow);
-        // create yml snapshot for job
-        jobNodeService.save(job, loadedYml);
+        build_relation(rootForFlow, job);
 
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult1);
-        job.setChildrenResult(resultList);
+        try {
+            String sessionId = cmdService.createSession(job, 5);
+            job.setSessionId(sessionId);
+            jobService.updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+        } catch (IllegalStatusException e) {
+            jobService.updateJobStatusAndSave(job, JobStatus.FAILURE);
+        }
 
-        // then: verify job status and failure message
-        Assert.assertEquals(JobStatus.CREATED, job.getStatus());
+        // then: verify job status
+        Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
     }
 
     @Test
@@ -235,17 +235,7 @@ public class JobServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
 
-        String loadedYml = null;
-        loadedYml = ymlService.getYmlContent(rootForFlow);
-
-        // create yml snapshot for job
-        jobNodeService.save(job, loadedYml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult1);
-        job.setChildrenResult(resultList);
+        build_relation(rootForFlow, job);
 
         Thread.sleep(7000);
 
@@ -276,7 +266,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(2, jobDao.list().size());
 
         List<String> rootPath = Lists.newArrayList(rootForFlow.getPath());
-        List<Job> jobs = jobService.list(rootPath,true);
+        List<Job> jobs = jobService.list(rootPath, true);
         Assert.assertEquals(1, jobs.size());
         Assert.assertEquals("2", jobs.get(0).getNumber().toString());
 
@@ -286,21 +276,11 @@ public class JobServiceTest extends TestBase {
         Job job = jobService.createJob(nodePath, GitEventType.TAG, null, mockUser);
 
         Node root = nodeService.find(PathUtil.rootPath(nodePath));
-        String loadedYml = null;
-        loadedYml = ymlService.getYmlContent(root);
 
-        // create yml snapshot for job
-        jobNodeService.save(job, loadedYml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult1);
-        job.setChildrenResult(resultList);
+        build_relation(root, job);
 
         String sessionId = cmdService.createSession(job, 5);
         job.setSessionId(sessionId);
-
 
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());

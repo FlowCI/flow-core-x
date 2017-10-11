@@ -39,6 +39,8 @@ import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
@@ -60,6 +62,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.After;
@@ -245,6 +248,18 @@ public abstract class TestBase {
     public String performRequestWith200Status(MockHttpServletRequestBuilder builder) throws Exception {
         MvcResult result = mockMvc.perform(builder).andExpect(status().isOk()).andReturn();
         return result.getResponse().getContentAsString();
+    }
+
+    public void build_relation(Node node, Job job){
+        String loadedYml = ymlService.getYmlContent(node);
+
+        jobNodeService.save(job, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult);
+        job.setChildrenResult(resultList);
     }
 
     private void cleanDatabase() {
