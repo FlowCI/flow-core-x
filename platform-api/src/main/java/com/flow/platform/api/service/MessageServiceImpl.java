@@ -22,11 +22,9 @@ import com.flow.platform.api.domain.MessageSetting;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.UserFlowService;
-import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
@@ -40,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.velocity.VelocityEngineUtils;
-import sun.misc.MessageUtils;
 
 /**
  * @author yh@firim
