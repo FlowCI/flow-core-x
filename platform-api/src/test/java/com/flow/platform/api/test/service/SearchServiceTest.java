@@ -19,6 +19,7 @@ package com.flow.platform.api.test.service;
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.test.TestBase;
@@ -45,15 +46,47 @@ public class SearchServiceTest extends TestBase {
         Map<String, String> envs = new HashMap<>();
         envs.put(GitEnvs.FLOW_GIT_BRANCH.toString(), "master");
         Job jobManual = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
+
+        String loadedYml = ymlService.getYmlContent(rootForFlow);
+
+        // create yml snapshot for job
+        jobNodeService.save(jobManual, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(jobManual);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        jobManual.setRootResult(rootResult);
+        jobManual.setChildrenResult(resultList);
+
         jobManual.setCreatedBy("yh@fir.im");
         jobDao.update(jobManual);
 
         Job jobBranchCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
+        String loadedYmlCondition = ymlService.getYmlContent(rootForFlow);
+
+        jobNodeService.save(jobBranchCondition, loadedYmlCondition);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList1 = nodeResultService.create(jobBranchCondition);
+        NodeResult rootResult1 = resultList1.remove(resultList1.size() - 1);
+        jobBranchCondition.setRootResult(rootResult1);
+        jobBranchCondition.setChildrenResult(resultList1);
         jobBranchCondition.putEnv(GitEnvs.FLOW_GIT_BRANCH, "develop");
         jobBranchCondition.setCreatedBy("will@fir.im");
         jobDao.update(jobBranchCondition);
 
         Job jobTagCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, envs, mockUser);
+
+        String loadedYmlTag = ymlService.getYmlContent(rootForFlow);
+
+        // create yml snapshot for job
+        jobNodeService.save(jobTagCondition, loadedYmlTag);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList2 = nodeResultService.create(jobTagCondition);
+        NodeResult rootResult2 = resultList2.remove(resultList2.size() - 1);
+        jobTagCondition.setRootResult(rootResult2);
+        jobTagCondition.setChildrenResult(resultList2);
         jobTagCondition.setCreatedBy("yh@fir.im");
         jobDao.update(jobTagCondition);
     }

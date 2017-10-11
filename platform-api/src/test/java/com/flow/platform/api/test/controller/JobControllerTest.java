@@ -53,6 +53,18 @@ public class JobControllerTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
 
+        String loadedYml = null;
+        loadedYml = ymlService.getYmlContent(rootForFlow);
+
+        // create yml snapshot for job
+        jobNodeService.save(job, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult);
+        job.setChildrenResult(resultList);
+
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -76,6 +88,18 @@ public class JobControllerTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
 
+        String loadedYml = null;
+        loadedYml = ymlService.getYmlContent(rootForFlow);
+
+        // create yml snapshot for job
+        jobNodeService.save(job, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult);
+        job.setChildrenResult(resultList);
+        
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -128,6 +152,18 @@ public class JobControllerTest extends TestBase {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+
+        String loadedYml = null;
+        loadedYml = ymlService.getYmlContent(rootForFlow);
+
+        // create yml snapshot for job
+        jobNodeService.save(job, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult);
+        job.setChildrenResult(resultList);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         job.setStatus(JobStatus.SUCCESS);

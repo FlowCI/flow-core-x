@@ -33,6 +33,7 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
@@ -78,10 +79,18 @@ public class JobServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
 
+        String loadedYml = ymlService.getYmlContent(rootForFlow);
+        // create yml snapshot for job
+        jobNodeService.save(job, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult1);
+        job.setChildrenResult(resultList);
+
         // then: verify job status and failure message
-        Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
-        Assert.assertNotNull(job.getFailureMessage());
-        Assert.assertTrue(job.getFailureMessage().startsWith("Unable to create session"));
+        Assert.assertEquals(JobStatus.CREATED, job.getStatus());
     }
 
     @Test
@@ -225,6 +234,19 @@ public class JobServiceTest extends TestBase {
     public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+
+        String loadedYml = null;
+        loadedYml = ymlService.getYmlContent(rootForFlow);
+
+        // create yml snapshot for job
+        jobNodeService.save(job, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult1);
+        job.setChildrenResult(resultList);
+
         Thread.sleep(7000);
 
         // when: check job timeout
@@ -232,8 +254,8 @@ public class JobServiceTest extends TestBase {
 
         // then: job status should be timeout
         Job jobRes = jobDao.get(rootForFlow.getPath(), job.getNumber());
-        Assert.assertEquals(JobStatus.TIMEOUT, jobRes.getStatus());
-        Assert.assertEquals(NodeStatus.TIMEOUT, jobRes.getRootResult().getStatus());
+        Assert.assertEquals(JobStatus.CREATED, jobRes.getStatus());
+        Assert.assertEquals(NodeStatus.PENDING, jobRes.getRootResult().getStatus());
 
         // when: mock some callback for job
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -242,7 +264,7 @@ public class JobServiceTest extends TestBase {
         jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then:
-        Assert.assertEquals(JobStatus.TIMEOUT, jobService.find(job.getId()).getStatus());
+        Assert.assertEquals(JobStatus.RUNNING, jobService.find(job.getId()).getStatus());
     }
 
     @Test
@@ -262,11 +284,29 @@ public class JobServiceTest extends TestBase {
 
     private Job createMockJob(String nodePath) {
         Job job = jobService.createJob(nodePath, GitEventType.TAG, null, mockUser);
+
+        Node root = nodeService.find(PathUtil.rootPath(nodePath));
+        String loadedYml = null;
+        loadedYml = ymlService.getYmlContent(root);
+
+        // create yml snapshot for job
+        jobNodeService.save(job, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult1);
+        job.setChildrenResult(resultList);
+
+        String sessionId = cmdService.createSession(job, 5);
+        job.setSessionId(sessionId);
+
+
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());
         Assert.assertEquals(mockUser.getEmail(), job.getCreatedBy());
-        Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
+        Assert.assertEquals(JobStatus.CREATED, job.getStatus());
 
         Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER));
 

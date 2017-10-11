@@ -188,7 +188,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
         job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
-        job.setStatus(JobStatus.CREATED);
 
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         EnvUtil.merge(envs, job.getEnvs(), true);

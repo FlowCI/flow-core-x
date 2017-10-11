@@ -42,10 +42,13 @@ import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.service.job.CmdService;
+import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -123,6 +126,9 @@ public abstract class TestBase {
     protected JobService jobService;
 
     @Autowired
+    protected CmdService cmdService;
+
+    @Autowired
     protected NodeResultService nodeResultService;
 
     @Autowired
@@ -148,6 +154,12 @@ public abstract class TestBase {
 
     @Autowired
     protected UserFlowDao userFlowDao;
+
+    @Autowired
+    protected YmlService ymlService;
+
+    @Autowired
+    protected JobNodeService jobNodeService;
 
     @Autowired
     private ThreadLocal<User> currentUser;

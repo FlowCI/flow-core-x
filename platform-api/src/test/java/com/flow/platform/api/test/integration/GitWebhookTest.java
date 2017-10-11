@@ -79,6 +79,7 @@ public class GitWebhookTest extends TestBase {
 
     @Test
     public void should_create_job_after_github_push_webhook_trigger() throws Throwable {
+//        init_flow("git@github.com:flow-ci-plugin/for-testing.git");
         init_flow("git@github.com:flow-ci-plugin/for-testing.git");
 
         MockHttpServletRequestBuilder push = post("/hooks/git/" + flowName)
@@ -123,6 +124,16 @@ public class GitWebhookTest extends TestBase {
 
         Job job = mock_trigger_from_git(openPr);
         job = jobDao.get(job.getId());
+
+//        String loadedYml  = getResourceContent("demo_flow.yaml");
+//
+//        // create yml snapshot for job
+//        jobNodeService.save(job, loadedYml);
+//
+//        List<NodeResult> resultList = nodeResultService.create(job);
+//        NodeResult rootResult1 = resultList.remove(resultList.size() - 1);
+//        job.setRootResult(rootResult1);
+//        job.setChildrenResult(resultList);
 
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
@@ -293,7 +304,7 @@ public class GitWebhookTest extends TestBase {
 
         // verify flow node yml status
         Node flowNode = nodeService.find(created.getNodePath());
-        Assert.assertEquals(FlowEnvs.YmlStatusValue.FOUND.value(), flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals(FlowEnvs.YmlStatusValue.GIT_CONNECTING.value(), flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         return created;
     }
