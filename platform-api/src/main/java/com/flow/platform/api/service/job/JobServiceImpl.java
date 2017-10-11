@@ -211,7 +211,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // merge input env to flow for git loading, not save to flow since the envs is for job
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
-//        create job
+        //create job
         Job job = createJob(path, eventType, envs, creator);
         updateJobStatusAndSave(job, JobStatus.YML_LOADING);
 
@@ -231,7 +231,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                 throw e;
             }
 
-//            create yml snapshot for job
+            //create yml snapshot for job
             jobNodeService.save(job, loadedYml);
 
             // init for node result and set to job object

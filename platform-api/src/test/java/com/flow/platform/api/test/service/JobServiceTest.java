@@ -81,13 +81,7 @@ public class JobServiceTest extends TestBase {
 
         build_relation(rootForFlow, job);
 
-        try {
-            String sessionId = cmdService.createSession(job, 5);
-            job.setSessionId(sessionId);
-            jobService.updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
-        } catch (IllegalStatusException e) {
-            jobService.updateJobStatusAndSave(job, JobStatus.FAILURE);
-        }
+        create_session(job);
 
         // then: verify job status
         Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
@@ -237,6 +231,8 @@ public class JobServiceTest extends TestBase {
 
         build_relation(rootForFlow, job);
 
+        create_session(job);
+
         Thread.sleep(7000);
 
         // when: check job timeout
@@ -244,8 +240,8 @@ public class JobServiceTest extends TestBase {
 
         // then: job status should be timeout
         Job jobRes = jobDao.get(rootForFlow.getPath(), job.getNumber());
-        Assert.assertEquals(JobStatus.CREATED, jobRes.getStatus());
-        Assert.assertEquals(NodeStatus.PENDING, jobRes.getRootResult().getStatus());
+        Assert.assertEquals(JobStatus.TIMEOUT, jobRes.getStatus());
+        Assert.assertEquals(NodeStatus.TIMEOUT, jobRes.getRootResult().getStatus());
 
         // when: mock some callback for job
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -254,7 +250,7 @@ public class JobServiceTest extends TestBase {
         jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then:
-        Assert.assertEquals(JobStatus.RUNNING, jobService.find(job.getId()).getStatus());
+        Assert.assertEquals(JobStatus.TIMEOUT, jobService.find(job.getId()).getStatus());
     }
 
     @Test
@@ -279,14 +275,13 @@ public class JobServiceTest extends TestBase {
 
         build_relation(root, job);
 
-        String sessionId = cmdService.createSession(job, 5);
-        job.setSessionId(sessionId);
+        create_session(job);
 
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());
         Assert.assertEquals(mockUser.getEmail(), job.getCreatedBy());
-        Assert.assertEquals(JobStatus.CREATED, job.getStatus());
+        Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
 
         Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER));
 
@@ -309,5 +304,15 @@ public class JobServiceTest extends TestBase {
 
     private Job reload(Job job) {
         return jobService.find(job.getNodePath(), job.getNumber());
+    }
+
+    private void create_session(Job job){
+        try {
+            String sessionId = cmdService.createSession(job, 5);
+            job.setSessionId(sessionId);
+            jobService.updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+        } catch (IllegalStatusException e) {
+            jobService.updateJobStatusAndSave(job, JobStatus.FAILURE);
+        }
     }
 }
