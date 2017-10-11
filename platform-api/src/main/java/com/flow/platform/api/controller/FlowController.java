@@ -193,7 +193,8 @@ public class FlowController extends NodeController {
     @DeleteMapping("/{root}/env")
     @WebSecurity(action = Actions.FLOW_SET_ENV)
     public Node delFlowEnv(@RequestBody Set<String> envKeys) {
-        return nodeService.delFlowEnv(currentNodePath.get(), envKeys);
+        Flow flow = nodeService.findFlow(currentNodePath.get());
+        return nodeService.delFlowEnv(flow, envKeys);
     }
 
     /**

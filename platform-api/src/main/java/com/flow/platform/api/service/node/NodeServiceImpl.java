@@ -269,9 +269,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
-    public Flow delFlowEnv(String path, Set<String> keys) {
-        Flow flow = findFlow(path);
-
+    public Flow delFlowEnv(Flow flow, Set<String> keys) {
         for (String keyToRemove : keys) {
             flow.removeEnv(keyToRemove);
         }

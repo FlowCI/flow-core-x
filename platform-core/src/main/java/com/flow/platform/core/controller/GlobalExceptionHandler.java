@@ -18,6 +18,7 @@ package com.flow.platform.core.controller;
 
 import com.flow.platform.core.response.ResponseError;
 import com.flow.platform.core.exception.FlowException;
+import com.flow.platform.util.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -31,10 +32,20 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private final static Logger LOGGER = new Logger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(FlowException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ResponseError handleFlowException(HttpServletRequest request, FlowException e) {
+        return new ResponseError(e.getMessage());
+    }
+
+    @ExceptionHandler(Throwable.class)
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public ResponseError handleFatalException(HttpServletRequest request, Throwable e) {
+        LOGGER.error("", e);
         return new ResponseError(e.getMessage());
     }
 }

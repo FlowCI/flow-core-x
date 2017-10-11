@@ -45,7 +45,7 @@ public class ManualJobTest extends TestBase {
 
         Map<String, String> env = new HashMap<>();
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
-        env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO);
+        env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_BRANCH.name(), "master");
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
         nodeService.addFlowEnv(flow, env);

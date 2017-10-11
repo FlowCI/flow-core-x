@@ -86,7 +86,7 @@ public interface NodeService {
     /**
      * Delete flow env
      */
-    Flow delFlowEnv(String path, Set<String> keys);
+    Flow delFlowEnv(Flow flow, Set<String> keys);
 
     /**
      * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG

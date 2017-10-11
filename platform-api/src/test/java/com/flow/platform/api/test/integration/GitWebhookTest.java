@@ -79,7 +79,7 @@ public class GitWebhookTest extends TestBase {
 
     @Test
     public void should_create_job_after_github_push_webhook_trigger() throws Throwable {
-        init_flow(GITHUB_TEST_REPO);
+        init_flow(GITHUB_TEST_REPO_SSH);
 
         MockHttpServletRequestBuilder push = post("/hooks/git/" + flowName)
             .contentType(MediaType.APPLICATION_JSON)
@@ -113,7 +113,7 @@ public class GitWebhookTest extends TestBase {
 
     @Test
     public void should_create_job_after_github_open_pr_webhook_trigger() throws Throwable {
-        init_flow(GITHUB_TEST_REPO);
+        init_flow(GITHUB_TEST_REPO_SSH);
 
         MockHttpServletRequestBuilder openPr = post("/hooks/git/" + flowName)
             .contentType(MediaType.APPLICATION_JSON)
@@ -137,7 +137,7 @@ public class GitWebhookTest extends TestBase {
 
     @Test
     public void should_create_job_after_github_close_pr_webhook_trigger() throws Throwable {
-        init_flow(GITHUB_TEST_REPO);
+        init_flow(GITHUB_TEST_REPO_SSH);
 
         MockHttpServletRequestBuilder createPr = post("/hooks/git/" + flowName)
             .contentType(MediaType.APPLICATION_JSON)
