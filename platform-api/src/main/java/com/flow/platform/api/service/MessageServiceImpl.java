@@ -23,7 +23,9 @@ import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.core.exception.NotFoundException;
@@ -56,6 +58,9 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
 
     @Autowired
     private VelocityEngine velocityEngine;
+
+    @Autowired
+    private UserFlowService userFlowService;
 
     @Override
     public SettingContent save(SettingContent t) {
@@ -124,13 +129,24 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
             throw new NotFoundException("setting content not found");
         }
 
+        // find job
         Job job = jobService.find(jobId);
+
+        // bind model to email template
         Map model = new HashMap();
         model.put("job", job);
         String text = VelocityEngineUtils
             .mergeTemplateIntoString(velocityEngine, "email/failure_email.vm", model);
-        System.out.println(text);
-        SmtpUtil.sendEmail(emailSettingContent, "13581648716@163.com", "FlowCi Build Failure", text);
+
+        // send email to creator
+        SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), "FlowCi Build Failure", text);
+
+        // send email to member of this flow
+        List<User> members = userFlowService.list(job.getNodePath());
+        for (User member : members) {
+            SmtpUtil.sendEmail(emailSettingContent, member.getEmail(), "FlowCi Build Failure", text);
+        }
+
         LOGGER.traceMarker("sendMessage", "send message success");
     }
 }
