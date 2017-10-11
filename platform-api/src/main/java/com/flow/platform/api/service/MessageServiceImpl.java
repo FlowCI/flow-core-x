@@ -128,7 +128,7 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
 
     @Override
     public void sendMessage(BigInteger jobId) {
-        LOGGER.traceMarker("sendMessage", "job failure send email");
+        LOGGER.traceMarker("sendMessage", "start to send job failure email");
         EmailSettingContent emailSettingContent = (EmailSettingContent) find(MessageType.EMAIl);
         if (emailSettingContent == null) {
             LOGGER.traceMarker("sendMessage", " sorry not found email settings");
@@ -147,8 +147,6 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
             .mergeTemplateIntoString(velocityEngine, "email/failure_email.vm", model);
 
         // send email to creator
-
-
         SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), FAILURE_TEMPLATE_SUBJECT, text);
         LOGGER.traceMarker("sendMessage", String.format("send message to %s success", job.getCreatedBy()));
 
@@ -159,6 +157,6 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
             LOGGER.traceMarker("sendMessage", String.format("send message to %s success", member.getEmail()));
         }
 
-        LOGGER.traceMarker("sendMessage", "send message success");
+        LOGGER.traceMarker("sendMessage", "send message to all member success");
     }
 }
