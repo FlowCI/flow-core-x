@@ -87,6 +87,8 @@ import org.springframework.web.context.WebApplicationContext;
 @PropertySource("classpath:i18n")
 public abstract class TestBase {
 
+    protected final static String GITHUB_TEST_REPO = "git@github.com:flow-ci-plugin/for-testing.git";
+
     static {
         System.setProperty("flow.api.env", "test");
         System.setProperty("flow.api.task.keep_idle_agent", "false");
@@ -150,7 +152,7 @@ public abstract class TestBase {
     protected UserFlowDao userFlowDao;
 
     @Autowired
-    private ThreadLocal<User> currentUser;
+    protected ThreadLocal<User> currentUser;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
@@ -186,10 +188,10 @@ public abstract class TestBase {
         return nodeService.createOrUpdate(emptyFlow.getPath(), yml);
     }
 
-    public void setFlowToReady(Node flowNode) {
+    public void setFlowToReady(Flow flowNode) {
         Map<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.StatusValue.READY.value());
-        nodeService.addFlowEnv(flowNode.getPath(), envs);
+        nodeService.addFlowEnv(flowNode, envs);
     }
 
     public void stubDemo() {

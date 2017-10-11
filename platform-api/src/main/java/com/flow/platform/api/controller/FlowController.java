@@ -163,7 +163,8 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/env")
     @WebSecurity(action = Actions.FLOW_SET_ENV)
     public Node addFlowEnv(@RequestBody Map<String, String> envs) {
-        return nodeService.addFlowEnv(currentNodePath.get(), envs);
+        Flow flow = nodeService.findFlow(currentNodePath.get());
+        return nodeService.addFlowEnv(flow, envs);
     }
 
     /**

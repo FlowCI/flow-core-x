@@ -260,8 +260,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
-    public Flow addFlowEnv(String path, Map<String, String> envs) {
-        Flow flow = findFlow(path);
+    public Flow addFlowEnv(Flow flow, Map<String, String> envs) {
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
         // sync latest env into flow table
