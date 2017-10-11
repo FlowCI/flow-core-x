@@ -38,5 +38,5 @@ public interface MessageService {
 
     Boolean authEmailSetting(EmailSettingContent emailSetting);
 
-    void sendMessage(BigInteger jobId, JobStatus status);
+    void sendMessage(BigInteger jobId);
 }

@@ -24,14 +24,20 @@ import com.flow.platform.api.domain.SettingContent;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.velocity.VelocityEngineUtils;
+import sun.misc.MessageUtils;
 
 /**
  * @author yh@firim
@@ -48,6 +54,9 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
     @Autowired
     private JobService jobService;
 
+    @Autowired
+    private VelocityEngine velocityEngine;
+
     @Override
     public SettingContent save(SettingContent t) {
         MessageSetting messageSetting = new MessageSetting(t, ZonedDateTime.now(), ZonedDateTime.now());
@@ -63,7 +72,7 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
     @Override
     public SettingContent find(MessageType type) {
         if (findSettingByType(type) == null) {
-            throw new NotFoundException("setting content not found");
+            return null;
         }
 
         return findSettingByType(type).getContent();
@@ -107,10 +116,20 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
     }
 
     @Override
-    public void sendMessage(BigInteger jobId, JobStatus status) {
+    public void sendMessage(BigInteger jobId) {
+        LOGGER.trace("job failure send email");
         EmailSettingContent emailSettingContent = (EmailSettingContent) find(MessageType.EMAIl);
-
+        if (emailSettingContent == null) {
+            LOGGER.trace(" sorry not found email settings");
+            throw new NotFoundException("setting content not found");
+        }
 
         Job job = jobService.find(jobId);
+        Map model = new HashMap();
+        model.put("job", job);
+        String text = VelocityEngineUtils
+            .mergeTemplateIntoString(velocityEngine, "email/failure_email.vm", model);
+        System.out.println(text);
+        SmtpUtil.sendEmail(emailSettingContent, "13581648716@163.com", "FlowCi Build Failure", text);
     }
 }

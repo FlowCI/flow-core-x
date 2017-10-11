@@ -16,8 +16,10 @@
 
 package com.flow.platform.api.consumer;
 
+import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.events.JobStatusChangeEvent;
+import com.flow.platform.api.service.MessageService;
 import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,16 +38,22 @@ public class JobStatusEventConsumer extends JobEventPushHandler implements Appli
     @Autowired
     private TaskExecutor taskExecutor;
 
+    @Autowired
+    private MessageService messageService;
+
     @Override
     public void onApplicationEvent(JobStatusChangeEvent event) {
         LOGGER.debug("Job %s status change event from %s to %s", event.getJobId(), event.getFrom(), event.getTo());
 
         push(event.getJobId());
+
+        // async send failure email
+        if (Job.FAILURE_STATUS.contains(event.getTo())) {
+            sendFailEmail(event.getJobId());
+        }
     }
 
-    private void sendFailEmail(BigInteger jobId, JobStatus jobStatus) {
-        taskExecutor.execute(() -> {
-
-        });
+    private void sendFailEmail(BigInteger jobId) {
+        taskExecutor.execute(() -> messageService.sendMessage(jobId));
     }
 }

@@ -18,6 +18,7 @@ package com.flow.platform.api.domain.job;
 
 import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.util.git.model.GitEventType;
+import com.google.common.base.Strings;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.math.BigInteger;
@@ -36,6 +37,9 @@ public class Job extends EnvObject {
 
     public final static EnumSet<JobStatus> RUNNING_STATUS = EnumSet
         .of(JobStatus.RUNNING);
+
+    public final static EnumSet<JobStatus> FAILURE_STATUS = EnumSet
+        .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.TIMEOUT);
 
     private BigInteger id;
 
@@ -200,6 +204,13 @@ public class Job extends EnvObject {
 
     public void setFailureMessage(String failureMessage) {
         this.failureMessage = failureMessage;
+    }
+
+    public String strFormat(String str) {
+        if (Strings.isNullOrEmpty(str)) {
+            return "";
+        }
+        return str;
     }
 
     @Override
