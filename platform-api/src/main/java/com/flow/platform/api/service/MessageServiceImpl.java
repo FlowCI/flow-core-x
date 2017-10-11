@@ -50,6 +50,8 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
 
     private final static Logger LOGGER = new Logger(MessageService.class);
 
+    private final static String FAILURE_TEMPLATE_SUBJECT = "FlowCi Build Failure";
+
     @Autowired
     private MessageSettingDao messageDao;
 
@@ -139,12 +141,14 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
             .mergeTemplateIntoString(velocityEngine, "email/failure_email.vm", model);
 
         // send email to creator
-        SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), "FlowCi Build Failure", text);
+
+        
+        SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), FAILURE_TEMPLATE_SUBJECT, text);
 
         // send email to member of this flow
         List<User> members = userFlowService.list(job.getNodePath());
         for (User member : members) {
-            SmtpUtil.sendEmail(emailSettingContent, member.getEmail(), "FlowCi Build Failure", text);
+            SmtpUtil.sendEmail(emailSettingContent, member.getEmail(), FAILURE_TEMPLATE_SUBJECT, text);
         }
 
         LOGGER.traceMarker("sendMessage", "send message success");

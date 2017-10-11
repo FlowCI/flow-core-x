@@ -46,7 +46,7 @@ public class JobStatusEventConsumer extends JobEventPushHandler implements Appli
 
         push(event.getJobId());
 
-        // async send failure email
+        // async send failure message
         if (Job.FAILURE_STATUS.contains(event.getTo())) {
             sendMessage(event.getJobId());
         }
