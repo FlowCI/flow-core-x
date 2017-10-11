@@ -117,10 +117,10 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
 
     @Override
     public void sendMessage(BigInteger jobId) {
-        LOGGER.trace("job failure send email");
+        LOGGER.traceMarker("sendMessage", "job failure send email");
         EmailSettingContent emailSettingContent = (EmailSettingContent) find(MessageType.EMAIl);
         if (emailSettingContent == null) {
-            LOGGER.trace(" sorry not found email settings");
+            LOGGER.traceMarker("sendMessage", " sorry not found email settings");
             throw new NotFoundException("setting content not found");
         }
 
@@ -131,5 +131,6 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
             .mergeTemplateIntoString(velocityEngine, "email/failure_email.vm", model);
         System.out.println(text);
         SmtpUtil.sendEmail(emailSettingContent, "13581648716@163.com", "FlowCi Build Failure", text);
+        LOGGER.traceMarker("sendMessage", "send message success");
     }
 }

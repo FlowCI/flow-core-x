@@ -230,10 +230,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     public void createJobAndYmlLoad(String path,
-                                    GitEventType eventType,
-                                    Map<String, String> envs,
-                                    User creator,
-                                    Consumer<Job> onJobCreated) {
+        GitEventType eventType,
+        Map<String, String> envs,
+        User creator,
+        Consumer<Job> onJobCreated) {
 
         // find flow and reset yml status
         Flow flow = nodeService.findFlow(path);
@@ -562,7 +562,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private String logUrl(final Job job) {
-        Path path = Paths.get(domain, "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
-        return path.toString();
+        Path path = Paths.get("/", "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
+        return domain + path.toString();
     }
 }

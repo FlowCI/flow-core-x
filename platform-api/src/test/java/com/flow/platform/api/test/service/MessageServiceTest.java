@@ -106,8 +106,6 @@ public class MessageServiceTest extends TestBase {
         Job job = createMockJob(rootForFlow.getPath());
 
         EmailSettingContent emailSetting = new EmailSettingContent("smtp.163.com", 25, "liyunhehappy6@163.com");
-        emailSetting.setUsername("liyunhehappy6@163.com");
-        emailSetting.setPassword("122333123ppp12,");
         messageService.save(emailSetting);
 
         messageService.sendMessage(job.getId());
