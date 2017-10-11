@@ -17,7 +17,6 @@
 package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.service.MessageService;
 import com.flow.platform.util.Logger;
@@ -49,11 +48,11 @@ public class JobStatusEventConsumer extends JobEventPushHandler implements Appli
 
         // async send failure email
         if (Job.FAILURE_STATUS.contains(event.getTo())) {
-            sendFailEmail(event.getJobId());
+            sendMessage(event.getJobId());
         }
     }
 
-    private void sendFailEmail(BigInteger jobId) {
+    private void sendMessage(BigInteger jobId) {
         taskExecutor.execute(() -> messageService.sendMessage(jobId));
     }
 }
