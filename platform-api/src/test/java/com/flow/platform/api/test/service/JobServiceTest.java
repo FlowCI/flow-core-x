@@ -33,6 +33,7 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
@@ -78,10 +79,12 @@ public class JobServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
 
-        // then: verify job status and failure message
+        build_relation(rootForFlow, job);
+
+        create_session(job);
+
+        // then: verify job status
         Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
-        Assert.assertNotNull(job.getFailureMessage());
-        Assert.assertTrue(job.getFailureMessage().startsWith("Unable to create session"));
     }
 
     @Test
@@ -225,6 +228,11 @@ public class JobServiceTest extends TestBase {
     public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+
+        build_relation(rootForFlow, job);
+
+        create_session(job);
+
         Thread.sleep(7000);
 
         // when: check job timeout
@@ -254,7 +262,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(2, jobDao.list().size());
 
         List<String> rootPath = Lists.newArrayList(rootForFlow.getPath());
-        List<Job> jobs = jobService.list(rootPath,true);
+        List<Job> jobs = jobService.list(rootPath, true);
         Assert.assertEquals(1, jobs.size());
         Assert.assertEquals("2", jobs.get(0).getNumber().toString());
 
@@ -262,6 +270,13 @@ public class JobServiceTest extends TestBase {
 
     private Job createMockJob(String nodePath) {
         Job job = jobService.createJob(nodePath, GitEventType.TAG, null, mockUser);
+
+        Node root = nodeService.find(PathUtil.rootPath(nodePath));
+
+        build_relation(root, job);
+
+        create_session(job);
+
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());
@@ -289,5 +304,15 @@ public class JobServiceTest extends TestBase {
 
     private Job reload(Job job) {
         return jobService.find(job.getNodePath(), job.getNumber());
+    }
+
+    private void create_session(Job job){
+        try {
+            String sessionId = cmdService.createSession(job, 5);
+            job.setSessionId(sessionId);
+            jobService.updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+        } catch (IllegalStatusException e) {
+            jobService.updateJobStatusAndSave(job, JobStatus.FAILURE);
+        }
     }
 }

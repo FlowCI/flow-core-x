@@ -174,17 +174,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
-        String yml = null;
-        try {
-            yml = ymlService.getYmlContent(root);
-            if (Strings.isNullOrEmpty(yml)) {
-                throw new IllegalStatusException("Yml is loading for path " + path);
-            }
-        } catch (FlowException e) {
-            LOGGER.error("Fail to find yml content", e);
-            throw e;
-        }
-
         // create job
         Job job = new Job(CommonUtil.randomId());
         job.setNodePath(root.getPath());
@@ -204,36 +193,16 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         EnvUtil.merge(envs, job.getEnvs(), true);
 
         //save job
-        jobDao.save(job);
-
-        // create yml snapshot for job
-        jobNodeService.save(job, yml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult);
-        job.setChildrenResult(resultList);
-
-        // to create agent session for job
-        try {
-            String sessionId = cmdService.createSession(job, createSessionRetryTimes);
-            job.setSessionId(sessionId);
-            updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
-        } catch (IllegalStatusException e) {
-            job.setFailureMessage("Unable to create session since : " + e.getMessage());
-            updateJobStatusAndSave(job, JobStatus.FAILURE);
-        }
-
-        return job;
+        return jobDao.save(job);
     }
 
     @Override
+    @Transactional(noRollbackFor = FlowException.class)
     public void createJobAndYmlLoad(String path,
-                                    GitEventType eventType,
-                                    Map<String, String> envs,
-                                    User creator,
-                                    Consumer<Job> onJobCreated) {
+        GitEventType eventType,
+        Map<String, String> envs,
+        User creator,
+        Consumer<Job> onJobCreated) {
 
         // find flow and reset yml status
         Flow flow = nodeService.findFlow(path);
@@ -242,18 +211,53 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // merge input env to flow for git loading, not save to flow since the envs is for job
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
+        //create job
+        Job job = createJob(path, eventType, envs, creator);
+        updateJobStatusAndSave(job, JobStatus.YML_LOADING);
+
+        // load yml
         ymlService.loadYmlContent(flow, yml -> {
             LOGGER.trace("Yml content has been loaded for path : " + path);
+            Node root = nodeService.find(PathUtil.rootPath(path));
+
+            String loadedYml = null;
+            try {
+                loadedYml = ymlService.getYmlContent(root);
+                if (Strings.isNullOrEmpty(loadedYml)) {
+                    throw new IllegalStatusException("Yml is loading for path " + path);
+                }
+            } catch (FlowException e) {
+                LOGGER.error("Fail to find yml content", e);
+                throw e;
+            }
+
+            //create yml snapshot for job
+            jobNodeService.save(job, loadedYml);
+
+            // init for node result and set to job object
+            List<NodeResult> resultList = nodeResultService.create(job);
+            NodeResult rootResult = resultList.remove(resultList.size() - 1);
+            job.setRootResult(rootResult);
+            job.setChildrenResult(resultList);
+
+            // to create agent session for job
+            try {
+                String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+                job.setSessionId(sessionId);
+                updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+            } catch (IllegalStatusException e) {
+                updateJobStatusAndSave(job, JobStatus.FAILURE);
+            }
 
             try {
-                Job job = this.createJob(path, eventType, envs, creator);
-
                 if (onJobCreated != null) {
                     onJobCreated.accept(job);
                 }
+
             } catch (Throwable e) {
                 LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
             }
+
         });
     }
 
@@ -457,6 +461,28 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     /**
+     * Update job instance with new job status and boardcast JobStatusChangeEvent
+     */
+    @Override
+    public void updateJobStatusAndSave(Job job, JobStatus newStatus) {
+        JobStatus originStatus = job.getStatus();
+
+        if (originStatus == newStatus) {
+            jobDao.update(job);
+            return;
+        }
+
+        //if job has finish not to update status
+        if (Job.FINISH_STATUS.contains(originStatus)) {
+            return;
+        }
+        job.setStatus(newStatus);
+        jobDao.update(job);
+
+        this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
+    }
+
+    /**
      * Update job status by root node result
      */
     private NodeResult setJobStatusByRootResult(Job job) {
@@ -495,27 +521,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private void stopJob(Job job) {
         setJobStatusByRootResult(job);
         cmdService.deleteSession(job);
-    }
-
-    /**
-     * Update job instance with new job status and boardcast JobStatusChangeEvent
-     */
-    private void updateJobStatusAndSave(Job job, JobStatus newStatus) {
-        JobStatus originStatus = job.getStatus();
-
-        if (originStatus == newStatus) {
-            jobDao.update(job);
-            return;
-        }
-
-        //if job has finish not to update status
-        if (Job.FINISH_STATUS.contains(originStatus)) {
-            return;
-        }
-        job.setStatus(newStatus);
-        jobDao.update(job);
-
-        this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
     }
 
     @Override
