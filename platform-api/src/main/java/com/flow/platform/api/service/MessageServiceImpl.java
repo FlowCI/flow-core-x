@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 import sun.misc.MessageUtils;
@@ -63,6 +64,9 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
 
     @Autowired
     private UserFlowService userFlowService;
+
+    @Value("${domain.web}")
+    private String webDomain;
 
     @Override
     public SettingContent save(SettingContent t) {
@@ -137,7 +141,7 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
         // bind model to email template
         Map model = new HashMap();
         model.put("job", job);
-
+        model.put("detailUrl", String.format("%s/flows/%s/jobs/%s", webDomain, job.getNodeName(), job.getNumber()));
         // TODO: replace this by StringWriter
         String text = VelocityEngineUtils
             .mergeTemplateIntoString(velocityEngine, "email/failure_email.vm", model);
@@ -146,11 +150,13 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
 
 
         SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), FAILURE_TEMPLATE_SUBJECT, text);
+        LOGGER.traceMarker("sendMessage", String.format("send message to %s success", job.getCreatedBy()));
 
         // send email to member of this flow
         List<User> members = userFlowService.list(job.getNodePath());
         for (User member : members) {
             SmtpUtil.sendEmail(emailSettingContent, member.getEmail(), FAILURE_TEMPLATE_SUBJECT, text);
+            LOGGER.traceMarker("sendMessage", String.format("send message to %s success", member.getEmail()));
         }
 
         LOGGER.traceMarker("sendMessage", "send message success");
