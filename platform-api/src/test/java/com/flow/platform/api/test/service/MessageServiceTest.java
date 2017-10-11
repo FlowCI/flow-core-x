@@ -98,44 +98,4 @@ public class MessageServiceTest extends TestBase {
         } catch (NotFoundException e) {
         }
     }
-
-    @Test
-    public void should_send_message_success() throws IOException {
-        stubDemo();
-        Node rootForFlow = createRootFlow("flowTest", "demo_flow1.yaml");
-        Job job = createMockJob(rootForFlow.getPath());
-
-        EmailSettingContent emailSetting = new EmailSettingContent("smtp.163.com", 25, "liyunhehappy6@163.com");
-        messageService.save(emailSetting);
-
-        messageService.sendMessage(job.getId());
-    }
-
-
-    private Job createMockJob(String nodePath) {
-        Job job = jobService.createJob(nodePath, GitEventType.TAG, null, mockUser);
-        Assert.assertNotNull(job.getId());
-        Assert.assertNotNull(job.getSessionId());
-        Assert.assertNotNull(job.getNumber());
-        Assert.assertEquals(mockUser.getEmail(), job.getCreatedBy());
-        Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
-
-        Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER));
-
-        // verify root node result for job
-        NodeResult rootResult = job.getRootResult();
-        Assert.assertNotNull(rootResult);
-        Assert.assertEquals(NodeTag.FLOW, rootResult.getNodeTag());
-        Assert.assertNotNull(rootResult.getOutputs());
-        Assert.assertEquals(NodeStatus.PENDING, rootResult.getStatus());
-
-        NodeTree nodeTree = jobNodeService.get(job);
-
-        // verify child node result list
-        List<NodeResult> childrenResult = job.getChildrenResult();
-        Assert.assertNotNull(childrenResult);
-        Assert.assertEquals(nodeTree.childrenSize(), childrenResult.size());
-
-        return job;
-    }
 }

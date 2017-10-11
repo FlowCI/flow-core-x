@@ -137,12 +137,14 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
         // bind model to email template
         Map model = new HashMap();
         model.put("job", job);
+
+        // TODO: replace this by StringWriter
         String text = VelocityEngineUtils
             .mergeTemplateIntoString(velocityEngine, "email/failure_email.vm", model);
 
         // send email to creator
 
-        
+
         SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), FAILURE_TEMPLATE_SUBJECT, text);
 
         // send email to member of this flow

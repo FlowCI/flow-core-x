@@ -56,6 +56,8 @@
     <javax.mail-api.version>1.5.5</javax.mail-api.version>
     <javax.mail.version>1.5.5</javax.mail.version>
     <yamlbeans.version>1.12</yamlbeans.version>
+    <velocity.version>1.5</velocity.version>
+    <spring-context-support.version>4.3.8.RELEASE</spring-context-support.version>
   </properties>
 
   <build>
@@ -277,6 +279,18 @@
         <groupId>com.esotericsoftware.yamlbeans</groupId>
         <artifactId>yamlbeans</artifactId>
         <version>${yamlbeans.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.velocity</groupId>
+        <artifactId>velocity</artifactId>
+        <version>${velocity.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context-support</artifactId>
+        <version>${spring-context-support.version}</version>
       </dependency>
 
       <!--library for testing-->

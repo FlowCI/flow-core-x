@@ -40,10 +40,4 @@ public class CommonUtil {
         return new BigInteger(stringBuilder.append(uuid).toString());
     }
 
-    public static String strToFormat(String str) {
-        if (Strings.isNullOrEmpty(str)) {
-            return "";
-        }
-        return str;
-    }
 }

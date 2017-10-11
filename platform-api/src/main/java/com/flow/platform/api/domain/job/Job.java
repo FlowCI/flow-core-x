@@ -206,13 +206,6 @@ public class Job extends EnvObject {
         this.failureMessage = failureMessage;
     }
 
-    public String strFormat(String str) {
-        if (Strings.isNullOrEmpty(str)) {
-            return "";
-        }
-        return str;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

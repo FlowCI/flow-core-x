@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.envs.EnvKey;
+import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.GitEnvs;
@@ -92,7 +93,7 @@ public class GitWebhookTest extends TestBase {
 
         Set<String> envKeySet = Sets.newHashSet(ObjectUtil.deepCopy(EnvKey.FOR_OUTPUTS));
         envKeySet.remove(GitEnvs.FLOW_GIT_PR_URL.name());
-//        verifyRootNodeResultOutput(job, envKeySet);
+        verifyRootNodeResultOutput(job, envKeySet);
 
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), job.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Assert.assertEquals(GitEventType.PUSH.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
@@ -293,7 +294,7 @@ public class GitWebhookTest extends TestBase {
 
         // verify flow node yml status
         Node flowNode = nodeService.find(created.getNodePath());
-        Assert.assertEquals(FlowEnvs.YmlStatusValue.GIT_CONNECTING.value(), flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals(YmlStatusValue.FOUND.value(), flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         return created;
     }
