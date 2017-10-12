@@ -41,6 +41,9 @@ public class Job extends EnvObject {
     public final static EnumSet<JobStatus> FAILURE_STATUS = EnumSet
         .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.TIMEOUT);
 
+    public final static EnumSet<JobStatus> SUCCESS_STATUS = EnumSet
+        .of(JobStatus.SUCCESS);
+
     private BigInteger id;
 
     @Expose

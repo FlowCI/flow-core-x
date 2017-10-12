@@ -22,14 +22,15 @@ import com.flow.platform.api.domain.MessageSetting;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import java.io.StringWriter;
-import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.apache.velocity.Template;
@@ -38,17 +39,21 @@ import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author yh@firim
  */
 
 @Service
+@Transactional
 public class MessageServiceImpl extends CurrentUser implements MessageService {
 
     private final static Logger LOGGER = new Logger(MessageService.class);
 
     private final static String FAILURE_TEMPLATE_SUBJECT = "FlowCi Build Failure";
+
+    private final static String SUCCESS_TEMPLATE_SUBJECT = "FlowCi Build Success";
 
     @Autowired
     private MessageSettingDao messageDao;
@@ -124,7 +129,8 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
     }
 
     @Override
-    public void sendMessage(BigInteger jobId) {
+    @Transactional(readOnly = true)
+    public void sendMessage(Job job, JobStatus jobStatus) {
         LOGGER.traceMarker("sendMessage", "start to send job failure email");
         EmailSettingContent emailSettingContent = (EmailSettingContent) find(MessageType.EMAIl);
         if (emailSettingContent == null) {
@@ -132,43 +138,68 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
             throw new NotFoundException("setting content not found");
         }
 
-        // find job
-        Job job = jobService.find(jobId);
+        String text = buildEmailTemplate(job, jobStatus);
 
-        bindModelAndSendMessage(job, emailSettingContent);
+        bindModelAndSendMessage(job, emailSettingContent, text, jobStatus);
     }
 
     /**
      * bind model and send message all member
      */
-    private void bindModelAndSendMessage(Job job, EmailSettingContent emailSettingContent) {
+    private void bindModelAndSendMessage(Job job, EmailSettingContent emailSettingContent, String text,
+                                         JobStatus jobStatus) {
 
         try {
+            // send email to creator
+            SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), getEmailSubject(jobStatus), text);
+            LOGGER.traceMarker("sendMessage", "send message to %s success", job.getCreatedBy());
 
-            // bind model to email template
-            Template template = velocityEngine.getTemplate("email/failure_email.vm");
+            // send email to member of this flow
+            List<User> members = userFlowService.list(job.getNodePath());
+            for (User member : members) {
+                SmtpUtil.sendEmail(emailSettingContent, member.getEmail(), getEmailSubject(jobStatus), text);
+                LOGGER.traceMarker("sendMessage", "send message to %s success", member.getEmail());
+            }
+
+            LOGGER.traceMarker("sendMessage", "send message to all member success");
+        } catch (Throwable e) {
+            LOGGER.traceMarker("sendMessage", "send message to all member error : %s",
+                ExceptionUtil.findRootCause(e).getMessage());
+        }
+    }
+
+    private String getEmailSubject(JobStatus jobStatus) {
+        if (Job.FAILURE_STATUS.contains(jobStatus)) {
+            return FAILURE_TEMPLATE_SUBJECT;
+        }
+
+        return SUCCESS_TEMPLATE_SUBJECT;
+    }
+
+
+    private String buildEmailTemplate(Job job, JobStatus jobStatus) {
+        Template template = null;
+        try {
+            if (Job.SUCCESS_STATUS.contains(jobStatus)) {
+                template = velocityEngine.getTemplate("email/success_email.vm");
+            }
+
+            if (Job.FAILURE_STATUS.contains(jobStatus)) {
+                template = velocityEngine.getTemplate("email/failure_email.vm");
+            }
+
             VelocityContext velocityContext = new VelocityContext();
             velocityContext.put("job", job);
             velocityContext
                 .put("detailUrl", String.format("%s/flows/%s/jobs/%s", webDomain, job.getNodeName(), job.getNumber()));
             StringWriter stringWriter = new StringWriter();
             template.merge(velocityContext, stringWriter);
-            String text = stringWriter.toString();
-            
-            // send email to creator
-            SmtpUtil.sendEmail(emailSettingContent, job.getCreatedBy(), FAILURE_TEMPLATE_SUBJECT, text);
-            LOGGER.traceMarker("sendMessage", String.format("send message to %s success", job.getCreatedBy()));
+            return stringWriter.toString();
 
-            // send email to member of this flow
-            List<User> members = userFlowService.list(job.getNodePath());
-            for (User member : members) {
-                SmtpUtil.sendEmail(emailSettingContent, member.getEmail(), FAILURE_TEMPLATE_SUBJECT, text);
-                LOGGER.traceMarker("sendMessage", String.format("send message to %s success", member.getEmail()));
-            }
-
-            LOGGER.traceMarker("sendMessage", "send message to all member success");
         } catch (Throwable e) {
-            LOGGER.traceMarker("sendMessage", String.format("send message to all member error : %s", e));
+            LOGGER.warn("sendMessage", "send message to all member error : %s",
+                ExceptionUtil.findRootCause(e).getMessage());
         }
+        return null;
     }
 }

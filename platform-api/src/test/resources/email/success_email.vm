@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html style="min-width: 700px; height: 100%; background-color: #ECEDED; color: #4F5A61; font-family: 'Open Sans', 'PingFang SC', 'Helvetica Neue', Helvetica, sans-serif; margin: 0; padding: 0;">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title></title>
+
+</head>
+<body style="min-width: 700px; height: 100%;">
+<div style="background-color: #ECEDED; color: #4F5A61; font-family: 'Open Sans', 'PingFang SC', 'Helvetica Neue', Helvetica, sans-serif; margin: 0; padding: 0;height: 100%;">
+  <div class="content" style="font-size: 14px;width: 600px; margin: 0px auto; height: 100%; padding-top: 70px; position: relative;color: #4F5A61;box-sizing: border-box;">
+    <div class="brand" style="padding: 25px 16px; height: 70px; box-sizing: border-box; position: absolute; top: 0px; left: 0px;">
+      <img class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAAAaCAYAAACjFuKcAAAAAXNSR0IArs4c6QAAChZJREFUaAXtWgtM1dcZP+f87+VRQbS0VZjRRtNWTV2azlbnxku7wkWlbh1wpXahNrNqZ1Kzpl32CunSpGu3rEuabnOZdboBF9aqoDxU5AJNptbYdWXqmrWmOrTiYwgocLn/c/Y7fzjcc/5cQDppsoST/Dnf63znnO8733ceF0pGKZkrC++3bbqYEjJPED6PEsoFIRcZIW2UsGNkZuzx4I4dvaOomGRpFvD5tsR2i0trNRKJIfREQ13Z3yXNozMUvDy3aE4/t1+xw6KQEEHhAKcIMgBxB7MJ+exGKD2nsBXUHkmilG5pri1/32FP/hlmgR7P5UQS4m/pjH5KfgI8ujMyVhZkhcN2DZwQpzeKCgsSAwc9qHiM0CQFT9bjtwAyTqQ8kr8hSYRJJQw8zBFIVWFIXqWUICQmy0RYwHBGqLtzI1JOst4RUs8JRq1l7KsL41vqK5Kb6yo8Xm/cLDhFhtdkGYcFgtVll62pdyTq3/zZ036uVBh7hhAiRzFkjWjo9nhi8w7v29lG6iIciWf6ClrtgS0kwpiExrRAsPLNbl0oqCFGZGCnnqfxsHXTo44jdOIkPGEWMCODimmDB6aBDgU5OxE9Z64pnsb7e1IsSmI8jF46sLfsAtLh/12cZec/fXu4u3emTUUMVu7lOxMeu1BZWfC591QqFfZ0dp+URsfGfRcqZKfBQkkPFbRTocISz7bUVLwtcaSpNTYnuxVP1hZlWcG68qBOU/CGDRu8/zzbuUkI/hSs/oCiyxr7zwX83R0bQ18+WFV+Xuelr/QvI2Hxjk4zYEZeaK4N7JS0tOzC7Rh8roTRxzst9YHNEs7w+b8ruPiZhKMVyOZC9kQ0npuWmb85we68upUSsRb2WmDwKe0EPQh9b7bUVdQrXrrP/yLhYqvC9Vow8kpLbeB1SWN9vTcYlM6QH/CIIyRXkHjFk7XFrXhJHm/5Rp4/9dTZa8e54L92O0LqEoKkYL/a3NcnPsrwFazW9TPbOT4749PHMgRzepuUzywp8cAQ31J0ODi/pKTEScOciCmKHq22GO5eN1HSc59YxLsunyaEvwQ9piNkeyGmYi55sFsd7l/7ZQZw1HKRGK1fSaNCJKiujT1DEW9lnZe3PhFGDmKgXx5LLwY3BZPZLe86SpYyRCch1xSu16CHKRNdDu3I6a/D0UP3HDj3juDRUw9LHqK7a6QjOXR0EGqN+YogL8KCh5swvi/pYxgJRv+5vLfnRad/IjoR/gN35ZEagM7uTUm8Zll0tfzw3GEMCnn8gOLJmnm8jaPoisrqCF3/BYx8j86E3vcYpd9nFl0P+M86D5O1hE125edvdaKwsab8aHN9xTQ45XldDpNrYCm3JSJFOe3Rh5OedBnOySqJN9eV/yHJO20q4r5J52MMz0L39GBN6d90ejQ4zMPbsaCmGzyMATZ7zqLWk6h3ug2OxeFEXFN9xatWYnISY3TYGHV9nm3btvWDsE8S07ML3ZvPuWBNwOHpjW4WlumpN8SLDXlK3p2RmPpoZeWvnCcU8N7KyPaf5IS/rOTk6mvvPi/b/UbRvMI6GNLvm0Lco7+LIRWtVLKR2qH9WOLV1dtupOcU4I0tUjyMHIpgI0OZvsKlNhfLDQlKylYsXbAOqVCt+D/BfndCv0/JIRotBcsjbebqte+RkNvESgKREQFvPRQKiTXIn0Y+Zsx6SXOE0+l9c6a+hlV7SR8BXiQLdPxQbemHiKLLGm32o998Uh44iEwh6GehxnNAGOaB5au+46SVFXlrZ8DJsyIy9HxDTeCjCD4yhPtUvosrqDf2R5ojHDait9aQE8I4rRq8KMiEOgOT/5rRJ04bWQ/f12DQgMjoxMG22qSLJWoDlnQ4ApnITDO9PX2LJc/mth4V+uInth1yUoMd5g9JWVWwahsVPFaNfWWZIUPph83Vu84YNCBIV1XQ+0f1YdDH3DKj4ePy3GiKovEEJakw4FCBOdvcqynCxJ1GkwUc3/LBJzJHX1EymORhOPhxhaOWBq7R9ws47V3Q4rCBOsZHLR31e84pHKd3QBtBv6mCVim6IE5t53RcwYdrSj8FXKzw8dYTGhlYUVONAVGipxmDRQQbxusPC6O9sIat5ofkRg9jDeVz9LkHKW/vkHJBHpG/I+A46kSRosdY7KadgTbGOHDBG1ogSt+tqCfUGViI3cYgBTFPIzqT4fbvKlPCHqN98/7AKUTHZ0Nigi6+2NWWJaNI0XCr32txtkfhiJop10l7Bgw45AycfM4d2l/6iZIZq0YkXDdkaOQIbdD/R2RinUHJRX18MEyqjuuw4O7zO+1PSPBd1WUkLAgNKhr0YVOmmxQOI7cerg183Fhf9g9EyL8UHbo3SVmFox5PVECctmttJajrcrE+PzqhzoBBjriGdnvaqiLnIqbTkdeR6iNHQsnDfn082jsP7gYuQwrnLuHoo3QoIpCqIjDBqU4r6M2lQ2NGA6kwNmI49kH5249bNDOn0I8nmSORr2CbW2Y0fGKdEeOtcl+EaDj8A/2UJAeX5St6Ag65Wx8oNnvNmBGOGCXXW1YkPSFdRW0vNXnZuPYLGY7mSQ/H9b6ujs2RUQ1AuHAUQ3iJ+rDCkt0yo+FYvAMlLXtdCqGhj/X8i7B/m6XEr9MvV1JarmQ8vm1A/dvB5k5FGfM31ZRVYBBC0dNyCiqh89sKlzX4ewUTu5Dbr9hCZCEn/xANIic7Sv9jxcXPDe7Z0aG3UzAub/+WF0OFy1ruA831gdmKJh3e8NeTeIAkzl1E0THhM7h1z1W4rDNz/Hfbgp/RaYTRLXjAe0PS5HzTfYWtmMdCTQYBRn7JBKmneJPBPNYjYoo0PoE9nsb/BGxXNPm2Jex+5/duRcO4X58/J+kFebxn8mEOk8OgQ+d1R0hhKH/cvtDTiUevCtU4Ldu/Ea+QHW5HOPKcl4N3JT3XPzSomBjre+C1q/aOnBCP4TL9FxgA6UL81HAEBBCuz4zkCKd99JwfOUFBSB6hkdKqpLyroM/xFWdxeTxPwZFhrSXe+MjzuE8fDAt+yO0ILI8P2JL5O6V8Vq5/CWx83u0IyUO7505/eq0zI6fwVYbzt7yZzpSM6EV4wb9X8bCKZ2GpmEc9xZS1fL8RuF8MloaqsouWh67AKmpTtBFrPKZh4hub6gKVI8qAgTeew26+pe8Xg0wutD1kkIZ/MQq6294M3rKv9BhjJB/z6BtLHnN4Py6W5gZLShzn4dAxHTY07iq6DjgE9yIyd0L3DNVhcH+gNdHyLMJKfQ00I0ocGUpCmEC1xayvNNcFfqfajVTDZcbqxortEEvnN7nlrZQ4POSZx2vKLKOtu81oeLC2Yg/xeBYhtQSQF2+4ZeWCY4w9s3zpgsXu32XcstFwjPWLLTL/Ls8pWsgtkkoJj8XELnmTva0Hdu0yz/Jf7LDG3VtmcXEcae+9n3N+FxWsi8bQU/IfDsatSGvwX/ix5DiYoPwwAAAAAElFTkSuQmCC" style="height: 20px; display: block;">
+    </div>
+    <div class="container" style="border-top: 10px solid #81bf15; box-shadow: 0px 3px 8px 0px rgba(0, 0, 0, 0.1); padding: 25px 40px; background-color: #fff; min-height: 100%;color: #4F5A61;box-sizing: border-box;">
+      <table class="table table-caption" border="0" collapse="0" border-collapse="collapse" style="margin-bottom: 12px; width: 100%; border-collapse: collapse;">
+        <tbody>
+        <tr>
+          <td class="status" style="margin: 0px; padding: 0px; color: #81bf15; font-size: 40px; line-height: 1; vertical-align: bottom;font-weight: bold;">Build Success</td>
+          <td class="status_icon" style="vertical-align: bottom; text-align: right;">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC0AAAAgCAYAAACGhPFEAAAAAXNSR0IArs4c6QAAAqBJREFUWAnN2L1v00AUAPB7R+Ka0JZSgQqFDgzAAFIlPiSEklYW/QOYmGBmQwWGDgWEkDqUCsYysLJ16sSCSEAVSEhQFgagA1JRhDo0QCl1WqfHey4XOSFxfM5dkht8Pj9b/t3L+c4OsA4sj14f6f+9WbzFGJxD3jow8SItTj52nJxHXOg08/3coQwTpTnBxEDQhtB3Xcl+ZyL9aY0HA+3e/wd+Vg0ml2DsjLtVmKH9jkEHwHsIVqtgtq8IcY93xPCIApadsJP24bajVcAAbO3O6Mretg4PFfBOpuEJAIi2oVXBmOXFbsu6TfiEHCutrFXBDOADgsduXvi2Qc6Wj+k44B7LuojgVZnYMhpXod3rm8VxnA8z2Bf6Bd702b0Pr59f+iVPbrbWASaDj36QPXBwA9hLnMGPB2E4jpZ38eSlyZH8++DxOPu6wHRv/0F0AWarwRQUgg2VtreeT70aPE3tuEUnmAwwvXCip+it/kRgeahU4zDjBcz4WJyM6waTjXvbhaNhYDoJ4/viZNwE2EfvTyWWMMUlaoQVVbgpMBn5tbP5PzgynoaBZSwq3CTYR9Oml6XGcUR/lriwuhHcNJhs/uxxw/n6w07YDj5wX8LAMlYP3gowGSpmjOmFocGi5+YQdUwCw+rgrNIq8H9oOhAHDgwmsaMz+MVR9wW+ovP4LlG9NFfEGzQqMi3PVYXL6yLVTYLpHjXRFDAC1wAORWuHawI3RGuDawRHQjcN1wyOjI4NNwBWQivDDYGV0RLuem621vs3xangvP2xu8saCX4i7UT0bJW/xifSy3la8uu+qwDzGE9cNQWmbiuj6SKCp5I8gxmdp3a5AKxgni/fHc0vlo8Z2Km7uES911R24JTgYrgE8N3mfW/pX82o18Y97y/k6ahRi124VwAAAABJRU5ErkJggg==" style="vertical-align: bottom;">
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <div class="table-header" style="padding: 0px 16px; border-left: 6px solid #81bf15;font-weight: bold;">
+        <div class="project_name" style="font-size: 16px; line-height: 1.5;">
+          $!{job.getNodeName()}
+        </div>
+        <div class="job_number" style="font-size: 16px; line-height: 1.5;">
+          #$!{job.getNumber()}
+        </div>
+        <div class="job_duration" style="font-size: 16px; line-height: 1.5;">
+          <img class="icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAndJREFUOBFtUl1IU3EUP+d/3XXD1cse6iHsQUcLzZSKXoKIqIcyZo1JVIrrw2BhsoeCoof70GMvBfkgOYU2Ccea1UsvoU9ZFBga0ocPGWUF2TKQyO1/T+fcddka/uFu5+N3vn7nIKzxoomEb/V7fp/S2EgIXgL6ZKA5cT81+KUajpWGaDzuLyz/vsoBF4GgrtLHMgHiIxPxciaVfOv6lCtEu3vrOXiKiK4gwWNl4H7TZwQ2+M06QGjhStc5x8GCTS/DXT1H3Ding3+VpxiwCVCdH08lxwRwtPv0Hlvb9Q/SI6OiR3p6Q7pQSBNBU40Be7N3h587HThtEzVXBksAaTqLhAMiy8uODL7xeHyHueqKtuGOZVlKCWEyMxuzbuUSfO3fzMjAVx6pn0dtnpn/2K6EbSEMjXKltUPL1tbg5nus5TXZ7YoJC4rLp73TZUhZIp5BWi1bAFgvchezANiogLBWnH6//lMJKsn0i7tbP/1+4Wmk+0xbpZ/zSnGvkiMRx7eV1YZKgMie8KGEAuxnOrfqon4RPhm7GbUsk+fneNjO32detznBWLZAtDpBprNT50aHbzEmxEckq92WsazVyKnYTiBax8mfOHfQcSL2kDMcqPGYbbKq6kSu3tfXVxsIBPSrdx+eMQcNHq/R4JDjUXiJeyrKkUR74hvdgOr/UvDCDQLYgaCuZYaGfhgCmpuZXtrS2voabLxg6+K5UEvb4vFIx9zk5KQtfpl5dn5h1+LSco61Y4hqYDydtMTnjCCCvEhXbHdR0xCLTfzlZVXCthAmMyPCT6mcSydvC17efwnEIDuXC5MjYWdQ1uywzYTVeHFM2hac+/4CmEILb4TJ0GAAAAAASUVORK5CYII=" style="display: inline-block; vertical-align: bottom; margin-bottom: 4px;">
+          $!{job.getRootResult().getDuration()}s
+        </div>
+      </div>
+      <hr style="border: none; border-bottom: 1px solid #DBE0E3; margin: 32px 0px;font-size: 14px;">
+      <table class="table table-details" style="font-size: 14px; line-height: 32px; width: 100%; border-collapse: collapse;font-size: 14px;">
+        <tbody>
+        <tr>
+          <td class="name" style="vertical-align: top; width: 100px;font-size: 14px;color: #4F5A61;font-weight: bold;">Author</td>
+          <td class="value" style="vertical-align: top; color: #869096; padding-left: 50px; word-wrap: break-word; white-space: normal; word-break: break-word;font-size: 14px;">$!{job.getCreatedBy()}</td>
+        </tr>
+        <tr>
+          <td class="name" style="vertical-align: top; width: 100px;font-size: 14px;color: #4F5A61;font-weight: bold;">Triggered By</td>
+          <td class="value" style="vertical-align: top; color: #869096; padding-left: 50px; word-wrap: break-word; white-space: normal; word-break: break-word;font-size: 14px;">#$!{job.getRootResult().getOutputs().get("FLOW_GIT_EVENT_TYPE")}</td>
+        </tr>
+        <tr>
+          <td class="name" style="vertical-align: top; width: 100px;font-size: 14px;color: #4F5A61;font-weight: bold;">Build</td>
+          <td class="value" style="vertical-align: top; color: #869096; padding-left: 50px; word-wrap: break-word; white-space: normal; word-break: break-word;font-size: 14px;">
+            <a href="$!{detailUrl}" style="color: #4F5A61;">$!{job.getNodeName()}  #$!{job.getNumber()}</a>
+          </td>
+        </tr>
+        <tr>
+          <td class="name" style="vertical-align: top; width: 100px;font-size: 14px;color: #4F5A61;font-weight: bold;">Branch</td>
+          <td class="value" style="vertical-align: top; color: #869096; padding-left: 50px; word-wrap: break-word; white-space: normal; word-break: break-word;font-size: 14px;">$!{job.getRootResult().getOutputs().get("FLOW_GIT_BRANCH")}</td>
+        </tr>
+        <tr>
+          <td class="name" style="vertical-align: top; width: 100px;font-size: 14px;color: #4F5A61;font-weight: bold;">Commits</td>
+          <td class="value" style="vertical-align: top; color: #869096; padding-left: 50px; word-wrap: break-word; white-space: normal; word-break: break-word;font-size: 14px;">
+            <ul style="margin: 0; padding: 0; color: #4F5A61;">
+              <li>
+                a href="$!{job.getRootResult().getOutputs().get("FLOW_GIT_COMPARE_URL")}" style="color: #4F5A61;">$!{job.getRootResult().getOutputs().get("FLOW_GIT_COMPARE_ID")}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                <span style="color: #869096;">$!{job.getRootResult().getOutputs().get("FLOW_GIT_CHANGELOG")}</span>
+              </li>
+            </ul>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

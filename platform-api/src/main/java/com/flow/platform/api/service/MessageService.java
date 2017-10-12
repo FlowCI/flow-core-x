@@ -19,6 +19,8 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
 import java.math.BigInteger;
 
 /**
@@ -55,5 +57,5 @@ public interface MessageService {
     /**
      * send message to member
      */
-    void sendMessage(BigInteger jobId);
+    void sendMessage(Job job, JobStatus jobStatus);
 }

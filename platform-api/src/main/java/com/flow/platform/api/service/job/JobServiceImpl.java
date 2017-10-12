@@ -515,7 +515,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setStatus(newStatus);
         jobDao.update(job);
 
-        this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
+        this.dispatchEvent(new JobStatusChangeEvent(this, job, originStatus, newStatus));
     }
 
     @Override
