@@ -221,6 +221,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         if (inQueue) {
             LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
             cmdStatusQueue.enqueue(statusItem);
+            return;
         }
 
         LOGGER.trace("Report cmd %s to status %s", statusItem.getCmdId(), statusItem.getStatus());
