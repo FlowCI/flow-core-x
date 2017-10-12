@@ -19,6 +19,7 @@ package com.flow.platform.api.test.service;
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.test.TestBase;
@@ -45,15 +46,24 @@ public class SearchServiceTest extends TestBase {
         Map<String, String> envs = new HashMap<>();
         envs.put(GitEnvs.FLOW_GIT_BRANCH.toString(), "master");
         Job jobManual = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
+
+        build_relation(rootForFlow, jobManual);
+
         jobManual.setCreatedBy("yh@fir.im");
         jobDao.update(jobManual);
 
         Job jobBranchCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
+
+        build_relation(rootForFlow, jobBranchCondition);
+
         jobBranchCondition.putEnv(GitEnvs.FLOW_GIT_BRANCH, "develop");
         jobBranchCondition.setCreatedBy("will@fir.im");
         jobDao.update(jobBranchCondition);
 
         Job jobTagCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, envs, mockUser);
+
+        build_relation(rootForFlow, jobTagCondition);
+
         jobTagCondition.setCreatedBy("yh@fir.im");
         jobDao.update(jobTagCondition);
     }
