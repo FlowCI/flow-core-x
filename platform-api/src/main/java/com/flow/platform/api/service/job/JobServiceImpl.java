@@ -199,10 +199,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     @Transactional(noRollbackFor = FlowException.class)
     public void createJobAndYmlLoad(String path,
-        GitEventType eventType,
-        Map<String, String> envs,
-        User creator,
-        Consumer<Job> onJobCreated) {
+                                    GitEventType eventType,
+                                    Map<String, String> envs,
+                                    User creator,
+                                    Consumer<Job> onJobCreated) {
 
         // find flow and reset yml status
         Flow flow = nodeService.findFlow(path);
@@ -227,8 +227,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                     throw new IllegalStatusException("Yml is loading for path " + path);
                 }
             } catch (FlowException e) {
-                LOGGER.error("Fail to find yml content", e);
-                throw e;
+                job.setFailureMessage(e.getMessage());
+                updateJobStatusAndSave(job, JobStatus.FAILURE);
             }
 
             //create yml snapshot for job
@@ -246,6 +246,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                 job.setSessionId(sessionId);
                 updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
             } catch (IllegalStatusException e) {
+                job.setFailureMessage(e.getMessage());
                 updateJobStatusAndSave(job, JobStatus.FAILURE);
             }
 
@@ -253,7 +254,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                 if (onJobCreated != null) {
                     onJobCreated.accept(job);
                 }
-
             } catch (Throwable e) {
                 LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
             }
