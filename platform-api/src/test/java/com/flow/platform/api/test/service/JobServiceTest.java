@@ -179,7 +179,6 @@ public class JobServiceTest extends TestBase {
             if (!tree.canRun(step.getPath())) {
                 Assert.assertEquals(NodeStatus.SUCCESS, stepResult.getStatus());
                 Assert.assertEquals(60L, stepResult.getDuration().longValue());
-
                 continue;
             }
 
@@ -256,7 +255,7 @@ public class JobServiceTest extends TestBase {
     }
 
     @Test
-    public void getLatestByPath() throws IOException{
+    public void should_get_latest_job_by_node_path() throws IOException {
         Node rootForFlow = createRootFlow("flowTest", "demo_flow1.yaml");
         createMockJob(rootForFlow.getPath());
         createMockJob(rootForFlow.getPath());
@@ -267,7 +266,6 @@ public class JobServiceTest extends TestBase {
         List<Job> jobs = jobService.list(rootPath, true);
         Assert.assertEquals(1, jobs.size());
         Assert.assertEquals("2", jobs.get(0).getNumber().toString());
-
     }
 
     private Job createMockJob(String nodePath) {

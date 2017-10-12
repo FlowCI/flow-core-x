@@ -142,7 +142,7 @@ public class FlowControllerTest extends TestBase {
     public void should_get_yml_file_content() throws Throwable {
         // given:
         String yml = "flow:\n" + "  - name: " + flowName;
-        Node flow = nodeService.find(flowName);
+        Flow flow = nodeService.findFlow(flowName);
         setFlowToReady(flow);
         nodeService.createOrUpdate(PathUtil.build(flowName), yml);
 

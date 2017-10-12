@@ -48,10 +48,6 @@ import org.springframework.util.FileSystemUtils;
  */
 public class CreateFlowTest extends TestBase {
 
-    private final static String GIT_SSH_URL = "git@github.com:flow-ci-plugin/for-testing.git";
-
-    private final static String GIT_HTTP_URL = "https://github.com/flow-ci-plugin/for-testing.git";
-
     @Autowired
     private NodeService nodeService;
 
@@ -81,20 +77,21 @@ public class CreateFlowTest extends TestBase {
         // setup git related env
         Map<String, String> env = new HashMap<>();
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
-        env.put(GitEnvs.FLOW_GIT_URL.name(), GIT_SSH_URL);
+        env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        flow = nodeService.addFlowEnv(flow.getPath(), env);
 
-        Flow loaded = (Flow) nodeService.find(flow.getPath());
+        Flow loaded = nodeService.findFlow(this.flow.getPath());
+        nodeService.addFlowEnv(loaded, env);
+
         Assert.assertNotNull(loaded);
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), loaded.getEnv(GitEnvs.FLOW_GIT_SOURCE));
-        Assert.assertEquals(GIT_SSH_URL, loaded.getEnv(GitEnvs.FLOW_GIT_URL));
+        Assert.assertEquals(GITHUB_TEST_REPO_SSH, loaded.getEnv(GitEnvs.FLOW_GIT_URL));
         Assert.assertEquals(FlowEnvs.YmlStatusValue.NOT_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // async to clone and return .flow.yml content
-        final String loadedYml = loadYml(flow);
+        final String loadedYml = loadYml(loaded);
 
-        loaded = nodeService.findFlow(flow.getPath());
+        loaded = nodeService.findFlow(this.flow.getPath());
         Assert.assertEquals(FlowEnvs.YmlStatusValue.FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         Yml ymlStorage = ymlDao.get(loaded.getPath());
@@ -115,9 +112,9 @@ public class CreateFlowTest extends TestBase {
         // when: set flow env with credential and load yml content from git
         Map<String, String> env = new HashMap<>();
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
-        env.put(GitEnvs.FLOW_GIT_URL.name(), GIT_SSH_URL);
+        env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_CREDENTIAL.name(), rsaCredentialName);
-        flow = nodeService.addFlowEnv(flow.getPath(), env);
+        flow = nodeService.addFlowEnv(flow, env);
 
         // async to clone and return .flow.yml content
         final String loadedYml = loadYml(flow);
@@ -136,16 +133,18 @@ public class CreateFlowTest extends TestBase {
         // setup git related env
         Map<String, String> env = new HashMap<>();
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
-        env.put(GitEnvs.FLOW_GIT_URL.name(), GIT_SSH_URL);
+        env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), "invalid ssh key xxxx");
-        flow = nodeService.addFlowEnv(flow.getPath(), env);
+
+        Flow loaded = nodeService.findFlow(flow.getPath());
+        nodeService.addFlowEnv(loaded, env);
 
         // async to clone and return .flow.yml content
-        loadYml(flow);
+        loadYml(loaded);
 
-        Node loadedFlow = nodeService.find(flow.getPath());
-        Assert.assertEquals(YmlStatusValue.ERROR.value(), loadedFlow.getEnv(FlowEnvs.FLOW_YML_STATUS));
-        Assert.assertNotNull(loadedFlow.getEnv(FlowEnvs.FLOW_YML_ERROR_MSG));
+        loaded = nodeService.findFlow(loaded.getPath());
+        Assert.assertEquals(YmlStatusValue.ERROR.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertNotNull(loaded.getEnv(FlowEnvs.FLOW_YML_ERROR_MSG));
     }
 
     @Test
@@ -153,10 +152,10 @@ public class CreateFlowTest extends TestBase {
         // setup git related env
         Map<String, String> env = new HashMap<>();
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_HTTP.name());
-        env.put(GitEnvs.FLOW_GIT_URL.name(), GIT_HTTP_URL);
+        env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_HTTP);
         env.put(GitEnvs.FLOW_GIT_HTTP_USER.name(), "");
         env.put(GitEnvs.FLOW_GIT_HTTP_PASS.name(), "");
-        flow = nodeService.addFlowEnv(flow.getPath(), env);
+        flow = nodeService.addFlowEnv(flow, env);
 
         // async to clone and return .flow.yml content
         final String loadedYml = loadYml(flow);

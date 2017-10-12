@@ -85,7 +85,7 @@ public interface JobService {
      *
      * @param path any node path
      * @param eventType the trigger type
-     * @param envs the input environment variables, set to null if not available
+     * @param envs the input environment variables
      * @param creator the user who create job
      * @param onJobCreated callback
      */

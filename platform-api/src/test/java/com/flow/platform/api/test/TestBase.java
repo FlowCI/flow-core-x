@@ -68,8 +68,10 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.InputStreamResource;
@@ -91,7 +93,11 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration(classes = {WebConfig.class})
 @PropertySource("classpath:app-default.properties")
 @PropertySource("classpath:i18n")
+@FixMethodOrder(MethodSorters.JVM)
 public abstract class TestBase {
+
+    protected final static String GITHUB_TEST_REPO_SSH = "git@github.com:flow-ci-plugin/for-testing.git";
+    protected final static String GITHUB_TEST_REPO_HTTP = "git@github.com:flow-ci-plugin/for-testing.git";
 
     static {
         System.setProperty("flow.api.env", "test");
@@ -165,7 +171,7 @@ public abstract class TestBase {
     protected JobNodeService jobNodeService;
 
     @Autowired
-    private ThreadLocal<User> currentUser;
+    protected ThreadLocal<User> currentUser;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
@@ -174,8 +180,12 @@ public abstract class TestBase {
 
     protected User mockUser = new User("test@flow.ci", "ut", "");
 
+    private static Path WORKSPACE;
+
     @Before
     public void beforeEach() throws IOException, InterruptedException {
+        WORKSPACE = workspace;
+
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         User user = userDao.get(DEFAULT_USER_EMAIL);
         if (user == null) {
@@ -201,10 +211,10 @@ public abstract class TestBase {
         return nodeService.createOrUpdate(emptyFlow.getPath(), yml);
     }
 
-    public void setFlowToReady(Node flowNode) {
+    public void setFlowToReady(Flow flowNode) {
         Map<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.StatusValue.READY.value());
-        nodeService.addFlowEnv(flowNode.getPath(), envs);
+        nodeService.addFlowEnv(flowNode, envs);
     }
 
     public void stubDemo() {
@@ -281,12 +291,11 @@ public abstract class TestBase {
     @After
     public void afterEach() {
         cleanDatabase();
-        FileSystemUtils.deleteRecursively(workspace.toFile());
     }
 
     @AfterClass
     public static void afterClass() throws IOException {
-        // clean up cmd log folder
+        FileSystemUtils.deleteRecursively(WORKSPACE.toFile());
     }
 
 }

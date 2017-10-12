@@ -30,6 +30,8 @@ import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
@@ -95,7 +97,7 @@ public class JobController extends NodeController {
     @PostMapping(path = "/{root}")
     public void create() {
         String path = currentNodePath.get();
-        jobService.createJobAndYmlLoad(path, GitEventType.MANUAL, null, currentUser.get(), null);
+        jobService.createJobAndYmlLoad(path, GitEventType.MANUAL, new LinkedHashMap<>(), currentUser.get(), null);
     }
 
     /**

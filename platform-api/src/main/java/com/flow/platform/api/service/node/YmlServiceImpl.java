@@ -103,20 +103,18 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
     @Override
     public Node verifyYml(final Node root, final String yml) {
-        Node rootFromYml = NodeUtil.buildFromYml(yml, root.getName());
-
-        return rootFromYml;
+        return NodeUtil.buildFromYml(yml, root.getName());
     }
 
     @Override
     public String getYmlContent(final Node root) {
-        // check FLOW_YML_STATUS
-        String ymlStatus = root.getEnv(FlowEnvs.FLOW_YML_STATUS);
-
         // for LOADING status if FLOW_YML_STATUS start with GIT_xxx
-        if (YmlStatusValue.isLoadingStatus(ymlStatus)) {
+        if (isYmlLoading(root)) {
             return "";
         }
+
+        // check FLOW_YML_STATUS
+        String ymlStatus = root.getEnv(FlowEnvs.FLOW_YML_STATUS);
 
         // for FOUND status
         if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FOUND.value())) {
@@ -151,7 +149,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
             throw new IllegalParameterException("Missing git settings: FLOW_GIT_URL and FLOW_GIT_SOURCE");
         }
 
-        if (YmlStatusValue.isLoadingStatus(root.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
+        if (isYmlLoading(root)) {
             throw new IllegalStatusException("Yml file is loading");
         }
 
@@ -180,11 +178,20 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
             return;
         }
 
+        if (!isYmlLoading(root)) {
+            return;
+        }
+
         executor.shutdown();
         nodeThreadPool.invalidate(root.getPath());
 
         LOGGER.trace("Yml loading task been stopped for path %s", root.getPath());
         nodeService.updateYmlState(root, YmlStatusValue.NOT_FOUND, null);
+    }
+
+    private boolean isYmlLoading(final Node node) {
+        String ymlStatus = node.getEnv(FlowEnvs.FLOW_YML_STATUS);
+        return YmlStatusValue.isLoadingStatus(ymlStatus);
     }
 
     /**

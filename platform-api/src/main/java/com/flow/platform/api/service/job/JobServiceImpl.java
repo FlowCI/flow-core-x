@@ -39,6 +39,8 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
+import com.flow.platform.api.git.GitEventEnvConverter;
+import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -55,6 +57,7 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -62,6 +65,7 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +112,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     private JobDao jobDao;
+
+    @Autowired
+    private GitService gitService;
 
     @Autowired
     private NodeService nodeService;
@@ -208,7 +215,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // find flow and reset yml status
         Flow flow = nodeService.findFlow(path);
-        flow = nodeService.addFlowEnv(flow.getPath(), EnvUtil.build(FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
+        nodeService.addFlowEnv(flow, EnvUtil.build(FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
 
         // merge input env to flow for git loading, not save to flow since the envs is for job
         EnvUtil.merge(envs, flow.getEnvs(), true);
@@ -221,6 +228,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         ymlService.loadYmlContent(flow, yml -> {
             LOGGER.trace("Yml content has been loaded for path : " + path);
             Node root = nodeService.find(PathUtil.rootPath(path));
+
+            // set git commit info to job env
+            if (eventType == GitEventType.MANUAL) {
+                GitCommit gitCommit = gitService.latestCommit(flow);
+                Map<String, String> envFromCommit = GitEventEnvConverter.convert(gitCommit);
+                EnvUtil.merge(envFromCommit, job.getEnvs(), true);
+                jobDao.update(job);
+            }
 
             String loadedYml = null;
             try {

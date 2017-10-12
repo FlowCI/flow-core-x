@@ -81,12 +81,12 @@ public interface NodeService {
     /**
      * Merge new env to flow node evn and sync to yml
      */
-    Flow addFlowEnv(String path, Map<String, String> envs);
+    Flow addFlowEnv(Flow flow, Map<String, String> envs);
 
     /**
      * Delete flow env
      */
-    Flow delFlowEnv(String path, Set<String> keys);
+    Flow delFlowEnv(Flow flow, Set<String> keys);
 
     /**
      * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG

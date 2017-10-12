@@ -43,23 +43,26 @@ public class App {
             token = args[1];
         }
 
-        LOGGER.trace("========= Run agent =========");
+        LOGGER.trace("========= Flow Agent Started =========");
+        LOGGER.trace("=== Server: " + baseUrl);
+        LOGGER.trace("=== Token:  " + token);
+
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
         try {
-            LOGGER.trace("========= Init config =========");
+            LOGGER.trace("=== Start to load configuration");
 
             Config.AGENT_SETTINGS = Config.loadAgentConfig(baseUrl, token);
-            LOGGER.trace(" -- Settings: %s", Config.agentSettings());
+            LOGGER.trace("====== Settings: %s", Config.agentSettings());
 
             Config.ZK_URL = Config.AGENT_SETTINGS.getZookeeperUrl();
-            LOGGER.trace(" -- Zookeeper host: %s", Config.zkUrl());
+            LOGGER.trace("====== Zookeeper host: %s", Config.zkUrl());
 
             Config.ZONE = Config.AGENT_SETTINGS.getAgentPath().getZone();
-            LOGGER.trace(" -- Working zone: %s", Config.zone());
+            LOGGER.trace("====== Working zone: %s", Config.zone());
 
             Config.NAME = Config.AGENT_SETTINGS.getAgentPath().getName();
-            LOGGER.trace(" -- Agent agent: %s", Config.name());
+            LOGGER.trace("====== Agent agent: %s", Config.name());
 
             LOGGER.trace("========= Config initialized =========");
         } catch (Throwable e) {

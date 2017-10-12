@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.GitService.ProgressListener;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitSource;
 import java.nio.file.Path;
 import java.util.List;
@@ -52,6 +53,7 @@ public class GitServiceTest extends TestBase {
         node.putEnv(GitEnvs.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
         node.putEnv(GitEnvs.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
         node.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
+        node.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
     }
 
     @Test
@@ -84,7 +86,15 @@ public class GitServiceTest extends TestBase {
                 System.out.println("All finished ");
             }
         });
+
         Assert.assertNotNull(content);
+
+        // get latest commit from local git repo
+        GitCommit gitCommit = gitService.latestCommit(node);
+        Assert.assertNotNull(gitCommit);
+        Assert.assertNotNull(gitCommit.getMessage());
+        Assert.assertNotNull(gitCommit.getAuthor());
+        Assert.assertNotNull(gitCommit.getId());
     }
 
     @Test
