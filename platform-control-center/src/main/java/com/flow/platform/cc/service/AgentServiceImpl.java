@@ -21,6 +21,7 @@ import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -78,7 +79,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     private AgentSettings agentSettings;
 
     @Autowired
-    private BlockingQueue<AgentPath> agentReportQueue;
+    private PlatformQueue<AgentPath> agentReportQueue;
 
     @Value("${agent.secret_key}")
     private String secretKey;
@@ -91,11 +92,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
         // send to report queue
         for (String agent : agents) {
             AgentPath key = new AgentPath(zone, agent);
-            try {
-                agentReportQueue.put(key);
-            } catch (InterruptedException ignore) {
-                LOGGER.warn("InterruptedException when agent report online");
-            }
+            agentReportQueue.enqueue(key);
         }
     }
 

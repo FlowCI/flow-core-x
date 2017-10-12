@@ -86,8 +86,8 @@ public class AppConfig extends AppConfigBase {
      * Queue to handle agent report online in sync
      */
     @Bean
-    public BlockingQueue<AgentPath> agentReportQueue() {
-        return new LinkedBlockingQueue<>(50);
+    public PlatformQueue<AgentPath> agentReportQueue() {
+        return new InMemoryQueue<>(executor, 100);
     }
 
     /**
