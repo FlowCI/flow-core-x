@@ -78,7 +78,7 @@ public class MessageServiceTest extends TestBase {
         messageService.update(setting);
 
         EmailSettingContent settingt = (EmailSettingContent) messageService.find(MessageType.EMAIl);
-        Assert.assertEquals("admin@163.com", settingt.getSender());
+        Assert.assertEquals("admin@qq.com", settingt.getSender());
     }
 
     @Test
