@@ -21,7 +21,7 @@ import com.flow.platform.util.Logger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -32,16 +32,17 @@ public class InMemoryQueue<T> implements PlatformQueue<T> {
 
     private final Logger LOGGER = new Logger(InMemoryQueue.class);
 
-    private final BlockingQueue<T> queue = new LinkedBlockingDeque<>();
-
     private final List<QueueListener<T>> listeners = new LinkedList<>();
+
+    private final BlockingQueue<T> queue;
 
     private final ThreadPoolTaskExecutor executor;
 
     private volatile boolean shouldStop = false;
 
-    public InMemoryQueue(ThreadPoolTaskExecutor executor) {
+    public InMemoryQueue(ThreadPoolTaskExecutor executor, int queueSize) {
         this.executor = executor;
+        this.queue = new LinkedBlockingQueue<>(queueSize);
     }
 
     @Override

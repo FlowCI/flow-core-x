@@ -95,7 +95,7 @@ public class AppConfig extends AppConfigBase {
      */
     @Bean
     public PlatformQueue<CmdStatusItem> cmdStatusQueue() {
-        return new InMemoryQueue<>(executor);
+        return new InMemoryQueue<>(executor, 100);
     }
 
     @Override
