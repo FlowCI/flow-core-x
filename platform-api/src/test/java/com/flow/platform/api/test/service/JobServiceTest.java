@@ -85,6 +85,8 @@ public class JobServiceTest extends TestBase {
 
         // then: verify job status
         Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
+        Assert.assertNotNull(job.getFailureMessage());
+        Assert.assertTrue(job.getFailureMessage().startsWith("Create session"));
     }
 
     @Test
@@ -312,6 +314,7 @@ public class JobServiceTest extends TestBase {
             job.setSessionId(sessionId);
             jobService.updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
         } catch (IllegalStatusException e) {
+            job.setFailureMessage(e.getMessage());
             jobService.updateJobStatusAndSave(job, JobStatus.FAILURE);
         }
     }
