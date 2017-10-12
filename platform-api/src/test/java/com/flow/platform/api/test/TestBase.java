@@ -39,13 +39,18 @@ import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.service.job.CmdService;
+import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -57,13 +62,16 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.InputStreamResource;
@@ -85,6 +93,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration(classes = {WebConfig.class})
 @PropertySource("classpath:app-default.properties")
 @PropertySource("classpath:i18n")
+@FixMethodOrder(MethodSorters.JVM)
 public abstract class TestBase {
 
     protected final static String GITHUB_TEST_REPO_SSH = "git@github.com:flow-ci-plugin/for-testing.git";
@@ -126,6 +135,9 @@ public abstract class TestBase {
     protected JobService jobService;
 
     @Autowired
+    protected CmdService cmdService;
+
+    @Autowired
     protected NodeResultService nodeResultService;
 
     @Autowired
@@ -153,6 +165,12 @@ public abstract class TestBase {
     protected UserFlowDao userFlowDao;
 
     @Autowired
+    protected YmlService ymlService;
+
+    @Autowired
+    protected JobNodeService jobNodeService;
+
+    @Autowired
     protected ThreadLocal<User> currentUser;
 
     @Rule
@@ -162,8 +180,12 @@ public abstract class TestBase {
 
     protected User mockUser = new User("test@flow.ci", "ut", "");
 
+    private static Path WORKSPACE;
+
     @Before
     public void beforeEach() throws IOException, InterruptedException {
+        WORKSPACE = workspace;
+
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         User user = userDao.get(DEFAULT_USER_EMAIL);
         if (user == null) {
@@ -238,6 +260,18 @@ public abstract class TestBase {
         return result.getResponse().getContentAsString();
     }
 
+    public void build_relation(Node node, Job job){
+        String loadedYml = ymlService.getYmlContent(node);
+
+        jobNodeService.save(job, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult);
+        job.setChildrenResult(resultList);
+    }
+
     private void cleanDatabase() {
         flowDao.deleteAll();
         jobDao.deleteAll();
@@ -257,12 +291,11 @@ public abstract class TestBase {
     @After
     public void afterEach() {
         cleanDatabase();
-        FileSystemUtils.deleteRecursively(workspace.toFile());
     }
 
     @AfterClass
     public static void afterClass() throws IOException {
-        // clean up cmd log folder
+        FileSystemUtils.deleteRecursively(WORKSPACE.toFile());
     }
 
 }
