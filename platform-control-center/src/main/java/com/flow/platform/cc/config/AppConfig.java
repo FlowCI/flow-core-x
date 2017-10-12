@@ -19,6 +19,8 @@ package com.flow.platform.cc.config;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
+import com.flow.platform.core.queue.InMemoryQueue;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.Logger;
@@ -92,8 +94,8 @@ public class AppConfig extends AppConfigBase {
      * Queue to handle cmd status update
      */
     @Bean
-    public BlockingQueue<CmdStatusItem> cmdStatusQueue() {
-        return new LinkedBlockingQueue<>(50);
+    public PlatformQueue<CmdStatusItem> cmdStatusQueue() {
+        return new InMemoryQueue<>(executor);
     }
 
     @Override

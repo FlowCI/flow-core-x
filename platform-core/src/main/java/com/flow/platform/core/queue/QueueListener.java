@@ -21,6 +21,6 @@ package com.flow.platform.core.queue;
  */
 public interface QueueListener<T> {
 
-    void onQueueItem(QueueItem<T> item);
+    void onQueueItem(T item);
 
 }

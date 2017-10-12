@@ -16,12 +16,20 @@
 
 package com.flow.platform.core.queue;
 
+import com.flow.platform.core.context.ContextEvent;
+
 /**
  * @author yang
  */
-public interface PlatformQueue<T> {
+public interface PlatformQueue<T> extends ContextEvent {
 
+    /**
+     * Register queue item listener
+     */
     void register(QueueListener<T> listener);
 
-    void enqueue(QueueItem<T> item);
+    /**
+     * Put queue item to queue
+     */
+    void enqueue(T item);
 }

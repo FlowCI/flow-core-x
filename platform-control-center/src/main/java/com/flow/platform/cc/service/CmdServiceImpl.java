@@ -30,6 +30,7 @@ import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.core.task.WebhookCallBackTask;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -92,7 +93,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     private ZoneService zoneService;
 
     @Autowired
-    private BlockingQueue<CmdStatusItem> cmdStatusQueue;
+    private PlatformQueue<CmdStatusItem> cmdStatusQueue;
 
     @Autowired
     private CmdDao cmdDao;
@@ -218,13 +219,8 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     @Override
     public void updateStatus(CmdStatusItem statusItem, boolean inQueue) {
         if (inQueue) {
-            try {
-                LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
-                cmdStatusQueue.put(statusItem);
-            } catch (InterruptedException ignore) {
-                LOGGER.warn("Cmd status update queue warning");
-            }
-            return;
+            LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
+            cmdStatusQueue.enqueue(statusItem);
         }
 
         LOGGER.trace("Report cmd %s to status %s", statusItem.getCmdId(), statusItem.getStatus());
