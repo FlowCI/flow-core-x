@@ -16,20 +16,14 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
-import com.flow.platform.core.queue.InMemoryQueue;
-import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.util.ThreadUtil;
-import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.PostConstruct;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +36,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author gy@fir.im
  */
 @Configuration
-@Import({DatabaseConfig.class, ZooKeeperConfig.class, MQConfig.class, TaskConfig.class, AgentConfig.class})
+@Import({DatabaseConfig.class, ZooKeeperConfig.class, QueueConfig.class, TaskConfig.class, AgentConfig.class})
 public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "Control Center";
@@ -80,22 +74,6 @@ public class AppConfig extends AppConfigBase {
     @Override
     public ThreadPoolTaskExecutor taskExecutor() {
         return executor;
-    }
-
-    /**
-     * Queue to handle agent report online in sync
-     */
-    @Bean
-    public PlatformQueue<AgentPath> agentReportQueue() {
-        return new InMemoryQueue<>(executor, 100);
-    }
-
-    /**
-     * Queue to handle cmd status update
-     */
-    @Bean
-    public PlatformQueue<CmdStatusItem> cmdStatusQueue() {
-        return new InMemoryQueue<>(executor, 100);
     }
 
     @Override

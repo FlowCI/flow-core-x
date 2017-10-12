@@ -18,8 +18,6 @@ package com.flow.platform.core.queue;
 
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -28,21 +26,17 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yang
  */
-public class InMemoryQueue<T> implements PlatformQueue<T> {
+public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     private final Logger LOGGER = new Logger(InMemoryQueue.class);
 
-    private final List<QueueListener<T>> listeners = new LinkedList<>();
-
     private final BlockingQueue<T> queue;
-
-    private final ThreadPoolTaskExecutor executor;
 
     private volatile boolean shouldStop = false;
 
-    public InMemoryQueue(ThreadPoolTaskExecutor executor, int queueSize) {
-        this.executor = executor;
-        this.queue = new LinkedBlockingQueue<>(queueSize);
+    public InMemoryQueue(ThreadPoolTaskExecutor executor, int maxSize) {
+        super(executor, maxSize);
+        this.queue = new LinkedBlockingQueue<>(maxSize);
     }
 
     @Override
@@ -64,11 +58,6 @@ public class InMemoryQueue<T> implements PlatformQueue<T> {
     @Override
     public void stop() {
         shouldStop = true;
-    }
-
-    @Override
-    public void register(QueueListener<T> listener) {
-        listeners.add(listener);
     }
 
     @Override

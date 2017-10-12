@@ -105,7 +105,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     private AgentDao agentDao;
 
     @Autowired
-    private RabbitTemplate cmdQueueTemplate;
+    private PlatformQueue<Message> cmdQueue;
 
     @Autowired
     protected ZKClient zkClient;
@@ -211,7 +211,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
         MessageProperties properties = new MessageProperties();
         properties.setPriority(item.getPriority());
-        cmdQueueTemplate.send("", cmdQueueName, new Message(item.toBytes(), properties));
+        cmdQueue.enqueue(new Message(item.toBytes(), properties));
 
         return cmd;
     }

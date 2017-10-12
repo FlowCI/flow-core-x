@@ -17,19 +17,35 @@
 package com.flow.platform.core.queue;
 
 import com.flow.platform.core.context.ContextEvent;
+import java.util.LinkedList;
+import java.util.List;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yang
  */
-public interface PlatformQueue<T> extends ContextEvent {
+public abstract class PlatformQueue<T> implements ContextEvent {
+
+    protected final List<QueueListener<T>> listeners = new LinkedList<>();
+
+    protected final ThreadPoolTaskExecutor executor;
+
+    protected final int maxSize;
+
+    public PlatformQueue(ThreadPoolTaskExecutor executor, int maxSize) {
+        this.executor = executor;
+        this.maxSize = maxSize;
+    }
 
     /**
      * Register queue item listener
      */
-    void register(QueueListener<T> listener);
+    public void register(QueueListener<T> listener) {
+        this.listeners.add(listener);
+    }
 
     /**
      * Put queue item to queue
      */
-    void enqueue(T item);
+    public abstract void enqueue(T item);
 }
