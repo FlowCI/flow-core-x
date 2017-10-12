@@ -51,7 +51,7 @@ public enum CmdType implements Serializable {
     /**
      * run other command, do not affect step command running
      */
-    OTHER("OTHER"),
+    SYSTEM_INFO("SYSTEM_INFO"),
 
     /**
      * Stop agent, delete session and shutdown machine

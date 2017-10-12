@@ -39,7 +39,7 @@ public final class Log {
 
     public enum Category {
         DEFAULT,
-        OTHER
+        SYSTEM_INFO
     }
 
     private Category category = Category.DEFAULT;

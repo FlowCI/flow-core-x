@@ -69,7 +69,7 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
             sendCmdLog(cmdId, content, number);
         }
 
-        if (category.equals("OTHER")) {
+        if (category.equals("SYSTEM_INFO")) {
             sendAgentSysInfo(content);
         }
     }

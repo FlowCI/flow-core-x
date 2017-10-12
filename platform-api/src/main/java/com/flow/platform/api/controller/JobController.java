@@ -120,7 +120,7 @@ public class JobController extends NodeController {
      *  ]
      */
     @GetMapping(path = "/{root}")
-    public List<Job> index(@RequestParam Map<String, String> allParams,  SearchCondition condition) {
+    public List<Job> index(@RequestParam Map<String, String> allParams, SearchCondition condition) {
         String path = currentNodePath.get();
 
         List<String> paths = null;
@@ -226,7 +226,7 @@ public class JobController extends NodeController {
         String path = currentNodePath.get();
         try {
             return logService.findNodeLog(path, buildNumber, stepOrder);
-        } catch (Throwable e){
+        } catch (Throwable e) {
             LOGGER.warn("log not found: %s", e.getMessage());
             return StringUtil.EMPTY;
         }
@@ -291,7 +291,7 @@ public class JobController extends NodeController {
      * ]
      */
     @PostMapping(path = "/{root}/search")
-    public List<Job> search(@RequestBody SearchCondition condition){
+    public List<Job> search(@RequestBody SearchCondition condition) {
         String path = currentNodePath.get();
 
         List<String> paths = null;

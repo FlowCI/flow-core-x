@@ -374,7 +374,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
         @Override
         CmdType handleType() {
-            return CmdType.OTHER;
+            return CmdType.SYSTEM_INFO;
         }
 
         @Override
