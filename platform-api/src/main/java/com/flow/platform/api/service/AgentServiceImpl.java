@@ -175,7 +175,7 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public void sendSysCmd(AgentPath agentPath) {
-        CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SYSTEM_INFO, "java -version");
+        CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SYSTEM_INFO, "");
         cmdService.sendCmd(agentPath, cmdInfo);
     }
 }
