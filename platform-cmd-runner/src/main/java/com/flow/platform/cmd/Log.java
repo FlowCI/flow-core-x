@@ -37,11 +37,26 @@ public final class Log {
         this.number = count;
     }
 
+    public enum Category {
+        DEFAULT,
+        OTHER
+    }
+
+    private Category category = Category.DEFAULT;
+
     private Type type;
 
     private String content;
 
     private Integer number;
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 
     public Type getType() {
         return type;

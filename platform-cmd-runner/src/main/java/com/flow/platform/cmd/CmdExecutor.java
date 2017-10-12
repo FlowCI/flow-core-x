@@ -266,54 +266,48 @@ public final class CmdExecutor {
      */
     private Runnable createCmdListExec(final OutputStream outputStream, final List<String> cmdList) {
 
-        return new Runnable() {
-            @Override
-            public void run() {
-                try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
-                    for (String cmd : cmdList) {
-                        writer.write(cmd + "\n");
-                        writer.flush();
-                    }
-
-                    // find env and set to result output if output filter is not null or empty
-                    if (!Strings.isNullOrEmpty(outputEnvFilter)) {
-                        writer.write(String.format("echo %s\n", endTerm));
-                        writer.write("env\n");
-                        writer.flush();
-                    }
-
-                } catch (IOException e) {
-                    System.out.println("Exception on write cmd: " + e.getMessage());
+        return () -> {
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
+                for (String cmd : cmdList) {
+                    writer.write(cmd + "\n");
+                    writer.flush();
                 }
+
+                // find env and set to result output if output filter is not null or empty
+                if (!Strings.isNullOrEmpty(outputEnvFilter)) {
+                    writer.write(String.format("echo %s\n", endTerm));
+                    writer.write("env\n");
+                    writer.flush();
+                }
+
+            } catch (IOException e) {
+                System.out.println("Exception on write cmd: " + e.getMessage());
             }
         };
     }
 
     private Runnable createCmdLoggingReader() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (true) {
-                        if (stdThreadCountDown.getCount() == 0 && loggingQueue.size() == 0) {
-                            break;
-                        }
-
-                        Log log = loggingQueue.poll();
-                        if (log == null) {
-                            try {
-                                Thread.sleep(100);
-                            } catch (InterruptedException ignored) {
-                            }
-                        } else {
-                            logListener.onLog(log);
-                        }
+        return () -> {
+            try {
+                while (true) {
+                    if (stdThreadCountDown.getCount() == 0 && loggingQueue.size() == 0) {
+                        break;
                     }
-                } finally {
-                    logListener.onFinish();
-                    logThreadCountDown.countDown();
-                    System.out.println(" ===== Logging Reader Thread Finish =====");
+
+                    Log log = loggingQueue.poll();
+                    if (log == null) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException ignored) {
+                        }
+                    } else {
+                        logListener.onLog(log);
+                    }
                 }
+            } finally {
+                logListener.onFinish();
+                logThreadCountDown.countDown();
+                System.out.println(" ===== Logging Reader Thread Finish =====");
             }
         };
     }

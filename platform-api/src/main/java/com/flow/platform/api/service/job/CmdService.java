@@ -58,4 +58,10 @@ public interface CmdService {
      * @throws com.flow.platform.core.exception.IllegalStatusException if unable to send cmd to cc
      */
     void shutdown(AgentPath path, String password);
+
+    /**
+     * send cmd to cc
+     * @param agentPath required
+     */
+    void sendCmd(AgentPath agentPath, CmdInfo cmdInfo);
 }

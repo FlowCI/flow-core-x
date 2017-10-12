@@ -65,7 +65,7 @@ public class AgentController extends ApplicationEventService {
      *
      */
     @GetMapping
-    public List<AgentWithFlow> index(){
+    public List<AgentWithFlow> index() {
         return agentService.list();
     }
 
@@ -102,6 +102,30 @@ public class AgentController extends ApplicationEventService {
     }
 
     /**
+     * @api {Post} /agents/sys/info Agent sys info
+     * @apiName Sys info
+     * @apiGroup Agent
+     * @apiDescription get agent sys info
+     * @apiParam {json} Request-Body
+     *  {
+     *          zone: xxx,
+     *          name: xxx
+     *  }
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     *
+     */
+    @PostMapping(path = "/sys/info")
+    public void agentEnvironmentInfo(@RequestBody AgentPath agentPath) {
+        if (agentPath.isEmpty()) {
+            throw new IllegalParameterException("Zone and agent name are required");
+        }
+        agentService.sendSysCmd(agentPath);
+    }
+
+    /**
      * @api {Get} /agents/settings Agent Settings
      * @apiParam {String} token The agent token via ?token=xxx
      * @apiName Get Agent Settings
@@ -124,7 +148,7 @@ public class AgentController extends ApplicationEventService {
      */
     @GetMapping(path = "/settings")
     public AgentSettings getInfo(@RequestParam String token) {
-        if(Strings.isNullOrEmpty(token)){
+        if (Strings.isNullOrEmpty(token)) {
             throw new IllegalParameterException("miss required params ");
         }
         return agentService.settings(token);
@@ -150,7 +174,7 @@ public class AgentController extends ApplicationEventService {
     public BooleanValue shutDown(@RequestParam String zone,
                                  @RequestParam String name,
                                  @RequestParam(required = false) String password) {
-        if(Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name)){
+        if (Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name)) {
             throw new IllegalParameterException("require zone or name not found");
         }
         Boolean t = agentService.shutdown(zone, name, password);

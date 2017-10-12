@@ -132,6 +132,17 @@ public class CmdServiceImpl implements CmdService {
         }
     }
 
+    @Override
+    public void sendCmd(AgentPath agentPath, CmdInfo cmdInfo) {
+        try {
+            LOGGER.traceMarker("Shutdown", "send sys cmd ");
+            sendDirectly(cmdInfo);
+        } catch (Throwable e) {
+            String rootCause = ExceptionUtil.findRootCause(e).getMessage();
+            throw new IllegalStatusException("Unable to send cmd since: " + rootCause);
+        }
+    }
+
     /**
      * Send cmd to control center directly
      */

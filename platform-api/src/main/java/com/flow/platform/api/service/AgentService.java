@@ -48,4 +48,10 @@ public interface AgentService {
      * Get agent setting by token from cc
      */
     AgentSettings settings(String token);
+
+    /**
+     * send sys cmd
+     * @param agentPath required
+     */
+    void sendSysCmd(AgentPath agentPath);
 }
