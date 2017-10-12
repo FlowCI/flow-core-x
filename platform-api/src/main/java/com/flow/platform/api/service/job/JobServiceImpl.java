@@ -15,7 +15,9 @@
  */
 package com.flow.platform.api.service.job;
 
-import static com.flow.platform.api.domain.envs.FlowEnvs.*;
+import static com.flow.platform.api.domain.envs.FlowEnvs.FLOW_STATUS;
+import static com.flow.platform.api.domain.envs.FlowEnvs.FLOW_YML_STATUS;
+import static com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
 import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
@@ -58,8 +60,8 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
-import java.math.BigInteger;
 import com.google.common.collect.Sets;
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
@@ -494,7 +496,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setStatus(newStatus);
         jobDao.update(job);
 
-        this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
+        this.dispatchEvent(new JobStatusChangeEvent(this, job, originStatus, newStatus));
     }
 
     /**
@@ -582,7 +584,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private String logUrl(final Job job) {
-        Path path = Paths.get(domain, "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
-        return path.toString();
+        Path path = Paths.get("/", "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
+        return domain + path.toString();
     }
 }
