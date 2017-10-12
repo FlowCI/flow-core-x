@@ -21,6 +21,8 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
+import com.flow.platform.core.queue.InMemoryQueue;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
@@ -68,6 +70,9 @@ public class AppConfig extends AppConfigBase {
     public final static String DEFAULT_USER_NAME = "admin";
     public final static String DEFAULT_USER_PASSWORD = "123456";
 
+    private final static ThreadPoolTaskExecutor executor =
+        ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
+
     @Value("${api.workspace}")
     private String workspace;
 
@@ -98,12 +103,15 @@ public class AppConfig extends AppConfigBase {
     @Bean
     @Override
     public ThreadPoolTaskExecutor taskExecutor() {
-        return ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
+        return executor;
     }
 
+    /**
+     * Queue to process cmd callback task
+     */
     @Bean
-    public BlockingQueue<CmdCallbackQueueItem> cmdBaseBlockingQueue() {
-        return new LinkedBlockingQueue<>(50);
+    public PlatformQueue<CmdCallbackQueueItem> cmdCallbackQueue() {
+        return new InMemoryQueue<>(executor, 50);
     }
 
     @Override
