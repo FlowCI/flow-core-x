@@ -17,6 +17,7 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.util.git.model.GitEventType;
@@ -118,4 +119,6 @@ public interface JobService {
      * check timeout job
      */
     void checkTimeoutTask();
+
+    void updateJobStatusAndSave(Job job, JobStatus newStatus);
 }

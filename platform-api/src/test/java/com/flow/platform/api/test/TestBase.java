@@ -39,13 +39,18 @@ import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.service.job.CmdService;
+import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -57,6 +62,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.After;
@@ -123,6 +129,9 @@ public abstract class TestBase {
     protected JobService jobService;
 
     @Autowired
+    protected CmdService cmdService;
+
+    @Autowired
     protected NodeResultService nodeResultService;
 
     @Autowired
@@ -148,6 +157,12 @@ public abstract class TestBase {
 
     @Autowired
     protected UserFlowDao userFlowDao;
+
+    @Autowired
+    protected YmlService ymlService;
+
+    @Autowired
+    protected JobNodeService jobNodeService;
 
     @Autowired
     private ThreadLocal<User> currentUser;
@@ -233,6 +248,18 @@ public abstract class TestBase {
     public String performRequestWith200Status(MockHttpServletRequestBuilder builder) throws Exception {
         MvcResult result = mockMvc.perform(builder).andExpect(status().isOk()).andReturn();
         return result.getResponse().getContentAsString();
+    }
+
+    public void build_relation(Node node, Job job){
+        String loadedYml = ymlService.getYmlContent(node);
+
+        jobNodeService.save(job, loadedYml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult);
+        job.setChildrenResult(resultList);
     }
 
     private void cleanDatabase() {
