@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.test.config;
-
-import com.flow.platform.api.test.TestBase;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+package com.flow.platform.core.queue;
 
 /**
  * @author yang
  */
-public class AppConfigTest extends TestBase {
+public interface QueueListener<T> {
 
-    @Autowired
-    private Path workingDir;
+    void onQueueItem(T item);
 
-    @Test
-    public void should_create_working_path() throws Throwable {
-        Assert.assertTrue(Files.exists(workingDir));
-    }
 }

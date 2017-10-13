@@ -47,6 +47,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -154,6 +155,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
     }
 
     @Override
+    @Transactional(propagation = Propagation.NEVER)
     @Scheduled(fixedDelay = 300 * 1000)
     public void checkTimeoutTask() {
         if (!taskConfig.isEnableCmdExecTimeoutTask()) {

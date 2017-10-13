@@ -19,6 +19,9 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.SettingContent;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
+import java.math.BigInteger;
 
 /**
  * @author yh@firim
@@ -26,13 +29,33 @@ import com.flow.platform.api.domain.SettingContent;
 
 public interface MessageService {
 
+    /**
+     * save message setting
+     */
     SettingContent save(SettingContent t);
 
+    /**
+     * find message setting
+     */
     SettingContent find(MessageType type);
 
+    /**
+     * delete message setting
+     */
     void delete(SettingContent t);
 
+    /**
+     * update message setting
+     */
     SettingContent update(SettingContent t);
 
+    /**
+     * test message setting
+     */
     Boolean authEmailSetting(EmailSettingContent emailSetting);
+
+    /**
+     * send message to member
+     */
+    void sendMessage(Job job, JobStatus jobStatus);
 }

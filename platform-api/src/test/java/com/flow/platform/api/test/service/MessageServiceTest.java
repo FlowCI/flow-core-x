@@ -20,11 +20,9 @@ import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.service.MessageService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.core.exception.NotFoundException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 /**
  * @author yh@firim
@@ -34,11 +32,8 @@ public class MessageServiceTest extends TestBase {
     @Autowired
     private MessageService messageService;
 
-    @Autowired
-    private ApplicationContext applicationContext;
-
     @Test
-    public void should_save_and_update_success(){
+    public void should_save_and_update_success() {
         EmailSettingContent emailSetting = new EmailSettingContent("smtp.qq.com", 25, "admin@qq.com");
         messageService.save(emailSetting);
         EmailSettingContent setting = (EmailSettingContent) messageService.find(MessageType.EMAIl);
@@ -50,12 +45,12 @@ public class MessageServiceTest extends TestBase {
         setting.setSender("admin@163.com");
         messageService.update(setting);
 
-        EmailSettingContent settingt = (EmailSettingContent) messageService.find(MessageType.EMAIl);
-        Assert.assertEquals("admin@163.com", settingt.getSender());
+        EmailSettingContent settings = (EmailSettingContent) messageService.find(MessageType.EMAIl);
+        Assert.assertEquals("admin@qq.com", settings.getSender());
     }
 
     @Test
-    public void should_delete_success(){
+    public void should_delete_success() {
         EmailSettingContent emailSetting = new EmailSettingContent("smtp.qq.com", 25, "admin@qq.com");
         messageService.save(emailSetting);
         EmailSettingContent setting = (EmailSettingContent) messageService.find(MessageType.EMAIl);
@@ -65,10 +60,6 @@ public class MessageServiceTest extends TestBase {
         Assert.assertNotNull(setting.getSender());
 
         messageService.delete(emailSetting);
-
-        try{
-            EmailSettingContent settingT = (EmailSettingContent) messageService.find(MessageType.EMAIl);
-        }catch (NotFoundException e){
-        }
+        Assert.assertNull(messageService.find(MessageType.EMAIl));
     }
 }

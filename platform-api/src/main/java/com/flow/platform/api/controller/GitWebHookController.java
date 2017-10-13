@@ -18,8 +18,9 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.api.git.GitEventDataExtractor;
+import com.flow.platform.api.git.GitEventEnvConverter;
 import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.NodeService;
@@ -78,10 +79,11 @@ public class GitWebHookController extends NodeController {
             LOGGER.trace("Git Webhook received: %s", hookEvent.toString());
 
             // reset flow yml status to not found otherwise yml cannot start to load
-            nodeService.addFlowEnv(path, EnvUtil.build(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
+            Flow flow = nodeService.findFlow(path);
+            nodeService.addFlowEnv(flow, EnvUtil.build(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
 
             // extract git related env variables from event, and temporary set to node for git loading
-            final Map<String, String> gitEnvs = GitEventDataExtractor.extract(hookEvent);
+            final Map<String, String> gitEnvs = GitEventEnvConverter.convert(hookEvent);
 
             // get user email from git event
             final User user = new User(hookEvent.getUserEmail(), StringUtil.EMPTY, StringUtil.EMPTY);

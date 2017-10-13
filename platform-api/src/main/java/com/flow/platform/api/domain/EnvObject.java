@@ -43,12 +43,35 @@ public abstract class EnvObject extends Jsonable {
         this.envs = envs;
     }
 
+    /**
+     * Get env value by EnvKey
+     */
     public String getEnv(EnvKey key) {
         return envs.get(key.name());
     }
 
+    /**
+     * Get env value by EnvKey
+     * Return default value if env value is null
+     */
+    public String getEnv(EnvKey key, String defaultValue) {
+        return getEnv(key.name(), defaultValue);
+    }
+
+    /**
+     * Get env value by string key
+     */
     public String getEnv(String key) {
         return envs.get(key);
+    }
+
+    /**
+     * Get env value by string key
+     * Return default value if env value is null
+     */
+    public String getEnv(String key, String defaultValue) {
+        String value = envs.get(key);
+        return value == null ? defaultValue : value;
     }
 
     public void putEnv(EnvKey key, EnvValue value) {

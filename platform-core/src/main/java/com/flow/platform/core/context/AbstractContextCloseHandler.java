@@ -37,6 +37,9 @@ public abstract class AbstractContextCloseHandler implements ApplicationListener
 
         for (String eventClassName : getSpringContext().getBeanNameByType(ContextEvent.class)) {
             ContextEvent eventClass = (ContextEvent) getSpringContext().getBean(eventClassName);
+            if (eventClass == null) {
+                continue;
+            }
             eventClass.stop();
             LOGGER.trace("%s stopped", eventClassName);
         }

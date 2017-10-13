@@ -17,6 +17,7 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.util.git.model.GitEventType;
@@ -84,15 +85,15 @@ public interface JobService {
      *
      * @param path any node path
      * @param eventType the trigger type
-     * @param envs the input environment variables, set to null if not available
+     * @param envs the input environment variables
      * @param creator the user who create job
      * @param onJobCreated callback
      */
     void createJobAndYmlLoad(String path,
-                             GitEventType eventType,
-                             Map<String, String> envs,
-                             User creator,
-                             Consumer<Job> onJobCreated);
+        GitEventType eventType,
+        Map<String, String> envs,
+        User creator,
+        Consumer<Job> onJobCreated);
 
     /**
      * Process cmd callback from queue
@@ -118,4 +119,6 @@ public interface JobService {
      * check timeout job
      */
     void checkTimeoutTask();
+
+    void updateJobStatusAndSave(Job job, JobStatus newStatus);
 }

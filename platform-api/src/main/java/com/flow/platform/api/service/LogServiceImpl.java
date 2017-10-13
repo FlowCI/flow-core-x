@@ -24,7 +24,6 @@ import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.api.util.ZipUtil;
 import com.flow.platform.core.exception.FlowException;
-import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.http.HttpClient;
@@ -46,13 +45,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author yh@firim
  */
 @Service
-@Transactional
 public class LogServiceImpl implements LogService {
 
     @Autowired
@@ -68,12 +65,12 @@ public class LogServiceImpl implements LogService {
     private Path workspace;
 
     @Override
-    @Transactional(readOnly = true)
     public String findNodeLog(String path, Integer number, Integer order) {
         Job job = jobService.find(path, number);
         NodeResult nodeResult = nodeResultService.find(job.getId(), order);
-        if (nodeResult == null) {
-            throw new IllegalParameterException("Illegal job id or step order number");
+
+        if (!NodeResult.FINISH_STATUS.contains(nodeResult.getStatus())) {
+            throw new FlowException("node result not finish");
         }
 
         return readStepLog(job, nodeResult);

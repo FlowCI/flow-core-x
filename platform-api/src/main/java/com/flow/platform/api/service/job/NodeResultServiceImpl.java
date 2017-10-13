@@ -18,18 +18,19 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.envs.EnvKey;
-import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
+import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.events.NodeStatusChangeEvent;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
@@ -92,12 +93,20 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
     @Override
     public NodeResult find(String path, BigInteger jobId) {
-        return nodeResultDao.get(new NodeResultKey(jobId, path));
+        NodeResult nodeResult = nodeResultDao.get(new NodeResultKey(jobId, path));
+        if (nodeResult == null) {
+            throw new NotFoundException("node result not found");
+        }
+        return nodeResult;
     }
 
     @Override
     public NodeResult find(BigInteger jobId, Integer stepOrder) {
-        return nodeResultDao.get(jobId, stepOrder);
+        NodeResult nodeResult = nodeResultDao.get(jobId, stepOrder);
+        if (nodeResult == null) {
+            throw new NotFoundException("node result not found");
+        }
+        return nodeResult;
     }
 
     @Override
@@ -105,7 +114,9 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         List<NodeResult> list = nodeResultDao.list(job.getId());
 
         if (childrenOnly) {
-            list.remove(list.size() - 1);
+            if (list.size() > 0) {
+                list.remove(list.size() - 1);
+            }
             return list;
         }
 
