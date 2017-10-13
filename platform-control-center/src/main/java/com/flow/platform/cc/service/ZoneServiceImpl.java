@@ -52,7 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author gy@fir.im
  */
 @Service
-@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
     private final static Logger LOGGER = new Logger(ZoneService.class);

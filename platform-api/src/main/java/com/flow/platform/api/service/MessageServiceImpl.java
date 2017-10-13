@@ -131,15 +131,15 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
     @Override
     @Transactional(readOnly = true)
     public void sendMessage(Job job, JobStatus jobStatus) {
-        LOGGER.traceMarker("sendMessage", "start to send job failure email");
+        LOGGER.traceMarker("sendMessage", "Start to send job %s email", jobStatus);
         EmailSettingContent emailSettingContent = (EmailSettingContent) find(MessageType.EMAIl);
+
         if (emailSettingContent == null) {
-            LOGGER.traceMarker("sendMessage", " sorry not found email settings");
-            throw new NotFoundException("setting content not found");
+            LOGGER.warnMarker("sendMessage", "Email settings not found");
+            return;
         }
 
         String text = buildEmailTemplate(job, jobStatus);
-
         bindModelAndSendMessage(job, emailSettingContent, text, jobStatus);
     }
 

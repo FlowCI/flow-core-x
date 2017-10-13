@@ -78,7 +78,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 
 @Service
-@Transactional(isolation = Isolation.REPEATABLE_READ)
+@Transactional
 public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
