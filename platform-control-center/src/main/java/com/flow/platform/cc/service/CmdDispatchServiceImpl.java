@@ -92,6 +92,9 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
         ShutdownCmdHandler shutdownHandler = new ShutdownCmdHandler();
         handler.put(shutdownHandler.handleType(), shutdownHandler);
+
+        RunOtherCmdHandler runOtherCmdHandler = new RunOtherCmdHandler();
+        handler.put(runOtherCmdHandler.handleType(), runOtherCmdHandler);
     }
 
     @Override
@@ -247,9 +250,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         if (Strings.isNullOrEmpty(current.getSessionId())) {
             Cmd cmdToKill = cmdService.create(new CmdInfo(current.getAgentPath(), CmdType.KILL, null));
             dispatch(cmdToKill.getId(), false);
-        }
-
-        else {
+        } else {
             Agent agent = agentService.find(current.getAgentPath());
             Cmd cmdToDelSession = createDeleteSessionCmd(agent);
             dispatch(cmdToDelSession.getId(), false);
@@ -331,7 +332,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             List<Cmd> cmdsInSession = cmdService.listBySession(sessionId);
 
             Iterator<Cmd> iterator = cmdsInSession.iterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 Cmd cmd = iterator.next();
 
                 if (cmd.getType() != CmdType.RUN_SHELL) {
@@ -367,6 +368,20 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
                 agentService.saveWithStatus(target, AgentStatus.BUSY);
             }
 
+            sendCmdToAgent(target, cmd);
+        }
+    }
+
+    private class RunOtherCmdHandler extends CmdHandler {
+
+        @Override
+        CmdType handleType() {
+            return CmdType.SYSTEM_INFO;
+        }
+
+        @Override
+        void doExec(Agent target, Cmd cmd) {
+            // directly send cmd to agent
             sendCmdToAgent(target, cmd);
         }
     }

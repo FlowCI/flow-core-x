@@ -21,6 +21,7 @@ import com.flow.platform.agent.Config;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import java.io.IOException;
 import java.util.Map;
@@ -212,5 +213,57 @@ public class CmdManagerTest extends TestBase {
         Assert.assertNotNull(result.getExecutedTime());
         Assert.assertNotNull(result.getExitValue());
         Assert.assertEquals(CmdResult.EXIT_VALUE_FOR_KILL, result.getExitValue());
+    }
+
+
+    @Test
+    public void should_success_run_sys_cmd() throws InterruptedException {
+
+        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        cmd.setId(UUID.randomUUID().toString());
+        CountDownLatch finishCountDownLatch = new CountDownLatch(1);
+        CountDownLatch startCountDownLatch = new CountDownLatch(1);
+
+        cmdManager.getExtraProcEventListeners().add(new ProcListener() {
+            @Override
+            public void onStarted(CmdResult result) {
+                startCountDownLatch.countDown();
+                try {
+                    Thread.sleep(3000);
+                } catch (Throwable e) {
+                }
+            }
+
+            @Override
+            public void onLogged(CmdResult result) {
+                finishCountDownLatch.countDown();
+            }
+
+            @Override
+            public void onExecuted(CmdResult result) {
+
+            }
+
+            @Override
+            public void onException(CmdResult result) {
+
+            }
+        });
+
+        // when: start and kill task immediately
+        cmdManager.execute(cmd);
+
+        startCountDownLatch.await();
+        Assert.assertEquals(1, cmdManager.getRunning().size());
+
+        Cmd cmdSys = new Cmd("zone1", "agent1", CmdType.SYSTEM_INFO, "");
+        cmdSys.setId(UUID.randomUUID().toString());
+
+        cmdManager.execute(cmdSys);
+        Assert.assertEquals(CmdStatus.EXECUTED, cmdSys.getStatus());
+
+        finishCountDownLatch.await();
+        Assert.assertEquals(1, cmdManager.getFinished().size());
+
     }
 }
