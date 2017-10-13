@@ -122,7 +122,7 @@ public class LogEventHandler implements LogListener {
 
     public String websocketLogFormat(Log log) {
         return String
-            .format("%s#%s#%s#%s#%s#%s", log.getCategory(), log.getNumber(), cmd.getZoneName(), cmd.getAgentName(),
+            .format("%s#%s#%s#%s#%s#%s", cmd.getType(), log.getNumber(), cmd.getZoneName(), cmd.getAgentName(),
                 cmd.getId(),
                 log.getContent());
     }

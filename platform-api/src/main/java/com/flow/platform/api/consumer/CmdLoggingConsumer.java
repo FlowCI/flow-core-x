@@ -17,6 +17,7 @@
 package com.flow.platform.api.consumer;
 
 import com.flow.platform.core.http.converter.RawGsonMessageConverter;
+import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.google.gson.annotations.JsonAdapter;
@@ -70,12 +71,14 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
 
         String content = logItem.substring(cmdIdIndex + 1);
 
-        if (category.equals("DEFAULT")) {
+        if (category.equals(CmdType.RUN_SHELL.toString())) {
             sendCmdLog(cmdId, content, number);
+            return;
         }
 
-        if (category.equals("SYSTEM_INFO")) {
+        if (category.equals(CmdType.SYSTEM_INFO.toString())) {
             sendAgentSysInfo(content);
+            return;
         }
     }
 

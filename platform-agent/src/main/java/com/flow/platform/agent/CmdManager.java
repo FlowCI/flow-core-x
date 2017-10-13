@@ -18,7 +18,6 @@ package com.flow.platform.agent;
 
 import com.flow.platform.cmd.CmdExecutor;
 import com.flow.platform.cmd.Log;
-import com.flow.platform.cmd.Log.Category;
 import com.flow.platform.cmd.Log.Type;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
@@ -204,10 +203,10 @@ public class CmdManager {
         if (cmd.getType() == CmdType.SYSTEM_INFO) {
             LogEventHandler logListener = new LogEventHandler(cmd);
             Log log = new Log(Type.STDERR, collectionAgentInfo());
-            log.setCategory(Category.SYSTEM_INFO);
             logListener.onLog(log);
             logListener.onFinish();
             cmd.setStatus(CmdStatus.EXECUTED);
+            return;
         }
 
         // kill current running proc

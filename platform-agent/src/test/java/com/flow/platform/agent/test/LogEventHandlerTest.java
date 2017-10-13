@@ -20,7 +20,6 @@ import com.flow.platform.agent.CmdManager;
 import com.flow.platform.agent.Config;
 import com.flow.platform.agent.LogEventHandler;
 import com.flow.platform.cmd.Log;
-import com.flow.platform.cmd.Log.Category;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdType;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -59,7 +58,7 @@ public class LogEventHandlerTest extends TestBase {
 
         // then:
         String expect = String
-            .format("%s#%s#%s#%s#%s#%s", Category.DEFAULT, null, cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
+            .format("%s#%s#%s#%s#%s#%s", CmdType.RUN_SHELL, null, cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
                 mockLogContent);
         Assert.assertEquals(expect, socketIoData);
     }
