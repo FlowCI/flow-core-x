@@ -45,8 +45,6 @@ public class Config {
     public final static String PROP_ZK_TIMEOUT = "flow.agent.zk.timeout";
     public final static String PROP_SUDO_PASSWORD = "flow.agent.sudo.pwd";
 
-    public final static String VERSION = "1.0";
-
     public static AgentSettings AGENT_SETTINGS;
     public static String ZK_URL;
     public static String ZONE;

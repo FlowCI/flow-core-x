@@ -26,14 +26,19 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -241,15 +246,22 @@ public class CmdManager {
         long total = runtime.totalMemory();
         long free = runtime.freeMemory();
         long use = total - free;
-        String agentVersion = Config.VERSION;
         Map<String, String> dic = new HashMap<>(7);
         dic.put("javaVersion", javaVersion);
         dic.put("osName", osName);
         dic.put("totalMemory", total / kb + "MB");
         dic.put("useMemory", use / kb + "MB");
-        dic.put("agentVersion", agentVersion);
         dic.put("zone", Config.zone());
         dic.put("name", Config.name());
+        URL resource = this.getClass().getClassLoader().getResource("application.properties");
+        try {
+            InputStream fileInputStream = new FileInputStream(resource.getFile());
+            Properties properties = new Properties();
+            properties.load(fileInputStream);
+            dic.put("agentVersion", (String) properties.get("version"));
+        } catch (Throwable e) {
+            LOGGER.warn("read agent version from application.properties error %s", ExceptionUtil.findRootCause(e));
+        }
         return Jsonable.GSON_CONFIG.toJson(dic);
     }
 

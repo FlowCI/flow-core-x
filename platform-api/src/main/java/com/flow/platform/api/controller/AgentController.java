@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.service.AgentService;
@@ -27,6 +28,7 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
 import com.google.common.base.Strings;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -79,17 +81,8 @@ public class AgentController extends ApplicationEventService {
      *  HTTP/1.1 200 OK
      *
      *  {
-     *      path: {
-     *          zone: xxx,
-     *          name: xxx
-     *      },
-     *      concurrentProc: 1,
-     *      status: OFFLINE | IDLE | BUSY,
-     *      sessionId: xxxx-xxx-xxx,
-     *      sessionDate: 15123321,
-     *      token: xx-xxx-xxx
-     *      createdDate: 15123321,
-     *      updatedDate: 15123321,
+     *        zone: xxx,
+     *        name: xxx
      *  }
      */
     @PostMapping(path = "/create")
@@ -102,23 +95,20 @@ public class AgentController extends ApplicationEventService {
     }
 
     /**
-     * @api {Post} /agents/sys/info Agent sys info
+     * @api {Get} /agents/sys/info Agent sys info
      * @apiName Sys info
      * @apiGroup Agent
      * @apiDescription get agent sys info
-     * @apiParam {json} Request-Body
-     *  {
-     *          zone: xxx,
-     *          name: xxx
-     *  }
+     * @apiParam {String} zone
+     * @apiParam {String} name
      *
      * @apiSuccessExample {String} Success-Response:
      *     HTTP/1.1 200 OK
      *
      *
      */
-    @PostMapping(path = "/sys/info")
-    public void agentEnvironmentInfo(@RequestBody AgentPath agentPath) {
+    @GetMapping(path = "/sys/info")
+    public void agentEnvironmentInfo(@RequestParam Map<String, String> allParams, AgentPath agentPath) {
         if (agentPath.isEmpty()) {
             throw new IllegalParameterException("Zone and agent name are required");
         }

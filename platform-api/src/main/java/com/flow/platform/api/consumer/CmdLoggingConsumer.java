@@ -16,8 +16,10 @@
 
 package com.flow.platform.api.consumer;
 
+import com.flow.platform.core.http.converter.RawGsonMessageConverter;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
+import com.google.gson.annotations.JsonAdapter;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -38,6 +40,9 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
 
     @Autowired
     private SimpMessagingTemplate template;
+
+    @Autowired
+    private RawGsonMessageConverter jsonConverter;
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
@@ -92,8 +97,8 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
      * @param content
      */
     private void sendAgentSysInfo(String content) {
-        Map<String, String> dic = Jsonable.GSON_CONFIG.fromJson(content, Map.class);
-        String event = String.format("/topic/agent/%s/%s", dic.get("zone"), dic.get("name"));
+        Map<String, String> dic = jsonConverter.getGson().fromJson(content, Map.class);
+        String event = String.format("/topic/agent/sysinfo/%s/%s", dic.get("zone"), dic.get("name"));
         System.out.println(content);
         template.convertAndSend(event, content);
     }
