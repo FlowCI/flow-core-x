@@ -128,4 +128,22 @@ public class AgentDaoTest extends TestBase {
         Assert.assertEquals(AgentStatus.OFFLINE, agentDao.get(agent3.getPath()).getStatus());
 
     }
+
+    @Test
+    public void should_delete_agent(){
+        final String zone = "zone-3";
+
+        Agent agent = new Agent(zone, "agent-3");
+        agent.setStatus(AgentStatus.OFFLINE);
+        agent.setWebhook("http://test.com/agent/callback");
+        agentDao.save(agent);
+
+        agentDao.delete(agent);
+
+        List<Agent> agents = agentDao.list(zone, null,AgentStatus.OFFLINE);
+
+        agents = agentDao.list(zone, null, AgentStatus.OFFLINE);
+        Assert.assertEquals(0, agents.size());
+
+    }
 }

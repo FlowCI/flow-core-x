@@ -48,4 +48,9 @@ public interface AgentService {
      * Get agent setting by token from cc
      */
     AgentSettings settings(String token);
+
+    /**
+     * Delete agent by agentPath from cc
+     */
+    void delete(AgentPath agentPath);
 }

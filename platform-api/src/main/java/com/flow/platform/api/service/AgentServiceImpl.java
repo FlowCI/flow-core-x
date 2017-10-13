@@ -28,6 +28,7 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentPathWithWebhook;
 import com.flow.platform.domain.AgentSettings;
+import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
@@ -168,7 +169,46 @@ public class AgentServiceImpl implements AgentService {
         return AgentSettings.parse(response.getBody(), AgentSettings.class);
     }
 
+    @Override
+    public void delete(AgentPath agentPath){
+        Agent agent = findAgent(agentPath);
+
+        try {
+            HttpClient.build(platformURL.getAgentDeleteUrl())
+                .post(agent.toJson())
+                .withContentType(ContentType.APPLICATION_JSON)
+                .retry(httpRetryTimes)
+                .bodyAsString().getBody();
+
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStatusException(e.getMessage());
+        }
+    }
+
     private String buildAgentWebhook() {
         return domain + "/agents/callback";
     }
+
+    /**
+     * find agent
+     */
+    private Agent findAgent(AgentPath agentPath){
+        String url = platformURL.getAgentFindUrl() + "?" + "zone=" + agentPath.getZone() + "&" + "name=" + agentPath.getName();
+        String res = HttpClient.build(url)
+            .get()
+            .retry(httpRetryTimes)
+            .bodyAsString().getBody();
+
+        if (Strings.isNullOrEmpty(res)) {
+            throw new HttpException("Unable to delete agent");
+        }
+        Agent agent = Agent.parse(res, Agent.class);
+        if (agent.getStatus() == AgentStatus.BUSY){
+            throw new IllegalStatusException("agent is busy, please wait");
+        }
+
+        return agent;
+    }
+
+
 }

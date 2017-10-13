@@ -99,4 +99,10 @@ public interface AgentService extends WebhookService {
      * @return agent setting
      */
     AgentSettings settings(String token);
+
+
+    /**
+     * delete agent
+     */
+    void delete(Agent agent);
 }

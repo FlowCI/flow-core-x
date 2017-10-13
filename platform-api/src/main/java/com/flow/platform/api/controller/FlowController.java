@@ -114,7 +114,7 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {delete} /flows/:root/delete Delete
+     * @api {delete} /flows/:root Delete
      * @apiParam {String} root flow node name will be deleted
      * @apiDescription Delete flow node by name and return flow node object
      * @apiGroup Flows

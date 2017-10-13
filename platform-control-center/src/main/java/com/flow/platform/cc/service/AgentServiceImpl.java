@@ -224,4 +224,9 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
         agentSettings.setAgentPath(agent.getPath());
         return agentSettings;
     }
+
+    @Override
+    public void delete(Agent agent){
+        agentDao.delete(agent);
+    }
 }
