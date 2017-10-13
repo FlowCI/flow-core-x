@@ -18,6 +18,8 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.ExceptionUtil;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.zk.ZKClient;
@@ -33,6 +35,8 @@ import org.apache.curator.utils.ZKPaths;
  * @author gy@fir.im
  */
 public class Config {
+
+    private final static Logger LOGGER = new Logger(Config.class);
 
     public final static String ZK_ROOT = "flow-agents";
 
@@ -79,6 +83,8 @@ public class Config {
                 properties = new Properties();
                 properties.load(fileInputStream);
             } catch (Throwable e) {
+                LOGGER.warn("get property from application.properties error %s",
+                    ExceptionUtil.findRootCause(e).getMessage());
             }
         }
 
