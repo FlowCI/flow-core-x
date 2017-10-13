@@ -177,8 +177,7 @@ public class AgentServiceImpl implements AgentService {
             HttpClient.build(platformURL.getAgentDeleteUrl())
                 .post(agent.toJson())
                 .withContentType(ContentType.APPLICATION_JSON)
-                .retry(httpRetryTimes)
-                .bodyAsString().getBody();
+                .retry(httpRetryTimes);
 
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStatusException(e.getMessage());
@@ -194,15 +193,17 @@ public class AgentServiceImpl implements AgentService {
      */
     private Agent findAgent(AgentPath agentPath){
         String url = platformURL.getAgentFindUrl() + "?" + "zone=" + agentPath.getZone() + "&" + "name=" + agentPath.getName();
-        String res = HttpClient.build(url)
+        HttpResponse<String> response = HttpClient.build(url)
             .get()
             .retry(httpRetryTimes)
-            .bodyAsString().getBody();
+            .bodyAsString();
 
-        if (Strings.isNullOrEmpty(res)) {
+        if (!response.hasSuccess()) {
             throw new HttpException("Unable to delete agent");
         }
-        Agent agent = Agent.parse(res, Agent.class);
+
+        Agent agent = Agent.parse(response.getBody(), Agent.class);
+
         if (agent.getStatus() == AgentStatus.BUSY){
             throw new IllegalStatusException("agent is busy, please wait");
         }

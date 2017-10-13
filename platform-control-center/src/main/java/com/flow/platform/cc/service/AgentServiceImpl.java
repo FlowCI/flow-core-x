@@ -35,6 +35,7 @@ import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.gson.annotations.Expose;
+import java.sql.SQLDataException;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -227,6 +228,11 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
     @Override
     public void delete(Agent agent){
-        agentDao.delete(agent);
+        try {
+            agentDao.delete(agent);
+        } catch (Throwable e){
+            throw new UnsupportedOperationException("delete agent failure " + e.getMessage());
+        }
+
     }
 }
