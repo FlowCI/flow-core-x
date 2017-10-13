@@ -81,9 +81,6 @@ public class CmdQueueConsumerTest extends TestBase {
     public void should_receive_cmd_from_queue() throws Throwable {
         // given:
         String agentName = "agent-name-test";
-        zkClient.delete(ZKHelper.buildPath(ZONE, agentName), false);
-        Thread.sleep(2000);
-
         AgentPath agentPath = createMockAgent(ZONE, agentName);
         Thread.sleep(2000);
 

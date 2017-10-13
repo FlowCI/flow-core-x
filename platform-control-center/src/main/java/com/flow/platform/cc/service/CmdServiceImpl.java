@@ -83,9 +83,6 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
     private final static Logger LOGGER = new Logger(CmdService.class);
 
-    @Value("${mq.queue.cmd.name}")
-    private String cmdQueueName;
-
     @Autowired
     private AgentService agentService;
 

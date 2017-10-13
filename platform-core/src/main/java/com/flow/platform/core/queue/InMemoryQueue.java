@@ -45,9 +45,13 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
             while (!shouldStop) {
                 try {
                     T item = queue.poll(1L, TimeUnit.SECONDS);
-                    for (QueueListener<T> listener : listeners) {
-                        listener.onQueueItem(item);
+
+                    if (item != null) {
+                        for (QueueListener<T> listener : listeners) {
+                            listener.onQueueItem(item);
+                        }
                     }
+
                 } catch (InterruptedException ignore) {
                     LOGGER.warn("InterruptedException occurred while queue processing: ", ignore.getMessage());
                 }

@@ -44,14 +44,31 @@ public class QueueConfig {
 
     private final static Logger LOGGER = new Logger(QueueConfig.class);
 
+    /**
+     * Rabbit mq host
+     * Example: amqp://guest:guest@localhost:5672
+     */
     @Value("${mq.host}")
-    private String host; // amqp://guest:guest@localhost:5672
+    private String host;
 
+    /**
+     * Rabbit mq management url
+     * Example: http://localhost:15672
+     */
     @Value("${mq.management.host}")
-    private String mgrHost; // http://localhost:15672
+    private String mgrHost;
 
-    @Value("${mq.queue.cmd.name}")
-    private String cmdQueueName; // receive cmd from upstream
+    /**
+     * Cmd queue name for RabbitMQ
+     */
+    @Value("${queue.cmd.rabbit.name}")
+    private String cmdQueueName;
+
+    /**
+     * Enable RabbitMQ or using embedded queue
+     */
+    @Value("${queue.cmd.rabbit.enable}")
+    private Boolean cmdQueueRabbitEnable;
 
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor; // from AppConfig
@@ -65,7 +82,13 @@ public class QueueConfig {
 
     @Bean
     public PlatformQueue<Message> cmdQueue() {
-        return new RabbitQueue(taskExecutor, host, CMD_QUEUE_MAX_LENGTH, CMD_QUEUE_DEFAULT_PRIORITY, cmdQueueName);
+        if (cmdQueueRabbitEnable) {
+            LOGGER.trace("Apply RabbitMQ for cmd queue");
+            return new RabbitQueue(taskExecutor, host, CMD_QUEUE_MAX_LENGTH, CMD_QUEUE_DEFAULT_PRIORITY, cmdQueueName);
+        }
+
+        LOGGER.trace("Apply in memory queue for cmd queue");
+        return new InMemoryQueue<>(taskExecutor, CMD_QUEUE_MAX_LENGTH);
     }
 
     /**
