@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.consumer;
 
+import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
@@ -23,12 +24,15 @@ import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.QueueListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZkException;
 import java.time.Duration;
 import java.time.Instant;
+import javax.annotation.PostConstruct;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -42,15 +46,10 @@ import org.springframework.stereotype.Component;
  *
  * @author gy@fir.im
  */
-@Component("cmdQueueConsumer")
-public class CmdQueueConsumer {
+@Component
+public class CmdQueueConsumer implements QueueListener<Message> {
 
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
-
-    private final static int RETRY_QUEUE_PRIORITY = 10;
-
-    @Value("${mq.queue.cmd.name}")
-    private String cmdQueueName;
 
     @Value("${queue.cmd.idle_agent.period}")
     private Integer idleAgentPeriod; // period for check idle agent in seconds
@@ -68,14 +67,15 @@ public class CmdQueueConsumer {
     private AgentService agentService;
 
     @Autowired
-    private RabbitTemplate cmdQueueTemplate;
+    private PlatformQueue<Message> cmdQueue;
 
-    @RabbitListener(
-        queues = {"${mq.queue.cmd.name}"},
-        containerFactory = "cmdQueueContainerFactory",
-        exclusive = true
-    )
-    public void onMessage(Message message) {
+    @PostConstruct
+    public void init() {
+        cmdQueue.register(this);
+    }
+
+    @Override
+    public void onQueueItem(Message message) {
         CmdQueueItem item = CmdQueueItem.parse(message.getBody(), CmdQueueItem.class);
         String cmdId = item.getCmdId();
         LOGGER.trace("Receive a cmd queue item: %s", item);
@@ -149,7 +149,7 @@ public class CmdQueueConsumer {
             return;
         }
 
-        item.setPriority(RETRY_QUEUE_PRIORITY);
+        item.setPriority(QueueConfig.CMD_QUEUE_DEFAULT_PRIORITY);
         item.setRetry(retry);
 
         try {
@@ -162,7 +162,7 @@ public class CmdQueueConsumer {
         MessageProperties properties = new MessageProperties();
         properties.setPriority(item.getPriority());
         Message message = new Message(item.toBytes(), properties);
-        cmdQueueTemplate.send("", cmdQueueName, message);
+        cmdQueue.enqueue(message);
         LOGGER.trace("Re-enqueue item %s", item);
     }
 }
