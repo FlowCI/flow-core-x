@@ -134,7 +134,7 @@ public class CmdServiceImpl implements CmdService {
     @Override
     public void sendCmd(AgentPath agentPath, CmdInfo cmdInfo) {
         try {
-            LOGGER.traceMarker("Shutdown", "send sys cmd ");
+            LOGGER.traceMarker("sendCmd", "send sys cmd ");
             sendDirectly(cmdInfo);
         } catch (Throwable e) {
             String rootCause = ExceptionUtil.findRootCause(e).getMessage();

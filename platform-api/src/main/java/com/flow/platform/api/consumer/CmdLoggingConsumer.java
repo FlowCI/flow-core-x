@@ -91,7 +91,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
     private void sendCmdLog(String cmdId, String content, String number) {
 
         String event = String.format("/topic/cmd/%s", cmdId);
-        System.out.println("{\"number\": \"" + number + "\", \"content\": \"" + content + "\"}");
         template.convertAndSend(event, "{\"number\": \"" + number + "\", \"content\": \"" + content + "\"}");
     }
 
@@ -102,7 +101,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
     private void sendAgentSysInfo(String content) {
         Map<String, String> dic = jsonConverter.getGson().fromJson(content, Map.class);
         String event = String.format("/topic/agent/sysinfo/%s/%s", dic.get("zone"), dic.get("name"));
-        System.out.println(content);
         template.convertAndSend(event, content);
     }
 }
