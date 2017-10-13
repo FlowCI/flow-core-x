@@ -212,6 +212,7 @@ public class CmdManager {
             log.setCategory(Category.SYSTEM_INFO);
             logListener.onLog(log);
             logListener.onFinish();
+            cmd.setStatus(CmdStatus.EXECUTED);
         }
 
         // kill current running proc
