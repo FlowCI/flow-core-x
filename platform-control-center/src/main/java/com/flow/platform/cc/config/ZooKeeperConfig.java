@@ -25,6 +25,7 @@ import com.google.common.base.Strings;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -55,11 +56,16 @@ public class ZooKeeperConfig {
      */
     private final static String ZONE_PROPERTY_NAMING = "zone.%s.%s";
 
-    private final static String EMBEDDED_ZOOKEEPER_PORT = "2181";
+    private final static Properties EMBEDDED_ZOOKEEPER_PROP = new Properties();
 
-    private final static String EMBEDDED_ZOOKEEPER_HOST = "0.0.0.0";
-
-    private final static String EMBEDDED_ZOOKEEPER_DATA = "data";
+    static {
+        File zkDataPath = Paths.get(System.getProperty("java.io.tmpdir", "/var/tmp"), "zookeeper", "data").toFile();
+        EMBEDDED_ZOOKEEPER_PROP.setProperty("dataDir", zkDataPath.getAbsolutePath());
+        EMBEDDED_ZOOKEEPER_PROP.setProperty("clientPort", "2181");
+        EMBEDDED_ZOOKEEPER_PROP.setProperty("clientPortAddress", "0.0.0.0");
+        EMBEDDED_ZOOKEEPER_PROP.setProperty("tickTime", "1500");
+        EMBEDDED_ZOOKEEPER_PROP.setProperty("maxClientCnxns", "50");
+    }
 
     @Value("${zk.server.embedded}")
     private Boolean enableEmbeddedServer;
@@ -96,16 +102,18 @@ public class ZooKeeperConfig {
     public ZKClient zkClient() {
         if (enableEmbeddedServer) {
             if (startEmbeddedServer()) {
-                ZKClient zkClient = new ZKClient(EMBEDDED_ZOOKEEPER_HOST, clientTimeout);
+                final String localZkHost = "127.0.0.1:2181";
+                ZKClient zkClient = new ZKClient(localZkHost, clientTimeout);
+
                 if (zkClient.start()) {
-                    LOGGER.info("Zookeeper been connected at: %s", host);
+                    LOGGER.info("Client been connected at: %s", localZkHost);
                     return zkClient;
                 }
 
-                throw new RuntimeException("Fail to connect embedded zookeeper server" + host);
+                throw new RuntimeException("Fail to connect embedded zookeeper server: " + localZkHost);
             }
 
-            throw new RuntimeException("Fail to start embedded zookeeper server" + host);
+            throw new RuntimeException("Fail to start embedded zookeeper server");
         }
 
         ZKClient zkClient = new ZKClient(host, clientTimeout);
@@ -166,18 +174,10 @@ public class ZooKeeperConfig {
     }
 
     private boolean startEmbeddedServer() {
-        File file = new File(
-            String.format("%s%s%s", System.getProperty("java.io.tmpdir"), File.separator, EMBEDDED_ZOOKEEPER_DATA));
-
-        Properties properties = new Properties();
-        properties.setProperty("dataDir", file.getAbsolutePath());
-        properties.setProperty("clientPort", EMBEDDED_ZOOKEEPER_PORT);
-        properties.setProperty("clientPortAddress", EMBEDDED_ZOOKEEPER_HOST);
-
         try {
             zkServer = new ZKServer();
             QuorumPeerConfig quorumPeerConfig = new QuorumPeerConfig();
-            quorumPeerConfig.parseProperties(properties);
+            quorumPeerConfig.parseProperties(EMBEDDED_ZOOKEEPER_PROP);
 
             ServerConfig configuration = new ServerConfig();
             configuration.readFrom(quorumPeerConfig);

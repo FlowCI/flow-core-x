@@ -26,6 +26,7 @@ import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.nio.file.Files;
@@ -73,7 +74,7 @@ public class NodeServiceTest extends TestBase {
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_SP_1", "111");
         flowEnv.put("FLOW_SP_2", "222");
-        nodeService.addFlowEnv(emptyFlow.getPath(), flowEnv);
+        nodeService.addFlowEnv(emptyFlow, flowEnv);
 
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
@@ -109,10 +110,7 @@ public class NodeServiceTest extends TestBase {
         // given:
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
-
-        Map<String, String> flowEnv = new HashMap<>();
-        flowEnv.put("FLOW_YML_STATUS", "LOADING");
-        nodeService.addFlowEnv(emptyFlow.getPath(), flowEnv);
+        nodeService.addFlowEnv(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"));
 
         // when:
         nodeService.createOrUpdate(emptyFlow.getPath(), "");
@@ -127,10 +125,7 @@ public class NodeServiceTest extends TestBase {
         // given:
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
-
-        Map<String, String> flowEnv = new HashMap<>();
-        flowEnv.put("FLOW_YML_STATUS", "LOADING");
-        nodeService.addFlowEnv(emptyFlow.getPath(), flowEnv);
+        nodeService.addFlowEnv(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"));
 
         // when:
         nodeService.createOrUpdate(emptyFlow.getPath(), "xxxx");
@@ -181,7 +176,7 @@ public class NodeServiceTest extends TestBase {
         envs.put("FLOW_NEW_1", "hello");
         envs.put("FLOW_NEW_2", "world");
         envs.put("FLOW_NEW_3", "done");
-        nodeService.addFlowEnv(root.getPath(), envs);
+        nodeService.addFlowEnv(nodeService.findFlow("flow1"), envs);
 
         // then:
         String webhook = String.format("%s/hooks/git/%s", domain, emptyFlow.getName());

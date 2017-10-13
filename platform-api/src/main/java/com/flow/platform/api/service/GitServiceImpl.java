@@ -30,6 +30,7 @@ import com.flow.platform.core.exception.UnsupportedException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitException;
+import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -73,14 +74,13 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public String clone(Node node, String filePath, ProgressListener progressListener) throws GitException {
-        checkRequiredEnv(node);
-        String branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH);
         GitClient client = gitClientInstance(node);
 
         if (progressListener != null) {
             progressListener.onStart();
         }
 
+        String branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         client.clone(branch, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
 
         if (progressListener != null) {
@@ -93,7 +93,6 @@ public class GitServiceImpl implements GitService {
     @Override
     @Cacheable(value = "branches")
     public List<String> branches(Node node) {
-        checkRequiredEnv(node);
         GitClient client = gitClientInstance(node);
         try {
             Collection<Ref> branches = client.branches();
@@ -105,13 +104,23 @@ public class GitServiceImpl implements GitService {
 
     @Override
     public List<String> tags(Node node) {
-        checkRequiredEnv(node);
         GitClient client = gitClientInstance(node);
         try {
             Collection<Ref> tags = client.tags();
             return toRefString(tags);
         } catch (GitException e) {
             throw new IllegalStatusException("Cannot load tag list from git: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public GitCommit latestCommit(Node node) {
+        GitClient client = gitClientInstance(node);
+        String branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
+        try {
+            return client.commit(branch);
+        } catch (GitException e) {
+            throw new IllegalStatusException("Cannot get latest commit data");
         }
     }
 
@@ -195,6 +204,8 @@ public class GitServiceImpl implements GitService {
      * - FLOW_GIT_HTTP_PASS
      */
     private GitClient gitClientInstance(Node node) {
+        checkRequiredEnv(node);
+
         GitSource source = GitSource.valueOf(node.getEnv(GitEnvs.FLOW_GIT_SOURCE));
         Class<? extends GitClientBuilder> builderClass = clientBuilderType.get(source);
         if (builderClass == null) {

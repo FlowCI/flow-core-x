@@ -23,6 +23,8 @@ public enum JobStatus {
 
     CREATED, // default status
 
+    YML_LOADING, // load yml file
+
     SESSION_CREATING, // creating agent session
 
     RUNNING, // executing node tree

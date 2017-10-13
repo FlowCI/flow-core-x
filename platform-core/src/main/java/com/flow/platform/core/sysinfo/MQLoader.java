@@ -66,13 +66,12 @@ public class MQLoader implements SystemInfoLoader {
 
         try {
             HttpResponse<String> response = HttpClient.build(url).get().withHeader(authHeader).bodyAsString();
-            String responseBody = response.getBody();
 
-            if (Strings.isNullOrEmpty(responseBody)) {
+            if (!response.hasSuccess()) {
                 return new SystemInfo(Status.UNKNOWN);
             }
 
-            RabbitMQOverView mqInfo = RabbitMQOverView.parse(responseBody, RabbitMQOverView.class);
+            RabbitMQOverView mqInfo = RabbitMQOverView.parse(response.getBody(), RabbitMQOverView.class);
 
             GroupSystemInfo info = new GroupSystemInfo(Status.RUNNING);
             info.setName(mqInfo.clusterName);

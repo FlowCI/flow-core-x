@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.envs.EnvKey;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.util.git.GitException;
+import com.flow.platform.util.git.model.GitCommit;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Set;
@@ -68,4 +69,11 @@ public interface GitService {
      * Fetch tags from git repo
      */
     List<String> tags(Node node);
+
+    /**
+     * Fetch latest commit from git repo
+     *
+     * - For UNDEFINED_SSH or UNDEFINED_HTTP will be load from git local git repo, so use together with clone
+     */
+    GitCommit latestCommit(Node node);
 }

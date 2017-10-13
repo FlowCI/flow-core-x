@@ -17,6 +17,7 @@
 package com.flow.platform.api.consumer;
 
 import com.flow.platform.core.http.converter.RawGsonMessageConverter;
+import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.google.gson.annotations.JsonAdapter;
@@ -70,12 +71,14 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
 
         String content = logItem.substring(cmdIdIndex + 1);
 
-        if (category.equals("DEFAULT")) {
+        if (category.equals(CmdType.RUN_SHELL.toString())) {
             sendCmdLog(cmdId, content, number);
+            return;
         }
 
-        if (category.equals("SYSTEM_INFO")) {
+        if (category.equals(CmdType.SYSTEM_INFO.toString())) {
             sendAgentSysInfo(content);
+            return;
         }
     }
 
@@ -88,7 +91,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
     private void sendCmdLog(String cmdId, String content, String number) {
 
         String event = String.format("/topic/cmd/%s", cmdId);
-        System.out.println("{\"number\": \"" + number + "\", \"content\": \"" + content + "\"}");
         template.convertAndSend(event, "{\"number\": \"" + number + "\", \"content\": \"" + content + "\"}");
     }
 
@@ -99,7 +101,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
     private void sendAgentSysInfo(String content) {
         Map<String, String> dic = jsonConverter.getGson().fromJson(content, Map.class);
         String event = String.format("/topic/agent/sysinfo/%s/%s", dic.get("zone"), dic.get("name"));
-        System.out.println(content);
         template.convertAndSend(event, content);
     }
 }

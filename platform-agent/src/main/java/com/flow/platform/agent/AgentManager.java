@@ -21,7 +21,6 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.*;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,7 +40,9 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
 
     // Zk root path /flow-agents/{zone}/{name}
     private final static Object STATUS_LOCKER = new Object();
-    private final static int ZK_RECONNECT_TIME = 5;
+
+    private final static int ZK_RECONNECT_TIME = 1;
+    private final static int ZK_RETRY_PERIOD = 500;
 
     private String zkHost;
     private int zkTimeout;
@@ -59,7 +60,7 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
         this.zkHost = zkHost;
         this.zkTimeout = zkTimeout;
 
-        this.zkClient = new ZKClient(zkHost);
+        this.zkClient = new ZKClient(zkHost, ZK_RETRY_PERIOD, ZK_RECONNECT_TIME);
         this.zone = zone;
         this.name = name;
         this.zonePath = ZKPaths.makePath(Config.ZK_ROOT, this.zone);
@@ -97,7 +98,7 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
             try {
                 STATUS_LOCKER.wait();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOGGER.warn("InterrupatdException : " + e.getMessage());
             }
         }
     }
@@ -106,13 +107,18 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         ChildData eventData = event.getData();
 
+        if (event.getType() == Type.CONNECTION_LOST) {
+            LOGGER.traceMarker("ZK-Event", "========= Connection lost from zk server =========");
+            return;
+        }
+
         if (event.getType() == Type.INITIALIZED) {
-            LOGGER.trace("========= Connected to zookeeper server =========");
+            LOGGER.traceMarker("ZK-Event", "========= Connected to zk server =========");
             return;
         }
 
         if (event.getType() == Type.NODE_ADDED) {
-            LOGGER.trace("========= Node been created: %s =========", eventData.getPath());
+            LOGGER.traceMarker("ZK-Event", "========= Node been created: %s =========", eventData.getPath());
             return;
         }
 
@@ -176,6 +182,6 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
     }
 
     private void removeZkNode() {
-        zkClient.delete(nodePath, false);
+        zkClient.deleteWithoutGuaranteed(nodePath, false);
     }
 }
