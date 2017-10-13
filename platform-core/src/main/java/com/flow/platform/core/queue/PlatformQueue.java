@@ -44,8 +44,17 @@ public abstract class PlatformQueue<T> implements ContextEvent {
         this.listeners.add(listener);
     }
 
+    public void cleanListener() {
+        this.listeners.clear();
+    }
+
     /**
      * Put queue item to queue
      */
     public abstract void enqueue(T item);
+
+    /**
+     * Get current queue size
+     */
+    public abstract int size();
 }

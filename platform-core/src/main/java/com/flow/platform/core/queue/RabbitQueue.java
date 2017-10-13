@@ -21,8 +21,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerEndpoint;
@@ -37,6 +39,16 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 public class RabbitQueue extends PlatformQueue<Message> {
 
+    public static Message createMessage(byte[] content, int priority) {
+        MessageProperties properties = new MessageProperties();
+        properties.setPriority(priority);
+        return new Message(content, properties);
+    }
+
+    public static Message createMessage(byte[] content) {
+        return createMessage(content, 1);
+    }
+
     private final static Logger LOGGER = new Logger(RabbitQueue.class);
 
     private final static int DEFAULT_CONCURRENCY = 1;
@@ -50,6 +62,8 @@ public class RabbitQueue extends PlatformQueue<Message> {
     private RabbitTemplate template;
 
     private SimpleMessageListenerContainer container;
+
+    private volatile AtomicInteger size = new AtomicInteger(0);
 
     public RabbitQueue(ThreadPoolTaskExecutor executor, String host, int maxSize, int maxPriority, String queueName) {
         super(executor, maxSize);
@@ -72,12 +86,19 @@ public class RabbitQueue extends PlatformQueue<Message> {
 
     @Override
     public void stop() {
+        cleanListener();
         container.stop();
     }
 
     @Override
     public void enqueue(Message item) {
         template.send("", name, item);
+        size.incrementAndGet();
+    }
+
+    @Override
+    public int size() {
+        return size.get();
     }
 
     private void initRabbitMQ() throws URISyntaxException {
@@ -115,6 +136,7 @@ public class RabbitQueue extends PlatformQueue<Message> {
 
         @Override
         public void onMessage(Message message) {
+            size.decrementAndGet();
             for (QueueListener<Message> listener : listeners) {
                 listener.onQueueItem(message);
             }

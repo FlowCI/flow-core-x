@@ -57,6 +57,7 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     @Override
     public void stop() {
+        cleanListener();
         shouldStop = true;
     }
 
@@ -68,5 +69,10 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
             LOGGER.warn("InterruptedException occurred while enqueue: ", e.getMessage());
             throw new IllegalStatusException("Unable to queue since thread interrupted");
         }
+    }
+
+    @Override
+    public int size() {
+        return queue.size();
     }
 }
