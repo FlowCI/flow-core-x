@@ -115,7 +115,7 @@ public class ReportManager {
             .retry(5)
             .bodyAsString();
 
-        if (response.hasSuccess()) {
+        if (!response.hasSuccess()) {
             LOGGER.warn("Fail to upload zipped cmd log to : %s ", url);
             return false;
         }

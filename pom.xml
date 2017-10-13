@@ -56,6 +56,7 @@
     <javax.mail-api.version>1.5.5</javax.mail-api.version>
     <javax.mail.version>1.5.5</javax.mail.version>
     <yamlbeans.version>1.12</yamlbeans.version>
+    <velocity.version>1.5</velocity.version>
   </properties>
 
   <build>
@@ -277,6 +278,12 @@
         <groupId>com.esotericsoftware.yamlbeans</groupId>
         <artifactId>yamlbeans</artifactId>
         <version>${yamlbeans.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.velocity</groupId>
+        <artifactId>velocity</artifactId>
+        <version>${velocity.version}</version>
       </dependency>
 
       <!--library for testing-->

@@ -24,7 +24,6 @@ import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
-import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;

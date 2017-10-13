@@ -81,18 +81,13 @@ public class UserController {
      *
      * @apiSuccessExample {String} Success-Response:
      *     HTTP/1.1 200 OK
-     *     eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBmaXIuaW0iLCJleHAiOjE1MDM3MTk0NjF9.Lv3vSvQTv_qgpuFD8e59t60YbAWafZO6W5cjYMx5lcw
+     *
+     *     xxx.xxx.xxx
      *
      * @apiErrorExample {json} Error-Response:
      *     HTTP/1.1 400 Bad Request
      *     {
      *         "message": "Illegal login request parameter: username format false"
-     *     }
-     *
-     * @apiErrorExample {json} Error-Response:
-     *     HTTP/1.1 500 Internal Server Error
-     *     {
-     *         "message": "JSON parse error: java.io.EOFException: End of input at line 4 column 1 path $.password; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 4 column 1 path $.password"
      *     }
      */
     @PostMapping("/login")
@@ -127,12 +122,6 @@ public class UserController {
      *     {
      *         "message": "Illegal register request parameter: email already exist"
      *     }
-     *
-     * @apiErrorExample {json} Error-Response:
-     *     HTTP/1.1 500 Internal Server Error
-     *     {
-     *         "message": "JSON parse error: java.io.EOFException: End of input at line 6 column 1 path $.roleId; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 6 column 1 path $.roleId"
-     *     }
      */
     @PostMapping("/register")
     public void register(@RequestBody RegisterUserParam registerUserParam) {
@@ -156,9 +145,9 @@ public class UserController {
      *     HTTP/1.1 200 OK
      *
      * @apiErrorExample {json} Error-Response:
-     *     HTTP/1.1 500 Internal Server Error
+     *     HTTP/1.1 400
      *     {
-     *         "message": "JSON parse error: java.io.EOFException: End of input at line 4 column 1 path $[2]; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 4 column 1 path $[2]"
+     *         "message": xxx
      *     }
      */
     @PostMapping(path = "/delete")
@@ -185,9 +174,10 @@ public class UserController {
      *     HTTP/1.1 200 OK
      *
      * @apiErrorExample {json} Error-Response:
-     *     HTTP/1.1 500 Internal Server Error
+     *     HTTP/1.1 400
+     *
      *     {
-     *         "message": "JSON parse error: java.io.EOFException: End of input at line 6 column 1 path $.roleId; nested exception is com.google.gson.JsonSyntaxException: java.io.EOFException: End of input at line 6 column 1 path $.roleId"
+     *         "message": xxx
      *     }
      */
     @PostMapping("/role/update")

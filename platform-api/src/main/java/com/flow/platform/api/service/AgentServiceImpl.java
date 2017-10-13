@@ -34,6 +34,7 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
+import com.flow.platform.util.http.HttpResponse;
 import com.google.common.base.Strings;
 import com.google.gson.JsonSyntaxException;
 import java.io.UnsupportedEncodingException;
@@ -74,16 +75,16 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public List<AgentWithFlow> list() {
-        String res = HttpClient.build(platformURL.getAgentUrl())
+        HttpResponse<String> response = HttpClient.build(platformURL.getAgentUrl())
             .get()
             .retry(httpRetryTimes)
-            .bodyAsString().getBody();
+            .bodyAsString();
 
-        if (Strings.isNullOrEmpty(res)) {
+        if (!response.hasSuccess()) {
             throw new HttpException("Unable to load agent list");
         }
 
-        Agent[] agents = Jsonable.GSON_CONFIG.fromJson(res, Agent[].class);
+        Agent[] agents = Jsonable.GSON_CONFIG.fromJson(response.getBody(), Agent[].class);
 
         // get all session id from agent collection
         List<String> sessionIds = CollectionUtil.toPropertyList("sessionId", agents);
@@ -137,17 +138,17 @@ public class AgentServiceImpl implements AgentService {
         try {
             AgentPathWithWebhook pathWithWebhook = new AgentPathWithWebhook(agentPath, buildAgentWebhook());
 
-            final String agentJson = HttpClient.build(platformURL.getAgentCreateUrl())
+            HttpResponse<String> response = HttpClient.build(platformURL.getAgentCreateUrl())
                 .post(pathWithWebhook.toJson())
                 .withContentType(ContentType.APPLICATION_JSON)
                 .retry(httpRetryTimes)
-                .bodyAsString().getBody();
+                .bodyAsString();
 
-            if (Strings.isNullOrEmpty(agentJson)) {
+            if (!response.hasSuccess()) {
                 throw new HttpException("Unable to create agent via control center");
             }
 
-            return Agent.parse(agentJson, Agent.class);
+            return Agent.parse(response.getBody(), Agent.class);
 
         } catch (UnsupportedEncodingException | JsonSyntaxException e) {
             throw new IllegalStatusException("Unable to create agent", e);
@@ -157,16 +158,16 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public AgentSettings settings(String token) {
         String url = platformURL.getAgentSettingsUrl() + "?" + "token=" + token;
-        String settingsJson = HttpClient.build(url)
+        HttpResponse<String> response = HttpClient.build(url)
             .get()
             .retry(httpRetryTimes)
-            .bodyAsString().getBody();
+            .bodyAsString();
 
-        if (Strings.isNullOrEmpty(settingsJson)) {
+        if (!response.hasSuccess()) {
             throw new HttpException("Unable to get agent settings from control center");
         }
 
-        return AgentSettings.parse(settingsJson, AgentSettings.class);
+        return AgentSettings.parse(response.getBody(), AgentSettings.class);
     }
 
     private String buildAgentWebhook() {
