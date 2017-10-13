@@ -16,39 +16,13 @@
 
 package com.flow.platform.api.test.service;
 
-import static com.flow.platform.api.domain.envs.FlowEnvs.FLOW_STATUS;
-
 import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
-import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
-import com.flow.platform.api.domain.envs.JobEnvs;
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.job.JobStatus;
-import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.job.NodeTag;
-import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.MessageService;
-import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.CommonUtil;
-import com.flow.platform.api.util.EnvUtil;
-import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.core.exception.FlowException;
-import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.util.git.model.GitEventType;
-import com.google.common.base.Strings;
-import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author yh@firim
@@ -57,12 +31,6 @@ public class MessageServiceTest extends TestBase {
 
     @Autowired
     private MessageService messageService;
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    @Autowired
-    private JobNodeService jobNodeService;
 
     @Test
     public void should_save_and_update_success() {
@@ -77,8 +45,8 @@ public class MessageServiceTest extends TestBase {
         setting.setSender("admin@163.com");
         messageService.update(setting);
 
-        EmailSettingContent settingt = (EmailSettingContent) messageService.find(MessageType.EMAIl);
-        Assert.assertEquals("admin@qq.com", settingt.getSender());
+        EmailSettingContent settings = (EmailSettingContent) messageService.find(MessageType.EMAIl);
+        Assert.assertEquals("admin@qq.com", settings.getSender());
     }
 
     @Test
@@ -92,10 +60,6 @@ public class MessageServiceTest extends TestBase {
         Assert.assertNotNull(setting.getSender());
 
         messageService.delete(emailSetting);
-
-        try {
-            EmailSettingContent settingT = (EmailSettingContent) messageService.find(MessageType.EMAIl);
-        } catch (NotFoundException e) {
-        }
+        Assert.assertNull(messageService.find(MessageType.EMAIl));
     }
 }

@@ -18,38 +18,30 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.core.consumer.QueueConsumer;
+import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.QueueListener;
 import com.flow.platform.util.Logger;
-import java.util.concurrent.BlockingQueue;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
  * @author yh@firim
  */
 @Component
-public class CmdCallbackQueueConsumer extends QueueConsumer<CmdCallbackQueueItem> {
+public class CmdCallbackQueueConsumer implements QueueListener<CmdCallbackQueueItem> {
 
     private final static Logger LOGGER = new Logger(CmdCallbackQueueConsumer.class);
 
     @Autowired
-    private BlockingQueue<CmdCallbackQueueItem> cmdBaseBlockingQueue;
-
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
+    private PlatformQueue<CmdCallbackQueueItem> cmdCallbackQueue;
 
     @Autowired
     private JobService jobService;
 
-    @Override
-    public ThreadPoolTaskExecutor getTaskExecutor() {
-        return taskExecutor;
-    }
-
-    @Override
-    public BlockingQueue<CmdCallbackQueueItem> getQueue() {
-        return cmdBaseBlockingQueue;
+    @PostConstruct
+    public void init() {
+        cmdCallbackQueue.register(this);
     }
 
     @Override

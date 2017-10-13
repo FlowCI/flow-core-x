@@ -17,15 +17,15 @@
 package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.service.AgentService;
-import com.flow.platform.core.consumer.QueueConsumer;
+import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.QueueListener;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.util.Logger;
-import java.util.concurrent.BlockingQueue;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,27 +36,19 @@ import org.springframework.transaction.annotation.Transactional;
  * @author yang
  */
 @Component
-public class AgentReportQueueConsumer extends QueueConsumer<AgentPath> {
+public class AgentReportQueueConsumer implements QueueListener<AgentPath> {
 
     private final static Logger LOGGER = new Logger(AgentReportQueueConsumer.class);
 
     @Autowired
-    private BlockingQueue<AgentPath> agentReportQueue;
+    private PlatformQueue<AgentPath> agentReportQueue;
 
     @Autowired
     private AgentService agentService;
 
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
-
-    @Override
-    public ThreadPoolTaskExecutor getTaskExecutor() {
-        return taskExecutor;
-    }
-
-    @Override
-    public BlockingQueue<AgentPath> getQueue() {
-        return agentReportQueue;
+    @PostConstruct
+    public void init() {
+        agentReportQueue.register(this);
     }
 
     @Override

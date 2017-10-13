@@ -50,6 +50,7 @@ import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
@@ -108,7 +109,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private JobNodeService jobNodeService;
 
     @Autowired
-    private BlockingQueue<CmdCallbackQueueItem> cmdBaseBlockingQueue;
+    private PlatformQueue<CmdCallbackQueueItem> cmdCallbackQueue;
 
     @Autowired
     private JobDao jobDao;
@@ -436,11 +437,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void enterQueue(CmdCallbackQueueItem cmdQueueItem) {
-        try {
-            cmdBaseBlockingQueue.put(cmdQueueItem);
-        } catch (Throwable throwable) {
-            LOGGER.warnMarker("enterQueue", "exception - %s", throwable);
-        }
+        cmdCallbackQueue.enqueue(cmdQueueItem);
     }
 
     @Override
