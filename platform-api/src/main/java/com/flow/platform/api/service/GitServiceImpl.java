@@ -45,6 +45,8 @@ import javax.annotation.PostConstruct;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -56,6 +58,9 @@ public class GitServiceImpl implements GitService {
     private final static Logger LOGGER = new Logger(GitService.class);
 
     private final Map<GitSource, Class<? extends GitClientBuilder>> clientBuilderType = new HashMap<>(6);
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Autowired
     private Path workspace;
@@ -86,6 +91,7 @@ public class GitServiceImpl implements GitService {
     }
 
     @Override
+    @Cacheable(value = "branches")
     public List<String> branches(Node node) {
         checkRequiredEnv(node);
         GitClient client = gitClientInstance(node);
