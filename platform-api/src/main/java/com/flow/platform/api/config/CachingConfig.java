@@ -16,9 +16,11 @@
 
 package com.flow.platform.api.config;
 
+import com.google.common.cache.CacheBuilder;
+import java.util.concurrent.TimeUnit;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.cache.guava.GuavaCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,8 +31,21 @@ import org.springframework.context.annotation.Configuration;
 @EnableCaching
 public class CachingConfig {
 
+    private final static int EXPIRE_CACHE_SECOND = 3600 * 24;
+
+    private final static int MAX_CACHE_NUM = 1000;
+
+
+    private CacheBuilder cacheBuilder = CacheBuilder
+        .newBuilder()
+        .expireAfterAccess(EXPIRE_CACHE_SECOND, TimeUnit.SECONDS)
+        .maximumSize(MAX_CACHE_NUM);
+
+
     @Bean
     public CacheManager cacheManager() {
-        return new ConcurrentMapCacheManager();
+        GuavaCacheManager guavaCacheManager = new GuavaCacheManager();
+        guavaCacheManager.setCacheBuilder(cacheBuilder);
+        return guavaCacheManager;
     }
 }
