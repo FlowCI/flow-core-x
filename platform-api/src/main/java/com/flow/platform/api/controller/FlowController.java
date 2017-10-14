@@ -235,6 +235,7 @@ public class FlowController extends NodeController {
     /**
      * @api {get} /flows/:root/branches List Branches
      * @apiParam {String} root flow node name
+     * @apiParam {refresh} [refresh] true or false
      * @apiGroup Flows
      *
      * @apiSuccessExample {json} Success-Response
