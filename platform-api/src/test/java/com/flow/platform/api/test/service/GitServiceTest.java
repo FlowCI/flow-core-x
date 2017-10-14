@@ -106,6 +106,14 @@ public class GitServiceTest extends TestBase {
     }
 
     @Test
+    public void should_refresh_branches_of_git_repo() {
+        List<String> branches = gitService.refreshBranches(node);
+        Assert.assertNotNull(branches);
+        Assert.assertEquals("develop", branches.get(0));
+        Assert.assertEquals("master", branches.get(1));
+    }
+
+    @Test
     public void should_list_tags_of_git_repo() {
         List<String> tags = gitService.tags(node);
         Assert.assertNotNull(tags);
