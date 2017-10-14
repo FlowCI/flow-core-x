@@ -16,7 +16,7 @@
 
 package com.flow.platform.cc.consumer;
 
-import com.flow.platform.cc.event.NoAvailableResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,15 +27,15 @@ import org.springframework.stereotype.Component;
  * @author yang
  */
 @Component
-public class NoAvailbleResourceEventHandler implements ApplicationListener<NoAvailableResourceEvent> {
+public class AgentResourceEventHandler implements ApplicationListener<AgentResourceEvent> {
 
-    private final static Logger LOGGER = new Logger(NoAvailbleResourceEventHandler.class);
+    private final static Logger LOGGER = new Logger(AgentResourceEventHandler.class);
 
     @Autowired
     private ZoneService zoneService;
 
     @Override
-    public void onApplicationEvent(NoAvailableResourceEvent event) {
+    public void onApplicationEvent(AgentResourceEvent event) {
         String zone = event.getZone();
         LOGGER.trace("Event received for zone: %s", zone);
 

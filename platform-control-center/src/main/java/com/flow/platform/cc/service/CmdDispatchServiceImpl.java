@@ -18,7 +18,8 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.domain.CmdStatusItem;
-import com.flow.platform.cc.event.NoAvailableResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.exception.AgentErr.NotAvailableException;
 import com.flow.platform.cc.util.ZKHelper;
@@ -131,7 +132,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             String zone = cmd.getAgentPath().getZone();
 
             if (e instanceof NotAvailableException) {
-                this.dispatchEvent(new NoAvailableResourceEvent(this, zone));
+                this.dispatchEvent(new AgentResourceEvent(this, zone, Category.OCCUPY));
             }
 
             throw e;
