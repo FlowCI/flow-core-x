@@ -57,4 +57,14 @@ public abstract class PlatformQueue<T> implements ContextEvent {
      * Get current queue size
      */
     public abstract int size();
+
+    /**
+     * Hold queue which not process queue item
+     */
+    public abstract void pause();
+
+    /**
+     * Resume queue
+     */
+    public abstract void resume();
 }

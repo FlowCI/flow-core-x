@@ -63,6 +63,16 @@ public class PlatformQueueTest {
         Assert.assertEquals(0, inMemoryQueue.size());
         Assert.assertTrue(result.getInstance() instanceof String);
         Assert.assertEquals("Hello", result.getInstance().toString());
+
+        // when: pause and enqueue again
+        inMemoryQueue.pause();
+        inMemoryQueue.enqueue("Pause");
+        Assert.assertEquals(1, inMemoryQueue.size());
+
+        // then: resume
+        inMemoryQueue.resume();
+        Thread.sleep(1000);
+        Assert.assertEquals(0, inMemoryQueue.size());
     }
 
     @Test
@@ -85,6 +95,16 @@ public class PlatformQueueTest {
         Assert.assertEquals(0, rabbitQueue.size());
         Assert.assertNotNull(result.getInstance());
         Assert.assertEquals("hello", new String(result.getInstance().getBody(), "UTF-8"));
+
+        // when: pause and enqueue again
+        rabbitQueue.pause();
+        rabbitQueue.enqueue(RabbitQueue.createMessage("pause".getBytes()));
+        Assert.assertEquals(1, rabbitQueue.size());
+
+        // then: resume
+        rabbitQueue.resume();
+        Thread.sleep(1000);
+        Assert.assertEquals(0, rabbitQueue.size());
     }
 
 }

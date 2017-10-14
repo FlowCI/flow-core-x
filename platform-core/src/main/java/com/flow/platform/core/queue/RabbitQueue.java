@@ -91,6 +91,16 @@ public class RabbitQueue extends PlatformQueue<Message> {
     }
 
     @Override
+    public void pause() {
+        container.stop();
+    }
+
+    @Override
+    public void resume() {
+        container.start();
+    }
+
+    @Override
     public void enqueue(Message item) {
         template.send("", name, item);
         size.incrementAndGet();

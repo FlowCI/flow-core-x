@@ -32,7 +32,11 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     private final BlockingQueue<T> queue;
 
+    private final Object lock = new Object();
+
     private volatile boolean shouldStop = false;
+
+    private volatile boolean shouldPause = false;
 
     public InMemoryQueue(ThreadPoolTaskExecutor executor, int maxSize) {
         super(executor, maxSize);
@@ -41,22 +45,7 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     @Override
     public void start() {
-        executor.execute(() -> {
-            while (!shouldStop) {
-                try {
-                    T item = queue.poll(1L, TimeUnit.SECONDS);
-
-                    if (item != null) {
-                        for (QueueListener<T> listener : listeners) {
-                            listener.onQueueItem(item);
-                        }
-                    }
-
-                } catch (InterruptedException ignore) {
-                    LOGGER.warn("InterruptedException occurred while queue processing: ", ignore.getMessage());
-                }
-            }
-        });
+        executor.execute(new QueueProcessor());
     }
 
     @Override
@@ -78,5 +67,48 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
     @Override
     public int size() {
         return queue.size();
+    }
+
+    @Override
+    public void pause() {
+        shouldPause = true;
+    }
+
+    @Override
+    public void resume() {
+        synchronized (lock) {
+            lock.notifyAll();
+        }
+    }
+
+    private class QueueProcessor implements Runnable {
+
+        @Override
+        public void run() {
+            while (!shouldStop) {
+
+                synchronized (lock) {
+                    if (shouldPause) {
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException ignore) {
+                        }
+                    }
+                }
+
+                try {
+                    T item = queue.poll(1L, TimeUnit.SECONDS);
+
+                    if (item != null) {
+                        for (QueueListener<T> listener : listeners) {
+                            listener.onQueueItem(item);
+                        }
+                    }
+
+                } catch (InterruptedException ignore) {
+                    LOGGER.warn("InterruptedException occurred while queue processing: ", ignore.getMessage());
+                }
+            }
+        }
     }
 }
