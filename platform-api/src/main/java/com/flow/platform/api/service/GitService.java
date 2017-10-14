@@ -63,7 +63,12 @@ public interface GitService {
     /**
      * Fetch branches from git repo
      */
-    List<String> branches(Node node);
+    List<String> listBranches(Node node);
+
+    /**
+     * refresh branches
+     */
+    List<String> refreshBranches(Node node);
 
     /**
      * Fetch tags from git repo

@@ -16,9 +16,9 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.domain.user.User;
@@ -246,10 +246,14 @@ public class FlowController extends NodeController {
      *  ]
      */
     @GetMapping("/{root}/branches")
-    public List<String> listBranches() {
+    public List<String> listBranches(@RequestParam(required = false) Boolean refresh) {
         Node root = nodeService.find(currentNodePath.get());
-        return gitService.branches(root);
+        if (refresh != null && refresh == true) {
+            return gitService.refreshBranches(root);
+        }
+        return gitService.listBranches(root);
     }
+
 
     /**
      * @api {get} /flows/:root/tags List Tags
@@ -415,7 +419,7 @@ public class FlowController extends NodeController {
      */
     @PostMapping("/{root}/users/auth")
     @WebSecurity(action = Actions.FLOW_AUTH)
-    public List<User> flowAuthUsers(@RequestBody ListParam<String> listParam){
+    public List<User> flowAuthUsers(@RequestBody ListParam<String> listParam) {
         return nodeService.authUsers(listParam.getArrays(), currentNodePath.get());
     }
 }

@@ -99,7 +99,7 @@ public class GitServiceTest extends TestBase {
 
     @Test
     public void should_list_branches_of_git_repo() {
-        List<String> branches = gitService.branches(node);
+        List<String> branches = gitService.listBranches(node);
         Assert.assertNotNull(branches);
         Assert.assertEquals("develop", branches.get(0));
         Assert.assertEquals("master", branches.get(1));
