@@ -62,9 +62,6 @@ public class GitServiceImpl implements GitService {
     private final Map<GitSource, Class<? extends GitClientBuilder>> clientBuilderType = new HashMap<>(6);
 
     @Autowired
-    private CacheManager cacheManager;
-
-    @Autowired
     private Path workspace;
 
     @PostConstruct
