@@ -34,9 +34,9 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     private final Object lock = new Object();
 
-    private volatile boolean shouldStop = false;
+    private volatile boolean stop = false;
 
-    private volatile boolean shouldPause = false;
+    private volatile boolean pause = false;
 
     public InMemoryQueue(ThreadPoolTaskExecutor executor, int maxSize) {
         super(executor, maxSize);
@@ -51,7 +51,7 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
     @Override
     public void stop() {
         cleanListener();
-        shouldStop = true;
+        stop = true;
     }
 
     @Override
@@ -71,24 +71,34 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     @Override
     public void pause() {
-        shouldPause = true;
+        if (pause) {
+            return;
+        }
+
+        pause = true;
     }
 
     @Override
     public void resume() {
+        if (!pause) {
+            return;
+        }
+
         synchronized (lock) {
             lock.notifyAll();
         }
+
+        pause = false;
     }
 
     private class QueueProcessor implements Runnable {
 
         @Override
         public void run() {
-            while (!shouldStop) {
+            while (!stop) {
 
                 synchronized (lock) {
-                    if (shouldPause) {
+                    if (pause) {
                         try {
                             lock.wait();
                         } catch (InterruptedException ignore) {

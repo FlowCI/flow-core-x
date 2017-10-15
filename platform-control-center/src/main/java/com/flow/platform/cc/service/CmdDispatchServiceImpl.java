@@ -131,11 +131,9 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
             cmdService.updateStatus(statusItem, false);
 
-            // broadcast NoAvailableResourceEvent with zone name
-            String zone = cmd.getAgentPath().getZone();
-
+            // broadcast AgentResourceEvent with zone name
             if (e instanceof NotAvailableException) {
-                this.dispatchEvent(new AgentResourceEvent(this, zone, Category.OCCUPY));
+                this.dispatchEvent(new AgentResourceEvent(this, cmd.getAgentPath().getZone(), Category.FULL));
             }
 
             throw e;

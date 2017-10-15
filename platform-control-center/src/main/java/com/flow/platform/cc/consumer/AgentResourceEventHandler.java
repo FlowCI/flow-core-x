@@ -17,8 +17,11 @@
 package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.event.AgentResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.service.ZoneService;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -34,11 +37,26 @@ public class AgentResourceEventHandler implements ApplicationListener<AgentResou
     @Autowired
     private ZoneService zoneService;
 
+    @Autowired
+    private PlatformQueue<Message> cmdQueue;
+
     @Override
     public void onApplicationEvent(AgentResourceEvent event) {
         String zone = event.getZone();
-        LOGGER.trace("Event received for zone: %s", zone);
+        LOGGER.trace("AgentResourceEvent received for zone '%s' with '%s'", zone, event.getCategory());
 
+        // cleanup agent from zone
         zoneService.keepIdleAgentTask();
+
+        if (event.getCategory() == Category.FULL) {
+            cmdQueue.pause();
+            LOGGER.trace("Pause cmd queue since no agent resources");
+            return;
+        }
+
+        if (event.getCategory() == Category.RELEASED) {
+            cmdQueue.resume();
+            LOGGER.trace("Resume cmd queue since has agent resource released");
+        }
     }
 }

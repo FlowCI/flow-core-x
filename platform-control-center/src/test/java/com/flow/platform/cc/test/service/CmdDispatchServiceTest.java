@@ -91,6 +91,11 @@ public class CmdDispatchServiceTest extends TestBase {
     }
 
     @Test
+    public void should_broadcast_agent_resource_event_if_no_available_agent() throws  Throwable {
+        // given: make no available agent resource
+    }
+
+    @Test
     public void should_raise_exception_if_create_session_again() throws Throwable {
         Cmd cmdToFail = cmdService.create(new CmdInfo(agentPath, CmdType.CREATE_SESSION, null));
 

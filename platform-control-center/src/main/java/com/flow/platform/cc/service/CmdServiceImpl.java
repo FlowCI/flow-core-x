@@ -29,6 +29,8 @@ import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.cc.event.AgentResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.WebhookServiceImplBase;
@@ -303,6 +305,11 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
         Agent agent = agentService.find(agentPath);
         agentService.saveWithStatus(agent, isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
+
+        // boardcast AgentResourceEvent for release
+        if (agent.getStatus() == AgentStatus.IDLE) {
+            this.dispatchEvent(new AgentResourceEvent(this, agent.getZone(), Category.RELEASED));
+        }
     }
 
     /**

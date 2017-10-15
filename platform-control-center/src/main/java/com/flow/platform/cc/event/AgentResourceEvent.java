@@ -30,7 +30,10 @@ public class AgentResourceEvent extends ApplicationEvent {
     public enum Category {
         RELEASED,
 
-        OCCUPY
+        /**
+         * All agent resource occupied
+         */
+        FULL
     }
 
     private final String zone;
