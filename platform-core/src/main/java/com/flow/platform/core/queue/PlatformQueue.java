@@ -67,4 +67,9 @@ public abstract class PlatformQueue<T> implements ContextEvent {
      * Resume queue
      */
     public abstract void resume();
+
+    /**
+     * Queue processor is running
+     */
+    public abstract boolean isRunning();
 }

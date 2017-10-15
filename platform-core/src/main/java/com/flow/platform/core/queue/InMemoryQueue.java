@@ -45,6 +45,7 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     @Override
     public void start() {
+        stop = false;
         executor.execute(new QueueProcessor());
     }
 
@@ -89,6 +90,11 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
         }
 
         pause = false;
+    }
+
+    @Override
+    public boolean isRunning() {
+        return !pause && !stop;
     }
 
     private class QueueProcessor implements Runnable {

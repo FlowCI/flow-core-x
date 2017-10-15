@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.consumer;
 
+import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.event.AgentResourceEvent;
 import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.service.ZoneService;
@@ -23,6 +24,7 @@ import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +42,9 @@ public class AgentResourceEventHandler implements ApplicationListener<AgentResou
     @Autowired
     private PlatformQueue<Message> cmdQueue;
 
+    @Value("${queue.cmd.retry.enable}")
+    private Boolean cmdQueueRetryEnable;
+
     @Override
     public void onApplicationEvent(AgentResourceEvent event) {
         String zone = event.getZone();
@@ -47,6 +52,12 @@ public class AgentResourceEventHandler implements ApplicationListener<AgentResou
 
         // cleanup agent from zone
         zoneService.keepIdleAgentTask();
+
+        // do not control cmd queue since enable retry
+        Boolean isRetry = Boolean.parseBoolean(System.getProperty(QueueConfig.PROP_CMD_QUEUE_RETRY, "false"));
+        if (cmdQueueRetryEnable || isRetry) {
+            return;
+        }
 
         if (event.getCategory() == Category.FULL) {
             cmdQueue.pause();

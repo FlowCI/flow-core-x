@@ -111,6 +111,11 @@ public class RabbitQueue extends PlatformQueue<Message> {
     }
 
     @Override
+    public boolean isRunning() {
+        return container.isRunning();
+    }
+
+    @Override
     public int size() {
         return size.get();
     }

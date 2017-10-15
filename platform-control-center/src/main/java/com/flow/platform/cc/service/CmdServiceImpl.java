@@ -305,11 +305,6 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
         Agent agent = agentService.find(agentPath);
         agentService.saveWithStatus(agent, isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
-
-        // boardcast AgentResourceEvent for release
-        if (agent.getStatus() == AgentStatus.IDLE) {
-            this.dispatchEvent(new AgentResourceEvent(this, agent.getZone(), Category.RELEASED));
-        }
     }
 
     /**
