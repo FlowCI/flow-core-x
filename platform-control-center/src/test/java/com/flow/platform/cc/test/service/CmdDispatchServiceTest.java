@@ -25,6 +25,8 @@ import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.ZKHelper;
+import com.flow.platform.core.exception.FlowException;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -41,6 +43,7 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -60,6 +63,9 @@ public class CmdDispatchServiceTest extends TestBase {
 
     @Autowired
     private List<Zone> defaultZones;
+
+    @Autowired
+    private PlatformQueue<Message> cmdQueue;
 
     private AgentPath agentPath;
 
@@ -88,6 +94,33 @@ public class CmdDispatchServiceTest extends TestBase {
         Assert.assertEquals(AgentStatus.BUSY, target.getStatus());
         Assert.assertNotNull(target.getSessionId());
         Assert.assertEquals(cmd.getSessionId(), target.getSessionId());
+    }
+
+    @Test
+    public void should_broadcast_agent_resource_event_if_no_available_agent() throws Throwable {
+        // given: make no available agent resource
+        Assert.assertEquals(true, cmdQueue.isRunning());
+
+        // when: send create session cmd
+        Cmd cmdToCreateSession = cmdService.create(new CmdInfo(agentPath, CmdType.CREATE_SESSION, null));
+
+        try {
+            cmdDispatchService.dispatch(cmdToCreateSession.getId(), false);
+        } catch (FlowException ignore) {
+
+        }
+
+        // then: queue should be pause since no available
+        Assert.assertEquals(false, cmdQueue.isRunning());
+
+        // when: send delete session to release agent
+        CmdInfo cmd = new CmdInfo(agentPath, CmdType.DELETE_SESSION, null);
+        cmd.setSessionId(target.getSessionId());
+        Cmd cmdToDeleteSession = cmdService.create(cmd);
+        cmdDispatchService.dispatch(cmdToDeleteSession.getId(), false);
+
+        // then: queue should be resumed since agent resource released
+        Assert.assertEquals(true, cmdQueue.isRunning());
     }
 
     @Test
