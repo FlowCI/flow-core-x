@@ -15,7 +15,9 @@
  */
 package com.flow.platform.api.service.job;
 
-import static com.flow.platform.api.domain.envs.FlowEnvs.*;
+import static com.flow.platform.api.domain.envs.FlowEnvs.FLOW_STATUS;
+import static com.flow.platform.api.domain.envs.FlowEnvs.FLOW_YML_STATUS;
+import static com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
 import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
@@ -37,6 +39,8 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
+import com.flow.platform.api.git.GitEventEnvConverter;
+import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -46,6 +50,7 @@ import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
@@ -53,13 +58,15 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.base.Strings;
-import java.math.BigInteger;
 import com.google.common.collect.Sets;
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -102,10 +109,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private JobNodeService jobNodeService;
 
     @Autowired
-    private BlockingQueue<CmdCallbackQueueItem> cmdBaseBlockingQueue;
+    private PlatformQueue<CmdCallbackQueueItem> cmdCallbackQueue;
 
     @Autowired
     private JobDao jobDao;
+
+    @Autowired
+    private GitService gitService;
 
     @Autowired
     private NodeService nodeService;
@@ -174,17 +184,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
-        String yml = null;
-        try {
-            yml = ymlService.getYmlContent(root);
-            if (Strings.isNullOrEmpty(yml)) {
-                throw new IllegalStatusException("Yml is loading for path " + path);
-            }
-        } catch (FlowException e) {
-            LOGGER.error("Fail to find yml content", e);
-            throw e;
-        }
-
         // create job
         Job job = new Job(CommonUtil.randomId());
         job.setNodePath(root.getPath());
@@ -204,31 +203,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         EnvUtil.merge(envs, job.getEnvs(), true);
 
         //save job
-        jobDao.save(job);
-
-        // create yml snapshot for job
-        jobNodeService.save(job, yml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult);
-        job.setChildrenResult(resultList);
-
-        // to create agent session for job
-        try {
-            String sessionId = cmdService.createSession(job, createSessionRetryTimes);
-            job.setSessionId(sessionId);
-            updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
-        } catch (IllegalStatusException e) {
-            job.setFailureMessage("Unable to create session since : " + e.getMessage());
-            updateJobStatusAndSave(job, JobStatus.FAILURE);
-        }
-
-        return job;
+        return jobDao.save(job);
     }
 
     @Override
+    @Transactional(noRollbackFor = FlowException.class)
     public void createJobAndYmlLoad(String path,
                                     GitEventType eventType,
                                     Map<String, String> envs,
@@ -237,23 +216,66 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // find flow and reset yml status
         Flow flow = nodeService.findFlow(path);
-        flow = nodeService.addFlowEnv(flow.getPath(), EnvUtil.build(FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
+        nodeService.addFlowEnv(flow, EnvUtil.build(FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
 
         // merge input env to flow for git loading, not save to flow since the envs is for job
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
+        //create job
+        Job job = createJob(path, eventType, envs, creator);
+        updateJobStatusAndSave(job, JobStatus.YML_LOADING);
+
+        // load yml
         ymlService.loadYmlContent(flow, yml -> {
             LOGGER.trace("Yml content has been loaded for path : " + path);
+            Node root = nodeService.find(PathUtil.rootPath(path));
+
+            // set git commit info to job env
+            if (eventType == GitEventType.MANUAL) {
+                GitCommit gitCommit = gitService.latestCommit(flow);
+                Map<String, String> envFromCommit = GitEventEnvConverter.convert(gitCommit);
+                EnvUtil.merge(envFromCommit, job.getEnvs(), true);
+                jobDao.update(job);
+            }
+
+            String loadedYml = null;
+            try {
+                loadedYml = ymlService.getYmlContent(root);
+                if (Strings.isNullOrEmpty(loadedYml)) {
+                    throw new IllegalStatusException("Yml is loading for path " + path);
+                }
+            } catch (FlowException e) {
+                job.setFailureMessage(e.getMessage());
+                updateJobStatusAndSave(job, JobStatus.FAILURE);
+            }
+
+            //create yml snapshot for job
+            jobNodeService.save(job, loadedYml);
+
+            // init for node result and set to job object
+            List<NodeResult> resultList = nodeResultService.create(job);
+            NodeResult rootResult = resultList.remove(resultList.size() - 1);
+            job.setRootResult(rootResult);
+            job.setChildrenResult(resultList);
+
+            // to create agent session for job
+            try {
+                String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+                job.setSessionId(sessionId);
+                updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+            } catch (IllegalStatusException e) {
+                job.setFailureMessage(e.getMessage());
+                updateJobStatusAndSave(job, JobStatus.FAILURE);
+            }
 
             try {
-                Job job = this.createJob(path, eventType, envs, creator);
-
                 if (onJobCreated != null) {
                     onJobCreated.accept(job);
                 }
             } catch (Throwable e) {
                 LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
             }
+
         });
     }
 
@@ -415,11 +437,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void enterQueue(CmdCallbackQueueItem cmdQueueItem) {
-        try {
-            cmdBaseBlockingQueue.put(cmdQueueItem);
-        } catch (Throwable throwable) {
-            LOGGER.warnMarker("enterQueue", "exception - %s", throwable);
-        }
+        cmdCallbackQueue.enqueue(cmdQueueItem);
     }
 
     @Override
@@ -454,6 +472,28 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     public Job update(Job job) {
         jobDao.update(job);
         return job;
+    }
+
+    /**
+     * Update job instance with new job status and boardcast JobStatusChangeEvent
+     */
+    @Override
+    public void updateJobStatusAndSave(Job job, JobStatus newStatus) {
+        JobStatus originStatus = job.getStatus();
+
+        if (originStatus == newStatus) {
+            jobDao.update(job);
+            return;
+        }
+
+        //if job has finish not to update status
+        if (Job.FINISH_STATUS.contains(originStatus)) {
+            return;
+        }
+        job.setStatus(newStatus);
+        jobDao.update(job);
+
+        this.dispatchEvent(new JobStatusChangeEvent(this, job, originStatus, newStatus));
     }
 
     /**
@@ -495,27 +535,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private void stopJob(Job job) {
         setJobStatusByRootResult(job);
         cmdService.deleteSession(job);
-    }
-
-    /**
-     * Update job instance with new job status and boardcast JobStatusChangeEvent
-     */
-    private void updateJobStatusAndSave(Job job, JobStatus newStatus) {
-        JobStatus originStatus = job.getStatus();
-
-        if (originStatus == newStatus) {
-            jobDao.update(job);
-            return;
-        }
-
-        //if job has finish not to update status
-        if (Job.FINISH_STATUS.contains(originStatus)) {
-            return;
-        }
-        job.setStatus(newStatus);
-        jobDao.update(job);
-
-        this.dispatchEvent(new JobStatusChangeEvent(this, job.getId(), originStatus, newStatus));
     }
 
     @Override
@@ -562,7 +581,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private String logUrl(final Job job) {
-        Path path = Paths.get(domain, "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
-        return path.toString();
+        Path path = Paths.get("/", "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
+        return domain + path.toString();
     }
 }

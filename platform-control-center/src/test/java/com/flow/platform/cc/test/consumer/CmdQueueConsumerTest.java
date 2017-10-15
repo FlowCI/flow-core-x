@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
+import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
@@ -47,6 +48,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.CannotAcquireLockException;
 
 /**
@@ -69,8 +71,13 @@ public class CmdQueueConsumerTest extends TestBase {
     @Autowired
     private CmdService cmdService;
 
+    @Value("${queue.cmd.retry.enable}")
+    private Boolean cmdQueueRetryEnable;
+
     @Before
     public void before() throws Throwable {
+        System.setProperty(QueueConfig.PROP_CMD_QUEUE_RETRY, "true");
+
         zoneService.createZone(new Zone(ZONE, "mock-cloud-provider"));
 
         // ensure zookeeper node is created for zone
@@ -81,9 +88,6 @@ public class CmdQueueConsumerTest extends TestBase {
     public void should_receive_cmd_from_queue() throws Throwable {
         // given:
         String agentName = "agent-name-test";
-        zkClient.delete(ZKHelper.buildPath(ZONE, agentName), false);
-        Thread.sleep(2000);
-
         AgentPath agentPath = createMockAgent(ZONE, agentName);
         Thread.sleep(2000);
 
@@ -208,5 +212,6 @@ public class CmdQueueConsumerTest extends TestBase {
     @After
     public void deleteZone() {
         deleteNodeWithChildren(ZKHelper.buildPath(ZONE, null));
+        System.setProperty(QueueConfig.PROP_CMD_QUEUE_RETRY, "false");
     }
 }

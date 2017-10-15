@@ -34,6 +34,7 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.http.HttpURL;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,6 +57,7 @@ public class CmdWebhookControllerTest extends TestBase {
         // given: flow with two steps , step1 and step2
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
+        build_relation(rootForFlow, job);
         final String sessionId = "1111111";
 
         // when: create session
@@ -147,6 +149,9 @@ public class CmdWebhookControllerTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
 
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
+
+        build_relation(rootForFlow, job);
+
         Step step2 = (Step) nodeService.find("flow1/step2");
         Step step1 = (Step) nodeService.find("flow1/step1");
         Flow flow = (Flow) nodeService.find(job.getNodePath());
@@ -193,6 +198,9 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_callback_with_timeout_but_allow_failure() throws Throwable {
         Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
+
+        build_relation(rootForFlow, job);
+
         final String sessionId = "1111111";
 
         // when: create session

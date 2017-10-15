@@ -53,6 +53,8 @@ public class JobControllerTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
 
+        build_relation(rootForFlow, job);
+
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -76,6 +78,8 @@ public class JobControllerTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
 
+        build_relation(rootForFlow, job);
+
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -97,6 +101,8 @@ public class JobControllerTest extends TestBase {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+
+        build_relation(rootForFlow, job);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -128,6 +134,8 @@ public class JobControllerTest extends TestBase {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+
+        build_relation(rootForFlow, job);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         job.setStatus(JobStatus.SUCCESS);

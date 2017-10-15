@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.api.CreateBuilder;
 import org.apache.curator.framework.api.DeleteBuilder;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.NodeCache;
@@ -40,7 +39,6 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.data.Stat;
 
 /**
  * @author yang
@@ -204,6 +202,24 @@ public class ZKClient implements Closeable {
                 builder.guaranteed().deletingChildrenIfNeeded().forPath(path);
             } else {
                 builder.guaranteed().forPath(path);
+            }
+        } catch (Throwable e) {
+            throw checkException(String.format("Fail to delete node of path: %s", path), e);
+        }
+    }
+
+    public void deleteWithoutGuaranteed(String path, boolean isDeleteChildren) {
+        try {
+            if (!exist(path)) {
+                return;
+            }
+
+            DeleteBuilder builder = client.delete();
+
+            if (isDeleteChildren) {
+                builder.deletingChildrenIfNeeded().forPath(path);
+            } else {
+                builder.forPath(path);
             }
         } catch (Throwable e) {
             throw checkException(String.format("Fail to delete node of path: %s", path), e);

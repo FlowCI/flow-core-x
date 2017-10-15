@@ -84,7 +84,7 @@ public class CmdControllerTest extends TestBase {
         String raw = result.getResponse().getContentAsString();
         CmdType[] types = gsonConfig.fromJson(raw, CmdType[].class);
         Assert.assertNotNull(types);
-        Assert.assertTrue(types.length == 6);
+        Assert.assertTrue(types.length == 7);
     }
 
     @Test

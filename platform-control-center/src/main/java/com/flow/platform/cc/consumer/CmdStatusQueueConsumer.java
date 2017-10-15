@@ -18,11 +18,11 @@ package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.CmdService;
-import com.flow.platform.core.consumer.QueueConsumer;
+import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.QueueListener;
 import com.flow.platform.util.Logger;
-import java.util.concurrent.BlockingQueue;
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,27 +31,20 @@ import org.springframework.stereotype.Component;
  * @author yang
  */
 @Component
-public class CmdStatusQueueConsumer extends QueueConsumer<CmdStatusItem> {
+public class CmdStatusQueueConsumer implements QueueListener<CmdStatusItem> {
 
     private final static Logger LOGGER = new Logger(CmdStatusQueueConsumer.class);
 
     @Autowired
-    private BlockingQueue<CmdStatusItem> cmdStatusQueue;
+    private PlatformQueue<CmdStatusItem> cmdStatusQueue;
 
     @Autowired
     private CmdService cmdService;
 
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
-
-    @Override
-    public ThreadPoolTaskExecutor getTaskExecutor() {
-        return taskExecutor;
-    }
-
-    @Override
-    public BlockingQueue<CmdStatusItem> getQueue() {
-        return cmdStatusQueue;
+    @PostConstruct
+    public void init() {
+        // register to cmd status queue
+        cmdStatusQueue.register(this);
     }
 
     @Override

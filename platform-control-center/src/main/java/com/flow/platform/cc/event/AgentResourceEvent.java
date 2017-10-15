@@ -25,16 +25,32 @@ import org.springframework.context.ApplicationEvent;
  *
  * @author yang
  */
-public class NoAvailableResourceEvent extends ApplicationEvent {
+public class AgentResourceEvent extends ApplicationEvent {
 
-    private String zone;
+    public enum Category {
+        RELEASED,
 
-    public NoAvailableResourceEvent(Object source, String zone) {
+        /**
+         * All agent resource occupied
+         */
+        FULL
+    }
+
+    private final String zone;
+
+    private final Category category;
+
+    public AgentResourceEvent(Object source, String zone, Category category) {
         super(source);
         this.zone = zone;
+        this.category = category;
     }
 
     public String getZone() {
         return zone;
+    }
+
+    public Category getCategory() {
+        return category;
     }
 }

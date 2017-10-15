@@ -18,10 +18,12 @@ package com.flow.platform.api.git;
 
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPushTagEvent;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,9 +32,21 @@ import java.util.Map;
  *
  * @author yang
  */
-public class GitEventDataExtractor {
+public class GitEventEnvConverter {
 
-    public static Map<String, String> extract(GitEvent event) {
+    public static Map<String, String> convert(GitCommit commit) {
+        if (commit == null) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> info = new HashMap<>(3);
+        info.put(GitEnvs.FLOW_GIT_COMMIT_ID.name(), commit.getId());
+        info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), commit.getAuthor());
+        info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), commit.getMessage());
+        return info;
+    }
+
+    public static Map<String, String> convert(GitEvent event) {
         if (event instanceof GitPullRequestEvent) {
             GitPullRequestEvent pr = (GitPullRequestEvent) event;
             Map<String, String> info = new HashMap<>(6);

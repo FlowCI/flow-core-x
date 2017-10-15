@@ -16,7 +16,12 @@
 
 package com.flow.platform.api.consumer;
 
+import com.flow.platform.core.http.converter.RawGsonMessageConverter;
+import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
+import com.google.gson.annotations.JsonAdapter;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.TextMessage;
@@ -37,6 +42,9 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
     @Autowired
     private SimpMessagingTemplate template;
 
+    @Autowired
+    private RawGsonMessageConverter jsonConverter;
+
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String logItem = message.getPayload();
@@ -45,12 +53,15 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
             return;
         }
 
-        // parse log item "index#zone#agent#cmdId#content" and send to event "zone:agent"
-        int numberIndex = logItem.indexOf('#', 0);
-        String number = logItem.substring(0, numberIndex);
+        // parse log item "category#index#zone#agent#cmdId#content" and send to event "zone:agent"
+        int categoryIndex = logItem.indexOf('#', 0);
+        String category = logItem.substring(0, categoryIndex);
+
+        int numberIndex = logItem.indexOf('#', categoryIndex + 1);
+        String number = logItem.substring(categoryIndex + 1, numberIndex);
 
         int zoneIndex = logItem.indexOf('#', numberIndex + 1);
-        String zone = logItem.substring(0, zoneIndex);
+        String zone = logItem.substring(numberIndex + 1, zoneIndex);
 
         int agentIndex = logItem.indexOf('#', zoneIndex + 1);
         String agent = logItem.substring(zoneIndex + 1, agentIndex);
@@ -60,8 +71,36 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
 
         String content = logItem.substring(cmdIdIndex + 1);
 
+        if (category.equals(CmdType.RUN_SHELL.toString())) {
+            sendCmdLog(cmdId, content, number);
+            return;
+        }
+
+        if (category.equals(CmdType.SYSTEM_INFO.toString())) {
+            sendAgentSysInfo(content);
+            return;
+        }
+    }
+
+    /**
+     * send command log
+     * @param cmdId
+     * @param content
+     * @param number
+     */
+    private void sendCmdLog(String cmdId, String content, String number) {
+
         String event = String.format("/topic/cmd/%s", cmdId);
-        
         template.convertAndSend(event, "{\"number\": \"" + number + "\", \"content\": \"" + content + "\"}");
+    }
+
+    /**
+     * send agent sys info
+     * @param content
+     */
+    private void sendAgentSysInfo(String content) {
+        Map<String, String> dic = jsonConverter.getGson().fromJson(content, Map.class);
+        String event = String.format("/topic/agent/sysinfo/%s/%s", dic.get("zone"), dic.get("name"));
+        template.convertAndSend(event, content);
     }
 }

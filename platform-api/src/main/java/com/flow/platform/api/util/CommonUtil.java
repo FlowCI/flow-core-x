@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.util;
 
+import com.google.common.base.Strings;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,4 +39,5 @@ public class CommonUtil {
         String uuid = String.format("%08d", Math.abs(UUID.randomUUID().hashCode()) / 100);
         return new BigInteger(stringBuilder.append(uuid).toString());
     }
+
 }

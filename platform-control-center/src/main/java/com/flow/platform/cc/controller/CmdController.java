@@ -73,8 +73,8 @@ public class CmdController {
 
     @PostMapping(path = "/queue/send")
     public Cmd sendCommandToQueue(@RequestBody CmdInfo cmd, @RequestParam int priority, @RequestParam int retry) {
-        if (!Range.closed(1, 255).contains(priority)) {
-            throw new IllegalParameterException("Illegal priority value should between (1 - 255)");
+        if (!Range.closed(1, 10).contains(priority)) {
+            throw new IllegalParameterException("Illegal priority value should between (1 - 10)");
         }
 
         if (!Range.closed(0, 100).contains(retry)) {

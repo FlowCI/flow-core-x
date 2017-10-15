@@ -49,6 +49,11 @@ public enum CmdType implements Serializable {
     STOP("STOP"),
 
     /**
+     * run other command, do not affect step command running
+     */
+    SYSTEM_INFO("SYSTEM_INFO"),
+
+    /**
      * Stop agent, delete session and shutdown machine
      */
     SHUTDOWN("SHUTDOWN");

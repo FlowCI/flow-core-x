@@ -24,7 +24,6 @@ import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
-import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
@@ -129,6 +128,17 @@ public class CmdServiceImpl implements CmdService {
         } catch (Throwable e) {
             String rootCause = ExceptionUtil.findRootCause(e).getMessage();
             throw new IllegalStatusException("Unable to shutdown since: " + rootCause);
+        }
+    }
+
+    @Override
+    public void sendCmd(AgentPath agentPath, CmdInfo cmdInfo) {
+        try {
+            LOGGER.traceMarker("sendCmd", "send sys cmd ");
+            sendDirectly(cmdInfo);
+        } catch (Throwable e) {
+            String rootCause = ExceptionUtil.findRootCause(e).getMessage();
+            throw new IllegalStatusException("Unable to send cmd since: " + rootCause);
         }
     }
 

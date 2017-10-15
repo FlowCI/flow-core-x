@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.events;
 
+import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import java.math.BigInteger;
 import org.springframework.context.ApplicationEvent;
@@ -25,21 +26,21 @@ import org.springframework.context.ApplicationEvent;
  */
 public class JobStatusChangeEvent extends ApplicationEvent {
 
-    private final BigInteger jobId;
+    private final Job job;
 
     private final JobStatus from;
 
     private final JobStatus to;
 
-    public JobStatusChangeEvent(Object sender, BigInteger jobId, JobStatus from, JobStatus to) {
+    public JobStatusChangeEvent(Object sender, Job job, JobStatus from, JobStatus to) {
         super(sender);
-        this.jobId = jobId;
+        this.job = job;
         this.from = from;
         this.to = to;
     }
 
-    public BigInteger getJobId() {
-        return jobId;
+    public Job getJob() {
+        return job;
     }
 
     public JobStatus getFrom() {
