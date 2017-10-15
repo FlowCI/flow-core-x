@@ -93,7 +93,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         ShutdownCmdHandler shutdownHandler = new ShutdownCmdHandler();
         handler.put(shutdownHandler.handleType(), shutdownHandler);
 
-        RunOtherCmdHandler runOtherCmdHandler = new RunOtherCmdHandler();
+        SystemInfoCmdHandler runOtherCmdHandler = new SystemInfoCmdHandler();
         handler.put(runOtherCmdHandler.handleType(), runOtherCmdHandler);
     }
 
@@ -372,7 +372,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         }
     }
 
-    private class RunOtherCmdHandler extends CmdHandler {
+    private class SystemInfoCmdHandler extends CmdHandler {
 
         @Override
         CmdType handleType() {
