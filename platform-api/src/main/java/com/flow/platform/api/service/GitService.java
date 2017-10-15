@@ -58,7 +58,7 @@ public interface GitService {
      * @param progress listener for git progress
      * @return file content
      */
-    String clone(Node node, String filePath, ProgressListener progress) throws GitException;
+    String fetch(Node node, String filePath, ProgressListener progress) throws GitException;
 
     /**
      * Fetch branches from git repo

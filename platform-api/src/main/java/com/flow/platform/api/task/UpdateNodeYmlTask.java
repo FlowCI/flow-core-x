@@ -63,12 +63,12 @@ public class UpdateNodeYmlTask implements Runnable {
     public void run() {
         String yml;
         try {
-            yml = gitService.clone(root, AppConfig.DEFAULT_YML_FILE, new GitProgressListener());
+            yml = gitService.fetch(root, AppConfig.DEFAULT_YML_FILE, new GitProgressListener());
         } catch (Throwable e) {
             // check yml status is running since exception will be throw if manual stop the git clone thread
             if (YmlStatusValue.isLoadingStatus(root.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
                 Throwable rootCause = ExceptionUtil.findRootCause(e);
-                LOGGER.error("Unable to clone from git repo", rootCause);
+                LOGGER.error("Unable to fetch from git repo", rootCause);
                 nodeService.updateYmlState(root, YmlStatusValue.ERROR, rootCause.getMessage());
             }
             return;

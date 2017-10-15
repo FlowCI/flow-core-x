@@ -68,7 +68,7 @@ public class GitServiceImpl implements GitService {
     }
 
     @Override
-    public String clone(Node node, String filePath, ProgressListener progressListener) throws GitException {
+    public String fetch(Node node, String filePath, ProgressListener progressListener) throws GitException {
         GitClient client = gitClientInstance(node);
 
         if (progressListener != null) {

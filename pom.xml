@@ -57,6 +57,7 @@
     <javax.mail.version>1.5.5</javax.mail.version>
     <yamlbeans.version>1.12</yamlbeans.version>
     <velocity.version>1.5</velocity.version>
+    <java-gitlab-api.version>1.2.8</java-gitlab-api.version>
   </properties>
 
   <build>
@@ -284,6 +285,12 @@
         <groupId>org.apache.velocity</groupId>
         <artifactId>velocity</artifactId>
         <version>${velocity.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.gitlab</groupId>
+        <artifactId>java-gitlab-api</artifactId>
+        <version>${java-gitlab-api.version}</version>
       </dependency>
 
       <!--library for testing-->

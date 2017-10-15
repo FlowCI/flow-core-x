@@ -58,11 +58,11 @@ public class GitServiceTest extends TestBase {
 
     @Test
     public void should_clone_git_file_with_ssh_pk() throws Throwable {
-        String content = gitService.clone(node, AppConfig.DEFAULT_YML_FILE, new ProgressListener() {
+        String content = gitService.fetch(node, AppConfig.DEFAULT_YML_FILE, new ProgressListener() {
 
             @Override
             public void onStart() {
-                System.out.println("Start clone");
+                System.out.println("Start fetch");
             }
 
             @Override
