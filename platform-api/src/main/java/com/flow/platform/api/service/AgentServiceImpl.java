@@ -28,6 +28,8 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentPathWithWebhook;
 import com.flow.platform.domain.AgentSettings;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
@@ -170,5 +172,11 @@ public class AgentServiceImpl implements AgentService {
 
     private String buildAgentWebhook() {
         return domain + "/agents/callback";
+    }
+
+    @Override
+    public void sendSysCmd(AgentPath agentPath) {
+        CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SYSTEM_INFO, "");
+        cmdService.sendCmd(agentPath, cmdInfo);
     }
 }

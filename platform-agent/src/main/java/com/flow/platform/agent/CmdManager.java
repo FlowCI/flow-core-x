@@ -17,21 +17,28 @@
 package com.flow.platform.agent;
 
 import com.flow.platform.cmd.CmdExecutor;
+import com.flow.platform.cmd.Log;
+import com.flow.platform.cmd.Log.Type;
 import com.flow.platform.cmd.ProcListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Singleton class to handle command
@@ -166,7 +173,6 @@ public class CmdManager {
                     ProcEventHandler procEventHandler =
                         new ProcEventHandler(getCmd(), extraProcEventListeners, running, finished);
 
-
                     CmdExecutor executor;
                     try {
                         executor = new CmdExecutor(
@@ -194,6 +200,15 @@ public class CmdManager {
             return;
         }
 
+        if (cmd.getType() == CmdType.SYSTEM_INFO) {
+            LogEventHandler logListener = new LogEventHandler(cmd);
+            Log log = new Log(Type.STDERR, collectionAgentInfo());
+            logListener.onLog(log);
+            logListener.onFinish();
+            cmd.setStatus(CmdStatus.EXECUTED);
+            return;
+        }
+
         // kill current running proc
         if (cmd.getType() == CmdType.KILL) {
             defaultExecutor.execute(this::kill);
@@ -212,6 +227,29 @@ public class CmdManager {
                 shutdown(passwordOfSudo);
             });
         }
+    }
+
+    /**
+     * collect agent info
+     * @return
+     */
+    private String collectionAgentInfo() {
+        String javaVersion = System.getProperty("java.version");
+        String osName = System.getProperty("os.name");
+        Runtime runtime = Runtime.getRuntime();
+        int kb = 1024;
+        long total = runtime.totalMemory();
+        long free = runtime.freeMemory();
+        long use = total - free;
+        Map<String, String> dic = new HashMap<>(7);
+        dic.put("javaVersion", javaVersion);
+        dic.put("osName", osName);
+        dic.put("totalMemory", total / kb + "MB");
+        dic.put("useMemory", use / kb + "MB");
+        dic.put("zone", Config.zone());
+        dic.put("name", Config.name());
+        dic.put("agentVersion", Config.getProperty("version"));
+        return Jsonable.GSON_CONFIG.toJson(dic);
     }
 
     /**
