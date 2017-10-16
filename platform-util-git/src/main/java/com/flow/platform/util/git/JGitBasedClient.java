@@ -48,7 +48,7 @@ import org.eclipse.jgit.util.FileUtils;
 /**
  * @author yang
  */
-public abstract class AbstractGitClient implements GitClient {
+public abstract class JGitBasedClient implements GitClient {
 
     protected static final int GIT_TRANS_TIMEOUT = 30; // in seconds
 
@@ -62,7 +62,7 @@ public abstract class AbstractGitClient implements GitClient {
      */
     protected Path targetDir; // target base directory
 
-    public AbstractGitClient(String gitUrl, Path baseDir) {
+    public JGitBasedClient(String gitUrl, Path baseDir) {
         this.gitUrl = gitUrl;
 
         // verify git url

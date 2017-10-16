@@ -24,7 +24,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 /**
  * @author yang
  */
-public class GitHttpClient extends AbstractGitClient {
+public class GitHttpClient extends JGitBasedClient {
 
     private final CredentialsProvider usernameProvider;
 
