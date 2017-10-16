@@ -29,6 +29,9 @@ import org.eclipse.jgit.lib.Ref;
  */
 public interface GitClient {
 
+    /**
+     * Git repo dir
+     */
     Path targetPath();
 
     /**
@@ -51,6 +54,15 @@ public interface GitClient {
      * @throws GitException if git clone fail
      */
     File clone(String branch, Set<String> checkoutFiles, ProgressMonitor monitor) throws GitException;
+
+    /**
+     * Fetch file content
+     *
+     * @param branch branch of target file
+     * @param filePath git file path
+     * @param monitor git progress monitor, can be null
+     */
+    String fetch(String branch, String filePath, ProgressMonitor monitor) throws GitException;
 
     /**
      * Git pull with depth

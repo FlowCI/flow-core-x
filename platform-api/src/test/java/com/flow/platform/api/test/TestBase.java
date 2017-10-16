@@ -97,7 +97,7 @@ import org.springframework.web.context.WebApplicationContext;
 public abstract class TestBase {
 
     protected final static String GITHUB_TEST_REPO_SSH = "git@github.com:flow-ci-plugin/for-testing.git";
-    protected final static String GITHUB_TEST_REPO_HTTP = "git@github.com:flow-ci-plugin/for-testing.git";
+    protected final static String GITHUB_TEST_REPO_HTTP = "https://github.com/flow-ci-plugin/for-testing.git";
 
     static {
         System.setProperty("flow.api.env", "test");

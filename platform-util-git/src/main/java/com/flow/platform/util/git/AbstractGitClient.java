@@ -19,6 +19,7 @@ package com.flow.platform.util.git;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.git.model.GitCommit;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -128,6 +129,22 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
+    public String fetch(String branch, String filePath, ProgressMonitor monitor) throws GitException {
+        clone(branch, Sets.newHashSet(filePath), monitor);
+        Path targetPath = Paths.get(targetDir.toString(), filePath);
+
+        if (Files.exists(targetPath)) {
+            try {
+                return com.google.common.io.Files.toString(targetPath.toFile(), Charset.forName("UTF-8"));
+            } catch (IOException e) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public void pull(String branch, ProgressMonitor monitor) throws GitException {
         try (Git git = gitOpen()) {
             PullCommand pullCommand = pullCommand(branch, git);
@@ -138,7 +155,7 @@ public abstract class AbstractGitClient implements GitClient {
             }
             pullCommand.call();
         } catch (Throwable e) {
-            throw new GitException("Fail to pull with specific files", ExceptionUtil.findRootCause(e));
+            throw new GitException("Fail to pull with specific files: " + ExceptionUtil.findRootCause(e).getMessage());
         }
     }
 

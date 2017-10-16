@@ -46,8 +46,6 @@ public interface GitService {
         void onProgressing(String task, int total, int progress);
 
         void onFinishTask(String task);
-
-        void onFinish();
     }
 
     /**

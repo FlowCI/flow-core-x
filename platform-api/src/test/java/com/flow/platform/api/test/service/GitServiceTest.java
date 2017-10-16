@@ -80,11 +80,6 @@ public class GitServiceTest extends TestBase {
             public void onFinishTask(String task) {
                 System.out.println("Task finished: " + task);
             }
-
-            @Override
-            public void onFinish() {
-                System.out.println("All finished ");
-            }
         });
 
         Assert.assertNotNull(content);

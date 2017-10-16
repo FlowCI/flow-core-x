@@ -16,7 +16,6 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.git.GitClientBuilder;
@@ -32,7 +31,6 @@ import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitSource;
-import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,6 +52,29 @@ import org.springframework.stereotype.Service;
 @Service
 public class GitServiceImpl implements GitService {
 
+    private class EmptyProgressListener implements ProgressListener {
+
+        @Override
+        public void onStart() {
+
+        }
+
+        @Override
+        public void onStartTask(String task) {
+
+        }
+
+        @Override
+        public void onProgressing(String task, int total, int progress) {
+
+        }
+
+        @Override
+        public void onFinishTask(String task) {
+
+        }
+    }
+
     private final static Logger LOGGER = new Logger(GitService.class);
 
     private final Map<GitSource, Class<? extends GitClientBuilder>> clientBuilderType = new HashMap<>(6);
@@ -71,18 +92,13 @@ public class GitServiceImpl implements GitService {
     public String fetch(Node node, String filePath, ProgressListener progressListener) throws GitException {
         GitClient client = gitClientInstance(node);
 
-        if (progressListener != null) {
-            progressListener.onStart();
+        if (progressListener == null) {
+            progressListener = new EmptyProgressListener();
         }
 
+        progressListener.onStart();
         String branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
-        client.clone(branch, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
-
-        if (progressListener != null) {
-            progressListener.onFinish();
-        }
-
-        return fetch(client, filePath);
+        return client.fetch(branch, filePath, new GitCloneProgressMonitor(progressListener));
     }
 
     @Override
@@ -142,26 +158,19 @@ public class GitServiceImpl implements GitService {
 
         @Override
         public void beginTask(String title, int totalWork) {
-            this.currentTask = title;
-            this.currentTotalWork = totalWork;
-
-            if (progressListener != null) {
-                progressListener.onStartTask(title);
-            }
+            currentTask = title;
+            currentTotalWork = totalWork;
+            progressListener.onStartTask(title);
         }
 
         @Override
         public void update(int completed) {
-            if (progressListener != null) {
-                progressListener.onProgressing(currentTask, currentTotalWork, completed);
-            }
+            progressListener.onProgressing(currentTask, currentTotalWork, completed);
         }
 
         @Override
         public void endTask() {
-            if (progressListener != null) {
-                progressListener.onFinishTask(currentTask);
-            }
+            progressListener.onFinishTask(currentTask);
         }
 
         @Override
@@ -227,30 +236,5 @@ public class GitServiceImpl implements GitService {
         Path flowWorkspace = NodeUtil.workspacePath(workspace, node);
         Files.createDirectories(flowWorkspace);
         return Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
-    }
-
-    /**
-     * Get target file from local git repo folder
-     */
-    private String fetch(GitClient gitClient, String filePath) {
-        Path targetPath = Paths.get(gitClient.targetPath().toString(), filePath);
-
-        if (Files.exists(targetPath)) {
-            return getContent(targetPath);
-        }
-
-        return null;
-    }
-
-    /**
-     * Get file content from source code folder of flow workspace
-     */
-    private String getContent(Path path) {
-        try {
-            return com.google.common.io.Files.toString(path.toFile(), AppConfig.DEFAULT_CHARSET);
-        } catch (IOException e) {
-            LOGGER.warn("Fail to load file content from %s", path.toString());
-            return null;
-        }
     }
 }
