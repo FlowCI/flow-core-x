@@ -43,7 +43,7 @@ public class GitLabClient implements GitClient {
 
     private final String token;
 
-    private final GitlabProject project; // NAMESPACE/PROJECT_NAME
+    private GitlabProject project; // NAMESPACE/PROJECT_NAME
 
     private final GitlabAPI connect;
 
@@ -51,13 +51,17 @@ public class GitLabClient implements GitClient {
         this.host = host;
         this.token = token;
         this.connect = GitlabAPI.connect(host, token);
-        try {
-            this.project = this.connect.getProject(project);
-        } catch (IOException e) {
-            if (e instanceof FileNotFoundException) {
-                throw new GitException("Project not found: " + e.getMessage());
+
+        // init gitlab project if project name given
+        if (project != null) {
+            try {
+                this.project = this.connect.getProject(project);
+            } catch (IOException e) {
+                if (e instanceof FileNotFoundException) {
+                    throw new GitException("Project not found: " + e.getMessage());
+                }
+                throw new GitException(e.getMessage());
             }
-            throw new GitException(e.getMessage());
         }
     }
 

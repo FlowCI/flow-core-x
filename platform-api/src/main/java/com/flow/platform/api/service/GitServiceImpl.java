@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitHttpClientBuilder;
+import com.flow.platform.api.git.GitLabClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
@@ -83,6 +84,7 @@ public class GitServiceImpl implements GitService {
     public void init() {
         clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
         clientBuilderType.put(GitSource.UNDEFINED_HTTP, GitHttpClientBuilder.class);
+        clientBuilderType.put(GitSource.GITLAB, GitLabClientBuilder.class);
     }
 
     @Override
@@ -178,12 +180,16 @@ public class GitServiceImpl implements GitService {
      * Init git client from flow env
      *
      * - FLOW_GIT_SOURCE
-     * - FLOW_GIT_URL
+     * - FLOW_GIT_URL : UNDEFINED_HTTP / UNDEFINED_SSH
      * - FLOW_GIT_BRANCH
      * - FLOW_GIT_SSH_PRIVATE_KEY
      * - FLOW_GIT_SSH_PUBLIC_KEY
      * - FLOW_GIT_HTTP_USER
      * - FLOW_GIT_HTTP_PASS
+     *
+     * - FLOW_GITLAB_HOST
+     * - FLOW_GITLAB_TOKEN
+     * - FLOW_GITLAB_PROJECT
      */
     private GitClient gitClientInstance(Node node) {
         checkRequiredEnv(node);
@@ -203,9 +209,13 @@ public class GitServiceImpl implements GitService {
             throw new IllegalStatusException("Fail to create GitClientBuilder instance: " + e.getMessage());
         }
 
-        GitClient client = builder.build();
-        LOGGER.trace("Git client initialized: %s", client);
-        return client;
+        try {
+            GitClient client = builder.build();
+            LOGGER.trace("Git client initialized: %s", client);
+            return client;
+        } catch (GitException e) {
+            throw new IllegalStatusException("Unable to init git client for " + source);
+        }
     }
 
     /**

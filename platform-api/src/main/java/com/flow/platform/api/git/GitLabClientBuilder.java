@@ -20,27 +20,29 @@ import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitException;
+import com.flow.platform.util.git.GitLabClient;
 import java.nio.file.Path;
 
 /**
  * @author yang
  */
-public abstract class GitClientBuilder {
+public class GitLabClientBuilder extends GitClientBuilder {
 
-    protected String url;
+    private final String host;
 
-    protected String branch;
+    private final String token;
 
-    /**
-     * The folder path for git clone
-     */
-    protected Path sourceFolder;
+    private final String project;
 
-    public GitClientBuilder(final Node node, final Path sourceFolder) {
-        this.url = node.getEnv(GitEnvs.FLOW_GIT_URL);
-        this.branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH);
-        this.sourceFolder = sourceFolder;
+    public GitLabClientBuilder(Node node, Path sourceFolder) {
+        super(node, sourceFolder);
+        host = node.getEnv(GitEnvs.FLOW_GIT_URL);
+        token = node.getEnv(GitEnvs.FLOW_GITLAB_TOKEN);
+        project = node.getEnv(GitEnvs.FLOW_GITLAB_PROJECT);
     }
 
-    public abstract GitClient build() throws GitException;
+    @Override
+    public GitClient build() throws GitException {
+        return new GitLabClient(host, token, project);
+    }
 }

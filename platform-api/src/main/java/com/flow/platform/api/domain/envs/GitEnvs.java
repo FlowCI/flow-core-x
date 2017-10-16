@@ -26,6 +26,11 @@ public enum GitEnvs implements EnvKey {
      */
     FLOW_GIT_SOURCE,
 
+    /**
+     * For diff FLOW_GIT_SOURCE
+     *  - UNDEFINED_SSH and UNDEFINED_HTTP is repo url
+     *  - GITLAB is gitlab host url
+     */
     FLOW_GIT_URL,
 
     FLOW_GIT_BRANCH,
@@ -69,5 +74,12 @@ public enum GitEnvs implements EnvKey {
 
     FLOW_GIT_HTTP_USER,
 
-    FLOW_GIT_HTTP_PASS
+    FLOW_GIT_HTTP_PASS,
+
+    /**
+     * Env variables for GitLab
+     */
+    FLOW_GITLAB_TOKEN,
+
+    FLOW_GITLAB_PROJECT
 }
