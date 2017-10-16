@@ -98,4 +98,9 @@ public class AgentController {
 
         agentService.saveWithStatus(agent, agent.getStatus());
     }
+
+    @PostMapping(path = "/delete")
+    public void delete(@RequestBody Agent agent){
+        agentService.delete(agent);
+    }
 }

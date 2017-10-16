@@ -42,13 +42,17 @@ public interface AgentService {
     /**
      * Create agent and return token from cc
      */
-    Agent create(AgentPath agentPath);
+    AgentWithFlow create(AgentPath agentPath);
 
     /**
      * Get agent setting by token from cc
      */
     AgentSettings settings(String token);
 
+    /**
+     * Delete agent by agentPath from cc
+     */
+    void delete(AgentPath agentPath);
     /**
      * send sys cmd
      * @param agentPath required
