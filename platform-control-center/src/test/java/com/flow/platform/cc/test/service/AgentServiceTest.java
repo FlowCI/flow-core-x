@@ -255,8 +255,7 @@ public class AgentServiceTest extends TestBase {
         agentService.saveWithStatus(created, AgentStatus.BUSY);
 
         agentService.delete(created);
-
-        Assert.assertEquals(0, agentService.list(zoneName).size());
+        Assert.assertNull(agentService.find(new AgentPath(zoneName, agentName)));
 
     }
 }
