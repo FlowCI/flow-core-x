@@ -195,4 +195,30 @@ public class AgentController extends ApplicationEventService {
     public void callback(@RequestBody Agent agent) {
         this.dispatchEvent(new AgentStatusChangeEvent(this, agent));
     }
+
+    /**
+     * @api {Post} /agents/delete Delete
+     * @apiName Delete Agent
+     * @apiGroup Agent
+     * @apiDescription Delete agent by agentPath
+     *
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         zone: xxx,
+     *         name: xxx
+     *     }
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
+    @PostMapping(path = "/delete")
+    public void delete(@RequestBody AgentPath agentPath){
+        agentService.delete(agentPath);
+    }
 }

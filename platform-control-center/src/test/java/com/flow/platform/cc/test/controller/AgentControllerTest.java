@@ -163,4 +163,44 @@ public class AgentControllerTest extends TestBase {
             .andExpect(status().isBadRequest())
             .andReturn();
     }
+
+    @Test
+    public void should_delete_agent() throws Exception{
+        // given:
+        final String webhook = "http://flow.ci/agent/callback";
+        AgentPathWithWebhook agentPath = new AgentPathWithWebhook("default", "test", webhook);
+
+        // when: create agent
+        MockHttpServletRequestBuilder content = post("/agents/create")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(agentPath.toJson());
+
+        MvcResult result = this.mockMvc.perform(content)
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then: verify agent been created with token
+        String agentJson = result.getResponse().getContentAsString();
+        Assert.assertNotNull(agentJson);
+
+        Agent created = Agent.parse(agentJson, Agent.class);
+
+        MockHttpServletRequestBuilder content1 = post("/agents/delete")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(created.toJson());
+        this.mockMvc.perform(content1);
+
+
+        MvcResult result1 = this.mockMvc.perform(get("/agents/list").param(created.getZone(), created.getName()))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andReturn();
+
+        // then:
+        String json = result1.getResponse().getContentAsString();
+
+        Agent[] agentList = gsonConfig.fromJson(json, Agent[].class);
+        Assert.assertEquals(0, agentList.length);
+
+    }
 }

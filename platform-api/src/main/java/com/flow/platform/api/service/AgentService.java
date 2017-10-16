@@ -50,6 +50,10 @@ public interface AgentService {
     AgentSettings settings(String token);
 
     /**
+     * Delete agent by agentPath from cc
+     */
+    void delete(AgentPath agentPath);
+    /**
      * send sys cmd
      * @param agentPath required
      */

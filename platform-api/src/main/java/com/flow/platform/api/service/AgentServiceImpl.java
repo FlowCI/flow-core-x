@@ -28,6 +28,7 @@ import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentPathWithWebhook;
 import com.flow.platform.domain.AgentSettings;
+import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
@@ -170,8 +171,19 @@ public class AgentServiceImpl implements AgentService {
         return AgentSettings.parse(response.getBody(), AgentSettings.class);
     }
 
-    private String buildAgentWebhook() {
-        return domain + "/agents/callback";
+    @Override
+    public void delete(AgentPath agentPath){
+        Agent agent = findAgent(agentPath);
+
+        try {
+            HttpClient.build(platformURL.getAgentDeleteUrl())
+                .post(agent.toJson())
+                .withContentType(ContentType.APPLICATION_JSON)
+                .retry(httpRetryTimes);
+
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStatusException(e.getMessage());
+        }
     }
 
     @Override
@@ -179,4 +191,32 @@ public class AgentServiceImpl implements AgentService {
         CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SYSTEM_INFO, "");
         cmdService.sendCmd(agentPath, cmdInfo);
     }
+
+    private String buildAgentWebhook() {
+        return domain + "/agents/callback";
+    }
+
+    /**
+     * find agent
+     */
+    private Agent findAgent(AgentPath agentPath){
+        String url = platformURL.getAgentFindUrl() + "?" + "zone=" + agentPath.getZone() + "&" + "name=" + agentPath.getName();
+        HttpResponse<String> response = HttpClient.build(url)
+            .get()
+            .retry(httpRetryTimes)
+            .bodyAsString();
+
+        if (!response.hasSuccess()) {
+            throw new HttpException("Unable to delete agent");
+        }
+
+        Agent agent = Agent.parse(response.getBody(), Agent.class);
+
+        if (agent.getStatus() == AgentStatus.BUSY){
+            throw new IllegalStatusException("agent is busy, please wait");
+        }
+
+        return agent;
+    }
+
 }
