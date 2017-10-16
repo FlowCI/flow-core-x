@@ -16,9 +16,12 @@
 
 package com.flow.platform.util.git.test;
 
+import static junit.framework.TestCase.fail;
+
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.GitLabClient;
+import com.flow.platform.util.git.model.GitCommit;
 import com.google.common.base.Strings;
 import java.util.List;
 import org.junit.Assert;
@@ -44,9 +47,28 @@ public class GitLabClientTest {
     }
 
     @Test
+    public void should_throw_git_exception_for_not_existed_project() throws Throwable {
+        try {
+            new GitLabClient("https://gitlab.com/", "E63AvvP5EvYhDwFySAE5", "yang.guo/hello");
+            fail();
+        } catch (GitException e) {
+            Assert.assertTrue(e.getMessage().startsWith("Project not found"));
+        }
+    }
+
+    @Test
     public void should_get_file_content_from_git() throws Throwable {
         String fileContent = client.fetch("master", ".flow.yml", null);
         Assert.assertEquals(false, Strings.isNullOrEmpty(fileContent));
+    }
+
+    @Test
+    public void should_get_commit_info() throws Throwable {
+        GitCommit commit = client.commit("master");
+        Assert.assertNotNull(commit);
+        Assert.assertNotNull(commit.getId());
+        Assert.assertNotNull(commit.getAuthor());
+        Assert.assertNotNull(commit.getMessage());
     }
 
     @Test

@@ -18,6 +18,7 @@ package com.flow.platform.util.git;
 
 import com.flow.platform.util.git.model.GitCommit;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.Set;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.gitlab.api.GitlabAPI;
 import org.gitlab.api.models.GitlabBranch;
+import org.gitlab.api.models.GitlabCommit;
 import org.gitlab.api.models.GitlabProject;
 import org.gitlab.api.models.GitlabRepositoryFile;
 import org.gitlab.api.models.GitlabTag;
@@ -52,6 +54,9 @@ public class GitLabClient implements GitClient {
         try {
             this.project = this.connect.getProject(project);
         } catch (IOException e) {
+            if (e instanceof FileNotFoundException) {
+                throw new GitException("Project not found: " + e.getMessage());
+            }
             throw new GitException(e.getMessage());
         }
     }
@@ -118,7 +123,18 @@ public class GitLabClient implements GitClient {
 
     @Override
     public GitCommit commit(String refName) throws GitException {
-        return null;
+        try {
+            List<GitlabCommit> lastCommits = connect.getLastCommits(project.getId(), refName);
+            GitlabCommit gitlabCommit = lastCommits.get(0);
+
+            String commitId = gitlabCommit.getId();
+            String commitMessage = gitlabCommit.getMessage();
+            String commitAuthorEmail = gitlabCommit.getAuthorEmail();
+
+            return new GitCommit(commitId, commitMessage, commitAuthorEmail);
+        } catch (IOException e) {
+            throw new GitException(e.getMessage());
+        }
     }
 
     private List<String> toStringBranches(Collection<GitlabBranch> branches) {
