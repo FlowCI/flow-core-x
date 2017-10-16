@@ -135,7 +135,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public Agent create(AgentPath agentPath) {
+    public AgentWithFlow create(AgentPath agentPath) {
         try {
             AgentPathWithWebhook pathWithWebhook = new AgentPathWithWebhook(agentPath, buildAgentWebhook());
 
@@ -149,7 +149,10 @@ public class AgentServiceImpl implements AgentService {
                 throw new HttpException("Unable to create agent via control center");
             }
 
-            return Agent.parse(response.getBody(), Agent.class);
+            Agent agent = Agent.parse(response.getBody(), Agent.class);
+
+            AgentWithFlow agentWithFlow = new AgentWithFlow(agent, null);
+            return agentWithFlow;
 
         } catch (UnsupportedEncodingException | JsonSyntaxException e) {
             throw new IllegalStatusException("Unable to create agent", e);
@@ -172,14 +175,15 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public void delete(AgentPath agentPath){
+    public void delete(AgentPath agentPath) {
         Agent agent = findAgent(agentPath);
 
         try {
             HttpClient.build(platformURL.getAgentDeleteUrl())
                 .post(agent.toJson())
                 .withContentType(ContentType.APPLICATION_JSON)
-                .retry(httpRetryTimes);
+                .retry(httpRetryTimes)
+                .bodyAsString();
 
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStatusException(e.getMessage());
@@ -199,8 +203,9 @@ public class AgentServiceImpl implements AgentService {
     /**
      * find agent
      */
-    private Agent findAgent(AgentPath agentPath){
-        String url = platformURL.getAgentFindUrl() + "?" + "zone=" + agentPath.getZone() + "&" + "name=" + agentPath.getName();
+    private Agent findAgent(AgentPath agentPath) {
+        String url =
+            platformURL.getAgentFindUrl() + "?" + "zone=" + agentPath.getZone() + "&" + "name=" + agentPath.getName();
         HttpResponse<String> response = HttpClient.build(url)
             .get()
             .retry(httpRetryTimes)
@@ -212,7 +217,11 @@ public class AgentServiceImpl implements AgentService {
 
         Agent agent = Agent.parse(response.getBody(), Agent.class);
 
-        if (agent.getStatus() == AgentStatus.BUSY){
+        if (agent == null){
+            throw new IllegalStatusException("agent is not exist");
+        }
+
+        if (agent.getStatus() == AgentStatus.BUSY) {
             throw new IllegalStatusException("agent is busy, please wait");
         }
 

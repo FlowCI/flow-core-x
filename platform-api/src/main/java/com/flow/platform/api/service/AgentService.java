@@ -42,7 +42,7 @@ public interface AgentService {
     /**
      * Create agent and return token from cc
      */
-    Agent create(AgentPath agentPath);
+    AgentWithFlow create(AgentPath agentPath);
 
     /**
      * Get agent setting by token from cc

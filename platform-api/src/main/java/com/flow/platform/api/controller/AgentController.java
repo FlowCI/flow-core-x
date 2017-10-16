@@ -86,7 +86,7 @@ public class AgentController extends ApplicationEventService {
      *  }
      */
     @PostMapping(path = "/create")
-    public Agent create(@RequestBody AgentPath agentPath) {
+    public AgentWithFlow create(@RequestBody AgentPath agentPath) {
         if (agentPath.isEmpty()) {
             throw new IllegalParameterException("Zone and agent name are required");
         }
