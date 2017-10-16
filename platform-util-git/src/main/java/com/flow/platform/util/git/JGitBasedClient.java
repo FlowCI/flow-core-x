@@ -29,8 +29,10 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -160,24 +162,28 @@ public abstract class JGitBasedClient implements GitClient {
     }
 
     @Override
-    public Collection<Ref> branches() throws GitException {
+    public List<String> branches() throws GitException {
         try {
-            return buildCommand(Git.lsRemoteRepository()
+            Collection<Ref> refs = buildCommand(Git.lsRemoteRepository()
                 .setHeads(true)
                 .setTimeout(GIT_TRANS_TIMEOUT)
                 .setRemote(gitUrl)).call();
+
+            return toRefString(refs);
         } catch (GitAPIException e) {
             throw new GitException("Fail to list branches from remote repo", e);
         }
     }
 
     @Override
-    public Collection<Ref> tags() throws GitException {
+    public List<String> tags() throws GitException {
         try {
-            return buildCommand(Git.lsRemoteRepository()
+            Collection<Ref> refs = buildCommand(Git.lsRemoteRepository()
                 .setTags(true)
                 .setTimeout(GIT_TRANS_TIMEOUT)
                 .setRemote(gitUrl)).call();
+
+            return toRefString(refs);
         } catch (GitAPIException e) {
             throw new GitException("Fail to list tags from remote repo", ExceptionUtil.findRootCause(e));
         }
@@ -220,6 +226,22 @@ public abstract class JGitBasedClient implements GitClient {
      * Git command builder
      */
     protected abstract <T extends TransportCommand> T buildCommand(T command);
+
+    private List<String> toRefString(Collection<Ref> refs) {
+        List<String> refStringList = new ArrayList<>(refs.size());
+
+        for (Ref ref : refs) {
+            // convert ref name from ref/head/master to master
+            String refName = ref.getName();
+            int lastIndexOfSlash = refName.lastIndexOf('/');
+            String simpleName = refName.substring(lastIndexOfSlash + 1);
+
+            // add to result list
+            refStringList.add(simpleName);
+        }
+
+        return refStringList;
+    }
 
     /**
      * Create local .git with remote info

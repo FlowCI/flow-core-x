@@ -19,10 +19,9 @@ package com.flow.platform.util.git;
 import com.flow.platform.util.git.model.GitCommit;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import org.eclipse.jgit.lib.ProgressMonitor;
-import org.eclipse.jgit.lib.Ref;
 
 /**
  * @author yang
@@ -76,12 +75,12 @@ public interface GitClient {
     /**
      * Load all branches from git
      */
-    Collection<Ref> branches() throws GitException;
+    List<String> branches() throws GitException;
 
     /**
      * Load all tags from git
      */
-    Collection<Ref> tags() throws GitException;
+    List<String> tags() throws GitException;
 
     /**
      * Git latest commit from ref
