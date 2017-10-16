@@ -29,7 +29,10 @@ import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.domain.CmdStatusItem;
+import com.flow.platform.cc.event.AgentResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.core.task.WebhookCallBackTask;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -77,13 +80,10 @@ import org.springframework.web.multipart.MultipartFile;
  */
 
 @Service
-@Transactional(isolation = Isolation.REPEATABLE_READ)
+@Transactional
 public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
-
-    @Value("${mq.queue.cmd.name}")
-    private String cmdQueueName;
 
     @Autowired
     private AgentService agentService;
@@ -92,7 +92,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     private ZoneService zoneService;
 
     @Autowired
-    private BlockingQueue<CmdStatusItem> cmdStatusQueue;
+    private PlatformQueue<CmdStatusItem> cmdStatusQueue;
 
     @Autowired
     private CmdDao cmdDao;
@@ -104,7 +104,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     private AgentDao agentDao;
 
     @Autowired
-    private RabbitTemplate cmdQueueTemplate;
+    private PlatformQueue<Message> cmdQueue;
 
     @Autowired
     protected ZKClient zkClient;
@@ -210,7 +210,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
         MessageProperties properties = new MessageProperties();
         properties.setPriority(item.getPriority());
-        cmdQueueTemplate.send("", cmdQueueName, new Message(item.toBytes(), properties));
+        cmdQueue.enqueue(new Message(item.toBytes(), properties));
 
         return cmd;
     }
@@ -218,12 +218,8 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     @Override
     public void updateStatus(CmdStatusItem statusItem, boolean inQueue) {
         if (inQueue) {
-            try {
-                LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
-                cmdStatusQueue.put(statusItem);
-            } catch (InterruptedException ignore) {
-                LOGGER.warn("Cmd status update queue warning");
-            }
+            LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
+            cmdStatusQueue.enqueue(statusItem);
             return;
         }
 

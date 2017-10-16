@@ -58,7 +58,8 @@ public class LogEventHandlerTest extends TestBase {
 
         // then:
         String expect = String
-            .format("%s#%s#%s#%s#%s", null, cmd.getZoneName(), cmd.getAgentName(), cmd.getId(), mockLogContent);
+            .format("%s#%s#%s#%s#%s#%s", CmdType.RUN_SHELL, null, cmd.getZoneName(), cmd.getAgentName(), cmd.getId(),
+                mockLogContent);
         Assert.assertEquals(expect, socketIoData);
     }
 }

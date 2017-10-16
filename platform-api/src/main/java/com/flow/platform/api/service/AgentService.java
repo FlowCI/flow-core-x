@@ -53,4 +53,9 @@ public interface AgentService {
      * Delete agent by agentPath from cc
      */
     void delete(AgentPath agentPath);
+    /**
+     * send sys cmd
+     * @param agentPath required
+     */
+    void sendSysCmd(AgentPath agentPath);
 }

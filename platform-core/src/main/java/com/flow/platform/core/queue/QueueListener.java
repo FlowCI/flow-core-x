@@ -14,27 +14,13 @@
  * limitations under the License.
  */
 
-package com.flow.platform.cc.event;
-
-import org.springframework.context.ApplicationEvent;
+package com.flow.platform.core.queue;
 
 /**
- * No available resources in resource pool
- *
- * Should be handled in ZoneService to adjust resource pool in zone
- *
  * @author yang
  */
-public class NoAvailableResourceEvent extends ApplicationEvent {
+public interface QueueListener<T> {
 
-    private String zone;
+    void onQueueItem(T item);
 
-    public NoAvailableResourceEvent(Object source, String zone) {
-        super(source);
-        this.zone = zone;
-    }
-
-    public String getZone() {
-        return zone;
-    }
 }

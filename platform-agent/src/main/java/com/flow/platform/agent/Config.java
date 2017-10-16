@@ -18,17 +18,25 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.ExceptionUtil;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.zk.ZKClient;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 import org.apache.curator.utils.ZKPaths;
 
 /**
  * @author gy@fir.im
  */
 public class Config {
+
+    private final static Logger LOGGER = new Logger(Config.class);
 
     public final static String ZK_ROOT = "flow-agents";
 
@@ -50,6 +58,8 @@ public class Config {
     public static String ZONE;
     public static String NAME;
 
+    private static Properties properties;
+
     public static boolean isDebug() {
         String boolStr = System.getProperty(PROP_IS_DEBUG, "false");
         return Boolean.parseBoolean(boolStr);
@@ -58,6 +68,29 @@ public class Config {
     public static int zkTimeout() {
         String intStr = System.getProperty(PROP_ZK_TIMEOUT, "10000"); // default 10 seconds
         return Integer.parseInt(intStr);
+    }
+
+    /**
+     * get property from application.properties
+     * @param name
+     * @return
+     */
+    public static String getProperty(String name) {
+        String value;
+        URL resource = Config.class.getClassLoader().getResource("application.properties");
+        if (properties == null) {
+            try (InputStream fileInputStream = new FileInputStream(resource.getFile())) {
+                properties = new Properties();
+                properties.load(fileInputStream);
+            } catch (Throwable e) {
+                LOGGER.warn("get property from application.properties error %s",
+                    ExceptionUtil.findRootCause(e).getMessage());
+            }
+        }
+
+        value = properties.getProperty(name);
+
+        return value;
     }
 
     /**
@@ -104,7 +137,7 @@ public class Config {
     }
 
     public static int concurrentThreadNum() {
-        String intStr = System.getProperty(PROP_CONCURRENT_THREAD, "1");
+        String intStr = System.getProperty(PROP_CONCURRENT_THREAD, "2");
         return Integer.parseInt(intStr);
     }
 

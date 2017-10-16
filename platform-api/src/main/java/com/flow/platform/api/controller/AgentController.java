@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.service.AgentService;
@@ -27,6 +28,7 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
 import com.google.common.base.Strings;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,7 +67,7 @@ public class AgentController extends ApplicationEventService {
      *
      */
     @GetMapping
-    public List<AgentWithFlow> index(){
+    public List<AgentWithFlow> index() {
         return agentService.list();
     }
 
@@ -79,17 +81,8 @@ public class AgentController extends ApplicationEventService {
      *  HTTP/1.1 200 OK
      *
      *  {
-     *      path: {
-     *          zone: xxx,
-     *          name: xxx
-     *      },
-     *      concurrentProc: 1,
-     *      status: OFFLINE | IDLE | BUSY,
-     *      sessionId: xxxx-xxx-xxx,
-     *      sessionDate: 15123321,
-     *      token: xx-xxx-xxx
-     *      createdDate: 15123321,
-     *      updatedDate: 15123321,
+     *        zone: xxx,
+     *        name: xxx
      *  }
      */
     @PostMapping(path = "/create")
@@ -99,6 +92,27 @@ public class AgentController extends ApplicationEventService {
         }
 
         return agentService.create(agentPath);
+    }
+
+    /**
+     * @api {Get} /agents/sys/info Agent sys info
+     * @apiName Sys info
+     * @apiGroup Agent
+     * @apiDescription get agent sys info
+     * @apiParam {String} zone
+     * @apiParam {String} name
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     *
+     */
+    @GetMapping(path = "/sys/info")
+    public void agentEnvironmentInfo(@RequestParam Map<String, String> allParams, AgentPath agentPath) {
+        if (agentPath.isEmpty()) {
+            throw new IllegalParameterException("Zone and agent name are required");
+        }
+        agentService.sendSysCmd(agentPath);
     }
 
     /**
@@ -124,7 +138,7 @@ public class AgentController extends ApplicationEventService {
      */
     @GetMapping(path = "/settings")
     public AgentSettings getInfo(@RequestParam String token) {
-        if(Strings.isNullOrEmpty(token)){
+        if (Strings.isNullOrEmpty(token)) {
             throw new IllegalParameterException("miss required params ");
         }
         return agentService.settings(token);
@@ -150,7 +164,7 @@ public class AgentController extends ApplicationEventService {
     public BooleanValue shutDown(@RequestParam String zone,
                                  @RequestParam String name,
                                  @RequestParam(required = false) String password) {
-        if(Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name)){
+        if (Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name)) {
             throw new IllegalParameterException("require zone or name not found");
         }
         Boolean t = agentService.shutdown(zone, name, password);

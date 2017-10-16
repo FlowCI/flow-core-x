@@ -18,9 +18,12 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
+import com.flow.platform.cc.event.AgentResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -49,13 +52,14 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author gy@fir.im
  */
 @Service
-@Transactional(isolation = Isolation.REPEATABLE_READ)
+@Transactional
 public class AgentServiceImpl extends WebhookServiceImplBase implements AgentService {
 
     private final static Logger LOGGER = new Logger(AgentService.class);
@@ -79,7 +83,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     private AgentSettings agentSettings;
 
     @Autowired
-    private BlockingQueue<AgentPath> agentReportQueue;
+    private PlatformQueue<AgentPath> agentReportQueue;
 
     @Value("${agent.secret_key}")
     private String secretKey;
@@ -92,35 +96,36 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
         // send to report queue
         for (String agent : agents) {
             AgentPath key = new AgentPath(zone, agent);
-            try {
-                agentReportQueue.put(key);
-            } catch (InterruptedException ignore) {
-                LOGGER.warn("InterruptedException when agent report online");
-            }
+            agentReportQueue.enqueue(key);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Agent find(AgentPath key) {
         return agentDao.get(key);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Agent find(String sessionId) {
         return agentDao.get(sessionId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Agent> findAvailable(String zone) {
         return agentDao.list(zone, "updatedDate", AgentStatus.IDLE);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Agent> listForOnline(String zone) {
         return agentDao.list(zone, "createdDate", AgentStatus.IDLE, AgentStatus.BUSY);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Agent> list(String zone) {
         if (Strings.isNullOrEmpty(zone)) {
             return agentDao.list();
@@ -143,6 +148,11 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
         if (statusIsChanged) {
             this.webhookCallback(agent);
         }
+
+        // boardcast AgentResourceEvent for release
+        if (agent.getStatus() == AgentStatus.IDLE) {
+            this.dispatchEvent(new AgentResourceEvent(this, agent.getZone(), Category.RELEASED));
+        }
     }
 
     @Override
@@ -156,6 +166,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     }
 
     @Override
+    @Transactional(propagation = Propagation.NEVER)
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
     public void sessionTimeoutTask() {
         if (!taskConfig.isEnableAgentSessionTimeoutTask()) {

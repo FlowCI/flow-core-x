@@ -18,7 +18,8 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.domain.CmdStatusItem;
-import com.flow.platform.cc.event.NoAvailableResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.exception.AgentErr.NotAvailableException;
 import com.flow.platform.cc.util.ZKHelper;
@@ -47,6 +48,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -91,6 +93,9 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
         ShutdownCmdHandler shutdownHandler = new ShutdownCmdHandler();
         handler.put(shutdownHandler.handleType(), shutdownHandler);
+
+        SystemInfoCmdHandler runOtherCmdHandler = new SystemInfoCmdHandler();
+        handler.put(runOtherCmdHandler.handleType(), runOtherCmdHandler);
     }
 
     @Override
@@ -126,11 +131,9 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.REJECTED, null, false, true);
             cmdService.updateStatus(statusItem, false);
 
-            // broadcast NoAvailableResourceEvent with zone name
-            String zone = cmd.getAgentPath().getZone();
-
+            // broadcast AgentResourceEvent with zone name
             if (e instanceof NotAvailableException) {
-                this.dispatchEvent(new NoAvailableResourceEvent(this, zone));
+                this.dispatchEvent(new AgentResourceEvent(this, cmd.getAgentPath().getZone(), Category.FULL));
             }
 
             throw e;
@@ -154,6 +157,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
     }
 
     @Override
+    @Transactional(propagation = Propagation.NEVER)
     @Scheduled(fixedDelay = 300 * 1000)
     public void checkTimeoutTask() {
         if (!taskConfig.isEnableCmdExecTimeoutTask()) {
@@ -245,9 +249,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         if (Strings.isNullOrEmpty(current.getSessionId())) {
             Cmd cmdToKill = cmdService.create(new CmdInfo(current.getAgentPath(), CmdType.KILL, null));
             dispatch(cmdToKill.getId(), false);
-        }
-
-        else {
+        } else {
             Agent agent = agentService.find(current.getAgentPath());
             Cmd cmdToDelSession = createDeleteSessionCmd(agent);
             dispatch(cmdToDelSession.getId(), false);
@@ -329,7 +331,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             List<Cmd> cmdsInSession = cmdService.listBySession(sessionId);
 
             Iterator<Cmd> iterator = cmdsInSession.iterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 Cmd cmd = iterator.next();
 
                 if (cmd.getType() != CmdType.RUN_SHELL) {
@@ -365,6 +367,20 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
                 agentService.saveWithStatus(target, AgentStatus.BUSY);
             }
 
+            sendCmdToAgent(target, cmd);
+        }
+    }
+
+    private class SystemInfoCmdHandler extends CmdHandler {
+
+        @Override
+        CmdType handleType() {
+            return CmdType.SYSTEM_INFO;
+        }
+
+        @Override
+        void doExec(Agent target, Cmd cmd) {
+            // directly send cmd to agent
             sendCmdToAgent(target, cmd);
         }
     }

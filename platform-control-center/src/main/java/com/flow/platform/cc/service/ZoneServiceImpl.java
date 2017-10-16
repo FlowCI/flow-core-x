@@ -17,7 +17,6 @@
 package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
-import com.flow.platform.cc.event.NoAvailableResourceEvent;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.cloud.InstanceManager;
 import com.flow.platform.core.context.ContextEvent;
@@ -45,14 +44,11 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author gy@fir.im
  */
 @Service
-@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
     private final static Logger LOGGER = new Logger(ZoneService.class);
