@@ -18,6 +18,7 @@ package com.flow.platform.util.git;
 
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.git.model.GitCommit;
+import com.flow.platform.util.git.model.GitProject;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
@@ -159,6 +160,16 @@ public abstract class JGitBasedClient implements GitClient {
         } catch (Throwable e) {
             throw new GitException("Fail to pull with specific files: " + ExceptionUtil.findRootCause(e).getMessage());
         }
+    }
+
+    @Override
+    public List<GitProject> projects() throws GitException {
+        throw new UnsupportedOperationException("Unable to list git projects for JGit based client");
+    }
+
+    @Override
+    public void setCurrentProject(GitProject project) throws GitException {
+        throw new UnsupportedOperationException("Unable to set git project for JGit based client");
     }
 
     @Override

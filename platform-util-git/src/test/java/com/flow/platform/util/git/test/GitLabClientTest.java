@@ -22,6 +22,7 @@ import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.GitLabClient;
 import com.flow.platform.util.git.model.GitCommit;
+import com.flow.platform.util.git.model.GitProject;
 import com.google.common.base.Strings;
 import java.util.List;
 import org.junit.Assert;
@@ -69,6 +70,18 @@ public class GitLabClientTest {
         Assert.assertNotNull(commit.getId());
         Assert.assertNotNull(commit.getAuthor());
         Assert.assertNotNull(commit.getMessage());
+    }
+
+    @Test
+    public void should_list_all_projects() throws Throwable {
+        List<GitProject> projects = client.projects();
+        Assert.assertNotNull(projects);
+        Assert.assertTrue(projects.size() >= 1);
+
+        GitProject project = projects.get(0);
+        Assert.assertNotNull(project.getId());
+        Assert.assertNotNull(project.getName());
+        Assert.assertNotNull(project.getFullName());
     }
 
     @Test

@@ -17,6 +17,8 @@
 package com.flow.platform.util.git;
 
 import com.flow.platform.util.git.model.GitCommit;
+import com.flow.platform.util.git.model.GitProject;
+import com.google.common.base.Strings;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -54,14 +56,7 @@ public class GitLabClient implements GitClient {
 
         // init gitlab project if project name given
         if (project != null) {
-            try {
-                this.project = this.connect.getProject(project);
-            } catch (IOException e) {
-                if (e instanceof FileNotFoundException) {
-                    throw new GitException("Project not found: " + e.getMessage());
-                }
-                throw new GitException(e.getMessage());
-            }
+            setCurrentProject(project);
         }
     }
 
@@ -90,6 +85,8 @@ public class GitLabClient implements GitClient {
 
     @Override
     public String fetch(String branch, String filePath, ProgressMonitor monitor) throws GitException {
+        checkProject();
+
         try {
             GitlabRepositoryFile file = connect.getRepositoryFile(project, filePath, branch);
             String base64Content = file.getContent();
@@ -106,7 +103,38 @@ public class GitLabClient implements GitClient {
     }
 
     @Override
+    public List<GitProject> projects() throws GitException {
+        try {
+            List<GitlabProject> projects = connect.getMembershipProjects();
+            List<GitProject> results = new ArrayList<>(projects.size());
+            for (GitlabProject project : projects) {
+                Integer id = project.getId();
+                String name = project.getName();
+                String fullName = project.getNameWithNamespace();
+                results.add(new GitProject(id.toString(), name, fullName));
+            }
+            return results;
+        } catch (IOException e) {
+            throw new GitException(e.getMessage());
+        }
+    }
+
+    /**
+     * Get project id or full name from GitProject and set current project
+     */
+    @Override
+    public void setCurrentProject(GitProject project) throws GitException {
+        String id = project.getId();
+        if (Strings.isNullOrEmpty(id)) {
+            id = project.getFullName();
+        }
+        setCurrentProject(id);
+    }
+
+    @Override
     public List<String> branches() throws GitException {
+        checkProject();
+
         try {
             List<GitlabBranch> branches = connect.getBranches(project);
             return toStringBranches(branches);
@@ -117,6 +145,8 @@ public class GitLabClient implements GitClient {
 
     @Override
     public List<String> tags() throws GitException {
+        checkProject();
+
         try {
             List<GitlabTag> tags = connect.getTags(project);
             return toStringTags(tags);
@@ -127,6 +157,8 @@ public class GitLabClient implements GitClient {
 
     @Override
     public GitCommit commit(String refName) throws GitException {
+        checkProject();
+
         try {
             List<GitlabCommit> lastCommits = connect.getLastCommits(project.getId(), refName);
             GitlabCommit gitlabCommit = lastCommits.get(0);
@@ -137,6 +169,27 @@ public class GitLabClient implements GitClient {
 
             return new GitCommit(commitId, commitMessage, commitAuthorEmail);
         } catch (IOException e) {
+            throw new GitException(e.getMessage());
+        }
+    }
+
+    private void checkProject() throws GitException {
+        if (project == null) {
+            throw new GitException("Project is not set for GitLab");
+        }
+    }
+
+    private void setCurrentProject(String project) throws GitException {
+        if (Strings.isNullOrEmpty(project)) {
+            throw new GitException("Project id or name is missing on GitLab");
+        }
+
+        try {
+            this.project = this.connect.getProject(project);
+        } catch (IOException e) {
+            if (e instanceof FileNotFoundException) {
+                throw new GitException("Project not found: " + e.getMessage());
+            }
             throw new GitException(e.getMessage());
         }
     }

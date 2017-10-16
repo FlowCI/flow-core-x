@@ -17,6 +17,7 @@
 package com.flow.platform.util.git;
 
 import com.flow.platform.util.git.model.GitCommit;
+import com.flow.platform.util.git.model.GitProject;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
@@ -71,6 +72,16 @@ public interface GitClient {
      * @throws GitException if git pull fail
      */
     void pull(String branch, ProgressMonitor monitor) throws GitException;
+
+    /**
+     * Git project list
+     */
+    List<GitProject> projects() throws GitException;
+
+    /**
+     * Set current for branches, tags and commit
+     */
+    void setCurrentProject(GitProject project) throws GitException;
 
     /**
      * Load all branches from git
