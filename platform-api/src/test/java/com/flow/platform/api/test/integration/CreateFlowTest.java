@@ -17,12 +17,11 @@
 package com.flow.platform.api.test.integration;
 
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
@@ -158,6 +157,25 @@ public class CreateFlowTest extends TestBase {
         flow = nodeService.addFlowEnv(flow, env);
 
         // async to clone and return .flow.yml content
+        final String loadedYml = loadYml(flow);
+
+        Flow loaded = nodeService.findFlow(flow.getPath());
+        Assert.assertEquals(FlowEnvs.YmlStatusValue.FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
+
+        Yml ymlStorage = ymlDao.get(loaded.getPath());
+        Assert.assertNotNull(ymlStorage);
+        Assert.assertEquals(loadedYml, ymlStorage.getFile());
+    }
+
+    @Test
+    public void should_create_flow_and_init_yml_via_gitlab_native() throws Throwable {
+        Map<String, String> env = new HashMap<>();
+        env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.GITLAB.name());
+        env.put(GitEnvs.FLOW_GIT_URL.name(), "https://gitlab.com/");
+        env.put(GitEnvs.FLOW_GITLAB_TOKEN.name(), "E63AvvP5EvYhDwFySAE5");
+        env.put(GitEnvs.FLOW_GITLAB_PROJECT.name(), "yang.guo/for-testing");
+        flow = nodeService.addFlowEnv(flow, env);
+
         final String loadedYml = loadYml(flow);
 
         Flow loaded = nodeService.findFlow(flow.getPath());

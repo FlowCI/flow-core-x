@@ -242,7 +242,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     private ThreadPoolTaskExecutor findThreadPoolFromCache(String path) throws ExecutionException {
         return nodeThreadPool.get(path, () -> {
             ThreadPoolTaskExecutor taskExecutor = ThreadUtil
-                .createTaskExecutor(NODE_THREAD_POOL_SIZE, NODE_THREAD_POOL_SIZE, 0, "git-clone-task");
+                .createTaskExecutor(NODE_THREAD_POOL_SIZE, NODE_THREAD_POOL_SIZE, 0, "git-fetch-task");
             taskExecutor.initialize();
             return taskExecutor;
         });

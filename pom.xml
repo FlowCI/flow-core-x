@@ -92,6 +92,14 @@
     </plugins>
   </build>
 
+  <repositories>
+    <repository>
+      <id>project.local</id>
+      <name>project</name>
+      <url>file://${project.basedir}/../lib</url>
+    </repository>
+  </repositories>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -284,6 +292,12 @@
         <groupId>org.apache.velocity</groupId>
         <artifactId>velocity</artifactId>
         <version>${velocity.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.gitlab</groupId>
+        <artifactId>java-gitlab-api</artifactId>
+        <version>4.0.0-SNAPSHOT</version>
       </dependency>
 
       <!--library for testing-->
