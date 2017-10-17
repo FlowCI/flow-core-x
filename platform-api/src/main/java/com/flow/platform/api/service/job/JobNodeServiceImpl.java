@@ -21,12 +21,9 @@ import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import java.math.BigInteger;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,31 +40,33 @@ public class JobNodeServiceImpl implements JobNodeService {
     @Autowired
     private JobYmlDao jobYmlDao;
 
-    // 1 day expire
-    private Cache<BigInteger, NodeTree> nodeCache = CacheBuilder
-        .newBuilder()
-        .expireAfterAccess(3600 * 24, TimeUnit.SECONDS)
-        .maximumSize(1000).build();
+    @Autowired
+    private CacheManager cacheManager;
 
     @Override
     public void save(final Job job, final String yml) {
         JobYml jobYmlStorage = new JobYml(job.getId(), yml);
         jobYmlDao.saveOrUpdate(jobYmlStorage);
-        nodeCache.invalidate(job.getId());
+        jobNodeCache().evict(job.getId());
     }
 
     @Override
     public NodeTree get(final Job job) {
-        try {
-            return nodeCache.get(job.getId(), () -> {
-                JobYml jobYml = find(job);
+        NodeTree tree = jobNodeCache().get(job.getId(), () -> {
+            JobYml jobYml = find(job);
+            if (jobYml == null) {
+                return null;
+            }
+            return new NodeTree(jobYml.getFile(), job.getNodeName());
+        });
 
-                return new NodeTree(jobYml.getFile(), job.getNodeName());
-            });
-        } catch (ExecutionException e) {
-            LOGGER.warn(String.format("get yaml from jobYamlService error - %s", e));
+        // cleanup cache if null value
+        if (tree == null) {
+            jobNodeCache().evict(job.getId());
             return null;
         }
+
+        return tree;
     }
 
     @Override
@@ -78,5 +77,9 @@ public class JobNodeServiceImpl implements JobNodeService {
         }
 
         return jobYml;
+    }
+
+    private Cache jobNodeCache() {
+        return cacheManager.getCache("jobNodeTreeCache");
     }
 }
