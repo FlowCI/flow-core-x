@@ -271,7 +271,7 @@ public class FlowController extends NodeController {
     @GetMapping("/{root}/tags")
     public List<String> listTags() {
         Node root = nodeService.find(currentNodePath.get());
-        return gitService.tags(root);
+        return gitService.tags(root, false);
     }
 
     /**

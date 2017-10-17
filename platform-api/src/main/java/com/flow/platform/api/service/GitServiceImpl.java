@@ -113,7 +113,8 @@ public class GitServiceImpl implements GitService {
     }
 
     @Override
-    public List<String> tags(Node node) {
+    @Cacheable(value = "git.tags", key = "#node.getPath()", condition = "#refresh == false")
+    public List<String> tags(Node node, boolean refresh) {
         GitClient client = gitClientInstance(node);
         try {
             return client.tags();

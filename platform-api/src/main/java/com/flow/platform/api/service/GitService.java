@@ -66,7 +66,7 @@ public interface GitService {
     /**
      * Fetch tags from git repo
      */
-    List<String> tags(Node node);
+    List<String> tags(Node node, boolean refresh);
 
     /**
      * Fetch latest commit from git repo

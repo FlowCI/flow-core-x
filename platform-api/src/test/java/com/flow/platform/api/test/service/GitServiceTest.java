@@ -110,7 +110,7 @@ public class GitServiceTest extends TestBase {
 
     @Test
     public void should_list_tags_of_git_repo() {
-        List<String> tags = gitService.tags(node);
+        List<String> tags = gitService.tags(node, false);
         Assert.assertNotNull(tags);
     }
 
