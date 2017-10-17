@@ -209,6 +209,10 @@ public abstract class JGitBasedClient implements GitClient {
             Repository repo = git.getRepository();
             Ref head = repo.findRef(refName);
 
+            if (head == null) {
+                return null;
+            }
+
             try (RevWalk walk = new RevWalk(repo)) {
                 RevCommit commit = walk.parseCommit(head.getObjectId());
                 walk.dispose();
