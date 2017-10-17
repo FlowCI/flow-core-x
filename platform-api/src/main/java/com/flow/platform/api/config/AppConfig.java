@@ -131,7 +131,10 @@ public class AppConfig extends AppConfigBase {
         VelocityEngine ve = new VelocityEngine();
         ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
         ve.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
-        ve.setProperty(Velocity.ENCODING_DEFAULT, DEFAULT_CHARSET);
+
+        ve.setProperty(Velocity.ENCODING_DEFAULT, DEFAULT_CHARSET.name());
+        ve.setProperty(Velocity.INPUT_ENCODING, DEFAULT_CHARSET.name());
+        ve.setProperty(Velocity.OUTPUT_ENCODING, DEFAULT_CHARSET.name());
 
         ve.init();
         return ve;
