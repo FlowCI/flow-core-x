@@ -17,6 +17,7 @@
 package com.flow.platform.core.sysinfo;
 
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
+import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.util.Logger;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -65,7 +66,7 @@ public class DBInfoLoader implements SystemInfoLoader {
                 mysql.put("db.username", username);
                 mysql.put("db.password", password);
 
-                GroupSystemInfo dbInfo = new GroupSystemInfo(Status.RUNNING);
+                GroupSystemInfo dbInfo = new GroupSystemInfo(Status.RUNNING, Type.DB);
                 dbInfo.setName(md.getDatabaseProductName());
                 dbInfo.setVersion(md.getDatabaseProductVersion());
                 dbInfo.put(DBGroupName.MYSQL, mysql);
@@ -77,6 +78,6 @@ public class DBInfoLoader implements SystemInfoLoader {
             LOGGER.error("Cannot find driver: " + driver, e);
         }
 
-        return new SystemInfo(Status.OFFLINE);
+        return new SystemInfo(Status.OFFLINE, Type.DB);
     }
 }

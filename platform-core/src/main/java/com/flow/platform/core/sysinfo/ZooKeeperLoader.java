@@ -21,6 +21,7 @@ import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.core.exception.UnsupportedException;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
+import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.google.common.collect.Lists;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class ZooKeeperLoader implements SystemInfoLoader {
         Map<String, String> ruok = execFourLetterCmd(ZooKeeperGroup.RUOK);
         Map<String, String> conf = execFourLetterCmd(ZooKeeperGroup.CONF);
 
-        GroupSystemInfo info = new GroupSystemInfo();
+        GroupSystemInfo info = new GroupSystemInfo(Type.ZK);
         info.setVersion(srvr.remove(ZK_VERSION_KEY));
         info.setName("ZooKeeper");
         info.setStatus(ruok.containsKey(RuokConsumer.STATES) ? Status.RUNNING : Status.OFFLINE);

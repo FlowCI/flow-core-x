@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
  *
  * @author yang
  */
-@Service("sysInfoService")
+@Service
 public class SysInfoServiceImpl extends SysInfoServiceImplBase {
 
     private final Map<Category, Map<Type, SystemInfoLoader>> infoLoaders = new HashMap<>(3);

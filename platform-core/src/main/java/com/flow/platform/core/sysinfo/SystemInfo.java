@@ -45,6 +45,8 @@ public class SystemInfo extends Jsonable {
 
     public enum Type {
 
+        CONFIG,
+
         JVM,
 
         DB,
@@ -66,13 +68,18 @@ public class SystemInfo extends Jsonable {
     private Status status;
 
     @Expose
+    private Type type;
+
+    @Expose
     private ZonedDateTime startTime;
 
-    public SystemInfo() {
+    public SystemInfo(Type type) {
+        this.type = type;
     }
 
-    public SystemInfo(Status status) {
+    public SystemInfo(Status status, Type type) {
         this.status = status;
+        this.type = type;
     }
 
     public String getName() {
@@ -97,6 +104,14 @@ public class SystemInfo extends Jsonable {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
     }
 
     public ZonedDateTime getStartTime() {
