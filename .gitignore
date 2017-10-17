@@ -2,6 +2,7 @@
 *.iml
 .DS_Store
 deploy.sh
+api-doc/
 
 node_modules/
 apidoc/

@@ -21,11 +21,11 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -46,15 +46,16 @@ public class ManualJobTest extends TestBase {
         Map<String, String> env = new HashMap<>();
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
-        env.put(GitEnvs.FLOW_GIT_BRANCH.name(), "master");
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
         nodeService.addFlowEnv(flow, env);
 
         // when: manual start job
         CountDownLatch latch = new CountDownLatch(1);
         ObjectWrapper<Job> wrapper = new ObjectWrapper<>();
+
+        Map<String, String> envs = EnvUtil.build(GitEnvs.FLOW_GIT_BRANCH.name(), "master");
         jobService.createJobAndYmlLoad(
-            flow.getPath(), GitEventType.MANUAL, new LinkedHashMap<>(), currentUser.get(), job -> {
+            flow.getPath(), GitEventType.MANUAL, envs, currentUser.get(), job -> {
                 latch.countDown();
                 wrapper.setInstance(job);
             }
@@ -71,6 +72,7 @@ public class ManualJobTest extends TestBase {
         Assert.assertNotNull(created.getEnv(GitEnvs.FLOW_GIT_COMMIT_ID));
         Assert.assertNotNull(created.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
         Assert.assertNotNull(created.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
+        Assert.assertNotNull(created.getEnv(GitEnvs.FLOW_GIT_BRANCH));
     }
 
 }

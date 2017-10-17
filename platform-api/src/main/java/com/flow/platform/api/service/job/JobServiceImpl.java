@@ -445,6 +445,28 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         this.dispatchEvent(new JobStatusChangeEvent(this, job, originStatus, newStatus));
     }
 
+    @Transactional(noRollbackFor = FlowException.class)
+    public void createJobNodesAndCreateSession(Job job, String yml) {
+        //create yml snapshot for job
+        jobNodeService.save(job, yml);
+
+        // init for node result and set to job object
+        List<NodeResult> resultList = nodeResultService.create(job);
+        NodeResult rootResult = resultList.remove(resultList.size() - 1);
+        job.setRootResult(rootResult);
+        job.setChildrenResult(resultList);
+
+        // to create agent session for job
+        try {
+            String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+            job.setSessionId(sessionId);
+            updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+        } catch (IllegalStatusException e) {
+            job.setFailureMessage(e.getMessage());
+            updateJobStatusAndSave(job, JobStatus.FAILURE);
+        }
+    }
+
     private class OnYmlSuccess implements Consumer<Yml> {
 
         private final Job job;
@@ -481,34 +503,17 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             } catch (FlowException e) {
                 job.setFailureMessage(e.getMessage());
                 updateJobStatusAndSave(job, JobStatus.FAILURE);
+                return;
             }
 
-            //create yml snapshot for job
-            jobNodeService.save(job, loadedYml);
-
-            // init for node result and set to job object
-            List<NodeResult> resultList = nodeResultService.create(job);
-            NodeResult rootResult = resultList.remove(resultList.size() - 1);
-            job.setRootResult(rootResult);
-            job.setChildrenResult(resultList);
-
-            // to create agent session for job
-            try {
-                String sessionId = cmdService.createSession(job, createSessionRetryTimes);
-                job.setSessionId(sessionId);
-                updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
-            } catch (IllegalStatusException e) {
-                job.setFailureMessage(e.getMessage());
-                updateJobStatusAndSave(job, JobStatus.FAILURE);
-            }
+            createJobNodesAndCreateSession(job, loadedYml);
 
             try {
                 if (onJobCreated != null) {
                     onJobCreated.accept(job);
                 }
             } catch (Throwable e) {
-                LOGGER.warn("Fail to create job for path %s : %s ", path,
-                    ExceptionUtil.findRootCause(e).getMessage());
+                LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
             }
         }
     }
