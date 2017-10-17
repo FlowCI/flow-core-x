@@ -53,10 +53,11 @@ public interface YmlService {
      * Then call "getYmlContent" to get yml
      *
      * @param root root node
-     * @param callback method on yml loaded
+     * @param onSuccess method on yml loaded
+     * @param onError method on
      * @return flow node instance
      */
-    Node loadYmlContent(Node root, Consumer<Yml> callback);
+    Node loadYmlContent(Node root, Consumer<Yml> onSuccess, Consumer<Throwable> onError);
 
     /**
      * Stop yml content loading thread

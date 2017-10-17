@@ -37,6 +37,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.git.GitEventEnvConverter;
@@ -66,11 +67,9 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -226,57 +225,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         updateJobStatusAndSave(job, JobStatus.YML_LOADING);
 
         // load yml
-        ymlService.loadYmlContent(flow, yml -> {
-            LOGGER.trace("Yml content has been loaded for path : " + path);
-            Node root = nodeService.find(PathUtil.rootPath(path));
-
-            // set git commit info to job env
-            if (eventType == GitEventType.MANUAL) {
-                GitCommit gitCommit = gitService.latestCommit(flow);
-                Map<String, String> envFromCommit = GitEventEnvConverter.convert(gitCommit);
-                EnvUtil.merge(envFromCommit, job.getEnvs(), true);
-                jobDao.update(job);
-            }
-
-            String loadedYml = null;
-            try {
-                loadedYml = ymlService.getYmlContent(root);
-                if (Strings.isNullOrEmpty(loadedYml)) {
-                    throw new IllegalStatusException("Yml is loading for path " + path);
-                }
-            } catch (FlowException e) {
-                job.setFailureMessage(e.getMessage());
-                updateJobStatusAndSave(job, JobStatus.FAILURE);
-            }
-
-            //create yml snapshot for job
-            jobNodeService.save(job, loadedYml);
-
-            // init for node result and set to job object
-            List<NodeResult> resultList = nodeResultService.create(job);
-            NodeResult rootResult = resultList.remove(resultList.size() - 1);
-            job.setRootResult(rootResult);
-            job.setChildrenResult(resultList);
-
-            // to create agent session for job
-            try {
-                String sessionId = cmdService.createSession(job, createSessionRetryTimes);
-                job.setSessionId(sessionId);
-                updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
-            } catch (IllegalStatusException e) {
-                job.setFailureMessage(e.getMessage());
-                updateJobStatusAndSave(job, JobStatus.FAILURE);
-            }
-
-            try {
-                if (onJobCreated != null) {
-                    onJobCreated.accept(job);
-                }
-            } catch (Throwable e) {
-                LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
-            }
-
-        });
+        ymlService.loadYmlContent(flow, new OnYmlSuccess(job, onJobCreated), new OnYmlError(job));
     }
 
     @Override
@@ -494,6 +443,92 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         jobDao.update(job);
 
         this.dispatchEvent(new JobStatusChangeEvent(this, job, originStatus, newStatus));
+    }
+
+    private class OnYmlSuccess implements Consumer<Yml> {
+
+        private final Job job;
+
+        private final String path;
+
+        private final Consumer<Job> onJobCreated;
+
+        public OnYmlSuccess(Job job, Consumer<Job> onJobCreated) {
+            this.job = job;
+            this.path = job.getNodePath();
+            this.onJobCreated = onJobCreated;
+        }
+
+        @Override
+        public void accept(Yml yml) {
+            LOGGER.trace("Yml content has been loaded for path : " + path);
+            Node root = nodeService.find(PathUtil.rootPath(path));
+
+            // set git commit info to job env
+            if (job.getCategory() == GitEventType.MANUAL) {
+                GitCommit gitCommit = gitService.latestCommit(root);
+                Map<String, String> envFromCommit = GitEventEnvConverter.convert(gitCommit);
+                EnvUtil.merge(envFromCommit, job.getEnvs(), true);
+                jobDao.update(job);
+            }
+
+            String loadedYml = null;
+            try {
+                loadedYml = ymlService.getYmlContent(root);
+                if (Strings.isNullOrEmpty(loadedYml)) {
+                    throw new IllegalStatusException("Yml is loading for path " + path);
+                }
+            } catch (FlowException e) {
+                job.setFailureMessage(e.getMessage());
+                updateJobStatusAndSave(job, JobStatus.FAILURE);
+            }
+
+            //create yml snapshot for job
+            jobNodeService.save(job, loadedYml);
+
+            // init for node result and set to job object
+            List<NodeResult> resultList = nodeResultService.create(job);
+            NodeResult rootResult = resultList.remove(resultList.size() - 1);
+            job.setRootResult(rootResult);
+            job.setChildrenResult(resultList);
+
+            // to create agent session for job
+            try {
+                String sessionId = cmdService.createSession(job, createSessionRetryTimes);
+                job.setSessionId(sessionId);
+                updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
+            } catch (IllegalStatusException e) {
+                job.setFailureMessage(e.getMessage());
+                updateJobStatusAndSave(job, JobStatus.FAILURE);
+            }
+
+            try {
+                if (onJobCreated != null) {
+                    onJobCreated.accept(job);
+                }
+            } catch (Throwable e) {
+                LOGGER.warn("Fail to create job for path %s : %s ", path,
+                    ExceptionUtil.findRootCause(e).getMessage());
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    private class OnYmlError implements Consumer<Throwable> {
+
+        private final Job job;
+
+        public OnYmlError(Job job) {
+            this.job = job;
+        }
+
+        @Override
+        public void accept(Throwable throwable) {
+            job.setFailureMessage(throwable.getMessage());
+            updateJobStatusAndSave(job, JobStatus.FAILURE);
+        }
     }
 
     /**

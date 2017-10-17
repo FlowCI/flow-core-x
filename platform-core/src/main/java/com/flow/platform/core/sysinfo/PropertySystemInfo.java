@@ -27,11 +27,12 @@ public class PropertySystemInfo extends SystemInfo {
     @Expose
     private Map<String, Object> info;
 
-    public PropertySystemInfo() {
+    public PropertySystemInfo(Type type) {
+        super(type);
     }
 
-    public PropertySystemInfo(Status status) {
-        super(status);
+    public PropertySystemInfo(Status status, Type type) {
+        super(status, type);
     }
 
     public Map<String, Object> getInfo() {

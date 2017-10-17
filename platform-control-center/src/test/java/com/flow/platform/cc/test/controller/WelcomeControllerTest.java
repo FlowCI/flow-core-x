@@ -28,8 +28,8 @@ import com.flow.platform.core.sysinfo.MQLoader.MQGroup;
 import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
+import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.core.sysinfo.ZooKeeperLoader.ZooKeeperGroup;
-import com.flow.platform.domain.Jsonable;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
@@ -66,6 +66,7 @@ public class WelcomeControllerTest extends TestBase {
         // then:
         String content = result.getResponse().getContentAsString();
         GroupSystemInfo jvmInfo = GroupSystemInfo.parse(content, GroupSystemInfo.class);
+        Assert.assertEquals(Type.JVM, jvmInfo.getType());
 
         Map<String, String> jvmOsInfo = jvmInfo.get(JvmGroup.OS);
         Assert.assertNotNull(jvmOsInfo);
@@ -90,6 +91,7 @@ public class WelcomeControllerTest extends TestBase {
         // then:
         String content = result.getResponse().getContentAsString();
         GroupSystemInfo dbInfo = SystemInfo.parse(content, GroupSystemInfo.class);
+        Assert.assertEquals(Type.DB, dbInfo.getType());
 
         Map<String, String> mysqlInfo = dbInfo.get(DBGroupName.MYSQL);
         Assert.assertNotNull(mysqlInfo);
@@ -107,6 +109,7 @@ public class WelcomeControllerTest extends TestBase {
         String content = result.getResponse().getContentAsString();
         GroupSystemInfo zkInfo = SystemInfo.parse(content, GroupSystemInfo.class);
         Assert.assertNotNull(zkInfo);
+        Assert.assertEquals(Type.ZK, zkInfo.getType());
         Assert.assertEquals(SystemInfo.Status.RUNNING, zkInfo.getStatus());
 
         Map<String, String> conf = zkInfo.get(ZooKeeperGroup.CONF);
@@ -127,6 +130,7 @@ public class WelcomeControllerTest extends TestBase {
         String content = result.getResponse().getContentAsString();
         GroupSystemInfo mqInfo = SystemInfo.parse(content, GroupSystemInfo.class);
         Assert.assertNotNull(mqInfo);
+        Assert.assertEquals(Type.MQ, mqInfo.getType());
 
         Assert.assertNotNull(mqInfo.getName());
         Assert.assertEquals(Status.RUNNING, mqInfo.getStatus());
