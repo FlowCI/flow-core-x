@@ -113,6 +113,7 @@ public class WelcomeController {
      *          system: Java SE,
      *          version: 1.8.0
      *          status: RUNNING,
+     *          type: JVM | DB | SERVER | ZK | MQ | CONFIG,
      *          info: {
      *              MEMORY: {
      *                  jvm.memory.max: 123123
@@ -150,6 +151,7 @@ public class WelcomeController {
      *      system: Java SE,
      *      version: 1.8.0
      *      status: RUNNING,
+     *      type: JVM | DB | SERVER | ZK | MQ | CONFIG,
      *      info: {
      *          MEMORY: {
      *              jvm.memory.max: 123123
