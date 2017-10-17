@@ -33,8 +33,7 @@ public class CachingConfig {
 
     private final static int EXPIRE_CACHE_SECOND = 3600 * 24;
 
-    private final static int MAX_CACHE_NUM = 1000;
-
+    private final static int MAX_CACHE_NUM = 100;
 
     private CacheBuilder cacheBuilder = CacheBuilder
         .newBuilder()

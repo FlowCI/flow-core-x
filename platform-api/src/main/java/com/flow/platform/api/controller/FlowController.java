@@ -235,7 +235,7 @@ public class FlowController extends NodeController {
     /**
      * @api {get} /flows/:root/branches List Branches
      * @apiParam {String} root flow node name
-     * @apiParam {refresh} [refresh] true or false
+     * @apiParam {Boolean} [refresh] true or false, the default is false
      * @apiGroup Flows
      *
      * @apiSuccessExample {json} Success-Response
@@ -248,13 +248,13 @@ public class FlowController extends NodeController {
      */
     @GetMapping("/{root}/branches")
     public List<String> listBranches(@RequestParam(required = false) Boolean refresh) {
-        Node root = nodeService.find(currentNodePath.get());
-        if (refresh != null && refresh == true) {
-            return gitService.refreshBranches(root);
+        if (refresh == null) {
+            refresh = false;
         }
-        return gitService.listBranches(root);
-    }
 
+        Node root = nodeService.find(currentNodePath.get());
+        return gitService.branches(root, refresh);
+    }
 
     /**
      * @api {get} /flows/:root/tags List Tags

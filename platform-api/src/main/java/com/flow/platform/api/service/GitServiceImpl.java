@@ -42,8 +42,6 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -103,18 +101,9 @@ public class GitServiceImpl implements GitService {
         return client.fetch(branch, filePath, new GitCloneProgressMonitor(progressListener));
     }
 
-
-    @Cacheable(value = "branches", key = "#node.getPath()")
-    public List<String> listBranches(Node node) {
-        return fetchBranches(node);
-    }
-
-    @CachePut(value = "branches", key = "#node.getPath()")
-    public List<String> refreshBranches(Node node) {
-        return fetchBranches(node);
-    }
-
-    private List<String> fetchBranches(Node node) {
+    @Override
+    @Cacheable(value = "git.branches", key = "#node.getPath()", condition = "#refresh == false")
+    public List<String> branches(Node node, boolean refresh) {
         GitClient client = gitClientInstance(node);
         try {
             return client.branches();

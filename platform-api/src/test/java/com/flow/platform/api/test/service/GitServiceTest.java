@@ -94,18 +94,18 @@ public class GitServiceTest extends TestBase {
 
     @Test
     public void should_list_branches_of_git_repo() {
-        List<String> branches = gitService.listBranches(node);
+        List<String> branches = gitService.branches(node, false);
         Assert.assertNotNull(branches);
         Assert.assertEquals("develop", branches.get(0));
         Assert.assertEquals("master", branches.get(1));
-    }
 
-    @Test
-    public void should_refresh_branches_of_git_repo() {
-        List<String> branches = gitService.refreshBranches(node);
+        // should load branches from cache
+        branches = gitService.branches(node, false);
         Assert.assertNotNull(branches);
-        Assert.assertEquals("develop", branches.get(0));
-        Assert.assertEquals("master", branches.get(1));
+
+        // should load branched from git repo for refresh
+        branches = gitService.branches(node, true);
+        Assert.assertNotNull(branches);
     }
 
     @Test
