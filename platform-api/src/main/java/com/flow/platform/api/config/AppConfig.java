@@ -30,6 +30,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
@@ -130,6 +131,11 @@ public class AppConfig extends AppConfigBase {
         VelocityEngine ve = new VelocityEngine();
         ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
         ve.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+
+        ve.setProperty(Velocity.ENCODING_DEFAULT, DEFAULT_CHARSET.name());
+        ve.setProperty(Velocity.INPUT_ENCODING, DEFAULT_CHARSET.name());
+        ve.setProperty(Velocity.OUTPUT_ENCODING, DEFAULT_CHARSET.name());
+
         ve.init();
         return ve;
     }
