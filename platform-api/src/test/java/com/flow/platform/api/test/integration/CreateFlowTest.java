@@ -195,10 +195,16 @@ public class CreateFlowTest extends TestBase {
         final CountDownLatch latch = new CountDownLatch(1);
         final ObjectWrapper<String> ymlWrapper = new ObjectWrapper<>();
 
-        ymlService.loadYmlContent(node, ymlStorage -> {
-            ymlWrapper.setInstance(ymlStorage.getFile());
-            latch.countDown();
-        });
+        ymlService.loadYmlContent(node,
+            ymlStorage -> {
+                ymlWrapper.setInstance(ymlStorage.getFile());
+                latch.countDown();
+            },
+
+            error -> {
+                // ignore
+            }
+        );
 
         latch.await(60, TimeUnit.SECONDS);
         return ymlWrapper.getInstance();

@@ -39,6 +39,20 @@ import java.util.function.Consumer;
  */
 public class UpdateNodeYmlTask implements Runnable {
 
+    private class EmptySuccessConsumer implements Consumer<Yml> {
+
+        @Override
+        public void accept(Yml o) {
+        }
+    }
+
+    private class EmptyErrorConsumer implements Consumer<Throwable> {
+
+        @Override
+        public void accept(Throwable throwable) {
+        }
+    }
+
     private final static Logger LOGGER = new Logger(UpdateNodeYmlTask.class);
 
     private final Node root;
@@ -47,16 +61,20 @@ public class UpdateNodeYmlTask implements Runnable {
 
     private final GitService gitService;
 
-    private final Consumer<Yml> callback;
+    private final Consumer<Yml> onSuccess;
+
+    private final Consumer<Throwable> onError;
 
     public UpdateNodeYmlTask(Node root,
                              NodeService nodeService,
                              GitService gitService,
-                             Consumer<Yml> callback) {
+                             Consumer<Yml> onSuccess,
+                             Consumer<Throwable> onError) {
         this.root = root;
         this.nodeService = nodeService;
         this.gitService = gitService;
-        this.callback = callback;
+        this.onSuccess = onSuccess == null ? new EmptySuccessConsumer() : onSuccess;
+        this.onError = onError == null ? new EmptyErrorConsumer() : onError;
     }
 
     @Override
@@ -73,6 +91,7 @@ public class UpdateNodeYmlTask implements Runnable {
                 nodeService.updateYmlState(root, YmlStatusValue.ERROR, rootCause.getMessage());
             }
 
+            onError.accept(e);
             return;
         }
 
@@ -80,14 +99,11 @@ public class UpdateNodeYmlTask implements Runnable {
             nodeService.createOrUpdate(root.getPath(), yml);
         } catch (Throwable e) {
             LOGGER.warn("Fail to create or update yml in node: '%s'", ExceptionUtil.findRootCause(e).getMessage());
+            onError.accept(e);
         }
 
         LOGGER.trace("Node %s FLOW_YML_STATUS is: %s", root.getName(), root.getEnv(FlowEnvs.FLOW_YML_STATUS));
-
-        // call consumer
-        if (callback != null) {
-            callback.accept(new Yml(root.getPath(), yml));
-        }
+        onSuccess.accept(new Yml(root.getPath(), yml));
     }
 
     private class GitProgressListener implements GitService.ProgressListener {
