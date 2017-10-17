@@ -16,11 +16,11 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitHttpClientBuilder;
+import com.flow.platform.api.git.GitLabClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
@@ -32,20 +32,17 @@ import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitSource;
-import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.eclipse.jgit.lib.ProgressMonitor;
-import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -53,6 +50,29 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class GitServiceImpl implements GitService {
+
+    private class EmptyProgressListener implements ProgressListener {
+
+        @Override
+        public void onStart() {
+
+        }
+
+        @Override
+        public void onStartTask(String task) {
+
+        }
+
+        @Override
+        public void onProgressing(String task, int total, int progress) {
+
+        }
+
+        @Override
+        public void onFinishTask(String task) {
+
+        }
+    }
 
     private final static Logger LOGGER = new Logger(GitService.class);
 
@@ -65,43 +85,39 @@ public class GitServiceImpl implements GitService {
     public void init() {
         clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
         clientBuilderType.put(GitSource.UNDEFINED_HTTP, GitHttpClientBuilder.class);
+        clientBuilderType.put(GitSource.GITLAB, GitLabClientBuilder.class);
     }
 
     @Override
-    public String clone(Node node, String filePath, ProgressListener progressListener) throws GitException {
+    public String fetch(Node node, String filePath, ProgressListener progressListener) throws GitException {
         GitClient client = gitClientInstance(node);
 
-        if (progressListener != null) {
-            progressListener.onStart();
+        if (progressListener == null) {
+            progressListener = new EmptyProgressListener();
         }
 
+        progressListener.onStart();
         String branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
-        client.clone(branch, Sets.newHashSet(filePath), new GitCloneProgressMonitor(progressListener));
-
-        if (progressListener != null) {
-            progressListener.onFinish();
-        }
-
-        return fetch(client, filePath);
+        return client.fetch(branch, filePath, new GitCloneProgressMonitor(progressListener));
     }
 
     @Override
-    public List<String> branches(Node node) {
+    @Cacheable(value = "git.branches", key = "#node.getPath()", condition = "#refresh == false")
+    public List<String> branches(Node node, boolean refresh) {
         GitClient client = gitClientInstance(node);
         try {
-            Collection<Ref> branches = client.branches();
-            return toRefString(branches);
+            return client.branches();
         } catch (GitException e) {
             throw new IllegalStatusException("Cannot load branch list from git: " + e.getMessage());
         }
     }
 
     @Override
-    public List<String> tags(Node node) {
+    @Cacheable(value = "git.tags", key = "#node.getPath()", condition = "#refresh == false")
+    public List<String> tags(Node node, boolean refresh) {
         GitClient client = gitClientInstance(node);
         try {
-            Collection<Ref> tags = client.tags();
-            return toRefString(tags);
+            return client.tags();
         } catch (GitException e) {
             throw new IllegalStatusException("Cannot load tag list from git: " + e.getMessage());
         }
@@ -142,26 +158,19 @@ public class GitServiceImpl implements GitService {
 
         @Override
         public void beginTask(String title, int totalWork) {
-            this.currentTask = title;
-            this.currentTotalWork = totalWork;
-
-            if (progressListener != null) {
-                progressListener.onStartTask(title);
-            }
+            currentTask = title;
+            currentTotalWork = totalWork;
+            progressListener.onStartTask(title);
         }
 
         @Override
         public void update(int completed) {
-            if (progressListener != null) {
-                progressListener.onProgressing(currentTask, currentTotalWork, completed);
-            }
+            progressListener.onProgressing(currentTask, currentTotalWork, completed);
         }
 
         @Override
         public void endTask() {
-            if (progressListener != null) {
-                progressListener.onFinishTask(currentTask);
-            }
+            progressListener.onFinishTask(currentTask);
         }
 
         @Override
@@ -170,32 +179,20 @@ public class GitServiceImpl implements GitService {
         }
     }
 
-    private List<String> toRefString(Collection<Ref> refs) {
-        List<String> refStringList = new ArrayList<>(refs.size());
-
-        for (Ref ref : refs) {
-            // convert ref name from ref/head/master to master
-            String refName = ref.getName();
-            int lastIndexOfSlash = refName.lastIndexOf('/');
-            String simpleName = refName.substring(lastIndexOfSlash + 1);
-
-            // add to result list
-            refStringList.add(simpleName);
-        }
-
-        return refStringList;
-    }
-
     /**
      * Init git client from flow env
      *
      * - FLOW_GIT_SOURCE
-     * - FLOW_GIT_URL
+     * - FLOW_GIT_URL : UNDEFINED_HTTP / UNDEFINED_SSH
      * - FLOW_GIT_BRANCH
      * - FLOW_GIT_SSH_PRIVATE_KEY
      * - FLOW_GIT_SSH_PUBLIC_KEY
      * - FLOW_GIT_HTTP_USER
      * - FLOW_GIT_HTTP_PASS
+     *
+     * - FLOW_GITLAB_HOST
+     * - FLOW_GITLAB_TOKEN
+     * - FLOW_GITLAB_PROJECT
      */
     private GitClient gitClientInstance(Node node) {
         checkRequiredEnv(node);
@@ -215,9 +212,13 @@ public class GitServiceImpl implements GitService {
             throw new IllegalStatusException("Fail to create GitClientBuilder instance: " + e.getMessage());
         }
 
-        GitClient client = builder.build();
-        LOGGER.trace("Git client initialized: %s", client);
-        return client;
+        try {
+            GitClient client = builder.build();
+            LOGGER.trace("Git client initialized: %s", client);
+            return client;
+        } catch (GitException e) {
+            throw new IllegalStatusException("Unable to init git client for " + source);
+        }
     }
 
     /**
@@ -227,30 +228,5 @@ public class GitServiceImpl implements GitService {
         Path flowWorkspace = NodeUtil.workspacePath(workspace, node);
         Files.createDirectories(flowWorkspace);
         return Paths.get(flowWorkspace.toString(), SOURCE_FOLDER_NAME);
-    }
-
-    /**
-     * Get target file from local git repo folder
-     */
-    private String fetch(GitClient gitClient, String filePath) {
-        Path targetPath = Paths.get(gitClient.targetPath().toString(), filePath);
-
-        if (Files.exists(targetPath)) {
-            return getContent(targetPath);
-        }
-
-        return null;
-    }
-
-    /**
-     * Get file content from source code folder of flow workspace
-     */
-    private String getContent(Path path) {
-        try {
-            return com.google.common.io.Files.toString(path.toFile(), AppConfig.DEFAULT_CHARSET);
-        } catch (IOException e) {
-            LOGGER.warn("Fail to load file content from %s", path.toString());
-            return null;
-        }
     }
 }

@@ -30,7 +30,7 @@ import org.eclipse.jgit.util.FS;
 /**
  * @author yang
  */
-public class GitSshClient extends AbstractGitClient {
+public class GitSshClient extends JGitBasedClient {
 
     private Path privateKeyPath;
 

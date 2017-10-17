@@ -46,8 +46,6 @@ public interface GitService {
         void onProgressing(String task, int total, int progress);
 
         void onFinishTask(String task);
-
-        void onFinish();
     }
 
     /**
@@ -58,17 +56,17 @@ public interface GitService {
      * @param progress listener for git progress
      * @return file content
      */
-    String clone(Node node, String filePath, ProgressListener progress) throws GitException;
+    String fetch(Node node, String filePath, ProgressListener progress) throws GitException;
 
     /**
      * Fetch branches from git repo
      */
-    List<String> branches(Node node);
+    List<String> branches(Node node, boolean refresh);
 
     /**
      * Fetch tags from git repo
      */
-    List<String> tags(Node node);
+    List<String> tags(Node node, boolean refresh);
 
     /**
      * Fetch latest commit from git repo

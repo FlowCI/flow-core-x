@@ -16,9 +16,9 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.domain.user.User;
@@ -114,7 +114,7 @@ public class FlowController extends NodeController {
     }
 
     /**
-     * @api {delete} /flows/:root/delete Delete
+     * @api {delete} /flows/:root Delete
      * @apiParam {String} root flow node name will be deleted
      * @apiDescription Delete flow node by name and return flow node object
      * @apiGroup Flows
@@ -235,6 +235,7 @@ public class FlowController extends NodeController {
     /**
      * @api {get} /flows/:root/branches List Branches
      * @apiParam {String} root flow node name
+     * @apiParam {Boolean} [refresh] true or false, the default is false
      * @apiGroup Flows
      *
      * @apiSuccessExample {json} Success-Response
@@ -246,9 +247,13 @@ public class FlowController extends NodeController {
      *  ]
      */
     @GetMapping("/{root}/branches")
-    public List<String> listBranches() {
+    public List<String> listBranches(@RequestParam(required = false) Boolean refresh) {
+        if (refresh == null) {
+            refresh = false;
+        }
+
         Node root = nodeService.find(currentNodePath.get());
-        return gitService.branches(root);
+        return gitService.branches(root, refresh);
     }
 
     /**
@@ -266,7 +271,7 @@ public class FlowController extends NodeController {
     @GetMapping("/{root}/tags")
     public List<String> listTags() {
         Node root = nodeService.find(currentNodePath.get());
-        return gitService.tags(root);
+        return gitService.tags(root, false);
     }
 
     /**
@@ -415,7 +420,7 @@ public class FlowController extends NodeController {
      */
     @PostMapping("/{root}/users/auth")
     @WebSecurity(action = Actions.FLOW_AUTH)
-    public List<User> flowAuthUsers(@RequestBody ListParam<String> listParam){
+    public List<User> flowAuthUsers(@RequestBody ListParam<String> listParam) {
         return nodeService.authUsers(listParam.getArrays(), currentNodePath.get());
     }
 }

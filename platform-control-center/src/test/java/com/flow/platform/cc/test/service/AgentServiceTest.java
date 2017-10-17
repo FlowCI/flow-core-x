@@ -239,4 +239,23 @@ public class AgentServiceTest extends TestBase {
         Thread.sleep(1500); // wait for 2 seconds
         Assert.assertTrue(agentService.isSessionTimeout(mockAgent, DateUtil.utcNow(), 1));
     }
+
+    @Test
+    public void should_delete_agent() throws Exception{
+        String zoneName = defaultZones.get(0).getName();
+        String agentName = "test-agent-for-status";
+        String agentPath = ZKHelper.buildPath(zoneName, agentName);
+        zkClient.createEphemeral(agentPath, null);
+
+        Thread.sleep(500);
+
+        // when: report status
+        AgentPath pathObj = new AgentPath(zoneName, agentName);
+        Agent created = agentService.find(pathObj);
+        agentService.saveWithStatus(created, AgentStatus.BUSY);
+
+        agentService.delete(created);
+        Assert.assertNull(agentService.find(new AgentPath(zoneName, agentName)));
+
+    }
 }

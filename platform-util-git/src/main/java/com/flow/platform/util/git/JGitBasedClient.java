@@ -18,7 +18,9 @@ package com.flow.platform.util.git;
 
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.git.model.GitCommit;
+import com.flow.platform.util.git.model.GitProject;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -28,8 +30,10 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -47,7 +51,7 @@ import org.eclipse.jgit.util.FileUtils;
 /**
  * @author yang
  */
-public abstract class AbstractGitClient implements GitClient {
+public abstract class JGitBasedClient implements GitClient {
 
     protected static final int GIT_TRANS_TIMEOUT = 30; // in seconds
 
@@ -61,7 +65,7 @@ public abstract class AbstractGitClient implements GitClient {
      */
     protected Path targetDir; // target base directory
 
-    public AbstractGitClient(String gitUrl, Path baseDir) {
+    public JGitBasedClient(String gitUrl, Path baseDir) {
         this.gitUrl = gitUrl;
 
         // verify git url
@@ -128,6 +132,22 @@ public abstract class AbstractGitClient implements GitClient {
     }
 
     @Override
+    public String fetch(String branch, String filePath, ProgressMonitor monitor) throws GitException {
+        clone(branch, Sets.newHashSet(filePath), monitor);
+        Path targetPath = Paths.get(targetDir.toString(), filePath);
+
+        if (Files.exists(targetPath)) {
+            try {
+                return com.google.common.io.Files.toString(targetPath.toFile(), Charset.forName("UTF-8"));
+            } catch (IOException e) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public void pull(String branch, ProgressMonitor monitor) throws GitException {
         try (Git git = gitOpen()) {
             PullCommand pullCommand = pullCommand(branch, git);
@@ -138,29 +158,43 @@ public abstract class AbstractGitClient implements GitClient {
             }
             pullCommand.call();
         } catch (Throwable e) {
-            throw new GitException("Fail to pull with specific files", ExceptionUtil.findRootCause(e));
+            throw new GitException("Fail to pull with specific files: " + ExceptionUtil.findRootCause(e).getMessage());
         }
     }
 
     @Override
-    public Collection<Ref> branches() throws GitException {
+    public List<GitProject> projects() throws GitException {
+        throw new UnsupportedOperationException("Unable to list git projects for JGit based client");
+    }
+
+    @Override
+    public void setCurrentProject(GitProject project) throws GitException {
+        throw new UnsupportedOperationException("Unable to set git project for JGit based client");
+    }
+
+    @Override
+    public List<String> branches() throws GitException {
         try {
-            return buildCommand(Git.lsRemoteRepository()
+            Collection<Ref> refs = buildCommand(Git.lsRemoteRepository()
                 .setHeads(true)
                 .setTimeout(GIT_TRANS_TIMEOUT)
                 .setRemote(gitUrl)).call();
+
+            return toRefString(refs);
         } catch (GitAPIException e) {
             throw new GitException("Fail to list branches from remote repo", e);
         }
     }
 
     @Override
-    public Collection<Ref> tags() throws GitException {
+    public List<String> tags() throws GitException {
         try {
-            return buildCommand(Git.lsRemoteRepository()
+            Collection<Ref> refs = buildCommand(Git.lsRemoteRepository()
                 .setTags(true)
                 .setTimeout(GIT_TRANS_TIMEOUT)
                 .setRemote(gitUrl)).call();
+
+            return toRefString(refs);
         } catch (GitAPIException e) {
             throw new GitException("Fail to list tags from remote repo", ExceptionUtil.findRootCause(e));
         }
@@ -203,6 +237,22 @@ public abstract class AbstractGitClient implements GitClient {
      * Git command builder
      */
     protected abstract <T extends TransportCommand> T buildCommand(T command);
+
+    private List<String> toRefString(Collection<Ref> refs) {
+        List<String> refStringList = new ArrayList<>(refs.size());
+
+        for (Ref ref : refs) {
+            // convert ref name from ref/head/master to master
+            String refName = ref.getName();
+            int lastIndexOfSlash = refName.lastIndexOf('/');
+            String simpleName = refName.substring(lastIndexOfSlash + 1);
+
+            // add to result list
+            refStringList.add(simpleName);
+        }
+
+        return refStringList;
+    }
 
     /**
      * Create local .git with remote info

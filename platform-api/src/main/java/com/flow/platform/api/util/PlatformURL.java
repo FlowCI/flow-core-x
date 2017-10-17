@@ -40,6 +40,10 @@ public class PlatformURL {
 
     private final String cmdDownloadLogUrl;
 
+    private final String agentDeleteUrl;
+
+    private final String agentFindUrl;
+
     public PlatformURL(String baseURL) {
         queueUrl = HttpURL.build(baseURL).append("cmd/queue/send").toString();
         cmdUrl = HttpURL.build(baseURL).append("cmd/send").toString();
@@ -51,6 +55,8 @@ public class PlatformURL {
         agentUrl = HttpURL.build(baseURL).append("agents/list").toString();
         agentCreateUrl = HttpURL.build(baseURL).append("agents/create").toString();
         agentSettingsUrl = HttpURL.build(baseURL).append("agents/settings").toString();
+        agentDeleteUrl = HttpURL.build(baseURL).append("agents/delete").toString();
+        agentFindUrl = HttpURL.build(baseURL).append("agents/find").toString();
     }
 
     public String getAgentCreateUrl() {
@@ -85,6 +91,13 @@ public class PlatformURL {
         return sysInfoUrl;
     }
 
+    public String getAgentDeleteUrl() {
+        return agentDeleteUrl;
+    }
+    public String getAgentFindUrl() {
+        return agentFindUrl;
+    }
+
     @Override
     public String toString() {
         return "PlatformURL{" +
@@ -92,6 +105,8 @@ public class PlatformURL {
             ", queueUrl='" + queueUrl + '\'' +
             ", agentUrl='" + agentUrl + '\'' +
             ", agentSettingsUrl='" + agentSettingsUrl + '\'' +
+            ", agentDeleteUrl='" + agentDeleteUrl + '\'' +
+            ", agentFindUrl='" + agentFindUrl + '\'' +
             ", sysInfoUrl='" + sysInfoUrl + '\'' +
             ", sysIndexUrl='" + sysIndexUrl + '\'' +
             ", agentCreateUrl='" + agentCreateUrl + '\'' +
