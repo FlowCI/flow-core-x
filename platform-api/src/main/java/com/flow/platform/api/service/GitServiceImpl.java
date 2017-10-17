@@ -42,6 +42,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -101,7 +102,8 @@ public class GitServiceImpl implements GitService {
     }
 
     @Override
-    public List<String> branches(Node node) {
+    @Cacheable(value = "git.branches", key = "#node.getPath()", condition = "#refresh == false")
+    public List<String> branches(Node node, boolean refresh) {
         GitClient client = gitClientInstance(node);
         try {
             return client.branches();
@@ -111,7 +113,8 @@ public class GitServiceImpl implements GitService {
     }
 
     @Override
-    public List<String> tags(Node node) {
+    @Cacheable(value = "git.tags", key = "#node.getPath()", condition = "#refresh == false")
+    public List<String> tags(Node node, boolean refresh) {
         GitClient client = gitClientInstance(node);
         try {
             return client.tags();
