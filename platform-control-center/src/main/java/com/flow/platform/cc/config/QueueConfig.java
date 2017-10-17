@@ -42,6 +42,8 @@ public class QueueConfig {
 
     public final static int CMD_QUEUE_DEFAULT_PRIORITY = 10;
 
+    public final static String PROP_CMD_QUEUE_RETRY = "queue.cmd.retry.enable";
+
     private final static Logger LOGGER = new Logger(QueueConfig.class);
 
     /**
@@ -70,14 +72,26 @@ public class QueueConfig {
     @Value("${queue.cmd.rabbit.enable}")
     private Boolean cmdQueueRabbitEnable;
 
+    /**
+     * Enable cmd queue retry instead of pause/resume logic
+     */
+    @Value("${queue.cmd.retry.enable}")
+    private Boolean cmdQueueRetryEnable;
+
+    /**
+     * AppConfig task executor
+     */
     @Autowired
-    private ThreadPoolTaskExecutor taskExecutor; // from AppConfig
+    private ThreadPoolTaskExecutor taskExecutor;
 
     @PostConstruct
     public void init() {
         LOGGER.trace("Host: %s", host);
         LOGGER.trace("Management Host: %s", mgrHost);
+
         LOGGER.trace("Cmd queue name: %s", cmdQueueName);
+        LOGGER.trace("Cmd RabbitMQ enabled: %s", cmdQueueRabbitEnable);
+        LOGGER.trace("Cmd queue retry enabled: %s", cmdQueueRetryEnable);
     }
 
     @Bean

@@ -91,9 +91,28 @@ public class RabbitQueue extends PlatformQueue<Message> {
     }
 
     @Override
+    public void pause() {
+        if (container.isRunning()) {
+            container.stop();
+        }
+    }
+
+    @Override
+    public void resume() {
+        if (!container.isRunning()) {
+            container.start();
+        }
+    }
+
+    @Override
     public void enqueue(Message item) {
         template.send("", name, item);
         size.incrementAndGet();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return container.isRunning();
     }
 
     @Override
@@ -118,6 +137,7 @@ public class RabbitQueue extends PlatformQueue<Message> {
         factory.setConcurrentConsumers(DEFAULT_CONCURRENCY);
         factory.setMaxConcurrentConsumers(DEFAULT_CONCURRENCY);
         factory.setTaskExecutor(executor);
+        factory.setAutoStartup(false);
 
         // setup rabbit template
         template = new RabbitTemplate(connectionFactory);

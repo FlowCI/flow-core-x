@@ -45,12 +45,12 @@ public class GitHttpClientTest {
         GitHttpClient client = new GitHttpClient(TEST_GIT_HTTP_URL, Paths.get(tmpPath), "", "");
 
         // load all branches
-        Collection<Ref> branches = client.branches();
+        Collection<String> branches = client.branches();
         Assert.assertNotNull(branches);
         Assert.assertTrue(branches.size() >= 1);
 
         // load all tags
-        Collection<Ref> tags = client.tags();
+        Collection<String> tags = client.tags();
         Assert.assertNotNull(tags);
         Assert.assertTrue(tags.size() >= 1);
     }

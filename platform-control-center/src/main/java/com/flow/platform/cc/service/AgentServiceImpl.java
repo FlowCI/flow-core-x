@@ -18,6 +18,8 @@ package com.flow.platform.cc.service;
 
 import com.flow.platform.cc.config.TaskConfig;
 import com.flow.platform.cc.dao.AgentDao;
+import com.flow.platform.cc.event.AgentResourceEvent;
+import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -36,6 +38,7 @@ import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import com.google.gson.annotations.Expose;
+import java.sql.SQLDataException;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -145,6 +148,11 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
         if (statusIsChanged) {
             this.webhookCallback(agent);
         }
+
+        // boardcast AgentResourceEvent for release
+        if (agent.getStatus() == AgentStatus.IDLE) {
+            this.dispatchEvent(new AgentResourceEvent(this, agent.getZone(), Category.RELEASED));
+        }
     }
 
     @Override
@@ -227,5 +235,15 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
         agentSettings.setAgentPath(agent.getPath());
         return agentSettings;
+    }
+
+    @Override
+    public void delete(Agent agent){
+        try {
+            agentDao.delete(agent);
+        } catch (Throwable e){
+            throw new UnsupportedOperationException("delete agent failure " + e.getMessage());
+        }
+
     }
 }
