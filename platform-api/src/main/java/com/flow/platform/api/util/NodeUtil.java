@@ -71,9 +71,7 @@ public class NodeUtil {
         Flow[] flows;
         try {
             flows = YmlParser.fromYml(yml, Flow[].class);
-        } catch (YmlParseException e) {
-            throw new YmlException(e.getMessage());
-        } catch (YmlFormatException e) {
+        } catch (YmlParseException | YmlFormatException e) {
             throw new YmlException(e.getMessage());
         }
 
