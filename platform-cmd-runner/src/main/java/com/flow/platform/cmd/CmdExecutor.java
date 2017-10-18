@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -128,12 +129,12 @@ public final class CmdExecutor {
      * @param cmd exec cmd
      */
     public CmdExecutor(final ProcListener procListener,
-        final LogListener logListener,
-        final Map<String, String> inputs,
-        final String workingDir,
-        final String outputEnvFilter,
-        final Integer timeout,
-        final List<String> cmds) {
+                       final LogListener logListener,
+                       final Map<String, String> inputs,
+                       final String workingDir,
+                       final String outputEnvFilter,
+                       final Integer timeout,
+                       final List<String> cmds) {
 
         if (procListener != null) {
             this.procListener = procListener;
@@ -153,9 +154,15 @@ public final class CmdExecutor {
         // check and init working dir
         if (workingDir != null) {
             File dir = new File(workingDir);
+
             if (!dir.exists()) {
-                throw new IllegalArgumentException(String.format("Cmd defined working dir '%s' not found", workingDir));
+                try {
+                    Files.createDirectories(dir.toPath());
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("Unable to create working dir: " + dir);
+                }
             }
+
             this.pBuilder.directory(dir);
         }
 
@@ -341,8 +348,8 @@ public final class CmdExecutor {
      * put env item which match 'start with filter' to CmdResult.output map
      */
     private void readEnv(final BufferedReader reader,
-        final Map<String, String> output,
-        final String filter) throws IOException {
+                         final Map<String, String> output,
+                         final String filter) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith(filter)) {
