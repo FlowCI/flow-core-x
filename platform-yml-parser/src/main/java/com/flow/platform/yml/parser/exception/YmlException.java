@@ -22,10 +22,10 @@ package com.flow.platform.yml.parser.exception;
 public class YmlException extends RuntimeException {
 
     public YmlException(String message) {
-        super(message);
+        super(String.format("Illegal yml format: %s", message));
     }
 
     public YmlException(String message, Throwable cause) {
-        super(message, cause);
+        super(String.format("Illegal yml format: %s", message), cause);
     }
 }

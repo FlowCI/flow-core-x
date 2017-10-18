@@ -34,7 +34,7 @@ public class YmlParser {
 
     private final static YamlConfig yamlConfig = new YamlConfig();
 
-    private final static String YML_ILLEGAL_MESSAGE = "Yml illegal format, please confirm yml format";
+    private final static String YML_ILLEGAL_MESSAGE = "yml format is illegal";
     private final static String YML_CONVERT_MESSAGE = "Object to yml error, please retry";
 
     static {

@@ -27,7 +27,6 @@ import com.google.common.base.Strings;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -65,7 +64,7 @@ public abstract class YmlAdaptor<T> {
         try {
             instance = clazz.newInstance();
         } catch (Throwable throwable) {
-            throw new YmlParseException(String.format("clazz - %s instance error", clazz.getName()), throwable);
+            throw new YmlParseException(String.format("clazz '%s' create instance error ", clazz.getName()), throwable);
         }
 
         Class<?> raw = clazz;
@@ -122,7 +121,7 @@ public abstract class YmlAdaptor<T> {
         // required field
         if (requiredField(ymlSerializer)) {
             if (obj == null) {
-                throw new YmlParseException(String.format("required field - %s , please confirm", field.getName()));
+                throw new YmlParseException(String.format("field '%s' is missing", field.getName()));
             }
         }
 
@@ -163,7 +162,7 @@ public abstract class YmlAdaptor<T> {
             try {
                 return TypeAdaptorFactory.getAdaptor(fieldType).write(field.get(t));
             } catch (Throwable throwable) {
-                throw new YmlParseException(String.format("field - %s get error", field.getName()), throwable);
+                throw new YmlParseException(String.format("field '%s' is get error", field.getName()), throwable);
             }
         }
 
@@ -174,7 +173,7 @@ public abstract class YmlAdaptor<T> {
                 return instance.write(field.get(t));
             } catch (Throwable throwable) {
                 throw new YmlParseException(
-                    String.format("create instance adaptor - %s error", ymlSerializer.adaptor().getName()), throwable);
+                    String.format("create instance '%s' adaptor error", ymlSerializer.adaptor().getName()), throwable);
             }
         }
 
@@ -193,11 +192,12 @@ public abstract class YmlAdaptor<T> {
                 value = field.get(instance);
             } catch (Throwable throwable) {
                 throw new YmlFormatException(String
-                    .format("validate - %s instance  error - %s", ymlSerializer.validator().getName(), throwable));
+                    .format("field '%s' is validate error %s", ymlSerializer.validator().getName(),
+                        throwable.getMessage()));
             }
 
             if (validator.validate(value) == false) {
-                throw new YmlFormatException(String.format("field - %s , validate - error", field.getName()));
+                throw new YmlFormatException(String.format("field '%s' is validate error", field.getName()));
             }
 
         }
