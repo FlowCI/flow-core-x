@@ -27,7 +27,6 @@ import com.google.common.base.Strings;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -65,7 +64,7 @@ public abstract class YmlAdaptor<T> {
         try {
             instance = clazz.newInstance();
         } catch (Throwable throwable) {
-            throw new YmlParseException(String.format("clazz - %s instance error", clazz.getName()), throwable);
+            throw new YmlParseException(String.format("clazz '%s' create instance error ", clazz.getName()), throwable);
         }
 
         Class<?> raw = clazz;
@@ -80,12 +79,12 @@ public abstract class YmlAdaptor<T> {
                 YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
 
                 //filter no annotations field
-                if (noAnnotationField(field)) {
+                if (isNullOrEmpty(ymlSerializer)) {
                     continue;
                 }
 
                 //filter ignore field
-                if (ignoreField(field)) {
+                if (isIgnore(ymlSerializer)) {
                     continue;
                 }
                 setValueToField(o, field, instance, ymlSerializer, clazz);
@@ -96,12 +95,12 @@ public abstract class YmlAdaptor<T> {
                 YmlSerializer ymlSerializer = method.getAnnotation(YmlSerializer.class);
 
                 //filter no annotations method
-                if (noAnnotationMethod(method)) {
+                if (isNullOrEmpty(ymlSerializer)) {
                     continue;
                 }
 
                 //filter ignore method
-                if (ignoreMethod(method)) {
+                if (isIgnore(ymlSerializer)) {
                     continue;
                 }
 
@@ -120,9 +119,9 @@ public abstract class YmlAdaptor<T> {
         Object obj = ((Map) o).get(getAnnotationMappingName(field.getName(), ymlSerializer));
 
         // required field
-        if (requiredField(field)) {
+        if (requiredField(ymlSerializer)) {
             if (obj == null) {
-                throw new YmlParseException(String.format("required field - %s", field.getName()));
+                throw new YmlParseException(String.format("field '%s' is missing", field.getName()));
             }
         }
 
@@ -163,18 +162,18 @@ public abstract class YmlAdaptor<T> {
             try {
                 return TypeAdaptorFactory.getAdaptor(fieldType).write(field.get(t));
             } catch (Throwable throwable) {
-                throw new YmlParseException(String.format("field - %s get error", field.getName()), throwable);
+                throw new YmlParseException(String.format("field '%s' is get error", field.getName()), throwable);
             }
         }
 
         //annotation provider adaptor
         if (ymlSerializer.adaptor() != EmptyAdapter.class) {
             try {
-                YmlAdaptor instance = (YmlAdaptor) ymlSerializer.adaptor().newInstance();
+                YmlAdaptor instance = ymlSerializer.adaptor().newInstance();
                 return instance.write(field.get(t));
             } catch (Throwable throwable) {
                 throw new YmlParseException(
-                    String.format("create instance adaptor - %s error", ymlSerializer.adaptor().getName()), throwable);
+                    String.format("create instance '%s' adaptor error", ymlSerializer.adaptor().getName()), throwable);
             }
         }
 
@@ -193,11 +192,12 @@ public abstract class YmlAdaptor<T> {
                 value = field.get(instance);
             } catch (Throwable throwable) {
                 throw new YmlFormatException(String
-                    .format("validate - %s instance  error - %s", ymlSerializer.validator().getName(), throwable));
+                    .format("field '%s' is validate error %s", ymlSerializer.validator().getName(),
+                        throwable.getMessage()));
             }
 
             if (validator.validate(value) == false) {
-                throw new YmlFormatException(String.format("field - %s , validate - error", field.getName()));
+                throw new YmlFormatException(String.format("field '%s' is validate error", field.getName()));
             }
 
         }
@@ -254,7 +254,7 @@ public abstract class YmlAdaptor<T> {
                     // 获取 field 对应的值
                     YmlSerializer ymlSerializer = field.getAnnotation(YmlSerializer.class);
 
-                    if (noAnnotationField(field)) {
+                    if (isNullOrEmpty(ymlSerializer)) {
                         continue;
                     }
 
@@ -267,7 +267,7 @@ public abstract class YmlAdaptor<T> {
                     // 获取 field 对应的值
                     YmlSerializer ymlSerializer = method.getAnnotation(YmlSerializer.class);
 
-                    if (noAnnotationMethod(method)) {
+                    if (isNullOrEmpty(ymlSerializer)) {
                         continue;
                     }
 
@@ -300,12 +300,10 @@ public abstract class YmlAdaptor<T> {
 
     /**
      * detect required field from annotation
-     *
-     * @param field field
-     * @return True or false
+     * @param annotation
+     * @return
      */
-    private Boolean requiredField(Field field) {
-        YmlSerializer annotation = field.getAnnotation(YmlSerializer.class);
+    private Boolean requiredField(YmlSerializer annotation) {
         if (annotation == null) {
             return false;
         }
@@ -318,10 +316,11 @@ public abstract class YmlAdaptor<T> {
     }
 
     /**
-     * filter no annotation field
+     * detect annotation has or not
+     * @param annotation
+     * @return
      */
-    private Boolean noAnnotationField(Field field) {
-        YmlSerializer annotation = field.getAnnotation(YmlSerializer.class);
+    private Boolean isNullOrEmpty(YmlSerializer annotation) {
         if (annotation == null) {
             return true;
         }
@@ -330,64 +329,16 @@ public abstract class YmlAdaptor<T> {
     }
 
     /**
-     * filter ignore field
+     * filter ignore action
+     * @param annotation
+     * @return
      */
-    private Boolean ignoreField(Field field) {
-        YmlSerializer annotation = field.getAnnotation(YmlSerializer.class);
+    private Boolean isIgnore(YmlSerializer annotation) {
         if (annotation.ignore()) {
             return true;
         }
 
         return false;
-    }
-
-
-    /**
-     * filter no annotation method
-     */
-    private Boolean noAnnotationMethod(Method method) {
-        YmlSerializer annotation = method.getAnnotation(YmlSerializer.class);
-        if (annotation == null) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * filter ignore method
-     */
-    private Boolean ignoreMethod(Method method) {
-        YmlSerializer annotation = method.getAnnotation(YmlSerializer.class);
-        if (annotation.ignore()) {
-            return true;
-        }
-
-        return false;
-    }
-
-
-    /**
-     * get all fields
-     *
-     * @return Map<name, field>
-     */
-    private Map<String, Field> allFields(Class<?> clazz) {
-        Map<String, Field> map = new HashMap<>();
-
-        while (true) {
-            if (clazz == null) {
-                break;
-            }
-
-            for (Field field : clazz.getDeclaredFields()) {
-                map.put(field.getName(), field);
-            }
-
-            clazz = clazz.getSuperclass();
-        }
-
-        return map;
     }
 
 
@@ -409,10 +360,6 @@ public abstract class YmlAdaptor<T> {
 
     private Method getGetterMethod(Field field, Class<?> clazz) {
         return getMethod(field, clazz, "get");
-    }
-
-    private Method getSetterMethod(Field field, Class<?> clazz) {
-        return getMethod(field, clazz, "set");
     }
 
     /**
