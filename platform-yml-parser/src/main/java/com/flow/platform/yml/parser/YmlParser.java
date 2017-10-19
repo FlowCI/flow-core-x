@@ -34,6 +34,9 @@ public class YmlParser {
 
     private final static YamlConfig yamlConfig = new YamlConfig();
 
+    private final static String YML_ILLEGAL_MESSAGE = "yml format is illegal";
+    private final static String YML_CONVERT_MESSAGE = "Object to yml error, please retry";
+
     static {
         yamlConfig.writeConfig.setAutoAnchor(false);
         yamlConfig.writeConfig.setWriteClassname(WriteClassName.NEVER);
@@ -41,7 +44,7 @@ public class YmlParser {
 
     private static <T> T fromObject(Object o, Type typeOfT) {
         if (o == null) {
-            throw new YmlParseException("yml parser error");
+            throw new YmlParseException(YML_ILLEGAL_MESSAGE);
         }
         return (T) TypeAdaptorFactory.getAdaptor(typeOfT).read(o);
     }
@@ -63,7 +66,7 @@ public class YmlParser {
             YamlReader yamlReader = new YamlReader(str, yamlConfig);
             result = (Map) yamlReader.read();
         } catch (Throwable throwable) {
-            throw new YmlParseException("Load Yml error");
+            throw new YmlParseException(YML_ILLEGAL_MESSAGE);
         }
         return fromObject(result.get("flow"), typeOfT);
     }
@@ -78,14 +81,14 @@ public class YmlParser {
         Map<String, Object> map = new HashMap<>();
         Object o = toObject(t);
         map.put("flow", o);
-        String yml = null;
+        String yml;
 
         try (Writer stringWriter = new StringWriter()) {
             YamlWriter writer = new YamlWriter(stringWriter, yamlConfig);
             writer.write(map);
             yml = stringWriter.toString();
         } catch (Throwable throwable) {
-            throw new YmlParseException(String.format("Object to yaml error"), throwable);
+            throw new YmlParseException(YML_CONVERT_MESSAGE, throwable);
         }
 
         return yml;
