@@ -18,12 +18,14 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.DateUtil;
+import com.flow.platform.util.SystemUtil;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -153,17 +155,17 @@ public final class CmdExecutor {
 
         // check and init working dir
         if (workingDir != null) {
-            File dir = new File(workingDir);
+            Path dir = SystemUtil.replacePathWithEnv(workingDir);
 
-            if (!dir.exists()) {
+            if (!Files.exists(dir)) {
                 try {
-                    Files.createDirectories(dir.toPath());
+                    Files.createDirectories(dir);
                 } catch (IOException e) {
                     throw new IllegalArgumentException("Unable to create working dir: " + dir);
                 }
             }
 
-            this.pBuilder.directory(dir);
+            this.pBuilder.directory(dir.toFile());
         }
 
         // init inputs env

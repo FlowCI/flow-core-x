@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.test.util;
+package com.flow.platform.util.test;
 
-import com.flow.platform.api.util.SystemUtil;
+import com.flow.platform.util.SystemUtil;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.junit.Assert;
@@ -26,6 +26,18 @@ import org.junit.Test;
  * @author yang
  */
 public class SystemUtilTest {
+
+    @Test
+    public void should_parse_linux_env() throws Throwable {
+        String home = SystemUtil.parseEnv("${HOME}");
+        Assert.assertEquals(System.getenv("HOME"), home);
+
+        home = SystemUtil.parseEnv("$HOME");
+        Assert.assertEquals(System.getenv("HOME"), home);
+
+        home = SystemUtil.parseEnv("${HOME");
+        Assert.assertNull(home);
+    }
 
     @Test
     public void should_replace_path_with_env() throws Throwable {
