@@ -25,6 +25,7 @@ import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitEventType;
@@ -174,7 +175,12 @@ public class JobController extends NodeController {
     @GetMapping(path = "/{root}/{buildNumber}/yml")
     public String yml(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
-        return jobService.findYml(path, buildNumber);
+        try {
+            return jobService.findYml(path, buildNumber);
+        } catch (NotFoundException ignore) {
+            // ignore job node not found exception since maybe job node created when yml loading
+            return StringUtil.EMPTY;
+        }
     }
 
     /**
