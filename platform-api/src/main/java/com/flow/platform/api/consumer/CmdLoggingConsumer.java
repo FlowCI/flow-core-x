@@ -18,9 +18,7 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.core.http.converter.RawGsonMessageConverter;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
-import com.google.gson.annotations.JsonAdapter;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -83,9 +81,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
 
     /**
      * send command log
-     * @param cmdId
-     * @param content
-     * @param number
      */
     private void sendCmdLog(String cmdId, String content, String number) {
         String event = String.format("/topic/cmd/%s", cmdId);
@@ -94,7 +89,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
 
     /**
      * send agent sys info
-     * @param content
      */
     private void sendAgentSysInfo(String content) {
         Map<String, String> dic = jsonConverter.getGson().fromJson(content, Map.class);
