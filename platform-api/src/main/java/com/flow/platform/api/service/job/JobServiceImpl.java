@@ -450,6 +450,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         //create yml snapshot for job
         jobNodeService.save(job, yml);
 
+        // set root node env from yml to job env
+        Node root = jobNodeService.get(job).root();
+        EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
+
         // init for node result and set to job object
         List<NodeResult> resultList = nodeResultService.create(job);
         NodeResult rootResult = resultList.remove(resultList.size() - 1);
