@@ -39,9 +39,6 @@ import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -49,11 +46,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
@@ -67,18 +64,8 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     private final Logger LOGGER = new Logger(NodeService.class);
 
-    private final static int TREE_CACHE_EXPIRE_SECOND = 3600 * 24;
-
-    private final static int MAX_TREE_CACHE_NUM = 100;
-
-    private final static int INIT_NODE_CACHE_NUM = 10;
-
-    // To cache key is root node (flow) path, value is flatted tree as map
-    private Cache<String, NodeTree> treeCache = CacheBuilder
-        .newBuilder()
-        .expireAfterAccess(TREE_CACHE_EXPIRE_SECOND, TimeUnit.SECONDS)
-        .maximumSize(MAX_TREE_CACHE_NUM)
-        .build();
+    @Autowired
+    private CacheManager cacheManager;
 
     @Autowired
     private YmlService ymlService;
@@ -138,7 +125,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         ymlDao.saveOrUpdate(ymlStorage);
 
         // reset cache
-        treeCache.invalidate(flow.getPath());
+        getTreeCache().evict(flow.getPath());
 
         //retry find flow
         return findFlow(PathUtil.rootPath(path));
@@ -148,37 +135,38 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     public Node find(final String path) {
         final String rootPath = PathUtil.rootPath(path);
 
-        try {
-            // load tree from tree cache
-            NodeTree tree = treeCache.get(rootPath, () -> {
+        // load tree from tree cache
+        NodeTree tree = getTreeCache().get(rootPath, () -> {
 
-                Yml ymlStorage = ymlDao.get(rootPath);
-                Flow flow = flowDao.get(path);
+            Yml ymlStorage = ymlDao.get(rootPath);
+            Flow flow = flowDao.get(path);
 
-                // has related yml
-                if (ymlStorage != null) {
-                    NodeTree newTree = new NodeTree(ymlStorage.getFile(), flow.getName());
-                    Node root = newTree.root();
+            // has related yml
+            if (ymlStorage != null) {
+                NodeTree newTree = new NodeTree(ymlStorage.getFile(), flow.getName());
+                Node root = newTree.root();
 
-                    // should merge env from flow dao and yml
-                    EnvUtil.merge(flow, root, false);
+                // should merge env from flow dao and yml
+                EnvUtil.merge(flow, root, false);
 
-                    return newTree;
-                }
+                return newTree;
+            }
 
-                if (flow != null) {
-                    return new NodeTree(flow);
-                }
+            if (flow != null) {
+                return new NodeTree(flow);
+            }
 
-                // root path not exist
-                return null;
-            });
+            // root path not exist
+            return null;
+        });
 
-            return tree.find(path);
-        } catch (ExecutionException | InvalidCacheLoadException ignore) {
-            // not not found or unable to load from cache
+        // cleanup cache for null value
+        if (tree == null) {
+            getTreeCache().evict(rootPath);
             return null;
         }
+
+        return tree.find(path);
     }
 
     /**
@@ -222,7 +210,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         // delete local flow folder
         Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);
         FileSystemUtils.deleteRecursively(flowWorkspace.toFile());
-        treeCache.invalidate(rootPath);
+        getTreeCache().evict(rootPath);
 
         // stop yml loading tasks
         ymlService.stopLoadYmlContent(flow);
@@ -238,7 +226,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Override
     public Flow createEmptyFlow(final String flowName) {
         Flow flow = new Flow(PathUtil.build(flowName), flowName);
-        treeCache.invalidate(flow.getPath());
+        getTreeCache().evict(flow.getPath());
 
         if (!checkFlowName(flow.getName())) {
             throw new IllegalParameterException("Illegal flow name");
@@ -255,7 +243,6 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         flow = flowDao.save(flow);
 
         userFlowService.assign(currentUser(), flow);
-
         return flow;
     }
 
@@ -344,4 +331,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         return true;
     }
 
+    private Cache getTreeCache() {
+        return cacheManager.getCache("treeCache");
+    }
 }

@@ -20,9 +20,8 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.yml.parser.YmlParser;
-import com.flow.platform.yml.parser.exception.YmlParseException;
 import com.flow.platform.yml.parser.exception.YmlFormatException;
-import com.google.common.base.Strings;
+import com.flow.platform.yml.parser.exception.YmlParseException;
 import com.google.common.io.Files;
 import java.io.File;
 import java.nio.file.Path;
@@ -72,10 +71,8 @@ public class NodeUtil {
         Flow[] flows;
         try {
             flows = YmlParser.fromYml(yml, Flow[].class);
-        } catch (YmlParseException e) {
-            throw new YmlException("Yml parser error", e);
-        } catch (YmlFormatException e) {
-            throw new YmlException("Yml validate error", e);
+        } catch (YmlParseException | YmlFormatException e) {
+            throw new YmlException(e.getMessage());
         }
 
         // current version only support single flow

@@ -40,7 +40,6 @@ public class CachingConfig {
         .expireAfterAccess(EXPIRE_CACHE_SECOND, TimeUnit.SECONDS)
         .maximumSize(MAX_CACHE_NUM);
 
-
     @Bean
     public CacheManager cacheManager() {
         GuavaCacheManager guavaCacheManager = new GuavaCacheManager();

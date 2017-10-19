@@ -18,11 +18,14 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.DateUtil;
+import com.flow.platform.util.SystemUtil;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -128,12 +131,12 @@ public final class CmdExecutor {
      * @param cmd exec cmd
      */
     public CmdExecutor(final ProcListener procListener,
-        final LogListener logListener,
-        final Map<String, String> inputs,
-        final String workingDir,
-        final String outputEnvFilter,
-        final Integer timeout,
-        final List<String> cmds) {
+                       final LogListener logListener,
+                       final Map<String, String> inputs,
+                       final String workingDir,
+                       final String outputEnvFilter,
+                       final Integer timeout,
+                       final List<String> cmds) {
 
         if (procListener != null) {
             this.procListener = procListener;
@@ -152,11 +155,17 @@ public final class CmdExecutor {
 
         // check and init working dir
         if (workingDir != null) {
-            File dir = new File(workingDir);
-            if (!dir.exists()) {
-                throw new IllegalArgumentException(String.format("Cmd defined working dir '%s' not found", workingDir));
+            Path dir = SystemUtil.replacePathWithEnv(workingDir);
+
+            if (!Files.exists(dir)) {
+                try {
+                    Files.createDirectories(dir);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("Unable to create working dir: " + dir);
+                }
             }
-            this.pBuilder.directory(dir);
+
+            this.pBuilder.directory(dir.toFile());
         }
 
         // init inputs env
@@ -341,8 +350,8 @@ public final class CmdExecutor {
      * put env item which match 'start with filter' to CmdResult.output map
      */
     private void readEnv(final BufferedReader reader,
-        final Map<String, String> output,
-        final String filter) throws IOException {
+                         final Map<String, String> output,
+                         final String filter) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith(filter)) {

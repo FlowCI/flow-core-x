@@ -54,6 +54,8 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
     private final static Logger LOGGER = new Logger(NodeResultService.class);
 
+    private final static char SPACE_REPLACE = '_';
+
     @Autowired
     private NodeResultDao nodeResultDao;
 
@@ -194,13 +196,22 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
         // generate cc agent cmd id if node is runnable
         if (nodeTree.canRun(node.getPath())) {
-            String agentCmdId = nodeResult.getKey().getJobId() + "-" + nodeResult.getKey().getPath();
-            nodeResult.setCmdId(agentCmdId);
+            nodeResult.setCmdId(createAgentCmdId(nodeResult));
         }
 
         nodeResult.setName(node.getName());
         nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
         return nodeResult;
+    }
+
+    /**
+     * Create anget cmd id by job id and node path
+     * @param nodeResult
+     * @return
+     */
+    private String createAgentCmdId(NodeResult nodeResult) {
+        NodeResultKey key = nodeResult.getKey();
+        return key.getJobId() + "-" + key.getPath().replace(' ', SPACE_REPLACE);
     }
 
     private NodeStatus updateCurrent(Node current, NodeResult currentResult, Cmd cmd, String errorMsg) {

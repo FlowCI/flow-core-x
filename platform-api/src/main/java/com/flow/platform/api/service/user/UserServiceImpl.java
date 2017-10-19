@@ -19,6 +19,12 @@ import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 
+import com.flow.platform.util.ExceptionUtil;
+import com.flow.platform.util.Logger;
+import java.io.StringWriter;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,6 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service(value = "userService")
 @Transactional
 public class UserServiceImpl extends CurrentUser implements UserService {
+
+    private final static Logger LOGGER = new Logger(UserService.class);
+
+    private final static String REGISTER_TEMPLATE_SUBJECT = "邀请您加入项目 [ flow.ci ]";
 
     @Autowired
     private UserDao userDao;
@@ -58,8 +68,14 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     @Autowired
     private UserFlowDao userFlowDao;
 
+    @Autowired
+    private VelocityEngine velocityEngine;
+
     @Value(value = "${expiration.duration}")
     private long expirationDuration;
+
+    @Value("${domain.web}")
+    private String webDomain;
 
     @Override
     public List<User> list(boolean withFlow, boolean withRole) {
@@ -102,6 +118,8 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     public User register(User user, List<String> roles, boolean isSendEmail, List<String> flowsList) {
         String errMsg = "Illegal register request parameter: ";
 
+        String originPassword = user.getPassword();
+
         // Check format
         if (!checkEmailFormatIsPass(user.getEmail())) {
             throw new IllegalParameterException(errMsg + "email format false");
@@ -128,11 +146,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         user = userDao.save(user);
 
         if (isSendEmail) {
-            EmailSettingContent emailSettingContent = (EmailSettingContent) messageService.find(MessageType.EMAIl);
-            if (emailSettingContent != null) {
-                SmtpUtil.sendEmail(emailSettingContent, user.getEmail(), "邀请您加入项目 [ flow.ci ]",
-                    "你已被邀请加入 FLOW.CI, 用户名:" + user.getUsername());
-            }
+            sendEmail(currentUser(), user, originPassword);
         }
 
         if (flowsList.size() > 0) {
@@ -159,6 +173,9 @@ public class UserServiceImpl extends CurrentUser implements UserService {
 
     @Override
     public void delete(List<String> emailList) {
+        if (emailList.contains(currentUser().getEmail())){
+            throw new IllegalParameterException("params emails include yourself email, not delete");
+        }
         // un-assign user from role and flow
         List<User> users = userDao.list(emailList);
         for (User user : users) {
@@ -320,6 +337,46 @@ public class UserServiceImpl extends CurrentUser implements UserService {
      */
     private Boolean passwordOfUsernameIsTrue(String username, String password) {
         return userDao.passwordOfUsernameIsTrue(username, password);
+    }
+
+    private void sendEmail(User currentUser, User toUser, String originPassword) {
+        EmailSettingContent emailSettingContent = (EmailSettingContent) messageService.find(MessageType.EMAIl);
+
+        if (emailSettingContent == null) {
+            LOGGER.warnMarker("sendMessage", "Email settings not found");
+            return;
+        }
+
+        String text = buildEmailTemplate(currentUser, toUser, originPassword);
+
+        try {
+            // send email to creator
+            SmtpUtil.sendEmail(emailSettingContent, toUser.getEmail(), REGISTER_TEMPLATE_SUBJECT, text);
+            LOGGER.traceMarker("sendMessage", "send message to %s success", toUser.getEmail());
+
+        } catch (Throwable e) {
+            LOGGER.traceMarker("sendMessage", "send email to user error : %s",
+                ExceptionUtil.findRootCause(e).getMessage());
+        }
+    }
+
+    private String buildEmailTemplate(User fromUser, User toUser, String originPassword) {
+        Template template = null;
+        try {
+            template = velocityEngine.getTemplate("email/register_email.vm");
+            VelocityContext velocityContext = new VelocityContext();
+            velocityContext.put("fromUser", fromUser);
+            velocityContext.put("toUser", toUser);
+            velocityContext.put("password", originPassword);
+            velocityContext.put("detailUrl", String.format("%s/admin/members/list/", webDomain));
+            StringWriter stringWriter = new StringWriter();
+            template.merge(velocityContext, stringWriter);
+            return stringWriter.toString();
+        } catch (Throwable e) {
+            LOGGER.warn("sendMessage", "send message to user error : %s",
+                ExceptionUtil.findRootCause(e).getMessage());
+        }
+        return null;
     }
 
 }

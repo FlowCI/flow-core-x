@@ -27,11 +27,12 @@ public class GroupSystemInfo extends SystemInfo {
 
     private final static int DEFAULT_GROUP_NUM = 5;
 
-    public GroupSystemInfo() {
+    public GroupSystemInfo(Type type) {
+        super(type);
     }
 
-    public GroupSystemInfo(Status status) {
-        super(status);
+    public GroupSystemInfo(Status status, Type type) {
+        super(status, type);
     }
 
     @Expose

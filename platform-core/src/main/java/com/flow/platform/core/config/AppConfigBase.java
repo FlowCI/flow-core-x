@@ -19,6 +19,7 @@ package com.flow.platform.core.config;
 import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.core.sysinfo.PropertySystemInfo;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
+import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.util.DateUtil;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ public abstract class AppConfigBase {
 
     @Bean
     public PropertySystemInfo systemInfo() {
-        PropertySystemInfo info = new PropertySystemInfo(Status.RUNNING);
+        PropertySystemInfo info = new PropertySystemInfo(Status.RUNNING, Type.CONFIG);
         info.setName(getName());
         info.setVersion(getVersion());
         info.setStartTime(DateUtil.now());

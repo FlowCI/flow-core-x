@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.service.job;
 
+import com.flow.platform.api.domain.envs.AgentEnvs;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.util.PlatformURL;
@@ -101,10 +103,11 @@ public class CmdServiceImpl implements CmdService {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setInputs(node.getEnvs());
         cmdInfo.setWebhook(buildCmdWebhook(job));
-        cmdInfo.setOutputEnvFilter("FLOW_OUTPUT");
+        cmdInfo.setOutputEnvFilter(job.getEnv(FlowEnvs.FLOW_OUTPUT_ENV_PREFIX, "FLOW_OUTPUT"));
         cmdInfo.setSessionId(job.getSessionId());
         cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
         cmdInfo.setCustomizedId(cmdId);
+        cmdInfo.setWorkingDir(job.getEnv(AgentEnvs.FLOW_AGENT_WORKSPACE, null));
 
         try {
             LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());

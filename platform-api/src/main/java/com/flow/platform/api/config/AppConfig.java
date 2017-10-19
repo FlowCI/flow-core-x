@@ -30,8 +30,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
@@ -45,7 +44,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author yang
  */
 @Configuration
-@Import({DatabaseConfig.class})
+@Import({CachingConfig.class, DatabaseConfig.class})
 public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "API";
@@ -61,10 +60,6 @@ public class AppConfig extends AppConfigBase {
     private final static int ASYNC_POOL_SIZE = 50;
 
     private final static String THREAD_NAME_PREFIX = "async-task-";
-
-    public final static String ALLOW_SUFFIX = "p12,mobileprovision,jks,pem";
-
-    public final static long ALLOW_SIZE = 2 * 1024 * 1024;
 
     public final static String DEFAULT_USER_EMAIL = "admin@flow.ci";
     public final static String DEFAULT_USER_NAME = "admin";
@@ -136,6 +131,11 @@ public class AppConfig extends AppConfigBase {
         VelocityEngine ve = new VelocityEngine();
         ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
         ve.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+
+        ve.setProperty(Velocity.ENCODING_DEFAULT, DEFAULT_CHARSET.name());
+        ve.setProperty(Velocity.INPUT_ENCODING, DEFAULT_CHARSET.name());
+        ve.setProperty(Velocity.OUTPUT_ENCODING, DEFAULT_CHARSET.name());
+
         ve.init();
         return ve;
     }

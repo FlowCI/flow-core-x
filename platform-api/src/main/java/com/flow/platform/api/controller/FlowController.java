@@ -321,7 +321,7 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_YML)
     public Node loadRawYmlFromGit() {
         Flow root = nodeService.findFlow(currentNodePath.get());
-        return ymlService.loadYmlContent(root, null);
+        return ymlService.loadYmlContent(root, null, null);
     }
 
     /**

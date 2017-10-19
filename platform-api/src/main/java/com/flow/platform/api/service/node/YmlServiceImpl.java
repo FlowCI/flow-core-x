@@ -144,7 +144,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
-    public Node loadYmlContent(final Node root, final Consumer<Yml> callback) {
+    public Node loadYmlContent(final Node root, final Consumer<Yml> onSuccess, final Consumer<Throwable> onError) {
         if (!EnvUtil.hasRequiredEnvKey(root, GitService.REQUIRED_ENVS)) {
             throw new IllegalParameterException("Missing git settings: FLOW_GIT_URL and FLOW_GIT_SOURCE");
         }
@@ -162,7 +162,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
             ThreadPoolTaskExecutor executor = findThreadPoolFromCache(root.getPath());
 
             // async to load yml file
-            executor.execute(new UpdateNodeYmlTask(root, nodeService, gitService, callback));
+            executor.execute(new UpdateNodeYmlTask(root, nodeService, gitService, onSuccess, onError));
         } catch (ExecutionException e) {
             LOGGER.warn("Fail to get task executor for node: " + root.getPath());
             nodeService.updateYmlState(root, YmlStatusValue.ERROR, e.getMessage());

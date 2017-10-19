@@ -20,21 +20,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.job.JobStatus;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.http.HttpURL;
-import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -103,6 +103,7 @@ public class CmdWebhookControllerTest extends TestBase {
 
         CmdResult cmdResult = new CmdResult(0);
         cmdResult.setDuration(100L);
+        cmdResult.setOutput(EnvUtil.build("OUTPUT_ENV", "hello"));
         cmd.setCmdResult(cmdResult);
 
         performMockHttpRequest(cmd, job);
@@ -112,9 +113,18 @@ public class CmdWebhookControllerTest extends TestBase {
         job = reload(job);
         Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
 
+        // check step 1 node result
         resultForStep1 = nodeResultService.find(step1.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.SUCCESS, resultForStep1.getStatus());
         Assert.assertEquals(0, resultForStep1.getExitCode().intValue());
+        Assert.assertEquals(1, resultForStep1.getOutputs().size());
+        Assert.assertEquals("hello", resultForStep1.getOutputs().get("OUTPUT_ENV"));
+
+        // check root node result
+        NodeResult rootNodeResult = nodeResultService.find(job.getNodePath(), job.getId());
+        Assert.assertEquals(2, rootNodeResult.getOutputs().size());
+        Assert.assertNotNull(rootNodeResult.getOutputs().get("FLOW_JOB_LOG_PATH"));
+        Assert.assertEquals("hello", rootNodeResult.getOutputs().get("OUTPUT_ENV"));
 
         resultForRoot = nodeResultService.find(job.getNodePath(), job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, resultForRoot.getStatus());

@@ -18,6 +18,7 @@ package com.flow.platform.core.sysinfo;
 
 import com.flow.platform.core.exception.IllegalURLException;
 import com.flow.platform.core.sysinfo.SystemInfo.Status;
+import com.flow.platform.core.sysinfo.SystemInfo.Type;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
@@ -68,12 +69,12 @@ public class MQLoader implements SystemInfoLoader {
             HttpResponse<String> response = HttpClient.build(url).get().withHeader(authHeader).bodyAsString();
 
             if (!response.hasSuccess()) {
-                return new SystemInfo(Status.UNKNOWN);
+                return new SystemInfo(Status.UNKNOWN, Type.MQ);
             }
 
             RabbitMQOverView mqInfo = RabbitMQOverView.parse(response.getBody(), RabbitMQOverView.class);
 
-            GroupSystemInfo info = new GroupSystemInfo(Status.RUNNING);
+            GroupSystemInfo info = new GroupSystemInfo(Status.RUNNING, Type.MQ);
             info.setName(mqInfo.clusterName);
             info.setVersion(mqInfo.version);
             info.put(MQGroup.RABBITMQ, new HashMap<>());
@@ -85,7 +86,7 @@ public class MQLoader implements SystemInfoLoader {
             return info;
 
         } catch (Throwable e) {
-            return new SystemInfo(Status.UNKNOWN);
+            return new SystemInfo(Status.UNKNOWN, Type.MQ);
         }
     }
 

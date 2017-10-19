@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.node.Flow;
@@ -65,10 +66,11 @@ public class GitWebHookController extends NodeController {
     @PostMapping(path = "/{root}")
     public void onEventReceived(@RequestHeader HttpHeaders headers, HttpServletRequest request) {
         final String path = currentNodePath.get();
-
         Map<String, String> headerAsMap = headers.toSingleValueMap();
+
         String body;
         try {
+            request.setCharacterEncoding(AppConfig.DEFAULT_CHARSET.name());
             body = CharStreams.toString(request.getReader());
         } catch (IOException e) {
             throw new IllegalStatusException("Cannot read raw body");

@@ -25,12 +25,14 @@ import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,9 +97,13 @@ public class JobController extends NodeController {
      *
      */
     @PostMapping(path = "/{root}")
-    public void create() {
+    public void create(@RequestBody(required = false) Map<String, String> envs) {
+        if (envs == null) {
+            envs = new LinkedHashMap<>();
+        }
+
         String path = currentNodePath.get();
-        jobService.createJobAndYmlLoad(path, GitEventType.MANUAL, new LinkedHashMap<>(), currentUser.get(), null);
+        jobService.createJobAndYmlLoad(path, GitEventType.MANUAL, envs, currentUser.get(), null);
     }
 
     /**
@@ -169,7 +175,12 @@ public class JobController extends NodeController {
     @GetMapping(path = "/{root}/{buildNumber}/yml")
     public String yml(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
-        return jobService.findYml(path, buildNumber);
+        try {
+            return jobService.findYml(path, buildNumber);
+        } catch (NotFoundException ignore) {
+            // ignore job node not found exception since maybe job node created when yml loading
+            return StringUtil.EMPTY;
+        }
     }
 
     /**

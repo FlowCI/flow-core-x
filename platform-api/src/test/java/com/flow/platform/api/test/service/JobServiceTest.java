@@ -93,6 +93,8 @@ public class JobServiceTest extends TestBase {
     public void should_create_node_success() throws IOException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = createMockJob(rootForFlow.getPath());
+        Assert.assertNotNull(job.getEnv("FLOW_WORKSPACE"));
+        Assert.assertNotNull(job.getEnv("FLOW_VERSION"));
 
         Step step1 = (Step) nodeService.find("flow1/step1");
         Step step2 = (Step) nodeService.find("flow1/step2");
@@ -229,6 +231,8 @@ public class JobServiceTest extends TestBase {
     public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+        Assert.assertNotNull(job.getEnv("FLOW_WORKSPACE"));
+        Assert.assertNotNull(job.getEnv("FLOW_VERSION"));
 
         build_relation(rootForFlow, job);
 

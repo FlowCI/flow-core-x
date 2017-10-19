@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.util;
+package com.flow.platform.util;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -25,6 +25,10 @@ import java.util.regex.Pattern;
  * @author yang
  */
 public class SystemUtil {
+
+    private final static char ENV_VAR_START_CHAR = '$';
+    private final static char ENV_VAR_LEFT_BRACKET = '{';
+    private final static char ENV_VAR_RIGHT_BRACKET = '}';
 
     /**
      * Parse path with ${xxx} variable to absolute path
@@ -38,19 +42,38 @@ public class SystemUtil {
 
         for (String pathItem : paths) {
             int index = pathItem.indexOf("$", 0);
-            int leftBracket = pathItem.indexOf("{", 0);
-            int rightBracket = pathItem.indexOf("}", 0);
 
-            if (index < 0 || leftBracket < 0 || rightBracket < 0) {
+            if (index < 0) {
                 path = Paths.get(path.toString(), pathItem);
                 continue;
             }
 
-            String envName = pathItem.substring(leftBracket + 1, rightBracket);
-            String envValue = System.getenv(envName);
-            path = Paths.get(path.toString(), envValue);
+            path = Paths.get(path.toString(), parseEnv(pathItem));
         }
 
         return path;
+    }
+
+    /**
+     * Parse ${xx} variable to exact value
+     */
+    public static String parseEnv(String env) {
+        if (env == null) {
+            throw new IllegalArgumentException();
+        }
+
+        if (env.charAt(0) != ENV_VAR_START_CHAR) {
+            throw new IllegalArgumentException();
+        }
+
+        boolean hasBracket = env.charAt(1) == ENV_VAR_LEFT_BRACKET;
+        env = env.substring(1);
+
+        if (!hasBracket) {
+            return System.getenv(env);
+        }
+
+        env = env.substring(1, env.length() - 1);
+        return System.getenv(env);
     }
 }

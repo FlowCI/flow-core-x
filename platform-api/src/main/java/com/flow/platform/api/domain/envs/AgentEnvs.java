@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package com.flow.platform.yml.parser.exception;
+package com.flow.platform.api.domain.envs;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public class YmlException extends RuntimeException {
+public enum AgentEnvs implements EnvKey {
 
-    public YmlException(String message) {
-        super("Illegal yml format: " + message);
-    }
-
-    public YmlException(String message, Throwable cause) {
-        super("Illegal yml format: " + message, cause);
-    }
+    FLOW_AGENT_WORKSPACE
 }
