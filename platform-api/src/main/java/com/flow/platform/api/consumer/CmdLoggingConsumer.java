@@ -78,7 +78,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
 
         if (category.equals(CmdType.SYSTEM_INFO.toString())) {
             sendAgentSysInfo(content);
-            return;
         }
     }
 
@@ -89,7 +88,6 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
      * @param number
      */
     private void sendCmdLog(String cmdId, String content, String number) {
-
         String event = String.format("/topic/cmd/%s", cmdId);
         template.convertAndSend(event, "{\"number\": \"" + number + "\", \"content\": \"" + content + "\"}");
     }
