@@ -69,6 +69,7 @@ public class GitWebHookController extends NodeController {
         Map<String, String> headerAsMap = headers.toSingleValueMap();
         String body;
         try {
+            request.setCharacterEncoding("utf8");
             body = CharStreams.toString(request.getReader());
         } catch (IOException e) {
             throw new IllegalStatusException("Cannot read raw body");
