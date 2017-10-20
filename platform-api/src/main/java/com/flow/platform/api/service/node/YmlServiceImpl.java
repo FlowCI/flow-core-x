@@ -167,6 +167,10 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         } catch (ExecutionException | TaskRejectedException e) {
             LOGGER.warn("Fail to get task executor for node: " + root.getPath());
             nodeService.updateYmlState(root, YmlStatusValue.ERROR, e.getMessage());
+
+            if (onError != null) {
+                onError.accept(e);
+            }
         }
 
         return root;
