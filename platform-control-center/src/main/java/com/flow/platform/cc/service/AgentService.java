@@ -30,7 +30,9 @@ import java.util.Set;
  */
 public interface AgentService extends WebhookService {
 
-    int AGENT_SESSION_TIMEOUT_TASK_PERIOD = 60 * 1000; // millisecond
+    int SESSION_TIMEOUT_TASK_HEARTBEAT = 60 * 1000; // millisecond
+
+    int IDLE_AGENT_TASK_HEARTBEAT = 30 * 1000; // millisecond
 
     /**
      * Async update agent offline and online list by zone, will send to agent report queue
@@ -78,11 +80,6 @@ public interface AgentService extends WebhookService {
     boolean isSessionTimeout(Agent agent, ZonedDateTime compareDate, long timeoutInSeconds);
 
     /**
-     * To check agent session timeout
-     */
-    void sessionTimeoutTask();
-
-    /**
      * Create agent and return token
      */
     Agent create(AgentPath agentPath, String webhook);
@@ -105,4 +102,14 @@ public interface AgentService extends WebhookService {
      * delete agent
      */
     void delete(Agent agent);
+
+    /**
+     * To check agent session timeout
+     */
+    void sessionTimeoutTask();
+
+    /**
+     * Task to check num of idle agent for zone
+     */
+    void idleAgentTask();
 }
