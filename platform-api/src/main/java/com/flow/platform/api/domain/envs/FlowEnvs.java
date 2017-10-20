@@ -36,7 +36,13 @@ public enum FlowEnvs implements EnvKey {
     /**
      * For yml error message while loading yml from git
      */
-    FLOW_YML_ERROR_MSG;
+    FLOW_YML_ERROR_MSG,
+
+
+    /**
+     * Defined env variable output prefix
+     */
+    FLOW_ENV_OUTPUT_PREFIX;
 
     public enum StatusValue implements EnvValue {
 

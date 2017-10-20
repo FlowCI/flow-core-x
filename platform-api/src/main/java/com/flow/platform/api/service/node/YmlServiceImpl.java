@@ -49,6 +49,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -163,7 +164,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
             // async to load yml file
             executor.execute(new UpdateNodeYmlTask(root, nodeService, gitService, onSuccess, onError));
-        } catch (ExecutionException e) {
+        } catch (ExecutionException | TaskRejectedException e) {
             LOGGER.warn("Fail to get task executor for node: " + root.getPath());
             nodeService.updateYmlState(root, YmlStatusValue.ERROR, e.getMessage());
         }

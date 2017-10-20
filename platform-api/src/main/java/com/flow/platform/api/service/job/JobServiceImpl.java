@@ -296,6 +296,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // pass job env to node
         EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
 
+        // pass root node output to current node
+        NodeResult rootResult = nodeResultService.find(tree.root().getPath(), job.getId());
+        EnvUtil.merge(rootResult.getOutputs(), node.getEnvs(), false);
+
         // to run node with customized cmd id
         try {
             NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
@@ -449,6 +453,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     public void createJobNodesAndCreateSession(Job job, String yml) {
         //create yml snapshot for job
         jobNodeService.save(job, yml);
+
+        // set root node env from yml to job env
+        Node root = jobNodeService.get(job).root();
+        EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
 
         // init for node result and set to job object
         List<NodeResult> resultList = nodeResultService.create(job);

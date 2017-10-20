@@ -21,7 +21,5 @@ package com.flow.platform.api.domain.envs;
  */
 public enum AgentEnvs implements EnvKey {
 
-    FLOW_AGENT_WORKSPACE,
-
-    FLOW_AGENT_OUTPUT_ENV_PREFIX
+    FLOW_AGENT_WORKSPACE
 }

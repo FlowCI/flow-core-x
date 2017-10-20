@@ -173,6 +173,9 @@ public class UserServiceImpl extends CurrentUser implements UserService {
 
     @Override
     public void delete(List<String> emailList) {
+        if (emailList.contains(currentUser().getEmail())){
+            throw new IllegalParameterException("params emails include yourself email, not delete");
+        }
         // un-assign user from role and flow
         List<User> users = userDao.list(emailList);
         for (User user : users) {
