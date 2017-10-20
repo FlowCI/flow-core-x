@@ -166,31 +166,6 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     }
 
     @Override
-    @Transactional(propagation = Propagation.NEVER)
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
-    public void sessionTimeoutTask() {
-        if (!taskConfig.isEnableAgentSessionTimeoutTask()) {
-            return;
-        }
-
-        LOGGER.traceMarker("sessionTimeoutTask", "start");
-        ZonedDateTime now = DateUtil.utcNow();
-
-        for (Zone zone : zoneService.getZones()) {
-            Collection<Agent> agents = listForOnline(zone.getName());
-            for (Agent agent : agents) {
-                if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
-                    Cmd delSessionCmd = cmdService.create(new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null));
-                    cmdDispatchService.dispatch(delSessionCmd.getId(), false);
-                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
-                }
-            }
-        }
-
-        LOGGER.traceMarker("sessionTimeoutTask", "end");
-    }
-
-    @Override
     public Agent create(AgentPath agentPath, String webhook) {
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
@@ -245,5 +220,42 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
             throw new UnsupportedOperationException("delete agent failure " + e.getMessage());
         }
 
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NEVER)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = SESSION_TIMEOUT_TASK_HEARTBEAT)
+    public void sessionTimeoutTask() {
+        if (!taskConfig.isEnableAgentSessionTimeoutTask()) {
+            return;
+        }
+
+        LOGGER.traceMarker("sessionTimeoutTask", "start");
+        ZonedDateTime now = DateUtil.utcNow();
+
+        for (Zone zone : zoneService.getZones()) {
+            Collection<Agent> agents = listForOnline(zone.getName());
+            for (Agent agent : agents) {
+                if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
+                    Cmd delSessionCmd = cmdService.create(new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null));
+                    cmdDispatchService.dispatch(delSessionCmd.getId(), false);
+                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
+                }
+            }
+        }
+
+        LOGGER.traceMarker("sessionTimeoutTask", "end");
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NEVER)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = IDLE_AGENT_TASK_HEARTBEAT)
+    public void idleAgentTask() {
+        for (Zone zone : zoneService.getZones()) {
+            List<Agent> availableList = findAvailable(zone.getName());
+            if (availableList.size() > 0) {
+                this.dispatchEvent(new AgentResourceEvent(this, zone.getName(), Category.RELEASED));
+            }
+        }
     }
 }
