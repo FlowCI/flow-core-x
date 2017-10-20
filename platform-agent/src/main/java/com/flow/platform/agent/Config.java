@@ -78,9 +78,8 @@ public class Config {
      */
     public static String getProperty(String name) {
         String value;
-        URL resource = Config.class.getClassLoader().getResource("application.properties");
         if (properties == null) {
-            try (InputStream fileInputStream = new FileInputStream(resource.getFile())) {
+            try (InputStream fileInputStream = Config.class.getResourceAsStream("/application.properties")) {
                 properties = new Properties();
                 properties.load(fileInputStream);
             } catch (Throwable e) {
