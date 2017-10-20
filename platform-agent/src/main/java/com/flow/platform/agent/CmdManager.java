@@ -240,6 +240,7 @@ public class CmdManager {
         long total = runtime.totalMemory();
         long free = runtime.freeMemory();
         long use = total - free;
+
         Map<String, String> dic = new HashMap<>(7);
         dic.put("javaVersion", javaVersion);
         dic.put("osName", osName);
@@ -248,6 +249,7 @@ public class CmdManager {
         dic.put("zone", Config.zone());
         dic.put("name", Config.name());
         dic.put("agentVersion", Config.getProperty("version"));
+
         return Jsonable.GSON_CONFIG.toJson(dic);
     }
 

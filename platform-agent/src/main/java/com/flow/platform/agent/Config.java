@@ -20,6 +20,7 @@ import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.zk.ZKClient;
@@ -83,8 +84,8 @@ public class Config {
                 properties = new Properties();
                 properties.load(fileInputStream);
             } catch (Throwable e) {
-                LOGGER.warn("get property from application.properties error %s",
-                    ExceptionUtil.findRootCause(e).getMessage());
+                LOGGER.error("Fail to load application.properties:", e);
+                return StringUtil.EMPTY;
             }
         }
 
