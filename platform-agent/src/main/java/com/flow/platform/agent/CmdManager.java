@@ -28,8 +28,6 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.sun.management.OperatingSystemMXBean;
-import java.lang.management.ManagementFactory;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -238,9 +236,9 @@ public class CmdManager {
     private String collectionAgentInfo() {
         String javaVersion = System.getProperty("java.version");
         String osName = System.getProperty("os.name");
-        OperatingSystemMXBean os = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        long total = os.getTotalPhysicalMemorySize();
-        long free = os.getFreePhysicalMemorySize();
+        Runtime runtime = Runtime.getRuntime();
+        long total = runtime.totalMemory();
+        long free = runtime.freeMemory();
         long use = total - free;
         Map<String, String> dic = new HashMap<>(7);
         dic.put("javaVersion", javaVersion);
