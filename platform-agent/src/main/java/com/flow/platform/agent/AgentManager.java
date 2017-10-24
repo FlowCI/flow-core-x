@@ -107,23 +107,36 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         ChildData eventData = event.getData();
 
+        if (event.getType() == Type.CONNECTION_RECONNECTED) {
+            LOGGER.traceMarker("ZK-Event", "========= Reconnect =========");
+            return;
+        }
+
         if (event.getType() == Type.CONNECTION_LOST) {
-            LOGGER.traceMarker("ZK-Event", "========= Connection lost from zk server =========");
+            LOGGER.traceMarker("ZK-Event", "========= Lost =========");
+            registerZkNodeAndWatch();
             return;
         }
 
         if (event.getType() == Type.INITIALIZED) {
-            LOGGER.traceMarker("ZK-Event", "========= Connected to zk server =========");
+            LOGGER.traceMarker("ZK-Event", "========= Initialized =========");
             return;
         }
 
         if (event.getType() == Type.NODE_ADDED) {
-            LOGGER.traceMarker("ZK-Event", "========= Node been created: %s =========", eventData.getPath());
+            LOGGER.traceMarker("ZK-Event", "========= Node Added: %s =========", eventData.getPath());
             return;
         }
 
         if (event.getType() == Type.NODE_UPDATED) {
+            LOGGER.traceMarker("ZK-Event", "========= Node Updated: %s =========", eventData.getPath());
             onDataChanged(eventData.getPath());
+            return;
+        }
+
+        if (event.getType() == Type.NODE_REMOVED) {
+            LOGGER.traceMarker("ZK-Event", "========= Node Removed: %s =========", eventData.getPath());
+            close();
             return;
         }
     }
