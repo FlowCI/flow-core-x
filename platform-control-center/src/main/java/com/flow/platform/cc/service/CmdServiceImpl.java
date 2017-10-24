@@ -236,6 +236,9 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
             return;
         }
 
+        // update cmd status
+        save(cmd);
+
         // compare exiting cmd result and update
         CmdResult inputResult = statusItem.getCmdResult();
 

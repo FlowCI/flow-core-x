@@ -156,6 +156,10 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
     @Override
     public void saveWithStatus(Agent agent, AgentStatus status) {
+        if (agent == null || status == null) {
+            return;
+        }
+
         if (!agentDao.exist(agent.getPath())) {
             throw new AgentErr.NotFoundException(agent.getName());
         }
