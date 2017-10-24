@@ -17,7 +17,6 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.AgentWithFlow;
-import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.service.AgentService;
@@ -42,10 +41,13 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(path = "/agents")
-public class AgentController extends ApplicationEventService {
+public class AgentController {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private ApplicationEventService applicationEventService;
 
     /**
      * @api {Get} /agents List
@@ -193,7 +195,7 @@ public class AgentController extends ApplicationEventService {
      */
     @PostMapping(path = "/callback")
     public void callback(@RequestBody Agent agent) {
-        this.dispatchEvent(new AgentStatusChangeEvent(this, agent));
+        applicationEventService.asyncDispatchEvent(new AgentStatusChangeEvent(this, agent));
     }
 
     /**

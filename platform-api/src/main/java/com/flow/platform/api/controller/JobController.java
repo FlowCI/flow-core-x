@@ -21,18 +21,15 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.LogService;
-import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
+import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.YmlService;
-import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,22 +67,6 @@ public class JobController extends NodeController {
 
     @Autowired
     private ThreadLocal<User> currentUser;
-
-    @ModelAttribute
-    public void setLocale(@RequestParam(required = false) String locale) {
-        if (locale == null) {
-            I18nUtil.initLocale("en", "US");
-            return;
-        }
-
-        if (locale.equals("zh-CN")) {
-            I18nUtil.initLocale("zh", "CN");
-        }
-
-        if (locale.equals("en-US")) {
-            I18nUtil.initLocale("en", "US");
-        }
-    }
 
     /**
      * @api {post} /jobs/:root Create

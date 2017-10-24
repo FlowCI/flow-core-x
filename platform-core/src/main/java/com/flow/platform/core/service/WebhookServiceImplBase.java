@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author yang
  */
-public abstract class WebhookServiceImplBase extends ApplicationEventService implements WebhookService {
+public abstract class WebhookServiceImplBase implements WebhookService {
 
     @Autowired
     private Executor taskExecutor;

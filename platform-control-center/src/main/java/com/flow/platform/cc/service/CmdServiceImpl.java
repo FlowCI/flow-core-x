@@ -263,6 +263,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         }
 
         try {
+            LOGGER.warnMarker("saveLog", file.getOriginalFilename() + "#" + cmdId);
             Path target = Paths.get(AppConfig.CMD_LOG_DIR.toString(), file.getOriginalFilename());
             Files.write(target, file.getBytes());
             cmd.setLogPath(target.toString());

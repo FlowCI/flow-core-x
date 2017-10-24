@@ -38,12 +38,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yang
  */
 @Configuration
+@EnableAsync
 @Import({CachingConfig.class, DatabaseConfig.class})
 public class AppConfig extends AppConfigBase {
 
@@ -60,6 +62,7 @@ public class AppConfig extends AppConfigBase {
     private final static int ASYNC_POOL_SIZE = 50;
 
     private final static String THREAD_NAME_PREFIX = "async-task-";
+    private final static String DISPATCHER_THREAD_NAME_PREFIX = "async-task-dispatcher-";
 
     public final static String DEFAULT_USER_EMAIL = "admin@flow.ci";
     public final static String DEFAULT_USER_NAME = "admin";
@@ -67,6 +70,10 @@ public class AppConfig extends AppConfigBase {
 
     private final static ThreadPoolTaskExecutor executor =
         ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
+
+    private final static ThreadPoolTaskExecutor dispatcherExecutor =
+        ThreadUtil.createTaskExecutor(1, 1, 1000, DISPATCHER_THREAD_NAME_PREFIX);
+
 
     @Value("${api.workspace}")
     private String workspace;
@@ -99,6 +106,11 @@ public class AppConfig extends AppConfigBase {
     @Override
     public ThreadPoolTaskExecutor taskExecutor() {
         return executor;
+    }
+
+    @Bean
+    public ThreadPoolTaskExecutor dispatcherExecutor(){
+        return dispatcherExecutor;
     }
 
     /**

@@ -56,12 +56,15 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class CmdDispatchServiceImpl extends ApplicationEventService implements CmdDispatchService {
+public class CmdDispatchServiceImpl implements CmdDispatchService {
 
     private final static Logger LOGGER = new Logger(CmdDispatchService.class);
 
     @Autowired
     private TaskConfig taskConfig;
+
+    @Autowired
+    private ApplicationEventService applicationEventService;
 
     @Autowired
     private CmdService cmdService;
@@ -133,7 +136,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
             // broadcast AgentResourceEvent with zone name
             if (e instanceof NotAvailableException) {
-                this.dispatchEvent(new AgentResourceEvent(this, cmd.getAgentPath().getZone(), Category.FULL));
+                applicationEventService.asyncDispatchEvent(new AgentResourceEvent(this, cmd.getAgentPath().getZone(), Category.FULL));
             }
 
             throw e;
