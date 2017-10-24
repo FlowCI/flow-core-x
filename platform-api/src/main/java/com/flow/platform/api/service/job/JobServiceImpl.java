@@ -147,6 +147,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
+    public Job find(String sessionId) {
+        return jobDao.get(sessionId);
+    }
+
+    @Override
     public String findYml(String path, Integer number) {
         Job job = find(path, number);
         return jobNodeService.find(job).getFile();

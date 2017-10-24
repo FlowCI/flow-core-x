@@ -87,6 +87,8 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         });
     }
 
+
+
     @Override
     public List<Job> latestByPath(List<String> paths) {
         return execute((Session session) -> {
@@ -161,6 +163,13 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             Object[] objects = (Object[]) nativeQuery.uniqueResult();
             return JobConvertUtil.convert(objects);
         });
+    }
+
+    @Override
+    public Job get(String sessionId) {
+        return execute(session -> session.createQuery("from Job where sessionId = :sessionId", Job.class)
+            .setParameter("sessionId", sessionId)
+            .uniqueResult());
     }
 
     @Override
