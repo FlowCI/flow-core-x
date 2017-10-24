@@ -22,7 +22,9 @@ import com.flow.platform.cloud.InstanceManager;
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.domain.Agent;
+import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
+import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
@@ -41,6 +43,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.zookeeper.ZKUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -116,7 +119,9 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
         List<String> agents = zkClient.getChildren(zonePath);
 
         if (!agents.isEmpty()) {
-            agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
+            for (String agent : agents) {
+                agentService.report(new AgentPath(zone.getName(), agent), AgentStatus.IDLE);
+            }
         }
 
         ZoneEventListener zoneEventWatcher = zoneEventWatchers.computeIfAbsent(zone, ZoneEventListener::new);
@@ -236,14 +241,20 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
         @Override
         public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-            // TODO: should optimize by event type
-            Type type = event.getType();
-            LOGGER.debugMarker("ZoneEventListener", "Receive zookeeper event %s", type);
+            final Type eventType = event.getType();
+            final String path = event.getData().getPath();
+            final String name = ZKHelper.getNameFromPath(path);
+            LOGGER.debugMarker("ZoneEventListener", "Receive zookeeper event %s %s", eventType, path);
 
-            taskExecutor.execute(() -> {
-                List<String> agents = zkClient.getChildren(zone.getPath());
-                agentService.reportOnline(zone.getName(), Sets.newHashSet(agents));
-            });
+            if (eventType == Type.CHILD_ADDED || eventType == Type.CHILD_UPDATED) {
+                agentService.report(new AgentPath(zone.getName(), name), AgentStatus.IDLE);
+                return;
+            }
+
+            if (eventType == Type.CHILD_REMOVED) {
+                agentService.report(new AgentPath(zone.getName(), name), AgentStatus.OFFLINE);
+                return;
+            }
         }
     }
 }

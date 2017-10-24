@@ -49,6 +49,7 @@ import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -89,14 +90,34 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     private String secretKey;
 
     @Override
-    public void reportOnline(String zone, Set<String> agents) {
-        // set offline agents
-        agentDao.batchUpdateStatus(zone, AgentStatus.OFFLINE, agents, true);
+    public void report(AgentPath path, AgentStatus status) {
+        Agent exist = find(path);
 
-        // send to report queue
-        for (String agent : agents) {
-            AgentPath key = new AgentPath(zone, agent);
-            agentReportQueue.enqueue(key);
+        // For agent offline status
+        if (status == AgentStatus.OFFLINE) {
+            saveWithStatus(exist, AgentStatus.OFFLINE);
+            return;
+        }
+
+        // create new agent with idle status
+        if (exist == null) {
+            try {
+                exist = create(path, null);
+                LOGGER.trace("Create agent %s from report", path);
+            } catch (DataIntegrityViolationException ignore) {
+                // agent been created at some other threads
+                return;
+            }
+        }
+
+        // update exist offline agent to idle status
+        if (exist.getStatus() == AgentStatus.OFFLINE) {
+            saveWithStatus(exist, AgentStatus.IDLE);
+        }
+
+        // do not update agent status when its busy
+        if (exist.getStatus() == AgentStatus.BUSY) {
+            // do nothing
         }
     }
 
