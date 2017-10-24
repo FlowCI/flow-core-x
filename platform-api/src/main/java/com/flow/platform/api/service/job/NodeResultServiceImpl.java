@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class NodeResultServiceImpl extends ApplicationEventService implements NodeResultService {
+public class NodeResultServiceImpl implements NodeResultService {
 
     private final static Logger LOGGER = new Logger(NodeResultService.class);
 
@@ -61,6 +61,10 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
     @Autowired
     private JobNodeService jobNodeService;
+
+    @Autowired
+    private ApplicationEventService applicationEventService;
+
 
     @Override
     public List<NodeResult> create(Job job) {
@@ -153,8 +157,10 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
         updateParent(job, node);
 
+
         if (originStatus != newStatus) {
-            this.dispatchEvent(new NodeStatusChangeEvent(this, currentResult.getKey(), originStatus, newStatus));
+            System.out.println("Thread.currentThread().getId()000:" + Thread.currentThread().getId());
+            applicationEventService.asyncDispatchEvent(new NodeStatusChangeEvent(this, currentResult.getKey(), originStatus, newStatus));
         }
 
         return currentResult;
@@ -174,7 +180,8 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
         nodeResult.setStatus(targetStatus);
         nodeResultDao.update(nodeResult);
-        this.dispatchEvent(new NodeStatusChangeEvent(this, nodeResult.getKey(), originStatus, targetStatus));
+        System.out.println("Thread.currentThread().getId()111111:" + Thread.currentThread().getId());
+        applicationEventService.asyncDispatchEvent(new NodeStatusChangeEvent(this, nodeResult.getKey(), originStatus, targetStatus));
     }
 
     /**

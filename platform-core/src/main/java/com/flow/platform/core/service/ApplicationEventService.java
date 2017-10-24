@@ -19,18 +19,30 @@ package com.flow.platform.core.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.stereotype.Service;
 
 /**
  * Base service enable to send application event
  *
  * @author yang
  */
-public abstract class ApplicationEventService {
+@Service
+public class ApplicationEventService {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
-    protected void dispatchEvent(ApplicationEvent event) {
+    @Async("dispatcherExecutor")
+    public void asyncDispatchEvent(ApplicationEvent event) {
+        System.out.println("Thread.currentThread().getId():" + Thread.currentThread().getId());
+        applicationEventPublisher.publishEvent(event);
+    }
+
+    public void dispatchEvent(ApplicationEvent event) {
+        System.out.println("Thread.currentThread().getId():" + Thread.currentThread().getId());
         applicationEventPublisher.publishEvent(event);
     }
 }

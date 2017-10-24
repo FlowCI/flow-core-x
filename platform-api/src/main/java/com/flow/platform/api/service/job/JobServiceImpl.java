@@ -84,7 +84,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service(value = "jobService")
 @Transactional(isolation = Isolation.REPEATABLE_READ)
-public class JobServiceImpl extends ApplicationEventService implements JobService {
+public class JobServiceImpl implements JobService {
 
     private static Logger LOGGER = new Logger(JobService.class);
 
@@ -100,6 +100,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Value("${task.job.toggle.execution_running_duration}")
     private Long jobExecuteTimeoutRunningDuration;
+
+    @Autowired
+    private ApplicationEventService applicationEventService;
 
     @Autowired
     private NodeResultService nodeResultService;
@@ -446,7 +449,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setStatus(newStatus);
         jobDao.update(job);
 
-        this.dispatchEvent(new JobStatusChangeEvent(this, job, originStatus, newStatus));
+        applicationEventService.asyncDispatchEvent(new JobStatusChangeEvent(this, job, originStatus, newStatus));
     }
 
     @Transactional(noRollbackFor = FlowException.class)

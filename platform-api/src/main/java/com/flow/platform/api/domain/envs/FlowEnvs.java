@@ -42,7 +42,7 @@ public enum FlowEnvs implements EnvKey {
     /**
      * Defined env variable output prefix
      */
-    FLOW_OUTPUT_ENV_PREFIX;
+    FLOW_ENV_OUTPUT_PREFIX;
 
     public enum StatusValue implements EnvValue {
 

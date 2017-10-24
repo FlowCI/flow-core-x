@@ -69,6 +69,8 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
 
         String content = logItem.substring(cmdIdIndex + 1);
 
+        LOGGER.trace(content);
+
         if (category.equals(CmdType.RUN_SHELL.toString())) {
             sendCmdLog(cmdId, content, number);
             return;
@@ -84,6 +86,7 @@ public class CmdLoggingConsumer extends TextWebSocketHandler {
      */
     private void sendCmdLog(String cmdId, String content, String number) {
         String event = String.format("/topic/cmd/%s", cmdId);
+        System.out.println(event + "##" + "{\"number\": \"" + number + "\", \"content\": \"" + content + "\"}");
         template.convertAndSend(event, "{\"number\": \"" + number + "\", \"content\": \"" + content + "\"}");
     }
 

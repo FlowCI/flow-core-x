@@ -24,6 +24,7 @@ import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.api.util.ZipUtil;
 import com.flow.platform.core.exception.FlowException;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.http.HttpClient;
@@ -55,6 +56,8 @@ public class LogServiceImpl implements LogService {
     @Autowired
     private NodeResultService nodeResultService;
 
+    private final static Logger LOGGER = new Logger(LogService.class);
+
     @Autowired
     private JobService jobService;
 
@@ -69,10 +72,13 @@ public class LogServiceImpl implements LogService {
         Job job = jobService.find(path, number);
         NodeResult nodeResult = nodeResultService.find(job.getId(), order);
 
-        if (!NodeResult.FINISH_STATUS.contains(nodeResult.getStatus())) {
-            throw new FlowException("node result not finish");
-        }
+        LOGGER.warnMarker("findNodeLog", "start find node log");
+//
+//        if (!NodeResult.FINISH_STATUS.contains(nodeResult.getStatus())) {
+//            throw new FlowException("node result not finish");
+//        }
 
+        LOGGER.warnMarker("findNodeLog", "node result finish");
         return readStepLog(job, nodeResult);
     }
 
@@ -145,10 +151,14 @@ public class LogServiceImpl implements LogService {
 
         // read step log from cc
         content = readStepLogFromCC(job, nodeResult);
+
+        LOGGER.warnMarker("findNodeLog", "find content");
         if (content != null) {
             saveStepLog(job, new ByteArrayInputStream(
                 content.getBytes(AppConfig.DEFAULT_CHARSET)), nodeResult);
         }
+
+        LOGGER.warnMarker("findNodeLog", "return content");
 
         return content;
     }
