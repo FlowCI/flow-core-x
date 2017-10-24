@@ -58,30 +58,25 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
 
     @Override
     public Agent get(final AgentPath agentPath) {
-        Agent agent = execute(session -> (Agent) session
-            .createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name")
+        return execute(session -> session
+            .createQuery("from Agent where AGENT_ZONE = :zone and AGENT_NAME = :name", Agent.class)
             .setParameter("zone", agentPath.getZone())
             .setParameter("name", agentPath.getName())
             .uniqueResult());
-        return agent;
     }
 
     @Override
     public Agent get(final String sessionId) {
-        Agent agent = execute(
-            session -> (Agent) session.createQuery("from Agent where sessionId = :sessionId")
-                .setParameter("sessionId", sessionId)
-                .uniqueResult());
-        return agent;
+        return execute(session -> session.createQuery("from Agent where sessionId = :sessionId", Agent.class)
+            .setParameter("sessionId", sessionId)
+            .uniqueResult());
     }
 
     @Override
     public Agent getByToken(String token) {
-        Agent agent = execute(
-            session -> (Agent) session.createQuery("from Agent where token = :token")
-                .setParameter("token", token)
-                .uniqueResult());
-        return agent;
+        return execute(session -> session.createQuery("from Agent where token = :token", Agent.class)
+            .setParameter("token", token)
+            .uniqueResult());
     }
 
     @Override
@@ -124,31 +119,28 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
                 "The orderByField only availabe among 'createdDate', 'updateDate' or 'sessionDate'");
         }
 
-        return (List<Agent>) execute(new Executable() {
-            @Override
-            public Object execute(Session session) {
-                CriteriaBuilder builder = session.getCriteriaBuilder();
-                CriteriaQuery<Agent> criteria = builder.createQuery(Agent.class);
+        return (List<Agent>) execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<Agent> criteria = builder.createQuery(Agent.class);
 
-                Root<Agent> root = criteria.from(Agent.class);
-                criteria.select(root);
+            Root<Agent> root = criteria.from(Agent.class);
+            criteria.select(root);
 
-                Predicate whereCriteria = builder.equal(root.get("path").get("zone"), zone);
+            Predicate whereCriteria = builder.equal(root.get("path").get("zone"), zone);
 
-                if (status != null && status.length > 0) {
-                    Predicate inStatus = root.get("status").in(status);
-                    whereCriteria = builder.and(whereCriteria, inStatus);
-                }
-                criteria.where(whereCriteria);
-
-                // order by created date
-                if (orderByField != null) {
-                    criteria.orderBy(builder.asc(root.get(orderByField)));
-                }
-
-                Query<Agent> query = session.createQuery(criteria);
-                return query.getResultList();
+            if (status != null && status.length > 0) {
+                Predicate inStatus = root.get("status").in(status);
+                whereCriteria = builder.and(whereCriteria, inStatus);
             }
+            criteria.where(whereCriteria);
+
+            // order by created date
+            if (orderByField != null) {
+                criteria.orderBy(builder.asc(root.get(orderByField)));
+            }
+
+            Query<Agent> query = session.createQuery(criteria);
+            return query.getResultList();
         });
     }
 
@@ -165,7 +157,6 @@ public class AgentDaoImpl extends AbstractBaseDao<AgentPath, Agent> implements A
 
     @Override
     public int batchUpdateStatus(String zone, AgentStatus status, Set<String> agents, boolean isNot) {
-
         return execute(session -> {
             CriteriaBuilder builder = session.getCriteriaBuilder();
             CriteriaUpdate<Agent> criteria = builder.createCriteriaUpdate(Agent.class);
