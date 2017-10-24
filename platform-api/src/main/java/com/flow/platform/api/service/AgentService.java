@@ -58,4 +58,9 @@ public interface AgentService {
      * @param agentPath required
      */
     void sendSysCmd(AgentPath agentPath);
+
+    /**
+     * Handle agent status call back from cc
+     */
+    void onAgentStatusChange(Agent agent);
 }

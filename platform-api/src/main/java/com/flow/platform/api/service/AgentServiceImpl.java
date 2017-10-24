@@ -19,11 +19,17 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.service.job.CmdService;
+import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentPathWithWebhook;
@@ -53,7 +59,7 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class AgentServiceImpl implements AgentService {
+public class AgentServiceImpl extends ApplicationEventService implements AgentService {
 
     private final Logger LOGGER = new Logger(AgentService.class);
 
@@ -70,6 +76,12 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private CmdService cmdService;
+
+    @Autowired
+    private JobService jobService;
+
+    @Autowired
+    private NodeResultService nodeResultService;
 
     @Value(value = "${domain}")
     private String domain;
@@ -228,4 +240,30 @@ public class AgentServiceImpl implements AgentService {
         return agent;
     }
 
+    @Override
+    public void onAgentStatusChange(Agent agent) {
+        this.dispatchEvent(new AgentStatusChangeEvent(this, agent));
+
+        // do not check related job if agent status not offline
+        if (agent.getStatus() != AgentStatus.OFFLINE) {
+            return;
+        }
+
+        // find related job and set job to failure
+        String sessionId = agent.getSessionId();
+        if (Strings.isNullOrEmpty(sessionId)) {
+            return;
+        }
+
+        // find agent related job by session id
+        Job job = jobService.find(sessionId);
+        if (job == null) {
+            return;
+        }
+
+        if (Job.RUNNING_STATUS.contains(job.getStatus())) {
+            job.setFailureMessage(String.format("Agent %s is offline when job running", agent.getPath()));
+            jobService.updateJobStatusAndSave(job, JobStatus.FAILURE);
+        }
+    }
 }

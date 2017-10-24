@@ -70,6 +70,11 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     Job get(String path, Integer number);
 
     /**
+     * get job by session id
+     */
+    Job get(String sessionId);
+
+    /**
      * get max build number for node path
      */
     Integer maxBuildNumber(String path);

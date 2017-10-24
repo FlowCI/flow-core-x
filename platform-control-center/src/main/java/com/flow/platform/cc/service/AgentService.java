@@ -35,9 +35,9 @@ public interface AgentService extends WebhookService {
     int IDLE_AGENT_TASK_HEARTBEAT = 30 * 1000; // millisecond
 
     /**
-     * Async update agent offline and online list by zone, will send to agent report queue
+     * Async update agent offline or online status
      */
-    void reportOnline(String zone, Set<String> agents);
+    void report(AgentPath path, AgentStatus status);
 
     /**
      * List agent by zone name
