@@ -72,7 +72,7 @@ public class AgentServiceTest extends TestBase {
     @Value("${agent.config.ws}")
     private String wsDomain;
 
-    @Value("{agent.config.cc}")
+    @Value("${agent.config.cc}")
     private String ccDomain;
 
     @Test
