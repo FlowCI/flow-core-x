@@ -71,8 +71,8 @@ public class AppConfig extends AppConfigBase {
     @Value("${api.workspace}")
     private String workspace;
 
-    @Value("${platform.url}")
-    private String platFormBaseURL;
+    @Value("${domain.cc}")
+    private String ccDomain;
 
     @Bean
     public Path workspace() {
@@ -121,7 +121,7 @@ public class AppConfig extends AppConfigBase {
 
     @Bean
     public PlatformURL platformURL() {
-        PlatformURL platformURL = new PlatformURL(platFormBaseURL);
+        PlatformURL platformURL = new PlatformURL(ccDomain);
         LOGGER.trace(platformURL.toString());
         return platformURL;
     }
