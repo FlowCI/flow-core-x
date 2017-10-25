@@ -30,6 +30,7 @@ import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.http.HttpURL;
 import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -178,8 +179,9 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
 
 
     private String buildEmailTemplate(Job job, JobStatus jobStatus) {
-        Template template = null;
         try {
+            Template template = null;
+
             if (Job.SUCCESS_STATUS.contains(jobStatus)) {
                 template = velocityEngine.getTemplate("email/success_email.vm");
             }
@@ -188,10 +190,16 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
                 template = velocityEngine.getTemplate("email/failure_email.vm");
             }
 
+            final String detailUrl = HttpURL.build(webDomain)
+                .append("flows")
+                .append(job.getNodeName())
+                .append("jobs")
+                .append(job.getNumber().toString())
+                .toString();
+
             VelocityContext velocityContext = new VelocityContext();
             velocityContext.put("job", job);
-            velocityContext
-                .put("detailUrl", String.format("%s/flows/%s/jobs/%s", webDomain, job.getNodeName(), job.getNumber()));
+            velocityContext.put("detailUrl", detailUrl);
             StringWriter stringWriter = new StringWriter();
             template.merge(velocityContext, stringWriter);
             return stringWriter.toString();
@@ -199,7 +207,8 @@ public class MessageServiceImpl extends CurrentUser implements MessageService {
         } catch (Throwable e) {
             LOGGER.warn("sendMessage", "send message to all member error : %s",
                 ExceptionUtil.findRootCause(e).getMessage());
+
+            return null;
         }
-        return null;
     }
 }

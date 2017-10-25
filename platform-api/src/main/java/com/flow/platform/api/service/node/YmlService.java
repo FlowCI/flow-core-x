@@ -67,6 +67,11 @@ public interface YmlService {
      */
     void stopLoadYmlContent(Node root);
 
+    /**
+     * Config load yml thread pool
+     *
+     * @param threadConfigParam
+     */
     void threadConfig(ThreadConfigParam threadConfigParam);
 
 }

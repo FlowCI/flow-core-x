@@ -47,7 +47,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -85,9 +84,6 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
     @Autowired
     private PlatformQueue<AgentPath> agentReportQueue;
-
-    @Value("${agent.secret_key}")
-    private String secretKey;
 
     @Override
     public void report(AgentPath path, AgentStatus status) {
