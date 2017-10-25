@@ -63,17 +63,21 @@ public class AppConfig extends AppConfigBase {
 
     private final static String THREAD_NAME_PREFIX = "async-task-";
 
+    private final static String MULTICASTER_THREAD_NAME_PREFIX = "multi_async-task-";
+
+    private final static int MULTICASTER_ASYNC_POOL_SIZE = 1;
+
     public final static String DEFAULT_USER_EMAIL = "admin@flow.ci";
     public final static String DEFAULT_USER_NAME = "admin";
+
     public final static String DEFAULT_USER_PASSWORD = "123456";
 
     private final static ThreadPoolTaskExecutor executor =
         ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
 
-    private final static String MULTICASTER_THREAD_NAME_PREFIX = "multi_async-task-";
-
     private final static ThreadPoolTaskExecutor multicasterExecutor =
-        ThreadUtil.createTaskExecutor(1, 1, 1000, MULTICASTER_THREAD_NAME_PREFIX);
+        ThreadUtil.createTaskExecutor(MULTICASTER_ASYNC_POOL_SIZE, MULTICASTER_ASYNC_POOL_SIZE, 1000,
+            MULTICASTER_THREAD_NAME_PREFIX);
 
     @Value("${api.workspace}")
     private String workspace;

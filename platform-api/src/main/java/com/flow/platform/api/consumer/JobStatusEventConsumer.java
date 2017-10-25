@@ -45,8 +45,7 @@ public class JobStatusEventConsumer extends JobEventPushHandler implements Appli
 
     @Override
     public void onApplicationEvent(JobStatusChangeEvent event) {
-        LOGGER
-            .debug("Job %s status change event from %s to %s", event.getJob().getId(), event.getFrom(), event.getTo());
+        LOGGER.debug("Job %s status change event from %s to %s", event.getJob().getId(), event.getFrom(), event.getTo());
 
         push(event.getJob().getId());
 
