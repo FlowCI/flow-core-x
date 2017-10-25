@@ -18,6 +18,7 @@ package com.flow.platform.cc.test.dao;
 
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
+import com.flow.platform.cc.dao.CmdLogDao;
 import com.flow.platform.cc.dao.CmdResultDao;
 import org.junit.After;
 import org.junit.runner.RunWith;
@@ -37,6 +38,9 @@ public abstract class TestBase {
 
     @Autowired
     protected CmdDao cmdDao;
+
+    @Autowired
+    protected CmdLogDao cmdLogDao;
 
     @Autowired
     protected CmdResultDao cmdResultDao;

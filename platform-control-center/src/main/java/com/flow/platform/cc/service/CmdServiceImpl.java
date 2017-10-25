@@ -26,26 +26,24 @@ import static com.flow.platform.domain.CmdType.STOP;
 import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
+import com.flow.platform.cc.dao.CmdLogDao;
 import com.flow.platform.cc.dao.CmdResultDao;
 import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.domain.CmdStatusItem;
-import com.flow.platform.cc.event.AgentResourceEvent;
-import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
+import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.WebhookServiceImplBase;
-import com.flow.platform.core.task.WebhookCallBackTask;
-import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.CmdBase;
 import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdLog;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
-import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import com.google.common.base.Strings;
@@ -61,16 +59,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
 import javax.annotation.PostConstruct;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -105,6 +98,9 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
     @Autowired
     private PlatformQueue<Message> cmdQueue;
+
+    @Autowired
+    private CmdLogDao cmdLogDao;
 
     @Autowired
     protected ZKClient zkClient;
@@ -260,16 +256,16 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
     @Override
     public void saveLog(String cmdId, MultipartFile file) {
-        Cmd cmd = find(cmdId);
-        if (cmd == null) {
+        CmdLog cmdLog = cmdLogDao.get(cmdId);
+        if (cmdLog == null) {
             throw new IllegalArgumentException("Cmd not exist");
         }
 
         try {
             Path target = Paths.get(AppConfig.CMD_LOG_DIR.toString(), file.getOriginalFilename());
             Files.write(target, file.getBytes());
-            cmd.setLogPath(target.toString());
-            cmdDao.update(cmd);
+            cmdLog.setLogPath(target.toString());
+            cmdLogDao.update(cmdLog);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
