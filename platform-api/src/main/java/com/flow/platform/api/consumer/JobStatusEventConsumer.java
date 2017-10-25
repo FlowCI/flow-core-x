@@ -20,13 +20,10 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.service.MessageService;
-import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
-import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * To handle JobStatusChangeEvent and NodeResultStatusChangeEvent
@@ -45,9 +42,10 @@ public class JobStatusEventConsumer extends JobEventPushHandler implements Appli
 
     @Override
     public void onApplicationEvent(JobStatusChangeEvent event) {
-        LOGGER.debug("Job %s status change event from %s to %s", event.getJob().getId(), event.getFrom(), event.getTo());
+        LOGGER
+            .debug("Job %s status change event from %s to %s", event.getJob().getId(), event.getFrom(), event.getTo());
 
-        push(event.getJob().getId());
+        push(event.getJob());
 
         // async send message TODO:// only send failure message
         if (Job.FAILURE_STATUS.contains(event.getTo())) {
