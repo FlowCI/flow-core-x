@@ -42,6 +42,7 @@ import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
+import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import com.google.gson.JsonSyntaxException;
 import java.io.UnsupportedEncodingException;
@@ -80,11 +81,8 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     @Autowired
     private JobService jobService;
 
-    @Autowired
-    private NodeResultService nodeResultService;
-
-    @Value(value = "${domain}")
-    private String domain;
+    @Value(value = "${domain.api}")
+    private String apiDomain;
 
     @Override
     public List<AgentWithFlow> list() {
@@ -209,7 +207,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     }
 
     private String buildAgentWebhook() {
-        return domain + "/agents/callback";
+        return HttpURL.build(apiDomain).append("/agents/callback").toString();
     }
 
     /**

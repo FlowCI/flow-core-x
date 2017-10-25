@@ -21,6 +21,7 @@ import com.flow.platform.core.exception.IllegalParameterException;
 
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.http.HttpURL;
 import java.io.StringWriter;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -361,22 +362,23 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     }
 
     private String buildEmailTemplate(User fromUser, User toUser, String originPassword) {
-        Template template = null;
         try {
-            template = velocityEngine.getTemplate("email/register_email.vm");
+            final String detailUrl = HttpURL.build(webDomain).append("/admin/members/list").toString();
+
+            Template template = velocityEngine.getTemplate("email/register_email.vm");
             VelocityContext velocityContext = new VelocityContext();
             velocityContext.put("fromUser", fromUser);
             velocityContext.put("toUser", toUser);
             velocityContext.put("password", originPassword);
-            velocityContext.put("detailUrl", String.format("%s/admin/members/list/", webDomain));
+            velocityContext.put("detailUrl", detailUrl);
             StringWriter stringWriter = new StringWriter();
             template.merge(velocityContext, stringWriter);
             return stringWriter.toString();
         } catch (Throwable e) {
             LOGGER.warn("sendMessage", "send message to user error : %s",
                 ExceptionUtil.findRootCause(e).getMessage());
+            return null;
         }
-        return null;
     }
 
 }

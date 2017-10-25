@@ -38,6 +38,7 @@ import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
@@ -91,8 +92,8 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Autowired
     private RoleService roleService;
 
-    @Value(value = "${domain}")
-    private String domain;
+    @Value(value = "${domain.api}")
+    private String apiDomain;
 
     @Override
     public Node createOrUpdate(final String path, String yml) {
@@ -316,7 +317,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     private String hooksUrl(final Flow flow) {
-        return String.format("%s/hooks/git/%s", domain, flow.getName());
+        return HttpURL.build(apiDomain).append("/hooks/git/").append(flow.getName()).toString();
     }
 
     private Boolean checkFlowName(String flowName) {
