@@ -79,8 +79,8 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     @Autowired
     private JobService jobService;
 
-    @Value(value = "${domain.cc}")
-    private String ccDomain;
+    @Value(value = "${domain.api}")
+    private String apiDomain;
 
     @Override
     public List<AgentWithFlow> list() {
@@ -205,7 +205,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     }
 
     private String buildAgentWebhook() {
-        return HttpURL.build(ccDomain).append("/agents/callback").toString();
+        return HttpURL.build(apiDomain).append("/agents/callback").toString();
     }
 
     /**

@@ -49,8 +49,8 @@ public class NodeServiceTest extends TestBase {
     @Autowired
     private YmlService ymlService;
 
-    @Value(value = "${domain.cc}")
-    private String ccDomain;
+    @Value(value = "${domain.api}")
+    private String apiDomain;
 
     @Test
     public void should_find_any_node() throws Throwable {
@@ -147,7 +147,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals(emptyFlow, loaded);
         Assert.assertEquals(0, loaded.getChildren().size());
 
-        String webhook = HttpURL.build(ccDomain).append("/hooks/git").append(loaded.getName()).toString();
+        String webhook = HttpURL.build(apiDomain).append("/hooks/git").append(loaded.getName()).toString();
         Assert.assertEquals("PENDING", loaded.getEnv(FlowEnvs.FLOW_STATUS));
         Assert.assertEquals(webhook, loaded.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
 
@@ -157,7 +157,7 @@ public class NodeServiceTest extends TestBase {
         // when:
         List<Webhook> hooks = nodeService.listWebhooks();
         Assert.assertEquals(1, hooks.size());
-        Assert.assertEquals(ccDomain + "/hooks/git/" + loaded.getName(), hooks.get(0).getHook());
+        Assert.assertEquals(apiDomain + "/hooks/git/" + loaded.getName(), hooks.get(0).getHook());
     }
 
     @Test
@@ -179,7 +179,7 @@ public class NodeServiceTest extends TestBase {
         nodeService.addFlowEnv(nodeService.findFlow("flow1"), envs);
 
         // then:
-        String webhook = HttpURL.build(ccDomain).append("/hooks/git").append(emptyFlow.getName()).toString();
+        String webhook = HttpURL.build(apiDomain).append("/hooks/git").append(emptyFlow.getName()).toString();
         Node loaded = nodeService.find("flow1");
         Assert.assertEquals(8, loaded.getEnvs().size());
         Assert.assertEquals("hello", loaded.getEnv("FLOW_NEW_1"));

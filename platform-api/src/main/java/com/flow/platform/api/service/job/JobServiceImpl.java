@@ -130,8 +130,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Autowired
     private JobYmlDao jobYmlDao;
 
-    @Value(value = "${domain.cc}")
-    private String ccDomain;
+    @Value(value = "${domain.api}")
+    private String apiDomain;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -633,7 +633,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private String logUrl(final Job job) {
-        return HttpURL.build(ccDomain)
+        return HttpURL.build(apiDomain)
             .append("/jobs/")
             .append(job.getNodeName())
             .append(job.getNumber().toString())

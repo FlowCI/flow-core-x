@@ -92,8 +92,8 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Autowired
     private RoleService roleService;
 
-    @Value(value = "${domain.cc}")
-    private String ccDomain;
+    @Value(value = "${domain.api}")
+    private String apiDomain;
 
     @Override
     public Node createOrUpdate(final String path, String yml) {
@@ -317,7 +317,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     private String hooksUrl(final Flow flow) {
-        return HttpURL.build(ccDomain).append("/hooks/git/").append(flow.getName()).toString();
+        return HttpURL.build(apiDomain).append("/hooks/git/").append(flow.getName()).toString();
     }
 
     private Boolean checkFlowName(String flowName) {
