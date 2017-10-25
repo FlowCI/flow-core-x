@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * To handle JobStatusChangeEvent and NodeResultStatusChangeEvent
@@ -46,10 +47,8 @@ public class JobStatusEventConsumer extends JobEventPushHandler implements Appli
     public void onApplicationEvent(JobStatusChangeEvent event) {
         LOGGER
             .debug("Job %s status change event from %s to %s", event.getJob().getId(), event.getFrom(), event.getTo());
-        System.out.println(
-            "onApplicationEvent:===================" + Thread.currentThread().getId() + "###" + event.getJob()
-                .getStatus());
-        push(event.getJob());
+
+        push(event.getJob().getId());
 
         // async send message TODO:// only send failure message
         if (Job.FAILURE_STATUS.contains(event.getTo())) {

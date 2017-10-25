@@ -33,10 +33,6 @@ public class NodeStatusEventConsumer extends JobEventPushHandler implements Appl
         NodeResultKey resultKey = event.getResultKey();
         LOGGER.debug("Node result %s status change event from %s to %s",
             resultKey.getPath(), event.getFrom(), event.getTo());
-        System.out.println("onApplicationEvent:===================" + Thread.currentThread().getId());
-        System.out.println(
-            "onApplicationEvent:===================PATH:" + resultKey.getPath() + "# From:" + event.getFrom() + "# to:"
-                + event.getTo());
         push(resultKey.getJobId());
     }
 }
