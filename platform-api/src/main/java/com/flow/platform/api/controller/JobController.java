@@ -31,8 +31,6 @@ import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
