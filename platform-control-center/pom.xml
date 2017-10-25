@@ -11,8 +11,13 @@
   <artifactId>platform-control-center</artifactId>
   <packaging>war</packaging>
 
+  <properties>
+    <cc.version>0.1.0</cc.version>
+  </properties>
+
   <build>
-    <finalName>flow-control-center</finalName>
+    <finalName>flow-control-center-${cc.version}</finalName>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -20,6 +25,7 @@
         <version>3.1.0</version>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
+          <outputDirectory>${project.build.directory}/../../dist</outputDirectory>
         </configuration>
       </plugin>
     </plugins>

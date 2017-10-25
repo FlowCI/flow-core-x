@@ -12,7 +12,7 @@
   <artifactId>platform-agent</artifactId>
 
   <properties>
-    <client.version>0.0.7</client.version>
+    <agent.version>0.1.0</agent.version>
   </properties>
 
   <dependencies>
@@ -96,8 +96,6 @@
   </dependencies>
 
   <build>
-    <finalName>flow-agent-${client.version}</finalName>
-
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -124,14 +122,16 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <finalName>flow-agent-${agent.version}</finalName>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
                     <Main-Class>com.flow.platform.agent.App</Main-Class>
-                    <Build-Number>${client.version}</Build-Number>
+                    <Build-Number>${agent.version}</Build-Number>
                   </manifestEntries>
                 </transformer>
               </transformers>
+              <outputDirectory>${project.build.directory}/../../dist</outputDirectory>
             </configuration>
           </execution>
         </executions>
