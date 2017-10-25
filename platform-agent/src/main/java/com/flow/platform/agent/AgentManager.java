@@ -109,12 +109,12 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
 
         if (event.getType() == Type.CONNECTION_RECONNECTED) {
             LOGGER.traceMarker("ZK-Event", "========= Reconnect =========");
+            registerZkNodeAndWatch();
             return;
         }
 
         if (event.getType() == Type.CONNECTION_LOST) {
             LOGGER.traceMarker("ZK-Event", "========= Lost =========");
-            registerZkNodeAndWatch();
             return;
         }
 
@@ -172,10 +172,15 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
             }
 
             cmd = Jsonable.parse(rawData, Cmd.class);
-            cmdHistory.add(cmd);
+            if (cmd == null) {
+                LOGGER.warn("Unable to parse cmd from zk node: " + new String(rawData));
+                return;
+            }
 
+            cmdHistory.add(cmd);
             LOGGER.trace("Received command: " + cmd.toString());
             CmdManager.getInstance().execute(cmd);
+
         } catch (Throwable e) {
             LOGGER.error("Invalid cmd from server", e);
             // TODO: should report agent status directly...
