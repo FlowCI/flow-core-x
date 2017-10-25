@@ -46,6 +46,11 @@ public interface JobService {
     Job find(BigInteger jobId);
 
     /**
+     * Find by agent session id
+     */
+    Job find(String sessionId);
+
+    /**
      * Get job yml content
      */
     String findYml(String path, Integer number);

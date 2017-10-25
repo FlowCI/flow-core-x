@@ -6,6 +6,7 @@ api-doc/
 
 node_modules/
 apidoc/
+dist/
 logs/
 target/
 pom.xml.tag

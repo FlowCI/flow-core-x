@@ -52,4 +52,8 @@ public class ZKHelper {
     public static String buildPath(AgentPath agentPath) {
         return ZKPaths.makePath(ROOT_NODE, agentPath.getZone(), agentPath.getName());
     }
+
+    public static String getNameFromPath(String path) {
+        return ZKPaths.getNodeFromPath(path);
+    }
 }

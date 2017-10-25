@@ -49,6 +49,7 @@ import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -89,14 +90,34 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     private String secretKey;
 
     @Override
-    public void reportOnline(String zone, Set<String> agents) {
-        // set offline agents
-        agentDao.batchUpdateStatus(zone, AgentStatus.OFFLINE, agents, true);
+    public void report(AgentPath path, AgentStatus status) {
+        Agent exist = find(path);
 
-        // send to report queue
-        for (String agent : agents) {
-            AgentPath key = new AgentPath(zone, agent);
-            agentReportQueue.enqueue(key);
+        // For agent offline status
+        if (status == AgentStatus.OFFLINE) {
+            saveWithStatus(exist, AgentStatus.OFFLINE);
+            return;
+        }
+
+        // create new agent with idle status
+        if (exist == null) {
+            try {
+                exist = create(path, null);
+                LOGGER.trace("Create agent %s from report", path);
+            } catch (DataIntegrityViolationException ignore) {
+                // agent been created at some other threads
+                return;
+            }
+        }
+
+        // update exist offline agent to idle status
+        if (exist.getStatus() == AgentStatus.OFFLINE) {
+            saveWithStatus(exist, AgentStatus.IDLE);
+        }
+
+        // do not update agent status when its busy
+        if (exist.getStatus() == AgentStatus.BUSY) {
+            // do nothing
         }
     }
 
@@ -135,6 +156,10 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
     @Override
     public void saveWithStatus(Agent agent, AgentStatus status) {
+        if (agent == null || status == null) {
+            return;
+        }
+
         if (!agentDao.exist(agent.getPath())) {
             throw new AgentErr.NotFoundException(agent.getName());
         }
@@ -163,31 +188,6 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
         long sessionAlive = ChronoUnit.SECONDS.between(agent.getSessionDate(), compareDate);
         return sessionAlive >= timeoutInSeconds;
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.NEVER)
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = AGENT_SESSION_TIMEOUT_TASK_PERIOD)
-    public void sessionTimeoutTask() {
-        if (!taskConfig.isEnableAgentSessionTimeoutTask()) {
-            return;
-        }
-
-        LOGGER.traceMarker("sessionTimeoutTask", "start");
-        ZonedDateTime now = DateUtil.utcNow();
-
-        for (Zone zone : zoneService.getZones()) {
-            Collection<Agent> agents = listForOnline(zone.getName());
-            for (Agent agent : agents) {
-                if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
-                    Cmd delSessionCmd = cmdService.create(new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null));
-                    cmdDispatchService.dispatch(delSessionCmd.getId(), false);
-                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
-                }
-            }
-        }
-
-        LOGGER.traceMarker("sessionTimeoutTask", "end");
     }
 
     @Override
@@ -245,5 +245,42 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
             throw new UnsupportedOperationException("delete agent failure " + e.getMessage());
         }
 
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NEVER)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = SESSION_TIMEOUT_TASK_HEARTBEAT)
+    public void sessionTimeoutTask() {
+        if (!taskConfig.isEnableAgentSessionTimeoutTask()) {
+            return;
+        }
+
+        LOGGER.traceMarker("sessionTimeoutTask", "start");
+        ZonedDateTime now = DateUtil.utcNow();
+
+        for (Zone zone : zoneService.getZones()) {
+            Collection<Agent> agents = listForOnline(zone.getName());
+            for (Agent agent : agents) {
+                if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
+                    Cmd delSessionCmd = cmdService.create(new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null));
+                    cmdDispatchService.dispatch(delSessionCmd.getId(), false);
+                    LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
+                }
+            }
+        }
+
+        LOGGER.traceMarker("sessionTimeoutTask", "end");
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NEVER)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = IDLE_AGENT_TASK_HEARTBEAT)
+    public void idleAgentTask() {
+        for (Zone zone : zoneService.getZones()) {
+            List<Agent> availableList = findAvailable(zone.getName());
+            if (availableList.size() > 0) {
+                this.dispatchEvent(new AgentResourceEvent(this, zone.getName(), Category.RELEASED));
+            }
+        }
     }
 }

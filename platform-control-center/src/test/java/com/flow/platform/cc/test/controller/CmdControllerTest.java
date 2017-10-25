@@ -30,6 +30,7 @@ import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdReport;
@@ -94,7 +95,7 @@ public class CmdControllerTest extends TestBase {
         String agent = "test-001";
 
         AgentPath path = new AgentPath(zone, agent);
-        agentService.reportOnline(zone, Sets.newHashSet(agent));
+        agentService.report(path, AgentStatus.IDLE);
         Thread.sleep(1000);
 
         CmdInfo base = new CmdInfo(zone, agent, CmdType.STOP, null);

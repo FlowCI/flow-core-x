@@ -252,10 +252,10 @@ public class AgentServiceTest extends TestBase {
         // when: report status
         AgentPath pathObj = new AgentPath(zoneName, agentName);
         Agent created = agentService.find(pathObj);
+        Assert.assertNotNull(created);
         agentService.saveWithStatus(created, AgentStatus.BUSY);
 
         agentService.delete(created);
         Assert.assertNull(agentService.find(new AgentPath(zoneName, agentName)));
-
     }
 }

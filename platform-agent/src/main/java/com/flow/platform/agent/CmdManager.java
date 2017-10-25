@@ -237,18 +237,19 @@ public class CmdManager {
         String javaVersion = System.getProperty("java.version");
         String osName = System.getProperty("os.name");
         Runtime runtime = Runtime.getRuntime();
-        int kb = 1024;
         long total = runtime.totalMemory();
         long free = runtime.freeMemory();
         long use = total - free;
+
         Map<String, String> dic = new HashMap<>(7);
         dic.put("javaVersion", javaVersion);
         dic.put("osName", osName);
-        dic.put("totalMemory", total / kb + "MB");
-        dic.put("useMemory", use / kb + "MB");
+        dic.put("totalMemory", Long.toString(total));
+        dic.put("useMemory", Long.toString(use));
         dic.put("zone", Config.zone());
         dic.put("name", Config.name());
         dic.put("agentVersion", Config.getProperty("version"));
+
         return Jsonable.GSON_CONFIG.toJson(dic);
     }
 
