@@ -18,6 +18,7 @@ package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.request.ThreadConfigParam;
 import java.util.function.Consumer;
 
 /**
@@ -65,5 +66,12 @@ public interface YmlService {
      * @param root root node
      */
     void stopLoadYmlContent(Node root);
+
+    /**
+     * Config load yml thread pool
+     *
+     * @param threadConfigParam
+     */
+    void threadConfig(ThreadConfigParam threadConfigParam);
 
 }

@@ -20,12 +20,10 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
-import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -42,6 +40,7 @@ import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
+import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import com.google.gson.JsonSyntaxException;
 import java.io.UnsupportedEncodingException;
@@ -65,7 +64,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
 
     private final int httpRetryTimes = 5;
 
-    @Value(value = "${platform.zone}")
+    @Value(value = "${api.zone.default}")
     private String zone;
 
     @Autowired
@@ -80,11 +79,8 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     @Autowired
     private JobService jobService;
 
-    @Autowired
-    private NodeResultService nodeResultService;
-
-    @Value(value = "${domain}")
-    private String domain;
+    @Value(value = "${domain.api}")
+    private String apiDomain;
 
     @Override
     public List<AgentWithFlow> list() {
@@ -209,7 +205,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     }
 
     private String buildAgentWebhook() {
-        return domain + "/agents/callback";
+        return HttpURL.build(apiDomain).append("/agents/callback").toString();
     }
 
     /**

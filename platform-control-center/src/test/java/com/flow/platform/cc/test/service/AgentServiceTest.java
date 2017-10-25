@@ -35,6 +35,7 @@ import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
+import com.flow.platform.util.http.HttpURL;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.time.ZonedDateTime;
@@ -68,14 +69,11 @@ public class AgentServiceTest extends TestBase {
     @Autowired
     private List<Zone> defaultZones;
 
-    @Value("${agent.config.cmd_rt_log_url}")
-    private String cmdRtLogUrl; // web socket url
+    @Value("${agent.config.ws}")
+    private String wsDomain;
 
-    @Value("${agent.config.cmd_report_url}")
-    private String cmdReportUrl;
-
-    @Value("${agent.config.cmd_log_url}")
-    private String cmdLogUrl;
+    @Value("${agent.config.cc}")
+    private String ccDomain;
 
     @Test
     public void should_create_agent_and_send_webhook_if_agent_status_changed() throws Throwable {
@@ -117,9 +115,15 @@ public class AgentServiceTest extends TestBase {
         // then:
         AgentSettings config = Jsonable.parse(raw, AgentSettings.class);
         Assert.assertNotNull(config);
-        Assert.assertEquals(cmdRtLogUrl, config.getWebSocketUrl());
+
+        final String cmdWebsocketForLog = HttpURL.build(wsDomain).append("/agent/cmd/logging").toString();
+        Assert.assertEquals(cmdWebsocketForLog, config.getWebSocketUrl());
+
+        final String cmdReportUrl = HttpURL.build(ccDomain).append("/cmd/report").toString();
         Assert.assertEquals(cmdReportUrl, config.getCmdStatusUrl());
-        Assert.assertEquals(cmdLogUrl, config.getCmdLogUrl());
+
+        final String cmdLogUploadUrl = HttpURL.build(ccDomain).append("/cmd/log/upload").toString();
+        Assert.assertEquals(cmdLogUploadUrl, config.getCmdLogUrl());
     }
 
     @Test

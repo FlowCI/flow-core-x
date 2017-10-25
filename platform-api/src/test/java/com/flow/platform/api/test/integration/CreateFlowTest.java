@@ -39,7 +39,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.FileSystemUtils;
 
 /**
@@ -58,9 +57,6 @@ public class CreateFlowTest extends TestBase {
 
     @Autowired
     private Path workspace;
-
-    @Value(value = "${domain}")
-    private String domain;
 
     private Flow flow;
 

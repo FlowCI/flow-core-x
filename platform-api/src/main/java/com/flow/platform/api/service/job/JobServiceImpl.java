@@ -61,11 +61,10 @@ import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitEventType;
+import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.math.BigInteger;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -131,8 +130,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Autowired
     private JobYmlDao jobYmlDao;
 
-    @Value(value = "${domain}")
-    private String domain;
+    @Value(value = "${domain.api}")
+    private String apiDomain;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -634,7 +633,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private String logUrl(final Job job) {
-        Path path = Paths.get("/", "jobs", job.getNodeName(), job.getNumber().toString(), "log", "download");
-        return domain + path.toString();
+        return HttpURL.build(apiDomain)
+            .append("/jobs/")
+            .append(job.getNodeName())
+            .append(job.getNumber().toString())
+            .append("/log/download").toString();
     }
 }
