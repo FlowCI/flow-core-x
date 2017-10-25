@@ -55,7 +55,7 @@ public class CmdServiceImpl implements CmdService {
     @Autowired
     private PlatformURL platformURL;
 
-    @Value(value = "${platform.zone}")
+    @Value(value = "${api.zone.default}")
     private String zone;
 
     @Value(value = "${domain.api}")

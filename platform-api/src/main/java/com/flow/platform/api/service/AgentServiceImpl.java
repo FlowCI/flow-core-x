@@ -64,7 +64,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
 
     private final int httpRetryTimes = 5;
 
-    @Value(value = "${platform.zone}")
+    @Value(value = "${api.zone.default}")
     private String zone;
 
     @Autowired
