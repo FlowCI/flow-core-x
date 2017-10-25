@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * To handle JobStatusChangeEvent and NodeResultStatusChangeEvent

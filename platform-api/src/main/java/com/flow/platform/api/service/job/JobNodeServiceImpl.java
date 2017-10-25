@@ -25,14 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author lhl
  */
 
 @Service
-@Transactional
 public class JobNodeServiceImpl implements JobNodeService {
 
     private final Logger LOGGER = new Logger(JobYml.class);
