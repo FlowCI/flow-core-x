@@ -24,7 +24,7 @@ import java.util.ResourceBundle;
  */
 public class I18nUtil {
 
-    private static ResourceBundle resourceBundle = ResourceBundle.getBundle("i18n");
+    private static ResourceBundle resourceBundle;
 
     public static void initLocale(String language, String countryCode) {
         Locale.setDefault(new Locale(language, countryCode));
