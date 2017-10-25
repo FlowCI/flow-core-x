@@ -154,6 +154,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         updateParent(job, node);
 
         if (originStatus != newStatus) {
+            System.out.println("updateStatusByCmd:===================" + Thread.currentThread().getId());
             this.dispatchEvent(new NodeStatusChangeEvent(this, currentResult.getKey(), originStatus, newStatus));
         }
 

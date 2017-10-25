@@ -37,4 +37,9 @@ public abstract class JobEventPushHandler extends PushHandler {
         super.push(jobTopic, job);
     }
 
+    protected void push(Job job) {
+        String jobTopic = String.format("%s/%s", WebSocketConfig.TOPIC_FOR_JOB, job.getNodePath());
+        super.push(jobTopic, job);
+    }
+
 }

@@ -38,6 +38,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -68,6 +70,11 @@ public class AppConfig extends AppConfigBase {
     private final static ThreadPoolTaskExecutor executor =
         ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
 
+    private final static String MULTICASTER_THREAD_NAME_PREFIX = "multi_async-task-";
+
+    private final static ThreadPoolTaskExecutor multicasterExecutor =
+        ThreadUtil.createTaskExecutor(1, 1, 1000, MULTICASTER_THREAD_NAME_PREFIX);
+
     @Value("${api.workspace}")
     private String workspace;
 
@@ -83,6 +90,14 @@ public class AppConfig extends AppConfigBase {
         } catch (IOException e) {
             throw new RuntimeException("Fail to create flow.ci api working dir", e);
         }
+    }
+
+    @Bean(name = "applicationEventMulticaster")
+    public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
+        multicasterExecutor.initialize();
+        SimpleApplicationEventMulticaster eventMulticaster = new SimpleApplicationEventMulticaster();
+        eventMulticaster.setTaskExecutor(multicasterExecutor);
+        return eventMulticaster;
     }
 
     @Bean

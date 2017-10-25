@@ -31,6 +31,7 @@ public class AgentStatusEventConsumer extends PushHandler implements Application
     public void onApplicationEvent(AgentStatusChangeEvent event) {
         final Agent agent = event.getAgent();
         final String topic = String.format("%s/%s", WebSocketConfig.TOPIC_FOR_AGENT, agent.getPath().toString());
+        System.out.println("onApplicationEvent:===================" + Thread.currentThread().getId());
         super.push(topic, agent);
     }
 }
