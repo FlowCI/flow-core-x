@@ -72,7 +72,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     @Autowired
     private VelocityEngine velocityEngine;
 
-    @Value(value = "${expiration.duration}")
+    @Value(value = "${api.user.expire}")
     private long expirationDuration;
 
     @Value("${domain.web}")
