@@ -26,6 +26,7 @@ import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.request.ThreadConfigParam;
 import com.flow.platform.api.exception.NodeSettingsException;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CredentialService;
@@ -65,14 +66,14 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
     private final static int NODE_THREAD_POOL_CACHE_SIZE = 100;
 
-    private final static int NODE_THREAD_POOL_SIZE = 1;
-
     // To cache thread pool for node path
     private Cache<String, ThreadPoolTaskExecutor> nodeThreadPool = CacheBuilder
         .newBuilder()
         .expireAfterAccess(NODE_THREAD_POOL_CACHE_EXPIRE, TimeUnit.SECONDS)
         .maximumSize(NODE_THREAD_POOL_CACHE_SIZE)
         .build();
+
+    private ThreadConfigParam threadConfigParam = new ThreadConfigParam(1, 1, 0, "git-fetch-task");
 
     @Autowired
     private GitService gitService;
@@ -194,6 +195,12 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         nodeService.updateYmlState(root, YmlStatusValue.NOT_FOUND, null);
     }
 
+    @Override
+    public void threadConfig(ThreadConfigParam threadConfigParam) {
+        this.threadConfigParam = threadConfigParam;
+        nodeThreadPool.invalidateAll();
+    }
+
     private boolean isYmlLoading(final Node node) {
         String ymlStatus = node.getEnv(FlowEnvs.FLOW_YML_STATUS);
         return YmlStatusValue.isLoadingStatus(ymlStatus);
@@ -247,7 +254,8 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     private ThreadPoolTaskExecutor findThreadPoolFromCache(String path) throws ExecutionException {
         return nodeThreadPool.get(path, () -> {
             ThreadPoolTaskExecutor taskExecutor = ThreadUtil
-                .createTaskExecutor(NODE_THREAD_POOL_SIZE, NODE_THREAD_POOL_SIZE, 0, "git-fetch-task");
+                .createTaskExecutor(threadConfigParam.getMaxPoolSize(), threadConfigParam.getCorePoolSize(),
+                    threadConfigParam.getQueueSize(), threadConfigParam.getThreadNamePrefix());
             taskExecutor.initialize();
             return taskExecutor;
         });
