@@ -65,8 +65,6 @@ import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.math.BigInteger;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -132,8 +130,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Autowired
     private JobYmlDao jobYmlDao;
 
-    @Value(value = "${domain.api}")
-    private String apiDomain;
+    @Value(value = "${domain.cc}")
+    private String ccDomain;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -635,7 +633,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private String logUrl(final Job job) {
-        return HttpURL.build(apiDomain)
+        return HttpURL.build(ccDomain)
             .append("/jobs/")
             .append(job.getNodeName())
             .append(job.getNumber().toString())

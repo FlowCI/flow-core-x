@@ -58,8 +58,8 @@ public class CmdServiceImpl implements CmdService {
     @Value(value = "${platform.zone}")
     private String zone;
 
-    @Value(value = "${domain.api}")
-    private String apiDomain;
+    @Value(value = "${domain.cc}")
+    private String ccDomain;
 
     @Override
     public String createSession(Job job, Integer retry) {
@@ -195,7 +195,7 @@ public class CmdServiceImpl implements CmdService {
      * Build cmd callback webhook url with job id as identifier
      */
     private String buildCmdWebhook(Job job) {
-        return HttpURL.build(apiDomain)
+        return HttpURL.build(ccDomain)
             .append("/hooks/cmd")
             .withParam("identifier", HttpURL.encode(job.getId().toString()))
             .toString();

@@ -18,6 +18,7 @@ package com.flow.platform.cc.config;
 
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.http.HttpURL;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -31,28 +32,34 @@ public class AgentConfig {
 
     private final static Logger LOGGER = new Logger(AgentConfig.class);
 
-    @Value("${agent.config.cmd_rt_log_url}")
-    private String cmdRtLogUrl; // web socket url
+    @Value("${agent.config.ws}")
+    private String wsDomain; // web socket url
 
-    @Value("${agent.config.cmd_report_url}")
-    private String cmdReportUrl;
-
-    @Value("${agent.config.cmd_log_url}")
-    private String cmdLogUrl;
+    @Value("agent.config.cc")
+    private String ccDomain; // control-center url
 
     @Value("${zk.host}")
     private String zookeeperUrl;
 
+    private final AgentSettings settings = new AgentSettings();
+
     @PostConstruct
     public void init() {
-        LOGGER.trace("Real time log ws url: %s", cmdRtLogUrl);
-        LOGGER.trace("Report cmd status url: %s", cmdReportUrl);
-        LOGGER.trace("Upload cmd zip log url: %s", cmdLogUrl);
-        LOGGER.trace("zookeeper url: %s", zookeeperUrl);
+        final String webSocketUrl = HttpURL.build(wsDomain).append("agent/cmd/logging").toString();
+        settings.setWebSocketUrl(webSocketUrl);
+
+        final String cmdStatusUrl = HttpURL.build(ccDomain).append("cmd/report").toString();
+        settings.setCmdStatusUrl(cmdStatusUrl);
+
+        final String cmdLogUploadUrl = HttpURL.build(ccDomain).append("cmd/log/upload").toString();
+        settings.setCmdLogUrl(cmdLogUploadUrl);
+
+        settings.setZookeeperUrl(zookeeperUrl);
+        LOGGER.trace(settings.toString());
     }
 
     @Bean
     public AgentSettings agentSettings() {
-        return new AgentSettings(cmdRtLogUrl, cmdReportUrl, cmdLogUrl, zookeeperUrl);
+        return settings;
     }
 }
