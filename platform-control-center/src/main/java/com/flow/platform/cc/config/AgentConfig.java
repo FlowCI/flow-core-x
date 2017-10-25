@@ -35,7 +35,7 @@ public class AgentConfig {
     @Value("${agent.config.ws}")
     private String wsDomain; // web socket url
 
-    @Value("agent.config.cc")
+    @Value("${agent.config.cc}")
     private String ccDomain; // control-center url
 
     @Value("${zk.host}")
