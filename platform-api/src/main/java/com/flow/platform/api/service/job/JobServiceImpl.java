@@ -74,20 +74,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author yh@firim
  */
-@Service(value = "jobService")
-@Transactional(isolation = Isolation.REPEATABLE_READ)
+@Service
 public class JobServiceImpl extends ApplicationEventService implements JobService {
 
     private static Logger LOGGER = new Logger(JobService.class);
-
-    private Integer RETRY_TIMEs = 5;
 
     private final Integer createSessionRetryTimes = 5;
 
@@ -268,6 +263,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
+    @Transactional
     public void deleteJob(String path) {
         List<BigInteger> jobIds = jobDao.findJobIdsByPath(path);
         // TODO :  Late optimization and paging jobIds
@@ -392,7 +388,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void enterQueue(CmdCallbackQueueItem cmdQueueItem) {
         cmdCallbackQueue.enqueue(cmdQueueItem);
     }
