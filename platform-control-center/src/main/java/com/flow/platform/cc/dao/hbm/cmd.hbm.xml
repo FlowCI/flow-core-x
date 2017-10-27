@@ -30,7 +30,7 @@
     <property name="sessionId" column="session_id" length="36"/>
     <property name="workingDir" type="string" column="working_dir"/>
     <property name="outputEnvFilter" type="string" column="output_env_filter" length="50"/>
-    <property name="logPath" type="string" column="log_path"/>
+    <property name="logPath" type="string" column="log_path" update="false"/>
     <property name="inputs" type="com.flow.platform.core.dao.adaptor.MapAdaptor" column="inputs"/>
     <property name="webhook" type="string" column="webhook"/>
     <property name="extra" type="string" column="extra"/>
@@ -42,6 +42,14 @@
     <property name="updatedDate" type="java.time.ZonedDateTime" update="false">
       <column name="updated_date" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
     </property>
+  </class>
+
+  <class name="CmdLog" table="cmd">
+    <id name="cmdId" type="string" length="100" column="id">
+      <generator class="assigned"/>
+    </id>
+
+    <property name="logPath" type="string" column="log_path"/>
   </class>
 
   <!--for cmd result definition-->

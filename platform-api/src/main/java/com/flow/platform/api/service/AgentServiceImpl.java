@@ -26,6 +26,7 @@ import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Agent;
@@ -38,6 +39,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.http.HttpURL;
@@ -144,6 +146,10 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
 
     @Override
     public AgentWithFlow create(AgentPath agentPath) {
+        if (StringUtil.hasSpace(agentPath.getZone()) || StringUtil.hasSpace(agentPath.getName())) {
+            throw new IllegalParameterException("Zone name or agent name cannot contain empty space");
+        }
+
         try {
             AgentPathWithWebhook pathWithWebhook = new AgentPathWithWebhook(agentPath, buildAgentWebhook());
 
@@ -158,9 +164,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
             }
 
             Agent agent = Agent.parse(response.getBody(), Agent.class);
-
-            AgentWithFlow agentWithFlow = new AgentWithFlow(agent, null);
-            return agentWithFlow;
+            return new AgentWithFlow(agent, null);
 
         } catch (UnsupportedEncodingException | JsonSyntaxException e) {
             throw new IllegalStatusException("Unable to create agent", e);

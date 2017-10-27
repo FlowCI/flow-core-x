@@ -41,7 +41,6 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.git.model.GitEventType;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
-import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -224,6 +223,7 @@ public class JobServiceTest extends TestBase {
 
         Job stoppedJob = jobService.stopJob(job.getNodeName(), job.getNumber());
         Assert.assertNotNull(stoppedJob);
+        stoppedJob = jobService.find(stoppedJob.getId());
         Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());
     }
 
@@ -310,7 +310,7 @@ public class JobServiceTest extends TestBase {
         return jobService.find(job.getNodePath(), job.getNumber());
     }
 
-    private void create_session(Job job){
+    private void create_session(Job job) {
         try {
             String sessionId = cmdService.createSession(job, 5);
             job.setSessionId(sessionId);

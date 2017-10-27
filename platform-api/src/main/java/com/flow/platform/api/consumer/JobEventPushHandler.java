@@ -20,6 +20,7 @@ import com.flow.platform.api.config.WebSocketConfig;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.push.PushHandler;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.core.exception.NotFoundException;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,4 +38,15 @@ public abstract class JobEventPushHandler extends PushHandler {
         super.push(jobTopic, job);
     }
 
+    //TODO: because transaction not found job, add READ_UNCOMMITTED also no use
+    protected void push(Job job) {
+        Job jobConsist;
+        try {
+            jobConsist = jobService.find(job.getId());
+        } catch (NotFoundException e) {
+            jobConsist = job;
+        }
+        String jobTopic = String.format("%s/%s", WebSocketConfig.TOPIC_FOR_JOB, jobConsist.getNodePath());
+        super.push(jobTopic, jobConsist);
+    }
 }

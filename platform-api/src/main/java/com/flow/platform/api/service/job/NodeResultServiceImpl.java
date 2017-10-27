@@ -49,7 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author gyfirim
  */
 @Service
-@Transactional
 public class NodeResultServiceImpl extends ApplicationEventService implements NodeResultService {
 
     private final static Logger LOGGER = new Logger(NodeResultService.class);
@@ -126,6 +125,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
     }
 
     @Override
+    @Transactional
     public void updateStatus(Job job, NodeStatus targetStatus, Set<NodeStatus> skipped) {
         List<NodeResult> children = list(job, true);
 

@@ -25,6 +25,10 @@ public class StringUtil {
 
     public final static String EMPTY = "";
 
+    public static boolean hasSpace(final String str) {
+        return str.contains(" ");
+    }
+
     public static boolean isNullOrEmptyForItems(final String... strings) {
         if (CollectionUtil.isNullOrEmpty(strings)) {
             return true;

@@ -82,7 +82,7 @@ public class JobSearchServiceImpl implements JobSearchService {
             for (Job job : jobs) {
                 if (job.getNumber().toString().equals(words)) { // compare job number
                     copyJobs.add(job);
-                } else if (words.equals(
+                } else if (job.getRootResult() != null && words.equals(
                     job.getRootResult().getOutputs().get(GitEnvs.FLOW_GIT_BRANCH.toString()))) { //compare branch
                     copyJobs.add(job);
                 }
@@ -105,7 +105,8 @@ public class JobSearchServiceImpl implements JobSearchService {
 
             List<Job> copyJobs = new LinkedList<>();
             for (Job job : jobs) {
-                if (branch.equals(job.getRootResult().getOutputs().get(GitEnvs.FLOW_GIT_BRANCH.toString()))) {
+                if (job.getRootResult() != null && branch
+                    .equals(job.getRootResult().getOutputs().get(GitEnvs.FLOW_GIT_BRANCH.toString()))) {
                     copyJobs.add(job);
                 }
             }

@@ -83,7 +83,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
             .allowedOrigins("*")
             .allowedMethods("*")
             .allowCredentials(true)
-            .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "X-Authorization", "authenticate", "library");
+            .allowedHeaders("origin", "content-type", "accept", "x-requested-with", "X-Authorization", "authenticate",
+                "library");
     }
 
     @Bean

@@ -52,7 +52,7 @@ public class CmdResultDaoTest extends TestBase {
         cmdResult.setTotalDuration(10L);
         cmdResult.setOutput(output);
         cmdResult.setExceptions(Lists.newArrayList(
-                new RuntimeException("Dummy Exception"), new RuntimeException("Dummy Exception")));
+            new RuntimeException("Dummy Exception"), new RuntimeException("Dummy Exception")));
     }
 
     @Test
