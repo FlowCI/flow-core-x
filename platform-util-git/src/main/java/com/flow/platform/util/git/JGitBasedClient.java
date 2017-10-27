@@ -248,8 +248,7 @@ public abstract class JGitBasedClient implements GitClient {
         for (Ref ref : refs) {
             // convert ref name from ref/head/master to master
             String refName = ref.getName();
-            int lastIndexOfSlash = refName.lastIndexOf('/');
-            String simpleName = refName.substring(lastIndexOfSlash + 1);
+            String simpleName = refName.replaceFirst("refs/heads/", "");
 
             // add to result list
             refStringList.add(simpleName);
