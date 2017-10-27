@@ -17,6 +17,7 @@
 package com.flow.platform.util.git;
 
 import com.flow.platform.util.ExceptionUtil;
+import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitProject;
 import com.google.common.base.Strings;
@@ -246,9 +247,11 @@ public abstract class JGitBasedClient implements GitClient {
         List<String> refStringList = new ArrayList<>(refs.size());
 
         for (Ref ref : refs) {
-            // convert ref name from ref/head/master to master
+            // convert ref name from refs/heads/master to master
             String refName = ref.getName();
-            String simpleName = refName.replaceFirst("refs/heads/", "");
+            String simpleName = refName
+                .replaceFirst("refs/heads/", StringUtil.EMPTY)
+                .replace("refs/tags/", StringUtil.EMPTY);
 
             // add to result list
             refStringList.add(simpleName);

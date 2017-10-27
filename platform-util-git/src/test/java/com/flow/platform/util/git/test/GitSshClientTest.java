@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import org.eclipse.jgit.lib.Ref;
 import org.junit.After;
@@ -47,14 +48,16 @@ public class GitSshClientTest {
         GitSshClient client = new GitSshClient(TEST_GIT_SSH_URL, Paths.get(tmpPath));
 
         // load all branches
-        Collection<String> branches = client.branches();
+        List<String> branches = client.branches();
         Assert.assertNotNull(branches);
         Assert.assertTrue(branches.size() >= 1);
+        Assert.assertFalse(branches.get(0).startsWith("refs/heads/"));
 
         // load all tags
-        Collection<String> tags = client.tags();
+        List<String> tags = client.tags();
         Assert.assertNotNull(tags);
         Assert.assertTrue(tags.size() >= 1);
+        Assert.assertFalse(tags.get(0).startsWith("refs/tags/"));
     }
 
     @Test
