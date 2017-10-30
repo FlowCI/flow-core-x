@@ -90,7 +90,7 @@ public class GitWebHookController extends NodeController {
             // get user email from git event
             final User user = new User(hookEvent.getUserEmail(), StringUtil.EMPTY, StringUtil.EMPTY);
 
-            jobService.createJobAndYmlLoad(path, hookEvent.getType(), gitEnvs, user, (job) -> {
+            jobService.createWithYmlLoad(path, hookEvent.getType(), gitEnvs, user, (job) -> {
                 applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
             });
 

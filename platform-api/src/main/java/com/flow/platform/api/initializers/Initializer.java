@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.user.User;
-import com.flow.platform.core.exception.NotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+package com.flow.platform.api.initializers;
+
+import com.flow.platform.core.context.ContextEvent;
 
 /**
- * @author lhl
+ * @author yang
  */
+public abstract class Initializer implements ContextEvent {
 
-public class CurrentUser {
+    public static boolean ENABLED = true;
 
-    @Autowired
-    private ThreadLocal<User> currentUser;
-
-    public User currentUser() {
-        if (currentUser.get() == null) {
-            throw new NotFoundException("Current user not found");
+    @Override
+    public void start() {
+        if (ENABLED) {
+            doStart();
         }
-        return currentUser.get();
     }
+
+    @Override
+    public void stop() {
+
+    }
+
+    abstract void doStart();
 }

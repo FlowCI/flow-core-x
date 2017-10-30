@@ -58,7 +58,7 @@ public interface JobService {
     /**
      * delete jobs by flowPath
      */
-    void deleteJob(String path);
+    void delete(String path);
 
     /**
      * List all jobs by given path
@@ -67,11 +67,6 @@ public interface JobService {
      * @param latestOnly is only load latest job
      */
     List<Job> list(List<String> paths, boolean latestOnly);
-
-    /**
-     * List node results
-     */
-    List<NodeResult> listNodeResult(String path, Integer number);
 
     /**
      * Create job from node path, copy yml to job yml
@@ -86,7 +81,7 @@ public interface JobService {
     Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator);
 
     /**
-     * Create job after loading yml, in async mode
+     * Create job after loading yml from git repo, in async mode
      *
      * @param path any node path
      * @param eventType the trigger type
@@ -94,11 +89,11 @@ public interface JobService {
      * @param creator the user who create job
      * @param onJobCreated callback
      */
-    void createJobAndYmlLoad(String path,
-                             GitEventType eventType,
-                             Map<String, String> envs,
-                             User creator,
-                             Consumer<Job> onJobCreated);
+    void createWithYmlLoad(String path,
+                           GitEventType eventType,
+                           Map<String, String> envs,
+                           User creator,
+                           Consumer<Job> onJobCreated);
 
     /**
      * Process cmd callback from queue
@@ -113,7 +108,7 @@ public interface JobService {
     /**
      * stop job
      */
-    Job stopJob(String name, Integer buildNumber);
+    Job stop(String name, Integer buildNumber);
 
     /**
      * update job
@@ -125,5 +120,8 @@ public interface JobService {
      */
     void checkTimeoutTask();
 
+    /**
+     * Set job status and save job instance
+     */
     void updateJobStatusAndSave(Job job, JobStatus newStatus);
 }

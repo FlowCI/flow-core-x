@@ -106,7 +106,7 @@ public class CmdController {
     @PostMapping(path = "/report")
     public void report(@RequestBody CmdReport reportData) {
         if (reportData.getId() == null || reportData.getStatus() == null || reportData.getResult() == null) {
-            throw new IllegalArgumentException("Cmd id, status and cmd result are required");
+            throw new IllegalParameterException("Cmd id, status and cmd result are required");
         }
 
         CmdStatusItem statusItem = new CmdStatusItem(reportData, true, true);
@@ -130,7 +130,7 @@ public class CmdController {
     @PostMapping(path = "/log/upload")
     public void uploadFullLog(@RequestPart String cmdId, @RequestPart MultipartFile file) {
         if (!Objects.equals(file.getContentType(), "application/zip")) {
-            throw new IllegalArgumentException("Illegal zipped log file format");
+            throw new IllegalParameterException("Illegal zipped log file format");
         }
         cmdService.saveLog(cmdId, file);
     }
@@ -145,7 +145,7 @@ public class CmdController {
 
         Cmd cmd = cmdService.find(cmdId);
         if (cmd == null) {
-            throw new RuntimeException("Cmd not found");
+            throw new IllegalParameterException("Cmd not found");
         }
 
         try {
@@ -156,7 +156,7 @@ public class CmdController {
                 String.format("attachment; filename=%s", filePath.getFileName().toString()));
             return resource;
         } catch (ArrayIndexOutOfBoundsException e) {
-            throw new RuntimeException("Log not found");
+            throw new IllegalStatusException("Log not found");
         }
     }
 }

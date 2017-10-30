@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-public class UserRoleInit implements ContextEvent {
+public class UserRoleInit extends Initializer {
 
     @Autowired
     private RoleService roleService;
@@ -55,7 +55,7 @@ public class UserRoleInit implements ContextEvent {
     private ThreadLocal<User> currentUser;
 
     @Override
-    public void start() {
+    public void doStart() {
 
         // create sys user
         User user = userDao.get(DEFAULT_USER_EMAIL);
@@ -89,11 +89,6 @@ public class UserRoleInit implements ContextEvent {
             currentUser.set(sysUser);
             roleService.assign(sysUser, role);
         }
-
-    }
-
-    @Override
-    public void stop() {
 
     }
 }
