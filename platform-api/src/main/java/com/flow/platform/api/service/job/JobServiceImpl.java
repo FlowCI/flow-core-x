@@ -27,6 +27,7 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.envs.FlowEnvs;
 import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
@@ -69,6 +70,7 @@ import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -161,41 +163,22 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     @Transactional(noRollbackFor = FlowException.class)
-    public Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator) {
-        Node root = nodeService.find(PathUtil.rootPath(path));
-        if (root == null) {
-            throw new IllegalParameterException("Path does not existed");
+    public Job createFromFlowYml(String path, GitEventType eventType, Map<String, String> envs, User creator) {
+        // verify flow yml status
+        Flow flow = nodeService.findFlow(path);
+        String ymlStatus = flow.getEnv(FlowEnvs.FLOW_YML_STATUS);
+
+        if (!Objects.equals(ymlStatus, YmlStatusValue.FOUND.value())) {
+            throw new IllegalStatusException("Illegal yml status for flow " + flow.getName());
         }
 
-        if (creator == null) {
-            throw new IllegalParameterException("User is required while create job");
-        }
+        // load yml content
+        Yml yml = ymlService.get(flow);
 
-        String status = root.getEnv(FLOW_STATUS);
-        if (Strings.isNullOrEmpty(status) || !status.equals(StatusValue.READY.value())) {
-            throw new IllegalStatusException("Cannot create job since status is not READY");
-        }
-
-        // create job
-        Job job = new Job(CommonUtil.randomId());
-        job.setNodePath(root.getPath());
-        job.setNodeName(root.getName());
-        job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
-        job.setCategory(eventType);
-        job.setCreatedBy(creator.getEmail());
-        job.setCreatedAt(ZonedDateTime.now());
-        job.setUpdatedAt(ZonedDateTime.now());
-
-        // setup job env variables
-        job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
-        job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
-        job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
-
-        EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
-        EnvUtil.merge(envs, job.getEnvs(), true);
-
-        //save job
-        return jobDao.save(job);
+        // create job instance
+        Job job = createJob(path, eventType, envs, creator);
+        new OnYmlSuccess(job, null).accept(yml);
+        return job;
     }
 
     @Override
@@ -213,7 +196,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // merge input env to flow for git loading, not save to flow since the envs is for job
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
-        //create job
+        // create job
         Job job = createJob(path, eventType, envs, creator);
         updateJobStatusAndSave(job, JobStatus.YML_LOADING);
 
@@ -266,6 +249,49 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             nodeResultDao.delete(jobIds);
             jobDao.deleteJob(path);
         }
+    }
+
+    private Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator) {
+        Node root = nodeService.find(PathUtil.rootPath(path));
+        if (root == null) {
+            throw new IllegalParameterException("Path does not existed");
+        }
+
+        if (creator == null) {
+            throw new IllegalParameterException("User is required while create job");
+        }
+
+        // verify required envs for create job
+        if (!EnvUtil.hasRequiredEnvKey(root, REQUIRED_ENVS)) {
+            throw new IllegalStatusException("Missing required env vailable for flow " + path);
+        }
+
+        // verify flow status
+        String status = root.getEnv(FLOW_STATUS);
+        if (!Objects.equals(status, StatusValue.READY.value())) {
+            throw new IllegalStatusException("Cannot create job since status is not READY");
+        }
+
+        // create job
+        Job job = new Job(CommonUtil.randomId());
+        job.setNodePath(root.getPath());
+        job.setNodeName(root.getName());
+        job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
+        job.setCategory(eventType);
+        job.setCreatedBy(creator.getEmail());
+        job.setCreatedAt(ZonedDateTime.now());
+        job.setUpdatedAt(ZonedDateTime.now());
+
+        // setup job env variables
+        job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
+        job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
+        job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
+
+        EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
+        EnvUtil.merge(envs, job.getEnvs(), true);
+
+        //save job
+        return jobDao.save(job);
     }
 
     /**
@@ -489,25 +515,17 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
             // set git commit info to job env
             if (job.getCategory() == GitEventType.MANUAL) {
-                GitCommit gitCommit = gitService.latestCommit(root);
-                Map<String, String> envFromCommit = GitEventEnvConverter.convert(gitCommit);
-                EnvUtil.merge(envFromCommit, job.getEnvs(), true);
-                jobDao.update(job);
-            }
-
-            String loadedYml = null;
-            try {
-                loadedYml = ymlService.getYmlContent(root);
-                if (Strings.isNullOrEmpty(loadedYml)) {
-                    throw new IllegalStatusException("Yml is loading for path " + path);
+                try {
+                    GitCommit gitCommit = gitService.latestCommit(root);
+                    Map<String, String> envFromCommit = GitEventEnvConverter.convert(gitCommit);
+                    EnvUtil.merge(envFromCommit, job.getEnvs(), true);
+                    jobDao.update(job);
+                } catch (IllegalStatusException exceptionFromGit) {
+                    LOGGER.warn(exceptionFromGit.getMessage());
                 }
-            } catch (FlowException e) {
-                job.setFailureMessage(e.getMessage());
-                updateJobStatusAndSave(job, JobStatus.FAILURE);
-                return;
             }
 
-            createJobNodesAndCreateSession(job, loadedYml);
+            createJobNodesAndCreateSession(job, yml.getFile());
 
             try {
                 if (onJobCreated != null) {

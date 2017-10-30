@@ -51,7 +51,7 @@ public class GitServiceTest extends TestBase {
     public void initNodeWithGitInfo() throws Throwable {
         node = new Flow("flow_test", "flow_test");
         node.putEnv(GitEnvs.FLOW_GIT_SOURCE, GitSource.UNDEFINED_SSH.name());
-        node.putEnv(GitEnvs.FLOW_GIT_URL, "git@github.com:flow-ci-plugin/for-testing.git");
+        node.putEnv(GitEnvs.FLOW_GIT_URL, TestBase.GITHUB_TEST_REPO_SSH);
         node.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
         node.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
     }

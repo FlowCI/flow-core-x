@@ -45,25 +45,18 @@ public class SearchServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
         Map<String, String> envs = new HashMap<>();
         envs.put(GitEnvs.FLOW_GIT_BRANCH.toString(), "master");
-        Job jobManual = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
-
-        build_relation(rootForFlow, jobManual);
+        Job jobManual = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
 
         jobManual.setCreatedBy("yh@fir.im");
         jobDao.update(jobManual);
 
-        Job jobBranchCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
-
-        build_relation(rootForFlow, jobBranchCondition);
+        Job jobBranchCondition = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.MANUAL, envs, mockUser);
 
         jobBranchCondition.putEnv(GitEnvs.FLOW_GIT_BRANCH, "develop");
         jobBranchCondition.setCreatedBy("will@fir.im");
         jobDao.update(jobBranchCondition);
 
-        Job jobTagCondition = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, envs, mockUser);
-
-        build_relation(rootForFlow, jobTagCondition);
-
+        Job jobTagCondition = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.PR, envs, mockUser);
         jobTagCondition.setCreatedBy("yh@fir.im");
         jobDao.update(jobTagCondition);
     }

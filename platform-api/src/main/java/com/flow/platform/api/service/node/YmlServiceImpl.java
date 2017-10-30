@@ -40,6 +40,7 @@ import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -109,10 +110,11 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
-    public String getYmlContent(final Node root) {
+    public Yml get(final Node root) {
+
         // for LOADING status if FLOW_YML_STATUS start with GIT_xxx
         if (isYmlLoading(root)) {
-            return "";
+            return new Yml(root.getPath(), StringUtil.EMPTY);
         }
 
         // check FLOW_YML_STATUS
@@ -122,9 +124,9 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FOUND.value())) {
 
             // load from database
-            Yml ymlStorage = ymlDao.get(root.getPath());
-            if (ymlStorage != null) {
-                return ymlStorage.getFile();
+            Yml yml = ymlDao.get(root.getPath());
+            if (yml != null) {
+                return yml;
             }
 
             throw new IllegalParameterException("The yml cannot find by path: " + root.getPath());
