@@ -130,7 +130,7 @@ public class GitServiceImpl implements GitService {
         try {
             return client.commit(branch);
         } catch (GitException e) {
-            throw new IllegalStatusException("Cannot get latest commit data");
+            throw new IllegalStatusException("Cannot get latest commit data: " + e.getMessage());
         }
     }
 

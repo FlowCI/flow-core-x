@@ -51,10 +51,7 @@ public class JobControllerTest extends TestBase {
     public void should_show_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
-
-        build_relation(rootForFlow, job);
-
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -76,10 +73,7 @@ public class JobControllerTest extends TestBase {
     public void should_stop_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
-
-        build_relation(rootForFlow, job);
-
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -100,10 +94,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_step_log_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
-
-        build_relation(rootForFlow, job);
-
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -133,9 +124,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_job_zip_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
-
-        build_relation(rootForFlow, job);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         job.setStatus(JobStatus.SUCCESS);

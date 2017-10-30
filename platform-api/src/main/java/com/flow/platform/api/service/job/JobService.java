@@ -16,20 +16,34 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.envs.EnvKey;
+import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
-import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.util.git.model.GitEventType;
+import com.google.common.collect.ImmutableSet;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
  * @author yh@firim
  */
 public interface JobService {
+
+    /**
+     * Required env variable envs for create job
+     */
+    Set<EnvKey> REQUIRED_ENVS = ImmutableSet.of(
+        FlowEnvs.FLOW_STATUS,
+        FlowEnvs.FLOW_YML_STATUS,
+        GitEnvs.FLOW_GIT_URL,
+        GitEnvs.FLOW_GIT_SOURCE
+    );
 
     /**
      * find by node path and number
@@ -79,6 +93,11 @@ public interface JobService {
      * @return job with children node result
      */
     Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator);
+
+    /**
+     * Create job by yml which from flow
+     */
+    Job createFromFlowYml(String path, GitEventType eventType, Map<String, String> envs, User creator);
 
     /**
      * Create job after loading yml from git repo, in async mode

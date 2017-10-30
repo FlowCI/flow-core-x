@@ -46,12 +46,11 @@ public interface YmlService {
      * @throws com.flow.platform.api.exception.YmlException if FLOW_YML_STATUS is ERROR
      * @throws IllegalStateException if FLOW_YML_STATUS is illegal
      */
-    String getYmlContent(Node root);
-
+    Yml get(Node root);
 
     /**
      * Load yml content from git repo in async and create tree from yml,
-     * Then call "getYmlContent" to get yml
+     * Then call "get" to get yml
      *
      * @param root root node
      * @param onSuccess method on yml loaded
