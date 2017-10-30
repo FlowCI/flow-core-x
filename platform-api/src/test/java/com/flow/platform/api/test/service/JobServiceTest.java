@@ -221,7 +221,7 @@ public class JobServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = createMockJob(rootForFlow.getPath());
 
-        Job stoppedJob = jobService.stopJob(job.getNodeName(), job.getNumber());
+        Job stoppedJob = jobService.stop(job.getNodeName(), job.getNumber());
         Assert.assertNotNull(stoppedJob);
         stoppedJob = jobService.find(stoppedJob.getId());
         Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());

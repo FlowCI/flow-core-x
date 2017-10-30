@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
+import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.core.exception.NotFoundException;
@@ -60,6 +61,9 @@ public class JobController extends NodeController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private NodeResultService nodeResultService;
 
     @Autowired
     private JobSearchService searchService;
@@ -101,7 +105,7 @@ public class JobController extends NodeController {
         }
 
         String path = currentNodePath.get();
-        jobService.createJobAndYmlLoad(path, GitEventType.MANUAL, envs, currentUser.get(), null);
+        jobService.createWithYmlLoad(path, GitEventType.MANUAL, envs, currentUser.get(), null);
     }
 
     /**
@@ -217,7 +221,8 @@ public class JobController extends NodeController {
     @GetMapping(path = "/{root}/{buildNumber}/nodes")
     public List<NodeResult> indexNodeResults(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
-        return jobService.listNodeResult(path, buildNumber);
+        Job job = jobService.find(path, buildNumber);
+        return nodeResultService.list(job, true);
     }
 
     /**
@@ -258,7 +263,7 @@ public class JobController extends NodeController {
     @PostMapping(path = "/{root}/{buildNumber}/stop")
     public Job stopJob(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
-        return jobService.stopJob(path, buildNumber);
+        return jobService.stop(path, buildNumber);
     }
 
     /**

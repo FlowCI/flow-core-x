@@ -152,12 +152,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public List<NodeResult> listNodeResult(String path, Integer number) {
-        Job job = find(path, number);
-        return nodeResultService.list(job, true);
-    }
-
-    @Override
     public List<Job> list(List<String> paths, boolean latestOnly) {
         if (latestOnly) {
             return jobDao.latestByPath(paths);
@@ -206,11 +200,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     @Transactional(noRollbackFor = FlowException.class)
-    public void createJobAndYmlLoad(String path,
-                                    GitEventType eventType,
-                                    Map<String, String> envs,
-                                    User creator,
-                                    Consumer<Job> onJobCreated) {
+    public void createWithYmlLoad(String path,
+                                  GitEventType eventType,
+                                  Map<String, String> envs,
+                                  User creator,
+                                  Consumer<Job> onJobCreated) {
 
         // find flow and reset yml status
         Flow flow = nodeService.findFlow(path);
@@ -264,7 +258,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     @Transactional
-    public void deleteJob(String path) {
+    public void delete(String path) {
         List<BigInteger> jobIds = jobDao.findJobIdsByPath(path);
         // TODO :  Late optimization and paging jobIds
         if (jobIds.size() > 0) {
@@ -393,7 +387,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public Job stopJob(String path, Integer buildNumber) {
+    public Job stop(String path, Integer buildNumber) {
         Job runningJob = find(path, buildNumber);
         NodeResult result = runningJob.getRootResult();
 

@@ -30,7 +30,7 @@ public class CurrentUser {
 
     public User currentUser() {
         if (currentUser.get() == null) {
-            throw new NotFoundException(String.format("user not found"));
+            throw new NotFoundException("Current user not found");
         }
         return currentUser.get();
     }
