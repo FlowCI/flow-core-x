@@ -44,6 +44,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.initializers.Initializer;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.service.job.NodeResultService;
@@ -181,6 +182,10 @@ public abstract class TestBase {
     protected User mockUser = new User("test@flow.ci", "ut", "");
 
     private static Path WORKSPACE;
+
+    static {
+        Initializer.ENABLED = false;
+    }
 
     @Before
     public void beforeEach() throws IOException, InterruptedException {
