@@ -163,51 +163,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     @Transactional(noRollbackFor = FlowException.class)
-    public Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator) {
-        Node root = nodeService.find(PathUtil.rootPath(path));
-        if (root == null) {
-            throw new IllegalParameterException("Path does not existed");
-        }
-
-        if (creator == null) {
-            throw new IllegalParameterException("User is required while create job");
-        }
-
-        // verify required envs for create job
-        if (!EnvUtil.hasRequiredEnvKey(root, REQUIRED_ENVS)) {
-            throw new IllegalStatusException("Missing required env vailable for flow " + path);
-        }
-
-        // verify flow status
-        String status = root.getEnv(FLOW_STATUS);
-        if (!Objects.equals(status, StatusValue.READY.value())) {
-            throw new IllegalStatusException("Cannot create job since status is not READY");
-        }
-
-        // create job
-        Job job = new Job(CommonUtil.randomId());
-        job.setNodePath(root.getPath());
-        job.setNodeName(root.getName());
-        job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
-        job.setCategory(eventType);
-        job.setCreatedBy(creator.getEmail());
-        job.setCreatedAt(ZonedDateTime.now());
-        job.setUpdatedAt(ZonedDateTime.now());
-
-        // setup job env variables
-        job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
-        job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
-        job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
-
-        EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
-        EnvUtil.merge(envs, job.getEnvs(), true);
-
-        //save job
-        return jobDao.save(job);
-    }
-
-    @Override
-    @Transactional(noRollbackFor = FlowException.class)
     public Job createFromFlowYml(String path, GitEventType eventType, Map<String, String> envs, User creator) {
         // verify flow yml status
         Flow flow = nodeService.findFlow(path);
@@ -294,6 +249,49 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             nodeResultDao.delete(jobIds);
             jobDao.deleteJob(path);
         }
+    }
+
+    private Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator) {
+        Node root = nodeService.find(PathUtil.rootPath(path));
+        if (root == null) {
+            throw new IllegalParameterException("Path does not existed");
+        }
+
+        if (creator == null) {
+            throw new IllegalParameterException("User is required while create job");
+        }
+
+        // verify required envs for create job
+        if (!EnvUtil.hasRequiredEnvKey(root, REQUIRED_ENVS)) {
+            throw new IllegalStatusException("Missing required env vailable for flow " + path);
+        }
+
+        // verify flow status
+        String status = root.getEnv(FLOW_STATUS);
+        if (!Objects.equals(status, StatusValue.READY.value())) {
+            throw new IllegalStatusException("Cannot create job since status is not READY");
+        }
+
+        // create job
+        Job job = new Job(CommonUtil.randomId());
+        job.setNodePath(root.getPath());
+        job.setNodeName(root.getName());
+        job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
+        job.setCategory(eventType);
+        job.setCreatedBy(creator.getEmail());
+        job.setCreatedAt(ZonedDateTime.now());
+        job.setUpdatedAt(ZonedDateTime.now());
+
+        // setup job env variables
+        job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
+        job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
+        job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
+
+        EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
+        EnvUtil.merge(envs, job.getEnvs(), true);
+
+        //save job
+        return jobDao.save(job);
     }
 
     /**

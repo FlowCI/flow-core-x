@@ -83,18 +83,6 @@ public interface JobService {
     List<Job> list(List<String> paths, boolean latestOnly);
 
     /**
-     * Create job from node path, copy yml to job yml
-     * request agent session from control center
-     *
-     * @param path any node path
-     * @param eventType the trigger type
-     * @param envs the input environment variables, set to null if not available
-     * @param creator the user who create job
-     * @return job with children node result
-     */
-    Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator);
-
-    /**
      * Create job by yml which from flow
      */
     Job createFromFlowYml(String path, GitEventType eventType, Map<String, String> envs, User creator);

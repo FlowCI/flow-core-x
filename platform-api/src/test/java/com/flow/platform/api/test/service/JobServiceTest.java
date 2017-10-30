@@ -65,7 +65,7 @@ public class JobServiceTest extends TestBase {
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Flow rootForFlow = nodeService.createEmptyFlow("flow1");
-        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+        jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
     }
 
     @Test

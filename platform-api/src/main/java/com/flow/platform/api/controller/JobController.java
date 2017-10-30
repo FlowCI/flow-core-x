@@ -93,19 +93,27 @@ public class JobController extends NodeController {
     /**
      * @api {post} /jobs/:root Create
      * @apiParam {String} root flow node path
+     * @apiParam {Boolean} [isFromScmYml] is load yml from scm repo, otherwise yml from flow
      * @apiGroup Jobs
      * @apiDescription Create job by flow node path, the async call since it will load yml from git
      * FLOW_STATUS must be READY and YML contnet must be provided
      *
      */
     @PostMapping(path = "/{root}")
-    public void create(@RequestBody(required = false) Map<String, String> envs) {
+    public void createWithYmlLoad(@RequestParam(required = false, defaultValue = "true") boolean isFromScmYml,
+                                  @RequestBody(required = false) Map<String, String> envs) {
         if (envs == null) {
             envs = new LinkedHashMap<>();
         }
 
         String path = currentNodePath.get();
-        jobService.createWithYmlLoad(path, GitEventType.MANUAL, envs, currentUser.get(), null);
+
+        if (isFromScmYml) {
+            jobService.createWithYmlLoad(path, GitEventType.MANUAL, envs, currentUser.get(), null);
+            return;
+        }
+
+        jobService.createFromFlowYml(path, GitEventType.MANUAL, envs, currentUser.get());
     }
 
     /**

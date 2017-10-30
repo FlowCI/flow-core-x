@@ -109,7 +109,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_job_zip_error() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
