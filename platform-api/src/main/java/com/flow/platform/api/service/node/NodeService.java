@@ -43,7 +43,7 @@ public interface NodeService {
      * @param yml raw yml
      * @return root node
      */
-    Node createOrUpdate(String path, String yml);
+    Node createOrUpdateYml(String path, String yml);
 
     /**
      * Find node by node path from yml

@@ -144,7 +144,7 @@ public class FlowControllerTest extends TestBase {
         String yml = "flow:\n" + "  - name: " + flowName;
         Flow flow = nodeService.findFlow(flowName);
         setFlowToReady(flow);
-        nodeService.createOrUpdate(PathUtil.build(flowName), yml);
+        nodeService.createOrUpdateYml(PathUtil.build(flowName), yml);
 
         // when:
         MvcResult result = mockMvc.perform(get("/flows/" + flowName + "/yml"))

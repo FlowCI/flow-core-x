@@ -96,7 +96,7 @@ public class UpdateNodeYmlTask implements Runnable {
         }
 
         try {
-            nodeService.createOrUpdate(root.getPath(), yml);
+            nodeService.createOrUpdateYml(root.getPath(), yml);
         } catch (Throwable e) {
             LOGGER.warn("Fail to create or update yml in node: '%s'", ExceptionUtil.findRootCause(e).getMessage());
             onError.accept(e);

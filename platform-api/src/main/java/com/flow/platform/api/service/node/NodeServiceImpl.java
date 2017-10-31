@@ -96,12 +96,8 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     private String apiDomain;
 
     @Override
-    public Node createOrUpdate(final String path, String yml) {
+    public Node createOrUpdateYml(final String path, String yml) {
         final Flow flow = findFlow(PathUtil.rootPath(path));
-
-        if (!checkFlowName(flow.getName())) {
-            throw new IllegalParameterException("flowName format not true");
-        }
 
         if (Strings.isNullOrEmpty(yml)) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.NOT_FOUND, null);
