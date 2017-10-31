@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.test.integration;
 
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Flow;

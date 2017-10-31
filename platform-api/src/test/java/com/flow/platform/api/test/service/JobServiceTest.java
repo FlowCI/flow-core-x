@@ -21,7 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.envs.JobEnvs;
+import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;

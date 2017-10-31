@@ -15,9 +15,9 @@
  */
 package com.flow.platform.api.service.job;
 
-import static com.flow.platform.api.domain.envs.FlowEnvs.FLOW_STATUS;
-import static com.flow.platform.api.domain.envs.FlowEnvs.FLOW_YML_STATUS;
-import static com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
+import static com.flow.platform.api.envs.FlowEnvs.FLOW_STATUS;
+import static com.flow.platform.api.envs.FlowEnvs.FLOW_YML_STATUS;
+import static com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
 import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
@@ -27,9 +27,9 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
-import com.flow.platform.api.domain.envs.JobEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;

@@ -19,11 +19,11 @@ package com.flow.platform.api.test.integration;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.envs.EnvKey;
-import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.EnvKey;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.api.domain.job.Job;

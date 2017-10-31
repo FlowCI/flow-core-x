@@ -16,8 +16,8 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Step;

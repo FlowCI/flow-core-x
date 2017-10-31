@@ -17,8 +17,8 @@
 package com.flow.platform.api.task;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.service.GitService;

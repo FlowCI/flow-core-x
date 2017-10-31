@@ -16,9 +16,9 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.envs.EnvKey;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.EnvKey;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.user.User;

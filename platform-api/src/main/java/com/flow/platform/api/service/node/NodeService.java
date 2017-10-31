@@ -18,7 +18,7 @@ package com.flow.platform.api.service.node;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.domain.user.User;
 import java.util.Collection;
 import java.util.List;

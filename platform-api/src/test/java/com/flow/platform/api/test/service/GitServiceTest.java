@@ -18,7 +18,7 @@ package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.GitService.ProgressListener;

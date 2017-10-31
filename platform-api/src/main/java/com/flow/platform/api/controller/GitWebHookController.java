@@ -17,8 +17,8 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.git.GitEventEnvConverter;

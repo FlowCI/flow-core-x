@@ -17,7 +17,7 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.NodeResultDao;
-import com.flow.platform.api.domain.envs.EnvKey;
+import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
