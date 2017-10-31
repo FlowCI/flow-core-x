@@ -32,12 +32,15 @@ public interface AgentService {
     /**
      * agent shutdown
      *
-     * @param zone required
-     * @param name required
      * @param password required
      * @return true or false
      */
-    Boolean shutdown(String zone, String name, String password);
+    Boolean shutdown(AgentPath path, String password);
+
+    /**
+     * Close agent
+     */
+    Boolean close(AgentPath path);
 
     /**
      * Create agent and return token from cc

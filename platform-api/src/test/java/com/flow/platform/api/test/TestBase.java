@@ -245,18 +245,11 @@ public abstract class TestBase {
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock
-            .post(urlEqualTo("/agent/shutdown?zone=default&name=machine&password=123456"))
-            .willReturn(aResponse()
-                .withBody(Jsonable.GSON_CONFIG.toJson(true))));
-
         ClassLoader classLoader = TestBase.class.getClassLoader();
         URL resource = classLoader.getResource("step_log.zip");
         File path = new File(resource.getFile());
-        InputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(path);
-            org.springframework.core.io.Resource res = new InputStreamResource(inputStream);
+
+        try (InputStream inputStream = new FileInputStream(path)) {
             stubFor(com.github.tomakehurst.wiremock.client.WireMock
                 .get(urlPathEqualTo("/cmd/log/download"))
                 .willReturn(aResponse().withBody(org.apache.commons.io.IOUtils.toByteArray(inputStream))));
