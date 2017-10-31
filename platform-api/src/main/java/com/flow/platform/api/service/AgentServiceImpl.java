@@ -134,12 +134,23 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     }
 
     @Override
-    public Boolean shutdown(String zone, String name, String password) {
+    public Boolean shutdown(AgentPath path, String password) {
         try {
-            cmdService.shutdown(new AgentPath(zone, name), password);
+            cmdService.shutdown(path, password);
             return true;
         } catch (IllegalStatusException e) {
-            LOGGER.warnMarker("shutdown", "Illegal shutdown state : " + e.getMessage());
+            LOGGER.warnMarker("shutdown", e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public Boolean close(AgentPath path) {
+        try {
+            cmdService.close(path);
+            return true;
+        } catch (IllegalStatusException e) {
+            LOGGER.warnMarker("close", e.getMessage());
             return false;
         }
     }
