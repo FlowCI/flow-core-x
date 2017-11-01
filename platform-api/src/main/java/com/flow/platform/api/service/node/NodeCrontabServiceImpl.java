@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service.node;
 
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.FlowEnvs;
@@ -27,7 +28,9 @@ import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
 import com.google.common.collect.Sets;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import javax.annotation.PostConstruct;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
 import org.quartz.JobDataMap;
@@ -64,6 +67,17 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
 
     @Autowired
     private UserService userService;
+
+    @PostConstruct
+    public void initCrontabTask() {
+        List<Flow> flows = nodeService.listFlows();
+        for (Flow flow : flows) {
+            try {
+                set(flow);
+            } catch (Throwable ignore) {
+            }
+        }
+    }
 
     @Override
     public void start() {

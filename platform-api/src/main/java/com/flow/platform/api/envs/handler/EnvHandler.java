@@ -45,6 +45,12 @@ public abstract class EnvHandler {
         return Collections.emptySet();
     }
 
+    /**
+     * Handle env variable
+     *
+     * @throws com.flow.platform.core.exception.FlowException
+     * @param node target node
+     */
     public void process(final Node node) {
         String value = node.getEnv(env());
 

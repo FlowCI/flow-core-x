@@ -19,12 +19,17 @@ package com.flow.platform.api.envs.handler;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.collect.Sets;
+import java.text.ParseException;
 import java.util.Set;
+import org.quartz.CronExpression;
+import org.springframework.stereotype.Component;
 
 /**
  * @author yang
  */
+@Component
 public class FlowCrontabEnvHandler extends EnvHandler {
 
     @Override
@@ -44,6 +49,10 @@ public class FlowCrontabEnvHandler extends EnvHandler {
 
     @Override
     void doProcess(Node node, String value) {
-
+        try {
+            new CronExpression(value);
+        } catch (ParseException e) {
+            throw new IllegalParameterException("Illegal FLOW_TASK_CRONTAB_CONTENT format: " + e.getMessage());
+        }
     }
 }
