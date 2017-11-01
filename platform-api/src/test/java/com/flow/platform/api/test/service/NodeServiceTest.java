@@ -17,6 +17,7 @@ package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
@@ -204,6 +205,21 @@ public class NodeServiceTest extends TestBase {
 
         Assert.assertEquals("READY", flow.getEnv("FLOW_STATUS"));
         Assert.assertEquals("FOUND", loaded.getEnv("FLOW_YML_STATUS"));
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_when_save_flow_env_since_illegal_format() throws Throwable {
+        // given:
+        Flow flow = nodeService.createEmptyFlow("flow1");
+        setFlowToReady(flow);
+        Assert.assertEquals(StatusValue.READY.value(), flow.getEnv(FlowEnvs.FLOW_STATUS));
+
+        // when:
+        Map<String, String> envs = new HashMap<>();
+        envs.put(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH.name(), "master");
+        envs.put(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT.name(), "illegal crontab format");
+
+        nodeService.addFlowEnv(nodeService.findFlow("flow1"), envs);
     }
 
     @Test
