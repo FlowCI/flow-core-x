@@ -294,7 +294,7 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_SHOW)
     public String getRawYml() {
         Flow root = nodeService.findFlow(currentNodePath.get());
-        return ymlService.getYmlContent(root);
+        return ymlService.get(root).getFile();
     }
 
     /**

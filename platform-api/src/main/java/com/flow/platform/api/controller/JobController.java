@@ -25,6 +25,7 @@ import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
+import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.core.exception.NotFoundException;
@@ -64,6 +65,9 @@ public class JobController extends NodeController {
     private JobService jobService;
 
     @Autowired
+    private NodeResultService nodeResultService;
+
+    @Autowired
     private JobSearchService searchService;
 
     @Autowired
@@ -91,6 +95,7 @@ public class JobController extends NodeController {
     /**
      * @api {post} /jobs/:root Create
      * @apiParam {String} root flow node path
+     * @apiParam {Boolean} [isFromScmYml] is load yml from scm repo, otherwise yml from flow
      * @apiGroup Jobs
      * @apiDescription Create job by flow node path, the async call since it will load yml from git
      * FLOW_STATUS must be READY and YML contnet must be provided
@@ -98,13 +103,20 @@ public class JobController extends NodeController {
      */
     @PostMapping(path = "/{root}")
     @WebSecurity(action = Actions.JOB_CREATE)
-    public void create(@RequestBody(required = false) Map<String, String> envs) {
+    public void create(@RequestParam(required = false, defaultValue = "true") boolean isFromScmYml,
+                                  @RequestBody(required = false) Map<String, String> envs) {
         if (envs == null) {
             envs = new LinkedHashMap<>();
         }
 
         String path = currentNodePath.get();
-        jobService.createJobAndYmlLoad(path, GitEventType.MANUAL, envs, currentUser.get(), null);
+
+        if (isFromScmYml) {
+            jobService.createWithYmlLoad(path, GitEventType.MANUAL, envs, currentUser.get(), null);
+            return;
+        }
+
+        jobService.createFromFlowYml(path, GitEventType.MANUAL, envs, currentUser.get());
     }
 
     /**
@@ -224,7 +236,8 @@ public class JobController extends NodeController {
     @WebSecurity(action = Actions.JOB_SHOW)
     public List<NodeResult> indexNodeResults(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
-        return jobService.listNodeResult(path, buildNumber);
+        Job job = jobService.find(path, buildNumber);
+        return nodeResultService.list(job, true);
     }
 
     /**
@@ -267,7 +280,7 @@ public class JobController extends NodeController {
     @WebSecurity(action = Actions.JOB_STOP)
     public Job stopJob(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
-        return jobService.stopJob(path, buildNumber);
+        return jobService.stop(path, buildNumber);
     }
 
     /**

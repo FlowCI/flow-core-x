@@ -217,7 +217,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("FOUND", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         // then: should raise YmlParseException
-        ymlService.getYmlContent(root);
+        ymlService.get(root);
     }
 
     @Test(expected = IllegalParameterException.class)
@@ -229,7 +229,7 @@ public class NodeServiceTest extends TestBase {
         Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
-        Assert.assertNotNull(ymlService.getYmlContent(root));
+        Assert.assertNotNull(ymlService.get(root).getFile());
 
         // when: delete flow
         nodeService.delete(root.getPath());
@@ -239,6 +239,6 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals(false, Files.exists(NodeUtil.workspacePath(workspace, root)));
 
         // then: should raise illegal parameter exception since flow doesn't exist
-        ymlService.getYmlContent(root);
+        ymlService.get(root);
     }
 }

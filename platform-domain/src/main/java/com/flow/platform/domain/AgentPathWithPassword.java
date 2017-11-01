@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.user.User;
-import com.flow.platform.core.exception.NotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+package com.flow.platform.domain;
 
 /**
- * @author lhl
+ * @author yang
  */
+public class AgentPathWithPassword extends AgentPath {
 
-public class CurrentUser {
+    private String password;
 
-    @Autowired
-    private ThreadLocal<User> currentUser;
+    public AgentPathWithPassword() {
+    }
 
-    public User currentUser() {
-        if (currentUser.get() == null) {
-            throw new NotFoundException("Current user not found");
-        }
-        return currentUser.get();
+    public AgentPathWithPassword(String zone, String name, String password) {
+        super(zone, name);
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

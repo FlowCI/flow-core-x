@@ -285,7 +285,7 @@ public class GitWebhookTest extends TestBase {
 
         // verify yml is updated
         Node root = nodeService.find(flowPath);
-        Assert.assertNotNull(ymlService.getYmlContent(root));
+        Assert.assertNotNull(ymlService.get(root).getFile());
 
         // verify job is created
         Job created = wrapper.getInstance();

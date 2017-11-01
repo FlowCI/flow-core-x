@@ -23,7 +23,7 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.CmdInfo;
 
 /**
- * Control center cmd service
+ * Control center cmd service gateway
  *
  * @author yang
  */
@@ -51,13 +51,19 @@ public interface CmdService {
     CmdInfo runShell(Job job, Node node, String cmdId);
 
     /**
-     * Send shutdown cmd to agent
+     * Send shutdown cmd to agent, and shutdown host machine
      *
      * @param path target agent path
      * @param password password for host
      * @throws com.flow.platform.core.exception.IllegalStatusException if unable to send cmd to cc
      */
     void shutdown(AgentPath path, String password);
+
+    /**
+     * Close agent
+     * @param path target agent path
+     */
+    void close(AgentPath path);
 
     /**
      * send cmd to cc

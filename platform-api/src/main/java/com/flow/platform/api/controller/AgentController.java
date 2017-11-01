@@ -26,6 +26,7 @@ import com.flow.platform.api.service.AgentService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentPathWithPassword;
 import com.flow.platform.domain.AgentSettings;
 import com.google.common.base.Strings;
 import java.util.List;
@@ -150,13 +151,43 @@ public class AgentController {
     }
 
     /**
-     * @api {Post} /agents/shutdown shutdown
-     * @apiName AgentShutdown
-     * @apiParam {String} [zone] agent zone name
-     * @apiParam {String} [name] agent name
-     * @apiParam {String} [password] machine password
+     * @api {Post} /agents/close Close
+     * @apiName Close Agent
+     * @apiParam {json} Request-Body
+     *  {
+     *      zone: xxx,
+     *      name: xxx
+     *  }
      * @apiGroup Agent
-     * @apiDescription shutdown agent
+     * @apiDescription close selected agent
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *  HTTP/1.1 200 OK
+     *
+     *  {
+     *      value: true or false
+     *  }
+     */
+    @PostMapping(path = "/close")
+    public BooleanValue close(@RequestBody AgentPath path) {
+        if (path.isEmpty()) {
+            throw new IllegalParameterException("Agent zone or name are required");
+        }
+
+        return new BooleanValue(agentService.close(path));
+    }
+
+    /**
+     * @api {Post} /agents/shutdown Shutdown
+     * @apiName Shutdown Agent
+     * @apiParam {json} Request-Body
+     *  {
+     *      zone: xxx,
+     *      name: xxx,
+     *      password: xxx
+     *  }
+     * @apiGroup Agent
+     * @apiDescription shutdown host machine on selected agent
      *
      * @apiSuccessExample {String} Success-Response:
      *  HTTP/1.1 200 OK
@@ -167,14 +198,12 @@ public class AgentController {
      */
     @PostMapping(path = "/shutdown")
     @WebSecurity(action = Actions.ADMIN_DELETE)
-    public BooleanValue shutDown(@RequestParam String zone,
-                                 @RequestParam String name,
-                                 @RequestParam(required = false) String password) {
-        if (Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name)) {
-            throw new IllegalParameterException("require zone or name not found");
+    public BooleanValue shutdown(@RequestBody AgentPathWithPassword path) {
+        if (path.isEmpty()) {
+            throw new IllegalParameterException("Agent zone or name are required");
         }
-        Boolean t = agentService.shutdown(zone, name, password);
-        return new BooleanValue(t);
+
+        return new BooleanValue(agentService.shutdown(path, path.getPassword()));
     }
 
     /**

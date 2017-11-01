@@ -202,7 +202,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         userFlowService.unAssign(flow);
 
         // delete job
-        jobService.deleteJob(rootPath);
+        jobService.delete(rootPath);
 
         // delete flow
         flowDao.delete(flow);

@@ -54,7 +54,7 @@ public class ManualJobTest extends TestBase {
         ObjectWrapper<Job> wrapper = new ObjectWrapper<>();
 
         Map<String, String> envs = EnvUtil.build(GitEnvs.FLOW_GIT_BRANCH.name(), "master");
-        jobService.createJobAndYmlLoad(
+        jobService.createWithYmlLoad(
             flow.getPath(), GitEventType.MANUAL, envs, currentUser.get(), job -> {
                 latch.countDown();
                 wrapper.setInstance(job);

@@ -411,6 +411,9 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
                 handler.get(CmdType.DELETE_SESSION).exec(target, createDeleteSessionCmd(target));
             }
 
+            // send stop cmd to agent
+            sendCmdToAgent(target, cmd);
+
             // set agent to offline
             agentService.saveWithStatus(target, AgentStatus.OFFLINE);
         }
