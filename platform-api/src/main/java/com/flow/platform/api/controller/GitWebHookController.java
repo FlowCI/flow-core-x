@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.config.AppConfig;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.node.Flow;
@@ -90,7 +91,9 @@ public class GitWebHookController extends NodeController {
             // get user email from git event
             final User user = new User(hookEvent.getUserEmail(), StringUtil.EMPTY, StringUtil.EMPTY);
 
-            jobService.createWithYmlLoad(path, hookEvent.getType(), gitEnvs, user, (job) -> {
+            JobCategory jobCategory = GitEventEnvConverter.convert(hookEvent.getType());
+
+            jobService.createWithYmlLoad(path, jobCategory, gitEnvs, user, (job) -> {
                 applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
             });
 

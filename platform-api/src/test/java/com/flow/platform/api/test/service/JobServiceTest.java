@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
@@ -65,7 +66,7 @@ public class JobServiceTest extends TestBase {
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Flow rootForFlow = nodeService.createEmptyFlow("flow1");
-        jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+        jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
     }
 
     @Test
@@ -77,7 +78,7 @@ public class JobServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
 
         // mock latest commit for git service
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
 
         // then: verify job status
         job = jobService.find(job.getId());
@@ -106,7 +107,7 @@ public class JobServiceTest extends TestBase {
 
         job = reload(job);
         Assert.assertEquals("11111111", job.getSessionId());
-        Assert.assertEquals(GitEventType.TAG, job.getCategory());
+        Assert.assertEquals(JobCategory.TAG, job.getCategory());
 
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
@@ -229,7 +230,7 @@ public class JobServiceTest extends TestBase {
     public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
 
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
 
         Assert.assertNotNull(job.getEnv("FLOW_WORKSPACE"));
         Assert.assertNotNull(job.getEnv("FLOW_VERSION"));
@@ -270,7 +271,7 @@ public class JobServiceTest extends TestBase {
 
     private Job createMockJob(String nodePath) {
         // create job
-        Job job = jobService.createFromFlowYml(nodePath, GitEventType.TAG, null, mockUser);
+        Job job = jobService.createFromFlowYml(nodePath, JobCategory.TAG, null, mockUser);
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());

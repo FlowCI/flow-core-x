@@ -17,6 +17,7 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.service.node.NodeCrontabService;
@@ -59,7 +60,9 @@ public class NodeCrontabServiceTest extends TestBase {
         Thread.sleep(15 * 1000);
 
         // then: job should be created
+        Assert.assertEquals(1, flowCrontabService.triggers().size());
         Job job = jobService.find(flow.getPath(), 1);
+        Assert.assertEquals(JobCategory.SCHEDULER, job.getCategory());
         Assert.assertEquals("master", job.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH));
         Assert.assertEquals("0/10 * * * * ?", job.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT));
     }

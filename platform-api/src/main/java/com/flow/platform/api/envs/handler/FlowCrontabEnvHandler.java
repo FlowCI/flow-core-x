@@ -19,11 +19,13 @@ package com.flow.platform.api.envs.handler;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.service.node.NodeCrontabService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.collect.Sets;
 import java.text.ParseException;
 import java.util.Set;
 import org.quartz.CronExpression;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,6 +33,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class FlowCrontabEnvHandler extends EnvHandler {
+
+    @Autowired
+    private NodeCrontabService nodeCrontabService;
 
     @Override
     public EnvKey env() {
@@ -48,11 +53,19 @@ public class FlowCrontabEnvHandler extends EnvHandler {
     }
 
     @Override
-    void doProcess(Node node, String value) {
+    void onHandle(Node node, String value) {
         try {
             new CronExpression(value);
+
+            // setup crontab task
+            nodeCrontabService.set(node);
         } catch (ParseException e) {
             throw new IllegalParameterException("Illegal FLOW_TASK_CRONTAB_CONTENT format: " + e.getMessage());
         }
+    }
+
+    @Override
+    void onUnHandle(Node node, String value) {
+        nodeCrontabService.delete(node);
     }
 }

@@ -55,7 +55,7 @@ public class FlowCrontabEnvHandlerTest extends TestBase {
         node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH, "master");
 
         EnvHandler envHandler = handlerMap.get(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT);
-        envHandler.process(node);
+        envHandler.handle(node);
     }
 
     @Test(expected = IllegalParameterException.class)
@@ -64,7 +64,7 @@ public class FlowCrontabEnvHandlerTest extends TestBase {
         node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT, "* * * * * ?");
 
         EnvHandler envHandler = handlerMap.get(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT);
-        envHandler.process(node);
+        envHandler.handle(node);
     }
 
     @Test(expected = IllegalParameterException.class)
@@ -74,6 +74,6 @@ public class FlowCrontabEnvHandlerTest extends TestBase {
         node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH, "master");
 
         EnvHandler envHandler = handlerMap.get(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT);
-        envHandler.process(node);
+        envHandler.handle(node);
     }
 }

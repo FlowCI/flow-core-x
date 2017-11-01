@@ -14,34 +14,40 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service.node;
-
-import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.core.context.ContextEvent;
-import java.util.List;
-import org.quartz.Trigger;
+package com.flow.platform.api.domain.job;
 
 /**
  * @author yang
  */
-public interface NodeCrontabService extends ContextEvent {
-
-    String KEY_BRANCH = "branch";
-
-    String KEY_NODE_PATH = "node_path";
+public enum JobCategory {
 
     /**
-     * Set crontab task for node
+     * Scheduler trigger
      */
-    void set(Node node);
+    SCHEDULER,
 
     /**
-     * Delete crontab task for node
+     * Api trigger
      */
-    void delete(Node node);
+    API,
 
     /**
-     * List current triggers
+     * Manual trigger
      */
-    List<Trigger> triggers();
+    MANUAL,
+
+    /**
+     * Git push event
+     */
+    PUSH,
+
+    /**
+     * Git PR event
+     */
+    PR,
+
+    /**
+     * Git tag event
+     */
+    TAG
 }

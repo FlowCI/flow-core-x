@@ -27,6 +27,7 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.JobEnvs;
@@ -163,7 +164,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     @Transactional(noRollbackFor = FlowException.class)
-    public Job createFromFlowYml(String path, GitEventType eventType, Map<String, String> envs, User creator) {
+    public Job createFromFlowYml(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         // verify flow yml status
         Flow flow = nodeService.findFlow(path);
         String ymlStatus = flow.getEnv(FlowEnvs.FLOW_YML_STATUS);
@@ -184,7 +185,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     @Transactional(noRollbackFor = FlowException.class)
     public void createWithYmlLoad(String path,
-                                  GitEventType eventType,
+                                  JobCategory eventType,
                                   Map<String, String> envs,
                                   User creator,
                                   Consumer<Job> onJobCreated) {
@@ -251,7 +252,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
     }
 
-    private Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator) {
+    private Job createJob(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
@@ -514,7 +515,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             Node root = nodeService.find(PathUtil.rootPath(path));
 
             // set git commit info to job env
-            if (job.getCategory() == GitEventType.MANUAL) {
+            if (job.getCategory() == JobCategory.MANUAL
+                || job.getCategory() == JobCategory.SCHEDULER
+                || job.getCategory() == JobCategory.API) {
+
                 try {
                     GitCommit gitCommit = gitService.latestCommit(root);
                     Map<String, String> envFromCommit = GitEventEnvConverter.convert(gitCommit);

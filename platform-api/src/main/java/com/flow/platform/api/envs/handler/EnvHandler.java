@@ -46,12 +46,12 @@ public abstract class EnvHandler {
     }
 
     /**
-     * Handle env variable
+     * Handle env variable on adding
      *
      * @throws com.flow.platform.core.exception.FlowException
      * @param node target node
      */
-    public void process(final Node node) {
+    public void handle(final Node node) {
         String value = node.getEnv(env());
 
         // check value is presented in node if it is required
@@ -59,15 +59,36 @@ public abstract class EnvHandler {
             throw new IllegalParameterException("Required env '" + env() + "' is missing");
         }
 
-        // check dependent envs
+        // do not process if not required and empty value
+        if (!isRequired() && Strings.isNullOrEmpty(value)) {
+            return;
+        }
+
+        checkEnvDependency(node);
+
+        onHandle(node, value);
+    }
+
+    /**
+     * Handle env variable on delete
+     */
+    public void unHandle(final Node node) {
+        checkEnvDependency(node);
+
+        String value = node.getEnv(env());
+        onUnHandle(node, value);
+    }
+
+    private void checkEnvDependency(Node node) {
+        // delete dependent envs
         for (EnvKey key : dependents()) {
             if (Strings.isNullOrEmpty(node.getEnv(key))) {
                 throw new IllegalParameterException("Dependent value '" + key+ "' is missing");
             }
         }
-
-        doProcess(node, value);
     }
 
-    abstract void doProcess(Node node, String value);
+    abstract void onHandle(Node node, String value);
+
+    abstract void onUnHandle(Node node, String value);
 }

@@ -21,6 +21,7 @@ import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
 import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
 
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
@@ -31,7 +32,6 @@ import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
-import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.List;
@@ -57,7 +57,7 @@ public class NodeResultServiceTest extends TestBase {
     public void should_save_job_node_by_job() throws IOException {
         // when: create node result list from job
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
 
         // then: check node result is created
         List<NodeResult> list = nodeResultService.list(job, false);
@@ -82,7 +82,7 @@ public class NodeResultServiceTest extends TestBase {
     public void should_correct_update_node_status_from_cmd() throws Throwable {
         // given: create job
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
 
         Node firstStep = jobNodeService.get(job).find("flow1/step1");
 
@@ -105,7 +105,7 @@ public class NodeResultServiceTest extends TestBase {
     public void should_update_node_status_with_skip_set() throws Throwable {
         // given:
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
 
         List<NodeResult> list = nodeResultService.list(job, false);
         Assert.assertEquals(5, list.size());

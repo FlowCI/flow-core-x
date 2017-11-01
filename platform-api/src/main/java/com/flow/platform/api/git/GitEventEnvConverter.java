@@ -16,10 +16,12 @@
 
 package com.flow.platform.api.git;
 
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitEvent;
+import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPushTagEvent;
@@ -33,6 +35,15 @@ import java.util.Map;
  * @author yang
  */
 public class GitEventEnvConverter {
+
+    /**
+     * Convert git event to job category
+     * @param event source git event
+     * @return job category
+     */
+    public static JobCategory convert(GitEventType event) {
+        return JobCategory.valueOf(event.name());
+    }
 
     public static Map<String, String> convert(GitCommit commit) {
         if (commit == null) {

@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
@@ -260,11 +261,11 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     public Flow addFlowEnv(Flow flow, Map<String, String> envs) {
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
-        // verify envs
+        // handle envs before save
         for (Map.Entry<String, String> entry : flow.getEnvs().entrySet()) {
             EnvHandler envHandler = envHandlerMap.get(entry.getKey());
             if (envHandler != null) {
-                envHandler.process(flow);
+                envHandler.handle(flow);
             }
         }
 
@@ -275,10 +276,20 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public Flow delFlowEnv(Flow flow, Set<String> keys) {
+        // handle envs before delete
+        for (String env : keys) {
+            EnvHandler envHandler = envHandlerMap.get(env);
+            if (envHandler != null && flow.getEnvs().containsKey(env)) {
+                envHandler.unHandle(flow);
+            }
+        }
+
+        // remove env
         for (String keyToRemove : keys) {
             flow.removeEnv(keyToRemove);
         }
 
+        // sync latest env into flow table
         flowDao.update(flow);
         return flow;
     }

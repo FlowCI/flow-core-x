@@ -19,6 +19,7 @@ package com.flow.platform.api.task;
 import static com.flow.platform.api.service.node.NodeCrontabService.KEY_BRANCH;
 import static com.flow.platform.api.service.node.NodeCrontabService.KEY_NODE_PATH;
 
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.envs.GitEnvs;
@@ -27,7 +28,6 @@ import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.git.model.GitEventType;
 import java.util.Map;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -55,7 +55,7 @@ public class NodeCrontabTask implements Job {
             Flow flow = nodeService.findFlow(path);
             User owner = userService.findByEmail(flow.getCreatedBy());
             Map<String, String> envs = EnvUtil.build(GitEnvs.FLOW_GIT_BRANCH.name(), branch);
-            jobService.createFromFlowYml(path, GitEventType.MANUAL, envs, owner);
+            jobService.createFromFlowYml(path, JobCategory.SCHEDULER, envs, owner);
         } catch (Throwable e) {
             throw new JobExecutionException(e.getMessage());
         }

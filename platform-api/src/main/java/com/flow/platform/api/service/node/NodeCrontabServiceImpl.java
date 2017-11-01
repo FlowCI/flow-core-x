@@ -26,8 +26,8 @@ import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
-import com.google.common.collect.Sets;
-import java.util.Collections;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
@@ -37,6 +37,7 @@ import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +51,8 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
 
     private final static Logger LOGGER = new Logger(NodeCrontabService.class);
 
-    private final static Set<EnvKey> CRONTAB_REQUIRED_ENVS = Collections.unmodifiableSet(
-        Sets.newHashSet(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH, FlowEnvs.FLOW_TASK_CRONTAB_CONTENT));
+    private final static Set<EnvKey> CRONTAB_REQUIRED_ENVS = ImmutableSet.of(
+        FlowEnvs.FLOW_TASK_CRONTAB_BRANCH, FlowEnvs.FLOW_TASK_CRONTAB_CONTENT);
 
     @Autowired
     private Scheduler quartzScheduler;
@@ -151,6 +152,16 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
     public void delete(Node node) {
         try {
             quartzScheduler.unscheduleJob(new TriggerKey(node.getPath()));
+        } catch (SchedulerException e) {
+            throw new IllegalStatusException(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Trigger> triggers() {
+        try {
+            List<? extends Trigger> triggersOfJob = quartzScheduler.getTriggersOfJob(nodeCrontabDetail.getKey());
+            return Lists.newArrayList(triggersOfJob);
         } catch (SchedulerException e) {
             throw new IllegalStatusException(e.getMessage());
         }
