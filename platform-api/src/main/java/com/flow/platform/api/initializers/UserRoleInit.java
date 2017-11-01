@@ -15,13 +15,8 @@
  */
 package com.flow.platform.api.initializers;
 
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
-
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.ActionDao;
-import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
@@ -40,6 +35,7 @@ import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,8 +63,14 @@ public class UserRoleInit extends Initializer {
     @Autowired
     private PermissionService permissionService;
 
-    @Autowired
-    private PermissionDao permissionDao;
+    @Value(value = "${system.email}")
+    private String email;
+
+    @Value(value = "${system.username}")
+    private String username;
+
+    @Value(value = "${system.password}")
+    private String password;
 
     @Autowired
     private ActionDao actionDao;
@@ -80,10 +82,10 @@ public class UserRoleInit extends Initializer {
     public void doStart() {
 
         // create sys user
-        User user = userDao.get(DEFAULT_USER_EMAIL);
+        User user = userDao.get(email);
         if (user == null) {
-            String passwordForMD5 = StringEncodeUtil.encodeByMD5(DEFAULT_USER_PASSWORD, AppConfig.DEFAULT_CHARSET.name());
-            User sysUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, passwordForMD5);
+            String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
+            User sysUser = new User(email, username, passwordForMD5);
             sysUser.setCreatedBy("system created");
             userDao.save(sysUser);
         }
@@ -106,7 +108,7 @@ public class UserRoleInit extends Initializer {
 
         // create sys user_role relation
         Role role = roleService.find(SysRole.ADMIN.name());
-        User sysUser = userDao.get(DEFAULT_USER_EMAIL);
+        User sysUser = userDao.get(email);
         UserRole userRole = userRoleDao.get(new UserRoleKey(role.getId(), sysUser.getEmail()));
         if (userRole == null) {
             currentUser.set(sysUser);

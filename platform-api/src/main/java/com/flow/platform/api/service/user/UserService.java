@@ -4,6 +4,7 @@ import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.response.LoginResponse;
 import com.flow.platform.api.domain.user.User;
 
+import io.jsonwebtoken.Claims;
 import java.util.List;
 
 /**
@@ -22,6 +23,8 @@ public interface UserService {
     User findByEmail(String email);
 
     User findByToken(String token);
+
+    Claims extractToken(String token);
 
     /**
      * Login

@@ -12,8 +12,6 @@ import com.flow.platform.api.domain.response.LoginResponse;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.api.exception.AuthenticationException;
-import com.flow.platform.api.exception.TokenExpiredException;
 import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.api.service.MessageService;
@@ -21,7 +19,7 @@ import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
-
+import io.jsonwebtoken.Claims;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
@@ -137,7 +135,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             loginUserMap.remove(token);
         }
 
-        token = tokenGenerator.create(user.getEmail() + new Date().getTime(), expirationDuration);
+        token = tokenGenerator.create(user.getEmail(), expirationDuration);
 
         user.setRoles(roleService.list(user));
 
@@ -246,6 +244,11 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     @Override
     public User findByToken(String token){
         return loginUserMap.get(token);
+    }
+
+    @Override
+    public Claims extractToken(String token){
+        return tokenGenerator.extract(token);
     }
 
     @Override

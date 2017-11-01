@@ -16,24 +16,22 @@
 
 package com.flow.platform.api.security;
 
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
-
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.AccessDeniedException;
 import com.flow.platform.api.exception.AuthenticationException;
-import com.flow.platform.api.security.token.TokenGenerator;
-import com.flow.platform.api.service.user.RoleService;
+import com.flow.platform.api.exception.TokenExpiredException;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import io.jsonwebtoken.Claims;
+import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -50,16 +48,11 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
     private final static Logger LOGGER = new Logger(AuthenticationInterceptor.class);
 
-    private final static String TOKEN_PAYLOAD_FOR_TEST = "mytokenpayload";
-
     @Autowired
     private UserSecurityService userSecurityService;
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private TokenGenerator tokenGenerator;
 
     @Autowired
     private ThreadLocal<User> currentUser;
@@ -87,21 +80,6 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
-//        String tokenPayload = request.getHeader(TOKEN_HEADER_PARAM);
-//        User user = userService.findByToken(tokenPayload);
-//
-//        currentUser.set(user);
-
-//        if (request.getMethod().equals(RequestMethod.OPTIONS.name())) {
-//
-////            response.setHeader("Access-Control-Allow-Origin", "*");
-////            response.setHeader("Access-Control-Allow-Methods", "*");
-////            response.setHeader("Access-Control-Allow-Headers", "Content-Type"
-////                + "X-Authorization, Origin, Accept,  Library, Authorization, X-Requested-With");
-//
-//            response.setStatus(HttpStatus.OK.value());
-//            return false;
-//        }
 
         if (!enableAuth) {
             return true;
@@ -140,6 +118,12 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
         // find annotation
         WebSecurity securityAnnotation = handlerMethod.getMethodAnnotation(WebSecurity.class);
+        Claims token = userService.extractToken(tokenPayload);
+
+        if (token.getExpiration().getTime() < new Date().getTime()){
+            throw new TokenExpiredException();
+        }
+
         User user = userService.findByToken(tokenPayload);
         if (securityAnnotation == null) {
             currentUser.set(user);
