@@ -27,6 +27,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.request.TriggerParam;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
@@ -314,6 +315,17 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             user.setFlows(paths);
         }
         return users;
+    }
+
+    @Override
+    public Flow updateTrigger(String rootPath, TriggerParam triggerParam){
+        Flow flow = findFlow(rootPath);
+        flow.setBranchFilter(triggerParam.getBranchFilter());
+        flow.setTagFilter(triggerParam.getTagFilter());
+        flow.setPrEnable(triggerParam.isPrEnabled());
+        flow.setPushEnable(triggerParam.isPushEnabled());
+        flow.setTagEnable(triggerParam.isTagEnabled());
+        return flowDao.save(flow);
     }
 
     private String hooksUrl(final Flow flow) {

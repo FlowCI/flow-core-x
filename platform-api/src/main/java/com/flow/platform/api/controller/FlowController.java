@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ListParam;
+import com.flow.platform.api.domain.request.TriggerParam;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
@@ -422,5 +423,11 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_AUTH)
     public List<User> flowAuthUsers(@RequestBody ListParam<String> listParam) {
         return nodeService.authUsers(listParam.getArrays(), currentNodePath.get());
+    }
+
+    @PostMapping("/{root}/trigger")
+    public Flow trigger(@RequestBody TriggerParam triggerParam){
+        String path = currentNodePath.get();
+        return nodeService.updateTrigger(path, triggerParam);
     }
 }

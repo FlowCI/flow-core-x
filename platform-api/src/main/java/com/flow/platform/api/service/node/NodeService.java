@@ -19,6 +19,7 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.domain.request.TriggerParam;
 import com.flow.platform.api.domain.user.User;
 import java.util.Collection;
 import java.util.List;
@@ -109,4 +110,6 @@ public interface NodeService {
     List<Webhook> listWebhooks();
 
     List<User> authUsers(List<String> emailList, String rootPath);
+
+    Flow updateTrigger(String path, TriggerParam triggerParam);
 }
