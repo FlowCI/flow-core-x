@@ -45,9 +45,14 @@ public enum FlowEnvs implements EnvKey {
     FLOW_ENV_OUTPUT_PREFIX,
 
     /**
-     * To define crontab task
+     * To define crontab content
      */
-    FLOW_CRONTAB_TASK;
+    FLOW_TASK_CRONTAB_CONTENT,
+
+    /**
+     * To define crontab task branch
+     */
+    FLOW_TASK_CRONTAB_BRANCH;
 
     /**
      * Value set for FLOW_STATUS

@@ -140,13 +140,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
             // has related yml
             if (ymlStorage != null) {
-                NodeTree newTree = new NodeTree(ymlStorage.getFile(), flow.getName());
-                Node root = newTree.root();
-
-                // should merge env from flow dao and yml
-                EnvUtil.merge(flow, root, false);
-
-                return newTree;
+                return new NodeTree(ymlStorage.getFile(), flow);
             }
 
             if (flow != null) {

@@ -18,7 +18,9 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobYml;
+import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.NodeTree;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,9 @@ public class JobNodeServiceImpl implements JobNodeService {
     private JobYmlDao jobYmlDao;
 
     @Autowired
+    private NodeService nodeService;
+
+    @Autowired
     private CacheManager cacheManager;
 
     @Override
@@ -50,12 +55,14 @@ public class JobNodeServiceImpl implements JobNodeService {
 
     @Override
     public NodeTree get(final Job job) {
+        final Flow flow = nodeService.findFlow(job.getNodePath());
+
         NodeTree tree = jobNodeCache().get(job.getId(), () -> {
             JobYml jobYml = find(job);
             if (jobYml == null) {
                 return null;
             }
-            return new NodeTree(jobYml.getFile(), job.getNodeName());
+            return new NodeTree(jobYml.getFile(), flow);
         });
 
         // cleanup cache if null value
