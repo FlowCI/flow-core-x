@@ -8,9 +8,12 @@ import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.request.LoginParam;
+import com.flow.platform.api.domain.response.LoginResponse;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.exception.AuthenticationException;
+import com.flow.platform.api.exception.TokenExpiredException;
 import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.api.service.MessageService;
@@ -23,6 +26,9 @@ import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import java.io.StringWriter;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -44,6 +50,11 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     private final static Logger LOGGER = new Logger(UserService.class);
 
     private final static String REGISTER_TEMPLATE_SUBJECT = "邀请您加入项目 [ flow.ci ]";
+
+    private static Map<String, String> tokenMap = new HashMap<String, String>();
+
+    private static Map<String, User> loginUserMap = new HashMap<String, User>();
+
 
     @Autowired
     private UserDao userDao;
@@ -104,15 +115,39 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     }
 
     @Override
-    public String login(LoginParam loginForm) {
+    public LoginResponse login(LoginParam loginForm) {
+
         String emailOrUsername = loginForm.getEmailOrUsername();
         String password = loginForm.getPassword();
-        if (checkEmailFormatIsPass(emailOrUsername)) {
-            // login by email
-            return loginByEmail(emailOrUsername, password);
+
+        String token = tokenMap.get(emailOrUsername);
+        User user = null;
+        if (token == null) {
+            if (checkEmailFormatIsPass(emailOrUsername)) {
+                // login by email
+                user = loginByEmail(emailOrUsername, password);
+            } else {
+                // else login by username
+                user = loginByUsername(emailOrUsername, password);
+            }
+        } else {
+
+            user = loginUserMap.get(token);
+
+            loginUserMap.remove(token);
         }
-        // else login by username
-        return loginByUsername(emailOrUsername, password);
+
+        token = tokenGenerator.create(user.getEmail() + new Date().getTime(), expirationDuration);
+
+        user.setRoles(roleService.list(user));
+
+        loginUserMap.put(token, user);
+
+        tokenMap.put(emailOrUsername, token);
+
+        LoginResponse loginResponse = new LoginResponse(token, user);
+
+        return loginResponse;
     }
 
     @Override
@@ -174,7 +209,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
 
     @Override
     public void delete(List<String> emailList) {
-        if (emailList.contains(currentUser().getEmail())){
+        if (emailList.contains(currentUser().getEmail())) {
             throw new IllegalParameterException("params emails include yourself email, not delete");
         }
         // un-assign user from role and flow
@@ -209,6 +244,18 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     }
 
     @Override
+    public User findByToken(String token){
+        return loginUserMap.get(token);
+
+//        if (user == null){
+//            throw new TokenExpiredException();
+//        }
+//
+//        return user;
+
+    }
+
+    @Override
     public Long adminUserCount() {
         Role role = roleService.find(SysRole.ADMIN.name());
         return userRoleDao.numOfUser(role.getId());
@@ -221,10 +268,15 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         return userCount;
     }
 
+    @Override
+    public User show(){
+        return currentUser();
+    }
+
     /**
      * Login by email
      */
-    private String loginByEmail(String email, String password) {
+    private User loginByEmail(String email, String password) {
         String errMsg = "Illegal login request parameter: ";
 
         // Check format
@@ -242,13 +294,13 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         }
 
         // Login success, return token
-        return tokenGenerator.create(email, expirationDuration);
+        return findByEmail(email);
     }
 
     /**
      * Login by username
      */
-    private String loginByUsername(String username, String password) {
+    private User loginByUsername(String username, String password) {
         String errMsg = "Illegal login request parameter: ";
 
         // Check format
@@ -270,7 +322,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
 
         // Login success, return token
         String email = userDao.getEmailBy("username", username);
-        return tokenGenerator.create(email, expirationDuration);
+        return findByEmail(email);
     }
 
     /**

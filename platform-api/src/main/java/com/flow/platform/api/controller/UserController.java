@@ -1,12 +1,16 @@
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.request.RegisterUserParam;
 import com.flow.platform.api.domain.request.UpdateUserRoleParam;
+import com.flow.platform.api.domain.response.LoginResponse;
 import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.user.UserService;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +29,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private HttpServletRequest request;
 
     /**
      * @api {get} List
@@ -59,6 +66,7 @@ public class UserController {
      *  ]
      */
     @GetMapping
+    @WebSecurity(action = Actions.ADMIN_SHOW)
     public UserListResponse list() {
         Long userCount = userService.usersCount();
         Long userAdminCount = userService.adminUserCount();
@@ -91,7 +99,7 @@ public class UserController {
      *     }
      */
     @PostMapping("/login")
-    public String login(@RequestBody LoginParam loginForm) {
+    public LoginResponse login(@RequestBody LoginParam loginForm) {
         return userService.login(loginForm);
     }
 
@@ -151,6 +159,7 @@ public class UserController {
      *     }
      */
     @PostMapping(path = "/delete")
+    @WebSecurity(action = Actions.ADMIN_DELETE)
     public void delete(@RequestBody ListParam<String> listParam) {
         userService.delete(listParam.getArrays());
     }
@@ -181,8 +190,16 @@ public class UserController {
      *     }
      */
     @PostMapping("/role/update")
+    @WebSecurity(action = Actions.ADMIN_UPDATE)
     public List<User> updateRole(@RequestBody UpdateUserRoleParam updateUserRoleParam){
         return userService.updateUserRole(updateUserRoleParam.getEmailList().getArrays(), updateUserRoleParam.getRoles().getArrays());
     }
+
+//    @GetMapping("/show")
+//    @WebSecurity(action = Actions.USER_SHOW)
+//    public User findUserByToken(){
+////        String token = request.getHeader("X-Authorization");
+//        return userService.show();
+//    }
 
 }

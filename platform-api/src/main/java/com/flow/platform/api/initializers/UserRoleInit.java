@@ -19,16 +19,27 @@ import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
 import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
 import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
 
+import com.flow.platform.api.dao.user.ActionDao;
+import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
+import com.flow.platform.api.domain.permission.Actions;
+import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.domain.user.Permission;
+import com.flow.platform.api.domain.user.PermissionKey;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.domain.user.UserRole;
 import com.flow.platform.api.domain.user.UserRoleKey;
+import com.flow.platform.api.service.user.ActionService;
+import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.core.context.ContextEvent;
+import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +63,18 @@ public class UserRoleInit implements ContextEvent {
     private UserRoleDao userRoleDao;
 
     @Autowired
+    private ActionService actionService;
+
+    @Autowired
+    private PermissionService permissionService;
+
+    @Autowired
+    private PermissionDao permissionDao;
+
+    @Autowired
+    private ActionDao actionDao;
+
+    @Autowired
     private ThreadLocal<User> currentUser;
 
     @Override
@@ -70,7 +93,7 @@ public class UserRoleInit implements ContextEvent {
         if (roleAdmin == null) {
             Role sysRoleAdmin = new Role(SysRole.ADMIN.name(), "create default role for admin");
             sysRoleAdmin.setCreatedBy("system created");
-            roleDao.save(sysRoleAdmin);
+            roleAdmin = roleDao.save(sysRoleAdmin);
         }
 
         // create sys roleUser
@@ -90,6 +113,66 @@ public class UserRoleInit implements ContextEvent {
             roleService.assign(sysUser, role);
         }
 
+        // create sys action
+        for(Actions item : Actions.values()) {
+            currentUser.set(sysUser);
+            if (actionDao.get(item.name()) == null){
+                actionService.create(new Action(item.name()));
+                permissionService.assign(roleAdmin, Sets.newHashSet(actionService.find(item.name())));
+            }
+        }
+
+        Permission permission_flow_yml = permissionService.find(new PermissionKey(roleUser.getId(), Actions.FLOW_YML.name()));
+        if (permission_flow_yml == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.FLOW_YML.name())));
+        }
+
+        Permission permission_flow_show = permissionService.find(new PermissionKey(roleUser.getId(), Actions.FLOW_SHOW.name()));
+        if (permission_flow_show == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.FLOW_SHOW.name())));
+        }
+
+        Permission permission_job_show = permissionService.find(new PermissionKey(roleUser.getId(), Actions.JOB_SHOW.name()));
+        if (permission_job_show == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.JOB_SHOW.name())));
+        }
+
+        Permission permission_job_log = permissionService.find(new PermissionKey(roleUser.getId(), Actions.JOB_LOG.name()));
+        if (permission_job_log == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.JOB_LOG.name())));
+        }
+
+        Permission permission_job_create = permissionService.find(new PermissionKey(roleUser.getId(), Actions.JOB_CREATE.name()));
+        if (permission_job_create == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.JOB_CREATE.name())));
+        }
+
+        Permission permission_job_stop = permissionService.find(new PermissionKey(roleUser.getId(), Actions.JOB_STOP.name()));
+        if (permission_job_stop == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.JOB_STOP.name())));
+        }
+
+        Permission permission_job_yml = permissionService.find(new PermissionKey(roleUser.getId(), Actions.JOB_YML.name()));
+        if (permission_job_yml == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.JOB_YML.name())));
+        }
+
+
+        Permission permission_create_key = permissionService.find(new PermissionKey(roleUser.getId(), Actions.GENERATE_KEY.name()));
+        if (permission_create_key == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.GENERATE_KEY.name())));
+        }
+
+
+        Permission flow_create = permissionService.find(new PermissionKey(roleUser.getId(), Actions.FLOW_CREATE.name()));
+        if (flow_create == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.FLOW_CREATE.name())));
+        }
+
+        Permission user_show  = permissionService.find(new PermissionKey(roleUser.getId(), Actions.USER_SHOW.name()));
+        if (user_show == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.USER_SHOW.name())));
+        }
     }
 
     @Override

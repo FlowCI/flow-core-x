@@ -18,8 +18,10 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.SearchCondition;
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.events.AgentStatusChangeEvent;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
@@ -66,6 +68,7 @@ public class AgentController {
      *
      */
     @GetMapping
+    @WebSecurity(action = Actions.ADMIN_SHOW)
     public List<AgentWithFlow> index() {
         return agentService.list();
     }
@@ -85,6 +88,7 @@ public class AgentController {
      *  }
      */
     @PostMapping(path = "/create")
+    @WebSecurity(action = Actions.ADMIN_CREATE)
     public AgentWithFlow create(@RequestBody AgentPath agentPath) {
         if (agentPath.isEmpty()) {
             throw new IllegalParameterException("Zone and agent name are required");
@@ -107,6 +111,7 @@ public class AgentController {
      *
      */
     @GetMapping(path = "/sys/info")
+    @WebSecurity(action = Actions.ADMIN_SHOW)
     public void agentEnvironmentInfo(@RequestParam Map<String, String> allParams, AgentPath agentPath) {
         if (agentPath.isEmpty()) {
             throw new IllegalParameterException("Zone and agent name are required");
@@ -136,6 +141,7 @@ public class AgentController {
      *  }
      */
     @GetMapping(path = "/settings")
+    @WebSecurity(action = Actions.ADMIN_SHOW)
     public AgentSettings getInfo(@RequestParam String token) {
         if (Strings.isNullOrEmpty(token)) {
             throw new IllegalParameterException("miss required params ");
@@ -160,6 +166,7 @@ public class AgentController {
      *  }
      */
     @PostMapping(path = "/shutdown")
+    @WebSecurity(action = Actions.ADMIN_DELETE)
     public BooleanValue shutDown(@RequestParam String zone,
                                  @RequestParam String name,
                                  @RequestParam(required = false) String password) {
@@ -217,6 +224,7 @@ public class AgentController {
      *     }
      */
     @PostMapping(path = "/delete")
+    @WebSecurity(action = Actions.ADMIN_DELETE)
     public void delete(@RequestBody AgentPath agentPath){
         agentService.delete(agentPath);
     }

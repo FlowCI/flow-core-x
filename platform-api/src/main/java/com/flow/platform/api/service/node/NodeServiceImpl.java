@@ -27,6 +27,8 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.user.Role;
+import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
@@ -282,7 +284,14 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public List<Flow> listFlows() {
-        return flowDao.list();
+        List<Role> roles = roleService.list(currentUser());
+        if (roles.contains(roleService.find(SysRole.ADMIN.name()))) {
+            return flowDao.list();
+        } else {
+            return userFlowService.list(currentUser());
+        }
+
+
     }
 
     @Override

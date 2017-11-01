@@ -19,7 +19,9 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
@@ -95,6 +97,7 @@ public class JobController extends NodeController {
      *
      */
     @PostMapping(path = "/{root}")
+    @WebSecurity(action = Actions.JOB_CREATE)
     public void create(@RequestBody(required = false) Map<String, String> envs) {
         if (envs == null) {
             envs = new LinkedHashMap<>();
@@ -126,6 +129,7 @@ public class JobController extends NodeController {
      *  ]
      */
     @GetMapping(path = "/{root}")
+    @WebSecurity(action = Actions.JOB_SHOW)
     public List<Job> index(@RequestParam Map<String, String> allParams, SearchCondition condition) {
         String path = currentNodePath.get();
 
@@ -150,6 +154,7 @@ public class JobController extends NodeController {
      *  }
      */
     @GetMapping(path = "/{root}/{buildNumber}")
+    @WebSecurity(action = Actions.JOB_SHOW)
     public Job show(@PathVariable Integer buildNumber) {
         return jobService.find(currentNodePath.get(), buildNumber);
     }
@@ -171,6 +176,7 @@ public class JobController extends NodeController {
      *          ...
      */
     @GetMapping(path = "/{root}/{buildNumber}/yml")
+    @WebSecurity(action = Actions.JOB_YML)
     public String yml(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
         try {
@@ -215,6 +221,7 @@ public class JobController extends NodeController {
      *  ]
      */
     @GetMapping(path = "/{root}/{buildNumber}/nodes")
+    @WebSecurity(action = Actions.JOB_SHOW)
     public List<NodeResult> indexNodeResults(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
         return jobService.listNodeResult(path, buildNumber);
@@ -233,6 +240,7 @@ public class JobController extends NodeController {
      *  log content
      */
     @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
+    @WebSecurity(action = Actions.JOB_LOG)
     public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) {
         String path = currentNodePath.get();
         try {
@@ -256,6 +264,7 @@ public class JobController extends NodeController {
      *  }
      */
     @PostMapping(path = "/{root}/{buildNumber}/stop")
+    @WebSecurity(action = Actions.JOB_STOP)
     public Job stopJob(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
         return jobService.stopJob(path, buildNumber);
@@ -279,6 +288,7 @@ public class JobController extends NodeController {
      *  ]
      */
     @PostMapping(path = "/status/latest")
+    @WebSecurity(action = Actions.JOB_SHOW)
     public Collection<Job> latestStatus(@RequestBody List<String> paths) {
         return jobService.list(paths, true);
     }
@@ -302,6 +312,7 @@ public class JobController extends NodeController {
      * ]
      */
     @PostMapping(path = "/{root}/search")
+    @WebSecurity(action = Actions.JOB_SHOW)
     public List<Job> search(@RequestBody SearchCondition condition) {
         String path = currentNodePath.get();
 
@@ -323,6 +334,7 @@ public class JobController extends NodeController {
      *   job.log file
      */
     @GetMapping(path = "/{root}/{buildNumber}/log/download")
+    @WebSecurity(action = Actions.JOB_LOG)
     public Resource jobLog(@PathVariable Integer buildNumber,
                            HttpServletResponse httpResponse) {
         String path = currentNodePath.get();

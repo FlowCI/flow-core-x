@@ -18,7 +18,9 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.response.SmtpAuthResponse;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.MessageService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +68,7 @@ public class MessageController {
      *     }
      */
     @PostMapping(path = "/email/settings")
+    @WebSecurity(action = Actions.ADMIN_CREATE)
     public EmailSettingContent createEmailSetting(@RequestBody EmailSettingContent emailSetting) {
         emailSetting.setType(MessageType.EMAIl);
         return (EmailSettingContent) messageService.save(emailSetting);
@@ -88,6 +91,7 @@ public class MessageController {
      *     }
      */
     @GetMapping(path = "/email/settings")
+    @WebSecurity(action = Actions.ADMIN_SHOW)
     public EmailSettingContent showEmailSetting() {
         return (EmailSettingContent) messageService.find(MessageType.EMAIl);
     }
@@ -125,6 +129,7 @@ public class MessageController {
      *     }
      */
     @PatchMapping(path = "/email/settings")
+    @WebSecurity(action = Actions.ADMIN_UPDATE)
     public EmailSettingContent updateEmailSetting(@RequestBody EmailSettingContent emailSetting) {
         return (EmailSettingContent) messageService.update(emailSetting);
     }

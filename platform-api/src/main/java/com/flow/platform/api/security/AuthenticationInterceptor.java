@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.AccessDeniedException;
 import com.flow.platform.api.exception.AuthenticationException;
 import com.flow.platform.api.security.token.TokenGenerator;
+import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -67,7 +69,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
      */
     private final List<RequestMatcher> authRequests;
 
-    private boolean enableAuth = false;
+    private boolean enableAuth = true;
 
     public AuthenticationInterceptor(List<RequestMatcher> matchers) {
         this.authRequests = matchers;
@@ -85,9 +87,21 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
+//        String tokenPayload = request.getHeader(TOKEN_HEADER_PARAM);
+//        User user = userService.findByToken(tokenPayload);
+//
+//        currentUser.set(user);
 
-        User user = userService.findByEmail(DEFAULT_USER_EMAIL);
-        currentUser.set(user);
+//        if (request.getMethod().equals(RequestMethod.OPTIONS.name())) {
+//
+////            response.setHeader("Access-Control-Allow-Origin", "*");
+////            response.setHeader("Access-Control-Allow-Methods", "*");
+////            response.setHeader("Access-Control-Allow-Headers", "Content-Type"
+////                + "X-Authorization, Origin, Accept,  Library, Authorization, X-Requested-With");
+//
+//            response.setStatus(HttpStatus.OK.value());
+//            return false;
+//        }
 
         if (!enableAuth) {
             return true;
@@ -124,34 +138,23 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
             throw new AuthenticationException("Invalid request");
         }
 
-        if (TOKEN_PAYLOAD_FOR_TEST.equals(tokenPayload)) {
-            return;
-        }
-
-        // get user email from token payload
-        String email = tokenGenerator.extract(tokenPayload);
-
         // find annotation
         WebSecurity securityAnnotation = handlerMethod.getMethodAnnotation(WebSecurity.class);
+        User user = userService.findByToken(tokenPayload);
         if (securityAnnotation == null) {
-            User user = userService.findByEmail(DEFAULT_USER_EMAIL);
             currentUser.set(user);
             return;
         }
 
         // find action for request
         Action action = userSecurityService.getAction(securityAnnotation.action());
-        LOGGER.debug("User '%s' requested for action %s", email, action.getName());
+        LOGGER.debug("User '%s' requested for action %s", user, action.getName());
 
-        if (!userSecurityService.canAccess(email, action)) {
-            throw new AccessDeniedException(email, action.getName());
+        if (!userSecurityService.canAccess(user, action)) {
+            throw new AccessDeniedException(user.getEmail(), action.getName());
         }
 
-        // TODO: to be cached
-        // set current user to request attribute
-        User user = userService.findByEmail(email);
         currentUser.set(user);
-        // request.setAttribute("user", currentUser);
     }
 
     private boolean isNeedToVerify(HttpServletRequest request) {

@@ -20,6 +20,7 @@ import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Permission;
+import com.flow.platform.api.domain.user.PermissionKey;
 import com.flow.platform.api.domain.user.Role;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,4 +77,11 @@ public class PermissionServiceImpl implements PermissionService {
             permissionDao.delete(new Permission(role.getId(), action.getName()));
         }
     }
+
+    @Override
+    public Permission find(PermissionKey permissionKey){
+        return permissionDao.get(permissionKey);
+    }
+
+
 }
