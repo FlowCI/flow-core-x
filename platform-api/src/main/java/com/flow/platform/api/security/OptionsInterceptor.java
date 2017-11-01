@@ -23,8 +23,6 @@ import com.flow.platform.api.service.user.UserService;
 import com.google.common.base.Strings;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -33,20 +31,13 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
  */
 public class OptionsInterceptor  extends HandlerInterceptorAdapter {
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private ThreadLocal<User> currentUser;
-
-
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws Exception {
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Methods", "*");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Headers",
-            "Origin, X-Requested-With, Content-Type, Accept, X-Authorization, authenticate, library");
+            "Origin, X-Requested-With, Content-Type, Accept, X-Authorization, Authenticate, Library");
         if (request.getMethod().equals(RequestMethod.OPTIONS.name())) {
             return false;
         }

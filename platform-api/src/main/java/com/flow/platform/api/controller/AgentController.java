@@ -69,7 +69,7 @@ public class AgentController {
      *
      */
     @GetMapping
-    @WebSecurity(action = Actions.ADMIN_SHOW)
+    @WebSecurity(action = Actions.AGENT_SHOW)
     public List<AgentWithFlow> index() {
         return agentService.list();
     }

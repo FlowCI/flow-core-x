@@ -114,13 +114,17 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     public AuthenticationInterceptor authInterceptor() {
         List<RequestMatcher> matchers = Lists.newArrayList(
             new AntPathRequestMatcher("/flows/**"),
-            new AntPathRequestMatcher("/user\\/(?!login\\W+)\\w+\n"),
+            new AntPathRequestMatcher("/user/register"),
+            new AntPathRequestMatcher("/user/delete"),
+            new AntPathRequestMatcher("/user"),
+            new AntPathRequestMatcher("/user/role/update"),
 //            new AntPathRequestMatcher("/user/show"),
             new AntPathRequestMatcher("/jobs/**"),
             new AntPathRequestMatcher("/credentials/**"),
             new AntPathRequestMatcher("/actions/**"),
             new AntPathRequestMatcher("/message/**"),
             new AntPathRequestMatcher("/agents/create"),
+            new AntPathRequestMatcher("/agents"),
             new AntPathRequestMatcher("/roles/**"),
             new AntPathRequestMatcher("/thread/config")
         );

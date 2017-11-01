@@ -19,6 +19,7 @@ import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
 import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
 import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.ActionDao;
 import com.flow.platform.api.dao.user.PermissionDao;
 import com.flow.platform.api.dao.user.RoleDao;
@@ -36,10 +37,8 @@ import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.api.service.user.ActionService;
 import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
-import com.flow.platform.core.context.ContextEvent;
+import com.flow.platform.api.util.StringEncodeUtil;
 import com.google.common.collect.Sets;
-import java.util.HashSet;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -83,7 +82,8 @@ public class UserRoleInit extends Initializer {
         // create sys user
         User user = userDao.get(DEFAULT_USER_EMAIL);
         if (user == null) {
-            User sysUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
+            String passwordForMD5 = StringEncodeUtil.encodeByMD5(DEFAULT_USER_PASSWORD, AppConfig.DEFAULT_CHARSET.name());
+            User sysUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, passwordForMD5);
             sysUser.setCreatedBy("system created");
             userDao.save(sysUser);
         }
@@ -182,6 +182,11 @@ public class UserRoleInit extends Initializer {
         Permission flow_set_env  = permissionService.find(new PermissionKey(roleUser.getId(), Actions.FLOW_SET_ENV.name()));
         if (flow_set_env == null){
             permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.FLOW_SET_ENV.name())));
+        }
+
+        Permission agent_show  = permissionService.find(new PermissionKey(roleUser.getId(), Actions.AGENT_SHOW.name()));
+        if (agent_show == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.AGENT_SHOW.name())));
         }
     }
 }

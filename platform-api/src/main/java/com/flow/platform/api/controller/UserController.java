@@ -132,6 +132,7 @@ public class UserController {
      *     }
      */
     @PostMapping("/register")
+    @WebSecurity(action = Actions.ADMIN_CREATE)
     public void register(@RequestBody RegisterUserParam registerUserParam) {
         User user = new User(registerUserParam.getEmail(), registerUserParam.getUsername(), registerUserParam.getPassword());
         userService.register(user, registerUserParam.getRoles().getArrays(), registerUserParam.isSendEmail(),
