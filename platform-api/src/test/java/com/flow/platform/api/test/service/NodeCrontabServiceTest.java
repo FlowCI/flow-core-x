@@ -22,8 +22,10 @@ import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.service.node.NodeCrontabService;
 import com.flow.platform.api.test.TestBase;
+import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,5 +67,15 @@ public class NodeCrontabServiceTest extends TestBase {
         Assert.assertEquals(JobCategory.SCHEDULER, job.getCategory());
         Assert.assertEquals("master", job.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH));
         Assert.assertEquals("0/10 * * * * ?", job.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT));
+
+        // when: delete env variable of crontab
+        Set<String> varToDel = Sets.newHashSet(
+            FlowEnvs.FLOW_TASK_CRONTAB_CONTENT.name(),
+            FlowEnvs.FLOW_TASK_CRONTAB_BRANCH.name()
+        );
+        nodeService.delFlowEnv(flow, varToDel);
+
+        // then: check num of trigger
+        Assert.assertEquals(0, flowCrontabService.triggers().size());
     }
 }

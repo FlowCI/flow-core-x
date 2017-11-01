@@ -389,7 +389,7 @@ public class FlowController extends NodeController {
      *      }
      *  }
      */
-    @PostMapping("/{root}/yml/create")
+    @PostMapping("/{root}/yml")
     @WebSecurity(action = Actions.FLOW_CREATE)
     public Node createFromYml(@RequestBody String yml) {
         return nodeService.createOrUpdateYml(currentNodePath.get(), yml);

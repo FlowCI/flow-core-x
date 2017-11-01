@@ -99,7 +99,7 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals(GitEventType.PUSH.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
         Assert.assertEquals(GitSource.GITHUB.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_SOURCE));
 
-        Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
+        Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("Update .flow.yml for github", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
         Assert.assertEquals("yang-guo-2016", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
         Assert.assertEquals("gy@fir.im", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR_EMAIL));
@@ -153,7 +153,7 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
         Assert.assertEquals(GitSource.GITHUB.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_SOURCE));
 
-        Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
+        Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("https://github.com/flow-ci-plugin/for-testing/pull/1",
             job.getEnv(GitEnvs.FLOW_GIT_PR_URL));
         Assert.assertEquals("yang-guo-2016", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
@@ -239,7 +239,7 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals(GitEventType.PR.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_TYPE));
         Assert.assertEquals(GitSource.GITLAB.name(), job.getEnv(GitEnvs.FLOW_GIT_EVENT_SOURCE));
 
-        Assert.assertEquals("master", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
+        Assert.assertEquals("develop", job.getEnv(GitEnvs.FLOW_GIT_BRANCH));
         Assert.assertEquals("https://gitlab.com/yang.guo/for-testing/merge_requests/2",
             job.getEnv(GitEnvs.FLOW_GIT_PR_URL));
         Assert.assertEquals("yang.guo", job.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
@@ -250,6 +250,9 @@ public class GitWebhookTest extends TestBase {
         // create empty flow
         Flow flow = nodeService.createEmptyFlow(flowName);
         setFlowToReady(flow);
+
+        // setup yml
+        flow = (Flow) nodeService.createOrUpdateYml(flow.getPath(), getResourceContent("for_git_webhook_test.yml"));
 
         // set flow git related env
         Map<String, String> env = new HashMap<>();
@@ -263,7 +266,7 @@ public class GitWebhookTest extends TestBase {
 
         Assert.assertNotNull(loaded);
         Assert.assertEquals(7, loaded.getEnvs().size());
-        Assert.assertEquals(FlowEnvs.YmlStatusValue.NOT_FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        Assert.assertEquals(FlowEnvs.YmlStatusValue.FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
     }
 
     private Job mock_trigger_from_git(RequestBuilder push) throws Throwable {

@@ -173,7 +173,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalStatusException("Illegal yml status for flow " + flow.getName());
         }
 
-        // load yml content
+        // get yml content
         Yml yml = ymlService.get(flow);
 
         // create job instance

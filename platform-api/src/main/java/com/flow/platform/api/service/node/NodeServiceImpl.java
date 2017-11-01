@@ -132,9 +132,8 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             return flow;
         }
 
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
-
         // persistent flow type node to flow table with env which from yml
+        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
         EnvUtil.merge(rootFromYml, flow, true);
         flowDao.update(flow);
 
@@ -304,7 +303,6 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             root.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
         }
 
-        LOGGER.debug("Update '%s' yml status to %s", root.getName(), state);
         flowDao.update((Flow) root);
     }
 
