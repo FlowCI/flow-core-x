@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitHttpClientBuilder;

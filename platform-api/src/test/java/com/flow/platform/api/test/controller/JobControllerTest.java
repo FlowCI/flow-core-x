@@ -20,15 +20,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.git.model.GitEventType;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,7 +51,7 @@ public class JobControllerTest extends TestBase {
     public void should_show_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -73,7 +73,7 @@ public class JobControllerTest extends TestBase {
     public void should_stop_job_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -94,7 +94,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_step_log_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
 
@@ -109,7 +109,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_job_zip_error() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -124,7 +124,7 @@ public class JobControllerTest extends TestBase {
     public void should_get_job_zip_success() throws Exception {
         stubDemo();
         Node rootForFlow = createRootFlow("flow1", "flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         job.setStatus(JobStatus.SUCCESS);
@@ -166,5 +166,4 @@ public class JobControllerTest extends TestBase {
 
         return mvcResult.getResponse().getContentAsString();
     }
-
 }

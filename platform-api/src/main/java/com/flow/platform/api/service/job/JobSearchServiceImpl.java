@@ -17,7 +17,7 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.SearchCondition;
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.google.common.base.Strings;
 import java.util.ArrayList;

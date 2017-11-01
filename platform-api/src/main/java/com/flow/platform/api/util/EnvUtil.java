@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.util;
 
-import com.flow.platform.api.domain.envs.EnvKey;
-import com.flow.platform.api.domain.envs.EnvValue;
+import com.flow.platform.api.envs.EnvKey;
+import com.flow.platform.api.envs.EnvValue;
 import com.flow.platform.api.domain.node.Node;
 import com.google.common.base.Strings;
 import java.util.Collection;

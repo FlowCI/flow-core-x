@@ -16,8 +16,9 @@
 package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.StatusValue;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Step;
@@ -57,7 +58,7 @@ public class NodeServiceTest extends TestBase {
         Flow emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
         String resourceContent = getResourceContent("demo_flow.yaml");
-        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
 
@@ -77,7 +78,7 @@ public class NodeServiceTest extends TestBase {
         nodeService.addFlowEnv(emptyFlow, flowEnv);
 
         String resourceContent = getResourceContent("demo_flow.yaml");
-        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
 
 
         // then: check is created in dao
@@ -113,7 +114,7 @@ public class NodeServiceTest extends TestBase {
         nodeService.addFlowEnv(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"));
 
         // when:
-        nodeService.createOrUpdate(emptyFlow.getPath(), "");
+        nodeService.createOrUpdateYml(emptyFlow.getPath(), "");
 
         // then: check FLOW_YML_STATUS
         Node flow = nodeService.find(emptyFlow.getPath());
@@ -128,7 +129,7 @@ public class NodeServiceTest extends TestBase {
         nodeService.addFlowEnv(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"));
 
         // when:
-        nodeService.createOrUpdate(emptyFlow.getPath(), "xxxx");
+        nodeService.createOrUpdateYml(emptyFlow.getPath(), "xxxx");
 
         // then: check FLOW_YML_STATUS
         Node flow = nodeService.find(emptyFlow.getPath());
@@ -167,7 +168,7 @@ public class NodeServiceTest extends TestBase {
         setFlowToReady(emptyFlow);
 
         String resourceContent = getResourceContent("demo_flow.yaml");
-        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
         Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
 
@@ -206,13 +207,28 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("FOUND", loaded.getEnv("FLOW_YML_STATUS"));
     }
 
+    @Test(expected = IllegalParameterException.class)
+    public void should_raise_exception_when_save_flow_env_since_illegal_format() throws Throwable {
+        // given:
+        Flow flow = nodeService.createEmptyFlow("flow1");
+        setFlowToReady(flow);
+        Assert.assertEquals(StatusValue.READY.value(), flow.getEnv(FlowEnvs.FLOW_STATUS));
+
+        // when:
+        Map<String, String> envs = new HashMap<>();
+        envs.put(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH.name(), "master");
+        envs.put(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT.name(), "illegal crontab format");
+
+        nodeService.addFlowEnv(nodeService.findFlow("flow1"), envs);
+    }
+
     @Test
     public void should_error_if_node_path_is_not_for_flow() throws Throwable {
         Flow emptyFlow = nodeService.createEmptyFlow("flow_name_not_same");
         setFlowToReady(emptyFlow);
 
         String resourceContent = getResourceContent("demo_flow.yaml");
-        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
 
         Assert.assertEquals("FOUND", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
@@ -226,7 +242,7 @@ public class NodeServiceTest extends TestBase {
         setFlowToReady(emptyFlow);
 
         String resourceContent = getResourceContent("demo_flow.yaml");
-        Node root = nodeService.createOrUpdate(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
         Assert.assertNotNull(ymlService.get(root).getFile());

@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.domain;
 
-import com.flow.platform.api.domain.envs.EnvKey;
-import com.flow.platform.api.domain.envs.EnvValue;
+import com.flow.platform.api.envs.EnvKey;
+import com.flow.platform.api.envs.EnvValue;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;

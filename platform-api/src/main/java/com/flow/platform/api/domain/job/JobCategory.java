@@ -14,12 +14,40 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.envs;
+package com.flow.platform.api.domain.job;
 
 /**
  * @author yang
  */
-public enum AgentEnvs implements EnvKey {
+public enum JobCategory {
 
-    FLOW_AGENT_WORKSPACE
+    /**
+     * Scheduler trigger
+     */
+    SCHEDULER,
+
+    /**
+     * Api trigger
+     */
+    API,
+
+    /**
+     * Manual trigger
+     */
+    MANUAL,
+
+    /**
+     * Git push event
+     */
+    PUSH,
+
+    /**
+     * Git PR event
+     */
+    PR,
+
+    /**
+     * Git tag event
+     */
+    TAG
 }

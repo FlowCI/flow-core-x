@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.envs;
+package com.flow.platform.api.envs;
 
 /**
  * @author yang
  */
-public interface EnvValue {
+public enum JobEnvs implements EnvKey {
 
-    String value();
+    FLOW_JOB_BUILD_NUMBER,
+
+    FLOW_JOB_BUILD_CATEGORY,
+
+    FLOW_JOB_AGENT_INFO,
+
+    FLOW_JOB_LOG_PATH
+
 }

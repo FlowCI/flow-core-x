@@ -38,10 +38,10 @@ import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
-import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.StatusValue;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
@@ -52,7 +52,6 @@ import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.git.model.GitSource;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
@@ -74,7 +73,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -207,7 +205,7 @@ public abstract class TestBase {
         setFlowToReady(emptyFlow);
         String yml = getResourceContent(ymlResourceName);
         setRequiredJobEnvsForFlow(emptyFlow);
-        return nodeService.createOrUpdate(emptyFlow.getPath(), yml);
+        return nodeService.createOrUpdateYml(emptyFlow.getPath(), yml);
     }
 
     public void setFlowToReady(Flow flowNode) {

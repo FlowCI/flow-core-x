@@ -18,6 +18,7 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.LogService;
@@ -100,20 +101,13 @@ public class JobController extends NodeController {
      *
      */
     @PostMapping(path = "/{root}")
-    public void create(@RequestParam(required = false, defaultValue = "true") boolean isFromScmYml,
-                                  @RequestBody(required = false) Map<String, String> envs) {
+    public void create(@RequestBody(required = false) Map<String, String> envs) {
         if (envs == null) {
             envs = new LinkedHashMap<>();
         }
 
         String path = currentNodePath.get();
-
-        if (isFromScmYml) {
-            jobService.createWithYmlLoad(path, GitEventType.MANUAL, envs, currentUser.get(), null);
-            return;
-        }
-
-        jobService.createFromFlowYml(path, GitEventType.MANUAL, envs, currentUser.get());
+        jobService.createFromFlowYml(path, JobCategory.MANUAL, envs, currentUser.get());
     }
 
     /**

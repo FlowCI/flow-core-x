@@ -34,7 +34,7 @@
 
     <property name="category" column="job_category" length="20" not-null="true">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">com.flow.platform.util.git.model.GitEventType</param>
+        <param name="enumClass">com.flow.platform.api.domain.job.JobCategory</param>
         <param name="useNamed">true</param>
       </type>
     </property>
