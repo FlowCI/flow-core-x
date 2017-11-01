@@ -246,13 +246,6 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     @Override
     public User findByToken(String token){
         return loginUserMap.get(token);
-
-//        if (user == null){
-//            throw new TokenExpiredException();
-//        }
-//
-//        return user;
-
     }
 
     @Override

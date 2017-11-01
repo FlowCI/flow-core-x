@@ -97,7 +97,7 @@ public class RoleController {
      */
     @PostMapping
     @WebSecurity(action = Actions.ADMIN_CREATE)
-    public Role create(@RequestBody RoleParam role){
+    public Role create(@RequestBody RoleParam role) {
         return roleService.create(role.getName(), role.getDescription());
     }
 
@@ -144,7 +144,7 @@ public class RoleController {
      */
     @PatchMapping(path = "/{id}")
     @WebSecurity(action = Actions.ADMIN_UPDATE)
-    public Role update(@PathVariable(name = "id") Integer roleId, @RequestBody RoleParam role){
+    public Role update(@PathVariable(name = "id") Integer roleId, @RequestBody RoleParam role) {
         Role roleObj = roleService.find(roleId);
         roleObj.setName(role.getName());
         roleObj.setDescription(role.getDescription());

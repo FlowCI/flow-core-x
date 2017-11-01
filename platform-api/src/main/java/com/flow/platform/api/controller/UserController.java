@@ -134,9 +134,10 @@ public class UserController {
     @PostMapping("/register")
     @WebSecurity(action = Actions.ADMIN_CREATE)
     public void register(@RequestBody RegisterUserParam registerUserParam) {
-        User user = new User(registerUserParam.getEmail(), registerUserParam.getUsername(), registerUserParam.getPassword());
+        User user = new User(registerUserParam.getEmail(), registerUserParam.getUsername(),
+            registerUserParam.getPassword());
         userService.register(user, registerUserParam.getRoles().getArrays(), registerUserParam.isSendEmail(),
-                             registerUserParam.getFlows().getArrays());
+            registerUserParam.getFlows().getArrays());
     }
 
     /**
@@ -192,8 +193,9 @@ public class UserController {
      */
     @PostMapping("/role/update")
     @WebSecurity(action = Actions.ADMIN_UPDATE)
-    public List<User> updateRole(@RequestBody UpdateUserRoleParam updateUserRoleParam){
-        return userService.updateUserRole(updateUserRoleParam.getEmailList().getArrays(), updateUserRoleParam.getRoles().getArrays());
+    public List<User> updateRole(@RequestBody UpdateUserRoleParam updateUserRoleParam) {
+        return userService
+            .updateUserRole(updateUserRoleParam.getEmailList().getArrays(), updateUserRoleParam.getRoles().getArrays());
     }
 
 //    @GetMapping("/show")

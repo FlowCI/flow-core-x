@@ -163,7 +163,6 @@ public class UserRoleInit extends Initializer {
             permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.GENERATE_KEY.name())));
         }
 
-
         Permission flow_create = permissionService.find(new PermissionKey(roleUser.getId(), Actions.FLOW_CREATE.name()));
         if (flow_create == null){
             permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.FLOW_CREATE.name())));

@@ -114,7 +114,7 @@ public class ActionController {
 
     @PostMapping
     @WebSecurity(action = Actions.ADMIN_CREATE)
-    public Action create(@RequestBody Action action){
+    public Action create(@RequestBody Action action) {
         return actionService.create(action);
     }
 }

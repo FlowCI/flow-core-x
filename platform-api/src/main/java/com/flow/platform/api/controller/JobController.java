@@ -104,7 +104,7 @@ public class JobController extends NodeController {
     @PostMapping(path = "/{root}")
     @WebSecurity(action = Actions.JOB_CREATE)
     public void create(@RequestParam(required = false, defaultValue = "true") boolean isFromScmYml,
-                                  @RequestBody(required = false) Map<String, String> envs) {
+                       @RequestBody(required = false) Map<String, String> envs) {
         if (envs == null) {
             envs = new LinkedHashMap<>();
         }

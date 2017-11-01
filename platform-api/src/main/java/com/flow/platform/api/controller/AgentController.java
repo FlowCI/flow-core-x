@@ -254,7 +254,7 @@ public class AgentController {
      */
     @PostMapping(path = "/delete")
     @WebSecurity(action = Actions.ADMIN_DELETE)
-    public void delete(@RequestBody AgentPath agentPath){
+    public void delete(@RequestBody AgentPath agentPath) {
         agentService.delete(agentPath);
     }
 }
