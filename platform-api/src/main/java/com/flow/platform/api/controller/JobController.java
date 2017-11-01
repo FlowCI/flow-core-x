@@ -101,19 +101,12 @@ public class JobController extends NodeController {
      *
      */
     @PostMapping(path = "/{root}")
-    public void create(@RequestParam(required = false, defaultValue = "true") boolean isFromScmYml,
-                                  @RequestBody(required = false) Map<String, String> envs) {
+    public void create(@RequestBody(required = false) Map<String, String> envs) {
         if (envs == null) {
             envs = new LinkedHashMap<>();
         }
 
         String path = currentNodePath.get();
-
-        if (isFromScmYml) {
-            jobService.createWithYmlLoad(path, JobCategory.MANUAL, envs, currentUser.get(), null);
-            return;
-        }
-
         jobService.createFromFlowYml(path, JobCategory.MANUAL, envs, currentUser.get());
     }
 

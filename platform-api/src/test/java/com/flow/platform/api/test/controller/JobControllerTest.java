@@ -20,16 +20,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.job.JobCategory;
-import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.git.model.GitEventType;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -167,5 +166,4 @@ public class JobControllerTest extends TestBase {
 
         return mvcResult.getResponse().getContentAsString();
     }
-
 }
