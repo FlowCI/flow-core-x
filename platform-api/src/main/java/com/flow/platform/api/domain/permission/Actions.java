@@ -55,6 +55,8 @@ public enum Actions {
 
     CREDENTIAL_SHOW,
 
+    CREDENTIAL_CREATE,
+
     USER_SHOW
 
 }

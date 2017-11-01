@@ -262,7 +262,7 @@ public class CredentialController {
      *  reference on List item
      */
     @PostMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @WebSecurity(action = Actions.ADMIN_CREATE)
+    @WebSecurity(action = Actions.CREDENTIAL_CREATE)
     public Credential create(@PathVariable String name,
                              @RequestParam(name = "detail") String detailJson,
                              @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
@@ -304,7 +304,7 @@ public class CredentialController {
     }
 
     @PostMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @WebSecurity(action = Actions.ADMIN_CREATE)
+    @WebSecurity(action = Actions.CREDENTIAL_CREATE)
     public Credential create(@PathVariable String name,
                              @RequestBody CredentialDetail detail) {
 

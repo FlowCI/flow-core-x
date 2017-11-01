@@ -173,6 +173,16 @@ public class UserRoleInit implements ContextEvent {
         if (user_show == null){
             permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.USER_SHOW.name())));
         }
+
+        Permission credential_create  = permissionService.find(new PermissionKey(roleUser.getId(), Actions.CREDENTIAL_CREATE.name()));
+        if (credential_create == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.CREDENTIAL_CREATE.name())));
+        }
+
+        Permission flow_set_env  = permissionService.find(new PermissionKey(roleUser.getId(), Actions.FLOW_SET_ENV.name()));
+        if (flow_set_env == null){
+            permissionService.assign(roleUser, Sets.newHashSet(actionService.find(Actions.FLOW_SET_ENV.name())));
+        }
     }
 
     @Override
