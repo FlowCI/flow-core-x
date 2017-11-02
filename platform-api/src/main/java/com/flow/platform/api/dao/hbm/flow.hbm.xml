@@ -12,9 +12,9 @@
     <property name="createdBy" column="created_by" length="100"/>
     <property name="branchFilter" type= "com.flow.platform.core.dao.adaptor.list.ListAdaptor" column="branchFilter" />
     <property name="tagFilter" type= "com.flow.platform.core.dao.adaptor.list.ListAdaptor" column="tagFilter" />
-    <property name="prEnable" type="java.lang.Boolean" column="prEnable"/>
-    <property name="pushEnable" type="java.lang.Boolean" column="pushEnable"/>
-    <property name="tagEnable" type="java.lang.Boolean" column="tagEnable"/>
+    <property name="prEnable" type="boolean" column="prEnable"/>
+    <property name="pushEnable" type="boolean" column="pushEnable"/>
+    <property name="tagEnable" type="boolean" column="tagEnable"/>
 
     <property name="createdAt" type="java.time.ZonedDateTime">
       <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>

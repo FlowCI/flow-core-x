@@ -425,6 +425,31 @@ public class FlowController extends NodeController {
         return nodeService.authUsers(listParam.getArrays(), currentNodePath.get());
     }
 
+    /**
+     * @api {post} /flows/:root/trigger
+     * @apiParam {String} root
+     * @apiParamExample {json} Request-Body:
+     *     {
+     *         	"branchFilter" : ["master", "dev"]
+     *         	"tagFilter" : ["v01", "v02"]
+     *         	"tagEnabled": true
+     *         	"pushEnabled": false
+     *         	"prEnabled": true
+     *     }
+     * @apiGroup Flows
+     *
+     * @apiSuccessExample {list} Success-Response
+     *  {
+     *      path: /flow-name,
+     *      name: flow-name,
+     *      createdAt: 15123123
+     *      updatedAt: 15123123
+     *      branchFilter: []
+     *      envs: {
+     *          FLOW_ENV_VAR_1: xxx,
+     *          FLOW_ENV_VAR_2: xxx
+     *      }
+     */
     @PostMapping("/{root}/trigger")
     public Flow trigger(@RequestBody TriggerParam triggerParam){
         String path = currentNodePath.get();
