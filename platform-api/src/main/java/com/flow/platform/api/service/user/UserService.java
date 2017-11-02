@@ -58,5 +58,4 @@ public interface UserService {
      */
     Long usersCount();
 
-    User show();
 }

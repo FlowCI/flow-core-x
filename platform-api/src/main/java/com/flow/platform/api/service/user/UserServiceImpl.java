@@ -264,11 +264,6 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         return userCount;
     }
 
-    @Override
-    public User show(){
-        return currentUser();
-    }
-
     /**
      * Login by email
      */

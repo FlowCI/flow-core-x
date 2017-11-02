@@ -198,11 +198,4 @@ public class UserController {
             .updateUserRole(updateUserRoleParam.getEmailList().getArrays(), updateUserRoleParam.getRoles().getArrays());
     }
 
-//    @GetMapping("/show")
-//    @WebSecurity(action = Actions.USER_SHOW)
-//    public User findUserByToken(){
-////        String token = request.getHeader("X-Authorization");
-//        return userService.show();
-//    }
-
 }
