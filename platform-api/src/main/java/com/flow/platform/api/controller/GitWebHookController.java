@@ -33,9 +33,13 @@ import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.model.GitEvent;
+import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.io.CharStreams;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -82,6 +86,7 @@ public class GitWebHookController extends NodeController {
 
             // reset flow yml status to not found otherwise yml cannot start to load
             Flow flow = nodeService.findFlow(path);
+
             nodeService.addFlowEnv(flow, EnvUtil.build(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
 
             // extract git related env variables from event, and temporary set to node for git loading
@@ -89,13 +94,51 @@ public class GitWebHookController extends NodeController {
 
             // get user email from git event
             final User user = new User(hookEvent.getUserEmail(), StringUtil.EMPTY, StringUtil.EMPTY);
-
-            jobService.createWithYmlLoad(path, hookEvent.getType(), gitEnvs, user, (job) -> {
-                applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
-            });
-
+            if (allowEventType(flow, gitEnvs)) {
+                jobService.createWithYmlLoad(path, hookEvent.getType(), gitEnvs, user, (job) -> {
+                    applicationEventPublisher.publishEvent(new GitWebhookTriggerFinishEvent(job));
+                });
+            }
         } catch (GitException | FlowException e) {
             LOGGER.warn("Cannot process web hook event: %s", e.getMessage());
         }
+    }
+
+
+    private boolean allowEventType(Flow flow, Map<String, String> gitEnvs){
+        String gitEventType = gitEnvs.get("FLOW_GIT_EVENT_TYPE");
+        String gitBranch = gitEnvs.get("FLOW_GIT_BRANCH");
+
+        if (gitEventType == GitEventType.PUSH.name()){
+            if (flow.isPushEnable()){
+                return regexFilter(gitBranch, flow.getBranchFilter());
+            }
+            return flow.isPushEnable();
+        }
+
+        if (gitEventType == GitEventType.PR.name()){
+            return flow.isPrEnable();
+        }
+
+        if(gitEventType == GitEventType.TAG.name()){
+            if (flow.isTagEnable()){
+                return regexFilter(gitBranch, flow.getTagFilter());
+            }
+            return flow.isPushEnable();
+        }
+
+        return true;
+    }
+
+    private boolean regexFilter(String gitBranch, List<String> filter){
+        for (String f: filter
+        ) {
+            Pattern rex = Pattern.compile(f);
+            Matcher m = rex.matcher(gitBranch);
+            if (m.find()){
+                return true;
+            }
+        }
+        return false;
     }
 }

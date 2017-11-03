@@ -329,12 +329,28 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Override
     public Flow updateTrigger(String rootPath, TriggerParam triggerParam){
         Flow flow = findFlow(rootPath);
+        List<String> listBranch = triggerParam.getBranchFilter();
+        List<String> listTag = triggerParam.getTagFilter();
+
+        for(int i=0; i < listBranch.size(); i++){
+            if(listBranch.get(i).equals("*")){
+                listBranch.set(i, ".*");
+            }
+        }
+
+        for(int i=0; i < listTag.size(); i++){
+            if(listTag.get(i).equals("*")){
+                listTag.set(i, ".*");
+            }
+        }
+
         flow.setBranchFilter(triggerParam.getBranchFilter());
         flow.setTagFilter(triggerParam.getTagFilter());
-        flow.setPrEnable(triggerParam.isPrEnabled());
-        flow.setPushEnable(triggerParam.isPushEnabled());
-        flow.setTagEnable(triggerParam.isTagEnabled());
-        return flowDao.save(flow);
+        flow.setPrEnable(triggerParam.isPrEnable());
+        flow.setPushEnable(triggerParam.isPushEnable());
+        flow.setTagEnable(triggerParam.isTagEnable());
+        flowDao.update(flow);
+        return flow;
     }
 
     private String hooksUrl(final Flow flow) {

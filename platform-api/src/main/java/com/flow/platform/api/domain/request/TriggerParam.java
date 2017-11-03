@@ -26,11 +26,11 @@ public class TriggerParam {
 
     private List<String> tagFilter;
 
-    private boolean tagEnabled;
+    private boolean tagEnable;
 
-    private boolean pushEnabled;
+    private boolean pushEnable;
 
-    private boolean prEnabled;
+    private boolean prEnable;
 
     public List<String> getBranchFilter() {
         return branchFilter;
@@ -48,27 +48,27 @@ public class TriggerParam {
         this.tagFilter = tagFilter;
     }
 
-    public boolean isTagEnabled() {
-        return tagEnabled;
+    public boolean isTagEnable() {
+        return tagEnable;
     }
 
-    public void setTagEnabled(boolean tagEnabled) {
-        this.tagEnabled = tagEnabled;
+    public void setTagEnable(boolean tagEnable) {
+        this.tagEnable = tagEnable;
     }
 
-    public boolean isPushEnabled() {
-        return pushEnabled;
+    public boolean isPushEnable() {
+        return pushEnable;
     }
 
-    public void setPushEnabled(boolean pushEnabled) {
-        this.pushEnabled = pushEnabled;
+    public void setPushEnable(boolean pushEnable) {
+        this.pushEnable = pushEnable;
     }
 
-    public boolean isPrEnabled() {
-        return prEnabled;
+    public boolean isPrEnable() {
+        return prEnable;
     }
 
-    public void setPrEnabled(boolean prEnabled) {
-        this.prEnabled = prEnabled;
+    public void setPrEnable(boolean prEnable) {
+        this.prEnable = prEnable;
     }
 }

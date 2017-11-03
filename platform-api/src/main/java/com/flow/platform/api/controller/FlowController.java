@@ -440,6 +440,16 @@ public class FlowController extends NodeController {
      *
      * @apiSuccessExample {list} Success-Response
      *  {
+     *      "branchFilter": [
+     *          "master",
+     *          "develop"
+     *     ],
+     *     "tagFilter": [
+     *          "aa"
+     *     ]
+     *     "tagEnable": false,
+     *     "pushEnable": true,
+     *     "prEnable": false,
      *      path: /flow-name,
      *      name: flow-name,
      *      createdAt: 15123123
