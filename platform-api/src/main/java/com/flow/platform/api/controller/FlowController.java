@@ -16,7 +16,6 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ListParam;
@@ -54,7 +53,7 @@ public class FlowController extends NodeController {
 
     @GetMapping
     @WebSecurity(action = Actions.FLOW_SHOW)
-    public List<Flow> index() {
+    public List<Node> index() {
         return nodeService.listFlows();
     }
 
@@ -79,7 +78,7 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_SHOW)
     public Node show() {
         String path = currentNodePath.get();
-        Node node = nodeService.find(path);
+        Node node = nodeService.find(path).root();
 
         if (node == null) {
             throw new IllegalParameterException(String.format("The flow name %s doesn't exist", path));
@@ -163,7 +162,7 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/env")
     @WebSecurity(action = Actions.FLOW_SET_ENV)
     public Node addFlowEnv(@RequestBody Map<String, String> envs) {
-        Flow flow = nodeService.findFlow(currentNodePath.get());
+        Node flow = nodeService.find(currentNodePath.get()).root();
         return nodeService.addFlowEnv(flow, envs);
     }
 
@@ -193,7 +192,7 @@ public class FlowController extends NodeController {
     @DeleteMapping("/{root}/env")
     @WebSecurity(action = Actions.FLOW_SET_ENV)
     public Node delFlowEnv(@RequestBody Set<String> envKeys) {
-        Flow flow = nodeService.findFlow(currentNodePath.get());
+        Node flow = nodeService.find(currentNodePath.get()).root();
         return nodeService.delFlowEnv(flow, envKeys);
     }
 
@@ -252,7 +251,7 @@ public class FlowController extends NodeController {
             refresh = false;
         }
 
-        Node root = nodeService.find(currentNodePath.get());
+        Node root = nodeService.find(currentNodePath.get()).root();
         return gitService.branches(root, refresh);
     }
 
@@ -270,7 +269,7 @@ public class FlowController extends NodeController {
      */
     @GetMapping("/{root}/tags")
     public List<String> listTags() {
-        Node root = nodeService.find(currentNodePath.get());
+        Node root = nodeService.find(currentNodePath.get()).root();
         return gitService.tags(root, false);
     }
 
@@ -293,7 +292,7 @@ public class FlowController extends NodeController {
     @GetMapping(value = "/{root}/yml")
     @WebSecurity(action = Actions.FLOW_SHOW)
     public String getRawYml() {
-        Flow root = nodeService.findFlow(currentNodePath.get());
+        Node root = nodeService.find(currentNodePath.get()).root();
         return ymlService.get(root).getFile();
     }
 
@@ -320,7 +319,7 @@ public class FlowController extends NodeController {
     @GetMapping("/{root}/yml/load")
     @WebSecurity(action = Actions.FLOW_YML)
     public Node loadRawYmlFromGit() {
-        Flow root = nodeService.findFlow(currentNodePath.get());
+        Node root = nodeService.find(currentNodePath.get()).root();
         return ymlService.loadYmlContent(root, null, null);
     }
 
@@ -334,7 +333,7 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/yml/stop")
     @WebSecurity(action = Actions.FLOW_YML)
     public void stopLoadYml() {
-        Flow root = nodeService.findFlow(currentNodePath.get());
+        Node root = nodeService.find(currentNodePath.get()).root();
         ymlService.stopLoadYmlContent(root);
     }
 
@@ -361,7 +360,7 @@ public class FlowController extends NodeController {
     @PostMapping("/{root}/yml/verify")
     @WebSecurity(action = Actions.FLOW_YML)
     public void ymlVerification(@RequestBody String yml) {
-        Flow root = nodeService.findFlow(currentNodePath.get());
+        Node root = nodeService.find(currentNodePath.get()).root();
         ymlService.verifyYml(root, yml);
     }
 

@@ -71,13 +71,7 @@ public class NodeController {
     @GetMapping(path = "/env")
     public Map<String, String> getEnv(@RequestParam(required = false) String key) {
         String path = currentNodePath.get();
-
-        // check is path for root name
-        if (PathUtil.isRootName(path)) {
-            path = PathUtil.build(path);
-        }
-
-        Node node = nodeService.find(path);
+        Node node = nodeService.find(PathUtil.rootPath(path)).find(path);
 
         if (node == null) {
             throw new IllegalParameterException("Invalid node path");

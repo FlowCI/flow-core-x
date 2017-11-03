@@ -2,9 +2,8 @@ package com.flow.platform.api.test.service;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.request.LoginParam;
-import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.user.RoleService;
@@ -12,11 +11,9 @@ import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -115,7 +112,7 @@ public class UserServiceTest extends TestBase {
         Assert.assertNull(userDao.get("liangpengyv@fir.im"));
     }
 
-    private Flow createFlow() {
+    private Node createFlow() {
         String path = "test";
         return nodeService.createEmptyFlow(path);
     }

@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.dao;
+package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.core.dao.BaseDao;
-import java.util.Collection;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public interface FlowDao extends BaseDao<String, Node> {
+public interface EnvService {
 
-    /**
-     * List flow path by created by email
-     */
-    List<String> pathList(Collection<String> createdBy);
+    void save(Node node, Map<String, String> envs);
+
+    void delete(Node node, Set<String> keys);
+
 }

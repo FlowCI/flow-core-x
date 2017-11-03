@@ -1,8 +1,11 @@
 package com.flow.platform.api.test.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.RoleService;
@@ -16,10 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author liangpengyv
@@ -168,7 +167,7 @@ public class UserControllerTest extends TestBase {
         return roleService.create("admin_test", "");
     }
 
-    private Flow createFlow(){
+    private Node createFlow(){
         String path = "test";
         return nodeService.createEmptyFlow(path);
     }

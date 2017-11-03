@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.test.service;
 
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.test.TestBase;
@@ -41,7 +41,7 @@ public class UserFlowServiceTest extends TestBase {
 
         Assert.assertNotNull(userDao.get(currentUser.get().getEmail()));
 
-        Flow flow = nodeService.createEmptyFlow(flowPath);
+        Node flow = nodeService.createEmptyFlow(flowPath);
         Assert.assertNotNull(nodeService.find(flowPath));
 
         // then:

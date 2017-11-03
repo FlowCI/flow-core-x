@@ -42,7 +42,6 @@ import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.initializers.Initializer;
@@ -201,20 +200,20 @@ public abstract class TestBase {
     }
 
     public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
-        Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+        Node emptyFlow = nodeService.createEmptyFlow(flowName);
         setFlowToReady(emptyFlow);
         String yml = getResourceContent(ymlResourceName);
         setRequiredJobEnvsForFlow(emptyFlow);
         return nodeService.createOrUpdateYml(emptyFlow.getPath(), yml);
     }
 
-    public void setFlowToReady(Flow flowNode) {
+    public void setFlowToReady(Node flowNode) {
         Map<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.StatusValue.READY.value());
         nodeService.addFlowEnv(flowNode, envs);
     }
 
-    public void setRequiredJobEnvsForFlow(Flow flow) throws IOException {
+    public void setRequiredJobEnvsForFlow(Node flow) throws IOException {
         HashMap<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), StatusValue.READY.value());
         envs.put(FlowEnvs.FLOW_YML_STATUS.name(), YmlStatusValue.FOUND.value());

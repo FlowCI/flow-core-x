@@ -16,7 +16,6 @@
 
 package com.flow.platform.api.service.node;
 
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.FlowEnvs;
@@ -71,8 +70,8 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
 
     @PostConstruct
     public void initCrontabTask() {
-        List<Flow> flows = nodeService.listFlows();
-        for (Flow flow : flows) {
+        List<Node> flows = nodeService.listFlows();
+        for (Node flow : flows) {
             try {
                 set(flow);
             } catch (Throwable ignore) {

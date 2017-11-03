@@ -61,7 +61,6 @@ public class SecurityTest extends TestBase {
     @Autowired
     private AuthenticationInterceptor authInterceptor;
 
-
     private User userForAdmin;
 
     private User userForUser;

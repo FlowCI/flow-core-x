@@ -6,7 +6,8 @@ import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
@@ -150,13 +151,18 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             sendEmail(currentUser(), user, originPassword);
         }
 
-        if (flowsList.size() > 0) {
-            for (String rootPath : flowsList) {
-                Flow flow = (Flow) nodeService.find(rootPath);
-                if (flow != null) {
-                    userFlowService.assign(user, flow);
-                }
+        for (String rootPath : flowsList) {
+            NodeTree nodeTree = nodeService.find(rootPath);
+            if (nodeTree == null) {
+                continue;
             }
+
+            Node flow = nodeTree.root();
+            if (flow == null) {
+                continue;
+            }
+
+            userFlowService.assign(user, flow);
         }
 
         if (roles == null || roles.isEmpty()) {
@@ -174,7 +180,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
 
     @Override
     public void delete(List<String> emailList) {
-        if (emailList.contains(currentUser().getEmail())){
+        if (emailList.contains(currentUser().getEmail())) {
             throw new IllegalParameterException("params emails include yourself email, not delete");
         }
         // un-assign user from role and flow

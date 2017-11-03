@@ -19,7 +19,6 @@ import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
@@ -116,7 +115,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public Node createOrUpdateYml(final String path, String yml) {
-        final Flow flow = findFlow(PathUtil.rootPath(path));
+        final Node flow = find(PathUtil.rootPath(path)).root();
 
         if (Strings.isNullOrEmpty(yml)) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.NOT_FOUND, null);
@@ -143,18 +142,18 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         getTreeCache().evict(flow.getPath());
 
         //retry find flow
-        return findFlow(PathUtil.rootPath(path));
+        return find(PathUtil.rootPath(path)).root();
     }
 
     @Override
-    public Node find(final String path) {
+    public NodeTree find(final String path) {
         final String rootPath = PathUtil.rootPath(path);
 
         // load tree from tree cache
         NodeTree tree = getTreeCache().get(rootPath, () -> {
 
             Yml ymlStorage = ymlDao.get(rootPath);
-            Flow flow = flowDao.get(path);
+            Node flow = flowDao.get(path);
 
             // has related yml
             if (ymlStorage != null) {
@@ -175,34 +174,13 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             return null;
         }
 
-        return tree.find(path);
-    }
-
-    /**
-     * Find flow by path
-     *
-     * @param path flow path
-     * @return Flow object
-     * @throws IllegalParameterException if node path not exist or path is not for flow
-     */
-    @Override
-    public Flow findFlow(String path) {
-        Node node = find(path);
-        if (node == null) {
-            throw new IllegalParameterException("The flow path doesn't exist");
-        }
-
-        if (!(node instanceof Flow)) {
-            throw new IllegalParameterException("The path is not for flow");
-        }
-
-        return (Flow) node;
+        return tree;
     }
 
     @Override
     public Node delete(String path) {
         String rootPath = PathUtil.rootPath(path);
-        Flow flow = findFlow(rootPath);
+        Node flow = find(rootPath).root();
 
         // delete related userAuth
         userFlowService.unAssign(flow);
@@ -233,8 +211,8 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
-    public Flow createEmptyFlow(final String flowName) {
-        Flow flow = new Flow(PathUtil.build(flowName), flowName);
+    public Node createEmptyFlow(final String flowName) {
+        Node flow = new Node(PathUtil.build(flowName), flowName);
         getTreeCache().evict(flow.getPath());
 
         if (!checkFlowName(flow.getName())) {
@@ -256,7 +234,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
-    public Flow addFlowEnv(Flow flow, Map<String, String> envs) {
+    public Node addFlowEnv(Node flow, Map<String, String> envs) {
         EnvUtil.merge(envs, flow.getEnvs(), true);
 
         // handle envs before save
@@ -273,7 +251,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
-    public Flow delFlowEnv(Flow flow, Set<String> keys) {
+    public Node delFlowEnv(Node flow, Set<String> keys) {
         // handle envs before delete
         for (String env : keys) {
             EnvHandler envHandler = envHandlerMap.get(env);
@@ -302,11 +280,11 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             root.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
         }
 
-        flowDao.update((Flow) root);
+        flowDao.update(root);
     }
 
     @Override
-    public List<Flow> listFlows() {
+    public List<Node> listFlows() {
         return flowDao.list();
     }
 
@@ -317,9 +295,9 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public List<Webhook> listWebhooks() {
-        List<Flow> flows = listFlows();
+        List<Node> flows = listFlows();
         List<Webhook> hooks = new ArrayList<>(flows.size());
-        for (Flow flow : flows) {
+        for (Node flow : flows) {
             hooks.add(new Webhook(flow.getPath(), hooksUrl(flow)));
         }
         return hooks;
@@ -331,7 +309,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
         List<String> paths = Lists.newArrayList(rootPath);
 
-        Flow flow = findFlow(rootPath);
+        Node flow = find(rootPath).root();
         for (User user : users) {
             userFlowService.unAssign(user, flow);
             userFlowService.assign(user, flow);
@@ -341,7 +319,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         return users;
     }
 
-    private String hooksUrl(final Flow flow) {
+    private String hooksUrl(final Node flow) {
         return HttpURL.build(apiDomain).append("/hooks/git/").append(flow.getName()).toString();
     }
 

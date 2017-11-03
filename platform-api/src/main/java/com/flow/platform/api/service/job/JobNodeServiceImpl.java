@@ -18,7 +18,7 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobYml;
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.NotFoundException;
@@ -55,7 +55,7 @@ public class JobNodeServiceImpl implements JobNodeService {
 
     @Override
     public NodeTree get(final Job job) {
-        final Flow flow = nodeService.findFlow(job.getNodePath());
+        final Node flow = nodeService.find(job.getNodePath()).root();
 
         NodeTree tree = jobNodeCache().get(job.getId(), () -> {
             JobYml jobYml = find(job);

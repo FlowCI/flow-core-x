@@ -21,7 +21,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
@@ -49,7 +48,7 @@ public class FlowControllerTest extends TestBase {
             .contentType(MediaType.APPLICATION_JSON);
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
-        Node flowNode = Flow.parse(result.getResponse().getContentAsString(), Flow.class);
+        Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
         Assert.assertNotNull(flowNode);
         Assert.assertNotNull(flowNode.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
         Assert.assertEquals("PENDING", flowNode.getEnv(FlowEnvs.FLOW_STATUS));
@@ -61,7 +60,7 @@ public class FlowControllerTest extends TestBase {
             .andExpect(status().isOk())
             .andReturn();
 
-        Node flowNode = Flow.parse(result.getResponse().getContentAsString(), Flow.class);
+        Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
         Assert.assertNotNull(flowNode);
         Assert.assertEquals(flowName, flowNode.getName());
     }
@@ -142,7 +141,7 @@ public class FlowControllerTest extends TestBase {
     public void should_get_yml_file_content() throws Throwable {
         // given:
         String yml = "flow:\n" + "  - name: " + flowName;
-        Flow flow = nodeService.findFlow(flowName);
+        Node flow = nodeService.find(flowName).root();
         setFlowToReady(flow);
         nodeService.createOrUpdateYml(PathUtil.build(flowName), yml);
 

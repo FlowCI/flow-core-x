@@ -28,6 +28,7 @@ import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.JobCategory;
+import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.JobEnvs;
@@ -35,10 +36,8 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
-import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
@@ -165,7 +164,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Transactional(noRollbackFor = FlowException.class)
     public Job createFromFlowYml(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         // verify flow yml status
-        Flow flow = nodeService.findFlow(path);
+        Node flow = nodeService.find(path).root();
         String ymlStatus = flow.getEnv(FlowEnvs.FLOW_YML_STATUS);
 
         if (!Objects.equals(ymlStatus, YmlStatusValue.FOUND.value())) {
@@ -190,7 +189,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                                   Consumer<Job> onJobCreated) {
 
         // find flow and reset yml status
-        Flow flow = nodeService.findFlow(path);
+        Node flow = nodeService.find(path).root();
         nodeService.addFlowEnv(flow, EnvUtil.build(FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
 
         // merge input env to flow for git loading, not save to flow since the envs is for job
@@ -252,7 +251,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private Job createJob(String path, JobCategory eventType, Map<String, String> envs, User creator) {
-        Node root = nodeService.find(PathUtil.rootPath(path));
+        Node root = nodeService.find(PathUtil.rootPath(path)).root();
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
         }
@@ -390,19 +389,17 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         // continue to run if allow failure on failure status
-        if (nodeResult.isFailure()) {
-            if (node instanceof Step) {
-                Step step = (Step) node;
-                if (step.getAllowFailure()) {
-                    run(next, job);
-                }
+        if (nodeResult.isFailure() && nodeResult.getNodeTag() == NodeTag.STEP) {
+            Node step = node;
+            if (step.getAllowFailure()) {
+                run(next, job);
+            }
 
-                // clean up session if node result failure and set job status to error
+            // clean up session if node result failure and set job status to error
 
-                //TODO: Missing unit test
-                else {
-                    stopJob(job);
-                }
+            //TODO: Missing unit test
+            else {
+                stopJob(job);
             }
         }
     }
@@ -511,7 +508,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         @Override
         public void accept(Yml yml) {
             LOGGER.trace("Yml content has been loaded for path : " + path);
-            Node root = nodeService.find(PathUtil.rootPath(path));
+            Node root = nodeService.find(PathUtil.rootPath(path)).root();
 
             // set git commit info to job env
             if (job.getCategory() == JobCategory.MANUAL

@@ -4,7 +4,7 @@
   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping package="com.flow.platform.api.domain">
-  <class name="com.flow.platform.api.domain.node.Flow" table="flow">
+  <class name="com.flow.platform.api.domain.node.Node" table="flow">
     <id name="path" type="string" column="path"/>
 
     <property name="name" length="50" column="name"/>

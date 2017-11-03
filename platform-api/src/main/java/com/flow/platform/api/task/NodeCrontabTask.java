@@ -20,7 +20,7 @@ import static com.flow.platform.api.service.node.NodeCrontabService.KEY_BRANCH;
 import static com.flow.platform.api.service.node.NodeCrontabService.KEY_NODE_PATH;
 
 import com.flow.platform.api.domain.job.JobCategory;
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.service.job.JobService;
@@ -52,7 +52,7 @@ public class NodeCrontabTask implements Job {
         LOGGER.debug("branch %s with node path %s", branch, path);
 
         try {
-            Flow flow = nodeService.findFlow(path);
+            Node flow = nodeService.find(path).root();
             User owner = userService.findByEmail(flow.getCreatedBy());
             Map<String, String> envs = EnvUtil.build(GitEnvs.FLOW_GIT_BRANCH.name(), branch);
             jobService.createFromFlowYml(path, JobCategory.SCHEDULER, envs, owner);

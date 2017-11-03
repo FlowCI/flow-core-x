@@ -21,7 +21,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.service.node.YmlService;
@@ -248,11 +247,11 @@ public class GitWebhookTest extends TestBase {
 
     private void init_flow(String gitUrl) throws Throwable {
         // create empty flow
-        Flow flow = nodeService.createEmptyFlow(flowName);
+        Node flow = nodeService.createEmptyFlow(flowName);
         setFlowToReady(flow);
 
         // setup yml
-        flow = (Flow) nodeService.createOrUpdateYml(flow.getPath(), getResourceContent("for_git_webhook_test.yml"));
+        flow = nodeService.createOrUpdateYml(flow.getPath(), getResourceContent("for_git_webhook_test.yml"));
 
         // set flow git related env
         Map<String, String> env = new HashMap<>();
@@ -262,7 +261,7 @@ public class GitWebhookTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
         nodeService.addFlowEnv(flow, env);
 
-        Node loaded = nodeService.find(flowPath);
+        Node loaded = nodeService.find(flowPath).root();
 
         Assert.assertNotNull(loaded);
         Assert.assertEquals(7, loaded.getEnvs().size());
@@ -287,7 +286,7 @@ public class GitWebhookTest extends TestBase {
         springContext.removeApplicationListener(listener);
 
         // verify yml is updated
-        Node root = nodeService.find(flowPath);
+        Node root = nodeService.find(flowPath).root();
         Assert.assertNotNull(ymlService.get(root).getFile());
 
         // verify job is created
@@ -296,7 +295,7 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals(1, created.getNumber().intValue());
 
         // verify flow node yml status
-        Node flowNode = nodeService.find(created.getNodePath());
+        Node flowNode = nodeService.find(created.getNodePath()).root();
         Assert.assertEquals(YmlStatusValue.FOUND.value(), flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         return created;
