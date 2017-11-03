@@ -15,14 +15,17 @@
  */
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ActionParam;
 import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.user.ActionService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,6 +58,7 @@ public class ActionController {
      *  ]
      */
     @GetMapping
+    @WebSecurity(action = Actions.ADMIN_SHOW)
     public List<Action> index() {
         return actionService.list();
     }
@@ -81,7 +85,36 @@ public class ActionController {
      *  }
      */
     @PatchMapping(path = "/{name}")
+    @WebSecurity(action = Actions.ADMIN_UPDATE)
     public Action update(@PathVariable String name, @RequestBody ActionParam body) {
         return actionService.update(name, body);
+    }
+
+    /**
+     * @api {post} /actions
+     * @apiParam {String} create action
+     * @apiParamExample {json} Request-Body
+     *  {
+     *      name: FLOW_CREATE,
+     *      description: xxx,
+     *      tag: USER
+     *  }
+     * @apiGroup Action
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      name: FLOW_CREATE,
+     *      alias: create flow,
+     *      description: xxxx,
+     *      tag: DEFAULT,
+     *      createdAt: xxx,
+     *      updatedAt: xxx
+     *  }
+     */
+
+    @PostMapping
+    @WebSecurity(action = Actions.ADMIN_CREATE)
+    public Action create(@RequestBody Action action) {
+        return actionService.create(action);
     }
 }

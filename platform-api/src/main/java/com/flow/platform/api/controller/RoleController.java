@@ -15,9 +15,11 @@
  */
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.RoleParam;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Role;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.user.ActionService;
 import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
@@ -70,6 +72,7 @@ public class RoleController {
      *  ]
      */
     @GetMapping
+    @WebSecurity(action = Actions.ADMIN_SHOW)
     public List<Role> index() {
         return roleService.list();
     }
@@ -93,7 +96,8 @@ public class RoleController {
      *  }
      */
     @PostMapping
-    public Role create(@RequestBody RoleParam role){
+    @WebSecurity(action = Actions.ADMIN_CREATE)
+    public Role create(@RequestBody RoleParam role) {
         return roleService.create(role.getName(), role.getDescription());
     }
 
@@ -114,6 +118,7 @@ public class RoleController {
      *  }
      */
     @DeleteMapping(path = "/{id}")
+    @WebSecurity(action = Actions.ADMIN_DELETE)
     public void delete(@PathVariable(name = "id") Integer roleId) {
         roleService.delete(roleId);
     }
@@ -138,7 +143,8 @@ public class RoleController {
      *  }
      */
     @PatchMapping(path = "/{id}")
-    public Role update(@PathVariable(name = "id") Integer roleId, @RequestBody RoleParam role){
+    @WebSecurity(action = Actions.ADMIN_UPDATE)
+    public Role update(@PathVariable(name = "id") Integer roleId, @RequestBody RoleParam role) {
         Role roleObj = roleService.find(roleId);
         roleObj.setName(role.getName());
         roleObj.setDescription(role.getDescription());
@@ -159,9 +165,9 @@ public class RoleController {
      * @apiDescritpion Assign actions to role
      */
     @PutMapping(path = "/{id}/assign")
-    public void assign(@PathVariable(name = "id") Integer roldId, @RequestBody List<String> actions) {
+    public void assign(@PathVariable(name = "id") Integer roleId, @RequestBody List<String> actions) {
         List<Action> actionList = actionService.list(actions);
-        Role role = roleService.find(roldId);
+        Role role = roleService.find(roleId);
         permissionService.assign(role, actionList);
     }
 

@@ -13,25 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.flow.platform.api.domain.response;
 
-package com.flow.platform.api.security;
-
-import com.flow.platform.api.domain.permission.Actions;
-import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.User;
+import com.google.gson.annotations.Expose;
 
 /**
- * @author yang
+ * @author lhl
  */
-public interface UserSecurityService {
+public class LoginResponse {
 
-    /**
-     * Verify the action is accessible for user
-     */
-    boolean canAccess(User user, Action action);
+    @Expose
+    private String token;
 
-    /**
-     * Get action from Actions enum
-     */
-    Action getAction(Actions actionName);
+    @Expose
+    private User user;
+
+    public LoginResponse(String token, User user) {
+        this.token = token;
+        this.user = user;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }

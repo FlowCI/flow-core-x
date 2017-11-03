@@ -16,6 +16,8 @@
 package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.domain.user.Permission;
+import com.flow.platform.api.domain.user.PermissionKey;
 import com.flow.platform.api.domain.user.Role;
 import java.util.Collection;
 import java.util.List;
@@ -44,4 +46,6 @@ public interface PermissionService {
      * Batch un-assign actions from role
      */
     void unAssign(Role role, Collection<Action> actions);
+
+    Permission find(PermissionKey permissionKey);
 }

@@ -21,6 +21,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.controller.FlowController;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Role;
@@ -33,13 +35,21 @@ import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.test.TestBase;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.web.method.HandlerMethod;
 
 /**
  * @author yang
@@ -166,6 +176,31 @@ public class SecurityTest extends TestBase {
         this.mockMvc.perform(requestWithUser(delete("/flows/" + flowName), userForAdmin))
             .andExpect(status().isOk());
     }
+
+    @Test
+    public void should_auth_Interceptor() throws Exception{
+        List<RequestMatcher> matchers = Lists.newArrayList(
+            new AntPathRequestMatcher("/flows/**")
+        );
+        String token = tokenGenerator.create("hl@fir.im", 100);
+        MockHttpServletRequest mockHttpRequest = new MockHttpServletRequest("get", "/flows/");
+
+        mockHttpRequest.addHeader("X-Authorization", token );
+
+        Class<?> cls = Class.forName("com.flow.platform.api.controller.FlowController");
+        MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
+
+        Object obj = cls.newInstance();
+        Method method = cls.getMethod("index", new Class[]{});
+        HandlerMethod handlerMethod = new HandlerMethod(obj,method);
+
+
+        authInterceptor = new AuthenticationInterceptor(matchers);
+        Boolean result = authInterceptor.preHandle(mockHttpRequest,mockHttpServletResponse, handlerMethod );
+        Assert.assertEquals(true, result);
+    }
+
+
 
     @After
     public void after() {

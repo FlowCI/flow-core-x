@@ -45,13 +45,13 @@ public class JwtTokenGenerator implements TokenGenerator {
      * If the token is expired, will throw a ExpiredJwtException
      */
     @Override
-    public String extract(String tokenStr) {
+    public Claims extract(String tokenStr) {
         try {
             Jws<Claims> jws = Jwts.parser()
                 .setSigningKey(secret.getBytes(AppConfig.DEFAULT_CHARSET.name()))
                 .parseClaimsJws(tokenStr);
 
-            return jws.getBody().getSubject();
+            return jws.getBody();
         } catch (ExpiredJwtException e) {
             throw new TokenExpiredException();
         } catch (UnsupportedEncodingException e) {
