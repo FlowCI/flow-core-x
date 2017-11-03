@@ -32,7 +32,7 @@ import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.task.UpdateNodeYmlTask;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.core.exception.IllegalParameterException;

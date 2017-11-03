@@ -42,4 +42,19 @@ public interface EnvKey {
     );
 
     String name();
+
+    /**
+     * Is readonly for user
+     */
+    boolean isReadonly();
+
+    /**
+     * Is editable from property UI
+     */
+    boolean isEditable();
+
+    /**
+     * Available values, or null for not defined
+     */
+    Set<EnvValue> availableValues();
 }

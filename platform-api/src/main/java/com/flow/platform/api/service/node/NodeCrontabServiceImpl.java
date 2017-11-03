@@ -22,7 +22,7 @@ import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.UserService;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;

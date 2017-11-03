@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.util;
+package com.flow.platform.api.envs;
 
-import com.flow.platform.api.envs.EnvKey;
-import com.flow.platform.api.envs.EnvValue;
 import com.flow.platform.api.domain.node.Node;
 import com.google.common.base.Strings;
 import java.util.Collection;

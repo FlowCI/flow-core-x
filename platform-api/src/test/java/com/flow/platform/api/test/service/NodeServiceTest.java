@@ -26,7 +26,7 @@ import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.http.HttpURL;

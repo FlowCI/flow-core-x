@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.envs;
 
+import java.util.Set;
+
 /**
  * @author yang
  */
@@ -24,16 +26,16 @@ public enum GitEnvs implements EnvKey {
     /**
      * @see com.flow.platform.util.git.model.GitSource
      */
-    FLOW_GIT_SOURCE,
+    FLOW_GIT_SOURCE(false, true, null),
 
     /**
      * For diff FLOW_GIT_SOURCE
      *  - UNDEFINED_SSH and UNDEFINED_HTTP is repo url
      *  - GITLAB is gitlab host url
      */
-    FLOW_GIT_URL,
+    FLOW_GIT_URL(false, true, null),
 
-    FLOW_GIT_BRANCH,
+    FLOW_GIT_BRANCH(false, true, null),
 
     FLOW_GIT_WEBHOOK,
 
@@ -66,7 +68,7 @@ public enum GitEnvs implements EnvKey {
     /**
      * The credential name used for git
      */
-    FLOW_GIT_CREDENTIAL,
+    FLOW_GIT_CREDENTIAL(false, true, null),
 
     FLOW_GIT_SSH_PUBLIC_KEY,
 
@@ -79,7 +81,43 @@ public enum GitEnvs implements EnvKey {
     /**
      * Env variables for GitLab
      */
-    FLOW_GITLAB_TOKEN,
+    FLOW_GITLAB_TOKEN(true, false, null),
 
-    FLOW_GITLAB_PROJECT
+    FLOW_GITLAB_PROJECT(true, false, null);
+
+    private boolean readonly;
+
+    private boolean editable;
+
+    private Set<EnvValue> values;
+
+    /**
+     * The default setting
+     */
+    GitEnvs() {
+        this.readonly = true;
+        this.editable = false;
+        this.values = null;
+    }
+
+    GitEnvs(boolean readonly, boolean editable, Set<EnvValue> values) {
+        this.readonly = readonly;
+        this.editable = editable;
+        this.values = values;
+    }
+
+    @Override
+    public boolean isReadonly() {
+        return readonly;
+    }
+
+    @Override
+    public boolean isEditable() {
+        return editable;
+    }
+
+    @Override
+    public Set<EnvValue> availableValues() {
+        return values;
+    }
 }

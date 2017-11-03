@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.envs;
 
+import java.util.Set;
+
 /**
  * @author yang
  */
@@ -27,6 +29,32 @@ public enum JobEnvs implements EnvKey {
 
     FLOW_JOB_AGENT_INFO,
 
-    FLOW_JOB_LOG_PATH
+    FLOW_JOB_LOG_PATH;
 
+    private boolean readonly;
+
+    private boolean editable;
+
+    private Set<EnvValue> values;
+
+    JobEnvs() {
+        this.readonly = true;
+        this.editable = false;
+        this.values = null;
+    }
+
+    @Override
+    public boolean isReadonly() {
+        return readonly;
+    }
+
+    @Override
+    public boolean isEditable() {
+        return editable;
+    }
+
+    @Override
+    public Set<EnvValue> availableValues() {
+        return values;
+    }
 }

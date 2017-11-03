@@ -26,7 +26,7 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.user.UserService;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.util.Logger;
 import java.util.Map;
 import org.quartz.Job;

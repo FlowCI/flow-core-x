@@ -28,7 +28,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.events.NodeStatusChangeEvent;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.service.ApplicationEventService;

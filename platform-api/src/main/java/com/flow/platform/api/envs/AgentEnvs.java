@@ -16,10 +16,40 @@
 
 package com.flow.platform.api.envs;
 
+import java.util.Set;
+
 /**
  * @author yang
  */
 public enum AgentEnvs implements EnvKey {
 
-    FLOW_AGENT_WORKSPACE
+    FLOW_AGENT_WORKSPACE(false, true, null);
+
+    private boolean readonly;
+
+    private boolean editable;
+
+    private Set<EnvValue> values;
+
+    AgentEnvs(boolean readonly, boolean editable, Set<EnvValue> values) {
+        this.readonly = readonly;
+        this.editable = editable;
+        this.values = values;
+    }
+
+    @Override
+    public boolean isReadonly() {
+        return readonly;
+    }
+
+    @Override
+    public boolean isEditable() {
+        return editable;
+    }
+
+    @Override
+    public Set<EnvValue> availableValues() {
+        return values;
+    }
+
 }

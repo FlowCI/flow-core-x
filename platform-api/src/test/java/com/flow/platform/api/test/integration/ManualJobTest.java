@@ -22,7 +22,7 @@ import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitSource;
 import java.util.HashMap;
