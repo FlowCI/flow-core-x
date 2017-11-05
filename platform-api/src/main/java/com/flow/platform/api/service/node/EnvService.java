@@ -25,8 +25,8 @@ import java.util.Set;
  */
 public interface EnvService {
 
-    void save(Node node, Map<String, String> envs);
+    void save(Node node, Map<String, String> envs, boolean verify);
 
-    void delete(Node node, Set<String> keys);
+    void delete(Node node, Set<String> keys, boolean verify);
 
 }

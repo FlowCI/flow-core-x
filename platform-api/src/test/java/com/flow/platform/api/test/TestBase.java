@@ -49,6 +49,7 @@ import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
+import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.git.model.GitSource;
@@ -127,6 +128,9 @@ public abstract class TestBase {
 
     @Autowired
     protected NodeService nodeService;
+
+    @Autowired
+    protected EnvService envService;
 
     @Autowired
     protected JobService jobService;
@@ -210,7 +214,7 @@ public abstract class TestBase {
     public void setFlowToReady(Node flowNode) {
         Map<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.StatusValue.READY.value());
-        nodeService.addFlowEnv(flowNode, envs);
+        envService.save(flowNode, envs, false);
     }
 
     public void setRequiredJobEnvsForFlow(Node flow) throws IOException {
@@ -220,7 +224,7 @@ public abstract class TestBase {
         envs.put(GitEnvs.FLOW_GIT_URL.name(), TestBase.GITHUB_TEST_REPO_SSH);
         envs.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         envs.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        nodeService.addFlowEnv(flow, envs);
+        envService.save(flow, envs, false);
     }
 
     public void stubDemo() {

@@ -163,7 +163,8 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_SET_ENV)
     public Node addFlowEnv(@RequestBody Map<String, String> envs) {
         Node flow = nodeService.find(currentNodePath.get()).root();
-        return nodeService.addFlowEnv(flow, envs);
+        envService.save(flow, envs, true);
+        return flow;
     }
 
     /**
@@ -193,7 +194,8 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_SET_ENV)
     public Node delFlowEnv(@RequestBody Set<String> envKeys) {
         Node flow = nodeService.find(currentNodePath.get()).root();
-        return nodeService.delFlowEnv(flow, envKeys);
+        envService.delete(flow, envKeys, true);
+        return flow;
     }
 
     /**

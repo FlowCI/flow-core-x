@@ -21,6 +21,7 @@ import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
@@ -41,9 +42,6 @@ import org.springframework.beans.factory.annotation.Value;
  * @author yh@firim
  */
 public class NodeServiceTest extends TestBase {
-
-    @Autowired
-    private NodeService nodeService;
 
     @Autowired
     private YmlService ymlService;
@@ -73,7 +71,7 @@ public class NodeServiceTest extends TestBase {
         Map<String, String> flowEnv = new HashMap<>();
         flowEnv.put("FLOW_SP_1", "111");
         flowEnv.put("FLOW_SP_2", "222");
-        nodeService.addFlowEnv(emptyFlow, flowEnv);
+        envService.save(emptyFlow, flowEnv, false);
 
         String resourceContent = getResourceContent("demo_flow.yaml");
         Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
@@ -108,7 +106,7 @@ public class NodeServiceTest extends TestBase {
         // given:
         Node emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
-        nodeService.addFlowEnv(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"));
+        envService.save(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"), false);
 
         // when:
         nodeService.createOrUpdateYml(emptyFlow.getPath(), "");
@@ -123,7 +121,7 @@ public class NodeServiceTest extends TestBase {
         // given:
         Node emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
-        nodeService.addFlowEnv(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"));
+        envService.save(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"), false);
 
         // when:
         nodeService.createOrUpdateYml(emptyFlow.getPath(), "xxxx");
@@ -174,7 +172,7 @@ public class NodeServiceTest extends TestBase {
         envs.put("FLOW_NEW_1", "hello");
         envs.put("FLOW_NEW_2", "world");
         envs.put("FLOW_NEW_3", "done");
-        nodeService.addFlowEnv(nodeService.find("flow1").root(), envs);
+        envService.save(nodeService.find("flow1").root(), envs, true);
 
         // then:
         String webhook = HttpURL.build(apiDomain).append("/hooks/git").append(emptyFlow.getName()).toString();
@@ -216,7 +214,7 @@ public class NodeServiceTest extends TestBase {
         envs.put(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH.name(), "master");
         envs.put(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT.name(), "illegal crontab format");
 
-        nodeService.addFlowEnv(nodeService.find("flow1").root(), envs);
+        envService.save(nodeService.find("flow1").root(), envs, false);
     }
 
     @Test

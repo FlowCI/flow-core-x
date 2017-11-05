@@ -74,16 +74,6 @@ public interface NodeService {
     Node createEmptyFlow(String flowName);
 
     /**
-     * Merge new env to flow node evn and sync to yml
-     */
-    Node addFlowEnv(Node flow, Map<String, String> envs);
-
-    /**
-     * Delete flow env
-     */
-    Node delFlowEnv(Node flow, Set<String> keys);
-
-    /**
      * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG
      */
     void updateYmlState(Node root, FlowEnvs.YmlStatusValue state, String errorInfo);

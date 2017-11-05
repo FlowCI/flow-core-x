@@ -23,20 +23,18 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.envs.handler.EnvHandler;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
-import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
@@ -45,12 +43,8 @@ import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
-import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
@@ -95,23 +89,8 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Autowired
     private RoleService roleService;
 
-    @Autowired
-    private SpringContext springContext;
-
     @Value(value = "${domain.api}")
     private String apiDomain;
-
-    private final Map<String, EnvHandler> envHandlerMap = new HashMap<>(5);
-
-    @PostConstruct
-    public void init() {
-        // init env handler into map
-        String[] beanNameByType = springContext.getBeanNameByType(EnvHandler.class);
-        for (String bean : beanNameByType) {
-            EnvHandler envHandler = (EnvHandler) springContext.getBean(bean);
-            envHandlerMap.put(envHandler.env().name(), envHandler);
-        }
-    }
 
     @Override
     public Node createOrUpdateYml(final String path, String yml) {
@@ -230,43 +209,6 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         flow = flowDao.save(flow);
 
         userFlowService.assign(currentUser(), flow);
-        return flow;
-    }
-
-    @Override
-    public Node addFlowEnv(Node flow, Map<String, String> envs) {
-        EnvUtil.merge(envs, flow.getEnvs(), true);
-
-        // handle envs before save
-        for (Map.Entry<String, String> entry : flow.getEnvs().entrySet()) {
-            EnvHandler envHandler = envHandlerMap.get(entry.getKey());
-            if (envHandler != null) {
-                envHandler.handle(flow);
-            }
-        }
-
-        // sync latest env into flow table
-        flowDao.update(flow);
-        return flow;
-    }
-
-    @Override
-    public Node delFlowEnv(Node flow, Set<String> keys) {
-        // handle envs before delete
-        for (String env : keys) {
-            EnvHandler envHandler = envHandlerMap.get(env);
-            if (envHandler != null && flow.getEnvs().containsKey(env)) {
-                envHandler.unHandle(flow);
-            }
-        }
-
-        // remove env
-        for (String keyToRemove : keys) {
-            flow.removeEnv(keyToRemove);
-        }
-
-        // sync latest env into flow table
-        flowDao.update(flow);
         return flow;
     }
 

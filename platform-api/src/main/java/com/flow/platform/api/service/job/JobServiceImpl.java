@@ -43,6 +43,7 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.git.GitEventEnvConverter;
 import com.flow.platform.api.service.GitService;
+import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
@@ -113,6 +114,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private EnvService envService;
 
     @Autowired
     private CmdService cmdService;
@@ -190,7 +194,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // find flow and reset yml status
         Node flow = nodeService.find(path).root();
-        nodeService.addFlowEnv(flow, EnvUtil.build(FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND));
+        envService.save(flow, EnvUtil.build(FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND), false);
 
         // merge input env to flow for git loading, not save to flow since the envs is for job
         EnvUtil.merge(envs, flow.getEnvs(), true);

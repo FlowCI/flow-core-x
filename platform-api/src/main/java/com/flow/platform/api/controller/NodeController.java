@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -48,6 +49,9 @@ public class NodeController {
 
     @Autowired
     protected NodeService nodeService;
+
+    @Autowired
+    protected EnvService envService;
 
     /**
      * The current node path from {@see NodeControllerAdvice}

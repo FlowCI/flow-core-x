@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * The dao for root nodes
+ *
  * @author yh@firim
  */
 public interface FlowDao extends BaseDao<String, Node> {

@@ -76,7 +76,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
 
         Node loaded = nodeService.find(this.flow.getPath()).root();
-        nodeService.addFlowEnv(loaded, env);
+        envService.save(loaded, env, false);
 
         Assert.assertNotNull(loaded);
         Assert.assertEquals(GitSource.UNDEFINED_SSH.name(), loaded.getEnv(GitEnvs.FLOW_GIT_SOURCE));
@@ -109,7 +109,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_CREDENTIAL.name(), rsaCredentialName);
-        flow = nodeService.addFlowEnv(flow, env);
+        envService.save(flow, env, false);
 
         // async to clone and return .flow.yml content
         final String loadedYml = loadYml(flow);
@@ -132,7 +132,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), "invalid ssh key xxxx");
 
         Node loaded = nodeService.find(flow.getPath()).root();
-        nodeService.addFlowEnv(loaded, env);
+        envService.save(loaded, env, false);
 
         // async to clone and return .flow.yml content
         loadYml(loaded);
@@ -150,7 +150,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_HTTP);
         env.put(GitEnvs.FLOW_GIT_HTTP_USER.name(), "");
         env.put(GitEnvs.FLOW_GIT_HTTP_PASS.name(), "");
-        flow = nodeService.addFlowEnv(flow, env);
+        envService.save(flow, env, false);
 
         // async to clone and return .flow.yml content
         final String loadedYml = loadYml(flow);
@@ -170,7 +170,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_URL.name(), "https://gitlab.com/");
         env.put(GitEnvs.FLOW_GITLAB_TOKEN.name(), "E63AvvP5EvYhDwFySAE5");
         env.put(GitEnvs.FLOW_GITLAB_PROJECT.name(), "yang.guo/for-testing");
-        flow = nodeService.addFlowEnv(flow, env);
+        envService.save(flow, env, false);
 
         final String loadedYml = loadYml(flow);
 
