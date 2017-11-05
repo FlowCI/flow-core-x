@@ -25,8 +25,28 @@ import java.util.Set;
  */
 public interface EnvService {
 
+    /**
+     * List all available env variable
+     *
+     * @param node target node
+     * @param editable is get editable or none editable env list
+     */
+    Map<String, String> list(Node node, boolean editable);
+
+    /**
+     * Add env variables to node
+     * @param node target node
+     * @param envs env variables to add
+     * @param verify is verify according to EnvKey properties
+     */
     void save(Node node, Map<String, String> envs, boolean verify);
 
+    /**
+     * Del env variables from node
+     * @param node target node
+     * @param keys env variables to delete
+     * @param verify is verify according to EnvKey properties
+     */
     void delete(Node node, Set<String> keys, boolean verify);
 
 }

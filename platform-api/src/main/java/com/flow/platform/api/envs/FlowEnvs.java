@@ -28,19 +28,19 @@ public enum FlowEnvs implements EnvKey {
     /**
      * Indicate flow is configured for git
      */
-    FLOW_STATUS(true, false, ImmutableSet.of(StatusValue.PENDING, StatusValue.READY)),
+    FLOW_STATUS(true, false, ImmutableSet.of(StatusValue.PENDING.value(), StatusValue.READY.value())),
 
     /**
      * Indicate flow yml loading, ready
      */
     FLOW_YML_STATUS(true, false, ImmutableSet.of(
-        YmlStatusValue.ERROR,
-        YmlStatusValue.FOUND,
-        YmlStatusValue.GIT_CONNECTING,
-        YmlStatusValue.GIT_LOADED,
-        YmlStatusValue.GIT_LOADED,
-        YmlStatusValue.GIT_LOADING,
-        YmlStatusValue.NOT_FOUND)
+        YmlStatusValue.ERROR.value(),
+        YmlStatusValue.FOUND.value(),
+        YmlStatusValue.GIT_CONNECTING.value(),
+        YmlStatusValue.GIT_LOADED.value(),
+        YmlStatusValue.GIT_LOADED.value(),
+        YmlStatusValue.GIT_LOADING.value(),
+        YmlStatusValue.NOT_FOUND.value())
     ),
 
     /**
@@ -68,9 +68,9 @@ public enum FlowEnvs implements EnvKey {
 
     private boolean editable;
 
-    private Set<EnvValue> values;
+    private Set<String> values;
 
-    FlowEnvs(boolean readonly, boolean editable, Set<EnvValue> values) {
+    FlowEnvs(boolean readonly, boolean editable, Set<String> values) {
         this.readonly = readonly;
         this.editable = editable;
         this.values = values;
@@ -87,7 +87,7 @@ public enum FlowEnvs implements EnvKey {
     }
 
     @Override
-    public Set<EnvValue> availableValues() {
+    public Set<String> availableValues() {
         return values;
     }
 

@@ -40,12 +40,7 @@ import org.springframework.web.servlet.HandlerMapping;
  *
  * @author yang
  */
-@RestController
-@RequestMapping(path = {
-    "/nodes/{root}",
-    "/nodes/{root}/{child}",
-})
-public class NodeController {
+public abstract class NodeController {
 
     @Autowired
     protected NodeService nodeService;
@@ -58,40 +53,4 @@ public class NodeController {
      */
     @Autowired
     protected ThreadLocal<String> currentNodePath;
-
-    /**
-     * @api {get} /nodes/:root/:child/env/:key Get Env
-     * @apiParam {String} root root node name
-     * @apiParam {String} [child] child node name
-     * @apiParam {String} [key] env variable name
-     * @apiGroup Nodes
-     * @apiDescription Get node env by path or name
-     *
-     * @apiSuccessExample {json} Success-Response
-     *  {
-     *      FLOW_ENV_VAR: xxx
-     *  }
-     */
-    @GetMapping(path = "/env")
-    public Map<String, String> getEnv(@RequestParam(required = false) String key) {
-        String path = currentNodePath.get();
-        Node node = nodeService.find(PathUtil.rootPath(path)).find(path);
-
-        if (node == null) {
-            throw new IllegalParameterException("Invalid node path");
-        }
-
-        if (Strings.isNullOrEmpty(key)) {
-            return node.getEnvs();
-        }
-
-        String env = node.getEnv(key);
-        if (Strings.isNullOrEmpty(env)) {
-            throw new NotFoundException("Env key is not exist");
-        }
-
-        Map<String, String> singleEnv = new HashMap<>(1);
-        singleEnv.put(key, env);
-        return singleEnv;
-    }
 }

@@ -21,10 +21,13 @@ import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.envs.EnvKey;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.google.common.base.Strings;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,6 +142,7 @@ public class FlowController extends NodeController {
     /**
      * @api {post} /flows/:root/env Add Env Variables
      * @apiParam {String} root flow node name will be set env variables
+     * @apiParam {Boolean} [verify=false] enable to verify env varaible
      * @apiParamExample {json} Request-Body:
      *  {
      *      FLOW_ENV_VAR_2: xxx,
@@ -161,15 +165,17 @@ public class FlowController extends NodeController {
      */
     @PostMapping("/{root}/env")
     @WebSecurity(action = Actions.FLOW_SET_ENV)
-    public Node addFlowEnv(@RequestBody Map<String, String> envs) {
+    public Node addFlowEnv(@RequestBody Map<String, String> envs,
+                           @RequestParam(required = false, defaultValue = "false") boolean verify) {
         Node flow = nodeService.find(currentNodePath.get()).root();
-        envService.save(flow, envs, true);
+        envService.save(flow, envs, verify);
         return flow;
     }
 
     /**
      * @api {delete} /flows/:root/env Del Env Variables
      * @apiParam {String} root flow node name will be set env variables
+     * @apiParam {Boolean} [verify=false] enable to verify env varaible
      * @apiParamExample {json} Request-Body:
      *  [
      *      FLOW_ENV_VAR_2,
@@ -192,9 +198,10 @@ public class FlowController extends NodeController {
      */
     @DeleteMapping("/{root}/env")
     @WebSecurity(action = Actions.FLOW_SET_ENV)
-    public Node delFlowEnv(@RequestBody Set<String> envKeys) {
+    public Node delFlowEnv(@RequestBody Set<String> envKeys,
+                           @RequestParam(required = false, defaultValue = "false") boolean verify) {
         Node flow = nodeService.find(currentNodePath.get()).root();
-        envService.delete(flow, envKeys, true);
+        envService.delete(flow, envKeys, verify);
         return flow;
     }
 
@@ -202,6 +209,7 @@ public class FlowController extends NodeController {
      * @api {get} /flows/:root/env Get Env
      * @apiParam {String} root root node name
      * @apiParam {String} [key] env variable name, ex: http://xxxx/flows/xx/env?key=FLOW_GIT_WEBHOOK
+     * @apiParam {Boolean} [editable = true] is get editalbe only variable
      * @apiGroup Flows
      * @apiDescription Get node env by path or name
      *
@@ -212,8 +220,17 @@ public class FlowController extends NodeController {
      */
     @GetMapping(path = "/{root}/env")
     @WebSecurity(action = Actions.FLOW_SHOW)
-    public Map<String, String> getFlowEnv(@RequestParam(required = false) String key) {
-        return super.getEnv(key);
+    public Map<String, String> getFlowEnv(@RequestParam(required = false) String key,
+                                          @RequestParam(required = false, defaultValue = "true") boolean editable) {
+
+        Node flow = nodeService.find(currentNodePath.get()).root();
+        Map<String, String> envs = envService.list(flow, editable);
+
+        if (Strings.isNullOrEmpty(key)) {
+            return envs;
+        }
+
+        return EnvUtil.build(key, envs.get(key));
     }
 
     /**

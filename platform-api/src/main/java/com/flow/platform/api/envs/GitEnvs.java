@@ -89,7 +89,7 @@ public enum GitEnvs implements EnvKey {
 
     private boolean editable;
 
-    private Set<EnvValue> values;
+    private Set<String> values;
 
     /**
      * The default setting
@@ -100,7 +100,7 @@ public enum GitEnvs implements EnvKey {
         this.values = null;
     }
 
-    GitEnvs(boolean readonly, boolean editable, Set<EnvValue> values) {
+    GitEnvs(boolean readonly, boolean editable, Set<String> values) {
         this.readonly = readonly;
         this.editable = editable;
         this.values = values;
@@ -117,7 +117,7 @@ public enum GitEnvs implements EnvKey {
     }
 
     @Override
-    public Set<EnvValue> availableValues() {
+    public Set<String> availableValues() {
         return values;
     }
 }

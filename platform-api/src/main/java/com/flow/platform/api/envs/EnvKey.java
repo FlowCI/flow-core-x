@@ -56,5 +56,5 @@ public interface EnvKey {
     /**
      * Available values, or null for not defined
      */
-    Set<EnvValue> availableValues();
+    Set<String> availableValues();
 }

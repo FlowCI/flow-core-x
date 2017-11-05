@@ -29,9 +29,9 @@ public enum AgentEnvs implements EnvKey {
 
     private boolean editable;
 
-    private Set<EnvValue> values;
+    private Set<String> values;
 
-    AgentEnvs(boolean readonly, boolean editable, Set<EnvValue> values) {
+    AgentEnvs(boolean readonly, boolean editable, Set<String> values) {
         this.readonly = readonly;
         this.editable = editable;
         this.values = values;
@@ -48,7 +48,7 @@ public enum AgentEnvs implements EnvKey {
     }
 
     @Override
-    public Set<EnvValue> availableValues() {
+    public Set<String> availableValues() {
         return values;
     }
 

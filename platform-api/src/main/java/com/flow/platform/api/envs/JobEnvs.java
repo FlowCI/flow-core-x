@@ -35,7 +35,7 @@ public enum JobEnvs implements EnvKey {
 
     private boolean editable;
 
-    private Set<EnvValue> values;
+    private Set<String> values;
 
     JobEnvs() {
         this.readonly = true;
@@ -54,7 +54,7 @@ public enum JobEnvs implements EnvKey {
     }
 
     @Override
-    public Set<EnvValue> availableValues() {
+    public Set<String> availableValues() {
         return values;
     }
 }
