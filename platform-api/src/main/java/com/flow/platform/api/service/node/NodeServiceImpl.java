@@ -259,8 +259,11 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public List<User> authUsers(List<String> emailList, String rootPath) {
-        List<User> users = userDao.list(emailList);
+        if (emailList.isEmpty()) {
+            throw new IllegalParameterException("Email list must be provided");
+        }
 
+        List<User> users = userDao.list(emailList);
         List<String> paths = Lists.newArrayList(rootPath);
 
         Node flow = find(rootPath).root();

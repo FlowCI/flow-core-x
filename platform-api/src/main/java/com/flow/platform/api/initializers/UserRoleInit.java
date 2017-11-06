@@ -24,12 +24,10 @@ import com.flow.platform.api.service.user.ActionService;
 import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
-import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.util.StringUtil;
 import com.google.common.collect.ImmutableList;
 import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,14 +52,8 @@ public class UserRoleInit extends Initializer {
     @Autowired
     private ThreadLocal<User> currentUser;
 
-    @Value(value = "${system.email}")
-    private String email;
-
-    @Value(value = "${system.username}")
-    private String username;
-
-    @Value(value = "${system.password}")
-    private String password;
+    @Autowired
+    private User superUser;
 
     @Override
     public void doStart() {
@@ -86,7 +78,7 @@ public class UserRoleInit extends Initializer {
 
                 try {
                     permissionService.assign(role, ImmutableList.of(action));
-                } catch (FlowException ignore) {
+                } catch (Throwable ignore) {
 
                 }
             }
@@ -95,9 +87,8 @@ public class UserRoleInit extends Initializer {
 
     private void initDefaultAdminUser() {
         try {
-            User admin = new User(email, username, password);
-            userService.register(admin, ImmutableList.of(SysRole.ADMIN.name()), false, Collections.emptyList());
-        } catch (FlowException ignore) {
+            userService.register(superUser, ImmutableList.of(SysRole.ADMIN.name()), false, Collections.emptyList());
+        } catch (Throwable ignore) {
             // ignore existed
         }
     }
@@ -106,7 +97,7 @@ public class UserRoleInit extends Initializer {
         for (Actions systemAction : Actions.values()) {
             try {
                 actionService.create(new Action(systemAction.name()));
-            } catch (FlowException ignore) {
+            } catch (Throwable ignore) {
                 // ignore duplication
             }
         }
@@ -116,7 +107,7 @@ public class UserRoleInit extends Initializer {
         for (SysRole role : SysRole.values()) {
             try {
                 roleService.create(role.name(), "System default role");
-            } catch (FlowException ignore) {
+            } catch (Throwable ignore) {
                 // ignore duplication
             }
         }

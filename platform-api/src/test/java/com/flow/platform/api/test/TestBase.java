@@ -35,15 +35,13 @@ import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.initializers.Initializer;
-import com.flow.platform.api.initializers.UserRoleInit;
-import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
@@ -70,7 +68,6 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -164,14 +161,8 @@ public abstract class TestBase {
     @Autowired
     protected ThreadLocal<User> currentUser;
 
-    @Value(value = "${system.email}")
-    private String email;
-
-    @Value(value = "${system.username}")
-    private String username;
-
-    @Value(value = "${system.password}")
-    private String password;
+    @Autowired
+    private User superUser;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
@@ -195,11 +186,11 @@ public abstract class TestBase {
 
     public void setCurrentUser(User user) {
         if (user == null) {
-            user = userDao.get(email);
+            user = userDao.get(superUser.getEmail());
+
             if (user == null) {
-                User testUser = new User(email, username, password);
-                userDao.save(testUser);
-                currentUser.set(testUser);
+                userDao.save(superUser);
+                currentUser.set(superUser);
             } else {
                 currentUser.set(user);
             }
