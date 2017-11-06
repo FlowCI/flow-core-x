@@ -15,22 +15,27 @@
  */
 package com.flow.platform.api.domain.request;
 
+import com.flow.platform.api.envs.GitToggleEnvs;
+import com.flow.platform.domain.Jsonable;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lhl
  */
 public class TriggerParam {
 
-    private List<String> branchFilter;
+    private List<String> branchFilter = new LinkedList<>();
 
-    private List<String> tagFilter;
+    private List<String> tagFilter = new LinkedList<>();
 
-    private boolean tagEnable;
+    private boolean tagEnable = true;
 
-    private boolean pushEnable;
+    private boolean pushEnable = true;
 
-    private boolean prEnable;
+    private boolean prEnable = true;
 
     public List<String> getBranchFilter() {
         return branchFilter;
@@ -70,5 +75,16 @@ public class TriggerParam {
 
     public void setPrEnable(boolean prEnable) {
         this.prEnable = prEnable;
+    }
+
+    public Map<String, String> toEnv() {
+        HashMap<String, String> env = new HashMap<>();
+        env.put(GitToggleEnvs.FLOW_GIT_PUSH_ENABLED.name(), Boolean.toString(pushEnable));
+        env.put(GitToggleEnvs.FLOW_GIT_TAG_ENABLED.name(), Boolean.toString(tagEnable));
+        env.put(GitToggleEnvs.FLOW_GIT_PR_ENABLED.name(), Boolean.toString(prEnable));
+
+        env.put(GitToggleEnvs.FLOW_GIT_PUSH_FILTER.name(), Jsonable.GSON_CONFIG.toJson(branchFilter));
+        env.put(GitToggleEnvs.FLOW_GIT_TAG_FILTER.name(), Jsonable.GSON_CONFIG.toJson(tagFilter));
+        return env;
     }
 }

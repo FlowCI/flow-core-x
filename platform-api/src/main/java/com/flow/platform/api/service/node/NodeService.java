@@ -18,8 +18,7 @@ package com.flow.platform.api.service.node;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.request.TriggerParam;
+import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.domain.user.User;
 import java.util.Collection;
 import java.util.List;
@@ -44,7 +43,7 @@ public interface NodeService {
      * @param yml raw yml
      * @return root node
      */
-    Node createOrUpdate(String path, String yml);
+    Node createOrUpdateYml(String path, String yml);
 
     /**
      * Find node by node path from yml
@@ -110,6 +109,4 @@ public interface NodeService {
     List<Webhook> listWebhooks();
 
     List<User> authUsers(List<String> emailList, String rootPath);
-
-    Flow updateTrigger(String path, TriggerParam triggerParam);
 }

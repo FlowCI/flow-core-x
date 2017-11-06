@@ -16,14 +16,14 @@
 
 package com.flow.platform.api.test.integration;
 
-import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.util.ObjectWrapper;
-import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +55,7 @@ public class ManualJobTest extends TestBase {
 
         Map<String, String> envs = EnvUtil.build(GitEnvs.FLOW_GIT_BRANCH.name(), "master");
         jobService.createWithYmlLoad(
-            flow.getPath(), GitEventType.MANUAL, envs, currentUser.get(), job -> {
+            flow.getPath(), JobCategory.MANUAL, envs, currentUser.get(), job -> {
                 latch.countDown();
                 wrapper.setInstance(job);
             }

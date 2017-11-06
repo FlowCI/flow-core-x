@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.envs.AgentEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.envs.AgentEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.util.PlatformURL;

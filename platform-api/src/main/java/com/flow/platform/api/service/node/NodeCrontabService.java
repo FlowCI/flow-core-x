@@ -14,33 +14,34 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.git;
+package com.flow.platform.api.service.node;
 
-import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.util.git.GitClient;
-import com.flow.platform.util.git.GitException;
-import java.nio.file.Path;
+import com.flow.platform.core.context.ContextEvent;
+import java.util.List;
+import org.quartz.Trigger;
 
 /**
  * @author yang
  */
-public abstract class GitClientBuilder {
+public interface NodeCrontabService extends ContextEvent {
 
-    protected String url;
+    String KEY_BRANCH = "branch";
 
-    protected String branch;
+    String KEY_NODE_PATH = "node_path";
 
     /**
-     * The folder path for git clone
+     * Set crontab task for node
      */
-    protected Path sourceFolder;
+    void set(Node node);
 
-    public GitClientBuilder(final Node node, final Path sourceFolder) {
-        this.url = node.getEnv(GitEnvs.FLOW_GIT_URL);
-        this.branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH);
-        this.sourceFolder = sourceFolder;
-    }
+    /**
+     * Delete crontab task for node
+     */
+    void delete(Node node);
 
-    public abstract GitClient build() throws GitException;
+    /**
+     * List current triggers
+     */
+    List<Trigger> triggers();
 }

@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.util;
 
-import com.flow.platform.api.domain.envs.EnvKey;
-import com.flow.platform.api.domain.envs.EnvValue;
+import com.flow.platform.api.envs.EnvKey;
+import com.flow.platform.api.envs.EnvValue;
 import com.flow.platform.api.domain.node.Node;
 import com.google.common.base.Strings;
 import java.util.Collection;
@@ -108,5 +108,15 @@ public class EnvUtil {
 
     public static Map<String, String> build(EnvKey key, EnvValue value) {
         return build(key.name(), value.value());
+    }
+
+    public static String get(Map<String, String> source, EnvKey key, String defaultValue) {
+        String value = source.get(key.name());
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        return value;
     }
 }

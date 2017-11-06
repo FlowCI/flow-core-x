@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.envs;
+package com.flow.platform.api.envs;
 
 import com.google.common.base.Strings;
 
@@ -42,8 +42,21 @@ public enum FlowEnvs implements EnvKey {
     /**
      * Defined env variable output prefix
      */
-    FLOW_ENV_OUTPUT_PREFIX;
+    FLOW_ENV_OUTPUT_PREFIX,
 
+    /**
+     * To define crontab content
+     */
+    FLOW_TASK_CRONTAB_CONTENT,
+
+    /**
+     * To define crontab task branch
+     */
+    FLOW_TASK_CRONTAB_BRANCH;
+
+    /**
+     * Value set for FLOW_STATUS
+     */
     public enum StatusValue implements EnvValue {
 
         READY("READY"),
@@ -67,6 +80,9 @@ public enum FlowEnvs implements EnvKey {
         }
     }
 
+    /**
+     * Value set for FLOW_YML_STATUS
+     */
     public enum YmlStatusValue implements EnvValue {
 
         NOT_FOUND("NOT_FOUND"), // init status

@@ -32,21 +32,6 @@ public class Flow extends Node<Step> {
     @Expose
     protected ZonedDateTime updatedAt;
 
-    @Expose
-    protected List<String> branchFilter;
-
-    @Expose
-    protected List<String> tagFilter;
-
-    @Expose
-    protected boolean tagEnable = true;
-
-    @Expose
-    protected boolean pushEnable = true;
-
-    @Expose
-    protected boolean prEnable = true;
-
 
     public Flow(String path, String name) {
         super(path, name);
@@ -87,46 +72,6 @@ public class Flow extends Node<Step> {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public List<String> getBranchFilter() {
-        return branchFilter;
-    }
-
-    public void setBranchFilter(List<String> branchFilter) {
-        this.branchFilter = branchFilter;
-    }
-
-    public List<String> getTagFilter() {
-        return tagFilter;
-    }
-
-    public void setTagFilter(List<String> tagFilter) {
-        this.tagFilter = tagFilter;
-    }
-
-    public boolean isTagEnable() {
-        return tagEnable;
-    }
-
-    public void setTagEnable(boolean tagEnable) {
-        this.tagEnable = tagEnable;
-    }
-
-    public boolean isPushEnable() {
-        return pushEnable;
-    }
-
-    public void setPushEnable(boolean pushEnable) {
-        this.pushEnable = pushEnable;
-    }
-
-    public boolean isPrEnable() {
-        return prEnable;
-    }
-
-    public void setPrEnable(boolean prEnable) {
-        this.prEnable = prEnable;
     }
 
     @YmlSerializer(required = false)

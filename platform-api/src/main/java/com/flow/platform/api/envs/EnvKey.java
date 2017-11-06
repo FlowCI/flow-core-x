@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.envs;
+package com.flow.platform.api.envs;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.Set;

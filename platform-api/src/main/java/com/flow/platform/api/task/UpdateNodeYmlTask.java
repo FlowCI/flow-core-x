@@ -17,8 +17,8 @@
 package com.flow.platform.api.task;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.service.GitService;
@@ -96,7 +96,7 @@ public class UpdateNodeYmlTask implements Runnable {
         }
 
         try {
-            nodeService.createOrUpdate(root.getPath(), yml);
+            nodeService.createOrUpdateYml(root.getPath(), yml);
         } catch (Throwable e) {
             LOGGER.warn("Fail to create or update yml in node: '%s'", ExceptionUtil.findRootCause(e).getMessage());
             onError.accept(e);
