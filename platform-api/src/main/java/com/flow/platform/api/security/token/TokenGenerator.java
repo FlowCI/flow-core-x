@@ -17,7 +17,6 @@
 package com.flow.platform.api.security.token;
 
 import io.jsonwebtoken.Claims;
-import java.util.Date;
 
 /**
  * @author yang

@@ -35,18 +35,17 @@ import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.initializers.Initializer;
-import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
+import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.util.git.model.GitSource;
@@ -69,7 +68,6 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -128,10 +126,10 @@ public abstract class TestBase {
     protected NodeService nodeService;
 
     @Autowired
-    protected JobService jobService;
+    protected EnvService envService;
 
     @Autowired
-    protected CmdService cmdService;
+    protected JobService jobService;
 
     @Autowired
     protected NodeResultService nodeResultService;
@@ -163,14 +161,8 @@ public abstract class TestBase {
     @Autowired
     protected ThreadLocal<User> currentUser;
 
-    @Value(value = "${system.email}")
-    private String email;
-
-    @Value(value = "${system.username}")
-    private String username;
-
-    @Value(value = "${system.password}")
-    private String password;
+    @Autowired
+    private User superUser;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
@@ -188,16 +180,25 @@ public abstract class TestBase {
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         WORKSPACE = workspace;
-
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
-        User user = userDao.get(email);
+        setCurrentUser(null);
+    }
+
+    public void setCurrentUser(User user) {
         if (user == null) {
-            User testUser = new User(email, username, password);
-            userDao.save(testUser);
-            currentUser.set(testUser);
-        } else {
-            currentUser.set(user);
+            user = userDao.get(superUser.getEmail());
+
+            if (user == null) {
+                userDao.save(superUser);
+                currentUser.set(superUser);
+            } else {
+                currentUser.set(user);
+            }
+
+            return;
         }
+
+        currentUser.set(user);
     }
 
     public String getResourceContent(String fileName) throws IOException {
@@ -208,27 +209,27 @@ public abstract class TestBase {
     }
 
     public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
-        Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+        Node emptyFlow = nodeService.createEmptyFlow(flowName);
         setFlowToReady(emptyFlow);
         String yml = getResourceContent(ymlResourceName);
         setRequiredJobEnvsForFlow(emptyFlow);
         return nodeService.createOrUpdateYml(emptyFlow.getPath(), yml);
     }
 
-    public void setFlowToReady(Flow flowNode) {
+    public void setFlowToReady(Node flowNode) {
         Map<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.StatusValue.READY.value());
-        nodeService.addFlowEnv(flowNode, envs);
+        envService.save(flowNode, envs, false);
     }
 
-    public void setRequiredJobEnvsForFlow(Flow flow) throws IOException {
+    public void setRequiredJobEnvsForFlow(Node flow) throws IOException {
         HashMap<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), StatusValue.READY.value());
         envs.put(FlowEnvs.FLOW_YML_STATUS.name(), YmlStatusValue.FOUND.value());
         envs.put(GitEnvs.FLOW_GIT_URL.name(), TestBase.GITHUB_TEST_REPO_SSH);
         envs.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         envs.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        nodeService.addFlowEnv(flow, envs);
+        envService.save(flow, envs, false);
     }
 
     public void stubDemo() {

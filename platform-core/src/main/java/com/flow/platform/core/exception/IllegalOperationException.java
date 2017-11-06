@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.user.User;
-import com.flow.platform.core.exception.NotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+package com.flow.platform.core.exception;
 
 /**
- * @author lhl
+ * @author yang
  */
+public class IllegalOperationException extends FlowException {
 
-public abstract class CurrentUser {
+    public IllegalOperationException(String description, Throwable e) {
+        super(description, e);
+    }
 
-    @Autowired
-    private ThreadLocal<User> currentUser;
-
-    public User currentUser() {
-        if (currentUser.get() == null) {
-            throw new NotFoundException("Current user not found");
-        }
-        return currentUser.get();
+    public IllegalOperationException(String message) {
+        super(message);
     }
 }

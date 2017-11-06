@@ -17,7 +17,7 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.dao.FlowDao;
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.test.TestBase;
 import com.google.common.collect.Sets;
 import java.time.ZonedDateTime;
@@ -35,11 +35,11 @@ public class FlowDaoTest extends TestBase {
     @Autowired
     private FlowDao flowDao;
 
-    private Flow flow;
+    private Node flow;
 
     @Before
     public void before() {
-        flow = new Flow("/flow", "flow");
+        flow = new Node("/flow", "flow");
         flow.setCreatedAt(ZonedDateTime.now());
         flow.setUpdatedAt(ZonedDateTime.now());
         flow.setCreatedBy("admin@flow.ci");
@@ -48,14 +48,14 @@ public class FlowDaoTest extends TestBase {
 
     @Test
     public void should_list_success(){
-        List<Flow> flows = flowDao.list();
+        List<Node> flows = flowDao.list();
         Assert.assertEquals(1, flows.size());
         Assert.assertEquals(flow, flows.get(0));
     }
 
     @Test
     public void should_save_and_get_success(){
-        Flow flowCp = flowDao.get(flow.getPath());
+        Node flowCp = flowDao.get(flow.getPath());
         Assert.assertNotNull(flowCp);
 
         Assert.assertEquals(flow, flowCp);
@@ -70,7 +70,7 @@ public class FlowDaoTest extends TestBase {
         flowDao.update(flow);
         Assert.assertEquals(1, flowDao.list().size());
 
-        Flow flowCp = flowDao.get(flow.getPath());
+        Node flowCp = flowDao.get(flow.getPath());
         Assert.assertEquals(flow.getName(), flowCp.getName());
     }
 
@@ -79,7 +79,7 @@ public class FlowDaoTest extends TestBase {
         Assert.assertEquals(1, flowDao.list().size());
         flowDao.delete(flow);
 
-        Flow flowCp = flowDao.get(flow.getPath());
+        Node flowCp = flowDao.get(flow.getPath());
         Assert.assertEquals(null, flowCp);
         Assert.assertEquals(0, flowDao.list().size());
     }

@@ -11,32 +11,17 @@ import java.util.List;
 public interface UserDao extends BaseDao<String, User> {
 
     /**
-     * Verify email is exist
+     * Count total num of
      */
-    Boolean emailIsExist(String email);
+    Long count();
 
     /**
-     * Verify username is exist
+     * Find user by username
      */
-    Boolean usernameIsExist(String username);
-
-    /**
-     * Verify password of email
-     */
-    Boolean passwordOfEmailIsTrue(String email, String password);
-
-    /**
-     * Verify password of username
-     */
-    Boolean passwordOfUsernameIsTrue(String username, String password);
-
-    /**
-     * Get email(PRIMARY_KEY) by a "where" condition
-     */
-    String getEmailBy(String whereWhatFieldName, String whereWhatFieldValue);
+    User getByUsername(String username);
 
     /**
      * Delete a group users through email
      */
-    void deleteList(List<String> emailList);
+    void delete(List<String> emailList);
 }

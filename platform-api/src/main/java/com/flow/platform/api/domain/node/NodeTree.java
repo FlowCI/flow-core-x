@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.domain.node;
 
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.cache.Cache;

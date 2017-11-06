@@ -22,7 +22,7 @@ import com.flow.platform.api.git.GitClientBuilder;
 import com.flow.platform.api.git.GitHttpClientBuilder;
 import com.flow.platform.api.git.GitLabClientBuilder;
 import com.flow.platform.api.git.GitSshClientBuilder;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;

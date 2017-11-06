@@ -21,15 +21,33 @@ import java.util.Set;
 /**
  * @author yang
  */
-public enum JobEnvs implements EnvKey {
+public enum GitToggleEnvs implements EnvKey {
 
-    FLOW_JOB_BUILD_NUMBER,
+    /**
+     * Enable or disable receive GIT PUSH event, value should be BOOLEAN
+     */
+    FLOW_GIT_PUSH_ENABLED(false, false, VALUES_BOOLEAN),
 
-    FLOW_JOB_BUILD_CATEGORY,
+    /**
+     * Git push RE filter wish json format, ex: ["feature/api/*", "master"]
+     */
+    FLOW_GIT_PUSH_FILTER(false, false, null),
 
-    FLOW_JOB_AGENT_INFO,
+    /**
+     * Enable or disable receive GIT TAG event, value should be BOOLEAN
+     */
+    FLOW_GIT_TAG_ENABLED(false, false, VALUES_BOOLEAN),
 
-    FLOW_JOB_LOG_PATH;
+
+    /**
+     * Git push RE filter wish json format, ex: ["v1.0", "v2.0"]
+     */
+    FLOW_GIT_TAG_FILTER(false, false, null),
+
+    /**
+     * Enable or disable receive GIT PR event, value should be BOOLEAN
+     */
+    FLOW_GIT_PR_ENABLED(false, false, VALUES_BOOLEAN);
 
     private boolean readonly;
 
@@ -37,10 +55,10 @@ public enum JobEnvs implements EnvKey {
 
     private Set<String> values;
 
-    JobEnvs() {
-        this.readonly = true;
-        this.editable = false;
-        this.values = null;
+    GitToggleEnvs(boolean readonly, boolean editable, Set<String> values) {
+        this.readonly = readonly;
+        this.editable = editable;
+        this.values = values;
     }
 
     @Override
@@ -57,4 +75,6 @@ public enum JobEnvs implements EnvKey {
     public Set<String> availableValues() {
         return values;
     }
+
+
 }

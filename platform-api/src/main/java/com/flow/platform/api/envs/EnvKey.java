@@ -24,6 +24,8 @@ import java.util.Set;
  */
 public interface EnvKey {
 
+    Set<String> VALUES_BOOLEAN = ImmutableSet.of("true", "false");
+
     /**
      * The env variable should write to root node result output
      */
@@ -42,4 +44,19 @@ public interface EnvKey {
     );
 
     String name();
+
+    /**
+     * Is readonly for user
+     */
+    boolean isReadonly();
+
+    /**
+     * Is editable from property UI
+     */
+    boolean isEditable();
+
+    /**
+     * Available values, or null for not defined
+     */
+    Set<String> availableValues();
 }

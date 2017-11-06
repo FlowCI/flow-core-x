@@ -83,6 +83,20 @@ public class AppConfig extends AppConfigBase {
     @Value("${domain.cc}")
     private String ccDomain;
 
+    @Value(value = "${system.email}")
+    private String email;
+
+    @Value(value = "${system.username}")
+    private String username;
+
+    @Value(value = "${system.password}")
+    private String password;
+
+    @Bean
+    public User superUser() {
+        return new User(email, username, password);
+    }
+
     @Bean
     public Path workspace() {
         try {

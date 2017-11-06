@@ -18,7 +18,7 @@ package com.flow.platform.api.service.user;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserFlowDao;
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.domain.user.UserFlow;
 import com.flow.platform.api.domain.user.UserFlowKey;
@@ -55,7 +55,7 @@ public class UserFlowServiceImpl extends CurrentUser implements UserFlowService 
     }
 
     @Override
-    public List<Flow> list(User user) {
+    public List<Node> list(User user) {
         List<String> flowPaths = userFlowDao.listByEmail(user.getEmail());
         if (flowPaths.isEmpty()) {
             return new ArrayList<>(0);
@@ -64,7 +64,7 @@ public class UserFlowServiceImpl extends CurrentUser implements UserFlowService 
     }
 
     @Override
-    public void assign(User user, Flow flow) {
+    public void assign(User user, Node flow) {
         UserFlow userFlow = new UserFlow(flow.getPath(), user.getEmail());
         userFlow.setCreatedBy(currentUser().getEmail());
         userFlowDao.save(userFlow);
@@ -76,12 +76,12 @@ public class UserFlowServiceImpl extends CurrentUser implements UserFlowService 
     }
 
     @Override
-    public void unAssign(Flow flow) {
+    public void unAssign(Node flow) {
         userFlowDao.deleteByFlowPath(flow.getPath());
     }
 
     @Override
-    public void unAssign(User user, Flow flow) {
+    public void unAssign(User user, Node flow) {
         UserFlow userFlow = userFlowDao.get(new UserFlowKey(flow.getPath(), user.getEmail()));
         if (userFlow != null) {
             userFlowDao.delete(userFlow);

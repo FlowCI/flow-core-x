@@ -19,11 +19,12 @@ package com.flow.platform.api.test.integration;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.request.TriggerParam;
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
+import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.api.domain.job.Job;
@@ -32,10 +33,12 @@ import com.flow.platform.api.git.GitWebhookTriggerFinishEvent;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitSource;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.HashMap;
@@ -78,15 +81,45 @@ public class GitWebhookTest extends TestBase {
         stubDemo();
     }
 
+    @Test(expected = NotFoundException.class)
+    public void should_not_create_job_if_push_trigger_disabled() throws Throwable {
+        // given: init flow and disable push
+        Node flow = init_flow(GITHUB_TEST_REPO_SSH);
+
+        TriggerParam trigger = new TriggerParam();
+        trigger.setPushEnable(false);
+        envService.save(flow, trigger.toEnv(), false);
+
+        // when: mock trigger from GitHub
+        mockMvc.perform(createGitHubPushRequest(flowName, "github/push_payload.json"))
+            .andExpect(status().isOk());
+
+        // then: job should not created
+        jobService.find(flow.getPath(), 0);
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void should_not_create_job_with_push_filter() throws Throwable {
+        // given: init flow and set push filter
+        Node flow = init_flow(GITHUB_TEST_REPO_SSH);
+
+        TriggerParam trigger = new TriggerParam();
+        trigger.setBranchFilter(ImmutableList.of(".*"));
+        envService.save(flow, trigger.toEnv(), false);
+        Assert.assertNotNull(flow.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER));
+
+        // when: mock trigger from GitHub
+        mockMvc.perform(createGitHubPushRequest(flowName, "github/push_payload.json"))
+            .andExpect(status().isOk());
+
+        // then: job should not created
+        jobService.find(flow.getPath(), 0);
+    }
+
     @Test
     public void should_create_job_after_github_push_webhook_trigger() throws Throwable {
         init_flow(GITHUB_TEST_REPO_SSH);
-
-        MockHttpServletRequestBuilder push = post("/hooks/git/" + flowName)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(getResourceContent("github/push_payload.json"))
-            .header("x-github-event", "push")
-            .header("x-github-delivery", "29087180-8177-11e7-83a4-3b68852f0c9e");
+        MockHttpServletRequestBuilder push = createGitHubPushRequest(flowName, "github/push_payload.json");
 
         Job job = mock_trigger_from_git(push);
         job = jobDao.get(job.getId());
@@ -246,13 +279,21 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals("Update README.md 1123", job.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
     }
 
-    private void init_flow(String gitUrl) throws Throwable {
+    private MockHttpServletRequestBuilder createGitHubPushRequest(String flowName, String pathOfPayload) throws IOException {
+        return post("/hooks/git/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getResourceContent(pathOfPayload))
+            .header("x-github-event", "push")
+            .header("x-github-delivery", "29087180-8177-11e7-83a4-3b68852f0c9e");
+    }
+
+    private Node init_flow(String gitUrl) throws Throwable {
         // create empty flow
-        Flow flow = nodeService.createEmptyFlow(flowName);
+        Node flow = nodeService.createEmptyFlow(flowName);
         setFlowToReady(flow);
 
         // setup yml
-        flow = (Flow) nodeService.createOrUpdateYml(flow.getPath(), getResourceContent("for_git_webhook_test.yml"));
+        flow = nodeService.createOrUpdateYml(flow.getPath(), getResourceContent("for_git_webhook_test.yml"));
 
         // set flow git related env
         Map<String, String> env = new HashMap<>();
@@ -260,13 +301,15 @@ public class GitWebhookTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_URL.name(), gitUrl);
         env.put(GitEnvs.FLOW_GIT_BRANCH.name(), "develop");
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        nodeService.addFlowEnv(flow, env);
+        envService.save(flow, env, false);
 
-        Node loaded = nodeService.find(flowPath);
+        Node loaded = nodeService.find(flowPath).root();
 
         Assert.assertNotNull(loaded);
         Assert.assertEquals(7, loaded.getEnvs().size());
         Assert.assertEquals(FlowEnvs.YmlStatusValue.FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
+
+        return loaded;
     }
 
     private Job mock_trigger_from_git(RequestBuilder push) throws Throwable {
@@ -287,7 +330,7 @@ public class GitWebhookTest extends TestBase {
         springContext.removeApplicationListener(listener);
 
         // verify yml is updated
-        Node root = nodeService.find(flowPath);
+        Node root = nodeService.find(flowPath).root();
         Assert.assertNotNull(ymlService.get(root).getFile());
 
         // verify job is created
@@ -296,7 +339,7 @@ public class GitWebhookTest extends TestBase {
         Assert.assertEquals(1, created.getNumber().intValue());
 
         // verify flow node yml status
-        Node flowNode = nodeService.find(created.getNodePath());
+        Node flowNode = nodeService.find(created.getNodePath()).root();
         Assert.assertEquals(YmlStatusValue.FOUND.value(), flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         return created;

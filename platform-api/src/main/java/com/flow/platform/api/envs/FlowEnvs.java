@@ -17,6 +17,8 @@
 package com.flow.platform.api.envs;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
+import java.util.Set;
 
 /**
  * @author yang
@@ -26,33 +28,69 @@ public enum FlowEnvs implements EnvKey {
     /**
      * Indicate flow is configured for git
      */
-    FLOW_STATUS,
+    FLOW_STATUS(true, false, ImmutableSet.of(StatusValue.PENDING.value(), StatusValue.READY.value())),
 
     /**
      * Indicate flow yml loading, ready
      */
-    FLOW_YML_STATUS,
+    FLOW_YML_STATUS(true, false, ImmutableSet.of(
+        YmlStatusValue.ERROR.value(),
+        YmlStatusValue.FOUND.value(),
+        YmlStatusValue.GIT_CONNECTING.value(),
+        YmlStatusValue.GIT_LOADED.value(),
+        YmlStatusValue.GIT_LOADED.value(),
+        YmlStatusValue.GIT_LOADING.value(),
+        YmlStatusValue.NOT_FOUND.value())
+    ),
 
     /**
      * For yml error message while loading yml from git
      */
-    FLOW_YML_ERROR_MSG,
+    FLOW_YML_ERROR_MSG(true, false, null),
 
 
     /**
      * Defined env variable output prefix
      */
-    FLOW_ENV_OUTPUT_PREFIX,
+    FLOW_ENV_OUTPUT_PREFIX(false, true, null),
 
     /**
      * To define crontab content
      */
-    FLOW_TASK_CRONTAB_CONTENT,
+    FLOW_TASK_CRONTAB_CONTENT(false, false, null),
 
     /**
      * To define crontab task branch
      */
-    FLOW_TASK_CRONTAB_BRANCH;
+    FLOW_TASK_CRONTAB_BRANCH(false, false, null);
+
+    private boolean readonly;
+
+    private boolean editable;
+
+    private Set<String> values;
+
+    FlowEnvs(boolean readonly, boolean editable, Set<String> values) {
+        this.readonly = readonly;
+        this.editable = editable;
+        this.values = values;
+    }
+
+    @Override
+    public boolean isReadonly() {
+        return readonly;
+    }
+
+    @Override
+    public boolean isEditable() {
+        return editable;
+    }
+
+    @Override
+    public Set<String> availableValues() {
+        return values;
+    }
+
 
     /**
      * Value set for FLOW_STATUS

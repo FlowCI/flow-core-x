@@ -17,18 +17,16 @@
 package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.dao.job.NodeResultDao;
-import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
-import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.envs.EnvKey;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.events.NodeStatusChangeEvent;
-import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.service.ApplicationEventService;
@@ -199,8 +197,10 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
             nodeResult.setCmdId(createAgentCmdId(nodeResult));
         }
 
+        boolean isRootNode = nodeTree.root().equals(node);
+
         nodeResult.setName(node.getName());
-        nodeResult.setNodeTag(node instanceof Flow ? NodeTag.FLOW : NodeTag.STEP);
+        nodeResult.setNodeTag(isRootNode ? NodeTag.FLOW : NodeTag.STEP);
         return nodeResult;
     }
 
@@ -215,10 +215,7 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
     }
 
     private NodeStatus updateCurrent(Node current, NodeResult currentResult, Cmd cmd, String errorMsg) {
-        boolean isAllowFailure = false;
-        if (current instanceof Step) {
-            isAllowFailure = ((Step) current).getAllowFailure();
-        }
+        boolean isAllowFailure = current.getAllowFailure();
 
         NodeStatus originStatus = currentResult.getStatus();
         NodeStatus newStatus = NodeStatus.transfer(cmd, isAllowFailure);
@@ -309,13 +306,12 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
         // update parent status if current on failure and it is not allow failure
         if (result.isFailure()) {
-            if (current instanceof Step) {
+            if (result.getNodeTag() == NodeTag.STEP) {
                 if (current.getNext() == null) {
                     return true;
                 }
 
-                Step step = (Step) current;
-                if (!step.getAllowFailure()) {
+                if (!current.getAllowFailure()) {
                     return true;
                 }
             }

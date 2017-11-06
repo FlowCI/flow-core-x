@@ -16,13 +16,12 @@
 
 package com.flow.platform.api.service.node;
 
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.UserService;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
@@ -71,8 +70,8 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
 
     @PostConstruct
     public void initCrontabTask() {
-        List<Flow> flows = nodeService.listFlows();
-        for (Flow flow : flows) {
+        List<Node> flows = nodeService.listFlows(false);
+        for (Node flow : flows) {
             try {
                 set(flow);
             } catch (Throwable ignore) {

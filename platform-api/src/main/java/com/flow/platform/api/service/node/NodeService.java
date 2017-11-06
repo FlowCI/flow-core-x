@@ -15,9 +15,9 @@
  */
 package com.flow.platform.api.service.node;
 
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.domain.user.User;
 import java.util.Collection;
@@ -50,12 +50,7 @@ public interface NodeService {
      *
      * @return node from path or null if not found
      */
-    Node find(String path);
-
-    /**
-     * Find root flow node by path
-     */
-    Flow findFlow(String path);
+    NodeTree find(String path);
 
     /**
      * Delete root node
@@ -76,17 +71,7 @@ public interface NodeService {
      * - FLOW_GIT_WEBHOOK will be created in env
      * - FLOW_YML_STATUS will be set to NOT_FOUND
      */
-    Flow createEmptyFlow(String flowName);
-
-    /**
-     * Merge new env to flow node evn and sync to yml
-     */
-    Flow addFlowEnv(Flow flow, Map<String, String> envs);
-
-    /**
-     * Delete flow env
-     */
-    Flow delFlowEnv(Flow flow, Set<String> keys);
+    Node createEmptyFlow(String flowName);
 
     /**
      * To update FLOW_YML_STATUS and FLOW_YML_ERROR_MSG
@@ -95,13 +80,10 @@ public interface NodeService {
 
     /**
      * list current flows with path, name, created at and updated at
+     *
+     * @param isOnlyCurrentUser load flow only for current user
      */
-    List<Flow> listFlows();
-
-    /**
-     * List flow path by created by user
-     */
-    List<String> listFlowPathByUser(Collection<String> createdByList);
+    List<Node> listFlows(boolean isOnlyCurrentUser);
 
     /**
      * List webhooks for all flow

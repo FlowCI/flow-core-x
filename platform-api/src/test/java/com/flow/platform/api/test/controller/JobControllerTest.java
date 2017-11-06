@@ -42,7 +42,7 @@ import org.springframework.test.web.servlet.MvcResult;
 /**
  * @author yh@firim
  */
-public class JobControllerTest extends TestBase {
+public class JobControllerTest extends ControllerTestWithoutAuth {
 
     @Autowired
     private Path workspace;

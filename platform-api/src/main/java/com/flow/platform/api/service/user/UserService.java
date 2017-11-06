@@ -1,10 +1,7 @@
 package com.flow.platform.api.service.user;
 
-import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.response.LoginResponse;
 import com.flow.platform.api.domain.user.User;
-
-import io.jsonwebtoken.Claims;
 import java.util.List;
 
 /**
@@ -22,14 +19,15 @@ public interface UserService {
      */
     User findByEmail(String email);
 
+    /**
+     * Find user by token
+     */
     User findByToken(String token);
-
-    Claims extractToken(String token);
 
     /**
      * Login
      */
-    LoginResponse login(LoginParam loginForm);
+    LoginResponse login(String emailOrUsername, String rawPassword);
 
     /**
      * Register user to roles

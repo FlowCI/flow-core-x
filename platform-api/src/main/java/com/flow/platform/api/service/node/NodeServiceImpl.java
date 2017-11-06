@@ -19,27 +19,25 @@ import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.Webhook;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.envs.handler.EnvHandler;
+import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
-import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
@@ -47,14 +45,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.regex.Pattern;
-import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
@@ -99,27 +91,12 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Autowired
     private RoleService roleService;
 
-    @Autowired
-    private SpringContext springContext;
-
     @Value(value = "${domain.api}")
     private String apiDomain;
 
-    private final Map<String, EnvHandler> envHandlerMap = new HashMap<>(5);
-
-    @PostConstruct
-    public void init() {
-        // init env handler into map
-        String[] beanNameByType = springContext.getBeanNameByType(EnvHandler.class);
-        for (String bean : beanNameByType) {
-            EnvHandler envHandler = (EnvHandler) springContext.getBean(bean);
-            envHandlerMap.put(envHandler.env().name(), envHandler);
-        }
-    }
-
     @Override
     public Node createOrUpdateYml(final String path, String yml) {
-        final Flow flow = findFlow(PathUtil.rootPath(path));
+        final Node flow = find(PathUtil.rootPath(path)).root();
 
         if (Strings.isNullOrEmpty(yml)) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.NOT_FOUND, null);
@@ -146,18 +123,18 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         getTreeCache().evict(flow.getPath());
 
         //retry find flow
-        return findFlow(PathUtil.rootPath(path));
+        return find(PathUtil.rootPath(path)).root();
     }
 
     @Override
-    public Node find(final String path) {
+    public NodeTree find(final String path) {
         final String rootPath = PathUtil.rootPath(path);
 
         // load tree from tree cache
         NodeTree tree = getTreeCache().get(rootPath, () -> {
 
             Yml ymlStorage = ymlDao.get(rootPath);
-            Flow flow = flowDao.get(path);
+            Node flow = flowDao.get(path);
 
             // has related yml
             if (ymlStorage != null) {
@@ -178,34 +155,13 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             return null;
         }
 
-        return tree.find(path);
-    }
-
-    /**
-     * Find flow by path
-     *
-     * @param path flow path
-     * @return Flow object
-     * @throws IllegalParameterException if node path not exist or path is not for flow
-     */
-    @Override
-    public Flow findFlow(String path) {
-        Node node = find(path);
-        if (node == null) {
-            throw new IllegalParameterException("The flow path doesn't exist");
-        }
-
-        if (!(node instanceof Flow)) {
-            throw new IllegalParameterException("The path is not for flow");
-        }
-
-        return (Flow) node;
+        return tree;
     }
 
     @Override
     public Node delete(String path) {
         String rootPath = PathUtil.rootPath(path);
-        Flow flow = findFlow(rootPath);
+        Node flow = find(rootPath).root();
 
         // delete related userAuth
         userFlowService.unAssign(flow);
@@ -226,7 +182,6 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
         // stop yml loading tasks
         ymlService.stopLoadYmlContent(flow);
-
         return flow;
     }
 
@@ -236,8 +191,8 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
-    public Flow createEmptyFlow(final String flowName) {
-        Flow flow = new Flow(PathUtil.build(flowName), flowName);
+    public Node createEmptyFlow(final String flowName) {
+        Node flow = new Node(PathUtil.build(flowName), flowName);
         getTreeCache().evict(flow.getPath());
 
         if (!checkFlowName(flow.getName())) {
@@ -248,50 +203,20 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             throw new IllegalParameterException("Flow name already existed");
         }
 
-        flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
+        // init env variables
         flow.putEnv(FlowEnvs.FLOW_STATUS, StatusValue.PENDING);
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND);
+        flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_PUSH_ENABLED, "true");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER, "[]");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_TAG_ENABLED, "true");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER, "[]");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_PR_ENABLED, "true");
+
         flow.setCreatedBy(currentUser().getEmail());
         flow = flowDao.save(flow);
 
         userFlowService.assign(currentUser(), flow);
-        return flow;
-    }
-
-    @Override
-    public Flow addFlowEnv(Flow flow, Map<String, String> envs) {
-        EnvUtil.merge(envs, flow.getEnvs(), true);
-
-        // handle envs before save
-        for (Map.Entry<String, String> entry : flow.getEnvs().entrySet()) {
-            EnvHandler envHandler = envHandlerMap.get(entry.getKey());
-            if (envHandler != null) {
-                envHandler.handle(flow);
-            }
-        }
-
-        // sync latest env into flow table
-        flowDao.update(flow);
-        return flow;
-    }
-
-    @Override
-    public Flow delFlowEnv(Flow flow, Set<String> keys) {
-        // handle envs before delete
-        for (String env : keys) {
-            EnvHandler envHandler = envHandlerMap.get(env);
-            if (envHandler != null && flow.getEnvs().containsKey(env)) {
-                envHandler.unHandle(flow);
-            }
-        }
-
-        // remove env
-        for (String keyToRemove : keys) {
-            flow.removeEnv(keyToRemove);
-        }
-
-        // sync latest env into flow table
-        flowDao.update(flow);
         return flow;
     }
 
@@ -305,31 +230,28 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             root.removeEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
         }
 
-        flowDao.update((Flow) root);
+        flowDao.update(root);
     }
 
     @Override
-    public List<Flow> listFlows() {
+    public List<Node> listFlows(boolean isOnlyCurrentUser) {
+        if (!isOnlyCurrentUser) {
+            return flowDao.list();
+        }
+
         List<Role> roles = roleService.list(currentUser());
         if (roles.contains(roleService.find(SysRole.ADMIN.name()))) {
             return flowDao.list();
         } else {
             return userFlowService.list(currentUser());
         }
-
-
-    }
-
-    @Override
-    public List<String> listFlowPathByUser(Collection<String> createdByList) {
-        return flowDao.pathList(createdByList);
     }
 
     @Override
     public List<Webhook> listWebhooks() {
-        List<Flow> flows = listFlows();
+        List<Node> flows = listFlows(false);
         List<Webhook> hooks = new ArrayList<>(flows.size());
-        for (Flow flow : flows) {
+        for (Node flow : flows) {
             hooks.add(new Webhook(flow.getPath(), hooksUrl(flow)));
         }
         return hooks;
@@ -337,11 +259,14 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public List<User> authUsers(List<String> emailList, String rootPath) {
-        List<User> users = userDao.list(emailList);
+        if (emailList.isEmpty()) {
+            throw new IllegalParameterException("Email list must be provided");
+        }
 
+        List<User> users = userDao.list(emailList);
         List<String> paths = Lists.newArrayList(rootPath);
 
-        Flow flow = findFlow(rootPath);
+        Node flow = find(rootPath).root();
         for (User user : users) {
             userFlowService.unAssign(user, flow);
             userFlowService.assign(user, flow);
@@ -351,7 +276,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         return users;
     }
 
-    private String hooksUrl(final Flow flow) {
+    private String hooksUrl(final Node flow) {
         return HttpURL.build(apiDomain).append("/hooks/git/").append(flow.getName()).toString();
     }
 

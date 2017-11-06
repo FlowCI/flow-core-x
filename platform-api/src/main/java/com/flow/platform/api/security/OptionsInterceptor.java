@@ -15,12 +15,6 @@
  */
 package com.flow.platform.api.security;
 
-import static com.flow.platform.api.security.AuthenticationInterceptor.TOKEN_HEADER_PARAM;
-
-import com.flow.platform.api.domain.user.User;
-import com.flow.platform.api.exception.AuthenticationException;
-import com.flow.platform.api.service.user.UserService;
-import com.google.common.base.Strings;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -34,10 +28,11 @@ public class OptionsInterceptor  extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws Exception {
         response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Methods", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS, PUT, DELETE");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Headers",
             "Origin, X-Requested-With, Content-Type, Accept, X-Authorization, Authenticate, Library");
+
         if (request.getMethod().equals(RequestMethod.OPTIONS.name())) {
             return false;
         }

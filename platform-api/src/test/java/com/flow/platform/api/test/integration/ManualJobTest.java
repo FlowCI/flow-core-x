@@ -19,10 +19,10 @@ package com.flow.platform.api.test.integration;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitSource;
 import java.util.HashMap;
@@ -40,14 +40,14 @@ public class ManualJobTest extends TestBase {
     @Test
     public void should_manual_create_job_with_failure_since_unable_to_create_session() throws Throwable {
         // given: flow
-        Flow flow = nodeService.createEmptyFlow("manual_flow_test");
+        Node flow = nodeService.createEmptyFlow("manual_flow_test");
         setFlowToReady(flow);
 
         Map<String, String> env = new HashMap<>();
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        nodeService.addFlowEnv(flow, env);
+        envService.save(flow, env, false);
 
         // when: manual start job
         CountDownLatch latch = new CountDownLatch(1);

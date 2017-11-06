@@ -21,17 +21,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.job.JobCategory;
-import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
-import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -39,7 +37,6 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.git.model.GitEventType;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.google.common.collect.Lists;
 import java.io.IOException;
@@ -65,7 +62,7 @@ public class JobServiceTest extends TestBase {
 
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
-        Flow rootForFlow = nodeService.createEmptyFlow("flow1");
+        Node rootForFlow = nodeService.createEmptyFlow("flow1");
         jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
     }
 
@@ -94,10 +91,11 @@ public class JobServiceTest extends TestBase {
         Assert.assertNotNull(job.getEnv("FLOW_WORKSPACE"));
         Assert.assertNotNull(job.getEnv("FLOW_VERSION"));
 
-        Step step1 = (Step) nodeService.find("flow1/step1");
-        Step step2 = (Step) nodeService.find("flow1/step2");
-        Step step3 = (Step) nodeService.find("flow1/step3");
-        Flow flow = (Flow) nodeService.find(job.getNodePath());
+        NodeTree nodeTree = nodeService.find("flow1");
+        Node step1 = nodeTree.find("flow1/step1");
+        Node step2 = nodeTree.find("flow1/step2");
+        Node step3 = nodeTree.find("flow1/step3");
+        Node flow = nodeTree.root();
 
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId("11111111");
