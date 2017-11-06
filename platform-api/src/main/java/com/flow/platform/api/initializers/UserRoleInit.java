@@ -87,7 +87,7 @@ public class UserRoleInit extends Initializer {
             String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
             User sysUser = new User(email, username, passwordForMD5);
             sysUser.setCreatedBy("system created");
-            userDao.save(sysUser);
+            user = userDao.save(sysUser);
         }
 
         // create sys roleAdmin
@@ -103,7 +103,7 @@ public class UserRoleInit extends Initializer {
         if (roleUser == null) {
             Role sysRoleUser = new Role(SysRole.USER.name(), "create default role for user");
             sysRoleUser.setCreatedBy("system created");
-            roleDao.save(sysRoleUser);
+            roleUser = roleDao.save(sysRoleUser);
         }
 
         // create sys user_role relation
@@ -113,6 +113,7 @@ public class UserRoleInit extends Initializer {
         if (userRole == null) {
             currentUser.set(sysUser);
             roleService.assign(sysUser, role);
+            userRole = userRoleDao.get(new UserRoleKey(role.getId(), sysUser.getEmail()));
         }
 
         // create sys action
