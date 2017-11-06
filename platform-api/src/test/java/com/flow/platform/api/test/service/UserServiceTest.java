@@ -4,6 +4,7 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.request.LoginParam;
+import com.flow.platform.api.domain.response.LoginResponse;
 import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.node.NodeService;
@@ -88,11 +89,11 @@ public class UserServiceTest extends TestBase {
         LoginParam loginForm = new LoginParam();
         loginForm.setEmailOrUsername("liangpengyv@fir.im");
         loginForm.setPassword("liangpengyv");
-        String msg = userService.login(loginForm);
-        Assert.assertTrue(msg.length() > 20);
+        LoginResponse msg = userService.login(loginForm);
+        Assert.assertTrue(msg.getToken().length() > 20);
 
         loginForm.setEmailOrUsername("liangpengyv");
-        Assert.assertTrue(msg.length() > 20);
+        Assert.assertTrue(msg.getToken().length() > 20);
     }
 
     @Test

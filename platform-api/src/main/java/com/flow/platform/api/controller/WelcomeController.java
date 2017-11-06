@@ -180,7 +180,7 @@ public class WelcomeController {
     }
 
     @RequestMapping("/403")
-    public String forbidden(){
+    public String forbidden() {
         return "403";
     }
 }

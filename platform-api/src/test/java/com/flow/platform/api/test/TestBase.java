@@ -14,9 +14,6 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -72,6 +69,7 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -165,6 +163,15 @@ public abstract class TestBase {
     @Autowired
     protected ThreadLocal<User> currentUser;
 
+    @Value(value = "${system.email}")
+    private String email;
+
+    @Value(value = "${system.username}")
+    private String username;
+
+    @Value(value = "${system.password}")
+    private String password;
+
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
@@ -183,9 +190,9 @@ public abstract class TestBase {
         WORKSPACE = workspace;
 
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
-        User user = userDao.get(DEFAULT_USER_EMAIL);
+        User user = userDao.get(email);
         if (user == null) {
-            User testUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
+            User testUser = new User(email, username, password);
             userDao.save(testUser);
             currentUser.set(testUser);
         } else {

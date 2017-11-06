@@ -18,6 +18,7 @@ package com.flow.platform.api.config;
 
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.api.security.AuthenticationInterceptor;
+import com.flow.platform.api.security.OptionsInterceptor;
 import com.flow.platform.api.security.token.JwtTokenGenerator;
 import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.core.http.converter.RawGsonMessageConverter;
@@ -44,6 +45,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.context.request.WebRequestInterceptor;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -113,13 +115,21 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         List<RequestMatcher> matchers = Lists.newArrayList(
             new AntPathRequestMatcher("/flows/**"),
             new AntPathRequestMatcher("/user/register"),
+            new AntPathRequestMatcher("/user/delete"),
+            new AntPathRequestMatcher("/user"),
+            new AntPathRequestMatcher("/user/role/update"),
             new AntPathRequestMatcher("/jobs/**"),
             new AntPathRequestMatcher("/credentials/**"),
             new AntPathRequestMatcher("/actions/**"),
-            new AntPathRequestMatcher("/message/**")
+            new AntPathRequestMatcher("/message/**"),
+            new AntPathRequestMatcher("/agents/create"),
+            new AntPathRequestMatcher("/agents"),
+            new AntPathRequestMatcher("/roles/**"),
+            new AntPathRequestMatcher("/thread/config")
         );
         return new AuthenticationInterceptor(matchers);
     }
+
 
     @Bean
     public RawGsonMessageConverter jsonConverter() {
@@ -128,6 +138,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new OptionsInterceptor());
         registry.addInterceptor(authInterceptor());
     }
 

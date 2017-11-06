@@ -16,16 +16,16 @@
 
 package com.flow.platform.api.security;
 
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
-
 import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.exception.AccessDeniedException;
 import com.flow.platform.api.exception.AuthenticationException;
-import com.flow.platform.api.security.token.TokenGenerator;
+import com.flow.platform.api.exception.TokenExpiredException;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
+import io.jsonwebtoken.Claims;
+import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,16 +48,11 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
     private final static Logger LOGGER = new Logger(AuthenticationInterceptor.class);
 
-    private final static String TOKEN_PAYLOAD_FOR_TEST = "mytokenpayload";
-
     @Autowired
     private UserSecurityService userSecurityService;
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private TokenGenerator tokenGenerator;
 
     @Autowired
     private ThreadLocal<User> currentUser;
@@ -67,7 +62,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
      */
     private final List<RequestMatcher> authRequests;
 
-    private boolean enableAuth = false;
+    private boolean enableAuth = true;
 
     public AuthenticationInterceptor(List<RequestMatcher> matchers) {
         this.authRequests = matchers;
@@ -85,9 +80,6 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
-
-        User user = userService.findByEmail(DEFAULT_USER_EMAIL);
-        currentUser.set(user);
 
         if (!enableAuth) {
             return true;
@@ -124,34 +116,29 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
             throw new AuthenticationException("Invalid request");
         }
 
-        if (TOKEN_PAYLOAD_FOR_TEST.equals(tokenPayload)) {
-            return;
-        }
-
-        // get user email from token payload
-        String email = tokenGenerator.extract(tokenPayload);
-
         // find annotation
         WebSecurity securityAnnotation = handlerMethod.getMethodAnnotation(WebSecurity.class);
+        Claims token = userService.extractToken(tokenPayload);
+
+        if (token.getExpiration().getTime() < new Date().getTime()){
+            throw new TokenExpiredException();
+        }
+
+        User user = userService.findByToken(tokenPayload);
         if (securityAnnotation == null) {
-            User user = userService.findByEmail(DEFAULT_USER_EMAIL);
             currentUser.set(user);
             return;
         }
 
         // find action for request
         Action action = userSecurityService.getAction(securityAnnotation.action());
-        LOGGER.debug("User '%s' requested for action %s", email, action.getName());
+        LOGGER.debug("User '%s' requested for action %s", user, action.getName());
 
-        if (!userSecurityService.canAccess(email, action)) {
-            throw new AccessDeniedException(email, action.getName());
+        if (!userSecurityService.canAccess(user, action)) {
+            throw new AccessDeniedException(user.getEmail(), action.getName());
         }
 
-        // TODO: to be cached
-        // set current user to request attribute
-        User user = userService.findByEmail(email);
         currentUser.set(user);
-        // request.setAttribute("user", currentUser);
     }
 
     private boolean isNeedToVerify(HttpServletRequest request) {
