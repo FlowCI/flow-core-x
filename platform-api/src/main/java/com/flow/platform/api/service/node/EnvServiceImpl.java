@@ -23,6 +23,7 @@ import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
+import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.envs.handler.EnvHandler;
 import com.flow.platform.core.context.SpringContext;
@@ -68,8 +69,10 @@ public class EnvServiceImpl implements EnvService {
         // init env list
         Set<EnvKey> keys = Sets.newHashSet(FlowEnvs.values());
         keys.addAll(Sets.newHashSet(GitEnvs.values()));
+        keys.addAll(Sets.newHashSet(GitToggleEnvs.values()));
         keys.addAll(Sets.newHashSet(JobEnvs.values()));
         keys.addAll(Sets.newHashSet(AgentEnvs.values()));
+
         for (EnvKey key : keys) {
             envKeyMap.put(key.name(), key);
 

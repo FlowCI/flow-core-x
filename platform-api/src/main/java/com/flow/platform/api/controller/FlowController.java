@@ -397,21 +397,14 @@ public class FlowController extends NodeController {
      * the flow name must be matched with flow name defined in yml
      *
      * @apiSuccessExample {json} Success-Response
-     *  {
-     *      path: /flow-name,
-     *      name: flow-name,
-     *      createdAt: 15123123
-     *      updatedAt: 15123123
-     *      envs: {
-     *          FLOW_ENV_VAR_1: xxx,
-     *          FLOW_ENV_VAR_2: xxx
-     *      }
-     *  }
+     *
+     *  yml body
      */
     @PostMapping("/{root}/yml")
     @WebSecurity(action = Actions.FLOW_CREATE)
-    public Node createFromYml(@RequestBody String yml) {
-        return nodeService.createOrUpdateYml(currentNodePath.get(), yml);
+    public String createFromYml(@RequestBody String yml) {
+        nodeService.createOrUpdateYml(currentNodePath.get(), yml);
+        return yml;
     }
 
     /**
