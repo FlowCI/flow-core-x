@@ -22,6 +22,7 @@ import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.GitEnvs;
+import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
@@ -175,7 +176,7 @@ public class NodeServiceTest extends TestBase {
         // then:
         String webhook = HttpURL.build(apiDomain).append("/hooks/git").append(emptyFlow.getName()).toString();
         Node loaded = nodeService.find("flow1").root();
-        Assert.assertEquals(8, loaded.getEnvs().size());
+        Assert.assertEquals(13, loaded.getEnvs().size());
         Assert.assertEquals("hello", loaded.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", loaded.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", loaded.getEnv("FLOW_NEW_3"));
@@ -186,9 +187,15 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("READY", loaded.getEnv("FLOW_STATUS"));
         Assert.assertEquals("FOUND", loaded.getEnv("FLOW_YML_STATUS"));
 
+        Assert.assertEquals("true", loaded.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_ENABLED));
+        Assert.assertEquals("true", loaded.getEnv(GitToggleEnvs.FLOW_GIT_TAG_ENABLED));
+        Assert.assertEquals("true", loaded.getEnv(GitToggleEnvs.FLOW_GIT_PR_ENABLED));
+        Assert.assertEquals("[]", loaded.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER));
+        Assert.assertEquals("[]", loaded.getEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER));
+
         // check env been sync with yml
         Node flow = flowDao.get("flow1");
-        Assert.assertEquals(8, flow.getEnvs().size());
+        Assert.assertEquals(13, flow.getEnvs().size());
         Assert.assertEquals("hello", flow.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", flow.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", flow.getEnv("FLOW_NEW_3"));

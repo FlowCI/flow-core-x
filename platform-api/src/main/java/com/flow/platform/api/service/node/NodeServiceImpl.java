@@ -30,6 +30,7 @@ import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.GitEnvs;
+import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.api.service.job.JobService;
@@ -181,7 +182,6 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
         // stop yml loading tasks
         ymlService.stopLoadYmlContent(flow);
-
         return flow;
     }
 
@@ -203,9 +203,16 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             throw new IllegalParameterException("Flow name already existed");
         }
 
-        flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
+        // init env variables
         flow.putEnv(FlowEnvs.FLOW_STATUS, StatusValue.PENDING);
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND);
+        flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_PUSH_ENABLED, "true");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER, "[]");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_TAG_ENABLED, "true");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER, "[]");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_PR_ENABLED, "true");
+
         flow.setCreatedBy(currentUser().getEmail());
         flow = flowDao.save(flow);
 

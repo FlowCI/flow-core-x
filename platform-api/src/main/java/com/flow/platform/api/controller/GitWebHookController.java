@@ -115,7 +115,7 @@ public class GitWebHookController extends NodeController {
             flow.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER, "[]"), String[].class);
 
         final String[] tagFilter = Jsonable.GSON_CONFIG.fromJson(
-            flow.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER, "[]"), String[].class);
+            flow.getEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER, "[]"), String[].class);
 
         if (Objects.equals(gitEventType, GitEventType.PUSH.name())) {
             if (!pushEnabled) {
