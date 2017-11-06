@@ -22,12 +22,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.domain.response.BooleanValue;
-import com.flow.platform.core.response.ResponseError;
-import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.core.response.ResponseError;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +37,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 /**
  * @author yang
  */
-public class FlowControllerTest extends TestBase {
+public class FlowControllerTest extends ControllerTestWithoutAuth {
 
     private final String flowName = "flow_default";
 

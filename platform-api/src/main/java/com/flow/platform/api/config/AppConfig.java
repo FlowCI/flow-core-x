@@ -70,11 +70,6 @@ public class AppConfig extends AppConfigBase {
 
     private final static int MULTICASTER_ASYNC_POOL_SIZE = 1;
 
-    public final static String DEFAULT_USER_EMAIL = "admin@flow.ci";
-    public final static String DEFAULT_USER_NAME = "admin";
-
-    public final static String DEFAULT_USER_PASSWORD = "123456";
-
     private final static ThreadPoolTaskExecutor executor =
         ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
 

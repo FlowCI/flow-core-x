@@ -107,4 +107,14 @@ public class EnvUtil {
     public static Map<String, String> build(EnvKey key, EnvValue value) {
         return build(key.name(), value.value());
     }
+
+    public static String get(Map<String, String> source, EnvKey key, String defaultValue) {
+        String value = source.get(key.name());
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        return value;
+    }
 }

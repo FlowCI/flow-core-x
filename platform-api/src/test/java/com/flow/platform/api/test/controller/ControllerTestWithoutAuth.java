@@ -13,25 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.user.User;
-import com.flow.platform.core.exception.NotFoundException;
+package com.flow.platform.api.test.controller;
+
+import com.flow.platform.api.security.AuthenticationInterceptor;
+import com.flow.platform.api.test.TestBase;
+import org.junit.After;
+import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author lhl
+ * @author yang
  */
-
-public abstract class CurrentUser {
+public abstract class ControllerTestWithoutAuth extends TestBase {
 
     @Autowired
-    private ThreadLocal<User> currentUser;
+    private AuthenticationInterceptor authInterceptor;
 
-    public User currentUser() {
-        if (currentUser.get() == null) {
-            throw new NotFoundException("Current user not found");
-        }
-        return currentUser.get();
+    @Before
+    public void disableAuth() {
+        authInterceptor.disable();
     }
+
+    @After
+    public void enableAuth() {
+        authInterceptor.enable();
+    }
+
 }

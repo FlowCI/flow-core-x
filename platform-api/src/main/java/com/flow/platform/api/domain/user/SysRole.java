@@ -15,13 +15,40 @@
  */
 package com.flow.platform.api.domain.user;
 
+import com.flow.platform.api.domain.permission.Actions;
+
 /**
  * @author lhl
  */
 public enum SysRole {
 
-    ADMIN,
+    ADMIN(Actions.values()),
 
-    USER
+    USER(new Actions[] {
+        Actions.FLOW_YML,
+        Actions.FLOW_SHOW,
+        Actions.FLOW_CREATE,
+        Actions.FLOW_SET_ENV,
 
+        Actions.JOB_SHOW,
+        Actions.JOB_LOG,
+        Actions.JOB_CREATE,
+        Actions.JOB_STOP,
+        Actions.JOB_YML,
+
+        Actions.GENERATE_KEY,
+        Actions.CREDENTIAL_CREATE,
+
+        Actions.AGENT_SHOW
+    });
+
+    private Actions[] actions;
+
+    SysRole(Actions[] actions) {
+        this.actions = actions;
+    }
+
+    public Actions[] getActions() {
+        return actions;
+    }
 }

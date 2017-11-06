@@ -22,8 +22,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.EmailSettingContent;
-import com.flow.platform.api.domain.response.SmtpAuthResponse;
-import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.domain.Jsonable;
 import org.junit.Assert;
@@ -35,7 +33,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 /**
  * @author yh@firim
  */
-public class MessageControllerTest extends TestBase {
+public class MessageControllerTest extends ControllerTestWithoutAuth {
 
     @Test
     public void should_create_email_setting_success() {

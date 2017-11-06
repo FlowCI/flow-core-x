@@ -14,9 +14,6 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -45,6 +42,7 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.initializers.Initializer;
+import com.flow.platform.api.initializers.UserRoleInit;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.job.JobService;
@@ -72,6 +70,7 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -136,9 +135,6 @@ public abstract class TestBase {
     protected JobService jobService;
 
     @Autowired
-    protected CmdService cmdService;
-
-    @Autowired
     protected NodeResultService nodeResultService;
 
     @Autowired
@@ -168,6 +164,15 @@ public abstract class TestBase {
     @Autowired
     protected ThreadLocal<User> currentUser;
 
+    @Value(value = "${system.email}")
+    private String email;
+
+    @Value(value = "${system.username}")
+    private String username;
+
+    @Value(value = "${system.password}")
+    private String password;
+
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
@@ -184,16 +189,25 @@ public abstract class TestBase {
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         WORKSPACE = workspace;
-
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
-        User user = userDao.get(DEFAULT_USER_EMAIL);
+        setCurrentUser(null);
+    }
+
+    public void setCurrentUser(User user) {
         if (user == null) {
-            User testUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
-            userDao.save(testUser);
-            currentUser.set(testUser);
-        } else {
-            currentUser.set(user);
+            user = userDao.get(email);
+            if (user == null) {
+                User testUser = new User(email, username, password);
+                userDao.save(testUser);
+                currentUser.set(testUser);
+            } else {
+                currentUser.set(user);
+            }
+
+            return;
         }
+
+        currentUser.set(user);
     }
 
     public String getResourceContent(String fileName) throws IOException {

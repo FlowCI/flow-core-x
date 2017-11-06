@@ -22,6 +22,8 @@ import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.user.Role;
+import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
@@ -42,7 +44,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -226,18 +227,22 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
-    public List<Node> listFlows() {
-        return flowDao.list();
-    }
+    public List<Node> listFlows(boolean isOnlyCurrentUser) {
+        if (!isOnlyCurrentUser) {
+            return flowDao.list();
+        }
 
-    @Override
-    public List<String> listFlowPathByUser(Collection<String> createdByList) {
-        return flowDao.pathList(createdByList);
+        List<Role> roles = roleService.list(currentUser());
+        if (roles.contains(roleService.find(SysRole.ADMIN.name()))) {
+            return flowDao.list();
+        } else {
+            return userFlowService.list(currentUser());
+        }
     }
 
     @Override
     public List<Webhook> listWebhooks() {
-        List<Node> flows = listFlows();
+        List<Node> flows = listFlows(false);
         List<Webhook> hooks = new ArrayList<>(flows.size());
         for (Node flow : flows) {
             hooks.add(new Webhook(flow.getPath(), hooksUrl(flow)));

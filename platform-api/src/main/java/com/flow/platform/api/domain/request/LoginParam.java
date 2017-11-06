@@ -9,6 +9,14 @@ public class LoginParam {
 
     private String password;
 
+    public LoginParam() {
+    }
+
+    public LoginParam(String emailOrUsername, String password) {
+        this.emailOrUsername = emailOrUsername;
+        this.password = password;
+    }
+
     public String getEmailOrUsername() {
         return emailOrUsername;
     }

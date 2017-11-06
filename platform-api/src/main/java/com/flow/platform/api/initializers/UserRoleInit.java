@@ -15,21 +15,21 @@
  */
 package com.flow.platform.api.initializers;
 
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
-
-import com.flow.platform.api.dao.user.RoleDao;
-import com.flow.platform.api.dao.user.UserDao;
-import com.flow.platform.api.dao.user.UserRoleDao;
+import com.flow.platform.api.domain.permission.Actions;
+import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.api.domain.user.UserRole;
-import com.flow.platform.api.domain.user.UserRoleKey;
+import com.flow.platform.api.service.user.ActionService;
+import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
-import com.flow.platform.core.context.ContextEvent;
+import com.flow.platform.api.service.user.UserService;
+import com.flow.platform.core.exception.FlowException;
+import com.flow.platform.util.StringUtil;
+import com.google.common.collect.ImmutableList;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,55 +40,85 @@ import org.springframework.stereotype.Component;
 public class UserRoleInit extends Initializer {
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private RoleService roleService;
 
     @Autowired
-    private RoleDao roleDao;
+    private ActionService actionService;
 
     @Autowired
-    private UserDao userDao;
-
-    @Autowired
-    private UserRoleDao userRoleDao;
+    private PermissionService permissionService;
 
     @Autowired
     private ThreadLocal<User> currentUser;
 
+    @Value(value = "${system.email}")
+    private String email;
+
+    @Value(value = "${system.username}")
+    private String username;
+
+    @Value(value = "${system.password}")
+    private String password;
+
     @Override
     public void doStart() {
+        // set current user for system default
+        currentUser.set(new User("system@flow.ci", StringUtil.EMPTY, StringUtil.EMPTY));
 
-        // create sys user
-        User user = userDao.get(DEFAULT_USER_EMAIL);
-        if (user == null) {
-            User sysUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
-            sysUser.setCreatedBy("system created");
-            userDao.save(sysUser);
+        initSystemActions();
+
+        initSystemRoles();
+
+        initDefaultAdminUser();
+
+        initSystemPermissions();
+    }
+
+    private void initSystemPermissions() {
+        for (SysRole sysRole : SysRole.values()) {
+            Role role = roleService.find(sysRole.name());
+
+            for (Actions sysAction : sysRole.getActions()) {
+                Action action = actionService.find(sysAction.name());
+
+                try {
+                    permissionService.assign(role, ImmutableList.of(action));
+                } catch (FlowException ignore) {
+
+                }
+            }
         }
+    }
 
-        // create sys roleAdmin
-        Role roleAdmin = roleDao.get(SysRole.ADMIN.name());
-        if (roleAdmin == null) {
-            Role sysRoleAdmin = new Role(SysRole.ADMIN.name(), "create default role for admin");
-            sysRoleAdmin.setCreatedBy("system created");
-            roleDao.save(sysRoleAdmin);
+    private void initDefaultAdminUser() {
+        try {
+            User admin = new User(email, username, password);
+            userService.register(admin, ImmutableList.of(SysRole.ADMIN.name()), false, Collections.emptyList());
+        } catch (FlowException ignore) {
+            // ignore existed
         }
+    }
 
-        // create sys roleUser
-        Role roleUser = roleDao.get(SysRole.USER.name());
-        if (roleUser == null) {
-            Role sysRoleUser = new Role(SysRole.USER.name(), "create default role for user");
-            sysRoleUser.setCreatedBy("system created");
-            roleDao.save(sysRoleUser);
+    private void initSystemActions() {
+        for (Actions systemAction : Actions.values()) {
+            try {
+                actionService.create(new Action(systemAction.name()));
+            } catch (FlowException ignore) {
+                // ignore duplication
+            }
         }
+    }
 
-        // create sys user_role relation
-        Role role = roleService.find(SysRole.ADMIN.name());
-        User sysUser = userDao.get(DEFAULT_USER_EMAIL);
-        UserRole userRole = userRoleDao.get(new UserRoleKey(role.getId(), sysUser.getEmail()));
-        if (userRole == null) {
-            currentUser.set(sysUser);
-            roleService.assign(sysUser, role);
+    private void initSystemRoles() {
+        for (SysRole role : SysRole.values()) {
+            try {
+                roleService.create(role.name(), "System default role");
+            } catch (FlowException ignore) {
+                // ignore duplication
+            }
         }
-
     }
 }

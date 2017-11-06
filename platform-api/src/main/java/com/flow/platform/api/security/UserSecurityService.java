@@ -18,6 +18,7 @@ package com.flow.platform.api.security;
 
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.Action;
+import com.flow.platform.api.domain.user.User;
 
 /**
  * @author yang
@@ -27,7 +28,7 @@ public interface UserSecurityService {
     /**
      * Verify the action is accessible for user
      */
-    boolean canAccess(String email, Action action);
+    boolean canAccess(User user, Action action);
 
     /**
      * Get action from Actions enum

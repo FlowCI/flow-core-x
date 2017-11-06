@@ -13,25 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flow.platform.api.service;
+package com.flow.platform.api.domain.response;
 
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.core.exception.NotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.google.gson.annotations.Expose;
 
 /**
  * @author lhl
  */
+public class LoginResponse {
 
-public abstract class CurrentUser {
+    @Expose
+    private String token;
 
-    @Autowired
-    private ThreadLocal<User> currentUser;
+    @Expose
+    private User user;
 
-    public User currentUser() {
-        if (currentUser.get() == null) {
-            throw new NotFoundException("Current user not found");
-        }
-        return currentUser.get();
+    public LoginResponse(String token, User user) {
+        this.token = token;
+        this.user = user;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

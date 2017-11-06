@@ -70,7 +70,7 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
 
     @PostConstruct
     public void initCrontabTask() {
-        List<Node> flows = nodeService.listFlows();
+        List<Node> flows = nodeService.listFlows(false);
         for (Node flow : flows) {
             try {
                 set(flow);

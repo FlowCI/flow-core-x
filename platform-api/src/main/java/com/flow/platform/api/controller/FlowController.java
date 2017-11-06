@@ -19,6 +19,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ListParam;
+import com.flow.platform.api.domain.request.TriggerParam;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.envs.EnvKey;
@@ -57,7 +58,7 @@ public class FlowController extends NodeController {
     @GetMapping
     @WebSecurity(action = Actions.FLOW_SHOW)
     public List<Node> index() {
-        return nodeService.listFlows();
+        return nodeService.listFlows(true);
     }
 
     /**
@@ -440,5 +441,48 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_AUTH)
     public List<User> flowAuthUsers(@RequestBody ListParam<String> listParam) {
         return nodeService.authUsers(listParam.getArrays(), currentNodePath.get());
+    }
+
+    /**
+     * @api {post} /flows/:root/trigger
+     * @apiParam {String} root
+     * @apiParamExample {json} Request-Body:
+     *     {
+     *         	"branchFilter" : ["master", "dev"]
+     *         	"tagFilter" : ["v01", "v02"]
+     *         	"tagEnabled": true
+     *         	"pushEnabled": false
+     *         	"prEnabled": true
+     *     }
+     * @apiGroup Flows
+     *
+     * @apiSuccessExample {list} Success-Response
+     *  {
+     *      "branchFilter": [
+     *          "master",
+     *          "develop"
+     *     ],
+     *     "tagFilter": [
+     *          "aa"
+     *     ]
+     *     "tagEnable": false,
+     *     "pushEnable": true,
+     *     "prEnable": false,
+     *      path: /flow-name,
+     *      name: flow-name,
+     *      createdAt: 15123123
+     *      updatedAt: 15123123
+     *      branchFilter: []
+     *      envs: {
+     *          FLOW_ENV_VAR_1: xxx,
+     *          FLOW_ENV_VAR_2: xxx
+     *      }
+     */
+    @PostMapping("/{root}/trigger")
+    public Node trigger(@RequestBody TriggerParam triggerParam){
+        String path = currentNodePath.get();
+        Node flow = nodeService.find(path).root();
+        envService.save(flow, triggerParam.toEnv(), true);
+        return flow;
     }
 }

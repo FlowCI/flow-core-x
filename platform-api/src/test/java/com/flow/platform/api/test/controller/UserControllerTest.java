@@ -10,8 +10,7 @@ import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserService;
-import com.flow.platform.api.test.TestBase;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +22,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 /**
  * @author liangpengyv
  */
-public class UserControllerTest extends TestBase {
+public class UserControllerTest extends ControllerTestWithoutAuth {
 
     @Autowired
     private UserService userService;
@@ -45,47 +44,49 @@ public class UserControllerTest extends TestBase {
         user.setEmail("liangpengyv@fir.im");
         user.setUsername("liangpengyv");
         user.setPassword("liangpengyv");
-        userService.register(user, Lists.newArrayList(createRole().getName()),
-                            false, Lists.newArrayList(createFlow().getPath()));
+        userService.register(user, ImmutableList.of(createRole().getName()),
+                            false, ImmutableList.of(createFlow().getPath()));
         user.setPassword("liangpengyv");
     }
 
     @Test
     public void should_login_success_if_request_true() throws Throwable {
-        String requestContent;
         String responseContent;
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder;
         MvcResult mvcResult;
 
         // login success by email: response 200; return a long token string
-        requestContent = "{ \"emailOrUsername\" : \"liangpengyv@fir.im\", \"password\" : \"liangpengyv\" }";
-        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON)
-            .content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{ \"emailOrUsername\" : \"liangpengyv@fir.im\", \"password\" : \"liangpengyv\" }");
+
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertTrue(responseContent.length() > 20);
 
         // login success by username: response 200; return a long token string
-        requestContent = "{ \"emailOrUsername\" : \"liangpengyv\", \"password\" : \"liangpengyv\" }";
-        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON)
-            .content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{ \"emailOrUsername\" : \"liangpengyv\", \"password\" : \"liangpengyv\" }");
+
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().isOk()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertTrue(responseContent.length() > 20);
 
         // login failed: response 400; return error description message
-        requestContent = "{ \"emailOrUsername\" : \"xxx\", \"password\" : \"liangpengyv\" }";
-        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON)
-            .content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{ \"emailOrUsername\" : \"xxx\", \"password\" : \"liangpengyv\" }");
+
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is4xxClientError()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
-        Assert
-            .assertEquals("{\"message\":\"Illegal login request parameter: username format false\"}", responseContent);
+        Assert.assertEquals("{\"message\":\"Illegal email or username\"}", responseContent);
 
         // login failed: response 500; return error description message
-        requestContent = "abcdefg";
-        mockHttpServletRequestBuilder = post("/user/login").contentType(MediaType.APPLICATION_JSON)
-            .content(requestContent);
+        mockHttpServletRequestBuilder = post("/user/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("abcdefg");
+
         mvcResult = mockMvc.perform(mockHttpServletRequestBuilder).andExpect(status().is5xxServerError()).andReturn();
         responseContent = mvcResult.getResponse().getContentAsString();
         Assert.assertEquals("{\"message\"", responseContent.substring(0, 10));

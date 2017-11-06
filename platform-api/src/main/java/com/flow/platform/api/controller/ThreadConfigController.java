@@ -15,7 +15,9 @@
  */
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ThreadConfigParam;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.node.YmlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,6 +54,7 @@ public class ThreadConfigController {
      *
      */
     @PostMapping
+    @WebSecurity(action = Actions.ADMIN_UPDATE)
     public void ymlConfigQueueSize(@RequestBody ThreadConfigParam threadConfigParam) {
         ymlService.threadConfig(threadConfigParam);
     }

@@ -24,6 +24,8 @@ import java.util.Set;
  */
 public interface EnvKey {
 
+    Set<String> VALUES_BOOLEAN = ImmutableSet.of("true", "false");
+
     /**
      * The env variable should write to root node result output
      */

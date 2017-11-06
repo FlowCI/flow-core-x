@@ -80,13 +80,10 @@ public interface NodeService {
 
     /**
      * list current flows with path, name, created at and updated at
+     *
+     * @param isOnlyCurrentUser load flow only for current user
      */
-    List<Node> listFlows();
-
-    /**
-     * List flow path by created by user
-     */
-    List<String> listFlowPathByUser(Collection<String> createdByList);
+    List<Node> listFlows(boolean isOnlyCurrentUser);
 
     /**
      * List webhooks for all flow
