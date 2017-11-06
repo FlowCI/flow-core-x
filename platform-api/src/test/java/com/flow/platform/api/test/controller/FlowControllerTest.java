@@ -23,8 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.GitEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.core.response.ResponseError;
 import com.flow.platform.api.test.TestBase;
@@ -144,7 +144,7 @@ public class FlowControllerTest extends TestBase {
         String yml = "flow:\n" + "  - name: " + flowName;
         Flow flow = nodeService.findFlow(flowName);
         setFlowToReady(flow);
-        nodeService.createOrUpdate(PathUtil.build(flowName), yml);
+        nodeService.createOrUpdateYml(PathUtil.build(flowName), yml);
 
         // when:
         MvcResult result = mockMvc.perform(get("/flows/" + flowName + "/yml"))

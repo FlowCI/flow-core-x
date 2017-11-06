@@ -18,6 +18,7 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.User;
@@ -110,13 +111,7 @@ public class JobController extends NodeController {
         }
 
         String path = currentNodePath.get();
-
-        if (isFromScmYml) {
-            jobService.createWithYmlLoad(path, GitEventType.MANUAL, envs, currentUser.get(), null);
-            return;
-        }
-
-        jobService.createFromFlowYml(path, GitEventType.MANUAL, envs, currentUser.get());
+        jobService.createFromFlowYml(path, JobCategory.MANUAL, envs, currentUser.get());
     }
 
     /**

@@ -15,9 +15,9 @@
  */
 package com.flow.platform.api.service.job;
 
-import static com.flow.platform.api.domain.envs.FlowEnvs.FLOW_STATUS;
-import static com.flow.platform.api.domain.envs.FlowEnvs.FLOW_YML_STATUS;
-import static com.flow.platform.api.domain.envs.FlowEnvs.StatusValue;
+import static com.flow.platform.api.envs.FlowEnvs.FLOW_STATUS;
+import static com.flow.platform.api.envs.FlowEnvs.FLOW_YML_STATUS;
+import static com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
 import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
@@ -27,9 +27,10 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
-import com.flow.platform.api.domain.envs.JobEnvs;
+import com.flow.platform.api.domain.job.JobCategory;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
@@ -163,7 +164,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Override
     @Transactional(noRollbackFor = FlowException.class)
-    public Job createFromFlowYml(String path, GitEventType eventType, Map<String, String> envs, User creator) {
+    public Job createFromFlowYml(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         // verify flow yml status
         Flow flow = nodeService.findFlow(path);
         String ymlStatus = flow.getEnv(FlowEnvs.FLOW_YML_STATUS);
@@ -172,7 +173,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalStatusException("Illegal yml status for flow " + flow.getName());
         }
 
-        // load yml content
+        // get yml content
         Yml yml = ymlService.get(flow);
 
         // create job instance
@@ -184,7 +185,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Override
     @Transactional(noRollbackFor = FlowException.class)
     public void createWithYmlLoad(String path,
-                                  GitEventType eventType,
+                                  JobCategory eventType,
                                   Map<String, String> envs,
                                   User creator,
                                   Consumer<Job> onJobCreated) {
@@ -251,7 +252,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
     }
 
-    private Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator) {
+    private Job createJob(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         Node root = nodeService.find(PathUtil.rootPath(path));
         if (root == null) {
             throw new IllegalParameterException("Path does not existed");
@@ -514,7 +515,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             Node root = nodeService.find(PathUtil.rootPath(path));
 
             // set git commit info to job env
-            if (job.getCategory() == GitEventType.MANUAL) {
+            if (job.getCategory() == JobCategory.MANUAL
+                || job.getCategory() == JobCategory.SCHEDULER
+                || job.getCategory() == JobCategory.API) {
+
                 try {
                     GitCommit gitCommit = gitService.latestCommit(root);
                     Map<String, String> envFromCommit = GitEventEnvConverter.convert(gitCommit);

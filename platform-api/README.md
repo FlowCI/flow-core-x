@@ -14,7 +14,13 @@
 
 **FLOW_YML_ERROR_MSG**: error message if FLOW_YML_STATUS = ERROR
 
-**FLOW_DEPLOY_KEY_NAME**: the credential name for RSA deploy key pair
+**FLOW_ENV_OUTPUT_PREFIX**: env output prefix used for pass env variable which start with this prefix to next step
+
+**FLOW_TASK_CRONTAB_CONTENT**: flow crontab content, the format like * * * * * ?,
+ and FLOW_TASK_CRONTAB_BRANCH are required 
+
+**FLOW_TASK_CRONTAB_BRANCH**: flow crontab branch
+
 
 ### Job
 
@@ -23,6 +29,8 @@
 **FLOW_JOB_BUILD_CATEGORY**: readonly, the job trigger type, same as FLOW_GIT_EVENT_TYPE 
 
 **FLOW_JOB_AGENT_INFO**:  readonly, the agent path which job running on as 'zone#name' format
+
+**FLOW_JOB_LOG_PATH**: readonly: the download path for job log
 
 ### Git 
         
