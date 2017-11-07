@@ -222,7 +222,7 @@ public class FlowController extends NodeController {
     @GetMapping(path = "/{root}/env")
     @WebSecurity(action = Actions.FLOW_SHOW)
     public Map<String, String> getFlowEnv(@RequestParam(required = false) String key,
-                                          @RequestParam(required = false) BooleanValue editable) {
+                                          @RequestParam(required = false) Boolean editable) {
 
         Node flow = nodeService.find(currentNodePath.get()).root();
 
@@ -231,7 +231,7 @@ public class FlowController extends NodeController {
             return flow.getEnvs();
         }
 
-        Map<String, String> envs = envService.list(flow, editable.getValue());
+        Map<String, String> envs = envService.list(flow, editable.booleanValue());
         if (Strings.isNullOrEmpty(key)) {
             return envs;
         }
