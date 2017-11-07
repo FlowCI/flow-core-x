@@ -66,17 +66,18 @@ public class EnvServiceTest extends TestBase {
         Assert.assertEquals(2, editable.size());
         Assert.assertFalse(editable.containsKey(FLOW_STATUS.name()));
 
-        // then: check the flow envs size not changed
-        Assert.assertEquals(5, nodeService.find(node.getPath()).root().getEnvs().size());
+        // then: check the flow actual envs size
+        Node flow = nodeService.find(node.getPath()).root();
+        Assert.assertEquals(10, flow.getEnvs().size());
 
         // when: list none editable only which from copied node envs
         Map<String, String> noneEditable = envService.list(node, false);
-        Assert.assertEquals(3, noneEditable.size());
+        Assert.assertEquals(8, noneEditable.size());
         Assert.assertTrue(noneEditable.containsKey(FLOW_STATUS.name()));
         Assert.assertTrue(noneEditable.containsKey(FLOW_YML_STATUS.name()));
         Assert.assertTrue(noneEditable.containsKey(FLOW_GIT_WEBHOOK.name()));
 
-        // then: check the flow envs size not changed
-        Assert.assertEquals(5, nodeService.find(node.getPath()).root().getEnvs().size());
+        // then: check the actual flow envs size not changed
+        Assert.assertEquals(10, flow.getEnvs().size());
     }
 }

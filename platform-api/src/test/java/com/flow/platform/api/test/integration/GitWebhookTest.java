@@ -306,7 +306,7 @@ public class GitWebhookTest extends TestBase {
         Node loaded = nodeService.find(flowPath).root();
 
         Assert.assertNotNull(loaded);
-        Assert.assertEquals(7, loaded.getEnvs().size());
+        Assert.assertEquals(12, loaded.getEnvs().size());
         Assert.assertEquals(FlowEnvs.YmlStatusValue.FOUND.value(), loaded.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
         return loaded;

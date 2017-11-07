@@ -18,7 +18,6 @@ package com.flow.platform.api.events;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
-import java.math.BigInteger;
 import org.springframework.context.ApplicationEvent;
 
 /**
