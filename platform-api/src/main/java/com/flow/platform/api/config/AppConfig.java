@@ -137,7 +137,7 @@ public class AppConfig extends AppConfigBase {
      */
     @Bean
     public PlatformQueue<CmdCallbackQueueItem> cmdCallbackQueue() {
-        return new InMemoryQueue<>(executor, 50);
+        return new InMemoryQueue<>(executor, 50, "CmdCallbackQueue");
     }
 
     @Override
