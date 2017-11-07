@@ -208,6 +208,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
+    @Transactional(noRollbackFor = Throwable.class)
     public void callback(CmdCallbackQueueItem cmdQueueItem) {
         BigInteger jobId = cmdQueueItem.getJobId();
         Cmd cmd = cmdQueueItem.getCmd();

@@ -99,6 +99,10 @@ public class CmdQueueConsumer implements QueueListener<Message> {
             // reset cmd status to pending, record num of retry
             int retry = item.getRetry() - 1;
             Cmd cmd = cmdService.find(cmdId);
+            if (cmd.getStatus() == CmdStatus.STOPPED || cmd.getStatus() == CmdStatus.KILLED) {
+                return;
+            }
+
             cmd.setStatus(CmdStatus.PENDING);
             cmd.setRetry(retry);
             cmdService.save(cmd);

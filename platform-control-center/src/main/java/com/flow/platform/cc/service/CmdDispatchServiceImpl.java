@@ -117,13 +117,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         }
 
         try {
-            // get target agent
-            Agent target = selectAgent(cmd);
-            cmd.setAgentPath(target.getPath());
-            cmdService.save(cmd);
-            LOGGER.traceMarker("dispatch", "Agent been selected %s %s", target.getPath(), target.getStatus());
-
-            handler.get(cmd.getType()).exec(target, cmd);
+            handler.get(cmd.getType()).exec(cmd);
             cmd = cmdService.find(cmd.getId());
             return cmd;
 
@@ -184,47 +178,6 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
     }
 
     /**
-     * Select agent by AgentPath or session id
-     * - auto select agent if only defined zone name
-     *
-     * @return Agent or null
-     * @throws AgentErr.NotAvailableException no idle agent in zone
-     * @throws AgentErr.NotFoundException target agent not found
-     */
-    private Agent selectAgent(Cmd cmd) {
-        // check session id as top priority
-        if (cmd.hasSession()) {
-            Agent target = agentService.find(cmd.getSessionId());
-            if (target == null) {
-                throw new AgentErr.NotFoundException(cmd.getSessionId());
-            }
-            return target;
-        }
-
-        AgentPath cmdTargetPath = cmd.getAgentPath();
-
-        // auto select agent from zone if agent name not defined
-        if (Strings.isNullOrEmpty(cmdTargetPath.getName())) {
-            List<Agent> availableList = agentService.findAvailable(cmdTargetPath.getZone());
-            if (availableList.size() > 0) {
-                Agent target = availableList.get(0);
-                cmd.setAgentPath(target.getPath()); // reset cmd path
-                return target;
-            }
-
-            throw new AgentErr.NotAvailableException(cmdTargetPath.getZone());
-        }
-
-        // find agent by path
-        Agent target = agentService.find(cmdTargetPath);
-        if (target == null) {
-            throw new AgentErr.NotFoundException(cmd.getAgentName());
-        }
-
-        return target;
-    }
-
-    /**
      * Send cmd to agent via zookeeper
      */
     private void sendCmdToAgent(Agent target, Cmd cmd) {
@@ -257,16 +210,40 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
     }
 
     /**
+     * Auto select agent from zone
+     *
+     * @throws AgentErr.NotAvailableException if no available agent
+     */
+    private Agent selectAgentFromZone(String zone) {
+        List<Agent> availableList = agentService.findAvailable(zone);
+
+        if (availableList.size() > 0) {
+            return availableList.get(0);
+        }
+
+        throw new AgentErr.NotAvailableException(zone);
+    }
+
+    /**
      * Interface to handle different cmd type exec logic
      */
     private abstract class CmdHandler {
 
         abstract CmdType handleType();
 
+        abstract Agent select(Cmd cmd);
+
         abstract void doExec(Agent target, Cmd cmd);
 
-        void exec(Agent target, Cmd cmd) {
-            doExec(target, cmd);
+        void exec(Cmd cmd) {
+            Agent agent = select(cmd);
+
+            if (agent != null) {
+                cmd.setAgentPath(agent.getPath());
+                cmdService.save(cmd);
+            }
+
+            doExec(agent, cmd);
 
             // update cmd status to SENT
             CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.SENT, null, false, true);
@@ -283,8 +260,27 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             return CmdType.CREATE_SESSION;
         }
 
+        /**
+         * - Auto select agent by zone
+         * - Get agent from zone and name
+         */
+        @Override
+        public Agent select(Cmd cmd) {
+            AgentPath path = cmd.getAgentPath();
+
+            if (!path.hasName()) {
+                return selectAgentFromZone(path.getZone());
+            }
+
+            return agentService.find(path);
+        }
+
         @Override
         public void doExec(Agent target, Cmd cmd) {
+            if (target == null) {
+                throw new AgentErr.NotFoundException(cmd.getAgentPath().toString());
+            }
+
             if (!target.isAvailable()) {
                 throw new AgentErr.NotAvailableException(target.getName());
             }
@@ -312,14 +308,27 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         }
 
         @Override
-        public void doExec(Agent target, Cmd cmd) {
+        Agent select(Cmd cmd) {
+            return agentService.find(cmd.getSessionId());
+        }
 
-            List<Cmd> runningCmdForRunShell = getRunningCmdForRunShell(target.getSessionId());
+        @Override
+        public void doExec(Agent target, Cmd cmd) {
+            // stop all cmd when agent not been assigned
+            if (target == null) {
+                for (Cmd cmdItem : cmdService.listBySession(cmd.getSessionId())) {
+                    cmdItem.setStatus(CmdStatus.STOPPED);
+                    cmdService.save(cmdItem);
+                }
+                return;
+            }
+
+            List<Cmd> runningCmdForSession = getRunningCmd(target.getSessionId());
 
             // kill current running cmd
-            for (Cmd runShellCmd : runningCmdForRunShell) {
-                Cmd killCmd = cmdService.create(new CmdInfo(runShellCmd.getAgentPath(), CmdType.KILL, null));
-                handler.get(CmdType.KILL).exec(target, killCmd);
+            for (Cmd runningCmd : runningCmdForSession) {
+                Cmd killCmd = cmdService.create(new CmdInfo(runningCmd.getAgentPath(), CmdType.KILL, null));
+                handler.get(CmdType.KILL).exec(killCmd);
             }
 
             // release session from target
@@ -327,7 +336,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             agentService.saveWithStatus(target, AgentStatus.IDLE);
         }
 
-        private List<Cmd> getRunningCmdForRunShell(String sessionId) {
+        private List<Cmd> getRunningCmd(String sessionId) {
             List<Cmd> cmdsInSession = cmdService.listBySession(sessionId);
 
             Iterator<Cmd> iterator = cmdsInSession.iterator();
@@ -355,9 +364,31 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             return CmdType.RUN_SHELL;
         }
 
+        /**
+         * - Get agent from session
+         * - Auto select agent by zone
+         * - Get agent from zone and name
+         */
+        @Override
+        Agent select(Cmd cmd) {
+            if (cmd.hasSession()) {
+                return agentService.find(cmd.getSessionId());
+            }
+
+            AgentPath path = cmd.getAgentPath();
+
+            if (!path.hasName()) {
+                return selectAgentFromZone(path.getZone());
+            }
+
+            return agentService.find(path);
+        }
+
         @Override
         public void doExec(Agent target, Cmd cmd) {
-            // FIXME: agent maybe really busy
+            if (target == null) {
+                throw new AgentErr.NotFoundException(cmd.getAgentPath().toString());
+            }
 
             // check agent status if without session
             if (!cmd.hasSession()) {
@@ -379,8 +410,17 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         }
 
         @Override
+        Agent select(Cmd cmd) {
+            return agentService.find(cmd.getAgentPath());
+        }
+
+        @Override
         void doExec(Agent target, Cmd cmd) {
-            // directly send cmd to agent
+            // do not deal with null target
+            if (target == null) {
+                return;
+            }
+
             sendCmdToAgent(target, cmd);
         }
     }
@@ -392,8 +432,20 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             return CmdType.KILL;
         }
 
+        /**
+         * Agent must be presented for kill cmd
+         */
+        @Override
+        Agent select(Cmd cmd) {
+            return agentService.find(cmd.getAgentPath());
+        }
+
         @Override
         public void doExec(Agent target, Cmd cmd) {
+            if (target == null) {
+                throw new AgentErr.NotFoundException(cmd.getAgentPath().toString());
+            }
+
             sendCmdToAgent(target, cmd);
         }
     }
@@ -405,10 +457,22 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             return CmdType.STOP;
         }
 
+        /**
+         * Agent must be presented for stop cmd
+         */
+        @Override
+        Agent select(Cmd cmd) {
+            return agentService.find(cmd.getAgentPath());
+        }
+
         @Override
         public void doExec(Agent target, Cmd cmd) {
+            if (target == null) {
+                throw new AgentErr.NotFoundException(cmd.getAgentPath().toString());
+            }
+
             if (target.getSessionId() != null) {
-                handler.get(CmdType.DELETE_SESSION).exec(target, createDeleteSessionCmd(target));
+                handler.get(CmdType.DELETE_SESSION).exec(createDeleteSessionCmd(target));
             }
 
             // send stop cmd to agent
@@ -428,8 +492,20 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
             return CmdType.SHUTDOWN;
         }
 
+        /**
+         * Agent must be presented for shutdown cmd
+         */
+        @Override
+        Agent select(Cmd cmd) {
+            return agentService.find(cmd.getAgentPath());
+        }
+
         @Override
         public void doExec(Agent target, Cmd cmd) {
+            if (target == null) {
+                throw new AgentErr.NotFoundException(cmd.getAgentPath().toString());
+            }
+
             // in shutdown action, cmd content is sudo password
             if (cmd.getCmd() == null) {
                 throw new IllegalParameterException("For SHUTDOWN action, password of 'sudo' must be provided");
@@ -437,14 +513,14 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
             // delete session if session existed
             if (target.getSessionId() != null) {
-                handler.get(CmdType.DELETE_SESSION).exec(target, createDeleteSessionCmd(target));
+                handler.get(CmdType.DELETE_SESSION).exec(createDeleteSessionCmd(target));
                 logger.trace("Delete session before shutdown: %s %s", target.getPath(), target.getSessionId());
             }
 
             // otherwise kill cmd before shutdown
             else {
                 Cmd killCmd = cmdService.create(new CmdInfo(target.getPath(), CmdType.KILL, null));
-                handler.get(CmdType.KILL).exec(target, killCmd);
+                handler.get(CmdType.KILL).exec(killCmd);
             }
 
             // set agent to offline

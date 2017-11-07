@@ -71,7 +71,15 @@ public class AgentPath extends Jsonable {
      * Is empty zone and name
      */
     public boolean isEmpty() {
-        return Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name);
+        return !hasZone() || !hasName();
+    }
+
+    public boolean hasZone() {
+        return !Strings.isNullOrEmpty(zone);
+    }
+
+    public boolean hasName() {
+        return !Strings.isNullOrEmpty(name);
     }
 
     @Override

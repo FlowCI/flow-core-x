@@ -64,12 +64,6 @@ public enum CmdStatus {
     KILLED("KILLED", 3),
 
     /**
-     * Cmd stopped, set from api
-     * is_current_cmd = false
-     */
-    STOPPED("STOPPED", 3),
-
-    /**
      * Cannot execute since over agent limit
      * is_current_cmd = false
      */
@@ -78,7 +72,13 @@ public enum CmdStatus {
     /**
      * Cmd exec timeout which is found by scheduler task
      */
-    TIMEOUT_KILL("TIMEOUT_KILL", 4);
+    TIMEOUT_KILL("TIMEOUT_KILL", 4),
+
+    /**
+     * Cmd stopped, set from api
+     * is_current_cmd = false
+     */
+    STOPPED("STOPPED", 4);
 
     private String name;
 
