@@ -44,6 +44,11 @@ public enum FlowEnvs implements EnvKey {
     ),
 
     /**
+     * To define yml file name in SCM
+     */
+    FLOW_YML_FILE(true, false, null),
+
+    /**
      * For yml error message while loading yml from git
      */
     FLOW_YML_ERROR_MSG(true, false, null),

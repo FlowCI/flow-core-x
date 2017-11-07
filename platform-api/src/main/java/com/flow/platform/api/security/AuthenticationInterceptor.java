@@ -160,8 +160,6 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
 
         // find action for request
         Action action = userSecurityService.getAction(securityAnnotation.action());
-        LOGGER.debug("User '%s' requested for action %s", user, action.getName());
-
         if (!userSecurityService.canAccess(user, action)) {
             throw new AccessDeniedException(user.getEmail(), action.getName());
         }

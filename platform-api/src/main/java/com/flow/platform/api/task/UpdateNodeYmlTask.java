@@ -25,6 +25,7 @@ import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -81,7 +82,10 @@ public class UpdateNodeYmlTask implements Runnable {
     public void run() {
         String yml;
         try {
-            yml = gitService.fetch(root, AppConfig.DEFAULT_YML_FILE, new GitProgressListener());
+            // set file to empty since do not load yml from git
+            String ymlFileName = root.getEnv(FlowEnvs.FLOW_YML_FILE, StringUtil.EMPTY);
+            yml = gitService.fetch(root, ymlFileName, new GitProgressListener());
+
             nodeService.updateYmlState(root, YmlStatusValue.GIT_LOADED, null);
         } catch (Throwable e) {
             // check yml status is running since exception will be throw if manual stop the git clone thread
