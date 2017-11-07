@@ -74,6 +74,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
+        env.put(FlowEnvs.FLOW_YML_FILE.name(), ".flow.yml");
 
         Node loaded = nodeService.find(this.flow.getPath()).root();
         envService.save(loaded, env, false);
@@ -109,6 +110,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_CREDENTIAL.name(), rsaCredentialName);
+        env.put(FlowEnvs.FLOW_YML_FILE.name(), ".flow.yml");
         envService.save(flow, env, false);
 
         // async to clone and return .flow.yml content
@@ -150,6 +152,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_HTTP);
         env.put(GitEnvs.FLOW_GIT_HTTP_USER.name(), "");
         env.put(GitEnvs.FLOW_GIT_HTTP_PASS.name(), "");
+        env.put(FlowEnvs.FLOW_YML_FILE.name(), ".flow.yml");
         envService.save(flow, env, false);
 
         // async to clone and return .flow.yml content
@@ -170,6 +173,7 @@ public class CreateFlowTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_URL.name(), "https://gitlab.com/");
         env.put(GitEnvs.FLOW_GITLAB_TOKEN.name(), "E63AvvP5EvYhDwFySAE5");
         env.put(GitEnvs.FLOW_GITLAB_PROJECT.name(), "yang.guo/for-testing");
+        env.put(FlowEnvs.FLOW_YML_FILE.name(), ".flow.yml");
         envService.save(flow, env, false);
 
         final String loadedYml = loadYml(flow);
