@@ -26,7 +26,7 @@ public enum GitEnvs implements EnvKey {
     /**
      * @see com.flow.platform.util.git.model.GitSource
      */
-    FLOW_GIT_SOURCE(false, true, null),
+    FLOW_GIT_SOURCE(false, false, null),
 
     /**
      * For diff FLOW_GIT_SOURCE
