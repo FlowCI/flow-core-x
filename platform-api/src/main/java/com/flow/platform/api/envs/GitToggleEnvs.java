@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.envs;
 
+import com.flow.platform.domain.Jsonable;
+import com.google.common.collect.ImmutableList;
 import java.util.Set;
 
 /**
@@ -48,6 +50,8 @@ public enum GitToggleEnvs implements EnvKey {
      * Enable or disable receive GIT PR event, value should be BOOLEAN
      */
     FLOW_GIT_PR_ENABLED(false, false, VALUES_BOOLEAN);
+
+    public final static String DEFAULT_FILTER = Jsonable.GSON_CONFIG.toJson(ImmutableList.of("*"));
 
     private boolean readonly;
 

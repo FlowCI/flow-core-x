@@ -208,9 +208,9 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND);
         flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));
         flow.putEnv(GitToggleEnvs.FLOW_GIT_PUSH_ENABLED, "true");
-        flow.putEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER, "[]");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER, GitToggleEnvs.DEFAULT_FILTER);
         flow.putEnv(GitToggleEnvs.FLOW_GIT_TAG_ENABLED, "true");
-        flow.putEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER, "[]");
+        flow.putEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER, GitToggleEnvs.DEFAULT_FILTER);
         flow.putEnv(GitToggleEnvs.FLOW_GIT_PR_ENABLED, "true");
 
         flow.setCreatedBy(currentUser().getEmail());

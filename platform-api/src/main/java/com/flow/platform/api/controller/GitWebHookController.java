@@ -112,10 +112,10 @@ public class GitWebHookController extends NodeController {
         Boolean prEnabled = Boolean.parseBoolean(flow.getEnv(GitToggleEnvs.FLOW_GIT_PR_ENABLED, "true"));
 
         final String[] pushFilter = Jsonable.GSON_CONFIG.fromJson(
-            flow.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER, "[]"), String[].class);
+            flow.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER, GitToggleEnvs.DEFAULT_FILTER), String[].class);
 
         final String[] tagFilter = Jsonable.GSON_CONFIG.fromJson(
-            flow.getEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER, "[]"), String[].class);
+            flow.getEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER, GitToggleEnvs.DEFAULT_FILTER), String[].class);
 
         if (Objects.equals(gitEventType, GitEventType.PUSH.name())) {
             if (!pushEnabled) {
@@ -150,6 +150,12 @@ public class GitWebHookController extends NodeController {
 
     private boolean regexFilter(String gitBranch, String[] filter) {
         for (String f : filter) {
+
+            // convert * to RE
+            if (f.equals("*")) {
+                f = ".*";
+            }
+
             Pattern rex = Pattern.compile(f);
             Matcher m = rex.matcher(gitBranch);
             if (m.find()) {
