@@ -57,14 +57,14 @@ public interface YmlService {
      * @param onError method on
      * @return flow node instance
      */
-    Node loadYmlContent(Node root, Consumer<Yml> onSuccess, Consumer<Throwable> onError);
+    Node startLoad(Node root, Consumer<Yml> onSuccess, Consumer<Throwable> onError);
 
     /**
      * Stop yml content loading thread
      *
      * @param root root node
      */
-    void stopLoadYmlContent(Node root);
+    void stopLoad(Node root);
 
     /**
      * Config load yml thread pool

@@ -204,7 +204,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         updateJobStatusAndSave(job, JobStatus.YML_LOADING);
 
         // load yml
-        ymlService.loadYmlContent(flow, new OnYmlSuccess(job, onJobCreated), new OnYmlError(job));
+        ymlService.startLoad(flow, new OnYmlSuccess(job, onJobCreated), new OnYmlError(job));
     }
 
     @Override

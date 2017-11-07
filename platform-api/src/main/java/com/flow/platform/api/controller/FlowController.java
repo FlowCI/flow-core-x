@@ -17,17 +17,18 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.request.TriggerParam;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.util.StringUtil;
 import com.google.common.base.Strings;
 import java.util.List;
 import java.util.Map;
@@ -310,15 +311,18 @@ public class FlowController extends NodeController {
      *      - name: xx
      *      - steps:
      *          - name: xxx
-     *
-     * @apiSuccessExample {yaml} GitLoading-Response
-     *  Empty yml content
      */
     @GetMapping(value = "/{root}/yml")
     @WebSecurity(action = Actions.FLOW_SHOW)
     public String getRawYml() {
         Node root = nodeService.find(currentNodePath.get()).root();
-        return ymlService.get(root).getFile();
+        Yml yml = ymlService.get(root);
+
+        if (yml != null) {
+            return yml.getFile();
+        }
+
+        return StringUtil.EMPTY;
     }
 
     /**
@@ -345,7 +349,7 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_YML)
     public Node loadRawYmlFromGit() {
         Node root = nodeService.find(currentNodePath.get()).root();
-        return ymlService.loadYmlContent(root, null, null);
+        return ymlService.startLoad(root, null, null);
     }
 
     /**
@@ -359,7 +363,7 @@ public class FlowController extends NodeController {
     @WebSecurity(action = Actions.FLOW_YML)
     public void stopLoadYml() {
         Node root = nodeService.find(currentNodePath.get()).root();
-        ymlService.stopLoadYmlContent(root);
+        ymlService.stopLoad(root);
     }
 
     /**
@@ -407,7 +411,7 @@ public class FlowController extends NodeController {
      */
     @PostMapping("/{root}/yml")
     @WebSecurity(action = Actions.FLOW_CREATE)
-    public String createFromYml(@RequestBody String yml) {
+    public String createFromYml(@RequestBody(required = false) String yml) {
         nodeService.createOrUpdateYml(currentNodePath.get(), yml);
         return yml;
     }

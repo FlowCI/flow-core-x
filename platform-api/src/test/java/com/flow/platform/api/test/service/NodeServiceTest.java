@@ -15,6 +15,8 @@
  */
 package com.flow.platform.api.test.service;
 
+import static junit.framework.TestCase.fail;
+
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
@@ -23,6 +25,7 @@ import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.GitToggleEnvs;
+import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
@@ -108,7 +111,12 @@ public class NodeServiceTest extends TestBase {
         envService.save(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"), false);
 
         // when:
-        nodeService.createOrUpdateYml(emptyFlow.getPath(), "");
+        try {
+            nodeService.createOrUpdateYml(emptyFlow.getPath(), "");
+            fail();
+        } catch (Throwable e) {
+            Assert.assertTrue(e instanceof YmlException);
+        }
 
         // then: check FLOW_YML_STATUS
         Node flow = nodeService.find(emptyFlow.getPath()).root();
@@ -123,7 +131,12 @@ public class NodeServiceTest extends TestBase {
         envService.save(emptyFlow, EnvUtil.build("FLOW_YML_STATUS", "LOADING"), false);
 
         // when:
-        nodeService.createOrUpdateYml(emptyFlow.getPath(), "xxxx");
+        try {
+            nodeService.createOrUpdateYml(emptyFlow.getPath(), "xxxx");
+            fail();
+        } catch (Throwable e) {
+            Assert.assertTrue(e instanceof YmlException);
+        }
 
         // then: check FLOW_YML_STATUS
         Node flow = nodeService.find(emptyFlow.getPath()).root();
@@ -195,8 +208,8 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("true", loaded.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_ENABLED));
         Assert.assertEquals("true", loaded.getEnv(GitToggleEnvs.FLOW_GIT_TAG_ENABLED));
         Assert.assertEquals("true", loaded.getEnv(GitToggleEnvs.FLOW_GIT_PR_ENABLED));
-        Assert.assertEquals("[]", loaded.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER));
-        Assert.assertEquals("[]", loaded.getEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER));
+        Assert.assertEquals("[\"*\"]", loaded.getEnv(GitToggleEnvs.FLOW_GIT_PUSH_FILTER));
+        Assert.assertEquals("[\"*\"]", loaded.getEnv(GitToggleEnvs.FLOW_GIT_TAG_FILTER));
 
         // check env been sync with yml
         Node flow = flowDao.get("flow1");
@@ -241,7 +254,7 @@ public class NodeServiceTest extends TestBase {
         ymlService.get(root);
     }
 
-    @Test(expected = IllegalParameterException.class)
+    @Test
     public void should_delete_flow() throws Throwable {
         Node emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
@@ -259,7 +272,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertNull(nodeService.find(root.getPath()));
         Assert.assertEquals(false, Files.exists(NodeUtil.workspacePath(workspace, root)));
 
-        // then: should raise illegal parameter exception since flow doesn't exist
-        ymlService.get(root);
+        // then: should return null if root node is not existed
+        Assert.assertNull(ymlService.get(root));
     }
 }

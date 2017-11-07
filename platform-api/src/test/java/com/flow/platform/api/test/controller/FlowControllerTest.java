@@ -27,6 +27,7 @@ import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.response.ResponseError;
+import com.flow.platform.util.StringUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -157,14 +158,13 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
     }
 
     @Test
-    public void should_return_4xx_if_no_yml_content() throws Throwable {
+    public void should_return_empty_string_if_no_yml_content() throws Throwable {
         // when:
         MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml");
-        MvcResult result = mockMvc.perform(request).andExpect(status().is4xxClientError()).andReturn();
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
         String content = result.getResponse().getContentAsString();
 
         // then:
-        ResponseError error = ResponseError.parse(content, ResponseError.class);
-        Assert.assertEquals("Yml content not found", error.getMessage());
+        Assert.assertEquals(StringUtil.EMPTY, content);
     }
 }

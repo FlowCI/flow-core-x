@@ -38,6 +38,7 @@ import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
@@ -95,12 +96,13 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     private String apiDomain;
 
     @Override
+    @Transactional(noRollbackFor = FlowException.class)
     public Node createOrUpdateYml(final String path, String yml) {
         final Node flow = find(PathUtil.rootPath(path)).root();
 
         if (Strings.isNullOrEmpty(yml)) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.NOT_FOUND, null);
-            return flow;
+            throw new YmlException("Yml content must be provided");
         }
 
         Node rootFromYml;
@@ -108,7 +110,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             rootFromYml = ymlService.verifyYml(flow, yml);
         } catch (IllegalParameterException | YmlException e) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());
-            return flow;
+            throw new YmlException(e.getMessage());
         }
 
         // persistent flow type node to flow table with env which from yml
@@ -181,7 +183,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         getTreeCache().evict(rootPath);
 
         // stop yml loading tasks
-        ymlService.stopLoadYmlContent(flow);
+        ymlService.stopLoad(flow);
         return flow;
     }
 
