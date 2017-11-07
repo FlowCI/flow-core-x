@@ -166,8 +166,13 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
 
-        // when:
-        Map<String, String> envs = new HashMap<>();
+        // save illegal env variable
+        root.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT, "1111");
+        root.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH, "master");
+        flowDao.update(root);
+
+        // when: save other env variable without check illegal env just saved
+        Map<String, String> envs = new HashMap<>(3);
         envs.put("FLOW_NEW_1", "hello");
         envs.put("FLOW_NEW_2", "world");
         envs.put("FLOW_NEW_3", "done");
@@ -176,7 +181,7 @@ public class NodeServiceTest extends TestBase {
         // then:
         String webhook = HttpURL.build(apiDomain).append("/hooks/git").append(emptyFlow.getName()).toString();
         Node loaded = nodeService.find("flow1").root();
-        Assert.assertEquals(13, loaded.getEnvs().size());
+        Assert.assertEquals(15, loaded.getEnvs().size());
         Assert.assertEquals("hello", loaded.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", loaded.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", loaded.getEnv("FLOW_NEW_3"));
@@ -195,7 +200,7 @@ public class NodeServiceTest extends TestBase {
 
         // check env been sync with yml
         Node flow = flowDao.get("flow1");
-        Assert.assertEquals(13, flow.getEnvs().size());
+        Assert.assertEquals(15, flow.getEnvs().size());
         Assert.assertEquals("hello", flow.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", flow.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", flow.getEnv("FLOW_NEW_3"));

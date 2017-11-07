@@ -21,13 +21,16 @@ import static com.flow.platform.api.envs.FlowEnvs.FLOW_STATUS;
 import static com.flow.platform.api.envs.FlowEnvs.FLOW_YML_STATUS;
 import static com.flow.platform.api.envs.GitEnvs.FLOW_GIT_BRANCH;
 import static com.flow.platform.api.envs.GitEnvs.FLOW_GIT_WEBHOOK;
+import static junit.framework.TestCase.fail;
 
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.IllegalOperationException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,6 +54,29 @@ public class EnvServiceTest extends TestBase {
 
         Node mock = new Node("flow", "flow");
         envService.delete(mock, Sets.newHashSet(FlowEnvs.FLOW_STATUS.name()), true);
+    }
+
+    @Test
+    public void should_env_not_changed_when_env_handler_has_exception() {
+        // given:
+        Node node = nodeService.createEmptyFlow("flow");
+
+        // when: save env variable with error
+        Map<String, String> envs = new HashMap<>(2);
+        envs.put(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT.name(), "111");
+        envs.put(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH.name(), "master");
+
+        try {
+            envService.save(node, envs, false);
+            fail();
+
+        } catch (Throwable e) {
+            Assert.assertTrue(e instanceof IllegalParameterException);
+
+            // then: the new env not been recorded
+            Assert.assertNull(node.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT));
+            Assert.assertNull(node.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH));
+        }
     }
 
     @Test

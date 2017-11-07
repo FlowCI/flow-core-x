@@ -28,6 +28,7 @@ import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.envs.handler.EnvHandler;
 import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.core.exception.IllegalOperationException;
+import com.flow.platform.util.ObjectUtil;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
@@ -109,17 +110,20 @@ public class EnvServiceImpl implements EnvService {
             verifyWhenAdd(envs);
         }
 
-        EnvUtil.merge(envs, node.getEnvs(), true);
+        // make copy of node since do not effect the node in cache
+        Node copy = ObjectUtil.deepCopy(node);
+        EnvUtil.merge(envs, copy.getEnvs(), true);
 
         // handle envs before save
-        for (Map.Entry<String, String> entry : node.getEnvs().entrySet()) {
+        for (Map.Entry<String, String> entry : envs.entrySet()) {
             EnvHandler envHandler = envHandlerMap.get(entry.getKey());
             if (envHandler != null) {
-                envHandler.handle(node);
+                envHandler.handle(copy);
             }
         }
 
-        // sync latest env into flow table
+        // merge env to real node instance after handler
+        EnvUtil.merge(copy.getEnvs(), node.getEnvs(), true);
         flowDao.update(node);
     }
 
