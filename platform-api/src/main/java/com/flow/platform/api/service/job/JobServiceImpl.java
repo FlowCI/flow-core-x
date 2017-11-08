@@ -214,6 +214,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         Cmd cmd = cmdQueueItem.getCmd();
         Job job = jobDao.get(jobId);
 
+        // if not found job, re enqueue
+        if (job == null){
+            throw new NotFoundException("job");
+        }
+
         if (Job.FINISH_STATUS.contains(job.getStatus())) {
             LOGGER.trace("Reject cmd callback since job %s already in finish status", job.getId());
             return;
