@@ -108,6 +108,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
         // update exist offline agent to idle status
         if (exist.getStatus() == AgentStatus.OFFLINE) {
+            exist.setSessionId(null);
             saveWithStatus(exist, AgentStatus.IDLE);
         }
 

@@ -115,6 +115,11 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
         // build result list
         List<AgentWithFlow> agentWithFlows = new ArrayList<>(agents.length);
         for (Agent agent : agents) {
+            if (agent.getStatus() == AgentStatus.OFFLINE){
+                agentWithFlows.add(new AgentWithFlow(agent, null));
+                continue;
+            }
+
             String sessionIdFromAgent = agent.getSessionId();
 
             if (Strings.isNullOrEmpty(sessionIdFromAgent)) {
