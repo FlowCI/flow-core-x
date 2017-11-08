@@ -273,9 +273,9 @@ public class JobController extends NodeController {
      */
     @PostMapping(path = "/{root}/{buildNumber}/stop")
     @WebSecurity(action = Actions.JOB_STOP)
-    public Job stopJob(@PathVariable Integer buildNumber) {
+    public void stopJob(@PathVariable Integer buildNumber) {
         String path = currentNodePath.get();
-        return jobService.stop(path, buildNumber);
+        jobService.stop(path, buildNumber);
     }
 
     /**

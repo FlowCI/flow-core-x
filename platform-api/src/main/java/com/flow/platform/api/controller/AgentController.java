@@ -169,12 +169,12 @@ public class AgentController {
      *  }
      */
     @PostMapping(path = "/close")
-    public BooleanValue close(@RequestBody AgentPath path) {
+    public void close(@RequestBody AgentPath path) {
         if (path.isEmpty()) {
             throw new IllegalParameterException("Agent zone or name are required");
         }
 
-        return new BooleanValue(agentService.close(path));
+        agentService.close(path);
     }
 
     /**
