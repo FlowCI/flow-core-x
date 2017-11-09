@@ -265,6 +265,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private void stopAllJobs(String path) {
+        LOGGER.trace("before delete flow, first stop all jobs");
         List<Job> jobs = jobDao.listByPath(Arrays.asList(path));
         List<Job> sessionCreateJobs = new LinkedList<>();
         List<Job> runningJobs = new LinkedList<>();
@@ -288,6 +289,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         for (Job runningJob : runningJobs) {
             stop(path, runningJob.getNumber());
         }
+        LOGGER.trace("before delete flow, finish stop all jobs");
     }
 
 
