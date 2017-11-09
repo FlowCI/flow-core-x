@@ -15,31 +15,32 @@
  */
 package com.flow.platform.api.service.job;
 
-import static com.flow.platform.api.envs.FlowEnvs.FLOW_STATUS;
-import static com.flow.platform.api.envs.FlowEnvs.FLOW_YML_STATUS;
-import static com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import static com.flow.platform.api.domain.job.NodeStatus.FAILURE;
 import static com.flow.platform.api.domain.job.NodeStatus.STOPPED;
 import static com.flow.platform.api.domain.job.NodeStatus.SUCCESS;
 import static com.flow.platform.api.domain.job.NodeStatus.TIMEOUT;
+import static com.flow.platform.api.envs.FlowEnvs.FLOW_STATUS;
+import static com.flow.platform.api.envs.FlowEnvs.FLOW_YML_STATUS;
+import static com.flow.platform.api.envs.FlowEnvs.StatusValue;
 
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.job.JobCategory;
-import com.flow.platform.api.domain.job.NodeTag;
-import com.flow.platform.api.envs.FlowEnvs;
-import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
-import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.envs.EnvUtil;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.git.GitEventEnvConverter;
 import com.flow.platform.api.service.GitService;
@@ -47,7 +48,6 @@ import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
-import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -67,7 +67,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -214,7 +216,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         Job job = jobDao.get(jobId);
 
         // if not found job, re enqueue
-        if (job == null){
+        if (job == null) {
             throw new NotFoundException("job");
         }
 
@@ -253,11 +255,41 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         List<BigInteger> jobIds = jobDao.findJobIdsByPath(path);
         // TODO :  Late optimization and paging jobIds
         if (jobIds.size() > 0) {
+            //first clear agent jobs
+            stopAllJobs(path);
+
             jobYmlDao.delete(jobIds);
             nodeResultDao.delete(jobIds);
             jobDao.deleteJob(path);
         }
     }
+
+    private void stopAllJobs(String path) {
+        List<Job> jobs = jobDao.listByPath(Arrays.asList(path));
+        List<Job> sessionCreateJobs = new LinkedList<>();
+        List<Job> runningJobs = new LinkedList<>();
+
+        for (Job job : jobs) {
+            if (job.getStatus() == JobStatus.SESSION_CREATING) {
+                sessionCreateJobs.add(job);
+            }
+
+            if (job.getStatus() == JobStatus.RUNNING) {
+                runningJobs.add(job);
+            }
+        }
+
+        // first to stop session create job
+        for (Job sessionCreateJob : sessionCreateJobs) {
+            stop(path, sessionCreateJob.getNumber());
+        }
+
+        // last to stop running job
+        for (Job runningJob : runningJobs) {
+            stop(path, runningJob.getNumber());
+        }
+    }
+
 
     private Job createJob(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         Node root = nodeService.find(PathUtil.rootPath(path)).root();
