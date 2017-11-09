@@ -1,28 +1,25 @@
 {
-  "ref": "refs/heads/master",
-  "before": "b972e2edd91e85ec25ec28c29d7dc3e823f28e8a",
-  "commits": [
-    {
-      "committer": {
-        "name": "benqyang2006",
-        "email": "benqyang_2006@hotmail.com"
-      },
-      "web_url": "https://coding.net/u/benqyang2006/p/flowclibasic/git/commit/aa818aed288c6ca4c20a1d8144a2e9bcafa9f3a8",
-      "short_message": "Accept Merge Request #1 test pr : (develop -\u003e master)\n",
-      "sha": "aa818aed288c6ca4c20a1d8144a2e9bcafa9f3a8"
+  "merge_request": {
+    "target_branch": "master",
+    "merged_commit_sha": "b98872eeb4fcfa4a736dcf1df76d110b1cc62832",
+    "title": "23123123",
+    "body": "\u003cp\u003e12312321\u003c/p\u003e",
+    "source_sha": "db2da0ba563a323614f3d974a67a2c63e2929177",
+    "source_branch": "develop",
+    "number": 5.0,
+    "web_url": "https://coding.net/u/benqyang2006/p/flowclibasic/git/merge/5",
+    "target_sha": "985ae638e0cc8bd4dc2cd8c7a8a6800b00b33997",
+    "action": "merge",
+    "id": 924984.0,
+    "user": {
+      "path": "/u/benqyang2006",
+      "web_url": "https://coding.net/u/benqyang2006",
+      "global_key": "benqyang2006",
+      "name": "benqyang2006",
+      "avatar": "https://dn-coding-net-production-static.qbox.me/16e639e2-45dd-4959-b38e-576e2ac0041c.jpg?imageMogr2/auto-orient/format/jpeg/crop/!498x498a48a302"
     },
-    {
-      "committer": {
-        "name": "benqyang2006",
-        "email": "benqyang_2006@hotmail.com"
-      },
-      "web_url": "https://coding.net/u/benqyang2006/p/flowclibasic/git/commit/d2e8158fbd4f13c0672004e1bbb2a7ee33fb6371",
-      "short_message": "update .flow.yml\n",
-      "sha": "d2e8158fbd4f13c0672004e1bbb2a7ee33fb6371"
-    }
-  ],
-  "after": "aa818aed288c6ca4c20a1d8144a2e9bcafa9f3a8",
-  "event": "push",
+    "status": "ACCEPTED"
+  },
   "repository": {
     "owner": {
       "path": "/u/benqyang2006",
@@ -38,11 +35,5 @@
     "name": "flowclibasic",
     "description": ""
   },
-  "user": {
-    "path": "/u/benqyang2006",
-    "web_url": "https://coding.net/u/benqyang2006",
-    "global_key": "benqyang2006",
-    "name": "benqyang2006",
-    "avatar": "https://dn-coding-net-production-static.qbox.me/16e639e2-45dd-4959-b38e-576e2ac0041c.jpg?imageMogr2/auto-orient/format/jpeg/crop/!498x498a48a302"
-  }
+  "event": "merge_request"
 }

@@ -17,6 +17,7 @@
 package com.flow.platform.util.git.test;
 
 import com.flow.platform.util.git.hooks.CodingEvents.Hooks;
+import com.flow.platform.util.git.hooks.CodingEvents.PullRequestAdapter;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
@@ -104,7 +105,7 @@ public class CodingWebHooksEventTest {
     }
 
     @Test
-    public void should_convert_to_pr_event_obj() throws Throwable {
+    public void should_convert_to_pr_open_event_obj() throws Throwable {
         // given:
         String mrEventContent = loadWebhookSampleJson("coding/webhook_pr_open.json");
         Map<String, String> dummyHeader = new HashMap<>();
@@ -118,13 +119,14 @@ public class CodingWebHooksEventTest {
         Assert.assertEquals(GitSource.CODING, prEvent.getGitSource());
         Assert.assertEquals(GitEventType.PR, prEvent.getType());
 
-        Assert.assertEquals("create", prEvent.getAction());
+        Assert.assertEquals(PullRequestAdapter.STATE_OPEN, prEvent.getAction());
         Assert.assertEquals(State.OPEN, prEvent.getState());
         Assert.assertEquals("test pr", prEvent.getTitle());
         Assert.assertEquals("\u003cp\u003ehello this is the PR test\u003c/p\u003e", prEvent.getDescription());
         Assert.assertEquals("https://coding.net/u/benqyang2006/p/flowclibasic/git/merge/1", prEvent.getUrl());
         Assert.assertEquals(924870, prEvent.getRequestId().intValue());
         Assert.assertEquals("benqyang2006", prEvent.getSubmitter());
+        Assert.assertNull(prEvent.getMergedBy());
 
         GitPullRequestInfo source = prEvent.getSource();
         Assert.assertEquals("develop", source.getBranch());
@@ -137,6 +139,52 @@ public class CodingWebHooksEventTest {
         Assert.assertEquals("", target.getSha());
         Assert.assertEquals(1243975, target.getProjectId().intValue());
         Assert.assertEquals("flowclibasic", target.getProjectName());
+
+        Assert.assertEquals("develop...master", prEvent.getCompareId());
+        Assert.assertEquals("https://coding.net/u/benqyang2006/p/flowclibasic/git/compare/develop...master",
+            prEvent.getCompareUrl());
+    }
+
+    @Test
+    public void should_convert_to_pr_close_obj() throws Throwable {
+        // given:
+        String mrEventContent = loadWebhookSampleJson("coding/webhook_pr_close.json");
+        Map<String, String> dummyHeader = new HashMap<>();
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PR);
+
+        // when: build event from header and json content
+        GitPullRequestEvent prEvent = (GitPullRequestEvent) GitHookEventFactory.build(dummyHeader, mrEventContent);
+        Assert.assertNotNull(prEvent);
+
+        // then:
+        Assert.assertEquals(GitSource.CODING, prEvent.getGitSource());
+        Assert.assertEquals(GitEventType.PR, prEvent.getType());
+
+        Assert.assertEquals(PullRequestAdapter.STATE_CLOSE, prEvent.getAction());
+        Assert.assertEquals(State.CLOSE, prEvent.getState());
+        Assert.assertEquals("23123123", prEvent.getTitle());
+        Assert.assertEquals("<p>12312321</p>", prEvent.getDescription());
+        Assert.assertEquals(924984, prEvent.getRequestId().intValue());
+        Assert.assertEquals("https://coding.net/u/benqyang2006/p/flowclibasic/git/merge/5", prEvent.getUrl());
+
+        Assert.assertNull(prEvent.getSubmitter());
+        Assert.assertEquals("benqyang2006", prEvent.getMergedBy());
+
+        GitPullRequestInfo source = prEvent.getSource();
+        Assert.assertEquals("develop", source.getBranch());
+        Assert.assertEquals("db2da0ba563a323614f3d974a67a2c63e2929177", source.getSha());
+        Assert.assertEquals(1243975, source.getProjectId().intValue());
+        Assert.assertEquals("flowclibasic", source.getProjectName());
+
+        GitPullRequestInfo target = prEvent.getTarget();
+        Assert.assertEquals("master", target.getBranch());
+        Assert.assertEquals("985ae638e0cc8bd4dc2cd8c7a8a6800b00b33997", target.getSha());
+        Assert.assertEquals(1243975, target.getProjectId().intValue());
+        Assert.assertEquals("flowclibasic", target.getProjectName());
+
+        Assert.assertEquals("985ae638e0cc...db2da0ba563a", prEvent.getCompareId());
+        Assert.assertEquals("https://coding.net/u/benqyang2006/p/flowclibasic/git/compare/985ae638e0cc...db2da0ba563a",
+            prEvent.getCompareUrl());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {

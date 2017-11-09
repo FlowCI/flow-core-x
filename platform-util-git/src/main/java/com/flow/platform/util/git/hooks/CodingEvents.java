@@ -29,6 +29,7 @@ import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yang
@@ -168,6 +169,8 @@ public class CodingEvents {
 
         public final static String STATE_OPEN = "create";
 
+        public final static String STATE_CLOSE = "merge";
+
         private class RequestRootHelper {
 
             @SerializedName("merge_request")
@@ -224,13 +227,22 @@ public class CodingEvents {
             // set general info of PR
             GitPullRequestEvent event = new GitPullRequestEvent(gitSource, eventType);
             event.setAction(mr.action);
-            event.setState(State.OPEN);
+
+            if (Objects.equals(mr.action, STATE_OPEN)) {
+                event.setState(State.OPEN);
+                event.setSubmitter(mr.user.name);
+            }
+
+            if (Objects.equals(mr.action, STATE_CLOSE)) {
+                event.setState(State.CLOSE);
+                event.setMergedBy(mr.user.name);
+            }
+
             event.setDescription(mr.body);
             event.setTitle(mr.title);
 
             event.setRequestId((int) Double.parseDouble(mr.id));
             event.setUrl(mr.url);
-            event.setSubmitter(mr.user.name);
             event.setSource(new GitPullRequestInfo());
             event.setTarget(new GitPullRequestInfo());
 
@@ -245,6 +257,11 @@ public class CodingEvents {
             event.getTarget().setSha(mr.targetSha);
             event.getTarget().setProjectId(Integer.parseInt(repo.id));
             event.getTarget().setProjectName(repo.name);
+
+            // set compare id
+            final String compareId = GitPullRequestEvent.buildCompareId(event.getSource(), event.getTarget());
+            event.setCompareId(compareId);
+            event.setCompareUrl(repo.url + "/git/compare/" + compareId);
 
             return event;
         }
