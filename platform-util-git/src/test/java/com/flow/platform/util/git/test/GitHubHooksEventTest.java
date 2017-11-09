@@ -46,7 +46,7 @@ public class GitHubHooksEventTest {
         // given:
         String pushEventContent = loadWebhookSampleJson("github/webhook_push.json");
         Map<String, String> dummyHeader = new HashMap<>();
-        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH_OR_TAG);
 
         // when:
         GitPushTagEvent pushEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, pushEventContent);
@@ -85,7 +85,7 @@ public class GitHubHooksEventTest {
         // given:
         String tagEventContent = loadWebhookSampleJson("github/webhook_tag.json");
         Map<String, String> dummyHeader = new HashMap<>();
-        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH_OR_TAG);
 
         // when:
         GitPushTagEvent tagEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, tagEventContent);

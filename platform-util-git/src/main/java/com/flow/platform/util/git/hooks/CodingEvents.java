@@ -17,11 +17,13 @@
 package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
-import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventAuthor;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
+import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
+import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.annotations.SerializedName;
@@ -37,20 +39,40 @@ public class CodingEvents {
 
         public final static String HEADER = "x-coding-event";
 
-        public final static String EVENT_TYPE_PUSH = "push";
+        public final static String EVENT_TYPE_PUSH_OR_TAG = "push";
 
-        public final static String EVENT_TYPE_TAG = "push";
+        public final static String EVENT_TYPE_PR = "merge_request";
+    }
 
-        public final static String EVENT_TYPE_PR = "pull_request";
+    private class CodingUserHelper {
+
+        private String path;
+
+        @SerializedName(value = "web_url")
+        private String url;
+
+        private String name;
+
+    }
+
+    private class CodingRepoHelper {
+
+        @SerializedName(value = "web_url")
+        private String url;
+
+        @SerializedName(value = "project_id")
+        private String id;
+
+        private String name;
     }
 
     public static class PushAndTagAdapter extends GitHookEventAdapter {
 
         private class PushHelper {
 
-            private PushUserHelper user;
+            private CodingUserHelper user;
 
-            private RepoHelper repository;
+            private CodingRepoHelper repository;
 
             private List<CommitHelper> commits;
         }
@@ -77,26 +99,6 @@ public class CodingEvents {
                 return commit;
             }
 
-        }
-
-        private class PushUserHelper {
-
-            private String path;
-
-            @SerializedName(value = "web_url")
-            private String url;
-
-            private String name;
-
-        }
-
-        private class RepoHelper {
-
-            @SerializedName(value = "web_url")
-            private String url;
-
-            @SerializedName(value = "project_id")
-            private String id;
         }
 
         PushAndTagAdapter(GitSource gitSource, GitEventType eventType) {
@@ -154,6 +156,96 @@ public class CodingEvents {
             final String compareUrl = helper.repository.url + "/git/compare/" + compareId;
             event.setCompareUrl(compareUrl);
             event.setGitSource(gitSource);
+            return event;
+        }
+    }
+
+    /**
+     * Coding PR event only for 'open' pull request,
+     * The close PR event the same as push
+     */
+    public static class PullRequestAdapter extends GitHookEventAdapter {
+
+        public final static String STATE_OPEN = "create";
+
+        private class RequestRootHelper {
+
+            @SerializedName("merge_request")
+            private MergeRequestHelper mergeRequest;
+
+            private CodingRepoHelper repository;
+
+            private String event;
+        }
+
+        private class MergeRequestHelper {
+
+            @SerializedName("target_branch")
+            private String targetBranch;
+
+            @SerializedName("target_sha")
+            private String targetSha;
+
+            private String title;
+
+            private String body;
+
+            @SerializedName("source_branch")
+            private String sourceBranch;
+
+            @SerializedName("source_sha")
+            private String sourceSha;
+
+            @SerializedName("web_url")
+            private String url;
+
+            @SerializedName("merge_commit_sha")
+            private String mergeCommitSha;
+
+            private String action;
+
+            private String id;
+
+            private String status;
+
+            private CodingUserHelper user;
+        }
+
+        public PullRequestAdapter(GitSource gitSource, GitEventType eventType) {
+            super(gitSource, eventType);
+        }
+
+        @Override
+        public GitEvent convert(String json) throws GitException {
+            RequestRootHelper root = GSON.fromJson(json, RequestRootHelper.class);
+            MergeRequestHelper mr = root.mergeRequest;
+            CodingRepoHelper repo = root.repository;
+
+            // set general info of PR
+            GitPullRequestEvent event = new GitPullRequestEvent(gitSource, eventType);
+            event.setAction(mr.action);
+            event.setState(State.OPEN);
+            event.setDescription(mr.body);
+            event.setTitle(mr.title);
+
+            event.setRequestId((int) Double.parseDouble(mr.id));
+            event.setUrl(mr.url);
+            event.setSubmitter(mr.user.name);
+            event.setSource(new GitPullRequestInfo());
+            event.setTarget(new GitPullRequestInfo());
+
+            // set source info
+            event.getSource().setBranch(mr.sourceBranch);
+            event.getSource().setSha(mr.sourceSha);
+            event.getSource().setProjectId(Integer.parseInt(repo.id));
+            event.getSource().setProjectName(repo.name);
+
+            // set target info
+            event.getTarget().setBranch(mr.targetBranch);
+            event.getTarget().setSha(mr.targetSha);
+            event.getTarget().setProjectId(Integer.parseInt(repo.id));
+            event.getTarget().setProjectName(repo.name);
+
             return event;
         }
     }

@@ -19,6 +19,9 @@ package com.flow.platform.util.git.test;
 import com.flow.platform.util.git.hooks.CodingEvents.Hooks;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.model.GitEventType;
+import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
+import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.io.Files;
@@ -41,7 +44,7 @@ public class CodingWebHooksEventTest {
         // given:
         String pushEventContent = loadWebhookSampleJson("coding/webhook_push.json");
         Map<String, String> dummyHeader = new HashMap<>();
-        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH_OR_TAG);
 
         // when: build event from header and json content
         GitPushTagEvent pushEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, pushEventContent);
@@ -71,12 +74,12 @@ public class CodingWebHooksEventTest {
     @Test
     public void should_convert_to_tag_event_obj() throws Throwable {
         // given:
-        String pushEventContent = loadWebhookSampleJson("coding/webhook_tag.json");
+        String tagEventContent = loadWebhookSampleJson("coding/webhook_tag.json");
         Map<String, String> dummyHeader = new HashMap<>();
-        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH_OR_TAG);
 
         // when: build event from header and json content
-        GitPushTagEvent tagEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, pushEventContent);
+        GitPushTagEvent tagEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, tagEventContent);
         Assert.assertNotNull(tagEvent);
 
         // then:
@@ -98,6 +101,42 @@ public class CodingWebHooksEventTest {
         Assert.assertEquals(
             "https://coding.net/u/benqyang2006/p/flowclibasic/git/commit/b972e2edd91e85ec25ec28c29d7dc3e823f28e8a",
             tagEvent.getHeadCommitUrl());
+    }
+
+    @Test
+    public void should_convert_to_pr_event_obj() throws Throwable {
+        // given:
+        String mrEventContent = loadWebhookSampleJson("coding/webhook_pr_open.json");
+        Map<String, String> dummyHeader = new HashMap<>();
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PR);
+
+        // when: build event from header and json content
+        GitPullRequestEvent prEvent = (GitPullRequestEvent) GitHookEventFactory.build(dummyHeader, mrEventContent);
+        Assert.assertNotNull(prEvent);
+
+        // then:
+        Assert.assertEquals(GitSource.CODING, prEvent.getGitSource());
+        Assert.assertEquals(GitEventType.PR, prEvent.getType());
+
+        Assert.assertEquals("create", prEvent.getAction());
+        Assert.assertEquals(State.OPEN, prEvent.getState());
+        Assert.assertEquals("test pr", prEvent.getTitle());
+        Assert.assertEquals("\u003cp\u003ehello this is the PR test\u003c/p\u003e", prEvent.getDescription());
+        Assert.assertEquals("https://coding.net/u/benqyang2006/p/flowclibasic/git/merge/1", prEvent.getUrl());
+        Assert.assertEquals(924870, prEvent.getRequestId().intValue());
+        Assert.assertEquals("benqyang2006", prEvent.getSubmitter());
+
+        GitPullRequestInfo source = prEvent.getSource();
+        Assert.assertEquals("develop", source.getBranch());
+        Assert.assertEquals("", source.getSha());
+        Assert.assertEquals(1243975, source.getProjectId().intValue());
+        Assert.assertEquals("flowclibasic", source.getProjectName());
+
+        GitPullRequestInfo target = prEvent.getTarget();
+        Assert.assertEquals("master", target.getBranch());
+        Assert.assertEquals("", target.getSha());
+        Assert.assertEquals(1243975, target.getProjectId().intValue());
+        Assert.assertEquals("flowclibasic", target.getProjectName());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {

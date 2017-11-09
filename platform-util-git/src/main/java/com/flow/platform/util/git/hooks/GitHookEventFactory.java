@@ -16,6 +16,7 @@
 
 package com.flow.platform.util.git.hooks;
 
+import static com.flow.platform.util.git.model.GitEventType.NONE;
 import static com.flow.platform.util.git.model.GitEventType.PR;
 import static com.flow.platform.util.git.model.GitEventType.PUSH;
 import static com.flow.platform.util.git.model.GitEventType.TAG;
@@ -53,12 +54,12 @@ public class GitHookEventFactory {
         // init GitHub hook data adaptor
         Map<String, GitHookEventAdapter> gitHubAdaptors = new HashMap<>(3);
         gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PR, new PullRequestAdapter(GITHUB, PR));
-        gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PUSH, new GitHubEvents.PushAndTagAdapter(GITHUB, PUSH));
-        gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_TAG, new GitHubEvents.PushAndTagAdapter(GITHUB, TAG));
+        gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PUSH_OR_TAG, new GitHubEvents.PushAndTagAdapter(GITHUB, NONE));
         adaptors.put(GitHubEvents.Hooks.HEADER, gitHubAdaptors);
 
         Map<String, GitHookEventAdapter> codingAdaptors = new HashMap<>(3);
-        codingAdaptors.put(CodingEvents.Hooks.EVENT_TYPE_PUSH, new CodingEvents.PushAndTagAdapter(CODING, PUSH));
+        codingAdaptors.put(CodingEvents.Hooks.EVENT_TYPE_PR, new CodingEvents.PullRequestAdapter(CODING, PR));
+        codingAdaptors.put(CodingEvents.Hooks.EVENT_TYPE_PUSH_OR_TAG, new CodingEvents.PushAndTagAdapter(CODING, NONE));
         adaptors.put(CodingEvents.Hooks.HEADER, codingAdaptors);
     }
 
