@@ -82,10 +82,6 @@ public class JobControllerTest extends ControllerTestWithoutAuth {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk()).andReturn();
 
-        String response = mvcResult.getResponse().getContentAsString();
-        Job jobLoaded = Jsonable.GSON_CONFIG.fromJson(response, Job.class);
-        Assert.assertNotNull(jobLoaded);
-
         Job loadedJob = requestToShowJob(job.getNodePath(), job.getNumber());
         Assert.assertEquals(NodeStatus.STOPPED, loadedJob.getRootResult().getStatus());
     }

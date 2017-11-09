@@ -66,11 +66,6 @@ public class AgentControllerTest extends TestBase {
             .content(new AgentPath("default", "machine").toJson())
             .contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk()).andReturn();
 
-
-        String contentAsString = result.getResponse().getContentAsString();
-        BooleanValue booleanValue = BooleanValue.parse(contentAsString, BooleanValue.class);
-        Assert.assertEquals(true, booleanValue.getValue());
-
         CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
         verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/send")));
     }

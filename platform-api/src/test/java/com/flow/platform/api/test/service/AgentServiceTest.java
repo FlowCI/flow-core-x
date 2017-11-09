@@ -31,6 +31,7 @@ import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Jsonable;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -82,6 +83,7 @@ public class AgentServiceTest extends TestBase {
 
     private Agent createMockAgent(String sessionId) {
         Agent agent = new Agent("zone", "name");
+        agent.setStatus(AgentStatus.BUSY);
         agent.setSessionId(sessionId);
         return agent;
     }
