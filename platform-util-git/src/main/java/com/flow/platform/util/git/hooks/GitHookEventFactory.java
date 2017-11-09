@@ -19,6 +19,7 @@ package com.flow.platform.util.git.hooks;
 import static com.flow.platform.util.git.model.GitEventType.PR;
 import static com.flow.platform.util.git.model.GitEventType.PUSH;
 import static com.flow.platform.util.git.model.GitEventType.TAG;
+import static com.flow.platform.util.git.model.GitSource.CODING;
 import static com.flow.platform.util.git.model.GitSource.GITHUB;
 import static com.flow.platform.util.git.model.GitSource.GITLAB;
 
@@ -55,6 +56,10 @@ public class GitHookEventFactory {
         gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PUSH, new GitHubEvents.PushAndTagAdapter(GITHUB, PUSH));
         gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_TAG, new GitHubEvents.PushAndTagAdapter(GITHUB, TAG));
         adaptors.put(GitHubEvents.Hooks.HEADER, gitHubAdaptors);
+
+        Map<String, GitHookEventAdapter> codingAdaptors = new HashMap<>(3);
+        codingAdaptors.put(CodingEvents.Hooks.EVENT_TYPE_PUSH, new CodingEvents.PushAndTagAdapter(CODING, PUSH));
+        adaptors.put(CodingEvents.Hooks.HEADER, codingAdaptors);
     }
 
     /**
@@ -75,6 +80,12 @@ public class GitHookEventFactory {
         String gitHubEventType = header.get(GitHubEvents.Hooks.HEADER);
         if (gitHubEventType != null) {
             matchedAdaptor = adaptors.get(GitHubEvents.Hooks.HEADER).get(gitHubEventType);
+        }
+
+        // looking for Coding event adaptors
+        String codingEventType = header.get(CodingEvents.Hooks.HEADER);
+        if (codingEventType != null) {
+            matchedAdaptor = adaptors.get(CodingEvents.Hooks.HEADER).get(codingEventType);
         }
 
         if (matchedAdaptor != null) {

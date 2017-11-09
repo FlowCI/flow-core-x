@@ -16,6 +16,7 @@
 
 package com.flow.platform.util.git.model;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 import java.util.List;
 
@@ -27,14 +28,18 @@ public class GitEventCommit implements Serializable {
     /**
      * Commit sha
      */
+    @SerializedName(value = "id", alternate = "sha")
     private String id;
 
+    @SerializedName(value = "message", alternate = "short_message")
     private String message;
 
     private String timestamp;
 
+    @SerializedName(value = "url", alternate = "web_url")
     private String url;
 
+    @SerializedName(value = "author", alternate = "committer")
     private GitEventAuthor author;
 
     private List<String> added;
