@@ -145,10 +145,6 @@ public class GitHubHooksEventTest {
         Assert.assertEquals(86284448, target.getProjectId().intValue());
         Assert.assertEquals("yang-guo-2016/Test", target.getProjectName());
         Assert.assertEquals("4e4e3750cd468f245bd9f0f938c4b5f76e1bc5b0", target.getSha());
-
-        Assert.assertEquals("4e4e3750cd46...1d1de876084e", event.getCompareId());
-        Assert.assertEquals("https://github.com/yang-guo-2016/Test/compare/4e4e3750cd46...1d1de876084e",
-            event.getCompareUrl());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {

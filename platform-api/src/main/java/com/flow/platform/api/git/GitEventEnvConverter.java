@@ -82,12 +82,6 @@ public class GitEventEnvConverter {
                 info.put(GitEnvs.FLOW_GIT_COMMIT_URL.name(), pr.getUrl());
             }
 
-            // set compare id and url from PR request
-            if (pr.getCompareId() != null && pr.getCompareUrl() != null) {
-                info.put(GitEnvs.FLOW_GIT_COMPARE_ID.name(), pr.getCompareId());
-                info.put(GitEnvs.FLOW_GIT_COMPARE_URL.name(), pr.getCompareUrl());
-            }
-
             info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pr.getTitle());
             info.put(GitEnvs.FLOW_GIT_PR_URL.name(), pr.getUrl());
             return info;

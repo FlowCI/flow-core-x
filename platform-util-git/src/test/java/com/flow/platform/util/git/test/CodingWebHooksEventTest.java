@@ -139,10 +139,6 @@ public class CodingWebHooksEventTest {
         Assert.assertEquals("", target.getSha());
         Assert.assertEquals(1243975, target.getProjectId().intValue());
         Assert.assertEquals("flowclibasic", target.getProjectName());
-
-        Assert.assertEquals("develop...master", prEvent.getCompareId());
-        Assert.assertEquals("https://coding.net/u/benqyang2006/p/flowclibasic/git/compare/develop...master",
-            prEvent.getCompareUrl());
     }
 
     @Test
@@ -181,10 +177,6 @@ public class CodingWebHooksEventTest {
         Assert.assertEquals("985ae638e0cc8bd4dc2cd8c7a8a6800b00b33997", target.getSha());
         Assert.assertEquals(1243975, target.getProjectId().intValue());
         Assert.assertEquals("flowclibasic", target.getProjectName());
-
-        Assert.assertEquals("985ae638e0cc...db2da0ba563a", prEvent.getCompareId());
-        Assert.assertEquals("https://coding.net/u/benqyang2006/p/flowclibasic/git/compare/985ae638e0cc...db2da0ba563a",
-            prEvent.getCompareUrl());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {

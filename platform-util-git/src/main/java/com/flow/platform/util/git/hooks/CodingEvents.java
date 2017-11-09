@@ -258,11 +258,6 @@ public class CodingEvents {
             event.getTarget().setProjectId(Integer.parseInt(repo.id));
             event.getTarget().setProjectName(repo.name);
 
-            // set compare id
-            final String compareId = GitPullRequestEvent.buildCompareId(event.getSource(), event.getTarget());
-            event.setCompareId(compareId);
-            event.setCompareUrl(repo.url + "/git/compare/" + compareId);
-
             return event;
         }
     }

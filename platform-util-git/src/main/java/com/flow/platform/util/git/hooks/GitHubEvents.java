@@ -219,10 +219,6 @@ public class GitHubEvents {
             target.setBranch(pullRequest.target.ref);
             target.setSha(pullRequest.target.sha);
 
-            // set compare id
-            final String compareId = GitPullRequestEvent.buildCompareId(source, target);
-            event.setCompareId(compareId);
-            event.setCompareUrl(mr.repository.url + "/compare/" + compareId);
             return event;
         }
     }
