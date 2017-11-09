@@ -53,16 +53,21 @@ public class CmdCallbackQueueConsumer implements QueueListener<CmdCallbackQueueI
         try {
             jobService.callback(item);
         } catch (NotFoundException notFoundException) {
-            // wait 1s re queue
-            try {
-                Thread.sleep(1000);
-            } catch (Throwable throwable) {
-            }
 
-            jobService.enterQueue(item);
+            // re-enqueue cmd callback if job not found since transaction problem
+            reEnqueueJobCallback(item, 1000);
 
         } catch (Throwable throwable) {
             LOGGER.traceMarker("onQueueItem", String.format("exception - %s", throwable));
         }
+    }
+
+    private void reEnqueueJobCallback(CmdCallbackQueueItem item, long wait) {
+        try {
+            Thread.sleep(wait);
+        } catch (Throwable ignore) {
+        }
+
+        jobService.enterQueue(item);
     }
 }
