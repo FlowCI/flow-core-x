@@ -109,6 +109,8 @@ public class GitHubEvents {
 
             @SerializedName("pull_request")
             private PullRequest pullRequest;
+
+            private PrRepo repository;
         }
 
         private class PullRequest {
@@ -153,6 +155,9 @@ public class GitHubEvents {
 
             @SerializedName("full_name")
             private String name;
+
+            @SerializedName("html_url")
+            private String url;
         }
 
         private class UserInfo {
@@ -214,6 +219,10 @@ public class GitHubEvents {
             target.setBranch(pullRequest.target.ref);
             target.setSha(pullRequest.target.sha);
 
+            // set compare id
+            final String compareId = GitPullRequestEvent.buildCompareId(source, target);
+            event.setCompareId(compareId);
+            event.setCompareUrl(mr.repository.url + "/compare/" + compareId);
             return event;
         }
     }
