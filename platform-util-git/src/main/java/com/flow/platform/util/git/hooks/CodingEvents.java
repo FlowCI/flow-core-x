@@ -17,6 +17,7 @@
 package com.flow.platform.util.git.hooks;
 
 import com.flow.platform.util.git.GitException;
+import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventAuthor;
 import com.flow.platform.util.git.model.GitEventCommit;
@@ -24,6 +25,7 @@ import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.annotations.SerializedName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,6 +51,32 @@ public class CodingEvents {
             private PushUserHelper user;
 
             private RepoHelper repository;
+
+            private List<CommitHelper> commits;
+        }
+
+        private class CommitHelper {
+
+            @SerializedName("web_url")
+            private String url;
+
+            @SerializedName("short_message")
+            private String message;
+
+            @SerializedName("sha")
+            private String id;
+
+            private GitEventAuthor committer;
+
+            public GitEventCommit toGitEventCommit() {
+                GitEventCommit commit = new GitEventCommit();
+                commit.setAuthor(committer);
+                commit.setId(id);
+                commit.setMessage(message);
+                commit.setUrl(url);
+                return commit;
+            }
+
         }
 
         private class PushUserHelper {
@@ -91,19 +119,32 @@ public class CodingEvents {
                 event.setType(GitEventType.PUSH);
             }
 
-            List<GitEventCommit> commits = event.getCommits();
-            if (!commits.isEmpty()) {
-                GitEventCommit latest = commits.get(0);
-                event.setHeadCommitUrl(latest.getUrl());
-                event.setMessage(latest.getMessage());
+            List<CommitHelper> commits = helper.commits;
 
-                GitEventAuthor author = latest.getAuthor();
-                if (author != null) {
-                    event.setUserId(author.getName());
-                    event.setUsername(author.getName());
-                    event.setUserEmail(author.getEmail());
+            if (!commits.isEmpty()) {
+                CommitHelper latest = commits.get(0);
+                event.setMessage(latest.message);
+
+                GitEventAuthor committer = latest.committer;
+                if (committer != null) {
+                    event.setUserEmail(committer.getEmail());
+                }
+
+
+                // convert to GitEventCommit and set to event
+                event.setCommits(new ArrayList<>(commits.size()));
+                for (CommitHelper commitHelper : commits) {
+                    event.getCommits().add(commitHelper.toGitEventCommit());
                 }
             }
+
+            // set user
+            event.setUserId(helper.user.name);
+            event.setUsername(helper.user.name);
+
+            // set commit url
+            final String commitUrl = helper.repository.url + "/git/commit/" + event.getAfter();
+            event.setHeadCommitUrl(commitUrl);
 
             // set compare id
             final String compareId = GitPushTagEvent.buildCompareId(event);

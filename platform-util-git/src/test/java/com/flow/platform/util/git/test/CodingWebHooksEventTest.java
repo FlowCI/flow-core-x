@@ -51,6 +51,7 @@ public class CodingWebHooksEventTest {
         Assert.assertEquals(GitEventType.PUSH, pushEvent.getType());
         Assert.assertEquals(GitSource.CODING, pushEvent.getGitSource());
 
+        Assert.assertEquals("refs/heads/master", pushEvent.getRef());
         Assert.assertEquals("4841b089ecf8dd3dd0010f61bd649bfcc21c1fe8", pushEvent.getBefore());
         Assert.assertEquals("b972e2edd91e85ec25ec28c29d7dc3e823f28e8a", pushEvent.getAfter());
         Assert.assertEquals("update .flow.yml test test\n", pushEvent.getMessage());
@@ -65,6 +66,38 @@ public class CodingWebHooksEventTest {
         Assert.assertEquals("benqyang2006", pushEvent.getUserId());
         Assert.assertEquals("benqyang2006", pushEvent.getUsername());
         Assert.assertEquals("benqyang_2006@hotmail.com", pushEvent.getUserEmail());
+    }
+
+    @Test
+    public void should_convert_to_tag_event_obj() throws Throwable {
+        // given:
+        String pushEventContent = loadWebhookSampleJson("coding/webhook_tag.json");
+        Map<String, String> dummyHeader = new HashMap<>();
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
+
+        // when: build event from header and json content
+        GitPushTagEvent tagEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, pushEventContent);
+        Assert.assertNotNull(tagEvent);
+
+        // then:
+        Assert.assertEquals(GitEventType.TAG, tagEvent.getType());
+        Assert.assertEquals(GitSource.CODING, tagEvent.getGitSource());
+
+        Assert.assertEquals("refs/tags/v1.0", tagEvent.getRef());
+        Assert.assertEquals("0000000000000000000000000000000000000000", tagEvent.getBefore());
+        Assert.assertEquals("b972e2edd91e85ec25ec28c29d7dc3e823f28e8a", tagEvent.getAfter());
+
+        Assert.assertEquals("benqyang2006", tagEvent.getUserId());
+        Assert.assertEquals("benqyang2006", tagEvent.getUsername());
+        Assert.assertEquals(null, tagEvent.getUserEmail());
+
+        Assert.assertEquals("b972e2edd91e...v1.0", tagEvent.getCompareId());
+        Assert.assertEquals("https://coding.net/u/benqyang2006/p/flowclibasic/git/compare/b972e2edd91e...v1.0",
+            tagEvent.getCompareUrl());
+
+        Assert.assertEquals(
+            "https://coding.net/u/benqyang2006/p/flowclibasic/git/commit/b972e2edd91e85ec25ec28c29d7dc3e823f28e8a",
+            tagEvent.getHeadCommitUrl());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {

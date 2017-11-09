@@ -102,10 +102,12 @@ public class GitHubHooksEventTest {
         Assert.assertEquals("23307997", tagEvent.getUserId());
         Assert.assertEquals("yang-guo-2016", tagEvent.getUsername());
         Assert.assertEquals("gy@fir.im", tagEvent.getUserEmail());
-        Assert.assertEquals("26d1d0fa6ee4...1.6", tagEvent.getCompareId());
+
+        Assert.assertEquals("26d1d0fa6ee4...v1.6", tagEvent.getCompareId());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test/compare/v1.6", tagEvent.getCompareUrl());
+
         Assert.assertEquals("https://github.com/yang-guo-2016/Test/commit/26d1d0fa6ee44a8f4e02250d13e84bf02722f5e7",
             tagEvent.getHeadCommitUrl());
-        Assert.assertTrue(tagEvent.getCompareUrl().endsWith("compare/v1.6"));
         Assert.assertEquals(0, tagEvent.getCommits().size());
     }
 

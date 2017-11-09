@@ -39,7 +39,7 @@ public class GitEventCommit implements Serializable {
     @SerializedName(value = "url", alternate = "web_url")
     private String url;
 
-    @SerializedName(value = "author", alternate = "committer")
+    @SerializedName(value = "author")
     private GitEventAuthor author;
 
     private List<String> added;
