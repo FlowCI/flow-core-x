@@ -28,6 +28,7 @@ import com.flow.platform.util.git.model.GitPushTagEvent;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Extract required GitEnv from git event
@@ -103,6 +104,10 @@ public class GitEventEnvConverter {
             // TODO: multi change log
             if (pt.getCommits().size() > 0) {
                 info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getCommits().get(0).getMessage());
+            }
+
+            if (Objects.equals(pt.getType(), GitEventType.TAG)) {
+                info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getMessage());
             }
 
             return info;

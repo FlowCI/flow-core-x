@@ -20,11 +20,14 @@ import static com.flow.platform.util.git.model.GitEventType.NONE;
 import static com.flow.platform.util.git.model.GitEventType.PR;
 import static com.flow.platform.util.git.model.GitEventType.PUSH;
 import static com.flow.platform.util.git.model.GitEventType.TAG;
+import static com.flow.platform.util.git.model.GitSource.BITBUCKET;
 import static com.flow.platform.util.git.model.GitSource.CODING;
 import static com.flow.platform.util.git.model.GitSource.GITHUB;
 import static com.flow.platform.util.git.model.GitSource.GITLAB;
 
 import com.flow.platform.util.git.GitException;
+import com.flow.platform.util.git.hooks.BitbucketEvents.Hooks;
+import com.flow.platform.util.git.hooks.BitbucketEvents.PushAndTagAdapter;
 import com.flow.platform.util.git.hooks.GitHubEvents.PullRequestAdapter;
 import com.flow.platform.util.git.hooks.GitLabEvents.PullRequestAdaptor;
 import com.flow.platform.util.git.model.GitEvent;
@@ -61,6 +64,12 @@ public class GitHookEventFactory {
         codingAdaptors.put(CodingEvents.Hooks.EVENT_TYPE_PR, new CodingEvents.PullRequestAdapter(CODING, PR));
         codingAdaptors.put(CodingEvents.Hooks.EVENT_TYPE_PUSH_OR_TAG, new CodingEvents.PushAndTagAdapter(CODING, NONE));
         adaptors.put(CodingEvents.Hooks.HEADER, codingAdaptors);
+
+        Map<String, GitHookEventAdapter> bitbucketAdaptors = new HashMap<>(3);
+        bitbucketAdaptors.put(Hooks.EVENT_TYPE_PUSH, new PushAndTagAdapter(BITBUCKET, PUSH));
+        bitbucketAdaptors.put(Hooks.EVENT_TYPE_PR_MERGERED, new BitbucketEvents.PullRequestAdapter(BITBUCKET, PR));
+        bitbucketAdaptors.put(Hooks.EVENT_TYPE_PR_CREATED, new BitbucketEvents.PullRequestAdapter(BITBUCKET, PR));
+        adaptors.put(Hooks.HEADER, bitbucketAdaptors);
     }
 
     /**
@@ -87,6 +96,12 @@ public class GitHookEventFactory {
         String codingEventType = header.get(CodingEvents.Hooks.HEADER);
         if (codingEventType != null) {
             matchedAdaptor = adaptors.get(CodingEvents.Hooks.HEADER).get(codingEventType);
+        }
+
+        // looking for Bitbucket event adaptors
+        String bitbucketEventType = header.get(Hooks.HEADER);
+        if (bitbucketEventType != null) {
+            matchedAdaptor = adaptors.get(BitbucketEvents.Hooks.HEADER).get(bitbucketEventType);
         }
 
         if (matchedAdaptor != null) {
