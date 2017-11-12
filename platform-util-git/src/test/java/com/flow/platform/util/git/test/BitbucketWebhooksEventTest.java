@@ -20,6 +20,7 @@ import com.flow.platform.util.git.hooks.BitbucketEvents.Hooks;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.io.Files;
@@ -53,7 +54,8 @@ public class BitbucketWebhooksEventTest {
         Assert.assertEquals(
             "https://bitbucket.org/CodingWill/info/branches/compare/200b5197debd10e0ca341e640422368b145eb254..9429d1ee9fa16dc53d4dc5a0937693330aeda8bb",
             event.getCompareUrl());
-        Assert.assertEquals("https://bitbucket.org/CodingWill/info/commits/200b5197debd10e0ca341e640422368b145eb254", event.getHeadCommitUrl());
+        Assert.assertEquals("https://bitbucket.org/CodingWill/info/commits/200b5197debd10e0ca341e640422368b145eb254",
+            event.getHeadCommitUrl());
         Assert.assertEquals("add 5\n", event.getMessage());
         Assert.assertEquals("CodingWill", event.getUsername());
         Assert.assertEquals("CodingWill", event.getUserEmail());
@@ -74,7 +76,8 @@ public class BitbucketWebhooksEventTest {
         Assert.assertEquals("CodingWill", event.getUserEmail());
         Assert.assertEquals("CodingWill", event.getUsername());
         Assert.assertEquals("add tag\n", event.getMessage());
-        Assert.assertEquals("https://bitbucket.org/CodingWill/info/commits/86edd5e14fd18bcf923b8eca522319896b2090e4", event.getHeadCommitUrl());
+        Assert.assertEquals("https://bitbucket.org/CodingWill/info/commits/86edd5e14fd18bcf923b8eca522319896b2090e4",
+            event.getHeadCommitUrl());
         Assert.assertEquals("86edd5e14fd18bcf923b8eca522319896b2090e4", event.getAfter());
         Assert.assertEquals(0, event.getCommits().size());
     }
@@ -89,6 +92,21 @@ public class BitbucketWebhooksEventTest {
         Assert.assertNotNull(event);
         Assert.assertEquals(GitSource.BITBUCKET, event.getGitSource());
         Assert.assertEquals(GitEventType.PR, event.getType());
+
+        Assert.assertEquals("", event.getDescription());
+        Assert.assertEquals("https://bitbucket.org/CodingWill/info/pull-requests/6", event.getUrl());
+        Assert.assertEquals("CodingWill", event.getSubmitter());
+        Assert.assertNull(event.getMergedBy());
+
+        GitPullRequestInfo source = event.getSource();
+        Assert.assertEquals("feature/1", source.getBranch());
+        Assert.assertEquals("ac66189104f3", source.getSha());
+        Assert.assertEquals("CodingWill/info", source.getProjectName());
+
+        GitPullRequestInfo target = event.getTarget();
+        Assert.assertEquals("master", target.getBranch());
+        Assert.assertEquals("eb612981e942", target.getSha());
+        Assert.assertEquals("CodingWill/info", target.getProjectName());
     }
 
     @Test
@@ -101,6 +119,20 @@ public class BitbucketWebhooksEventTest {
         Assert.assertNotNull(event);
         Assert.assertEquals(GitSource.BITBUCKET, event.getGitSource());
         Assert.assertEquals(GitEventType.PR, event.getType());
+
+        Assert.assertEquals("https://bitbucket.org/CodingWill/info/pull-requests/3", event.getUrl());
+        Assert.assertEquals("CodingWill", event.getSubmitter());
+        Assert.assertNotNull(event.getMergedBy());
+
+        GitPullRequestInfo source = event.getSource();
+        Assert.assertEquals("develop", source.getBranch());
+        Assert.assertEquals("61d01698184b", source.getSha());
+        Assert.assertEquals("CodingWill/info", source.getProjectName());
+
+        GitPullRequestInfo target = event.getTarget();
+        Assert.assertEquals("feature/test", target.getBranch());
+        Assert.assertEquals("c7d2fca28131", target.getSha());
+        Assert.assertEquals("CodingWill/info", target.getProjectName());
     }
 
 

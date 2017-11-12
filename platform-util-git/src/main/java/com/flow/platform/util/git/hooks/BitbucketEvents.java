@@ -22,6 +22,7 @@ import com.flow.platform.util.git.model.GitEventAuthor;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
 import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
@@ -320,14 +321,16 @@ public class BitbucketEvents {
 
             if (Objects.equals(rootHelper.pullRequest.state, STATE_OPEN)) {
                 event.setAction(STATE_OPEN);
-                event.setSubmitter(rootHelper.creator.username);
+                event.setState(State.OPEN);
             }
 
             if (Objects.equals(rootHelper.pullRequest.state, STATE_CLOSE)) {
                 event.setAction(STATE_CLOSE);
-                event.setSubmitter(rootHelper.creator.username);
+                event.setState(State.CLOSE);
+                event.setMergedBy(rootHelper.pullRequest.author.username);
             }
 
+            event.setSubmitter(rootHelper.creator.username);
             event.setDescription(rootHelper.pullRequest.description);
             event.setTitle(rootHelper.pullRequest.title);
             event.setUrl(rootHelper.pullRequest.diff.html.value);
@@ -337,10 +340,12 @@ public class BitbucketEvents {
             //can't get user email
             event.setUserEmail(rootHelper.creator.username);
 
+            // set source info
             event.getSource().setBranch(rootHelper.pullRequest.source.branch.name);
             event.getSource().setSha(rootHelper.pullRequest.source.commit.hash);
             event.getSource().setProjectName(rootHelper.pullRequest.source.repository.fullName);
 
+            // set target info
             event.getTarget().setBranch(rootHelper.pullRequest.destination.branch.name);
             event.getTarget().setSha(rootHelper.pullRequest.destination.commit.hash);
             event.getTarget().setProjectName(rootHelper.pullRequest.destination.repository.fullName);
