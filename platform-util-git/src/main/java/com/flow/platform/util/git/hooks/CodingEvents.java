@@ -115,6 +115,7 @@ public class CodingEvents {
             // for create tag event
             if (event.getRef().startsWith("refs/tags")) {
                 event.setType(GitEventType.TAG);
+                event.setUserEmail(helper.user.name);
             }
 
             // for branch push event

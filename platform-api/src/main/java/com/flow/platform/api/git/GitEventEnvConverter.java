@@ -104,9 +104,7 @@ public class GitEventEnvConverter {
             // TODO: multi change log
             if (pt.getCommits().size() > 0) {
                 info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getCommits().get(0).getMessage());
-            }
-
-            if (Objects.equals(pt.getType(), GitEventType.TAG)) {
+            } else if (Objects.equals(pt.getType(), GitEventType.TAG)) {
                 info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getMessage());
             }
 

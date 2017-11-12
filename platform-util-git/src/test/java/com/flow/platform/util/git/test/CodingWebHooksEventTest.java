@@ -93,7 +93,7 @@ public class CodingWebHooksEventTest {
 
         Assert.assertEquals("benqyang2006", tagEvent.getUserId());
         Assert.assertEquals("benqyang2006", tagEvent.getUsername());
-        Assert.assertEquals(null, tagEvent.getUserEmail());
+        Assert.assertEquals("benqyang2006", tagEvent.getUserEmail());
 
         Assert.assertEquals("b972e2edd91e...v1.0", tagEvent.getCompareId());
         Assert.assertEquals("https://coding.net/u/benqyang2006/p/flowclibasic/git/compare/b972e2edd91e...v1.0",

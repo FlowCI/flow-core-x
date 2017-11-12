@@ -207,18 +207,25 @@ public class BitbucketEvents {
 
         private GitEvent convertBranch(ChangeHelper changeHelper, GitPushTagEvent event) {
             event.setRef("refs/heads/" + changeHelper.afterPush.branchName);
-            event.setBefore(changeHelper.beforePush.target.hash);
+
+
+            // set commit message
             event.setMessage(changeHelper.afterPush.target.message);
 
             // set compare value
             event.setCompareUrl(changeHelper.diff.html.value);
 
-            // set compare id
-            final String compareId = GitPushTagEvent.buildCompareId(event);
-            event.setCompareId(compareId);
+
+            // create branch before_push is null
+            if (changeHelper.beforePush != null) {
+                event.setBefore(changeHelper.beforePush.target.hash);
+
+                // set compare id
+                final String compareId = GitPushTagEvent.buildCompareId(event);
+                event.setCompareId(compareId);
+            }
 
             event.setCommits(new ArrayList<>(changeHelper.commits.size()));
-
             for (CommitHelper commit : changeHelper.commits) {
                 GitEventCommit eventCommit = new GitEventCommit();
                 eventCommit.setId(commit.hash);

@@ -69,6 +69,7 @@ public class GitHookEventFactory {
         bitbucketAdaptors.put(Hooks.EVENT_TYPE_PUSH, new PushAndTagAdapter(BITBUCKET, PUSH));
         bitbucketAdaptors.put(Hooks.EVENT_TYPE_PR_MERGERED, new BitbucketEvents.PullRequestAdapter(BITBUCKET, PR));
         bitbucketAdaptors.put(Hooks.EVENT_TYPE_PR_CREATED, new BitbucketEvents.PullRequestAdapter(BITBUCKET, PR));
+        bitbucketAdaptors.put(Hooks.EVENT_TYPE_PR_UPDATED, new BitbucketEvents.PullRequestAdapter(BITBUCKET, PR));
         adaptors.put(Hooks.HEADER, bitbucketAdaptors);
     }
 
