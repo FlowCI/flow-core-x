@@ -18,7 +18,6 @@ package com.flow.platform.util.git.test;
 
 import com.flow.platform.util.git.hooks.BitbucketEvents.Hooks;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
-import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.git.model.GitPullRequestEvent;
 import com.flow.platform.util.git.model.GitPushTagEvent;
@@ -49,6 +48,16 @@ public class BitbucketWebhooksEventTest {
         Assert.assertNotNull(event);
         Assert.assertEquals(GitSource.BITBUCKET, event.getGitSource());
         Assert.assertEquals(GitEventType.PUSH, event.getType());
+        Assert.assertEquals("200b5197debd10e0ca341e640422368b145eb254", event.getAfter());
+        Assert.assertEquals("9429d1ee9fa16dc53d4dc5a0937693330aeda8bb", event.getBefore());
+        Assert.assertEquals(
+            "https://bitbucket.org/CodingWill/info/branches/compare/200b5197debd10e0ca341e640422368b145eb254..9429d1ee9fa16dc53d4dc5a0937693330aeda8bb",
+            event.getCompareUrl());
+        Assert.assertEquals("https://bitbucket.org/CodingWill/info/commits/200b5197debd10e0ca341e640422368b145eb254", event.getHeadCommitUrl());
+        Assert.assertEquals("add 5\n", event.getMessage());
+        Assert.assertEquals("CodingWill", event.getUsername());
+        Assert.assertEquals("CodingWill", event.getUserEmail());
+        Assert.assertEquals(4, event.getCommits().size());
     }
 
     @Test
@@ -61,6 +70,13 @@ public class BitbucketWebhooksEventTest {
         Assert.assertNotNull(event);
         Assert.assertEquals(GitSource.BITBUCKET, event.getGitSource());
         Assert.assertEquals(GitEventType.TAG, event.getType());
+
+        Assert.assertEquals("CodingWill", event.getUserEmail());
+        Assert.assertEquals("CodingWill", event.getUsername());
+        Assert.assertEquals("add tag\n", event.getMessage());
+        Assert.assertEquals("https://bitbucket.org/CodingWill/info/commits/86edd5e14fd18bcf923b8eca522319896b2090e4", event.getHeadCommitUrl());
+        Assert.assertEquals("86edd5e14fd18bcf923b8eca522319896b2090e4", event.getAfter());
+        Assert.assertEquals(0, event.getCommits().size());
     }
 
     @Test
@@ -86,7 +102,6 @@ public class BitbucketWebhooksEventTest {
         Assert.assertEquals(GitSource.BITBUCKET, event.getGitSource());
         Assert.assertEquals(GitEventType.PR, event.getType());
     }
-
 
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {
