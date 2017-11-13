@@ -121,7 +121,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
         Yml yml = ymlDao.get(root.getPath());
         String body = yml.getFile();
-        Resource allResource = null;
+        Resource allResource;
         try (InputStream is = new ByteArrayInputStream(body.getBytes(AppConfig.DEFAULT_CHARSET))) {
             allResource = new InputStreamResource(is);
         } catch (Throwable throwable) {
