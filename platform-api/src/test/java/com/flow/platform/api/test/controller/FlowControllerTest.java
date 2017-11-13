@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.test.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -28,10 +29,12 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.response.ResponseError;
 import com.flow.platform.util.StringUtil;
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -166,5 +169,38 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
 
         // then:
         Assert.assertEquals(StringUtil.EMPTY, content);
+    }
+
+    @Test
+    public void should_upload_yml_success() throws Exception {
+        String url = "/flows/" + flowName + "/yml/upload";
+        performRequestWith200Status(fileUpload(url)
+            .file(createYmlFilePart(".flow.yml"))
+        );
+
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON);
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
+        Assert.assertEquals("FOUND", flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
+    }
+
+    @Test
+    public void should_download_yml_success() throws Exception {
+        String url = "/flows/" + flowName + "/yml/upload";
+        performRequestWith200Status(fileUpload(url)
+            .file(createYmlFilePart(".flow.yml"))
+        );
+
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml/download")
+            .contentType(MediaType.ALL);
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        Assert.assertNotNull(result.getResponse());
+    }
+
+    private MockMultipartFile createYmlFilePart(String name) throws IOException {
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        return new MockMultipartFile("file", name, "", resourceContent.getBytes());
     }
 }
