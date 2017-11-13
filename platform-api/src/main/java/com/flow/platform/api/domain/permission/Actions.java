@@ -21,6 +21,14 @@ package com.flow.platform.api.domain.permission;
  */
 public enum Actions {
 
+    ADMIN_CREATE,
+
+    ADMIN_DELETE,
+
+    ADMIN_UPDATE,
+
+    ADMIN_SHOW,
+
     FLOW_CREATE,
 
     FLOW_DELETE,
@@ -31,5 +39,26 @@ public enum Actions {
 
     FLOW_YML,
 
-    FLOW_AUTH
+    FLOW_AUTH,
+
+    GENERATE_KEY,
+
+    JOB_CREATE,
+
+    JOB_SHOW,
+
+    JOB_YML,
+
+    JOB_LOG,
+
+    JOB_STOP,
+
+    CREDENTIAL_SHOW,
+
+    CREDENTIAL_CREATE,
+
+    USER_SHOW,
+
+    AGENT_SHOW
+
 }

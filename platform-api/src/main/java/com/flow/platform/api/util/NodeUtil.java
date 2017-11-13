@@ -16,7 +16,6 @@
 package com.flow.platform.api.util;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.yml.parser.YmlParser;
@@ -68,9 +67,9 @@ public class NodeUtil {
      */
     public static Node buildFromYml(String yml, String root) {
 
-        Flow[] flows;
+        Node[] flows;
         try {
-            flows = YmlParser.fromYml(yml, Flow[].class);
+            flows = YmlParser.fromYml(yml, Node[].class);
         } catch (YmlParseException | YmlFormatException e) {
             throw new YmlException(e.getMessage());
         }
@@ -176,10 +175,10 @@ public class NodeUtil {
     /**
      * Build node path, parent, next, prev relation
      */
-    public static void buildNodeRelation(Node<? extends Node> root) {
+    public static void buildNodeRelation(Node root) {
         setNodePath(root);
 
-        List<? extends Node> children = root.getChildren();
+        List<Node> children = root.getChildren();
         for (int i = 0; i < children.size(); i++) {
             Node childNode = children.get(i);
             childNode.setParent(root);

@@ -16,13 +16,21 @@
 
 package com.flow.platform.api.test.controller;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentPathWithPassword;
+import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -31,18 +39,34 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  */
 public class AgentControllerTest extends TestBase {
 
-    @Test
-    public void should_shutdown_success() throws Exception{
+    @Before
+    public void before() {
         stubDemo();
+    }
+
+    @Test
+    public void should_shutdown_success() throws Throwable {
         MockHttpServletRequestBuilder request = post("/agents/shutdown")
-            .param("zone", "default")
-            .param("name", "machine")
-            .param("password", "123456");
+            .content(new AgentPathWithPassword("default", "machine", "123456").toJson())
+            .contentType(MediaType.APPLICATION_JSON_VALUE);
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
         String contentAsString = result.getResponse().getContentAsString();
 
         BooleanValue booleanValue = BooleanValue.parse(contentAsString, BooleanValue.class);
         Assert.assertEquals(true, booleanValue.getValue());
+
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
+        verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/send")));
+    }
+
+    @Test
+    public void should_close_agent_success() throws Throwable {
+        MvcResult result = mockMvc.perform(post("/agents/close")
+            .content(new AgentPath("default", "machine").toJson())
+            .contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(status().isOk()).andReturn();
+
+        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
+        verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/send")));
     }
 }

@@ -16,15 +16,17 @@
 
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.core.dao.BaseDao;
 import java.util.Collection;
 import java.util.List;
 
 /**
+ * The dao for root nodes
+ *
  * @author yh@firim
  */
-public interface FlowDao extends BaseDao<String, Flow> {
+public interface FlowDao extends BaseDao<String, Node> {
 
     /**
      * List flow path by created by email

@@ -21,19 +21,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.git.model.GitEventType;
 import com.flow.platform.util.http.HttpURL;
 import org.junit.Assert;
 import org.junit.Before;
@@ -56,8 +55,8 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_callback_session_success() throws Throwable {
         // given: flow with two steps , step1 and step2
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
-        build_relation(rootForFlow, job);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
+
         final String sessionId = "1111111";
 
         // when: create session
@@ -73,10 +72,11 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(NodeStatus.PENDING, job.getRootResult().getStatus());
         Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
-        Assert.assertEquals(GitEventType.PR, job.getCategory());
+        Assert.assertEquals(JobCategory.PR, job.getCategory());
 
-        Step step1 = (Step) nodeService.find("flow1/step1");
-        Step step2 = (Step) nodeService.find("flow1/step2");
+        NodeTree nodeTree = nodeService.find("flow1");
+        Node step1 = nodeTree.find("flow1/step1");
+        Node step2 = nodeTree.find("flow1/step2");
 
         // when: first step callback with running status
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
@@ -157,14 +157,12 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_on_callback_with_timeout() throws Throwable {
         // init
         Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
 
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
-
-        build_relation(rootForFlow, job);
-
-        Step step2 = (Step) nodeService.find("flow1/step2");
-        Step step1 = (Step) nodeService.find("flow1/step1");
-        Flow flow = (Flow) nodeService.find(job.getNodePath());
+        NodeTree nodeTree = nodeService.find("flow1");
+        Node step2 = nodeTree.find("flow1/step2");
+        Node step1 = nodeTree.find("flow1/step1");
+        Node flow = nodeTree.root();
 
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -179,7 +177,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertNotNull(job.getSessionId());
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(NodeStatus.PENDING, job.getRootResult().getStatus());
-        Assert.assertEquals(GitEventType.PR, job.getCategory());
+        Assert.assertEquals(JobCategory.PR, job.getCategory());
 
         // when: first step with timeout status
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
@@ -207,9 +205,7 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_with_timeout_but_allow_failure() throws Throwable {
         Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.PR, null, mockUser);
-
-        build_relation(rootForFlow, job);
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
 
         final String sessionId = "1111111";
 
@@ -226,7 +222,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(sessionId, job.getSessionId());
         Assert.assertEquals(NodeStatus.PENDING, job.getRootResult().getStatus());
 
-        Step step1 = (Step) nodeService.find("flow1/step1");
+        Node step1 = nodeService.find("flow1").find("flow1/step1");
 
         // when: mock running status from agent
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());

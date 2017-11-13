@@ -15,20 +15,18 @@
  */
 package com.flow.platform.api.initializers;
 
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
-
-import com.flow.platform.api.dao.user.RoleDao;
-import com.flow.platform.api.dao.user.UserDao;
-import com.flow.platform.api.dao.user.UserRoleDao;
+import com.flow.platform.api.domain.permission.Actions;
+import com.flow.platform.api.domain.user.Action;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.api.domain.user.UserRole;
-import com.flow.platform.api.domain.user.UserRoleKey;
+import com.flow.platform.api.service.user.ActionService;
+import com.flow.platform.api.service.user.PermissionService;
 import com.flow.platform.api.service.user.RoleService;
-import com.flow.platform.core.context.ContextEvent;
+import com.flow.platform.api.service.user.UserService;
+import com.flow.platform.util.StringUtil;
+import com.google.common.collect.ImmutableList;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,63 +35,81 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-public class UserRoleInit implements ContextEvent {
+public class UserRoleInit extends Initializer {
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private RoleService roleService;
 
     @Autowired
-    private RoleDao roleDao;
+    private ActionService actionService;
 
     @Autowired
-    private UserDao userDao;
-
-    @Autowired
-    private UserRoleDao userRoleDao;
+    private PermissionService permissionService;
 
     @Autowired
     private ThreadLocal<User> currentUser;
 
+    @Autowired
+    private User superUser;
+
     @Override
-    public void start() {
+    public void doStart() {
+        // set current user for system default
+        currentUser.set(new User("system@flow.ci", StringUtil.EMPTY, StringUtil.EMPTY));
 
-        // create sys user
-        User user = userDao.get(DEFAULT_USER_EMAIL);
-        if (user == null) {
-            User sysUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
-            sysUser.setCreatedBy("system created");
-            userDao.save(sysUser);
-        }
+        initSystemActions();
 
-        // create sys roleAdmin
-        Role roleAdmin = roleDao.get(SysRole.ADMIN.name());
-        if (roleAdmin == null) {
-            Role sysRoleAdmin = new Role(SysRole.ADMIN.name(), "create default role for admin");
-            sysRoleAdmin.setCreatedBy("system created");
-            roleDao.save(sysRoleAdmin);
-        }
+        initSystemRoles();
 
-        // create sys roleUser
-        Role roleUser = roleDao.get(SysRole.USER.name());
-        if (roleUser == null) {
-            Role sysRoleUser = new Role(SysRole.USER.name(), "create default role for user");
-            sysRoleUser.setCreatedBy("system created");
-            roleDao.save(sysRoleUser);
-        }
+        initDefaultAdminUser();
 
-        // create sys user_role relation
-        Role role = roleService.find(SysRole.ADMIN.name());
-        User sysUser = userDao.get(DEFAULT_USER_EMAIL);
-        UserRole userRole = userRoleDao.get(new UserRoleKey(role.getId(), sysUser.getEmail()));
-        if (userRole == null) {
-            currentUser.set(sysUser);
-            roleService.assign(sysUser, role);
-        }
-
+        initSystemPermissions();
     }
 
-    @Override
-    public void stop() {
+    private void initSystemPermissions() {
+        for (SysRole sysRole : SysRole.values()) {
+            Role role = roleService.find(sysRole.name());
 
+            for (Actions sysAction : sysRole.getActions()) {
+                Action action = actionService.find(sysAction.name());
+
+                try {
+                    permissionService.assign(role, ImmutableList.of(action));
+                } catch (Throwable ignore) {
+
+                }
+            }
+        }
+    }
+
+    private void initDefaultAdminUser() {
+        try {
+            userService.register(superUser, ImmutableList.of(SysRole.ADMIN.name()), false, Collections.emptyList());
+        } catch (Throwable ignore) {
+            // ignore existed
+        }
+    }
+
+    private void initSystemActions() {
+        for (Actions systemAction : Actions.values()) {
+            try {
+                actionService.create(new Action(systemAction.name()));
+            } catch (Throwable ignore) {
+                // ignore duplication
+            }
+        }
+    }
+
+    private void initSystemRoles() {
+        for (SysRole role : SysRole.values()) {
+            try {
+                roleService.create(role.name(), "System default role");
+            } catch (Throwable ignore) {
+                // ignore duplication
+            }
+        }
     }
 }

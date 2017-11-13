@@ -28,6 +28,8 @@ public class GitPushTagEvent extends GitEvent {
 
     /**
      * To generate compare id as {12}...{12}
+     *
+     * @param event source event must contain before and after property
      */
     public static String buildCompareId(GitPushTagEvent event) {
         if (event.getType() == GitEventType.PUSH) {
@@ -38,7 +40,7 @@ public class GitPushTagEvent extends GitEvent {
 
         if (event.getType() == GitEventType.TAG) {
             String afterShortcut = event.getAfter().substring(0, 12);
-            int tagVersionIndex = event.getRef().lastIndexOf("v");
+            int tagVersionIndex = event.getRef().lastIndexOf("/");
             String tag = event.getRef().substring(tagVersionIndex + 1);
             return afterShortcut + "..." + tag;
         }

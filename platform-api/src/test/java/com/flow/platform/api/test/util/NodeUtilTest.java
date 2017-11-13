@@ -15,9 +15,7 @@
  */
 package com.flow.platform.api.test.util;
 
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
 import java.util.LinkedList;
@@ -31,16 +29,16 @@ import org.junit.Test;
 public class NodeUtilTest extends TestBase {
 
     public Node initNodes() {
-        Flow flow = new Flow("flow", "flow");
+        Node flow = new Node("flow", "flow");
 
-        Step step1 = new Step("step1", "step1");
-        Step step2 = new Step("step2", "step2");
-        Step step3 = new Step("step3", "step3");
-        Step step4 = new Step("step4", "step4");
-        Step step5 = new Step("step5", "step5");
-        Step step6 = new Step("step6", "step6");
-        Step step7 = new Step("step7", "step7");
-        Step step8 = new Step("step8", "step8");
+        Node step1 = new Node("step1", "step1");
+        Node step2 = new Node("step2", "step2");
+        Node step3 = new Node("step3", "step3");
+        Node step4 = new Node("step4", "step4");
+        Node step5 = new Node("step5", "step5");
+        Node step6 = new Node("step6", "step6");
+        Node step7 = new Node("step7", "step7");
+        Node step8 = new Node("step8", "step8");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -75,16 +73,16 @@ public class NodeUtilTest extends TestBase {
     @Test
     public void should_build_node_relation() {
         // when: init node tree
-        Node<Step> root = new Node<>();
+        Node root = new Node();
         root.setName("root");
 
-        Step childFirst = new Step();
+        Node childFirst = new Node();
         childFirst.setName("child-1");
 
-        Step childSecond = new Step();
+        Node childSecond = new Node();
         childSecond.setName("child-2");
 
-        Step subOfChildSecond = new Step();
+        Node subOfChildSecond = new Node();
         subOfChildSecond.setName("child-2-1");
 
         root.getChildren().add(childFirst);
@@ -140,10 +138,10 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_find_root_simple() {
-        Flow flow = new Flow("flow", "/flow");
+        Node flow = new Node("flow", "/flow");
 
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
+        Node step1 = new Node("step1", "/flow/step1");
+        Node step2 = new Node("step2", "/flow/step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -170,16 +168,16 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_equal_prev_node() {
-        Flow flow = new Flow("flow", "/flow");
+        Node flow = new Node("flow", "/flow");
 
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
-        Step step3 = new Step("step3", "/flow/step3");
-        Step step4 = new Step("step4", "/flow/step4");
-        Step step5 = new Step("step5", "/flow/step5");
-        Step step6 = new Step("step6", "/flow/step6");
-        Step step7 = new Step("step7", "/flow/step7");
-        Step step8 = new Step("step8", "/flow/step8");
+        Node step1 = new Node("step1", "/flow/step1");
+        Node step2 = new Node("step2", "/flow/step2");
+        Node step3 = new Node("step3", "/flow/step3");
+        Node step4 = new Node("step4", "/flow/step4");
+        Node step5 = new Node("step5", "/flow/step5");
+        Node step6 = new Node("step6", "/flow/step6");
+        Node step7 = new Node("step7", "/flow/step7");
+        Node step8 = new Node("step8", "/flow/step8");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -220,10 +218,10 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_equal_next_node() {
-        Flow flow = new Flow("flow", "/flow");
+        Node flow = new Node("flow", "/flow");
 
-        Step step1 = new Step("step1", "/flow/step1");
-        Step step2 = new Step("step2", "/flow/step2");
+        Node step1 = new Node("step1", "/flow/step1");
+        Node step2 = new Node("step2", "/flow/step2");
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -244,13 +242,13 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_equal_next_one_node() {
-        Flow flow = new Flow("flow", "/flow");
+        Node flow = new Node("flow", "/flow");
         List<Node> ordered = NodeUtil.flat(flow);
 
         Assert.assertEquals(null, NodeUtil.next(flow, ordered));
         Assert.assertEquals(null, NodeUtil.prev(flow, ordered));
 
-        Step step1 = new Step("step1", "/flow/step1");
+        Node step1 = new Node("step1", "/flow/step1");
 
         flow.getChildren().add(step1);
         step1.setParent(flow);

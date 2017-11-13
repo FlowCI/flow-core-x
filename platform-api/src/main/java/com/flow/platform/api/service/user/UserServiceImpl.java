@@ -6,8 +6,9 @@ import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
 import com.flow.platform.api.domain.EmailSettingContent;
 import com.flow.platform.api.domain.MessageType;
-import com.flow.platform.api.domain.node.Flow;
-import com.flow.platform.api.domain.request.LoginParam;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
+import com.flow.platform.api.domain.response.LoginResponse;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
@@ -18,32 +19,35 @@ import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.SmtpUtil;
 import com.flow.platform.api.util.StringEncodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
-
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Pattern;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.regex.Pattern;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author liangpengyv
  */
-@Service(value = "userService")
+@Service
 @Transactional
 public class UserServiceImpl extends CurrentUser implements UserService {
 
     private final static Logger LOGGER = new Logger(UserService.class);
 
     private final static String REGISTER_TEMPLATE_SUBJECT = "邀请您加入项目 [ flow.ci ]";
+
+    private final Map<String, User> loginUserMap = new HashMap<>();
 
     @Autowired
     private UserDao userDao;
@@ -92,27 +96,36 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             }
 
             if (withFlow) {
-                // for find flow by createdBy
-                // List<String> paths = nodeService.listFlowPathByUser(Lists.newArrayList(user.getEmail()))
-                // user.setFlows(paths);
                 user.setFlows(userFlowDao.listByEmail(user.getEmail()));
             }
-
         }
 
         return users;
     }
 
     @Override
-    public String login(LoginParam loginForm) {
-        String emailOrUsername = loginForm.getEmailOrUsername();
-        String password = loginForm.getPassword();
-        if (checkEmailFormatIsPass(emailOrUsername)) {
-            // login by email
-            return loginByEmail(emailOrUsername, password);
+    public LoginResponse login(String emailOrUsername, String rawPassword) {
+        // try to get user via email or username
+        User user = userDao.get(emailOrUsername);
+        if (user == null) {
+            user = userDao.getByUsername(emailOrUsername);
         }
-        // else login by username
-        return loginByUsername(emailOrUsername, password);
+
+        if (user == null) {
+            throw new IllegalParameterException("Illegal email or username");
+        }
+
+        String md5Password = StringEncodeUtil.encodeByMD5(rawPassword, AppConfig.DEFAULT_CHARSET.name());
+        if (!Objects.equals(md5Password, user.getPassword())) {
+            throw new IllegalParameterException("Illegal password for user: " + emailOrUsername);
+        }
+
+        // create token and save to memory
+        String token = tokenGenerator.create(user.getEmail(), expirationDuration);
+        user.setRoles(roleService.list(user));
+        loginUserMap.put(token, user);
+
+        return new LoginResponse(token, user);
     }
 
     @Override
@@ -133,10 +146,13 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         }
 
         // Validate database
-        if (emailIsExist(user.getEmail())) {
+        User existed = userDao.get(user.getEmail());
+        if (existed != null) {
             throw new IllegalParameterException(errMsg + "email already exist");
         }
-        if (usernameIsExist(user.getUsername())) {
+
+        existed = userDao.getByUsername(user.getUsername());
+        if (existed != null) {
             throw new IllegalParameterException(errMsg + "username already exist");
         }
 
@@ -150,13 +166,18 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             sendEmail(currentUser(), user, originPassword);
         }
 
-        if (flowsList.size() > 0) {
-            for (String rootPath : flowsList) {
-                Flow flow = (Flow) nodeService.find(rootPath);
-                if (flow != null) {
-                    userFlowService.assign(user, flow);
-                }
+        for (String rootPath : flowsList) {
+            NodeTree nodeTree = nodeService.find(rootPath);
+            if (nodeTree == null) {
+                continue;
             }
+
+            Node flow = nodeTree.root();
+            if (flow == null) {
+                continue;
+            }
+
+            userFlowService.assign(user, flow);
         }
 
         if (roles == null || roles.isEmpty()) {
@@ -174,7 +195,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
 
     @Override
     public void delete(List<String> emailList) {
-        if (emailList.contains(currentUser().getEmail())){
+        if (emailList.contains(currentUser().getEmail())) {
             throw new IllegalParameterException("params emails include yourself email, not delete");
         }
         // un-assign user from role and flow
@@ -185,7 +206,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         }
 
         // delete user
-        userDao.deleteList(emailList);
+        userDao.delete(emailList);
     }
 
     @Override
@@ -209,6 +230,11 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     }
 
     @Override
+    public User findByToken(String token){
+        return loginUserMap.get(token);
+    }
+
+    @Override
     public Long adminUserCount() {
         Role role = roleService.find(SysRole.ADMIN.name());
         return userRoleDao.numOfUser(role.getId());
@@ -216,61 +242,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
 
     @Override
     public Long usersCount() {
-        List<User> users = userDao.list();
-        Long userCount = new Long(users.size());
-        return userCount;
-    }
-
-    /**
-     * Login by email
-     */
-    private String loginByEmail(String email, String password) {
-        String errMsg = "Illegal login request parameter: ";
-
-        // Check format
-        if (!checkPasswordFormatIsPass(password)) {
-            throw new IllegalParameterException(errMsg + "password format false");
-        }
-
-        // Validate database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
-        if (!emailIsExist(email)) {
-            throw new IllegalParameterException(errMsg + "email is not exist");
-        }
-        if (!passwordOfEmailIsTrue(email, passwordForMD5)) {
-            throw new IllegalParameterException(errMsg + "password fault");
-        }
-
-        // Login success, return token
-        return tokenGenerator.create(email, expirationDuration);
-    }
-
-    /**
-     * Login by username
-     */
-    private String loginByUsername(String username, String password) {
-        String errMsg = "Illegal login request parameter: ";
-
-        // Check format
-        if (!checkUsernameFormatIsPass(username)) {
-            throw new IllegalParameterException(errMsg + "username format false");
-        }
-        if (!checkPasswordFormatIsPass(password)) {
-            throw new IllegalParameterException(errMsg + "password format false");
-        }
-
-        // Validate database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
-        if (!usernameIsExist(username)) {
-            throw new IllegalParameterException(errMsg + "username is not exist");
-        }
-        if (!passwordOfUsernameIsTrue(username, passwordForMD5)) {
-            throw new IllegalParameterException(errMsg + "password fault");
-        }
-
-        // Login success, return token
-        String email = userDao.getEmailBy("username", username);
-        return tokenGenerator.create(email, expirationDuration);
+        return userDao.count();
     }
 
     /**
@@ -310,34 +282,6 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             return false;
         }
         return true;
-    }
-
-    /**
-     * Verify email is exist
-     */
-    private Boolean emailIsExist(String email) {
-        return userDao.emailIsExist(email);
-    }
-
-    /**
-     * Verify username is exist
-     */
-    private Boolean usernameIsExist(String username) {
-        return userDao.usernameIsExist(username);
-    }
-
-    /**
-     * Verify password of email
-     */
-    private Boolean passwordOfEmailIsTrue(String email, String password) {
-        return userDao.passwordOfEmailIsTrue(email, password);
-    }
-
-    /**
-     * Verify password of username
-     */
-    private Boolean passwordOfUsernameIsTrue(String username, String password) {
-        return userDao.passwordOfUsernameIsTrue(username, password);
     }
 
     private void sendEmail(User currentUser, User toUser, String originPassword) {

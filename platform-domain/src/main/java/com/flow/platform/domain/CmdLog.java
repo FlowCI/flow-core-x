@@ -22,8 +22,16 @@ package com.flow.platform.domain;
 public class CmdLog extends Jsonable {
 
     private String cmdId;
+
     private String logPath;
 
+    public CmdLog() {
+    }
+
+    public CmdLog(String cmdId, String logPath) {
+        this.cmdId = cmdId;
+        this.logPath = logPath;
+    }
 
     public String getCmdId() {
         return cmdId;

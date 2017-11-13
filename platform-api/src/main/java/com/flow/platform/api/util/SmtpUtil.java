@@ -34,7 +34,7 @@ public class SmtpUtil {
     public static void sendEmail(EmailSettingContent emailSetting, String acceptor, String subject, String body) {
         Properties props = buildProperty(emailSetting);
 
-        Session session = Session.getDefaultInstance(props, new Authenticator() {
+        Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
                 String username = null;
@@ -68,7 +68,7 @@ public class SmtpUtil {
 
         Properties props = buildProperty(emailSetting);
 
-        Session session = Session.getDefaultInstance(props, null);
+        Session session = Session.getInstance(props, null);
         try {
             Transport transport = session.getTransport("smtp");
             String username = null;

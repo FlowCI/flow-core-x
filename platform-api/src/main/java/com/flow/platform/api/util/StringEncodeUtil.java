@@ -1,6 +1,7 @@
 package com.flow.platform.api.util;
 
 import java.security.MessageDigest;
+import org.apache.logging.log4j.util.Strings;
 
 /**
  * @author liangpengyv
@@ -19,7 +20,7 @@ public class StringEncodeUtil {
         try {
             resultString = new String(origin);
             MessageDigest md = MessageDigest.getInstance("MD5");
-            if (charsetname == null || "".equals(charsetname)) {
+            if (charsetname == null || Strings.EMPTY.equals(charsetname)) {
                 resultString = byteArrayToHexString(md.digest(resultString.getBytes()));
             } else {
                 resultString = byteArrayToHexString(md.digest(resultString.getBytes(charsetname)));

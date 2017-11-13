@@ -56,7 +56,7 @@ public interface GitClient {
     File clone(String branch, Set<String> checkoutFiles, ProgressMonitor monitor) throws GitException;
 
     /**
-     * Fetch file content
+     * Fetch file content, return null if file not existed
      *
      * @param branch branch of target file
      * @param filePath git file path

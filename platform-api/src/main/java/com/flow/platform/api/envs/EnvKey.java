@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.envs;
+package com.flow.platform.api.envs;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.Set;
@@ -23,6 +23,8 @@ import java.util.Set;
  * @author yang
  */
 public interface EnvKey {
+
+    Set<String> VALUES_BOOLEAN = ImmutableSet.of("true", "false");
 
     /**
      * The env variable should write to root node result output
@@ -42,4 +44,19 @@ public interface EnvKey {
     );
 
     String name();
+
+    /**
+     * Is readonly for user
+     */
+    boolean isReadonly();
+
+    /**
+     * Is editable from property UI
+     */
+    boolean isEditable();
+
+    /**
+     * Available values, or null for not defined
+     */
+    Set<String> availableValues();
 }

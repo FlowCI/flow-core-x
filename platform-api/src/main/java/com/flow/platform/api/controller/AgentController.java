@@ -18,12 +18,15 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.AgentWithFlow;
 import com.flow.platform.api.domain.SearchCondition;
+import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.events.AgentStatusChangeEvent;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentPathWithPassword;
 import com.flow.platform.domain.AgentSettings;
 import com.google.common.base.Strings;
 import java.util.List;
@@ -66,6 +69,7 @@ public class AgentController {
      *
      */
     @GetMapping
+    @WebSecurity(action = Actions.AGENT_SHOW)
     public List<AgentWithFlow> index() {
         return agentService.list();
     }
@@ -85,6 +89,7 @@ public class AgentController {
      *  }
      */
     @PostMapping(path = "/create")
+    @WebSecurity(action = Actions.ADMIN_CREATE)
     public AgentWithFlow create(@RequestBody AgentPath agentPath) {
         if (agentPath.isEmpty()) {
             throw new IllegalParameterException("Zone and agent name are required");
@@ -107,6 +112,7 @@ public class AgentController {
      *
      */
     @GetMapping(path = "/sys/info")
+    @WebSecurity(action = Actions.ADMIN_SHOW)
     public void agentEnvironmentInfo(@RequestParam Map<String, String> allParams, AgentPath agentPath) {
         if (agentPath.isEmpty()) {
             throw new IllegalParameterException("Zone and agent name are required");
@@ -136,6 +142,7 @@ public class AgentController {
      *  }
      */
     @GetMapping(path = "/settings")
+    @WebSecurity(action = Actions.ADMIN_SHOW)
     public AgentSettings getInfo(@RequestParam String token) {
         if (Strings.isNullOrEmpty(token)) {
             throw new IllegalParameterException("miss required params ");
@@ -144,13 +151,43 @@ public class AgentController {
     }
 
     /**
-     * @api {Post} /agents/shutdown shutdown
-     * @apiName AgentShutdown
-     * @apiParam {String} [zone] agent zone name
-     * @apiParam {String} [name] agent name
-     * @apiParam {String} [password] machine password
+     * @api {Post} /agents/close Close
+     * @apiName Close Agent
+     * @apiParam {json} Request-Body
+     *  {
+     *      zone: xxx,
+     *      name: xxx
+     *  }
      * @apiGroup Agent
-     * @apiDescription shutdown agent
+     * @apiDescription close selected agent
+     *
+     * @apiSuccessExample {String} Success-Response:
+     *  HTTP/1.1 200 OK
+     *
+     *  {
+     *      value: true or false
+     *  }
+     */
+    @PostMapping(path = "/close")
+    public void close(@RequestBody AgentPath path) {
+        if (path.isEmpty()) {
+            throw new IllegalParameterException("Agent zone or name are required");
+        }
+
+        agentService.close(path);
+    }
+
+    /**
+     * @api {Post} /agents/shutdown Shutdown
+     * @apiName Shutdown Agent
+     * @apiParam {json} Request-Body
+     *  {
+     *      zone: xxx,
+     *      name: xxx,
+     *      password: xxx
+     *  }
+     * @apiGroup Agent
+     * @apiDescription shutdown host machine on selected agent
      *
      * @apiSuccessExample {String} Success-Response:
      *  HTTP/1.1 200 OK
@@ -160,14 +197,13 @@ public class AgentController {
      *  }
      */
     @PostMapping(path = "/shutdown")
-    public BooleanValue shutDown(@RequestParam String zone,
-                                 @RequestParam String name,
-                                 @RequestParam(required = false) String password) {
-        if (Strings.isNullOrEmpty(zone) || Strings.isNullOrEmpty(name)) {
-            throw new IllegalParameterException("require zone or name not found");
+    @WebSecurity(action = Actions.ADMIN_DELETE)
+    public BooleanValue shutdown(@RequestBody AgentPathWithPassword path) {
+        if (path.isEmpty()) {
+            throw new IllegalParameterException("Agent zone or name are required");
         }
-        Boolean t = agentService.shutdown(zone, name, password);
-        return new BooleanValue(t);
+
+        return new BooleanValue(agentService.shutdown(path, path.getPassword()));
     }
 
     /**
@@ -217,7 +253,8 @@ public class AgentController {
      *     }
      */
     @PostMapping(path = "/delete")
-    public void delete(@RequestBody AgentPath agentPath){
+    @WebSecurity(action = Actions.ADMIN_DELETE)
+    public void delete(@RequestBody AgentPath agentPath) {
         agentService.delete(agentPath);
     }
 }

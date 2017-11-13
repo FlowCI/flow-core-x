@@ -14,9 +14,6 @@ package com.flow.platform.api.test;/*
  * limitations under the License.
  */
 
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_EMAIL;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_NAME;
-import static com.flow.platform.api.config.AppConfig.DEFAULT_USER_PASSWORD;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -38,21 +35,20 @@ import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.job.NodeResult;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.api.service.job.CmdService;
-import com.flow.platform.api.service.job.JobNodeService;
-import com.flow.platform.api.service.job.NodeResultService;
-import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.StatusValue;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.GitEnvs;
+import com.flow.platform.api.initializers.Initializer;
 import com.flow.platform.api.service.job.JobSearchService;
+import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.api.service.job.NodeResultService;
+import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
-import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.domain.Cmd;
-import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.git.model.GitSource;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
 import java.io.File;
@@ -62,7 +58,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.After;
@@ -74,7 +69,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -132,10 +126,10 @@ public abstract class TestBase {
     protected NodeService nodeService;
 
     @Autowired
-    protected JobService jobService;
+    protected EnvService envService;
 
     @Autowired
-    protected CmdService cmdService;
+    protected JobService jobService;
 
     @Autowired
     protected NodeResultService nodeResultService;
@@ -165,13 +159,10 @@ public abstract class TestBase {
     protected UserFlowDao userFlowDao;
 
     @Autowired
-    protected YmlService ymlService;
-
-    @Autowired
-    protected JobNodeService jobNodeService;
-
-    @Autowired
     protected ThreadLocal<User> currentUser;
+
+    @Autowired
+    private User superUser;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
@@ -182,19 +173,32 @@ public abstract class TestBase {
 
     private static Path WORKSPACE;
 
+    static {
+        Initializer.ENABLED = false;
+    }
+
     @Before
     public void beforeEach() throws IOException, InterruptedException {
         WORKSPACE = workspace;
-
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
-        User user = userDao.get(DEFAULT_USER_EMAIL);
+        setCurrentUser(null);
+    }
+
+    public void setCurrentUser(User user) {
         if (user == null) {
-            User testUser = new User(DEFAULT_USER_EMAIL, DEFAULT_USER_NAME, DEFAULT_USER_PASSWORD);
-            userDao.save(testUser);
-            currentUser.set(testUser);
-        } else {
-            currentUser.set(user);
+            user = userDao.get(superUser.getEmail());
+
+            if (user == null) {
+                userDao.save(superUser);
+                currentUser.set(superUser);
+            } else {
+                currentUser.set(user);
+            }
+
+            return;
         }
+
+        currentUser.set(user);
     }
 
     public String getResourceContent(String fileName) throws IOException {
@@ -205,16 +209,27 @@ public abstract class TestBase {
     }
 
     public Node createRootFlow(String flowName, String ymlResourceName) throws IOException {
-        Flow emptyFlow = nodeService.createEmptyFlow(flowName);
+        Node emptyFlow = nodeService.createEmptyFlow(flowName);
         setFlowToReady(emptyFlow);
         String yml = getResourceContent(ymlResourceName);
-        return nodeService.createOrUpdate(emptyFlow.getPath(), yml);
+        setRequiredJobEnvsForFlow(emptyFlow);
+        return nodeService.createOrUpdateYml(emptyFlow.getPath(), yml);
     }
 
-    public void setFlowToReady(Flow flowNode) {
+    public void setFlowToReady(Node flowNode) {
         Map<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_STATUS.name(), FlowEnvs.StatusValue.READY.value());
-        nodeService.addFlowEnv(flowNode, envs);
+        envService.save(flowNode, envs, false);
+    }
+
+    public void setRequiredJobEnvsForFlow(Node flow) throws IOException {
+        HashMap<String, String> envs = new HashMap<>();
+        envs.put(FlowEnvs.FLOW_STATUS.name(), StatusValue.READY.value());
+        envs.put(FlowEnvs.FLOW_YML_STATUS.name(), YmlStatusValue.FOUND.value());
+        envs.put(GitEnvs.FLOW_GIT_URL.name(), TestBase.GITHUB_TEST_REPO_SSH);
+        envs.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
+        envs.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
+        envService.save(flow, envs, false);
     }
 
     public void stubDemo() {
@@ -236,18 +251,11 @@ public abstract class TestBase {
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock
-            .post(urlEqualTo("/agent/shutdown?zone=default&name=machine&password=123456"))
-            .willReturn(aResponse()
-                .withBody(Jsonable.GSON_CONFIG.toJson(true))));
-
         ClassLoader classLoader = TestBase.class.getClassLoader();
         URL resource = classLoader.getResource("step_log.zip");
         File path = new File(resource.getFile());
-        InputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(path);
-            org.springframework.core.io.Resource res = new InputStreamResource(inputStream);
+
+        try (InputStream inputStream = new FileInputStream(path)) {
             stubFor(com.github.tomakehurst.wiremock.client.WireMock
                 .get(urlPathEqualTo("/cmd/log/download"))
                 .willReturn(aResponse().withBody(org.apache.commons.io.IOUtils.toByteArray(inputStream))));
@@ -258,18 +266,6 @@ public abstract class TestBase {
     public String performRequestWith200Status(MockHttpServletRequestBuilder builder) throws Exception {
         MvcResult result = mockMvc.perform(builder).andExpect(status().isOk()).andReturn();
         return result.getResponse().getContentAsString();
-    }
-
-    public void build_relation(Node node, Job job){
-        String loadedYml = ymlService.getYmlContent(node);
-
-        jobNodeService.save(job, loadedYml);
-
-        // init for node result and set to job object
-        List<NodeResult> resultList = nodeResultService.create(job);
-        NodeResult rootResult = resultList.remove(resultList.size() - 1);
-        job.setRootResult(rootResult);
-        job.setChildrenResult(resultList);
     }
 
     private void cleanDatabase() {

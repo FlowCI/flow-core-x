@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.domain.node;
 
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.cache.Cache;
@@ -48,8 +48,15 @@ public class NodeTree {
         fill(this.root);
     }
 
-    public NodeTree(String yml, String rootName) {
-        root = NodeUtil.buildFromYml(yml, rootName); // build from yml
+    public NodeTree(String yml, Node root) {
+        this.root = root;
+
+        // build node tree from yml
+        Node rootFromYml = NodeUtil.buildFromYml(yml, root.getName());
+        this.root.setChildren(rootFromYml.getChildren());
+
+        // merge yml env to root node
+        EnvUtil.merge(rootFromYml, this.root, false);
         fill(this.root);
     }
 

@@ -23,6 +23,8 @@ import com.flow.platform.api.domain.credential.IosCredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.domain.file.FileResource;
 import com.flow.platform.api.domain.file.PasswordFileResource;
+import com.flow.platform.api.domain.permission.Actions;
+import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -90,64 +92,64 @@ public class CredentialController {
      *
      * @apiSuccessExample {json} Success-Response
      *  [
-            {
-                "name": "android-credential",
-                "type": "ANDROID",
-                "detail": {
-                    "file": {
-                        "name": "android.jks"
-                    },
-                    "keyStorePassword": "12345",
-                    "keyStoreAlias": "android",
-                    "keyStoreAliasPassword": "12345"
-                },
-                "createdAt": 1504737923,
-                "updatedAt": 1504737923
-            },
+    {
+    "name": "android-credential",
+    "type": "ANDROID",
+    "detail": {
+    "file": {
+    "name": "android.jks"
+    },
+    "keyStorePassword": "12345",
+    "keyStoreAlias": "android",
+    "keyStoreAliasPassword": "12345"
+    },
+    "createdAt": 1504737923,
+    "updatedAt": 1504737923
+    },
 
-            {
-                "name": "ios-credential",
-                "type": "IOS",
-                "detail": {
-                    "provisionProfiles": [
-                        {
-                            "name": "pp"
-                        }
-                    ],
+    {
+    "name": "ios-credential",
+    "type": "IOS",
+    "detail": {
+    "provisionProfiles": [
+    {
+    "name": "pp"
+    }
+    ],
 
-                    "p12s": [
-                        {
-                            "password": "12345",
-                            "name": "p12"
-                        }
-                    ]
-                },
-                "createdAt": 1504737923,
-                "updatedAt": 1504737923
-            },
+    "p12s": [
+    {
+    "password": "12345",
+    "name": "p12"
+    }
+    ]
+    },
+    "createdAt": 1504737923,
+    "updatedAt": 1504737923
+    },
 
-            {
-                "name": "ras-credential",
-                "type": "RSA",
-                "detail": {
-                    "publicKey": "public key",
-                    "privateKey": "private key"
-                },
-                "createdAt": 1504737923,
-                "updatedAt": 1504737923
-            },
+    {
+    "name": "ras-credential",
+    "type": "RSA",
+    "detail": {
+    "publicKey": "public key",
+    "privateKey": "private key"
+    },
+    "createdAt": 1504737923,
+    "updatedAt": 1504737923
+    },
 
-            {
-                "name": "username-credential",
-                "type": "USERNAME",
-                "detail": {
-                    "username": "user",
-                    "password": "pass"
-                },
-                "createdAt": 1504737923,
-                "updatedAt": 1504737923
-            }
-        ]
+    {
+    "name": "username-credential",
+    "type": "USERNAME",
+    "detail": {
+    "username": "user",
+    "password": "pass"
+    },
+    "createdAt": 1504737923,
+    "updatedAt": 1504737923
+    }
+    ]
      */
     @GetMapping
     public List<Credential> list(@RequestParam(required = false) String types) {
@@ -176,6 +178,7 @@ public class CredentialController {
      *  reference on List item
      */
     @GetMapping(path = "/{name}")
+    @WebSecurity(action = Actions.CREDENTIAL_SHOW)
     public Credential show(@PathVariable String name) {
         return credentialService.find(name);
     }
@@ -259,6 +262,7 @@ public class CredentialController {
      *  reference on List item
      */
     @PostMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @WebSecurity(action = Actions.CREDENTIAL_CREATE)
     public Credential create(@PathVariable String name,
                              @RequestParam(name = "detail") String detailJson,
                              @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
@@ -283,6 +287,7 @@ public class CredentialController {
      * @apiGroup Credenital
      */
     @PatchMapping(path = "/{name}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @WebSecurity(action = Actions.ADMIN_UPDATE)
     public Credential update(@PathVariable String name,
                              @RequestParam(name = "detail") String detailJson,
                              @RequestPart(name = "android-file", required = false) MultipartFile androidFile,
@@ -299,6 +304,7 @@ public class CredentialController {
     }
 
     @PostMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @WebSecurity(action = Actions.CREDENTIAL_CREATE)
     public Credential create(@PathVariable String name,
                              @RequestBody CredentialDetail detail) {
 
@@ -311,6 +317,7 @@ public class CredentialController {
     }
 
     @PatchMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @WebSecurity(action = Actions.ADMIN_UPDATE)
     public Credential update(@PathVariable String name,
                              @RequestBody CredentialDetail detail) {
         // check name is existed
@@ -330,6 +337,7 @@ public class CredentialController {
      * @apiDescription Delete credential
      */
     @DeleteMapping(path = "/{name}")
+    @WebSecurity(action = Actions.ADMIN_DELETE)
     public void delete(@PathVariable String name) {
         credentialService.delete(name);
     }
@@ -346,6 +354,7 @@ public class CredentialController {
      *  }
      */
     @GetMapping(path = "/rsa")
+    @WebSecurity(action = Actions.GENERATE_KEY)
     public RSAKeyPair getKeys() {
         return credentialService.generateRsaKey();
     }
@@ -398,7 +407,7 @@ public class CredentialController {
 
         IosCredentialDetail iosDetail = (IosCredentialDetail) detail;
 
-        for(MultipartFile file : p12Files) {
+        for (MultipartFile file : p12Files) {
             String extension = Files.getFileExtension(file.getOriginalFilename());
             if (!IOS_P12_EXTENSIONS.contains(extension)) {
                 throw new IllegalParameterException("Illegal ios p12 file");
@@ -431,7 +440,7 @@ public class CredentialController {
             resource.setPath(destPath.toString());
         }
 
-        for(MultipartFile file : ppFiles) {
+        for (MultipartFile file : ppFiles) {
             String extension = Files.getFileExtension(file.getOriginalFilename());
             if (!IOS_PROVISION_PROFILE_EXTENSIONS.contains(extension)) {
                 throw new IllegalParameterException("Illegal ios mobile provision file");

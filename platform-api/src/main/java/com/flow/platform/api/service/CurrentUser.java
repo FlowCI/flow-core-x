@@ -23,14 +23,14 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author lhl
  */
 
-public class CurrentUser {
+public abstract class CurrentUser {
 
     @Autowired
     private ThreadLocal<User> currentUser;
 
     public User currentUser() {
         if (currentUser.get() == null) {
-            throw new NotFoundException(String.format("user not found"));
+            throw new NotFoundException("Current user not found");
         }
         return currentUser.get();
     }

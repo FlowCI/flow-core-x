@@ -16,12 +16,13 @@
 
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.domain.envs.AgentEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs;
+import com.flow.platform.api.envs.AgentEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
@@ -131,6 +132,21 @@ public class CmdServiceImpl implements CmdService {
         } catch (Throwable e) {
             String rootCause = ExceptionUtil.findRootCause(e).getMessage();
             throw new IllegalStatusException("Unable to shutdown since: " + rootCause);
+        }
+    }
+
+    @Override
+    public void close(AgentPath path) {
+        if (path.isEmpty()) {
+            throw new IllegalParameterException("Agent zone and name are required");
+        }
+
+        try {
+            LOGGER.traceMarker("Close", "Send close cmd to agent: %s", path);
+            sendDirectly(new CmdInfo(path, CmdType.STOP, null));
+        } catch (Throwable e) {
+            String rootCause = ExceptionUtil.findRootCause(e).getMessage();
+            throw new IllegalStatusException("Unable to close agent since: " + rootCause);
         }
     }
 

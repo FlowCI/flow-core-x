@@ -15,6 +15,8 @@
  */
 package com.flow.platform.api.domain.request;
 
+import com.flow.platform.api.domain.user.User;
+
 /**
  * @author lhl
  */
@@ -31,7 +33,6 @@ public class RegisterUserParam {
     private ListParam<String> flows;
 
     private ListParam<String> roles;
-
 
     public String getEmail() {
         return email;
@@ -79,5 +80,9 @@ public class RegisterUserParam {
 
     public void setRoles(ListParam<String> roles) {
         this.roles = roles;
+    }
+
+    public User toUser() {
+        return new User(email, username, password);
     }
 }

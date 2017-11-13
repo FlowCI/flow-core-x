@@ -102,7 +102,7 @@ public class QueueConfig {
         }
 
         LOGGER.trace("Apply in memory queue for cmd queue");
-        return new InMemoryQueue<>(taskExecutor, CMD_QUEUE_MAX_LENGTH);
+        return new InMemoryQueue<>(taskExecutor, CMD_QUEUE_MAX_LENGTH, "CmdQueue");
     }
 
     /**
@@ -110,7 +110,7 @@ public class QueueConfig {
      */
     @Bean
     public PlatformQueue<AgentPath> agentReportQueue() {
-        return new InMemoryQueue<>(taskExecutor, 100);
+        return new InMemoryQueue<>(taskExecutor, 100, "AgentReportQueue");
     }
 
     /**
@@ -118,6 +118,6 @@ public class QueueConfig {
      */
     @Bean
     public PlatformQueue<CmdStatusItem> cmdStatusQueue() {
-        return new InMemoryQueue<>(taskExecutor, 100);
+        return new InMemoryQueue<>(taskExecutor, 100, "CmdStatusQueue");
     }
 }

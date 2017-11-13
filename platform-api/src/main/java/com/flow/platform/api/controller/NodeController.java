@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -39,61 +40,17 @@ import org.springframework.web.servlet.HandlerMapping;
  *
  * @author yang
  */
-@RestController
-@RequestMapping(path = {
-    "/nodes/{root}",
-    "/nodes/{root}/{child}",
-})
-public class NodeController {
+public abstract class NodeController {
 
     @Autowired
     protected NodeService nodeService;
+
+    @Autowired
+    protected EnvService envService;
 
     /**
      * The current node path from {@see NodeControllerAdvice}
      */
     @Autowired
     protected ThreadLocal<String> currentNodePath;
-
-    /**
-     * @api {get} /nodes/:root/:child/env/:key Get Env
-     * @apiParam {String} root root node name
-     * @apiParam {String} [child] child node name
-     * @apiParam {String} [key] env variable name
-     * @apiGroup Nodes
-     * @apiDescription Get node env by path or name
-     *
-     * @apiSuccessExample {json} Success-Response
-     *  {
-     *      FLOW_ENV_VAR: xxx
-     *  }
-     */
-    @GetMapping(path = "/env")
-    public Map<String, String> getEnv(@RequestParam(required = false) String key) {
-        String path = currentNodePath.get();
-
-        // check is path for root name
-        if (PathUtil.isRootName(path)) {
-            path = PathUtil.build(path);
-        }
-
-        Node node = nodeService.find(path);
-
-        if (node == null) {
-            throw new IllegalParameterException("Invalid node path");
-        }
-
-        if (Strings.isNullOrEmpty(key)) {
-            return node.getEnvs();
-        }
-
-        String env = node.getEnv(key);
-        if (Strings.isNullOrEmpty(env)) {
-            throw new NotFoundException("Env key is not exist");
-        }
-
-        Map<String, String> singleEnv = new HashMap<>(1);
-        singleEnv.put(key, env);
-        return singleEnv;
-    }
 }
