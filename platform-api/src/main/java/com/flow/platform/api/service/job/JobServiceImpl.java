@@ -78,6 +78,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -167,7 +168,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    @Transactional(noRollbackFor = FlowException.class)
+    @Transactional(noRollbackFor = FlowException.class, isolation = Isolation.SERIALIZABLE)
     public Job createFromFlowYml(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         // verify flow yml status
         Node flow = nodeService.find(path).root();
