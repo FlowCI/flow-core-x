@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.request.ThreadConfigParam;
 import java.util.function.Consumer;
+import org.springframework.core.io.Resource;
 
 /**
  * @author yang
@@ -47,6 +48,13 @@ public interface YmlService {
      * @throws IllegalStateException if FLOW_YML_STATUS is illegal
      */
     Yml get(Node root);
+
+    /**
+     * yml content to resource
+     * @param root
+     * @return
+     */
+    Resource getResource(Node root);
 
     /**
      * Load yml content from git repo in async and create tree from yml,

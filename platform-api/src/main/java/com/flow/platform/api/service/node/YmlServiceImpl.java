@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service.node;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialType;
@@ -36,17 +37,22 @@ import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -108,6 +114,21 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     @Override
     public Yml get(final Node root) {
         return ymlDao.get(root.getPath());
+    }
+
+    @Override
+    public Resource getResource(Node root) {
+
+        Yml yml = ymlDao.get(root.getPath());
+        String body = yml.getFile();
+        Resource allResource = null;
+        try (InputStream is = new ByteArrayInputStream(body.getBytes(AppConfig.DEFAULT_CHARSET))) {
+            allResource = new InputStreamResource(is);
+        } catch (Throwable throwable) {
+            throw new NotFoundException("yml not found");
+        }
+
+        return allResource;
     }
 
     @Override
