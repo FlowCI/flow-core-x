@@ -370,7 +370,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // to run node with customized cmd id
         try {
             NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+
             Map<String, String> credentialEnvs = credentialService.find(node);
+            EnvUtil.keepNewlineForEnv(credentialEnvs, null);
+
             CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId(), credentialEnvs);
         } catch (IllegalStatusException e) {
             CmdInfo rawCmd = (CmdInfo) e.getData();

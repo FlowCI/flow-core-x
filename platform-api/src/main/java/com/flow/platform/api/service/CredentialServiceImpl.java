@@ -32,7 +32,6 @@ import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
@@ -121,10 +120,11 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
                 }
 
                 RSACredentialDetail credentialDetail = (RSACredentialDetail) credential.getDetail();
-                return ImmutableMap.of(
-                    GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), credentialDetail.getPrivateKey(),
-                    GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY.name(), credentialDetail.getPublicKey()
-                );
+
+                Map<String, String> envs = new HashMap<>(2);
+                envs.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), credentialDetail.getPrivateKey());
+                envs.put(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY.name(), credentialDetail.getPublicKey());
+                return envs;
             }
 
             // for git http client needs username credential
@@ -134,10 +134,11 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
                 }
 
                 UsernameCredentialDetail credentialDetail = (UsernameCredentialDetail) credential.getDetail();
-                return ImmutableMap.of(
-                    GitEnvs.FLOW_GIT_HTTP_USER.name(), credentialDetail.getUsername(),
-                    GitEnvs.FLOW_GIT_HTTP_PASS.name(), credentialDetail.getPassword()
-                );
+
+                Map<String, String> envs = new HashMap<>(2);
+                envs.put(GitEnvs.FLOW_GIT_HTTP_USER.name(), credentialDetail.getUsername());
+                envs.put(GitEnvs.FLOW_GIT_HTTP_PASS.name(), credentialDetail.getPassword());
+                return envs;
             }
 
         } catch (IllegalParameterException ignore) {

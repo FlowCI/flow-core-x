@@ -30,6 +30,22 @@ import java.util.Set;
  */
 public class EnvUtil {
 
+    /**
+     * Convert "\n" to "\\n" in env variable, therefore the env variable still keep \n
+     * @param source source env variables
+     * @param keys the keys needs to keep, or null for all variables
+     */
+    public static void keepNewlineForEnv(Map<String, String> source, Set<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            keys = source.keySet();
+        }
+
+        for (String key : keys) {
+            String origin = source.get(key);
+            source.put(key, origin.replace("\n", "\\n"));
+        }
+    }
+
     public static boolean hasRequired(Node node, Collection<String> requiredEnvSet) {
         for (String requiredKey : requiredEnvSet) {
             if (!node.getEnvs().containsKey(requiredKey)) {
