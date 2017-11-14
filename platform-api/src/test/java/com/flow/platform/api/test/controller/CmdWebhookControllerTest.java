@@ -269,7 +269,7 @@ public class CmdWebhookControllerTest extends TestBase {
         // TODO:
     }
 
-    private Job reload(Job job) {
+    protected Job reload(Job job) {
         return jobService.find(job.getNodePath(), job.getNumber());
     }
 

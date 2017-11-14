@@ -26,10 +26,8 @@ import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
-import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
-import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -265,37 +263,5 @@ public class JobServiceTest extends TestBase {
         List<Job> jobs = jobService.list(rootPath, true);
         Assert.assertEquals(1, jobs.size());
         Assert.assertEquals("2", jobs.get(0).getNumber().toString());
-    }
-
-    private Job createMockJob(String nodePath) {
-        // create job
-        Job job = jobService.createFromFlowYml(nodePath, JobCategory.TAG, null, mockUser);
-        Assert.assertNotNull(job.getId());
-        Assert.assertNotNull(job.getSessionId());
-        Assert.assertNotNull(job.getNumber());
-        Assert.assertEquals(mockUser.getEmail(), job.getCreatedBy());
-        Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
-
-        Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER));
-
-        // verify root node result for job
-        NodeResult rootResult = job.getRootResult();
-        Assert.assertNotNull(rootResult);
-        Assert.assertEquals(NodeTag.FLOW, rootResult.getNodeTag());
-        Assert.assertNotNull(rootResult.getOutputs());
-        Assert.assertEquals(NodeStatus.PENDING, rootResult.getStatus());
-
-        NodeTree nodeTree = jobNodeService.get(job);
-
-        // verify child node result list
-        List<NodeResult> childrenResult = job.getChildrenResult();
-        Assert.assertNotNull(childrenResult);
-        Assert.assertEquals(nodeTree.childrenSize(), childrenResult.size());
-
-        return job;
-    }
-
-    private Job reload(Job job) {
-        return jobService.find(job.getNodePath(), job.getNumber());
     }
 }
