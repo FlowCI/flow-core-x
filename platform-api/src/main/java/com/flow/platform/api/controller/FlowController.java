@@ -27,20 +27,26 @@ import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.YmlService;
+import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.StringUtil;
 import com.google.common.base.Strings;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author yh@firim
@@ -417,6 +423,53 @@ public class FlowController extends NodeController {
     }
 
     /**
+     * @api {post} /flows/:root/yml/upload upload yml
+     * @apiParam {String} root flow node name to set yml content
+     * @apiParam file
+     * @apiGroup Flow Yml
+     * @apiDescription Create yml for flow,
+     * the flow name must be matched with flow name defined in yml
+     *
+     * @apiSuccessExample {json} Success-Response
+     *
+     *  yml body
+     */
+    @PostMapping("/{root}/yml/upload")
+    @WebSecurity(action = Actions.FLOW_CREATE)
+    public String createFromUploadYml(@RequestPart MultipartFile file) throws IOException {
+        String yml = CommonUtil.commonsMultipartFileToString(file);
+        if (Strings.isNullOrEmpty(yml)) {
+            throw new IllegalParameterException("file is not available");
+        }
+
+        nodeService.createOrUpdateYml(currentNodePath.get(), yml);
+        return yml;
+    }
+
+
+    /**
+     * @api {post} /flows/:root/yml/download download yml
+     * @apiParam {String} root flow node name to set yml content
+     * @apiGroup Flow Yml
+     * @apiDescription download yml for flow,
+     * the flow name must be matched with flow name defined in yml
+     *
+     * @apiSuccessExample {json} Success-Response
+     *
+     *  yml file
+     */
+    @GetMapping("/{root}/yml/download")
+    @WebSecurity(action = Actions.FLOW_CREATE)
+    public Resource downloadFlowYml(HttpServletResponse httpResponse) {
+        String path = currentNodePath.get();
+        Node root = nodeService.find(path).root();
+        httpResponse.setHeader(
+            "Content-Disposition",
+            String.format("attachment; filename=%s", ".flow.yml"));
+        return ymlService.getResource(root);
+    }
+
+    /**
      * @api {post} /flows/:root/users/auth
      * @apiParam {String} root flow node name
      * @apiParamExample {json} Request-Body:
@@ -481,7 +534,7 @@ public class FlowController extends NodeController {
      *      }
      */
     @PostMapping("/{root}/trigger")
-    public Node trigger(@RequestBody TriggerParam triggerParam){
+    public Node trigger(@RequestBody TriggerParam triggerParam) {
         String path = currentNodePath.get();
         Node flow = nodeService.find(path).root();
         envService.save(flow, triggerParam.toEnv(), true);
