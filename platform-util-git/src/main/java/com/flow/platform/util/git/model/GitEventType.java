@@ -21,6 +21,8 @@ package com.flow.platform.util.git.model;
  */
 public enum GitEventType {
 
+    NONE,
+
     MANUAL,
 
     PING,

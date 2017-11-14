@@ -87,7 +87,7 @@ public class GitWebHookController extends NodeController {
             // extract git related env variables from event, and temporary set to node for git loading
             final Map<String, String> gitEnvs = GitEventEnvConverter.convert(hookEvent);
 
-            if (!allowEventType(flow, gitEnvs)) {
+            if (!canExecuteGitEvent(flow, gitEnvs)) {
                 LOGGER.warn("The git event not match flow settings");
                 return;
             }
@@ -103,7 +103,7 @@ public class GitWebHookController extends NodeController {
         }
     }
 
-    private boolean allowEventType(Node flow, Map<String, String> gitEnvs) {
+    private boolean canExecuteGitEvent(Node flow, Map<String, String> gitEnvs) {
         String gitEventType = gitEnvs.get(GitEnvs.FLOW_GIT_EVENT_TYPE.name());
         String gitBranch = gitEnvs.get(GitEnvs.FLOW_GIT_BRANCH.name());
 

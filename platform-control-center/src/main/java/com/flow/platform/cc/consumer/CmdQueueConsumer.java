@@ -96,13 +96,15 @@ public class CmdQueueConsumer implements QueueListener<Message> {
                 LOGGER.trace("wait for idle agent time out %s seconds for cmd %s", idleAgentTimeout, cmdId);
             }
 
-            // reset cmd status to pending, record num of retry
-            int retry = item.getRetry() - 1;
             Cmd cmd = cmdService.find(cmdId);
+
+            // do not re-enqueue if cmd been stopped or killed
             if (cmd.getStatus() == CmdStatus.STOPPED || cmd.getStatus() == CmdStatus.KILLED) {
                 return;
             }
 
+            // reset cmd status to pending, record num of retry
+            int retry = item.getRetry() - 1;
             cmd.setStatus(CmdStatus.PENDING);
             cmd.setRetry(retry);
             cmdService.save(cmd);

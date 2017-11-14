@@ -46,7 +46,7 @@ public class GitHubHooksEventTest {
         // given:
         String pushEventContent = loadWebhookSampleJson("github/webhook_push.json");
         Map<String, String> dummyHeader = new HashMap<>();
-        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH_OR_TAG);
 
         // when:
         GitPushTagEvent pushEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, pushEventContent);
@@ -85,7 +85,7 @@ public class GitHubHooksEventTest {
         // given:
         String tagEventContent = loadWebhookSampleJson("github/webhook_tag.json");
         Map<String, String> dummyHeader = new HashMap<>();
-        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH);
+        dummyHeader.put(Hooks.HEADER, Hooks.EVENT_TYPE_PUSH_OR_TAG);
 
         // when:
         GitPushTagEvent tagEvent = (GitPushTagEvent) GitHookEventFactory.build(dummyHeader, tagEventContent);
@@ -102,10 +102,12 @@ public class GitHubHooksEventTest {
         Assert.assertEquals("23307997", tagEvent.getUserId());
         Assert.assertEquals("yang-guo-2016", tagEvent.getUsername());
         Assert.assertEquals("gy@fir.im", tagEvent.getUserEmail());
-        Assert.assertEquals("26d1d0fa6ee4...1.6", tagEvent.getCompareId());
+
+        Assert.assertEquals("26d1d0fa6ee4...v1.6", tagEvent.getCompareId());
+        Assert.assertEquals("https://github.com/yang-guo-2016/Test/compare/v1.6", tagEvent.getCompareUrl());
+
         Assert.assertEquals("https://github.com/yang-guo-2016/Test/commit/26d1d0fa6ee44a8f4e02250d13e84bf02722f5e7",
             tagEvent.getHeadCommitUrl());
-        Assert.assertTrue(tagEvent.getCompareUrl().endsWith("compare/v1.6"));
         Assert.assertEquals(0, tagEvent.getCommits().size());
     }
 
@@ -138,11 +140,11 @@ public class GitHubHooksEventTest {
         Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", source.getSha());
 
         // then: verify target info
-        GitPullRequestInfo target = event.getSource();
-        Assert.assertEquals("developer", target.getBranch());
+        GitPullRequestInfo target = event.getTarget();
+        Assert.assertEquals("master", target.getBranch());
         Assert.assertEquals(86284448, target.getProjectId().intValue());
         Assert.assertEquals("yang-guo-2016/Test", target.getProjectName());
-        Assert.assertEquals("1d1de876084ef656e522f360b88c1e96acf6b806", source.getSha());
+        Assert.assertEquals("4e4e3750cd468f245bd9f0f938c4b5f76e1bc5b0", target.getSha());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {
