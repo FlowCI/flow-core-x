@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvUtil;
+import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.ObjectWrapper;
@@ -47,6 +48,7 @@ public class ManualJobTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
+        env.put(FlowEnvs.FLOW_YML_FILE.name(), ".flow.yml");
         envService.save(flow, env, false);
 
         // when: manual start job
