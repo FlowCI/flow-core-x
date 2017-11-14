@@ -85,7 +85,7 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
     }
 
     @Test(expected = NotFoundException.class)
-    public void should_delete_flow_and_stop_current_job_success() throws Exception {
+    public void should_delete_flow_success() throws Exception {
         String flow = "flow1";
 
         // mock user

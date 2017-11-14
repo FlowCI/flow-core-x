@@ -30,6 +30,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
@@ -221,6 +222,44 @@ public class JobServiceTest extends TestBase {
         stoppedJob = jobService.find(stoppedJob.getId());
         Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());
     }
+
+    @Test
+    public void should_stop_running_job_success() throws IOException {
+
+        // init flow
+        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        NodeTree nodeTree = nodeService.find("flow1");
+        Node stepFirst = nodeTree.find("flow1/step1");
+
+        // create job
+        Job job = createMockJob(rootForFlow.getPath());
+
+        // mock callback cmd
+        final String sessionId = CommonUtil.randomId().toString();
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setSessionId(sessionId);
+        cmd.setStatus(CmdStatus.SENT);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+        job = reload(job);
+
+        // first step should running
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, stepFirst.getScript());
+        cmd.setStatus(CmdStatus.RUNNING);
+        cmd.setType(CmdType.RUN_SHELL);
+        cmd.setExtra(stepFirst.getPath());
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+
+        // job should running
+        job = reload(job);
+        Assert.assertEquals(NodeStatus.RUNNING, job.getRootResult().getStatus());
+
+        // job should stop
+        Job stoppedJob = jobService.stop(job.getNodeName(), job.getNumber());
+        Assert.assertNotNull(stoppedJob);
+        stoppedJob = jobService.find(stoppedJob.getId());
+        Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());
+    }
+
 
     @Test
     public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
