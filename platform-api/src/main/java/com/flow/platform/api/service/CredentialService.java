@@ -19,8 +19,10 @@ import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialDetail;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
+import com.flow.platform.api.domain.node.Node;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lhl
@@ -38,6 +40,13 @@ public interface CredentialService {
      * Create credential
      */
     Credential createOrUpdate(String name, CredentialDetail detail);
+
+    /**
+     * Find credential by node env
+     *
+     * @return Credential related env
+     */
+    Map<String, String> find(Node node);
 
     /**
      * find credential by name

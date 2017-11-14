@@ -141,7 +141,8 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
             throw new IllegalStatusException("Yml file is loading");
         }
 
-        findNodeCredential(root);
+        Map<String, String> credentialEnvs = credentialService.find(root);
+        EnvUtil.merge(credentialEnvs, root.getEnvs(), true);
 
         // update FLOW_YML_STATUS to LOADING
         nodeService.updateYmlState(root, YmlStatusValue.GIT_CONNECTING, null);
@@ -190,51 +191,6 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     private boolean isYmlLoading(final Node node) {
         String ymlStatus = node.getEnv(FlowEnvs.FLOW_YML_STATUS);
         return YmlStatusValue.isLoadingStatus(ymlStatus);
-    }
-
-    /**
-     * Find FLOW_GIT_CREDENTIAL and load from CredentialService
-     */
-    private void findNodeCredential(Node node) {
-        String rsaOrUsernameCredentialName = node.getEnv(GitEnvs.FLOW_GIT_CREDENTIAL);
-
-        if (Strings.isNullOrEmpty(rsaOrUsernameCredentialName)) {
-            return;
-        }
-
-        try {
-            Credential credential = credentialService.find(rsaOrUsernameCredentialName);
-            CredentialType credentialType = credential.getType();
-
-            // for git ssh client needs rsa credential
-            if (credentialType.equals(CredentialType.RSA)) {
-                if (!node.getEnv(GitEnvs.FLOW_GIT_SOURCE).equals(GitSource.UNDEFINED_SSH.name())) {
-                    throw new NodeSettingsException("The SSH git source need RSA credential");
-                }
-
-                RSACredentialDetail credentialDetail = (RSACredentialDetail) credential.getDetail();
-                node.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, credentialDetail.getPrivateKey());
-                node.putEnv(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY, credentialDetail.getPublicKey());
-                return;
-            }
-
-            // for git http client needs username credential
-            if (credentialType.equals(CredentialType.USERNAME)) {
-                if (!node.getEnv(GitEnvs.FLOW_GIT_SOURCE).equals(GitSource.UNDEFINED_HTTP.name())) {
-                    throw new NodeSettingsException("The HTTP git source need USERNAME credential");
-                }
-
-                UsernameCredentialDetail credentialDetail = (UsernameCredentialDetail) credential.getDetail();
-                node.putEnv(GitEnvs.FLOW_GIT_HTTP_USER, credentialDetail.getUsername());
-                node.putEnv(GitEnvs.FLOW_GIT_HTTP_PASS, credentialDetail.getPassword());
-                return;
-            }
-
-            throw new NodeSettingsException("Unsupported credential settings");
-
-        } catch (IllegalParameterException ignore) {
-            // credential not found
-        }
     }
 
     private ThreadPoolTaskExecutor findThreadPoolFromCache(String path) throws ExecutionException {

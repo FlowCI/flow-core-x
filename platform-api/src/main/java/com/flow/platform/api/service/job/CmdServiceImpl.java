@@ -35,7 +35,9 @@ import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -100,9 +102,14 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public CmdInfo runShell(Job job, Node node, String cmdId) {
+    public CmdInfo runShell(Job job, Node node, String cmdId, Map<String, String> extra) {
+        Map<String, String> envs = ImmutableMap.<String, String>builder()
+            .putAll(node.getEnvs())
+            .putAll(extra)
+            .build();
+
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
-        cmdInfo.setInputs(node.getEnvs());
+        cmdInfo.setInputs(envs);
         cmdInfo.setWebhook(buildCmdWebhook(job));
         cmdInfo.setOutputEnvFilter(job.getEnv(FlowEnvs.FLOW_ENV_OUTPUT_PREFIX, "FLOW_OUTPUT"));
         cmdInfo.setSessionId(job.getSessionId());
