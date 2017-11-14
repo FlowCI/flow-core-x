@@ -105,7 +105,7 @@ public class GitLabHooksEventTest {
         Assert.assertNull(tagEvent.getUserEmail());
         Assert.assertEquals(0, tagEvent.getCommits().size());
         Assert.assertEquals("hello test", tagEvent.getMessage());
-        Assert.assertEquals("82b3d5ae55f7...1.0.0", tagEvent.getCompareId());
+        Assert.assertEquals("82b3d5ae55f7...v1.0.0", tagEvent.getCompareId());
         Assert.assertEquals("http://example.com/jsmith/example/commit/82b3d5ae55f7080f1e6022629cdb57bfae7cccc7",
             tagEvent.getHeadCommitUrl());
         Assert.assertTrue(tagEvent.getCompareUrl().endsWith("compare/" + tagEvent.getCompareId()));

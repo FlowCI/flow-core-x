@@ -44,9 +44,7 @@ public class GitHubEvents {
 
         public final static String EVENT_TYPE_PING = "ping";
 
-        public final static String EVENT_TYPE_PUSH = "push";
-
-        public final static String EVENT_TYPE_TAG = "push";
+        public final static String EVENT_TYPE_PUSH_OR_TAG = "push";
 
         public final static String EVENT_TYPE_PR = "pull_request";
     }
@@ -111,6 +109,8 @@ public class GitHubEvents {
 
             @SerializedName("pull_request")
             private PullRequest pullRequest;
+
+            private PrRepo repository;
         }
 
         private class PullRequest {
@@ -155,6 +155,9 @@ public class GitHubEvents {
 
             @SerializedName("full_name")
             private String name;
+
+            @SerializedName("html_url")
+            private String url;
         }
 
         private class UserInfo {

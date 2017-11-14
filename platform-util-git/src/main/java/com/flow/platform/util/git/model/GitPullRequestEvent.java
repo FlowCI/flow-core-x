@@ -16,12 +16,26 @@
 
 package com.flow.platform.util.git.model;
 
+import com.google.common.base.Strings;
+
 /**
  * Pull Request with Closed event (Merge Request)
  *
  * @author yang
  */
 public class GitPullRequestEvent extends GitEvent {
+
+    public static String buildCompareId(GitPullRequestInfo source, GitPullRequestInfo target) {
+        if (!Strings.isNullOrEmpty(target.getSha()) && !Strings.isNullOrEmpty(source.getSha())) {
+            return target.getSha().substring(0, 12)  + "..." + source.getSha().substring(0, 12);
+        }
+
+        if (!Strings.isNullOrEmpty(target.getBranch()) && !Strings.isNullOrEmpty(source.getBranch())) {
+            return target.getBranch() + "..." + source.getBranch();
+        }
+
+        return "";
+    }
 
     public enum State {
         OPEN,
@@ -57,6 +71,16 @@ public class GitPullRequestEvent extends GitEvent {
      * Username who merge this pr
      */
     private String mergedBy;
+
+    /**
+     * Compare source and target branch
+     */
+    private String compareId;
+
+    /**
+     * Http web view for compare id
+     */
+    private String compareUrl;
 
     public GitPullRequestEvent(GitSource gitSource, GitEventType type) {
         super(gitSource, type);
@@ -140,5 +164,21 @@ public class GitPullRequestEvent extends GitEvent {
 
     public void setMergedBy(String mergedBy) {
         this.mergedBy = mergedBy;
+    }
+
+    public String getCompareId() {
+        return compareId;
+    }
+
+    public void setCompareId(String compareId) {
+        this.compareId = compareId;
+    }
+
+    public String getCompareUrl() {
+        return compareUrl;
+    }
+
+    public void setCompareUrl(String compareUrl) {
+        this.compareUrl = compareUrl;
     }
 }

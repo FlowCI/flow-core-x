@@ -28,6 +28,7 @@ import com.flow.platform.util.git.model.GitPushTagEvent;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Extract required GitEnv from git event
@@ -76,6 +77,12 @@ public class GitEventEnvConverter {
                 info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pr.getMergedBy());
             }
 
+            // set commit id and url from PR request id and pr url
+            if (pr.getRequestId() != null && pr.getUrl() != null) {
+                info.put(GitEnvs.FLOW_GIT_COMMIT_ID.name(), pr.getRequestId().toString());
+                info.put(GitEnvs.FLOW_GIT_COMMIT_URL.name(), pr.getUrl());
+            }
+
             info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pr.getTitle());
             info.put(GitEnvs.FLOW_GIT_PR_URL.name(), pr.getUrl());
             return info;
@@ -97,6 +104,8 @@ public class GitEventEnvConverter {
             // TODO: multi change log
             if (pt.getCommits().size() > 0) {
                 info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getCommits().get(0).getMessage());
+            } else if (Objects.equals(pt.getType(), GitEventType.TAG)) {
+                info.put(GitEnvs.FLOW_GIT_CHANGELOG.name(), pt.getMessage());
             }
 
             return info;

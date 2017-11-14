@@ -1,0 +1,39 @@
+{
+  "merge_request": {
+    "target_branch": "master",
+    "title": "test pr",
+    "body": "\u003cp\u003ehello this is the PR test\u003c/p\u003e",
+    "source_sha": "",
+    "source_branch": "develop",
+    "number": 1.0,
+    "web_url": "https://coding.net/u/benqyang2006/p/flowclibasic/git/merge/1",
+    "merge_commit_sha": "ee0475cc379bc36c4c861e9f0e2b4766134c063b",
+    "target_sha": "",
+    "action": "create",
+    "id": 924870.0,
+    "user": {
+      "path": "/u/benqyang2006",
+      "web_url": "https://coding.net/u/benqyang2006",
+      "global_key": "benqyang2006",
+      "name": "benqyang2006",
+      "avatar": "https://dn-coding-net-production-static.qbox.me/16e639e2-45dd-4959-b38e-576e2ac0041c.jpg?imageMogr2/auto-orient/format/jpeg/crop/!498x498a48a302"
+    },
+    "status": "CANMERGE"
+  },
+  "repository": {
+    "owner": {
+      "path": "/u/benqyang2006",
+      "web_url": "https://coding.net/u/benqyang2006",
+      "global_key": "benqyang2006",
+      "name": "benqyang2006",
+      "avatar": "https://dn-coding-net-production-static.qbox.me/16e639e2-45dd-4959-b38e-576e2ac0041c.jpg?imageMogr2/auto-orient/format/jpeg/crop/!498x498a48a302"
+    },
+    "https_url": "https://git.coding.net/benqyang2006/flowclibasic.git",
+    "web_url": "https://coding.net/u/benqyang2006/p/flowclibasic",
+    "project_id": "1243975",
+    "ssh_url": "git@git.coding.net:benqyang2006/flowclibasic.git",
+    "name": "flowclibasic",
+    "description": ""
+  },
+  "event": "merge_request"
+}
