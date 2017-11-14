@@ -54,7 +54,7 @@ public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "API";
 
-    public final static String VERSION = "0.1.0";
+    public final static String VERSION = "v0.1-alpha";
 
     public final static String DEFAULT_YML_FILE = ".flow.yml";
 
