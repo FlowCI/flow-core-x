@@ -38,8 +38,8 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     private volatile boolean pause = false;
 
-    public InMemoryQueue(ThreadPoolTaskExecutor executor, int maxSize) {
-        super(executor, maxSize);
+    public InMemoryQueue(ThreadPoolTaskExecutor executor, int maxSize, String name) {
+        super(executor, maxSize, name);
         this.queue = new LinkedBlockingQueue<>(maxSize);
     }
 

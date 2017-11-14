@@ -17,7 +17,7 @@
 package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.util.EnvUtil;
+import com.flow.platform.api.envs.EnvUtil;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;

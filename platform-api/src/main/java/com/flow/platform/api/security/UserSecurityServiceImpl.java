@@ -51,11 +51,9 @@ public class UserSecurityServiceImpl implements UserSecurityService {
     private ActionService actionService;
 
     @Override
-    public boolean canAccess(String email, Action target) {
-        User user = userService.findByEmail(email);
-
+    public boolean canAccess(User user, Action target) {
         if (user == null) {
-            throw new NotFoundException("Cannot find user by email: " + email);
+            throw new NotFoundException("Cannot find user");
         }
 
         List<Role> roles = roleService.list(user);

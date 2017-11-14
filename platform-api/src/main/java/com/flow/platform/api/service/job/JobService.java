@@ -17,19 +17,33 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
-import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.user.User;
-import com.flow.platform.util.git.model.GitEventType;
+import com.flow.platform.api.envs.EnvKey;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.GitEnvs;
+import com.google.common.collect.ImmutableSet;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
  * @author yh@firim
  */
 public interface JobService {
+
+    /**
+     * Required env variable envs for create job
+     */
+    Set<EnvKey> REQUIRED_ENVS = ImmutableSet.of(
+        FlowEnvs.FLOW_STATUS,
+        FlowEnvs.FLOW_YML_STATUS,
+        GitEnvs.FLOW_GIT_URL,
+        GitEnvs.FLOW_GIT_SOURCE
+    );
 
     /**
      * find by node path and number
@@ -58,7 +72,7 @@ public interface JobService {
     /**
      * delete jobs by flowPath
      */
-    void deleteJob(String path);
+    void delete(String path);
 
     /**
      * List all jobs by given path
@@ -69,24 +83,12 @@ public interface JobService {
     List<Job> list(List<String> paths, boolean latestOnly);
 
     /**
-     * List node results
+     * Create job by yml which from flow
      */
-    List<NodeResult> listNodeResult(String path, Integer number);
+    Job createFromFlowYml(String path, JobCategory eventType, Map<String, String> envs, User creator);
 
     /**
-     * Create job from node path, copy yml to job yml
-     * request agent session from control center
-     *
-     * @param path any node path
-     * @param eventType the trigger type
-     * @param envs the input environment variables, set to null if not available
-     * @param creator the user who create job
-     * @return job with children node result
-     */
-    Job createJob(String path, GitEventType eventType, Map<String, String> envs, User creator);
-
-    /**
-     * Create job after loading yml, in async mode
+     * Create job after loading yml from git repo, in async mode
      *
      * @param path any node path
      * @param eventType the trigger type
@@ -94,11 +96,11 @@ public interface JobService {
      * @param creator the user who create job
      * @param onJobCreated callback
      */
-    void createJobAndYmlLoad(String path,
-                             GitEventType eventType,
-                             Map<String, String> envs,
-                             User creator,
-                             Consumer<Job> onJobCreated);
+    void createWithYmlLoad(String path,
+                           JobCategory eventType,
+                           Map<String, String> envs,
+                           User creator,
+                           Consumer<Job> onJobCreated);
 
     /**
      * Process cmd callback from queue
@@ -113,7 +115,7 @@ public interface JobService {
     /**
      * stop job
      */
-    Job stopJob(String name, Integer buildNumber);
+    Job stop(String name, Integer buildNumber);
 
     /**
      * update job
@@ -125,5 +127,8 @@ public interface JobService {
      */
     void checkTimeoutTask();
 
+    /**
+     * Set job status and save job instance
+     */
     void updateJobStatusAndSave(Job job, JobStatus newStatus);
 }

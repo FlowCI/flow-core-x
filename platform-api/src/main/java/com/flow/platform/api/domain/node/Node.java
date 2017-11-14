@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import java.time.ZonedDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,26 +29,43 @@ import java.util.List;
  * find the super class, but abstract class cannot be instant,
  * so now modified to class
  */
-public class Node<T extends Node> extends EnvObject {
+public final class Node extends EnvObject {
 
     @Expose
-    protected String path;
+    private String path;
 
     @Expose
-    protected String name;
+    @YmlSerializer(required = false)
+    private String name;
 
     @YmlSerializer(required = false)
-    protected String script;
+    private String script;
 
-    protected Node parent;
+    private Node parent;
 
-    @YmlSerializer(required = false, name = "steps")
     @SerializedName("steps")
-    protected List<T> children = new LinkedList<>();
+    @YmlSerializer(required = false, name = "steps")
+    private List<Node> children = new LinkedList<>();
 
-    protected Node prev;
+    private Node prev;
 
-    protected Node next;
+    private Node next;
+
+    @YmlSerializer(required = false)
+    private Boolean allowFailure = false;
+
+    @Expose
+    @YmlSerializer(required = false)
+    private String plugin;
+
+    @Expose
+    private String createdBy;
+
+    @Expose
+    private ZonedDateTime createdAt;
+
+    @Expose
+    private ZonedDateTime updatedAt;
 
     public Node() {
     }
@@ -81,11 +99,11 @@ public class Node<T extends Node> extends EnvObject {
         this.parent = parent;
     }
 
-    public List<T> getChildren() {
+    public List<Node> getChildren() {
         return children;
     }
 
-    public void setChildren(List<T> children) {
+    public void setChildren(List<Node> children) {
         this.children = children;
     }
 
@@ -111,6 +129,46 @@ public class Node<T extends Node> extends EnvObject {
 
     public void setScript(String script) {
         this.script = script;
+    }
+
+    public Boolean getAllowFailure() {
+        return allowFailure;
+    }
+
+    public void setAllowFailure(Boolean allowFailure) {
+        this.allowFailure = allowFailure;
+    }
+
+    public String getPlugin() {
+        return plugin;
+    }
+
+    public void setPlugin(String plugin) {
+        this.plugin = plugin;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(ZonedDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public ZonedDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     @Override

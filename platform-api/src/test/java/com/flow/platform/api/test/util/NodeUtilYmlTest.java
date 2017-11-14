@@ -17,9 +17,7 @@
 package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.config.AppConfig;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.Step;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.util.NodeUtil;
 import com.google.common.io.Files;
@@ -59,7 +57,6 @@ public class NodeUtilYmlTest {
         Node node = NodeUtil.buildFromYml(ymlString, "flow1");
 
         // verify flow
-        Assert.assertTrue(node instanceof Flow);
         Assert.assertEquals("flow1", node.getName());
         Assert.assertEquals("flow1", node.getPath());
 
@@ -69,14 +66,14 @@ public class NodeUtilYmlTest {
         Assert.assertEquals("echo version", node.getEnvs().get("FLOW_VERSION"));
 
         // verify steps
-        Flow root = (Flow) node;
-        List<Step> steps = root.getChildren();
+        Node root =  node;
+        List<Node> steps = root.getChildren();
         Assert.assertEquals(2, steps.size());
 
         Assert.assertEquals("step1", steps.get(0).getName());
         Assert.assertEquals("flow1/step1", steps.get(0).getPath());
 
-        Step step1 = steps.get(0);
+        Node step1 = steps.get(0);
         Assert.assertEquals("echo step", step1.getEnvs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo step version", step1.getEnvs().get("FLOW_VERSION"));
 

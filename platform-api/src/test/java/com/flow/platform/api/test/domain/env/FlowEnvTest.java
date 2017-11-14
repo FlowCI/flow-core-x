@@ -16,13 +16,13 @@
 
 package com.flow.platform.api.test.domain.env;
 
-import static com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue.ERROR;
-import static com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue.FOUND;
-import static com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue.GIT_CONNECTING;
-import static com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue.GIT_LOADED;
-import static com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue.GIT_LOADING;
-import static com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue.NOT_FOUND;
-import static com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue.isLoadingStatus;
+import static com.flow.platform.api.envs.FlowEnvs.YmlStatusValue.ERROR;
+import static com.flow.platform.api.envs.FlowEnvs.YmlStatusValue.FOUND;
+import static com.flow.platform.api.envs.FlowEnvs.YmlStatusValue.GIT_CONNECTING;
+import static com.flow.platform.api.envs.FlowEnvs.YmlStatusValue.GIT_LOADED;
+import static com.flow.platform.api.envs.FlowEnvs.YmlStatusValue.GIT_LOADING;
+import static com.flow.platform.api.envs.FlowEnvs.YmlStatusValue.NOT_FOUND;
+import static com.flow.platform.api.envs.FlowEnvs.YmlStatusValue.isLoadingStatus;
 
 import org.junit.Assert;
 import org.junit.Test;

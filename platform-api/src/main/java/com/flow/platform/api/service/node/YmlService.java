@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.request.ThreadConfigParam;
 import java.util.function.Consumer;
+import org.springframework.core.io.Resource;
 
 /**
  * @author yang
@@ -46,26 +47,32 @@ public interface YmlService {
      * @throws com.flow.platform.api.exception.YmlException if FLOW_YML_STATUS is ERROR
      * @throws IllegalStateException if FLOW_YML_STATUS is illegal
      */
-    String getYmlContent(Node root);
+    Yml get(Node root);
 
+    /**
+     * yml content to resource
+     * @param root
+     * @return
+     */
+    Resource getResource(Node root);
 
     /**
      * Load yml content from git repo in async and create tree from yml,
-     * Then call "getYmlContent" to get yml
+     * Then call "get" to get yml
      *
      * @param root root node
      * @param onSuccess method on yml loaded
      * @param onError method on
      * @return flow node instance
      */
-    Node loadYmlContent(Node root, Consumer<Yml> onSuccess, Consumer<Throwable> onError);
+    Node startLoad(Node root, Consumer<Yml> onSuccess, Consumer<Throwable> onError);
 
     /**
      * Stop yml content loading thread
      *
      * @param root root node
      */
-    void stopLoadYmlContent(Node root);
+    void stopLoad(Node root);
 
     /**
      * Config load yml thread pool

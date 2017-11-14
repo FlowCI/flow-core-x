@@ -16,23 +16,23 @@
 
 package com.flow.platform.api.service.node;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.FlowEnvs.YmlStatusValue;
-import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.request.ThreadConfigParam;
+import com.flow.platform.api.envs.EnvUtil;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.exception.NodeSettingsException;
-import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.task.UpdateNodeYmlTask;
-import com.flow.platform.api.util.EnvUtil;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -44,12 +44,15 @@ import com.flow.platform.util.git.model.GitSource;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -109,44 +112,27 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
-    public String getYmlContent(final Node root) {
-        // for LOADING status if FLOW_YML_STATUS start with GIT_xxx
-        if (isYmlLoading(root)) {
-            return "";
-        }
-
-        // check FLOW_YML_STATUS
-        String ymlStatus = root.getEnv(FlowEnvs.FLOW_YML_STATUS);
-
-        // for FOUND status
-        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.FOUND.value())) {
-
-            // load from database
-            Yml ymlStorage = ymlDao.get(root.getPath());
-            if (ymlStorage != null) {
-                return ymlStorage.getFile();
-            }
-
-            throw new IllegalParameterException("The yml cannot find by path: " + root.getPath());
-        }
-
-        // for NOT_FOUND status
-        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.NOT_FOUND.value())) {
-            throw new NotFoundException("Yml content not found");
-        }
-
-        // for ERROR status
-        if (Objects.equals(ymlStatus, FlowEnvs.YmlStatusValue.ERROR.value())) {
-            final String errorMessage = root.getEnv(FlowEnvs.FLOW_YML_ERROR_MSG);
-            throw new YmlException("Yml failure : " + errorMessage);
-        }
-
-        // yml has not been load
-        throw new IllegalStateException("Illegal FLOW_YML_STATUS value");
+    public Yml get(final Node root) {
+        return ymlDao.get(root.getPath());
     }
 
     @Override
-    public Node loadYmlContent(final Node root, final Consumer<Yml> onSuccess, final Consumer<Throwable> onError) {
+    public Resource getResource(Node root) {
+
+        Yml yml = ymlDao.get(root.getPath());
+        String body = yml.getFile();
+        Resource allResource;
+        try (InputStream is = new ByteArrayInputStream(body.getBytes(AppConfig.DEFAULT_CHARSET))) {
+            allResource = new InputStreamResource(is);
+        } catch (Throwable throwable) {
+            throw new NotFoundException("yml not found");
+        }
+
+        return allResource;
+    }
+
+    @Override
+    public Node startLoad(final Node root, final Consumer<Yml> onSuccess, final Consumer<Throwable> onError) {
         if (!EnvUtil.hasRequiredEnvKey(root, GitService.REQUIRED_ENVS)) {
             throw new IllegalParameterException("Missing git settings: FLOW_GIT_URL and FLOW_GIT_SOURCE");
         }
@@ -178,7 +164,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
-    public void stopLoadYmlContent(final Node root) {
+    public void stopLoad(final Node root) {
         ThreadPoolTaskExecutor executor = nodeThreadPool.getIfPresent(root.getPath());
         if (executor == null || executor.getActiveCount() == 0) {
             return;

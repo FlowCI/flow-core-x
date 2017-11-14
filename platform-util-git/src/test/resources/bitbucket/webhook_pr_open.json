@@ -1,0 +1,182 @@
+{
+  "pullrequest": {
+    "type": "pullrequest",
+    "description": "",
+    "links": {
+      "decline": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/pullrequests/6/decline"
+      },
+      "commits": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/pullrequests/6/commits"
+      },
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/pullrequests/6"
+      },
+      "comments": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/pullrequests/6/comments"
+      },
+      "merge": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/pullrequests/6/merge"
+      },
+      "html": {
+        "href": "https://bitbucket.org/CodingWill/info/pull-requests/6"
+      },
+      "activity": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/pullrequests/6/activity"
+      },
+      "diff": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/pullrequests/6/diff"
+      },
+      "approve": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/pullrequests/6/approve"
+      },
+      "statuses": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/pullrequests/6/statuses"
+      }
+    },
+    "title": "xx",
+    "close_source_branch": false,
+    "reviewers": [],
+    "destination": {
+      "commit": {
+        "hash": "eb612981e942",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/commit/eb612981e942"
+          }
+        }
+      },
+      "branch": {
+        "name": "master"
+      },
+      "repository": {
+        "full_name": "CodingWill/info",
+        "type": "repository",
+        "name": "info",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info"
+          },
+          "html": {
+            "href": "https://bitbucket.org/CodingWill/info"
+          },
+          "avatar": {
+            "href": "https://bitbucket.org/CodingWill/info/avatar/32/"
+          }
+        },
+        "uuid": "{989f8bfb-9b03-42f6-bb48-93a0b1aeaac5}"
+      }
+    },
+    "comment_count": 0,
+    "id": 6,
+    "source": {
+      "commit": {
+        "hash": "ac66189104f3",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info/commit/ac66189104f3"
+          }
+        }
+      },
+      "branch": {
+        "name": "feature/1"
+      },
+      "repository": {
+        "full_name": "CodingWill/info",
+        "type": "repository",
+        "name": "info",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info"
+          },
+          "html": {
+            "href": "https://bitbucket.org/CodingWill/info"
+          },
+          "avatar": {
+            "href": "https://bitbucket.org/CodingWill/info/avatar/32/"
+          }
+        },
+        "uuid": "{989f8bfb-9b03-42f6-bb48-93a0b1aeaac5}"
+      }
+    },
+    "state": "OPEN",
+    "author": {
+      "username": "CodingWill",
+      "type": "user",
+      "display_name": "CodingWill",
+      "uuid": "{7be1c4be-7095-47ec-a5b2-a3cb5a98f413}",
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/users/CodingWill"
+        },
+        "html": {
+          "href": "https://bitbucket.org/CodingWill/"
+        },
+        "avatar": {
+          "href": "https://bitbucket.org/account/CodingWill/avatar/32/"
+        }
+      }
+    },
+    "created_on": "2017-11-10T06:33:25.836777+00:00",
+    "participants": [],
+    "reason": "",
+    "updated_on": "2017-11-10T06:33:25.869816+00:00",
+    "merge_commit": null,
+    "closed_by": null,
+    "task_count": 0
+  },
+  "actor": {
+    "username": "CodingWill",
+    "type": "user",
+    "display_name": "CodingWill",
+    "uuid": "{7be1c4be-7095-47ec-a5b2-a3cb5a98f413}",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/users/CodingWill"
+      },
+      "html": {
+        "href": "https://bitbucket.org/CodingWill/"
+      },
+      "avatar": {
+        "href": "https://bitbucket.org/account/CodingWill/avatar/32/"
+      }
+    }
+  },
+  "repository": {
+    "scm": "git",
+    "website": "",
+    "name": "info",
+    "links": {
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/CodingWill/info"
+      },
+      "html": {
+        "href": "https://bitbucket.org/CodingWill/info"
+      },
+      "avatar": {
+        "href": "https://bitbucket.org/CodingWill/info/avatar/32/"
+      }
+    },
+    "full_name": "CodingWill/info",
+    "owner": {
+      "username": "CodingWill",
+      "type": "user",
+      "display_name": "CodingWill",
+      "uuid": "{7be1c4be-7095-47ec-a5b2-a3cb5a98f413}",
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/users/CodingWill"
+        },
+        "html": {
+          "href": "https://bitbucket.org/CodingWill/"
+        },
+        "avatar": {
+          "href": "https://bitbucket.org/account/CodingWill/avatar/32/"
+        }
+      }
+    },
+    "type": "repository",
+    "is_private": true,
+    "uuid": "{989f8bfb-9b03-42f6-bb48-93a0b1aeaac5}"
+  }
+}

@@ -16,9 +16,8 @@
 
 package com.flow.platform.api.test.domain.adaptor;
 
-import com.flow.platform.api.domain.node.Flow;
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.domain.Jsonable;
 import java.time.ZonedDateTime;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,20 +30,20 @@ public class ZonedDateTimeAdaptorTest extends TestBase {
 
     @Test
     public void should_equal_serializer_success_time_not_null() {
-        Flow flow = new Flow("/flow", "flow");
+        Node flow = new Node("/flow", "flow");
         flow.setCreatedAt(ZonedDateTime.now());
         flow.setUpdatedAt(ZonedDateTime.now());
         String json = flow.toJson();
-        Flow f = Jsonable.GSON_CONFIG.fromJson(json, Flow.class);
+        Node f = Node.parse(json, Node.class);
         Assert.assertEquals(flow.getUpdatedAt().toEpochSecond(), f.getUpdatedAt().toEpochSecond());
         Assert.assertEquals(flow.getCreatedAt().toEpochSecond(), f.getCreatedAt().toEpochSecond());
     }
 
     @Test
     public void should_equal_serializer_success_time_is_null() {
-        Flow flow = new Flow("/flow", "flow");
+        Node flow = new Node("/flow", "flow");
         String json = flow.toJson();
-        Flow f = Jsonable.GSON_CONFIG.fromJson(json, Flow.class);
+        Node f = Node.parse(json, Node.class);
         Assert.assertNull(flow.getCreatedAt());
         Assert.assertNull(flow.getUpdatedAt());
         Assert.assertNull(f.getUpdatedAt());

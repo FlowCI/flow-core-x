@@ -58,7 +58,7 @@ public class Job extends EnvObject {
     private String nodeName;
 
     @Expose
-    private GitEventType category = GitEventType.MANUAL;
+    private JobCategory category = JobCategory.MANUAL;
 
     @Expose
     private JobStatus status = JobStatus.CREATED;
@@ -185,11 +185,11 @@ public class Job extends EnvObject {
         this.childrenResult = childrenResult;
     }
 
-    public GitEventType getCategory() {
+    public JobCategory getCategory() {
         return category;
     }
 
-    public void setCategory(GitEventType category) {
+    public void setCategory(JobCategory category) {
         this.category = category;
     }
 

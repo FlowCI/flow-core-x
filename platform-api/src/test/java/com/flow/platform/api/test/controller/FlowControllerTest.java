@@ -16,30 +16,32 @@
 
 package com.flow.platform.api.test.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.envs.FlowEnvs;
-import com.flow.platform.api.domain.envs.GitEnvs;
 import com.flow.platform.api.domain.response.BooleanValue;
-import com.flow.platform.core.response.ResponseError;
-import com.flow.platform.api.test.TestBase;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.core.response.ResponseError;
+import com.flow.platform.util.StringUtil;
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * @author yang
  */
-public class FlowControllerTest extends TestBase {
+public class FlowControllerTest extends ControllerTestWithoutAuth {
 
     private final String flowName = "flow_default";
 
@@ -49,7 +51,7 @@ public class FlowControllerTest extends TestBase {
             .contentType(MediaType.APPLICATION_JSON);
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
-        Node flowNode = Flow.parse(result.getResponse().getContentAsString(), Flow.class);
+        Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
         Assert.assertNotNull(flowNode);
         Assert.assertNotNull(flowNode.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
         Assert.assertEquals("PENDING", flowNode.getEnv(FlowEnvs.FLOW_STATUS));
@@ -61,14 +63,16 @@ public class FlowControllerTest extends TestBase {
             .andExpect(status().isOk())
             .andReturn();
 
-        Node flowNode = Flow.parse(result.getResponse().getContentAsString(), Flow.class);
+        Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
         Assert.assertNotNull(flowNode);
         Assert.assertEquals(flowName, flowNode.getName());
     }
 
     @Test
     public void should_get_env_value() throws Throwable {
-        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/env").param("key", "FLOW_STATUS");
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/env")
+            .param("key", "FLOW_STATUS")
+            .param("editable", "false");
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
         Assert.assertEquals("{\"FLOW_STATUS\":\"PENDING\"}", result.getResponse().getContentAsString());
@@ -142,9 +146,9 @@ public class FlowControllerTest extends TestBase {
     public void should_get_yml_file_content() throws Throwable {
         // given:
         String yml = "flow:\n" + "  - name: " + flowName;
-        Flow flow = nodeService.findFlow(flowName);
+        Node flow = nodeService.find(flowName).root();
         setFlowToReady(flow);
-        nodeService.createOrUpdate(PathUtil.build(flowName), yml);
+        nodeService.createOrUpdateYml(PathUtil.build(flowName), yml);
 
         // when:
         MvcResult result = mockMvc.perform(get("/flows/" + flowName + "/yml"))
@@ -157,14 +161,46 @@ public class FlowControllerTest extends TestBase {
     }
 
     @Test
-    public void should_return_4xx_if_no_yml_content() throws Throwable {
+    public void should_return_empty_string_if_no_yml_content() throws Throwable {
         // when:
         MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml");
-        MvcResult result = mockMvc.perform(request).andExpect(status().is4xxClientError()).andReturn();
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
         String content = result.getResponse().getContentAsString();
 
         // then:
-        ResponseError error = ResponseError.parse(content, ResponseError.class);
-        Assert.assertEquals("Yml content not found", error.getMessage());
+        Assert.assertEquals(StringUtil.EMPTY, content);
+    }
+
+    @Test
+    public void should_upload_yml_success() throws Exception {
+        String url = "/flows/" + flowName + "/yml/upload";
+        performRequestWith200Status(fileUpload(url)
+            .file(createYmlFilePart(".flow.yml"))
+        );
+
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName)
+            .contentType(MediaType.APPLICATION_JSON);
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
+        Assert.assertEquals("FOUND", flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
+    }
+
+    @Test
+    public void should_download_yml_success() throws Exception {
+        String url = "/flows/" + flowName + "/yml/upload";
+        performRequestWith200Status(fileUpload(url)
+            .file(createYmlFilePart(".flow.yml"))
+        );
+
+        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml/download")
+            .contentType(MediaType.ALL);
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        Assert.assertNotNull(result.getResponse());
+    }
+
+    private MockMultipartFile createYmlFilePart(String name) throws IOException {
+        String resourceContent = getResourceContent("demo_flow.yaml");
+        return new MockMultipartFile("file", name, "", resourceContent.getBytes());
     }
 }

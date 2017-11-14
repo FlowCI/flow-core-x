@@ -14,12 +14,28 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain.envs;
+package com.flow.platform.domain;
 
 /**
  * @author yang
  */
-public interface EnvValue {
+public class AgentPathWithPassword extends AgentPath {
 
-    String value();
+    private String password;
+
+    public AgentPathWithPassword() {
+    }
+
+    public AgentPathWithPassword(String zone, String name, String password) {
+        super(zone, name);
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.security.token;
 
+import io.jsonwebtoken.Claims;
+
 /**
  * @author yang
  */
@@ -29,5 +31,5 @@ public interface TokenGenerator {
     /**
      * Extract value from token
      */
-    String extract(String token);
+    Claims extract(String token);
 }

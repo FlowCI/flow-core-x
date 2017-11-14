@@ -26,12 +26,9 @@ import java.util.List;
  */
 public class CollectionAdaptor<E> extends YmlAdaptor<Object> {
 
-    private Class<E> componentClazz;
-
     private YmlAdaptor<E> typeAdaptor;
 
     public CollectionAdaptor(Class<E> componentClazz, YmlAdaptor<E> typeAdaptor) {
-        this.componentClazz = componentClazz;
         this.typeAdaptor = typeAdaptor;
     }
 

@@ -386,7 +386,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
     private class CmdValidatorForValidSession extends CmdValidator {
 
-        private final EnumSet<CmdType> targets = EnumSet.of(DELETE_SESSION, RUN_SHELL);
+        private final EnumSet<CmdType> targets = EnumSet.of(RUN_SHELL);
 
         @Override
         EnumSet<CmdType> targets() {

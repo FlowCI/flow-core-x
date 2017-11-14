@@ -46,6 +46,7 @@ public abstract class JobEventPushHandler extends PushHandler {
         } catch (NotFoundException e) {
             jobConsist = job;
         }
+        jobConsist.setStatus(job.getStatus());
         String jobTopic = String.format("%s/%s", WebSocketConfig.TOPIC_FOR_JOB, jobConsist.getNodePath());
         super.push(jobTopic, jobConsist);
     }

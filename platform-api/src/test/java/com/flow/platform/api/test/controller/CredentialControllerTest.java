@@ -19,7 +19,6 @@ package com.flow.platform.api.test.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.credential.AndroidCredentialDetail;
 import com.flow.platform.api.domain.credential.Credential;
@@ -32,7 +31,6 @@ import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
 import com.flow.platform.api.domain.file.FileResource;
 import com.flow.platform.api.domain.file.PasswordFileResource;
 import com.flow.platform.api.service.CredentialService;
-import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Jsonable;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -41,12 +39,11 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * @author yang
  */
-public class CredentialControllerTest extends TestBase {
+public class CredentialControllerTest extends ControllerTestWithoutAuth {
 
     @Autowired
     private CredentialService credentialService;
@@ -98,6 +95,8 @@ public class CredentialControllerTest extends TestBase {
 
         // when: mock create rsa credential
         final String credentialName = "rsa-test";
+
+        setCurrentUser(null); // set current user for current thread
 
         performRequestWith200Status(
             post(getUrlForCredential(credentialName))

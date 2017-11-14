@@ -116,10 +116,11 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
     public RSAKeyPair generateRsaKey() {
         String comment = "FLOWCI";
         int type = KeyPair.RSA;
+        final int keySize = 2048; // default 1024, bitbucket support at least 2048
         JSch jsch = new JSch();
 
         try {
-            KeyPair kpair = KeyPair.genKeyPair(jsch, type);
+            KeyPair kpair = KeyPair.genKeyPair(jsch, type, keySize);
             RSAKeyPair pair = new RSAKeyPair();
 
             // private key

@@ -40,7 +40,7 @@ public class TestConfig {
 
     @Bean
     public PlatformQueue<Object> inMemoryQueue() {
-        return new InMemoryQueue<>(executor, 1);
+        return new InMemoryQueue<>(executor, 1, "testInMemoryQueue");
     }
 
     @Bean

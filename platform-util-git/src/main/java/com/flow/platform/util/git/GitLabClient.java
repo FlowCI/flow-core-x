@@ -93,7 +93,7 @@ public class GitLabClient implements GitClient {
             byte[] contentBytes = Base64.getDecoder().decode(base64Content);
             return new String(contentBytes, "UTF-8");
         } catch (IOException e) {
-            throw new GitException(e.getMessage());
+            return null;
         }
     }
 

@@ -21,25 +21,22 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
-import com.flow.platform.api.domain.envs.JobEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
-import com.flow.platform.api.domain.node.Flow;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
-import com.flow.platform.api.domain.node.Step;
+import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.git.model.GitEventType;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.google.common.collect.Lists;
 import java.io.IOException;
@@ -65,8 +62,8 @@ public class JobServiceTest extends TestBase {
 
     @Test(expected = IllegalStatusException.class)
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
-        Flow rootForFlow = nodeService.createEmptyFlow("flow1");
-        jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
+        Node rootForFlow = nodeService.createEmptyFlow("flow1");
+        jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
     }
 
     @Test
@@ -76,13 +73,12 @@ public class JobServiceTest extends TestBase {
 
         // when: create job
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.MANUAL, null, mockUser);
 
-        build_relation(rootForFlow, job);
-
-        create_session(job);
+        // mock latest commit for git service
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
 
         // then: verify job status
+        job = jobService.find(job.getId());
         Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
         Assert.assertNotNull(job.getFailureMessage());
         Assert.assertTrue(job.getFailureMessage().startsWith("Create session"));
@@ -95,10 +91,11 @@ public class JobServiceTest extends TestBase {
         Assert.assertNotNull(job.getEnv("FLOW_WORKSPACE"));
         Assert.assertNotNull(job.getEnv("FLOW_VERSION"));
 
-        Step step1 = (Step) nodeService.find("flow1/step1");
-        Step step2 = (Step) nodeService.find("flow1/step2");
-        Step step3 = (Step) nodeService.find("flow1/step3");
-        Flow flow = (Flow) nodeService.find(job.getNodePath());
+        NodeTree nodeTree = nodeService.find("flow1");
+        Node step1 = nodeTree.find("flow1/step1");
+        Node step2 = nodeTree.find("flow1/step2");
+        Node step3 = nodeTree.find("flow1/step3");
+        Node flow = nodeTree.root();
 
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId("11111111");
@@ -108,7 +105,7 @@ public class JobServiceTest extends TestBase {
 
         job = reload(job);
         Assert.assertEquals("11111111", job.getSessionId());
-        Assert.assertEquals(GitEventType.TAG, job.getCategory());
+        Assert.assertEquals(JobCategory.TAG, job.getCategory());
 
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
@@ -221,7 +218,7 @@ public class JobServiceTest extends TestBase {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
         Job job = createMockJob(rootForFlow.getPath());
 
-        Job stoppedJob = jobService.stopJob(job.getNodeName(), job.getNumber());
+        Job stoppedJob = jobService.stop(job.getNodeName(), job.getNumber());
         Assert.assertNotNull(stoppedJob);
         stoppedJob = jobService.find(stoppedJob.getId());
         Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());
@@ -230,13 +227,11 @@ public class JobServiceTest extends TestBase {
     @Test
     public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
-        Job job = jobService.createJob(rootForFlow.getPath(), GitEventType.TAG, null, mockUser);
+
+        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
+
         Assert.assertNotNull(job.getEnv("FLOW_WORKSPACE"));
         Assert.assertNotNull(job.getEnv("FLOW_VERSION"));
-
-        build_relation(rootForFlow, job);
-
-        create_session(job);
 
         Thread.sleep(7000);
 
@@ -273,14 +268,8 @@ public class JobServiceTest extends TestBase {
     }
 
     private Job createMockJob(String nodePath) {
-        Job job = jobService.createJob(nodePath, GitEventType.TAG, null, mockUser);
-
-        Node root = nodeService.find(PathUtil.rootPath(nodePath));
-
-        build_relation(root, job);
-
-        create_session(job);
-
+        // create job
+        Job job = jobService.createFromFlowYml(nodePath, JobCategory.TAG, null, mockUser);
         Assert.assertNotNull(job.getId());
         Assert.assertNotNull(job.getSessionId());
         Assert.assertNotNull(job.getNumber());
@@ -308,16 +297,5 @@ public class JobServiceTest extends TestBase {
 
     private Job reload(Job job) {
         return jobService.find(job.getNodePath(), job.getNumber());
-    }
-
-    private void create_session(Job job) {
-        try {
-            String sessionId = cmdService.createSession(job, 5);
-            job.setSessionId(sessionId);
-            jobService.updateJobStatusAndSave(job, JobStatus.SESSION_CREATING);
-        } catch (IllegalStatusException e) {
-            job.setFailureMessage(e.getMessage());
-            jobService.updateJobStatusAndSave(job, JobStatus.FAILURE);
-        }
     }
 }

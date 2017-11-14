@@ -18,6 +18,7 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.QueueListener;
 import com.flow.platform.util.Logger;
@@ -51,8 +52,22 @@ public class CmdCallbackQueueConsumer implements QueueListener<CmdCallbackQueueI
         }
         try {
             jobService.callback(item);
-        }catch (Throwable throwable){
+        } catch (NotFoundException notFoundException) {
+
+            // re-enqueue cmd callback if job not found since transaction problem
+            reEnqueueJobCallback(item, 1000);
+
+        } catch (Throwable throwable) {
             LOGGER.traceMarker("onQueueItem", String.format("exception - %s", throwable));
         }
+    }
+
+    private void reEnqueueJobCallback(CmdCallbackQueueItem item, long wait) {
+        try {
+            Thread.sleep(wait);
+        } catch (Throwable ignore) {
+        }
+
+        jobService.enterQueue(item);
     }
 }

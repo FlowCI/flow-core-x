@@ -41,7 +41,7 @@ public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "Control Center";
 
-    public final static String VERSION = "0.1.0";
+    public final static String VERSION = "v0.1-alpha";
 
     public final static Path CMD_LOG_DIR = Paths.get(System.getenv("HOME"), "uploaded-agent-log");
 

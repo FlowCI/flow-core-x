@@ -66,7 +66,7 @@ public class RabbitQueue extends PlatformQueue<Message> {
     private volatile AtomicInteger size = new AtomicInteger(0);
 
     public RabbitQueue(ThreadPoolTaskExecutor executor, String host, int maxSize, int maxPriority, String queueName) {
-        super(executor, maxSize);
+        super(executor, maxSize, queueName);
         this.host = host;
         this.name = queueName;
         this.maxPriority = maxPriority;

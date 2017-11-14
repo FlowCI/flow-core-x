@@ -32,9 +32,16 @@ public abstract class PlatformQueue<T> implements ContextEvent {
 
     protected final int maxSize;
 
-    public PlatformQueue(ThreadPoolTaskExecutor executor, int maxSize) {
+    protected final String name;
+
+    public PlatformQueue(ThreadPoolTaskExecutor executor, int maxSize, String name) {
         this.executor = executor;
         this.maxSize = maxSize;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     /**
