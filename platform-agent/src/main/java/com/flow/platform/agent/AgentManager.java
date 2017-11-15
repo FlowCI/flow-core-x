@@ -110,6 +110,9 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
         }
     }
 
+    /**
+     * if node exist , exit
+     */
     private void checkNodePathExistAndExit() {
         if (this.zkClient.exist(this.nodePath)) {
             exit();
