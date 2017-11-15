@@ -18,6 +18,7 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.DateUtil;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.SystemUtil;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -81,6 +82,8 @@ public final class CmdExecutor {
 
         }
     }
+
+    private final static Logger LOGGER = new Logger(CmdExecutor.class);
 
     private final static File DEFAULT_WORKING_DIR = new File(
         System.getProperty("user.home", System.getProperty("user.dir")));
@@ -241,6 +244,8 @@ public final class CmdExecutor {
             procListener.onLogged(outputResult);
 
             System.out.println(String.format("====== 2. Logging executed ======"));
+
+        } catch (InterruptedException ignore) {
 
         } catch (Throwable e) {
             outputResult.getExceptions().add(e);

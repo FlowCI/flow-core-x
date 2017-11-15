@@ -281,12 +281,14 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
      * @param cmd Cmd object
      */
     private void updateAgentStatusFromCmd(Cmd cmd) {
+        if (cmd.hasSession()) {
+            return;
+        }
+
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
 
-        List<Cmd> cmds = cmd.hasSession() ? listBySession(cmd.getSessionId()) : listByAgentPath(agentPath);
-
-        for (Cmd tmp : cmds) {
+        for (Cmd tmp : listByAgentPath(agentPath)) {
             if (tmp.getType() != CmdType.RUN_SHELL) {
                 continue;
             }
@@ -302,12 +304,6 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         }
 
         Agent agent = agentService.find(agentPath);
-
-        // clean session id
-        if (cmd.hasSession() && !isAgentBusy) {
-            agent.setSessionId(null);
-        }
-
         agentService.saveWithStatus(agent, isAgentBusy ? AgentStatus.BUSY : AgentStatus.IDLE);
     }
 
