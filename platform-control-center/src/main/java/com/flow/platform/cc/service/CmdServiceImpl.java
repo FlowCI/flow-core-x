@@ -229,6 +229,8 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         //TODO: missing unit test
         // set cmd status in sequence
         if (!cmd.addStatus(statusItem.getStatus())) {
+            LOGGER.warn("Cannot add cmd '%s' from '%s' status to '%s'",
+                cmd.getId(), cmd.getStatus(), statusItem.getStatus());
             return;
         }
 
@@ -278,9 +280,10 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
      * @param cmd Cmd object
      */
     private void updateAgentStatusFromCmd(Cmd cmd) {
-        // do not update agent status duration session
+        // do not update agent status if cmd with session,
+        // since agent status controlled by create/delete session
         String sessionId = cmd.getSessionId();
-        if (sessionId != null && agentService.find(sessionId) != null) {
+        if (sessionId != null) {
             return;
         }
 
