@@ -149,6 +149,19 @@ public class ZKClient implements Closeable {
             return path;
         }
 
+        return createEphemeralPrivate(path, data);
+    }
+
+    /**
+     * if not create node, will throw exception
+     * @param path
+     * @return
+     */
+    public String createEphemeral(String path) {
+        return createEphemeralPrivate(path, null);
+    }
+
+    private String createEphemeralPrivate(String path, byte[] data) {
         try {
             return client.create()
                 .withMode(CreateMode.EPHEMERAL)
