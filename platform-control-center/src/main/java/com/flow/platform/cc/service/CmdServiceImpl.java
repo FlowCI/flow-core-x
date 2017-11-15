@@ -276,6 +276,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
     /**
      * Update agent status when report cmd status and result
+     * - DONOT update agent status if cmd with session, since it controlled by session cmd
      * - busy or idle by Cmd.Type.RUN_SHELL while report cmd status
      *
      * @param cmd Cmd object
