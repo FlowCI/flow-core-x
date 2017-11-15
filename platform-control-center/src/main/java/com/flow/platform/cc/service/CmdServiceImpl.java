@@ -55,6 +55,7 @@ import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -229,6 +230,8 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         //TODO: missing unit test
         // set cmd status in sequence
         if (!cmd.addStatus(statusItem.getStatus())) {
+            LOGGER.warn("Cannot add cmd '%s' from '%s' status to '%s'",
+                cmd.getId(), cmd.getStatus(), statusItem.getStatus());
             return;
         }
 
@@ -273,20 +276,19 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
     /**
      * Update agent status when report cmd status and result
+     * - DONOT update agent status if cmd with session, since it controlled by session cmd
      * - busy or idle by Cmd.Type.RUN_SHELL while report cmd status
      *
      * @param cmd Cmd object
      */
     private void updateAgentStatusFromCmd(Cmd cmd) {
-        // do not update agent status duration session
-        String sessionId = cmd.getSessionId();
-        if (sessionId != null && agentService.find(sessionId) != null) {
+        if (cmd.hasSession()) {
             return;
         }
 
-        // update agent status by cmd status
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
+
         for (Cmd tmp : listByAgentPath(agentPath)) {
             if (tmp.getType() != CmdType.RUN_SHELL) {
                 continue;

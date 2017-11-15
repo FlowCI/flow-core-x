@@ -165,6 +165,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
         agent.setStatus(status);
         agentDao.update(agent);
+        LOGGER.trace("Agent status been updated to '%s'", status);
 
         // send webhook if status changed
         if (statusIsChanged) {

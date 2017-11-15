@@ -173,9 +173,8 @@ public class CmdManager {
                     ProcEventHandler procEventHandler =
                         new ProcEventHandler(getCmd(), extraProcEventListeners, running, finished);
 
-                    CmdExecutor executor;
                     try {
-                        executor = new CmdExecutor(
+                        CmdExecutor executor = new CmdExecutor(
                             procEventHandler,
                             logListener,
                             cmd.getInputs(),
@@ -183,17 +182,14 @@ public class CmdManager {
                             cmd.getOutputEnvFilter(),
                             cmd.getTimeout(),
                             Lists.newArrayList(getCmd().getCmd()));
+
+                        executor.run();
                     } catch (Throwable e) {
                         LOGGER.errorMarker("execute", "Cannot init CmdExecutor for cmd " + cmd, e);
-
                         CmdResult result = new CmdResult();
                         result.getExceptions().add(e);
                         procEventHandler.onException(result);
-
-                        return;
                     }
-
-                    executor.run();
                 }
             });
 
@@ -270,12 +266,9 @@ public class CmdManager {
         }
 
         try {
-            if (!cmdExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-                cmdExecutor.shutdownNow();
-                LOGGER.warn("Force to terminate CmdExecutor since been waiting 10 seconds");
-            }
-        } catch (Throwable e) {
-            LOGGER.error("Exception while waiting for all cmd thread finish", e);
+            cmdExecutor.shutdownNow();
+        } catch (Throwable ignore) {
+
         } finally {
             cmdExecutor = createExecutor(); // reset cmd executor
             LOGGER.trace("Cmd thread terminated");

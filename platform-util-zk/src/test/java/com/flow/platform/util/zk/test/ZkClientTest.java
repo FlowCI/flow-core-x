@@ -17,6 +17,8 @@
 package com.flow.platform.util.zk.test;
 
 import com.flow.platform.util.zk.ZKClient;
+import com.flow.platform.util.zk.ZkException;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -74,6 +76,34 @@ public class ZkClientTest {
     @Test
     public void should_return_false_if_node_not_exist() throws Throwable {
         Assert.assertFalse(zkClient.exist("/hello/not-exit"));
+    }
+
+    @Test
+    public void should_create_node_atom() throws Throwable {
+        ThreadPoolExecutor threadPoolExecutor =
+            new ThreadPoolExecutor(5, 5, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(5));
+
+        final AtomicInteger size = new AtomicInteger(0);
+        final CountDownLatch latch = new CountDownLatch(5);
+
+        String agentNodePath = ZKPaths.makePath("/flow-agent", "flow-atom");
+        zkClient.delete(agentNodePath, false);
+
+        for (int i = 0; i < 5; i++) {
+            threadPoolExecutor.execute(() -> {
+                try {
+                    zkClient.createEphemeral(agentNodePath);
+                    size.incrementAndGet();
+                } catch (ZkException e) {
+                    System.out.println(e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await(30, TimeUnit.SECONDS);
+        Assert.assertEquals(1, size.get());
     }
 
     @Test

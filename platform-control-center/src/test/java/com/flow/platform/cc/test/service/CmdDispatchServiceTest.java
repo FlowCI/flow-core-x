@@ -32,11 +32,14 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -172,6 +175,10 @@ public class CmdDispatchServiceTest extends TestBase {
         Assert.assertNotNull(killCmd);
         Assert.assertEquals(CmdType.KILL, killCmd.getType());
         Assert.assertNotEquals(cmd.getId(), killCmd.getId());
+
+        // when: mock the KILLED cmd been reported from agent
+        CmdReport mockKilledReport = new CmdReport(cmd.getId(), CmdStatus.KILLED, new CmdResult(147));
+        cmdService.updateStatus(new CmdStatusItem(mockKilledReport, true, true), false);
 
         // then: verify agent status
         Agent sessionShouldReleased = agentService.find(cmd.getAgentPath());
