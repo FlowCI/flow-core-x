@@ -325,15 +325,18 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
             List<Cmd> runningCmdForSession = getRunningCmd(target.getSessionId());
 
-            // kill current running cmd
+            // release session from target if no running cmd
+            if (runningCmdForSession.isEmpty()) {
+                target.setSessionId(null);
+                agentService.saveWithStatus(target, AgentStatus.IDLE);
+                return;
+            }
+
+            // kill current running cmd and update agent status from cmd callback
             for (Cmd runningCmd : runningCmdForSession) {
                 Cmd killCmd = cmdService.create(new CmdInfo(runningCmd.getAgentPath(), CmdType.KILL, null));
                 handler.get(CmdType.KILL).exec(killCmd);
             }
-
-            // release session from target
-            target.setSessionId(null);
-            agentService.saveWithStatus(target, AgentStatus.IDLE);
         }
 
         private List<Cmd> getRunningCmd(String sessionId) {

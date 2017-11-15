@@ -23,10 +23,13 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.zk.ZKClient;
 import com.flow.platform.util.zk.ZkException;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.ZKUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -83,27 +86,6 @@ public class AgentManagerTest extends TestBase {
     }
 
     @Test
-    public void should_zookeeper_create_node_atom() {
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 5, 1, TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(5));
-        final int[] size = {0};
-        String agentNodePath = ZKPaths.makePath(ZK_ROOT, "flow");
-        zkClient.delete(agentNodePath, false);
-        for (int i = 0; i < 5; i++) {
-            threadPoolExecutor.execute(() -> {
-                try {
-                    zkClient.createEphemeral(agentNodePath);
-                    size[0] = size[0] + 1;
-                } catch (ZkException e) {
-                    System.out.println(e);
-                }
-            });
-        }
-
-        Assert.assertEquals(1, size[0]);
-    }
-
-    @Test
     public void should_receive_command() throws Throwable {
         AgentManager agent = new AgentManager(server.getConnectString(), 20000, ZONE, MACHINE);
         new Thread(agent).start();
@@ -123,6 +105,7 @@ public class AgentManagerTest extends TestBase {
 
     @After
     public void after() throws Throwable {
+        zkClient.delete(ZKPaths.makePath(ZK_ROOT, ZONE, MACHINE), true);
         zkClient.close();
     }
 
