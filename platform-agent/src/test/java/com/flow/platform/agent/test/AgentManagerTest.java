@@ -21,6 +21,10 @@ import com.flow.platform.agent.Config;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.zk.ZKClient;
+import com.flow.platform.util.zk.ZkException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.ZKPaths;
 import org.junit.After;
@@ -31,10 +35,6 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author gy@fir.im
@@ -80,6 +80,27 @@ public class AgentManagerTest extends TestBase {
         String agentNodePath = ZKPaths.makePath(ZK_ROOT, ZONE, MACHINE);
         Assert.assertEquals(true, zkClient.exist(agentNodePath));
         agent.stop();
+    }
+
+    @Test
+    public void should_zookeeper_create_node_atom() {
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 5, 1, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(5));
+        final int[] size = {0};
+        String agentNodePath = ZKPaths.makePath(ZK_ROOT, "flow");
+        zkClient.delete(agentNodePath, false);
+        for (int i = 0; i < 5; i++) {
+            threadPoolExecutor.execute(() -> {
+                try {
+                    zkClient.createEphemeral(agentNodePath);
+                    size[0] = size[0] + 1;
+                } catch (ZkException e) {
+                    System.out.println(e);
+                }
+            });
+        }
+
+        Assert.assertEquals(1, size[0]);
     }
 
     @Test
