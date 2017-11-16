@@ -276,4 +276,28 @@ public class NodeServiceTest extends TestBase {
         // then: should return null if root node is not existed
         Assert.assertNull(ymlService.get(root));
     }
+
+    @Test
+    public void should_create_flow_success() {
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow-test"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow_test"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow_12est"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow12est"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow"));
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_create_flow_error() {
+        // not start with _
+        nodeService.createEmptyFlow("_flow-test");
+
+        // not start with -
+        nodeService.createEmptyFlow("-flow-test");
+
+        // not include .
+        nodeService.createEmptyFlow("flow.test");
+
+        // not include 3 keys
+        nodeService.createEmptyFlow("flw");
+    }
 }

@@ -58,8 +58,8 @@ public class ManualJobTest extends TestBase {
         Map<String, String> envs = EnvUtil.build(GitEnvs.FLOW_GIT_BRANCH.name(), "master");
         jobService.createWithYmlLoad(
             flow.getPath(), JobCategory.MANUAL, envs, currentUser.get(), job -> {
-                latch.countDown();
                 wrapper.setInstance(job);
+                latch.countDown();
             }
         );
 

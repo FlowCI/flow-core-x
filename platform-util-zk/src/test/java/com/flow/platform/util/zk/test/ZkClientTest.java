@@ -89,6 +89,7 @@ public class ZkClientTest {
 
         zkClient.create(root, null);
         String agentNodePath = ZKPaths.makePath(root, "flow-atom");
+
         zkClient.delete(agentNodePath, false);
 
         for (int i = 0; i < 5; i++) {
