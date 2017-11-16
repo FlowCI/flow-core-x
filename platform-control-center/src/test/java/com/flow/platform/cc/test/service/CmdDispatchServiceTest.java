@@ -27,6 +27,7 @@ import com.flow.platform.cc.test.TestBase;
 import com.flow.platform.cc.util.ZKHelper;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -68,7 +69,7 @@ public class CmdDispatchServiceTest extends TestBase {
     private List<Zone> defaultZones;
 
     @Autowired
-    private PlatformQueue<Message> cmdQueue;
+    private PlatformQueue<PriorityMessage> cmdQueue;
 
     private AgentPath agentPath;
 

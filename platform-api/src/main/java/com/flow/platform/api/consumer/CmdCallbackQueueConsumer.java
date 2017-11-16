@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import javax.annotation.PostConstruct;
@@ -30,12 +31,12 @@ import org.springframework.stereotype.Component;
  * @author yh@firim
  */
 @Component
-public class CmdCallbackQueueConsumer implements QueueListener<CmdCallbackQueueItem> {
+public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> {
 
     private final static Logger LOGGER = new Logger(CmdCallbackQueueConsumer.class);
 
     @Autowired
-    private PlatformQueue<CmdCallbackQueueItem> cmdCallbackQueue;
+    private PlatformQueue<PriorityMessage> cmdCallbackQueue;
 
     @Autowired
     private JobService jobService;
@@ -46,10 +47,13 @@ public class CmdCallbackQueueConsumer implements QueueListener<CmdCallbackQueueI
     }
 
     @Override
-    public void onQueueItem(CmdCallbackQueueItem item) {
-        if (item == null) {
+    public void onQueueItem(PriorityMessage message) {
+        if (message == null) {
             return;
         }
+
+        CmdCallbackQueueItem item = CmdCallbackQueueItem.parse(message.getBody(), CmdCallbackQueueItem.class);
+
         try {
             jobService.callback(item);
         } catch (NotFoundException notFoundException) {

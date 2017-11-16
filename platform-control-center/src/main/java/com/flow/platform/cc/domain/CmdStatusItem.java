@@ -19,14 +19,14 @@ package com.flow.platform.cc.domain;
 import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
-import java.io.Serializable;
+import com.flow.platform.domain.Jsonable;
 
 /**
  * Queue item for report cmd status
  *
  * @author yang
  */
-public class CmdStatusItem implements Serializable {
+public class CmdStatusItem extends Jsonable {
 
     private String cmdId;
 

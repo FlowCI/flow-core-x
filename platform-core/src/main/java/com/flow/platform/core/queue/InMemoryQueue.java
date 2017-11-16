@@ -16,21 +16,20 @@
 
 package com.flow.platform.core.queue;
 
-import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.util.Logger;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Comparator;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yang
  */
-public class InMemoryQueue<T> extends PlatformQueue<T> {
+public class InMemoryQueue<T extends Comparable> extends PlatformQueue<T> {
 
     private final Logger LOGGER = new Logger(InMemoryQueue.class);
 
-    private final BlockingQueue<T> queue;
+    private final PriorityBlockingQueue<T> queue;
 
     private final Object lock = new Object();
 
@@ -40,7 +39,12 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     public InMemoryQueue(ThreadPoolTaskExecutor executor, int maxSize, String name) {
         super(executor, maxSize, name);
-        this.queue = new LinkedBlockingQueue<>(maxSize);
+        this.queue = new PriorityBlockingQueue<>(maxSize);
+    }
+
+    public InMemoryQueue(ThreadPoolTaskExecutor executor, int maxSize, String name, Comparator<T> comparator) {
+        super(executor, maxSize, name);
+        this.queue = new PriorityBlockingQueue<>(maxSize, comparator);
     }
 
     @Override
@@ -57,12 +61,7 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
 
     @Override
     public void enqueue(T item) {
-        try {
-            queue.put(item);
-        } catch (InterruptedException e) {
-            LOGGER.warn("InterruptedException occurred while enqueue: ", e.getMessage());
-            throw new IllegalStatusException("Unable to queue since thread interrupted");
-        }
+        queue.offer(item);
     }
 
     @Override
@@ -90,6 +89,11 @@ public class InMemoryQueue<T> extends PlatformQueue<T> {
         }
 
         pause = false;
+    }
+
+    @Override
+    public void clean() {
+        queue.clear();
     }
 
     @Override

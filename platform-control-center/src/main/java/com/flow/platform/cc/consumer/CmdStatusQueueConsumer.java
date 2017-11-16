@@ -19,7 +19,9 @@ package com.flow.platform.cc.consumer;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.QueueListener;
+import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.util.Logger;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +33,12 @@ import org.springframework.stereotype.Component;
  * @author yang
  */
 @Component
-public class CmdStatusQueueConsumer implements QueueListener<CmdStatusItem> {
+public class CmdStatusQueueConsumer implements QueueListener<PriorityMessage> {
 
     private final static Logger LOGGER = new Logger(CmdStatusQueueConsumer.class);
 
     @Autowired
-    private PlatformQueue<CmdStatusItem> cmdStatusQueue;
+    private PlatformQueue<PriorityMessage> cmdStatusQueue;
 
     @Autowired
     private CmdService cmdService;
@@ -48,14 +50,15 @@ public class CmdStatusQueueConsumer implements QueueListener<CmdStatusItem> {
     }
 
     @Override
-    public void onQueueItem(CmdStatusItem item) {
+    public void onQueueItem(PriorityMessage item) {
         if (item == null) {
             return;
         }
 
         try {
+            CmdStatusItem statusItem = CmdStatusItem.parse(item.getBody(), CmdStatusItem.class);
             LOGGER.debug(Thread.currentThread().getName() + " : " + item.toString());
-            cmdService.updateStatus(item, false);
+            cmdService.updateStatus(statusItem, false);
         } catch (Throwable e) {
             LOGGER.error("Update cmd error:", e);
         }

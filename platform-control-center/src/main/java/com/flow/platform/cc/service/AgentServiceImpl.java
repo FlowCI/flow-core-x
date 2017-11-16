@@ -23,7 +23,6 @@ import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -45,7 +44,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -81,9 +79,6 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
     @Autowired
     private AgentSettings agentSettings;
-
-    @Autowired
-    private PlatformQueue<AgentPath> agentReportQueue;
 
     @Override
     public void report(AgentPath path, AgentStatus status) {
@@ -236,10 +231,10 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     }
 
     @Override
-    public void delete(Agent agent){
+    public void delete(Agent agent) {
         try {
             agentDao.delete(agent);
-        } catch (Throwable e){
+        } catch (Throwable e) {
             throw new UnsupportedOperationException("delete agent failure " + e.getMessage());
         }
 

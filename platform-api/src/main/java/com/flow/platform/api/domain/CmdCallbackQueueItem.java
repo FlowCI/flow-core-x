@@ -17,12 +17,13 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.Jsonable;
 import java.math.BigInteger;
 
 /**
  * @author yh@firim
  */
-public class CmdCallbackQueueItem {
+public class CmdCallbackQueueItem extends Jsonable {
 
     private final BigInteger jobId;
 

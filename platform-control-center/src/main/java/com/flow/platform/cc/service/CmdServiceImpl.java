@@ -24,6 +24,7 @@ import static com.flow.platform.domain.CmdType.SHUTDOWN;
 import static com.flow.platform.domain.CmdType.STOP;
 
 import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdLogDao;
@@ -34,6 +35,7 @@ import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -86,7 +88,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     private ZoneService zoneService;
 
     @Autowired
-    private PlatformQueue<CmdStatusItem> cmdStatusQueue;
+    private PlatformQueue<PriorityMessage> cmdStatusQueue;
 
     @Autowired
     private CmdDao cmdDao;
@@ -98,7 +100,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     private AgentDao agentDao;
 
     @Autowired
-    private PlatformQueue<Message> cmdQueue;
+    private PlatformQueue<PriorityMessage> cmdQueue;
 
     @Autowired
     private CmdLogDao cmdLogDao;
@@ -204,10 +206,9 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     public Cmd enqueue(CmdInfo cmdInfo, int priority, int retry) {
         Cmd cmd = create(cmdInfo, retry);
 
-        CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
-        MessageProperties properties = new MessageProperties();
-        properties.setPriority(item.getPriority());
-        cmdQueue.enqueue(new Message(item.toBytes(), properties));
+        CmdQueueItem item = new CmdQueueItem(cmd.getId(), retry);
+        PriorityMessage message = PriorityMessage.create(item.toBytes(), priority);
+        cmdQueue.enqueue(message);
 
         return cmd;
     }
@@ -216,7 +217,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     public void updateStatus(CmdStatusItem statusItem, boolean inQueue) {
         if (inQueue) {
             LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
-            cmdStatusQueue.enqueue(statusItem);
+            cmdStatusQueue.enqueue(PriorityMessage.create(statusItem.toBytes(), QueueConfig.DEFAULT_PRIORITY));
             return;
         }
 
