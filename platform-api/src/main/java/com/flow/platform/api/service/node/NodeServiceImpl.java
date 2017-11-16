@@ -287,7 +287,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             return false;
         }
 
-        if (!Pattern.compile("^[^_^-][\\w-]{4,20}$").matcher(flowName).matches()) {
+        if (!Pattern.compile("^(?!_)(?!-)[\\w-]{4,20}$").matcher(flowName).matches()) {
             return false;
         }
 

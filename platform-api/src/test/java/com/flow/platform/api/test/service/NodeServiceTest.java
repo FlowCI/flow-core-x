@@ -282,9 +282,11 @@ public class NodeServiceTest extends TestBase {
         Assert.assertNotNull(nodeService.createEmptyFlow("flow-test"));
         Assert.assertNotNull(nodeService.createEmptyFlow("flow_test"));
         Assert.assertNotNull(nodeService.createEmptyFlow("flow_12est"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow12est"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow"));
     }
 
-    @Test(expected = IllegalParameterException.class)
+    @Test
     public void should_create_flow_error() {
         // not start with _
         nodeService.createEmptyFlow("_flow-test");
@@ -294,5 +296,8 @@ public class NodeServiceTest extends TestBase {
 
         // not include .
         nodeService.createEmptyFlow("flow.test");
+
+        // not include 3 keys
+        nodeService.createEmptyFlow("flw");
     }
 }
