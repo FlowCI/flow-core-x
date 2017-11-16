@@ -206,6 +206,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         }
 
         // init env variables
+        flow.putEnv(FlowEnvs.FLOW_NAME, flowName);
         flow.putEnv(FlowEnvs.FLOW_STATUS, StatusValue.PENDING);
         flow.putEnv(FlowEnvs.FLOW_YML_STATUS, YmlStatusValue.NOT_FOUND);
         flow.putEnv(GitEnvs.FLOW_GIT_WEBHOOK, hooksUrl(flow));

@@ -331,6 +331,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setUpdatedAt(ZonedDateTime.now());
 
         // setup job env variables
+        job.putEnv(FlowEnvs.FLOW_NAME, root.getName());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
         job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
