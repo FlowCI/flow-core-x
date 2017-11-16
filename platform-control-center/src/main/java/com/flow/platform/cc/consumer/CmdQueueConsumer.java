@@ -25,6 +25,7 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.QueueListener;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
@@ -33,10 +34,6 @@ import com.flow.platform.util.zk.ZkException;
 import java.time.Duration;
 import java.time.Instant;
 import javax.annotation.PostConstruct;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -47,7 +44,7 @@ import org.springframework.stereotype.Component;
  * @author gy@fir.im
  */
 @Component
-public class CmdQueueConsumer implements QueueListener<Message> {
+public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
 
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
 
@@ -67,7 +64,7 @@ public class CmdQueueConsumer implements QueueListener<Message> {
     private AgentService agentService;
 
     @Autowired
-    private PlatformQueue<Message> cmdQueue;
+    private PlatformQueue<PriorityMessage> cmdQueue;
 
     @PostConstruct
     public void init() {
@@ -75,7 +72,7 @@ public class CmdQueueConsumer implements QueueListener<Message> {
     }
 
     @Override
-    public void onQueueItem(Message message) {
+    public void onQueueItem(PriorityMessage message) {
         CmdQueueItem item = CmdQueueItem.parse(message.getBody(), CmdQueueItem.class);
         String cmdId = item.getCmdId();
         LOGGER.trace("Receive a cmd queue item: %s", item);
@@ -155,7 +152,6 @@ public class CmdQueueConsumer implements QueueListener<Message> {
             return;
         }
 
-        item.setPriority(QueueConfig.CMD_QUEUE_DEFAULT_PRIORITY);
         item.setRetry(retry);
 
         try {
@@ -165,9 +161,7 @@ public class CmdQueueConsumer implements QueueListener<Message> {
         }
 
         // reset cmd status
-        MessageProperties properties = new MessageProperties();
-        properties.setPriority(item.getPriority());
-        Message message = new Message(item.toBytes(), properties);
+        PriorityMessage message = PriorityMessage.create(item.toBytes(), QueueConfig.CMD_QUEUE_DEFAULT_PRIORITY);
         cmdQueue.enqueue(message);
         LOGGER.trace("Re-enqueue item %s", item);
     }

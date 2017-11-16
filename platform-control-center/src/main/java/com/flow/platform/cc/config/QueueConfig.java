@@ -16,14 +16,12 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.core.queue.InMemoryQueue;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.RabbitQueue;
-import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.Logger;
 import javax.annotation.PostConstruct;
-import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -95,7 +93,7 @@ public class QueueConfig {
     }
 
     @Bean
-    public PlatformQueue<Message> cmdQueue() {
+    public PlatformQueue<PriorityMessage> cmdQueue() {
         if (cmdQueueRabbitEnable) {
             LOGGER.trace("Apply RabbitMQ for cmd queue");
             return new RabbitQueue(taskExecutor, host, CMD_QUEUE_MAX_LENGTH, CMD_QUEUE_DEFAULT_PRIORITY, cmdQueueName);
@@ -106,18 +104,10 @@ public class QueueConfig {
     }
 
     /**
-     * Queue to handle agent report online in sync
-     */
-    @Bean
-    public PlatformQueue<AgentPath> agentReportQueue() {
-        return new InMemoryQueue<>(taskExecutor, 100, "AgentReportQueue");
-    }
-
-    /**
      * Queue to handle cmd status update
      */
     @Bean
-    public PlatformQueue<CmdStatusItem> cmdStatusQueue() {
+    public PlatformQueue<PriorityMessage> cmdStatusQueue() {
         return new InMemoryQueue<>(taskExecutor, 100, "CmdStatusQueue");
     }
 }

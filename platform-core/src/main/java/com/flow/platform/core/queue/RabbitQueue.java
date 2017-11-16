@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerEndpoint;
@@ -37,17 +36,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yang
  */
-public class RabbitQueue extends PlatformQueue<Message> {
-
-    public static Message createMessage(byte[] content, int priority) {
-        MessageProperties properties = new MessageProperties();
-        properties.setPriority(priority);
-        return new Message(content, properties);
-    }
-
-    public static Message createMessage(byte[] content) {
-        return createMessage(content, 1);
-    }
+public class RabbitQueue extends PlatformQueue<PriorityMessage> {
 
     private final static Logger LOGGER = new Logger(RabbitQueue.class);
 
@@ -105,7 +94,7 @@ public class RabbitQueue extends PlatformQueue<Message> {
     }
 
     @Override
-    public void enqueue(Message item) {
+    public void enqueue(PriorityMessage item) {
         template.send("", name, item);
         size.incrementAndGet();
     }
@@ -157,8 +146,8 @@ public class RabbitQueue extends PlatformQueue<Message> {
         @Override
         public void onMessage(Message message) {
             size.decrementAndGet();
-            for (QueueListener<Message> listener : listeners) {
-                listener.onQueueItem(message);
+            for (QueueListener<PriorityMessage> listener : listeners) {
+                listener.onQueueItem(new PriorityMessage(message));
             }
         }
     }
