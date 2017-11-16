@@ -24,6 +24,7 @@ import static com.flow.platform.domain.CmdType.SHUTDOWN;
 import static com.flow.platform.domain.CmdType.STOP;
 
 import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdLogDao;
@@ -216,7 +217,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     public void updateStatus(CmdStatusItem statusItem, boolean inQueue) {
         if (inQueue) {
             LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
-            cmdStatusQueue.enqueue(PriorityMessage.create(statusItem.toBytes(), 1));
+            cmdStatusQueue.enqueue(PriorityMessage.create(statusItem.toBytes(), QueueConfig.DEFAULT_PRIORITY));
             return;
         }
 

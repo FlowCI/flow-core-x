@@ -161,7 +161,7 @@ public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
         }
 
         // reset cmd status
-        PriorityMessage message = PriorityMessage.create(item.toBytes(), QueueConfig.CMD_QUEUE_DEFAULT_PRIORITY);
+        PriorityMessage message = PriorityMessage.create(item.toBytes(), QueueConfig.MAX_PRIORITY);
         cmdQueue.enqueue(message);
         LOGGER.trace("Re-enqueue item %s", item);
     }
