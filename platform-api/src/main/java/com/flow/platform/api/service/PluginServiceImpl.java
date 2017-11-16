@@ -73,6 +73,10 @@ public class PluginServiceImpl implements PluginService {
     }
 
 
+    /**
+     * download plugin repos info
+     * @return
+     */
     private String downloadPluginInfo() {
         HttpClient httpClient = HttpClient.build(repoUrl).get();
         HttpResponse<String> response = httpClient.bodyAsString();
@@ -80,6 +84,11 @@ public class PluginServiceImpl implements PluginService {
         return body;
     }
 
+    /**
+     * list plugins
+     * @return
+     * @throws ExecutionException
+     */
     private List<Plugin> find() throws ExecutionException {
         List<Plugin> plugins = pluginCache.get(KEY, () -> {
             String body = downloadPluginInfo();
