@@ -29,7 +29,6 @@ import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
-import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.http.HttpURL;
 import java.nio.file.Files;
@@ -286,7 +285,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertNotNull(nodeService.createEmptyFlow("flow"));
     }
 
-    @Test
+    @Test(expected = IllegalParameterException.class)
     public void should_create_flow_error() {
         // not start with _
         nodeService.createEmptyFlow("_flow-test");
