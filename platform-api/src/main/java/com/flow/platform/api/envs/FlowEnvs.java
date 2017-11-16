@@ -25,6 +25,8 @@ import java.util.Set;
  */
 public enum FlowEnvs implements EnvKey {
 
+    FLOW_NAME(true, false, null),
+
     /**
      * Indicate flow is configured for git
      */

@@ -194,7 +194,8 @@ public class NodeServiceTest extends TestBase {
         // then:
         String webhook = HttpURL.build(apiDomain).append("/hooks/git").append(emptyFlow.getName()).toString();
         Node loaded = nodeService.find("flow1").root();
-        Assert.assertEquals(15, loaded.getEnvs().size());
+        Assert.assertEquals(16, loaded.getEnvs().size());
+        Assert.assertEquals("flow1", loaded.getEnv(FlowEnvs.FLOW_NAME));
         Assert.assertEquals("hello", loaded.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", loaded.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", loaded.getEnv("FLOW_NEW_3"));
@@ -213,7 +214,7 @@ public class NodeServiceTest extends TestBase {
 
         // check env been sync with yml
         Node flow = flowDao.get("flow1");
-        Assert.assertEquals(15, flow.getEnvs().size());
+        Assert.assertEquals(16, flow.getEnvs().size());
         Assert.assertEquals("hello", flow.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", flow.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", flow.getEnv("FLOW_NEW_3"));
