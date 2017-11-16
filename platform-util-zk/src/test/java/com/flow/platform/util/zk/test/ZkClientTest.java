@@ -85,8 +85,10 @@ public class ZkClientTest {
 
         final AtomicInteger size = new AtomicInteger(0);
         final CountDownLatch latch = new CountDownLatch(5);
+        final String root = "/flow-agent";
 
-        String agentNodePath = ZKPaths.makePath("/flow-agent", "flow-atom");
+        zkClient.create(root, null);
+        String agentNodePath = ZKPaths.makePath(root, "flow-atom");
         zkClient.delete(agentNodePath, false);
 
         for (int i = 0; i < 5; i++) {
@@ -104,6 +106,7 @@ public class ZkClientTest {
 
         latch.await(30, TimeUnit.SECONDS);
         Assert.assertEquals(1, size.get());
+        zkClient.delete(root, true);
     }
 
     @Test

@@ -76,6 +76,11 @@ public abstract class PlatformQueue<T> implements ContextEvent {
     public abstract void resume();
 
     /**
+     * Remove all items from queue
+     */
+    public abstract void clean();
+
+    /**
      * Queue processor is running
      */
     public abstract boolean isRunning();

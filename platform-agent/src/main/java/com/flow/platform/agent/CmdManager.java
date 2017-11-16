@@ -258,6 +258,7 @@ public class CmdManager {
         for (Map.Entry<Cmd, CmdResult> entry : running.entrySet()) {
             CmdResult r = entry.getValue();
             Cmd cmd = entry.getKey();
+            finished.put(cmd, r);
 
             r.getProcess().destroy();
 

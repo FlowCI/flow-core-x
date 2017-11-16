@@ -27,16 +27,13 @@ public class CmdQueueItem extends Jsonable {
 
     private String cmdId;
 
-    private Integer priority;
-
     private Integer retry;
 
     public CmdQueueItem() {
     }
 
-    public CmdQueueItem(String cmdId, Integer priority, Integer retry) {
+    public CmdQueueItem(String cmdId, Integer retry) {
         this.cmdId = cmdId;
-        this.priority = priority;
         this.retry = retry;
     }
 
@@ -46,14 +43,6 @@ public class CmdQueueItem extends Jsonable {
 
     public void setCmdId(String cmdId) {
         this.cmdId = cmdId;
-    }
-
-    public Integer getPriority() {
-        return priority;
-    }
-
-    public void setPriority(Integer priority) {
-        this.priority = priority;
     }
 
     public Integer getRetry() {
@@ -87,7 +76,6 @@ public class CmdQueueItem extends Jsonable {
     public String toString() {
         return "CmdQueueItem{" +
             "cmdId='" + cmdId + '\'' +
-            ", priority=" + priority +
             ", retry=" + retry +
             "} ";
     }
