@@ -86,7 +86,7 @@ public class ZkClientTest {
         final AtomicInteger size = new AtomicInteger(0);
         final CountDownLatch latch = new CountDownLatch(5);
 
-        String agentNodePath = ZKPaths.makePath("/flow-agent", "flow-atom");
+        String agentNodePath = ZKPaths.makePath("/", "flow-atom");
         zkClient.delete(agentNodePath, false);
 
         for (int i = 0; i < 5; i++) {

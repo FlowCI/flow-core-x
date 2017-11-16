@@ -29,6 +29,7 @@ import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.http.HttpURL;
 import java.nio.file.Files;
@@ -274,5 +275,24 @@ public class NodeServiceTest extends TestBase {
 
         // then: should return null if root node is not existed
         Assert.assertNull(ymlService.get(root));
+    }
+
+    @Test
+    public void should_create_flow_success() {
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow-test"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow_test"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow_12est"));
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_create_flow_error() {
+        // not start with _
+        nodeService.createEmptyFlow("_flow-test");
+
+        // not start with -
+        nodeService.createEmptyFlow("-flow-test");
+
+        // not include .
+        nodeService.createEmptyFlow("flow.test");
     }
 }
