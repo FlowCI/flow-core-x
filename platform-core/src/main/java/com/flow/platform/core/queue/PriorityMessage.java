@@ -40,6 +40,6 @@ public class PriorityMessage extends Message implements Comparable<PriorityMessa
 
     @Override
     public int compareTo(PriorityMessage o) {
-        return this.getMessageProperties().getPriority().compareTo(o.getMessageProperties().getPriority());
+        return o.getMessageProperties().getPriority().compareTo(this.getMessageProperties().getPriority());
     }
 }

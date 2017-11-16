@@ -92,6 +92,11 @@ public class InMemoryQueue<T extends Comparable> extends PlatformQueue<T> {
     }
 
     @Override
+    public void clean() {
+        queue.clear();
+    }
+
+    @Override
     public boolean isRunning() {
         return !pause && !stop;
     }

@@ -100,6 +100,11 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> {
     }
 
     @Override
+    public void clean() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean isRunning() {
         return container.isRunning();
     }
