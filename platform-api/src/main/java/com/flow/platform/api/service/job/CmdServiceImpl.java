@@ -16,10 +16,11 @@
 
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.envs.AgentEnvs;
-import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.envs.AgentEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -35,9 +36,7 @@ import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -102,20 +101,15 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public CmdInfo runShell(Job job, Node node, String cmdId, Map<String, String> extra) {
-        Map<String, String> envs = ImmutableMap.<String, String>builder()
-            .putAll(node.getEnvs())
-            .putAll(extra)
-            .build();
-
+    public CmdInfo runShell(Job job, Node node, String cmdId, EnvObject envVars) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
-        cmdInfo.setInputs(envs);
+        cmdInfo.setInputs(envVars.getEnvs());
         cmdInfo.setWebhook(buildCmdWebhook(job));
-        cmdInfo.setOutputEnvFilter(job.getEnv(FlowEnvs.FLOW_ENV_OUTPUT_PREFIX, "FLOW_OUTPUT"));
+        cmdInfo.setOutputEnvFilter(envVars.getEnv(FlowEnvs.FLOW_ENV_OUTPUT_PREFIX, "FLOW_OUTPUT"));
         cmdInfo.setSessionId(job.getSessionId());
         cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
         cmdInfo.setCustomizedId(cmdId);
-        cmdInfo.setWorkingDir(job.getEnv(AgentEnvs.FLOW_AGENT_WORKSPACE, null));
+        cmdInfo.setWorkingDir(envVars.getEnv(AgentEnvs.FLOW_AGENT_WORKSPACE, null));
 
         try {
             LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());
