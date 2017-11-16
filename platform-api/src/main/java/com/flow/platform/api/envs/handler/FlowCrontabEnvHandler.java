@@ -55,12 +55,18 @@ public class FlowCrontabEnvHandler extends EnvHandler {
     @Override
     void onHandle(Node node, String value) {
         try {
-            new CronExpression(value);
+            // fill seconds to crontab value
+            String valueWithSeconds = "0 " + value;
+            node.putEnv(env(), valueWithSeconds);
+            new CronExpression(valueWithSeconds);
 
-            // setup crontab task
+            // setup new value and crontab task
             nodeCrontabService.set(node);
         } catch (ParseException e) {
             throw new IllegalParameterException("Illegal FLOW_TASK_CRONTAB_CONTENT format: " + e.getMessage());
+        } finally {
+            // reset value to original
+            node.putEnv(env(), value);
         }
     }
 
