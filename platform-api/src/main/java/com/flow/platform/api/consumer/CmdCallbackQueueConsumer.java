@@ -35,6 +35,12 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
 
     private final static Logger LOGGER = new Logger(CmdCallbackQueueConsumer.class);
 
+    // retry time set 5 times
+    private final static int RETRY_TIMES = 5;
+
+    // requeue 1 s
+    private final static int REQUEUE_DELAY_TIME = 1000;
+
     @Autowired
     private PlatformQueue<PriorityMessage> cmdCallbackQueue;
 
@@ -58,11 +64,20 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
             jobService.callback(item);
         } catch (NotFoundException notFoundException) {
 
+            // detect retry times is reach the limit or not
+            detectRetryTimes(item);
+
             // re-enqueue cmd callback if job not found since transaction problem
-            reEnqueueJobCallback(item, 1000);
+            reEnqueueJobCallback(item, REQUEUE_DELAY_TIME);
 
         } catch (Throwable throwable) {
             LOGGER.traceMarker("onQueueItem", String.format("exception - %s", throwable));
+        }
+    }
+
+    private void detectRetryTimes(CmdCallbackQueueItem item) {
+        if (item.getRetryTimes() > RETRY_TIMES) {
+            throw new NotFoundException(String.format("retry times has reach the limit"));
         }
     }
 
@@ -71,6 +86,12 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
             Thread.sleep(wait);
         } catch (Throwable ignore) {
         }
+
+        // set item priority priority inc
+        item.setPriority(item.getPriority() + 1);
+
+        // set retry times
+        item.setRetryTimes(item.getRetryTimes() + 1);
 
         jobService.enterQueue(item);
     }

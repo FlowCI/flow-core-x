@@ -33,10 +33,25 @@ public class CmdCallbackQueueItem extends Jsonable {
 
     private Integer retryTimes = 0;
 
+    // priority default 1
+    private Integer priority = 1;
+
     public CmdCallbackQueueItem(BigInteger jobId, Cmd cmd) {
         this.jobId = jobId;
         this.cmd = cmd;
         this.path = cmd.getExtra();
+    }
+
+    public void setRetryTimes(Integer retryTimes) {
+        this.retryTimes = retryTimes;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
     }
 
     public BigInteger getJobId() {
