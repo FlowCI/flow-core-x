@@ -256,7 +256,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
             for (Agent agent : agents) {
                 if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
                     Cmd delSessionCmd = cmdService.create(new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null));
-                    cmdDispatchService.dispatch(delSessionCmd.getId(), false);
+                    cmdDispatchService.dispatch(delSessionCmd);
                     LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
                 }
             }

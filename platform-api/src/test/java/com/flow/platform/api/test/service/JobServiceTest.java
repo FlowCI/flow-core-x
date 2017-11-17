@@ -32,6 +32,7 @@ import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
@@ -260,19 +261,16 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(NodeStatus.STOPPED, stoppedJob.getRootResult().getStatus());
     }
 
-
     @Test
     public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
+        // given: job and mock updated time as expired
         Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
-
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
-
         Assert.assertNotNull(job.getEnv("FLOW_WORKSPACE"));
         Assert.assertNotNull(job.getEnv("FLOW_VERSION"));
 
-        Thread.sleep(7000);
-
         // when: check job timeout
+        ThreadUtil.sleep(20000);
         jobService.checkTimeoutTask();
 
         // then: job status should be timeout

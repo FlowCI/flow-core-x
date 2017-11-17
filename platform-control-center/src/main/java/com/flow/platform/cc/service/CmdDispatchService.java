@@ -26,11 +26,9 @@ public interface CmdDispatchService {
     /**
      * Dispatch cmd to agent
      *
-     * @param cmdId cmd id
-     * @param reset is reset cmd status to pending
      * @return cmd
      */
-    Cmd dispatch(String cmdId, boolean reset);
+    Cmd dispatch(Cmd cmd);
 
     /**
      * Task to check cmd is executing timeout

@@ -662,14 +662,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         LOGGER.trace("job timeout task start");
 
-        // create session job timeout 6s time out
+        // job timeout on create session
         ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutCreateSessionDuration);
         List<Job> jobs = jobDao.listForExpired(finishZoneDateTime, JobStatus.SESSION_CREATING);
         for (Job job : jobs) {
             updateJobAndNodeResultTimeout(job);
         }
 
-        // running job timeout 1h time out
+        // job timeout on running
         ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutRunningDuration);
         List<Job> runningJobs = jobDao.listForExpired(finishRunningZoneDateTime, JobStatus.RUNNING);
         for (Job job : runningJobs) {
