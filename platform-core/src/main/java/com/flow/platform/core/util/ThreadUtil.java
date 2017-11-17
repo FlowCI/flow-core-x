@@ -36,4 +36,12 @@ public class ThreadUtil {
         return taskExecutor;
     }
 
+    public static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ignore) {
+
+        }
+    }
+
 }
