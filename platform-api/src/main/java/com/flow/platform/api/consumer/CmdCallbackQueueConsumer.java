@@ -18,6 +18,7 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.PriorityMessage;
@@ -77,7 +78,7 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
 
     private void detectRetryTimes(CmdCallbackQueueItem item) {
         if (item.getRetryTimes() > RETRY_TIMES) {
-            throw new NotFoundException(String.format("retry times has reach the limit"));
+            throw new FlowException(String.format("retry times has reach the limit"));
         }
     }
 
