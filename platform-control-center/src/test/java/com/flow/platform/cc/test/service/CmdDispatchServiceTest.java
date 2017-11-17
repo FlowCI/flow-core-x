@@ -39,15 +39,12 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -91,7 +88,7 @@ public class CmdDispatchServiceTest extends TestBase {
         // when: create cmd and dispatch to agent
         Cmd cmd = cmdService.create(new CmdInfo(zoneName, agentName, CmdType.CREATE_SESSION, null));
         Assert.assertNotNull(cmd.getSessionId());
-        cmd = cmdDispatchService.dispatch(cmd.getId(), false);
+        cmd = cmdDispatchService.dispatch(cmd);
 
         // then: check agent is locked by session
         target = agentService.find(cmd.getAgentPath());
@@ -109,7 +106,7 @@ public class CmdDispatchServiceTest extends TestBase {
         Cmd cmdToCreateSession = cmdService.create(new CmdInfo(agentPath, CmdType.CREATE_SESSION, null));
 
         try {
-            cmdDispatchService.dispatch(cmdToCreateSession.getId(), false);
+            cmdDispatchService.dispatch(cmdToCreateSession);
         } catch (FlowException ignore) {
 
         }
@@ -121,7 +118,7 @@ public class CmdDispatchServiceTest extends TestBase {
         CmdInfo cmd = new CmdInfo(agentPath, CmdType.DELETE_SESSION, null);
         cmd.setSessionId(target.getSessionId());
         Cmd cmdToDeleteSession = cmdService.create(cmd);
-        cmdDispatchService.dispatch(cmdToDeleteSession.getId(), false);
+        cmdDispatchService.dispatch(cmdToDeleteSession);
 
         // then: queue should be resumed since agent resource released
         Assert.assertEquals(true, cmdQueue.isRunning());
@@ -133,7 +130,7 @@ public class CmdDispatchServiceTest extends TestBase {
 
         // should throw agent not available exception
         try {
-            cmdDispatchService.dispatch(cmdToFail.getId(), false);
+            cmdDispatchService.dispatch(cmdToFail);
             fail();
         } catch (Throwable e) {
             Assert.assertEquals(AgentErr.NotAvailableException.class, e.getClass());
@@ -147,7 +144,7 @@ public class CmdDispatchServiceTest extends TestBase {
         cmdWithSession.setSessionId(target.getSessionId());
 
         Cmd cmd = cmdService.create(cmdWithSession);
-        cmd = cmdDispatchService.dispatch(cmd.getId(), false);
+        cmd = cmdDispatchService.dispatch(cmd);
 
         // then: check target is found correctly by session id
         Agent sessionAgent = agentService.find(cmd.getAgentPath());
@@ -169,7 +166,7 @@ public class CmdDispatchServiceTest extends TestBase {
         // when: delete session
         CmdInfo cmdToDelSession = new CmdInfo(agentPath.getZone(), null, CmdType.DELETE_SESSION, null);
         cmdToDelSession.setSessionId(target.getSessionId());
-        cmdDispatchService.dispatch(cmdService.create(cmdToDelSession).getId(), false);
+        cmdDispatchService.dispatch(cmdService.create(cmdToDelSession));
 
         // then: new kill cmd should been sent to agent
         Cmd killCmd = Cmd.parse(zkClient.getData(ZKHelper.buildPath(agentPath)), Cmd.class);
@@ -199,7 +196,7 @@ public class CmdDispatchServiceTest extends TestBase {
         // when: delete session
         CmdInfo cmdToDelSession = new CmdInfo(agentPath.getZone(), null, CmdType.DELETE_SESSION, null);
         cmdToDelSession.setSessionId(cmd.getSessionId());
-        cmdDispatchService.dispatch(cmdService.create(cmdToDelSession).getId(), false);
+        cmdDispatchService.dispatch(cmdService.create(cmdToDelSession));
 
         // then: cmd in agent not changed
         Cmd notChangeCmd = Cmd.parse(zkClient.getData(ZKHelper.buildPath(agentPath)), Cmd.class);
@@ -223,6 +220,6 @@ public class CmdDispatchServiceTest extends TestBase {
         CmdInfo cmdWithSession = new CmdInfo(zone, null, CmdType.RUN_SHELL, "echo hello");
         cmdWithSession.setSessionId(sessionId);
         Cmd cmd = cmdService.create(cmdWithSession);
-        return cmdDispatchService.dispatch(cmd.getId(), false);
+        return cmdDispatchService.dispatch(cmd);
     }
 }

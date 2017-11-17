@@ -69,7 +69,7 @@ public class CmdController {
     @PostMapping(path = "/send")
     public Cmd sendCommand(@RequestBody CmdInfo cmd) {
         Cmd cmdToExec = cmdService.create(cmd);
-        return cmdDispatchService.dispatch(cmdToExec.getId(), false);
+        return cmdDispatchService.dispatch(cmdToExec);
     }
 
     @PostMapping(path = "/queue/send")

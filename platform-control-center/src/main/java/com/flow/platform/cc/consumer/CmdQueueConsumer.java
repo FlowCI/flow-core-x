@@ -17,7 +17,6 @@
 package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.config.QueueConfig;
-import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdDispatchService;
@@ -76,22 +75,23 @@ public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
 
     @Override
     public void onQueueItem(PriorityMessage message) {
-        CmdQueueItem item = CmdQueueItem.parse(message.getBody(), CmdQueueItem.class);
-        String cmdId = item.getCmdId();
-        LOGGER.trace("Receive a cmd queue item: %s", item);
+        String cmdId = new String(message.getBody());
+        LOGGER.trace("Receive a cmd queue item: %s", cmdId);
+
+        Cmd cmd = cmdService.find(cmdId);
 
         try {
-            cmdDispatchService.dispatch(cmdId, false);
+            cmdDispatchService.dispatch(cmd);
         } catch (IllegalParameterException e) {
             LOGGER.warn("Illegal cmd id: %s", e.getMessage());
         } catch (IllegalStatusException e) {
             LOGGER.warn("Illegal cmd status: %s", e.getMessage());
         } catch (AgentErr.NotAvailableException | AgentErr.NotFoundException | ZkException.NotExitException e) {
-            if (item.getRetry() <= 0) {
+            if (cmd.getRetry() <= 0) {
                 return;
             }
 
-            Cmd cmd = cmdService.find(cmdId);
+            cmd = cmdService.find(cmdId);
 
             // do not re-enqueue if cmd been stopped or killed
             if (cmd.getStatus() == CmdStatus.STOPPED || cmd.getStatus() == CmdStatus.KILLED) {
@@ -99,13 +99,13 @@ public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
             }
 
             // reset cmd status to pending, record num of retry
-            int retry = item.getRetry() - 1;
+            int retry = cmd.getRetry() - 1;
             cmd.setStatus(CmdStatus.PENDING);
             cmd.setRetry(retry);
             cmdService.save(cmd);
 
             // re-enqueue
-            resend(item, retry);
+            resend(cmd.getId(), retry);
 
         } catch (Throwable e) {
             LOGGER.error("Unexpected exception", e);
@@ -115,17 +115,16 @@ public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
     /**
      * Re-enqueue cmd and return num of retry
      */
-    private void resend(final CmdQueueItem item, final int retry) {
+    private void resend(final String cmdId, final int retry) {
         if (retry <= 0) {
             return;
         }
 
-        item.setRetry(retry);
         ThreadUtil.sleep(RETRY_WAIT_TIME);
 
         // reset cmd status
-        PriorityMessage message = PriorityMessage.create(item.toBytes(), QueueConfig.MAX_PRIORITY);
+        PriorityMessage message = PriorityMessage.create(cmdId.getBytes(), QueueConfig.MAX_PRIORITY);
         cmdQueue.enqueue(message);
-        LOGGER.trace("Re-enqueue item %s", item);
+        LOGGER.trace("Re-enqueue item %s", cmdId);
     }
 }

@@ -29,7 +29,6 @@ import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdLogDao;
 import com.flow.platform.cc.dao.CmdResultDao;
-import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -99,6 +98,9 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     @Autowired
     private AgentDao agentDao;
 
+    /**
+     * The queue item is cmd id as string
+     */
     @Autowired
     private PlatformQueue<PriorityMessage> cmdQueue;
 
@@ -205,9 +207,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     @Transactional(propagation = Propagation.NEVER)
     public Cmd enqueue(CmdInfo cmdInfo, int priority, int retry) {
         Cmd cmd = create(cmdInfo, retry);
-
-        CmdQueueItem item = new CmdQueueItem(cmd.getId(), retry);
-        PriorityMessage message = PriorityMessage.create(item.toBytes(), priority);
+        PriorityMessage message = PriorityMessage.create(cmd.getId().getBytes(), priority);
         cmdQueue.enqueue(message);
 
         return cmd;

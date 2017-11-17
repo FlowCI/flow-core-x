@@ -189,7 +189,7 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
                 // send shutdown cmd
                 Cmd shutdown = cmdService.create(new CmdInfo(idleAgent.getPath(), CmdType.SHUTDOWN, "flow.ci"));
-                cmdDispatchService.dispatch(shutdown.getId(), false);
+                cmdDispatchService.dispatch(shutdown);
                 LOGGER.traceMarker("keepIdleAgentMaxSize", "Send SHUTDOWN to idle agent: %s", idleAgent);
 
                 // add instance to cleanup list
