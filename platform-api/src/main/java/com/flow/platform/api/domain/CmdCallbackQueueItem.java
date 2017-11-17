@@ -31,7 +31,7 @@ public class CmdCallbackQueueItem extends Jsonable {
 
     private final Cmd cmd;
 
-    private Integer retryTimes = 0;
+    private Integer retryTimes = 1;
 
     // priority default 1
     private Integer priority = 1;
