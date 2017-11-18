@@ -44,4 +44,9 @@ public interface NodeCrontabService extends ContextEvent {
      * List current triggers
      */
     List<Trigger> triggers();
+
+    /**
+     * Clean triggers
+     */
+    void cleanTriggers();
 }

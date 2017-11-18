@@ -165,4 +165,13 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
             throw new IllegalStatusException(e.getMessage());
         }
     }
+
+    @Override
+    public void cleanTriggers() {
+        try {
+            quartzScheduler.getTriggersOfJob(nodeCrontabDetail.getKey()).clear();
+        } catch (SchedulerException e) {
+            throw new IllegalStatusException(e.getMessage());
+        }
+    }
 }

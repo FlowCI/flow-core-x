@@ -325,10 +325,13 @@ public class JobServiceTest extends TestBase {
         });
 
         // when: enter queue one not found job id
-        jobService.enterQueue(new CmdCallbackQueueItem(CommonUtil.randomId(), cmd));
+        jobService.enterQueue(new CmdCallbackQueueItem(CommonUtil.randomId(), cmd), 1);
         countDownLatch.await(6, TimeUnit.SECONDS);
 
         // then: should try 5 times
-        Assert.assertEquals(5, atomicInteger.get());
+        Assert.assertEquals(1, atomicInteger.get());
+
+        // then: cmdCallbackQueue size should 0
+        Assert.assertEquals(0, cmdCallbackQueue.size());
     }
 }
