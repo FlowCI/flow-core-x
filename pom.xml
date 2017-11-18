@@ -23,6 +23,7 @@
     <module>platform-core</module>
     <module>platform-yml-parser</module>
     <module>platform-util-http</module>
+    <module>platform-file-sync</module>
   </modules>
 
   <properties>
