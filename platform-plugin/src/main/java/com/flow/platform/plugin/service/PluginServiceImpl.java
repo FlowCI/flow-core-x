@@ -25,8 +25,10 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.apache.http.HttpStatus;
 
 
 /**
@@ -47,12 +49,7 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public List<Plugin> list() {
-        List<Plugin> list = new ArrayList<>();
-        try {
-            return find();
-        } catch (Throwable e) {
-            return list;
-        }
+        return doFind();
     }
 
     @Override
@@ -68,32 +65,43 @@ public class PluginServiceImpl implements PluginService {
 
 
     /**
-     * download plugin repos info
+     * list plugins
      * @return
      */
-    private String downloadPluginInfo() {
+    private List<Plugin> doFind() {
+        List<Plugin> plugins;
+        try {
+            plugins = pluginCache.get(KEY, () -> {
+                String body = fetchPluginInfo();
+                PluginRepository pluginRepository = new Gson().fromJson(body, PluginRepository.class);
+                return pluginRepository.plugins;
+            });
+        } catch (ExecutionException e) {
+            plugins = new ArrayList<>();
+        }
+        return plugins;
+    }
+
+    /**
+     * fetch plugin repos info
+     * @return
+     */
+    private String fetchPluginInfo() {
         HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
         HttpResponse<String> response = httpClient.bodyAsString();
+
+        // if not 200, show exception
+        if (!Objects.equals(response.getStatusCode(), HttpStatus.SC_OK)) {
+            throw new Exception()
+        }
+
         String body = response.getBody();
         return body;
     }
 
-    /**
-     * list plugins
-     * @return
-     * @throws ExecutionException
-     */
-    private List<Plugin> find() throws ExecutionException {
-        List<Plugin> plugins = pluginCache.get(KEY, () -> {
-            String body = downloadPluginInfo();
-            PluginRepository pluginRepository = new Gson().fromJson(body, PluginRepository.class);
-            return pluginRepository.plugins;
-        });
-        return plugins;
-    }
-
 
     private class PluginRepository {
+
         @SerializedName("packages")
         private List<Plugin> plugins;
     }
