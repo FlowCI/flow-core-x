@@ -109,6 +109,12 @@
 
     <dependency>
       <groupId>com.flow.platform</groupId>
+      <artifactId>platform.plugin</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.flow.platform</groupId>
       <artifactId>platform-util-resource</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -182,5 +188,6 @@
       <artifactId>jjwt</artifactId>
       <version>0.7.0</version>
     </dependency>
+
   </dependencies>
 </project>

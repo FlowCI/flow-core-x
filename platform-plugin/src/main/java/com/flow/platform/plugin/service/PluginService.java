@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
+package com.flow.platform.plugin.service;
 
-import com.flow.platform.domain.Plugin;
+import com.flow.platform.plugin.domain.Plugin;
 import java.util.List;
 
 /**

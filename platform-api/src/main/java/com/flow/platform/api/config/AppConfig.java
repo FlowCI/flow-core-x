@@ -16,7 +16,6 @@
 
 package com.flow.platform.api.config;
 
-import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
@@ -25,6 +24,8 @@ import com.flow.platform.core.queue.InMemoryQueue;
 import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
+import com.flow.platform.plugin.service.PluginService;
+import com.flow.platform.plugin.service.PluginServiceImpl;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -90,6 +91,9 @@ public class AppConfig extends AppConfigBase {
     @Value(value = "${system.password}")
     private String password;
 
+    @Value(value = "${plugins.repository}")
+    private String pluginSourceUrl;
+
     @Bean
     public User superUser() {
         return new User(email, username, password);
@@ -153,6 +157,11 @@ public class AppConfig extends AppConfigBase {
         PlatformURL platformURL = new PlatformURL(ccDomain);
         LOGGER.trace(platformURL.toString());
         return platformURL;
+    }
+
+    @Bean
+    public PluginService pluginService() {
+        return new PluginServiceImpl(pluginSourceUrl);
     }
 
     @Bean

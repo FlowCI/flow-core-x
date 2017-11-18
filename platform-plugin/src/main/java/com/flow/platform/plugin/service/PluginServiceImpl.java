@@ -14,36 +14,36 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
+package com.flow.platform.plugin.service;
 
-import static com.flow.platform.core.dao.adaptor.BaseAdaptor.GSON;
-
-import com.flow.platform.domain.Plugin;
+import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+
 
 /**
  * @author yh@firim
  */
-@Service
 public class PluginServiceImpl implements PluginService {
+
+    private String pluginSourceUrl;
 
     private final static String KEY = "plugins";
 
     private Cache<String, List<Plugin>> pluginCache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS)
         .maximumSize(1000).build();
 
-    @Value("${plugins.repository}")
-    private String repoUrl;
+    public PluginServiceImpl(String repoUrl) {
+        this.pluginSourceUrl = repoUrl;
+    }
 
     @Override
     public List<Plugin> list() {
@@ -66,19 +66,13 @@ public class PluginServiceImpl implements PluginService {
 
     }
 
-    private class PluginRepository {
-
-        @SerializedName("packages")
-        private List<Plugin> plugins;
-    }
-
 
     /**
      * download plugin repos info
      * @return
      */
     private String downloadPluginInfo() {
-        HttpClient httpClient = HttpClient.build(repoUrl).get();
+        HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
         HttpResponse<String> response = httpClient.bodyAsString();
         String body = response.getBody();
         return body;
@@ -92,9 +86,15 @@ public class PluginServiceImpl implements PluginService {
     private List<Plugin> find() throws ExecutionException {
         List<Plugin> plugins = pluginCache.get(KEY, () -> {
             String body = downloadPluginInfo();
-            PluginRepository pluginRepository = GSON.fromJson(body, PluginRepository.class);
+            PluginRepository pluginRepository = new Gson().fromJson(body, PluginRepository.class);
             return pluginRepository.plugins;
         });
         return plugins;
+    }
+
+
+    private class PluginRepository {
+        @SerializedName("packages")
+        private List<Plugin> plugins;
     }
 }

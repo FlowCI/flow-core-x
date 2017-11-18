@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.service.PluginService;
-import com.flow.platform.domain.Plugin;
+import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.service.PluginService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;

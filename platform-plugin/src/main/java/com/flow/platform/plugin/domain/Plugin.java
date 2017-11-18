@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.domain;
+package com.flow.platform.plugin.domain;
 
 import com.google.gson.annotations.Expose;
 import java.util.List;
