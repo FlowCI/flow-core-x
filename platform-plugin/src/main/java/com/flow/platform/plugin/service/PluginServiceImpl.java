@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.cache.Cache;
@@ -78,6 +79,8 @@ public class PluginServiceImpl implements PluginService {
             });
         } catch (ExecutionException e) {
             plugins = new ArrayList<>();
+        } catch (Throwable throwable) {
+            throw new PluginException(" Fetch Plugins Info Is Error ", throwable);
         }
         return plugins;
     }
@@ -92,7 +95,9 @@ public class PluginServiceImpl implements PluginService {
 
         // if not 200, show exception
         if (!Objects.equals(response.getStatusCode(), HttpStatus.SC_OK)) {
-            throw new Exception()
+            throw new PluginException(String
+                .format("status code is not 200, status code is %s, exception info is %s", response.getStatusCode(),
+                    response.getExceptions()));
         }
 
         String body = response.getBody();

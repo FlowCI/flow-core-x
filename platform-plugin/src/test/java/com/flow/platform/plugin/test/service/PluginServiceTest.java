@@ -29,7 +29,8 @@ import org.junit.Test;
  */
 public class PluginServiceTest {
 
-    private final static String PLUGIN_SOURCE_URL = "https://raw.githubusercontent.com/yunheli/plugins/master/repository.json1";
+    private final static String PLUGIN_SOURCE_URL = "https://raw.githubusercontent.com/yunheli/plugins/master/repository.json";
+    private final static String ERROR_PLUGIN_SOURCE_URL = "https://raw.githubusercontent.com/yunheli/plugins/master/repository_error.json";
 
     private PluginService pluginService;
 
@@ -51,6 +52,15 @@ public class PluginServiceTest {
         Assert.assertNotEquals(0, pluginList.size());
 
         // then: pluginList size is 2
-        Assert.assertNotEquals(2, pluginList.size());
+        Assert.assertEquals(2, pluginList.size());
+    }
+
+    @Test
+    public void should_get_plugins_throw_exceptions() {
+
+        pluginService = new PluginServiceImpl(ERROR_PLUGIN_SOURCE_URL);
+
+        //then: should throw PluginException
+        pluginService.list();
     }
 }
