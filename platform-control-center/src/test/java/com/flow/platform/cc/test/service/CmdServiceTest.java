@@ -478,7 +478,7 @@ public class CmdServiceTest extends TestBase {
 
     private Cmd send(CmdInfo info) {
         Cmd cmd = cmdService.create(info);
-        cmdDispatchService.dispatch(cmd.getId(), false);
+        cmdDispatchService.dispatch(cmd);
         return cmdService.find(cmd.getId());
     }
 }

@@ -51,22 +51,21 @@ public class NodeCrontabServiceTest extends TestBase {
 
         Map<String, String> envs = new HashMap<>();
         envs.put(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH.name(), "master");
-        envs.put(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT.name(), "0/10 * * * * ?");
+        envs.put(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT.name(), "0/1 * * * ?");
         envService.save(flow, envs, true);
 
         Assert.assertNotNull(flow.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH));
         Assert.assertNotNull(flow.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT));
 
-        // when: set crontab task for flow and wait for 30 seconds
-        flowCrontabService.set(flow);
-        Thread.sleep(15 * 1000);
+        // when: set crontab task for flow and wait for 70 seconds
+        Thread.sleep(70 * 1000);
 
         // then: job should be created
         Assert.assertEquals(1, flowCrontabService.triggers().size());
         Job job = jobService.find(flow.getPath(), 1);
         Assert.assertEquals(JobCategory.SCHEDULER, job.getCategory());
         Assert.assertEquals("master", job.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH));
-        Assert.assertEquals("0/10 * * * * ?", job.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT));
+        Assert.assertEquals("0/1 * * * ?", job.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT));
 
         // when: delete env variable of crontab
         Set<String> varToDel = Sets.newHashSet(

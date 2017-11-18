@@ -27,6 +27,7 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
@@ -362,12 +363,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return;
         }
 
-        // pass job env to node
-        EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
+        // create env vars instance which will pass to agent
+        EnvObject envVars = new EnvObject();
+        envVars.putAll(job.getEnvs());
 
         // pass root node output to current node
         NodeResult rootResult = nodeResultService.find(tree.root().getPath(), job.getId());
-        EnvUtil.merge(rootResult.getOutputs(), node.getEnvs(), false);
+        envVars.putAll(rootResult.getOutputs());
 
         // to run node with customized cmd id
         try {
@@ -375,8 +377,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
             Map<String, String> credentialEnvs = credentialService.find(node);
             EnvUtil.keepNewlineForEnv(credentialEnvs, null);
+            envVars.putAll(credentialEnvs);
 
-            CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId(), credentialEnvs);
+            CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
         } catch (IllegalStatusException e) {
             CmdInfo rawCmd = (CmdInfo) e.getData();
             rawCmd.setStatus(CmdStatus.EXCEPTION);
@@ -659,14 +662,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         LOGGER.trace("job timeout task start");
 
-        // create session job timeout 6s time out
+        // job timeout on create session
         ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutCreateSessionDuration);
         List<Job> jobs = jobDao.listForExpired(finishZoneDateTime, JobStatus.SESSION_CREATING);
         for (Job job : jobs) {
             updateJobAndNodeResultTimeout(job);
         }
 
-        // running job timeout 1h time out
+        // job timeout on running
         ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutRunningDuration);
         List<Job> runningJobs = jobDao.listForExpired(finishRunningZoneDateTime, JobStatus.RUNNING);
         for (Job job : runningJobs) {
