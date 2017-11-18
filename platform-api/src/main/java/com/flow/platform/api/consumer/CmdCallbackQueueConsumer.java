@@ -23,6 +23,7 @@ import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.QueueListener;
+import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.util.Logger;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,10 +81,9 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
     }
 
     private void reEnqueueJobCallback(CmdCallbackQueueItem item, long wait, int priority) {
-        try {
-            Thread.sleep(wait);
-        } catch (Throwable ignore) {
-        }
+
+        // sleep seconds
+        ThreadUtil.sleep(wait);
 
         // set retry times
         item.setRetryTimes(item.getRetryTimes() - 1);
