@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.test.service;
 
 import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.plugin.service.PluginServiceImpl;
 import java.util.List;
@@ -55,7 +56,7 @@ public class PluginServiceTest {
         Assert.assertEquals(2, pluginList.size());
     }
 
-    @Test
+    @Test(expected = PluginException.class)
     public void should_get_plugins_throw_exceptions() {
 
         pluginService = new PluginServiceImpl(ERROR_PLUGIN_SOURCE_URL);
