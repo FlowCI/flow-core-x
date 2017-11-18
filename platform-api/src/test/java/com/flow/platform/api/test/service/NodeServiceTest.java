@@ -18,6 +18,8 @@ package com.flow.platform.api.test.service;
 import static junit.framework.TestCase.fail;
 
 import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.envs.EnvUtil;
@@ -30,6 +32,7 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.http.HttpURL;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -255,8 +258,10 @@ public class NodeServiceTest extends TestBase {
         ymlService.get(root);
     }
 
-    @Test
+    @Test(expected = NotFoundException.class)
     public void should_delete_flow() throws Throwable {
+        stubDemo();
+
         Node emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
 
@@ -265,6 +270,12 @@ public class NodeServiceTest extends TestBase {
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
         Assert.assertNotNull(ymlService.get(root).getFile());
+
+        setRequiredJobEnvsForFlow(root);
+        Job job = createMockJob(root.getPath());
+
+        Assert.assertNotNull(jobService.find(job.getId()));
+        Assert.assertEquals(2, nodeResultService.list(job, true).size());
 
         // when: delete flow
         nodeService.delete(root.getPath());
@@ -275,6 +286,13 @@ public class NodeServiceTest extends TestBase {
 
         // then: should return null if root node is not existed
         Assert.assertNull(ymlService.get(root));
+
+        // then: node result should be null
+        List<NodeResult> nodeResults = nodeResultService.list(job, true);
+        Assert.assertEquals(0, nodeResults.size());
+
+        // then: job should be null
+        jobService.find(job.getId());
     }
 
     @Test

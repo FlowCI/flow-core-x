@@ -110,7 +110,7 @@ public interface JobService {
     /**
      * Enqueue cmd callback item
      */
-    void enterQueue(CmdCallbackQueueItem cmdQueueItem);
+    void enterQueue(CmdCallbackQueueItem cmdQueueItem, int priority);
 
     /**
      * stop job
