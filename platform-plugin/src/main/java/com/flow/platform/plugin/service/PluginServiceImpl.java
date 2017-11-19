@@ -18,6 +18,7 @@ package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.exception.PluginException;
+import com.flow.platform.plugin.util.UriUtil;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.cache.Cache;
@@ -58,7 +59,6 @@ public class PluginServiceImpl implements PluginService {
 
     }
 
-
     @Override
     public void uninstall() {
 
@@ -92,12 +92,7 @@ public class PluginServiceImpl implements PluginService {
         HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
         HttpResponse<String> response = httpClient.bodyAsString();
 
-        // if not 200, show exception
-        if (!Objects.equals(response.getStatusCode(), HttpStatus.SC_OK)) {
-            throw new PluginException(String
-                .format("status code is not 200, status code is %s, exception info is %s", response.getStatusCode(),
-                    response.getExceptions()));
-        }
+        UriUtil.detectResponseIsOKAndThrowable(response);
 
         String body = response.getBody();
         return body;

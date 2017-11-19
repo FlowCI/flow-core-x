@@ -16,7 +16,11 @@
 
 package com.flow.platform.plugin.util;
 
+import com.flow.platform.plugin.exception.PluginException;
+import com.flow.platform.util.http.HttpResponse;
 import java.net.URI;
+import java.util.Objects;
+import org.apache.http.HttpStatus;
 
 /**
  * @author yh@firim
@@ -31,6 +35,19 @@ public class UriUtil {
     public static String getRoutePath(String url) {
         URI uri = URI.create(url);
         return uri.getPath();
+    }
+
+    /**
+     * detect response is ok, not ok throw exceptions
+     * @param response
+     */
+    public static void detectResponseIsOKAndThrowable(HttpResponse<String> response) {
+        // if not 200, show exception
+        if (!Objects.equals(response.getStatusCode(), HttpStatus.SC_OK)) {
+            throw new PluginException(String
+                .format("status code is not 200, status code is %s, exception info is %s", response.getStatusCode(),
+                    response.getExceptions()));
+        }
     }
 
     /**
