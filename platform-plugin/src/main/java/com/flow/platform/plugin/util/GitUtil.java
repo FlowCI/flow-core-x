@@ -19,15 +19,22 @@ package com.flow.platform.plugin.util;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.gson.Gson;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yh@firim
  */
 public class GitUtil {
 
-    private static String tagUrl = "https://api.github.com/repos/%s/git/refs/tags";
+    private final static String TAG_URL = "https://api.github.com/repos/%s/git/refs/tags";
+
+    private final static String TAG_ZIP_URL = "https://github.com/%s/archive/%s.zip";
 
     /**
      * List full tags
@@ -35,22 +42,61 @@ public class GitUtil {
      * @return
      */
     public static List<String> listTags(String fullName) {
-        String url = String.format(tagUrl, fullName);
+        String url = String.format(TAG_URL, fullName);
         HttpResponse<String> response = HttpClient.build(url).get().bodyAsString();
         UriUtil.detectResponseIsOKAndThrowable(response);
-        Tag[] tags = new Gson().fromJson(response.getBody(), Tag[].class);
+        TagHelper[] tags = new Gson().fromJson(response.getBody(), TagHelper[].class);
         return doFetchTags(tags);
     }
 
-    private static List<String> doFetchTags(Tag[] tags) {
+    /**
+     * get latest tag
+     * @param fullName
+     * @return
+     */
+    public static String fetchLatestTag(String fullName) {
+        List<String> list = listTags(fullName);
+        if (!list.isEmpty()) {
+            return list.get(list.size() - 1);
+        }
+
+        return null;
+    }
+
+    public static void downloadLatestTag(Path path, String fullName) {
+        downloadTagZip(path, fullName, fetchLatestTag(fullName));
+    }
+
+    public static void downloadTagZip(Path path, String fullName, String tag) {
+        String url = String.format(TAG_ZIP_URL, fullName, tag);
+        HttpClient.build(url).get().bodyAsStream((HttpResponse<InputStream> inputStreamHttpResponse) -> {
+            try {
+                InputStream in = inputStreamHttpResponse.getBody();
+                FileOutputStream out = new FileOutputStream(Paths.get(path.toString(), tag + ".zip").toString());
+                byte[] bytes = new byte[1024];
+                int count;
+                while ((count = in.read(bytes)) >= 0) {
+                    out.write(bytes, 0, count);
+                }
+                out.flush();
+                out.close();
+                in.close();
+            } catch (Throwable throwable) {
+            }
+        });
+    }
+
+    private static List<String> doFetchTags(TagHelper[] tags) {
         List<String> tagList = new ArrayList<>(tags.length);
-        for (Tag tag : tags) {
-            tagList.add(doProcessTag(tag));
+        for (TagHelper tag : tags) {
+            if (Objects.equals(tag.object.type, "tag")) {
+                tagList.add(doProcessTag(tag));
+            }
         }
         return tagList;
     }
 
-    private static String doProcessTag(Tag tag) {
+    private static String doProcessTag(TagHelper tag) {
         String replaceKey = "refs/tags/";
         return tag.ref.replace(replaceKey, "");
     }
@@ -58,9 +104,20 @@ public class GitUtil {
     /**
      * tag model
      */
-    private class Tag {
+    private class TagHelper {
 
         private String ref;
         private String url;
+        private ObjectHelper object;
     }
+
+    /**
+     * object model
+     */
+    private class ObjectHelper {
+
+        private String type;
+        private String url;
+    }
+
 }

@@ -17,6 +17,9 @@
 package com.flow.platform.plugin.test.util;
 
 import com.flow.platform.plugin.util.GitUtil;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
@@ -38,5 +41,37 @@ public class GitUtilTest {
 
         // then: tags should equal 14
         Assert.assertEquals(14, tags.size());
+    }
+
+    @Test
+    public void should_fetch_latest_tag_success() {
+        String fullName = "yunheli/info";
+
+        // when: fetch latest tags
+        String tag = GitUtil.fetchLatestTag(fullName);
+
+        // then: tag is not null
+        Assert.assertNotNull(tag);
+
+        // then: tag is 2.3
+        Assert.assertEquals("2.3", tag);
+    }
+
+    @Test
+    public void should_download_tag_success() {
+        String fullName = "yunheli/info";
+        String tag = "2.3";
+        Path path = Paths.get("/tmp");
+
+        // when: download tag zip
+        GitUtil.downloadTagZip(path, fullName, tag);
+        File file = new File(Paths.get(path.toString(), tag + ".zip").toString());
+
+        // then: file should exist is true
+        Assert.assertEquals(true, file.exists());
+        file.delete();
+
+        // then: file should exist is false
+        Assert.assertEquals(false, file.exists());
     }
 }
