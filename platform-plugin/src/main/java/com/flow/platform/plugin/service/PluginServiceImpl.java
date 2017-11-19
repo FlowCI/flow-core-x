@@ -64,7 +64,6 @@ public class PluginServiceImpl implements PluginService {
 
     }
 
-
     /**
      * list plugins
      * @return

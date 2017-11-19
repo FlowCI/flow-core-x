@@ -44,6 +44,9 @@ public class Plugin {
     @Expose
     private List<String> platform;
 
+    // plugin status
+    private PluginStatus status;
+
     public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
         this.name = name;
         this.details = details;
