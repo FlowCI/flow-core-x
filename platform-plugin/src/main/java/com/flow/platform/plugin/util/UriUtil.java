@@ -23,9 +23,23 @@ import java.net.URI;
  */
 public class UriUtil {
 
+    /**
+     * detect route path
+     * @param url
+     * @return
+     */
     public static String getRoutePath(String url) {
-
         URI uri = URI.create(url);
         return uri.getPath();
+    }
+
+    /**
+     * detect is github or not from url
+     * @param url
+     * @return
+     */
+    public static Boolean isGithubSource(String url) {
+        URI uri = URI.create(url);
+        return uri.getHost().contains("github.com");
     }
 }

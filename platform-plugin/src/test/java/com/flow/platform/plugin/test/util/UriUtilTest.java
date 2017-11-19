@@ -33,4 +33,13 @@ public class UriUtilTest {
         url = "https://github.com/yunheli/info?params=1";
         Assert.assertEquals("/yunheli/info", UriUtil.getRoutePath(url));
     }
+
+    @Test
+    public void should_detect_github_source_success() {
+        String url = "https://github.com/yunheli/info";
+        Assert.assertEquals(true, UriUtil.isGithubSource(url));
+
+        url = "https://bitbucket.com/yunheli/info";
+        Assert.assertEquals(false, UriUtil.isGithubSource(url));
+    }
 }
