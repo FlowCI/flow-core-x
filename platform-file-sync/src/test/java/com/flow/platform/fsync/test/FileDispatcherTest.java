@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package com.flow.platform.fsync;
+package com.flow.platform.fsync.test;
+
+import org.junit.Test;
 
 /**
  * @author yang
  */
-public interface FileDispatcherService {
+public class FileDispatcherTest {
 
-    void addClient();
+    @Test
+    public void should_init_file_sync_queue() throws Throwable {
 
-    void removeClient();
+    }
 }

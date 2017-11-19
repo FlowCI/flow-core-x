@@ -22,7 +22,7 @@ package com.flow.platform.fsync.domain;
  *
  * @author yang
  */
-public class FileSync {
+public class FileSyncEvent {
 
     /**
      * The original file path in server
@@ -33,9 +33,9 @@ public class FileSync {
 
     private String checksum;
 
-    private SyncEvent event;
+    private FileSyncEventType event;
 
-    public FileSync(String serverPath, String checksum, SyncEvent event) {
+    public FileSyncEvent(String serverPath, Long size, String checksum, FileSyncEventType event) {
         this.serverPath = serverPath;
         this.checksum = checksum;
         this.event = event;
@@ -53,7 +53,7 @@ public class FileSync {
         return checksum;
     }
 
-    public SyncEvent getEvent() {
+    public FileSyncEventType getEvent() {
         return event;
     }
 }

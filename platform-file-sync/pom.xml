@@ -12,5 +12,23 @@
   <artifactId>platform-file-sync</artifactId>
   <version>1.0-SNAPSHOT</version>
 
+  <dependencies>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.flow.platform</groupId>
+      <artifactId>platform-util</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
 </project>

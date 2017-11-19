@@ -19,7 +19,7 @@ package com.flow.platform.fsync.domain;
 /**
  * @author yang
  */
-public enum SyncEvent {
+public enum FileSyncEventType {
 
     CREATE,
 
