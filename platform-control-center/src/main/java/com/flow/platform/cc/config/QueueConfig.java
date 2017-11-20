@@ -16,10 +16,10 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.core.queue.InMemoryQueue;
-import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.MemoryQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.RabbitQueue;
+import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
 import com.google.common.collect.Range;
 import javax.annotation.PostConstruct;
@@ -114,7 +114,7 @@ public class QueueConfig {
         }
 
         LOGGER.trace("Apply in memory queue for cmd queue");
-        return new InMemoryQueue<>(taskExecutor, QUEUE_MAX_LENGTH, "CmdQueue");
+        return new MemoryQueue(taskExecutor, QUEUE_MAX_LENGTH, "CmdQueue");
     }
 
     /**
@@ -122,6 +122,6 @@ public class QueueConfig {
      */
     @Bean
     public PlatformQueue<PriorityMessage> cmdStatusQueue() {
-        return new InMemoryQueue<>(taskExecutor, QUEUE_MAX_LENGTH, "CmdStatusQueue");
+        return new MemoryQueue(taskExecutor, QUEUE_MAX_LENGTH, "CmdStatusQueue");
     }
 }

@@ -16,9 +16,9 @@
 
 package com.flow.platform.core.test.sysinfo;
 
-import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.PriorityMessage;
-import com.flow.platform.core.queue.QueueListener;
+import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.ObjectWrapper;
 import java.util.ArrayList;
 import java.util.List;

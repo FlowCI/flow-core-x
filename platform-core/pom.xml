@@ -52,6 +52,12 @@
 
     <dependency>
       <groupId>com.flow.platform</groupId>
+      <artifactId>platform-queue</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.flow.platform</groupId>
       <artifactId>platform-cmd-runner</artifactId>
       <version>${project.version}</version>
     </dependency>
