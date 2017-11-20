@@ -16,14 +16,17 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -42,10 +45,18 @@ public class PluginController {
     }
 
     @PostMapping("/install")
-    public void install() {
+    public void install(@RequestParam String name) {
+        if(Objects.isNull(name)){
+            throw new IllegalParameterException("plugin name is null");
+        }
+        pluginService.install(name);
     }
 
     @DeleteMapping("/uninstall")
-    public void uninstall() {
+    public void uninstall(@RequestParam String name) {
+        if(Objects.isNull(name)){
+            throw new IllegalParameterException("plugin name is null");
+        }
+        pluginService.uninstall(name);
     }
 }

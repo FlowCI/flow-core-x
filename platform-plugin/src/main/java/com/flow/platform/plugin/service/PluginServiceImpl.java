@@ -16,6 +16,7 @@
 
 package com.flow.platform.plugin.service;
 
+import com.flow.platform.plugin.consumer.InstallConsumer;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.UriUtil;
@@ -25,12 +26,18 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import org.apache.http.HttpStatus;
 
 
 /**
@@ -42,6 +49,14 @@ public class PluginServiceImpl implements PluginService {
 
     private final static String KEY = "plugins";
 
+    private Map<String, Plugin> mockPluginStore = new HashMap<>();
+
+    private Path workspace;
+
+    private ThreadPoolExecutor threadPoolExecutor;
+
+    private BlockingQueue<Plugin> pluginBlockingQueue = new LinkedBlockingDeque<>();
+
     private Cache<String, List<Plugin>> pluginCache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS)
         .maximumSize(1000).build();
 
@@ -49,19 +64,77 @@ public class PluginServiceImpl implements PluginService {
         this.pluginSourceUrl = repoUrl;
     }
 
+    private List<InstallConsumer> installerConsumerPooler = new LinkedList<>();
+
+    public PluginServiceImpl(String pluginSourceUrl, Path workspace, ThreadPoolExecutor threadPoolExecutor) {
+        this.pluginSourceUrl = pluginSourceUrl;
+        this.workspace = workspace;
+        this.threadPoolExecutor = threadPoolExecutor;
+        registerConsumers();
+    }
+
     @Override
     public List<Plugin> list() {
-        return doFind();
+        return combinePluginStatus(doFind());
     }
 
     @Override
-    public void install() {
+    public void install(String pluginName) {
+        Plugin plugin = findByName(pluginName);
+
+        if (Objects.isNull(plugin)) {
+            throw new PluginException("not found plugin, please ensure the plugin name is exist");
+        }
+
+        // not finish can install plugin
+        if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin)) {
+            enqueue(plugin);
+        }
 
     }
 
     @Override
-    public void uninstall() {
+    public void uninstall(String name) {
 
+    }
+
+    @Override
+    public Path workspace() {
+        return workspace;
+    }
+
+    @Override
+    public Plugin update(Plugin plugin) {
+        mockPluginStore.put(plugin.getName(), plugin);
+        return plugin;
+    }
+
+    private List<Plugin> combinePluginStatus(List<Plugin> plugins) {
+        for (Plugin plugin : plugins) {
+            Plugin plg = mockPluginStore.get(plugin.getName());
+            if (!Objects.isNull(plg)){
+                plugin.setStatus(plg.getStatus());
+            }
+        }
+
+        return plugins;
+    }
+
+    private void enqueue(Plugin plugin) {
+        try {
+            pluginBlockingQueue.put(plugin);
+        } catch (Throwable throwable) {
+        }
+    }
+
+    private Plugin findByName(String name) {
+        for (Plugin plugin : list()) {
+            if (Objects.equals(plugin.getName(), name)) {
+                return plugin;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -103,5 +176,14 @@ public class PluginServiceImpl implements PluginService {
 
         @SerializedName("packages")
         private List<Plugin> plugins;
+    }
+
+
+    private void registerConsumers() {
+        for (int i = 0; i < threadPoolExecutor.getCorePoolSize(); i++) {
+            InstallConsumer installConsumer = new InstallConsumer(threadPoolExecutor, pluginBlockingQueue, this);
+            installConsumer.start();
+            installerConsumerPooler.add(installConsumer);
+        }
     }
 }

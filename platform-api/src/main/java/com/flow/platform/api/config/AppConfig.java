@@ -32,6 +32,10 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
@@ -161,7 +165,8 @@ public class AppConfig extends AppConfigBase {
 
     @Bean
     public PluginService pluginService() {
-        return new PluginServiceImpl(pluginSourceUrl);
+        return new PluginServiceImpl(pluginSourceUrl, Paths.get(workspace),
+            new ThreadPoolExecutor(5, 5, 100, TimeUnit.SECONDS, new LinkedBlockingQueue<>(10000)));
     }
 
     @Bean

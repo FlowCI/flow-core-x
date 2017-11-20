@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.domain.Plugin;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -32,11 +33,18 @@ public interface PluginService {
     /**
      * install plugin
      */
-    void install();
+    void install(String pluginName);
 
     /**
      * uninstall plugin
      */
-    void uninstall();
+    void uninstall(String pluginName);
 
+    /**
+     * plugin store place
+     * @return
+     */
+    Path workspace();
+
+    Plugin update(Plugin plugin);
 }

@@ -32,9 +32,9 @@ import java.util.Objects;
  */
 public class GitUtil {
 
-    private final static String TAG_URL = "https://api.github.com/repos/%s/git/refs/tags";
+    private final static String TAG_URL = "https://api.github.com/repos%s/git/refs/tags";
 
-    private final static String TAG_ZIP_URL = "https://github.com/%s/archive/%s.zip";
+    private final static String TAG_ZIP_URL = "https://github.com%s/archive/%s.zip";
 
     /**
      * List full tags

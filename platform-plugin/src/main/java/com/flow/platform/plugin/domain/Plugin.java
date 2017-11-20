@@ -16,13 +16,18 @@
 
 package com.flow.platform.plugin.domain;
 
+import com.flow.platform.plugin.service.PluginService;
 import com.google.gson.annotations.Expose;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
 public class Plugin {
+
+    public final static EnumSet<PluginStatus> RUNNING_AND_FINISH_STATUS = EnumSet
+        .of(PluginStatus.INSTALLING, PluginStatus.INSTALLED);
 
     //plugin name
     @Expose
@@ -45,7 +50,8 @@ public class Plugin {
     private List<String> platform;
 
     // plugin status
-    private PluginStatus status;
+    @Expose
+    private PluginStatus status = PluginStatus.PENDING;
 
     public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
         this.name = name;
@@ -89,6 +95,14 @@ public class Plugin {
 
     public List<String> getPlatform() {
         return platform;
+    }
+
+    public PluginStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PluginStatus status) {
+        this.status = status;
     }
 
     public void setPlatform(List<String> platform) {
