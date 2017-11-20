@@ -42,6 +42,7 @@ public class NodeCrontabServiceTest extends TestBase {
     @Before
     public void before() {
         stubDemo();
+        flowCrontabService.cleanTriggers();
     }
 
     @Test

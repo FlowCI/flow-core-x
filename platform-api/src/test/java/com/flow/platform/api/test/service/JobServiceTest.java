@@ -32,6 +32,8 @@ import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
@@ -42,10 +44,14 @@ import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yh@firim
@@ -54,6 +60,9 @@ public class JobServiceTest extends TestBase {
 
     @Autowired
     private JobNodeService jobNodeService;
+
+    @Autowired
+    private PlatformQueue<PriorityMessage> cmdCallbackQueue;
 
     @Before
     public void init() {
@@ -300,5 +309,29 @@ public class JobServiceTest extends TestBase {
         List<Job> jobs = jobService.list(rootPath, true);
         Assert.assertEquals(1, jobs.size());
         Assert.assertEquals("2", jobs.get(0).getNumber().toString());
+    }
+
+    @Test
+    public void should_cmd_enqueue_limit_times_success() throws InterruptedException {
+        Cmd cmd = new Cmd("default", "test", CmdType.RUN_SHELL, "echo 1");
+        CountDownLatch countDownLatch = new CountDownLatch(5);
+        AtomicInteger atomicInteger = new AtomicInteger(0);
+
+        // register new queue to get item info
+        cmdCallbackQueue.register(message -> {
+            CmdCallbackQueueItem item = CmdCallbackQueueItem.parse(message.getBody(), CmdCallbackQueueItem.class);
+            atomicInteger.set(item.getRetryTimes());
+            countDownLatch.countDown();
+        });
+
+        // when: enter queue one not found job id
+        jobService.enterQueue(new CmdCallbackQueueItem(CommonUtil.randomId(), cmd), 1);
+        countDownLatch.await(6, TimeUnit.SECONDS);
+
+        // then: should try 5 times
+        Assert.assertEquals(1, atomicInteger.get());
+
+        // then: cmdCallbackQueue size should 0
+        Assert.assertEquals(0, cmdCallbackQueue.size());
     }
 }
