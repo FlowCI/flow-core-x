@@ -16,11 +16,11 @@
 
 package com.flow.platform.core.test.sysinfo;
 
-import com.flow.platform.core.queue.InMemoryQueue;
-import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.MemoryQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.RabbitQueue;
 import com.flow.platform.core.util.ThreadUtil;
+import com.flow.platform.queue.PlatformQueue;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -40,7 +40,7 @@ public class TestConfig {
 
     @Bean
     public PlatformQueue<PriorityMessage> inMemoryQueue() {
-        return new InMemoryQueue<>(executor, 1, "testInMemoryQueue");
+        return new MemoryQueue(executor, 1, "testInMemoryQueue");
     }
 
     @Bean
