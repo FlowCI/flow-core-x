@@ -51,7 +51,7 @@ public class FlowCrontabEnvHandlerTest extends TestBase {
     @Test
     public void should_handle_crontab_variable() throws Throwable {
         Node node = new Node("flow", "flow");
-        node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT, "0 0/30 * * * ?");
+        node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT, "0/30 * * * ?");
         node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH, "master");
 
         EnvHandler envHandler = handlerMap.get(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT);
@@ -61,7 +61,7 @@ public class FlowCrontabEnvHandlerTest extends TestBase {
     @Test(expected = IllegalParameterException.class)
     public void should_raise_exception_when_missing_dependent_env_var() throws Throwable {
         Node node = new Node("flow", "flow");
-        node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT, "* * * * * ?");
+        node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT, "* * * * ?");
 
         EnvHandler envHandler = handlerMap.get(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT);
         envHandler.handle(node);
@@ -70,7 +70,7 @@ public class FlowCrontabEnvHandlerTest extends TestBase {
     @Test(expected = IllegalParameterException.class)
     public void should_raise_exception_when_incorrect_crontab_format() throws Throwable {
         Node node = new Node("flow", "flow");
-        node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT, "* * * * * *");
+        node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT, "* * * * *");
         node.putEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH, "master");
 
         EnvHandler envHandler = handlerMap.get(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT);

@@ -23,6 +23,7 @@ import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.core.queue.InMemoryQueue;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
@@ -34,15 +35,12 @@ import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -136,7 +134,7 @@ public class AppConfig extends AppConfigBase {
      * Queue to process cmd callback task
      */
     @Bean
-    public PlatformQueue<CmdCallbackQueueItem> cmdCallbackQueue() {
+    public PlatformQueue<PriorityMessage> cmdCallbackQueue() {
         return new InMemoryQueue<>(executor, 50, "CmdCallbackQueue");
     }
 

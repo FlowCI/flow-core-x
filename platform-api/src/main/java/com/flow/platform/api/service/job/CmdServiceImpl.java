@@ -16,10 +16,11 @@
 
 package com.flow.platform.api.service.job;
 
-import com.flow.platform.api.envs.AgentEnvs;
-import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.envs.AgentEnvs;
+import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -100,15 +101,15 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public CmdInfo runShell(Job job, Node node, String cmdId) {
+    public CmdInfo runShell(Job job, Node node, String cmdId, EnvObject envVars) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
-        cmdInfo.setInputs(node.getEnvs());
+        cmdInfo.setInputs(envVars.getEnvs());
         cmdInfo.setWebhook(buildCmdWebhook(job));
-        cmdInfo.setOutputEnvFilter(job.getEnv(FlowEnvs.FLOW_ENV_OUTPUT_PREFIX, "FLOW_OUTPUT"));
+        cmdInfo.setOutputEnvFilter(envVars.getEnv(FlowEnvs.FLOW_ENV_OUTPUT_PREFIX, "FLOW_OUTPUT"));
         cmdInfo.setSessionId(job.getSessionId());
         cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
         cmdInfo.setCustomizedId(cmdId);
-        cmdInfo.setWorkingDir(job.getEnv(AgentEnvs.FLOW_AGENT_WORKSPACE, null));
+        cmdInfo.setWorkingDir(envVars.getEnv(AgentEnvs.FLOW_AGENT_WORKSPACE, null));
 
         try {
             LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());

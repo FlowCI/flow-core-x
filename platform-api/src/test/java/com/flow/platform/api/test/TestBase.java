@@ -35,13 +35,22 @@ import com.flow.platform.api.dao.user.RoleDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.dao.user.UserFlowDao;
 import com.flow.platform.api.dao.user.UserRoleDao;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobCategory;
+import com.flow.platform.api.domain.job.JobStatus;
+import com.flow.platform.api.domain.job.NodeResult;
+import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.GitEnvs;
+import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.initializers.Initializer;
+import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
@@ -58,10 +67,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
@@ -163,6 +174,9 @@ public abstract class TestBase {
 
     @Autowired
     private User superUser;
+
+    @Autowired
+    private JobNodeService jobNodeService;
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
@@ -292,6 +306,38 @@ public abstract class TestBase {
     @AfterClass
     public static void afterClass() throws IOException {
         FileSystemUtils.deleteRecursively(WORKSPACE.toFile());
+    }
+
+    protected Job createMockJob(String nodePath) {
+        // create job
+        Job job = jobService.createFromFlowYml(nodePath, JobCategory.TAG, null, mockUser);
+        Assert.assertNotNull(job.getId());
+        Assert.assertNotNull(job.getSessionId());
+        Assert.assertNotNull(job.getNumber());
+        Assert.assertEquals(mockUser.getEmail(), job.getCreatedBy());
+        Assert.assertEquals(JobStatus.SESSION_CREATING, job.getStatus());
+
+        Assert.assertEquals(job.getNumber().toString(), job.getEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER));
+
+        // verify root node result for job
+        NodeResult rootResult = job.getRootResult();
+        Assert.assertNotNull(rootResult);
+        Assert.assertEquals(NodeTag.FLOW, rootResult.getNodeTag());
+        Assert.assertNotNull(rootResult.getOutputs());
+        Assert.assertEquals(NodeStatus.PENDING, rootResult.getStatus());
+
+        NodeTree nodeTree = jobNodeService.get(job);
+
+        // verify child node result list
+        List<NodeResult> childrenResult = job.getChildrenResult();
+        Assert.assertNotNull(childrenResult);
+        Assert.assertEquals(nodeTree.childrenSize(), childrenResult.size());
+
+        return job;
+    }
+
+    protected Job reload(Job job) {
+        return jobService.find(job.getNodePath(), job.getNumber());
     }
 
 }

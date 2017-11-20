@@ -16,14 +16,13 @@
 
 package com.flow.platform.cc.config;
 
-import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.core.queue.InMemoryQueue;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.RabbitQueue;
-import com.flow.platform.domain.AgentPath;
 import com.flow.platform.util.Logger;
+import com.google.common.collect.Range;
 import javax.annotation.PostConstruct;
-import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -38,9 +37,22 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration
 public class QueueConfig {
 
-    public final static int CMD_QUEUE_MAX_LENGTH = 100;
+    public final static int QUEUE_MAX_LENGTH = 100;
 
-    public final static int CMD_QUEUE_DEFAULT_PRIORITY = 10;
+    /**
+     * Default queue priority
+     */
+    public final static int DEFAULT_PRIORITY = 1;
+
+    /**
+     * The max queue priority for special case like retry
+     */
+    public final static int MAX_PRIORITY = 100;
+
+    /**
+     * The priority range for queue
+     */
+    public final static Range PRIORITY_RANGE = Range.closed(1, 10);
 
     public final static String PROP_CMD_QUEUE_RETRY = "queue.cmd.retry.enable";
 
@@ -95,29 +107,21 @@ public class QueueConfig {
     }
 
     @Bean
-    public PlatformQueue<Message> cmdQueue() {
+    public PlatformQueue<PriorityMessage> cmdQueue() {
         if (cmdQueueRabbitEnable) {
             LOGGER.trace("Apply RabbitMQ for cmd queue");
-            return new RabbitQueue(taskExecutor, host, CMD_QUEUE_MAX_LENGTH, CMD_QUEUE_DEFAULT_PRIORITY, cmdQueueName);
+            return new RabbitQueue(taskExecutor, host, QUEUE_MAX_LENGTH, DEFAULT_PRIORITY, cmdQueueName);
         }
 
         LOGGER.trace("Apply in memory queue for cmd queue");
-        return new InMemoryQueue<>(taskExecutor, CMD_QUEUE_MAX_LENGTH, "CmdQueue");
-    }
-
-    /**
-     * Queue to handle agent report online in sync
-     */
-    @Bean
-    public PlatformQueue<AgentPath> agentReportQueue() {
-        return new InMemoryQueue<>(taskExecutor, 100, "AgentReportQueue");
+        return new InMemoryQueue<>(taskExecutor, QUEUE_MAX_LENGTH, "CmdQueue");
     }
 
     /**
      * Queue to handle cmd status update
      */
     @Bean
-    public PlatformQueue<CmdStatusItem> cmdStatusQueue() {
-        return new InMemoryQueue<>(taskExecutor, 100, "CmdStatusQueue");
+    public PlatformQueue<PriorityMessage> cmdStatusQueue() {
+        return new InMemoryQueue<>(taskExecutor, QUEUE_MAX_LENGTH, "CmdStatusQueue");
     }
 }

@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service.job;
 
+import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -48,7 +49,7 @@ public interface CmdService {
      * @return CmdInfo instance
      * @throws IllegalStatusException throw cmd cannot be sent
      */
-    CmdInfo runShell(Job job, Node node, String cmdId);
+    CmdInfo runShell(Job job, Node node, String cmdId, EnvObject envVars);
 
     /**
      * Send shutdown cmd to agent, and shutdown host machine

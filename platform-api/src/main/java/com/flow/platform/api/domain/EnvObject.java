@@ -17,11 +17,12 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.api.envs.EnvKey;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.EnvValue;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -29,11 +30,18 @@ import java.util.Map;
  *
  * @author yang
  */
-public abstract class EnvObject extends Jsonable {
+public class EnvObject extends Jsonable {
 
     @YmlSerializer(required = false)
     @Expose
-    protected Map<String, String> envs = new HashMap<>();
+    protected Map<String, String> envs = new LinkedHashMap<>();
+
+    public EnvObject() {
+    }
+
+    public EnvObject(Map<String, String> envs) {
+        this.envs = envs;
+    }
 
     public Map<String, String> getEnvs() {
         return envs;
@@ -80,6 +88,10 @@ public abstract class EnvObject extends Jsonable {
 
     public void putEnv(EnvKey key, String value) {
         envs.put(key.name(), value);
+    }
+
+    public void putAll(Map<String, String> envs) {
+        EnvUtil.merge(envs, this.envs, true);
     }
 
     public void removeEnv(EnvKey key) {

@@ -23,7 +23,6 @@ import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -45,7 +44,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -81,9 +79,6 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
     @Autowired
     private AgentSettings agentSettings;
-
-    @Autowired
-    private PlatformQueue<AgentPath> agentReportQueue;
 
     @Override
     public void report(AgentPath path, AgentStatus status) {
@@ -165,6 +160,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
 
         agent.setStatus(status);
         agentDao.update(agent);
+        LOGGER.trace("Agent status been updated to '%s'", status);
 
         // send webhook if status changed
         if (statusIsChanged) {
@@ -235,10 +231,10 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     }
 
     @Override
-    public void delete(Agent agent){
+    public void delete(Agent agent) {
         try {
             agentDao.delete(agent);
-        } catch (Throwable e){
+        } catch (Throwable e) {
             throw new UnsupportedOperationException("delete agent failure " + e.getMessage());
         }
 
@@ -260,7 +256,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
             for (Agent agent : agents) {
                 if (agent.getSessionId() != null && isSessionTimeout(agent, now, zone.getAgentSessionTimeout())) {
                     Cmd delSessionCmd = cmdService.create(new CmdInfo(agent.getPath(), CmdType.DELETE_SESSION, null));
-                    cmdDispatchService.dispatch(delSessionCmd.getId(), false);
+                    cmdDispatchService.dispatch(delSessionCmd);
                     LOGGER.traceMarker("sessionTimeoutTask", "Send DELETE_SESSION to agent %s", agent);
                 }
             }

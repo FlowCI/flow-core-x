@@ -24,15 +24,21 @@ import com.flow.platform.api.domain.credential.IosCredentialDetail;
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.envs.GitEnvs;
+import com.flow.platform.api.exception.NodeSettingsException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.StringUtil;
+import com.flow.platform.util.git.model.GitSource;
+import com.google.common.base.Strings;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +99,53 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
     @Override
     public boolean existed(String name) {
         return credentialDao.get(name) != null;
+    }
+
+    @Override
+    public Map<String, String> find(Node node) {
+        String rsaOrUsernameCredentialName = node.getEnv(GitEnvs.FLOW_GIT_CREDENTIAL);
+
+        if (Strings.isNullOrEmpty(rsaOrUsernameCredentialName)) {
+            return Collections.emptyMap();
+        }
+
+        try {
+            Credential credential = find(rsaOrUsernameCredentialName);
+            CredentialType credentialType = credential.getType();
+
+            // for git ssh client needs rsa credential
+            if (credentialType.equals(CredentialType.RSA)) {
+                if (!node.getEnv(GitEnvs.FLOW_GIT_SOURCE).equals(GitSource.UNDEFINED_SSH.name())) {
+                    throw new NodeSettingsException("The SSH git source need RSA credential");
+                }
+
+                RSACredentialDetail credentialDetail = (RSACredentialDetail) credential.getDetail();
+
+                Map<String, String> envs = new HashMap<>(2);
+                envs.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), credentialDetail.getPrivateKey());
+                envs.put(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY.name(), credentialDetail.getPublicKey());
+                return envs;
+            }
+
+            // for git http client needs username credential
+            if (credentialType.equals(CredentialType.USERNAME)) {
+                if (!node.getEnv(GitEnvs.FLOW_GIT_SOURCE).equals(GitSource.UNDEFINED_HTTP.name())) {
+                    throw new NodeSettingsException("The HTTP git source need USERNAME credential");
+                }
+
+                UsernameCredentialDetail credentialDetail = (UsernameCredentialDetail) credential.getDetail();
+
+                Map<String, String> envs = new HashMap<>(2);
+                envs.put(GitEnvs.FLOW_GIT_HTTP_USER.name(), credentialDetail.getUsername());
+                envs.put(GitEnvs.FLOW_GIT_HTTP_PASS.name(), credentialDetail.getPassword());
+                return envs;
+            }
+
+        } catch (IllegalParameterException ignore) {
+            // credential not found
+        }
+
+        return Collections.emptyMap();
     }
 
     @Override

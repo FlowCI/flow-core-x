@@ -17,12 +17,13 @@
 package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.Jsonable;
 import java.math.BigInteger;
 
 /**
  * @author yh@firim
  */
-public class CmdCallbackQueueItem {
+public class CmdCallbackQueueItem extends Jsonable {
 
     private final BigInteger jobId;
 
@@ -30,12 +31,17 @@ public class CmdCallbackQueueItem {
 
     private final Cmd cmd;
 
-    private Integer retryTimes = 0;
+    // default retry times 5
+    private Integer retryTimes = 5;
 
     public CmdCallbackQueueItem(BigInteger jobId, Cmd cmd) {
         this.jobId = jobId;
         this.cmd = cmd;
         this.path = cmd.getExtra();
+    }
+
+    public void setRetryTimes(Integer retryTimes) {
+        this.retryTimes = retryTimes;
     }
 
     public BigInteger getJobId() {

@@ -21,6 +21,7 @@ import com.flow.platform.cc.event.AgentResourceEvent;
 import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.service.ZoneService;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.util.Logger;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class AgentResourceEventHandler implements ApplicationListener<AgentResou
     private ZoneService zoneService;
 
     @Autowired
-    private PlatformQueue<Message> cmdQueue;
+    private PlatformQueue<PriorityMessage> cmdQueue;
 
     @Value("${queue.cmd.retry.enable}")
     private Boolean cmdQueueRetryEnable;

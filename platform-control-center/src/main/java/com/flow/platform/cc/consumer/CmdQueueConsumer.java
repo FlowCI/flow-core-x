@@ -17,7 +17,6 @@
 package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.config.QueueConfig;
-import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdDispatchService;
@@ -25,7 +24,9 @@ import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.queue.QueueListener;
+import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.util.Logger;
@@ -33,10 +34,6 @@ import com.flow.platform.util.zk.ZkException;
 import java.time.Duration;
 import java.time.Instant;
 import javax.annotation.PostConstruct;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -47,9 +44,11 @@ import org.springframework.stereotype.Component;
  * @author gy@fir.im
  */
 @Component
-public class CmdQueueConsumer implements QueueListener<Message> {
+public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
 
     private final static Logger LOGGER = new Logger(CmdQueueConsumer.class);
+
+    private final static long RETRY_WAIT_TIME = 1000; // in millis
 
     @Value("${queue.cmd.idle_agent.period}")
     private Integer idleAgentPeriod; // period for check idle agent in seconds
@@ -67,7 +66,7 @@ public class CmdQueueConsumer implements QueueListener<Message> {
     private AgentService agentService;
 
     @Autowired
-    private PlatformQueue<Message> cmdQueue;
+    private PlatformQueue<PriorityMessage> cmdQueue;
 
     @PostConstruct
     public void init() {
@@ -75,28 +74,24 @@ public class CmdQueueConsumer implements QueueListener<Message> {
     }
 
     @Override
-    public void onQueueItem(Message message) {
-        CmdQueueItem item = CmdQueueItem.parse(message.getBody(), CmdQueueItem.class);
-        String cmdId = item.getCmdId();
-        LOGGER.trace("Receive a cmd queue item: %s", item);
+    public void onQueueItem(PriorityMessage message) {
+        String cmdId = new String(message.getBody());
+        LOGGER.trace("Receive a cmd queue item: %s", cmdId);
+
+        Cmd cmd = cmdService.find(cmdId);
 
         try {
-            cmdDispatchService.dispatch(cmdId, false);
+            cmdDispatchService.dispatch(cmd);
         } catch (IllegalParameterException e) {
             LOGGER.warn("Illegal cmd id: %s", e.getMessage());
         } catch (IllegalStatusException e) {
             LOGGER.warn("Illegal cmd status: %s", e.getMessage());
         } catch (AgentErr.NotAvailableException | AgentErr.NotFoundException | ZkException.NotExitException e) {
-            if (item.getRetry() <= 0) {
+            if (cmd.getRetry() <= 0) {
                 return;
             }
 
-            boolean isTimeout = waitForIdleAgent(cmdId, idleAgentPeriod, idleAgentTimeout);
-            if (isTimeout) {
-                LOGGER.trace("wait for idle agent time out %s seconds for cmd %s", idleAgentTimeout, cmdId);
-            }
-
-            Cmd cmd = cmdService.find(cmdId);
+            cmd = cmdService.find(cmdId);
 
             // do not re-enqueue if cmd been stopped or killed
             if (cmd.getStatus() == CmdStatus.STOPPED || cmd.getStatus() == CmdStatus.KILLED) {
@@ -104,13 +99,13 @@ public class CmdQueueConsumer implements QueueListener<Message> {
             }
 
             // reset cmd status to pending, record num of retry
-            int retry = item.getRetry() - 1;
+            int retry = cmd.getRetry() - 1;
             cmd.setStatus(CmdStatus.PENDING);
             cmd.setRetry(retry);
             cmdService.save(cmd);
 
             // re-enqueue
-            resend(item, retry);
+            resend(cmd.getId(), retry);
 
         } catch (Throwable e) {
             LOGGER.error("Unexpected exception", e);
@@ -118,57 +113,18 @@ public class CmdQueueConsumer implements QueueListener<Message> {
     }
 
     /**
-     * Block current thread and check idle agent
-     *
-     * @param cmdId cmd id
-     * @param period check idle agent period in seconds
-     * @param timeout timeout in seconds
-     * @return is time out exit or not
-     */
-    private boolean waitForIdleAgent(String cmdId, int period, int timeout) {
-        Instant now = Instant.now();
-
-        while (true) {
-            if (Duration.between(now, Instant.now()).toMillis() >= timeout * 1000) {
-                return true;
-            }
-
-            try {
-                Thread.sleep(period * 1000);
-            } catch (InterruptedException ignore) {
-            }
-
-            String zone = cmdService.find(cmdId).getZoneName();
-            int numOfIdle = agentService.findAvailable(zone).size();
-            if (numOfIdle > 0) {
-                LOGGER.trace("has %s idle agent", numOfIdle);
-                return false;
-            }
-        }
-    }
-
-    /**
      * Re-enqueue cmd and return num of retry
      */
-    private void resend(final CmdQueueItem item, final int retry) {
+    private void resend(final String cmdId, final int retry) {
         if (retry <= 0) {
             return;
         }
 
-        item.setPriority(QueueConfig.CMD_QUEUE_DEFAULT_PRIORITY);
-        item.setRetry(retry);
-
-        try {
-            Thread.sleep(1000); // wait 1 seconds and enqueue again with priority
-        } catch (InterruptedException ignore) {
-            // do nothing
-        }
+        ThreadUtil.sleep(RETRY_WAIT_TIME);
 
         // reset cmd status
-        MessageProperties properties = new MessageProperties();
-        properties.setPriority(item.getPriority());
-        Message message = new Message(item.toBytes(), properties);
+        PriorityMessage message = PriorityMessage.create(cmdId.getBytes(), QueueConfig.MAX_PRIORITY);
         cmdQueue.enqueue(message);
-        LOGGER.trace("Re-enqueue item %s", item);
+        LOGGER.trace("Re-enqueue item %s", cmdId);
     }
 }

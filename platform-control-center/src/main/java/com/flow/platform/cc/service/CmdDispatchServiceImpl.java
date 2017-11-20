@@ -100,15 +100,9 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
 
     @Override
     @Transactional(noRollbackFor = {Throwable.class})
-    public Cmd dispatch(String cmdId, boolean reset) {
-        Cmd cmd = cmdService.find(cmdId);
+    public Cmd dispatch(Cmd cmd) {
         if (cmd == null) {
-            throw new IllegalParameterException(String.format("Cmd '%s' does not exist", cmdId));
-        }
-
-        // reset cmd status to pending
-        if (reset) {
-            cmd.setStatus(CmdStatus.PENDING);
+            throw new IllegalParameterException("Cmd is null while dispatching");
         }
 
         // do not run cmd if not in working status
@@ -165,7 +159,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         for (Cmd cmd : workingCmdList) {
             if (cmd.isCmdTimeout()) {
                 Cmd killCmd = cmdService.create(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
-                dispatch(killCmd.getId(), false);
+                dispatch(killCmd);
                 LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
 
                 // update cmd status via queue
@@ -201,11 +195,11 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
     private void cleanCurrentCmd(Cmd current) {
         if (Strings.isNullOrEmpty(current.getSessionId())) {
             Cmd cmdToKill = cmdService.create(new CmdInfo(current.getAgentPath(), CmdType.KILL, null));
-            dispatch(cmdToKill.getId(), false);
+            dispatch(cmdToKill);
         } else {
             Agent agent = agentService.find(current.getAgentPath());
             Cmd cmdToDelSession = createDeleteSessionCmd(agent);
-            dispatch(cmdToDelSession.getId(), false);
+            dispatch(cmdToDelSession);
         }
     }
 
@@ -323,15 +317,12 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
                 return;
             }
 
-            List<Cmd> runningCmdForSession = getRunningCmd(target.getSessionId());
-
-            // kill current running cmd
-            for (Cmd runningCmd : runningCmdForSession) {
+            // kill current running cmd and update agent status from cmd callback
+            for (Cmd runningCmd : getRunningCmd(target.getSessionId())) {
                 Cmd killCmd = cmdService.create(new CmdInfo(runningCmd.getAgentPath(), CmdType.KILL, null));
                 handler.get(CmdType.KILL).exec(killCmd);
             }
 
-            // release session from target
             target.setSessionId(null);
             agentService.saveWithStatus(target, AgentStatus.IDLE);
         }

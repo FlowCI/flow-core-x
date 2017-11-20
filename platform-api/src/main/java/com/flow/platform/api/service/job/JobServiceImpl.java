@@ -27,6 +27,7 @@ import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
@@ -43,6 +44,7 @@ import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.git.GitEventEnvConverter;
+import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
@@ -54,6 +56,7 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
@@ -107,7 +110,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private JobNodeService jobNodeService;
 
     @Autowired
-    private PlatformQueue<CmdCallbackQueueItem> cmdCallbackQueue;
+    private PlatformQueue<PriorityMessage> cmdCallbackQueue;
 
     @Autowired
     private JobDao jobDao;
@@ -129,6 +132,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     @Autowired
     private NodeResultDao nodeResultDao;
+
+    @Autowired
+    private CredentialService credentialService;
 
     @Autowired
     private JobYmlDao jobYmlDao;
@@ -326,6 +332,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.setUpdatedAt(ZonedDateTime.now());
 
         // setup job env variables
+        job.putEnv(FlowEnvs.FLOW_NAME, root.getName());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
         job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
@@ -356,17 +363,23 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return;
         }
 
-        // pass job env to node
-        EnvUtil.merge(job.getEnvs(), node.getEnvs(), false);
+        // create env vars instance which will pass to agent
+        EnvObject envVars = new EnvObject();
+        envVars.putAll(job.getEnvs());
 
         // pass root node output to current node
         NodeResult rootResult = nodeResultService.find(tree.root().getPath(), job.getId());
-        EnvUtil.merge(rootResult.getOutputs(), node.getEnvs(), false);
+        envVars.putAll(rootResult.getOutputs());
 
         // to run node with customized cmd id
         try {
             NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
-            CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId());
+
+            Map<String, String> credentialEnvs = credentialService.find(node);
+            EnvUtil.keepNewlineForEnv(credentialEnvs, null);
+            envVars.putAll(credentialEnvs);
+
+            CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
         } catch (IllegalStatusException e) {
             CmdInfo rawCmd = (CmdInfo) e.getData();
             rawCmd.setStatus(CmdStatus.EXCEPTION);
@@ -449,8 +462,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public void enterQueue(CmdCallbackQueueItem cmdQueueItem) {
-        cmdCallbackQueue.enqueue(cmdQueueItem);
+    public void enterQueue(CmdCallbackQueueItem cmdQueueItem, int priority) {
+        cmdCallbackQueue.enqueue(PriorityMessage.create(cmdQueueItem.toBytes(), priority));
     }
 
     @Override
@@ -649,14 +662,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         LOGGER.trace("job timeout task start");
 
-        // create session job timeout 6s time out
+        // job timeout on create session
         ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutCreateSessionDuration);
         List<Job> jobs = jobDao.listForExpired(finishZoneDateTime, JobStatus.SESSION_CREATING);
         for (Job job : jobs) {
             updateJobAndNodeResultTimeout(job);
         }
 
-        // running job timeout 1h time out
+        // job timeout on running
         ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutRunningDuration);
         List<Job> runningJobs = jobDao.listForExpired(finishRunningZoneDateTime, JobStatus.RUNNING);
         for (Job job : runningJobs) {

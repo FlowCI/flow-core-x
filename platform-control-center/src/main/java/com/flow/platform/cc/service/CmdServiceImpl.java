@@ -24,16 +24,17 @@ import static com.flow.platform.domain.CmdType.SHUTDOWN;
 import static com.flow.platform.domain.CmdType.STOP;
 
 import com.flow.platform.cc.config.AppConfig;
+import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdLogDao;
 import com.flow.platform.cc.dao.CmdResultDao;
-import com.flow.platform.cc.domain.CmdQueueItem;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -55,6 +56,7 @@ import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,7 +87,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     private ZoneService zoneService;
 
     @Autowired
-    private PlatformQueue<CmdStatusItem> cmdStatusQueue;
+    private PlatformQueue<PriorityMessage> cmdStatusQueue;
 
     @Autowired
     private CmdDao cmdDao;
@@ -96,8 +98,11 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     @Autowired
     private AgentDao agentDao;
 
+    /**
+     * The queue item is cmd id as string
+     */
     @Autowired
-    private PlatformQueue<Message> cmdQueue;
+    private PlatformQueue<PriorityMessage> cmdQueue;
 
     @Autowired
     private CmdLogDao cmdLogDao;
@@ -202,11 +207,8 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     @Transactional(propagation = Propagation.NEVER)
     public Cmd enqueue(CmdInfo cmdInfo, int priority, int retry) {
         Cmd cmd = create(cmdInfo, retry);
-
-        CmdQueueItem item = new CmdQueueItem(cmd.getId(), priority, retry);
-        MessageProperties properties = new MessageProperties();
-        properties.setPriority(item.getPriority());
-        cmdQueue.enqueue(new Message(item.toBytes(), properties));
+        PriorityMessage message = PriorityMessage.create(cmd.getId().getBytes(), priority);
+        cmdQueue.enqueue(message);
 
         return cmd;
     }
@@ -215,7 +217,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     public void updateStatus(CmdStatusItem statusItem, boolean inQueue) {
         if (inQueue) {
             LOGGER.trace("Report cmd status from queue: %s", statusItem.getCmdId());
-            cmdStatusQueue.enqueue(statusItem);
+            cmdStatusQueue.enqueue(PriorityMessage.create(statusItem.toBytes(), QueueConfig.DEFAULT_PRIORITY));
             return;
         }
 
@@ -229,6 +231,8 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         //TODO: missing unit test
         // set cmd status in sequence
         if (!cmd.addStatus(statusItem.getStatus())) {
+            LOGGER.warn("Cannot add cmd '%s' from '%s' status to '%s'",
+                cmd.getId(), cmd.getStatus(), statusItem.getStatus());
             return;
         }
 
@@ -273,20 +277,19 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
     /**
      * Update agent status when report cmd status and result
+     * - DONOT update agent status if cmd with session, since it controlled by session cmd
      * - busy or idle by Cmd.Type.RUN_SHELL while report cmd status
      *
      * @param cmd Cmd object
      */
     private void updateAgentStatusFromCmd(Cmd cmd) {
-        // do not update agent status duration session
-        String sessionId = cmd.getSessionId();
-        if (sessionId != null && agentService.find(sessionId) != null) {
+        if (cmd.hasSession()) {
             return;
         }
 
-        // update agent status by cmd status
         AgentPath agentPath = cmd.getAgentPath();
         boolean isAgentBusy = false;
+
         for (Cmd tmp : listByAgentPath(agentPath)) {
             if (tmp.getType() != CmdType.RUN_SHELL) {
                 continue;

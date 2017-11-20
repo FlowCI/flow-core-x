@@ -21,8 +21,15 @@ import com.flow.platform.agent.Config;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.zk.ZKClient;
+import com.flow.platform.util.zk.ZkException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.ZKUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -31,10 +38,6 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author gy@fir.im
@@ -102,6 +105,7 @@ public class AgentManagerTest extends TestBase {
 
     @After
     public void after() throws Throwable {
+        zkClient.delete(ZKPaths.makePath(ZK_ROOT, ZONE, MACHINE), true);
         zkClient.close();
     }
 

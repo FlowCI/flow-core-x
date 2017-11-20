@@ -16,23 +16,35 @@
 
 package com.flow.platform.api.test.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
+import com.flow.platform.api.service.job.JobNodeService;
+import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.response.ResponseError;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.StringUtil;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
@@ -45,6 +57,9 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
 
     private final String flowName = "flow_default";
 
+    @Autowired
+    private JobNodeService jobNodeService;
+
     @Before
     public void initToCreateEmptyFlow() throws Throwable {
         MockHttpServletRequestBuilder request = post("/flows/" + flowName)
@@ -55,6 +70,7 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
         Assert.assertNotNull(flowNode);
         Assert.assertNotNull(flowNode.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
         Assert.assertEquals("PENDING", flowNode.getEnv(FlowEnvs.FLOW_STATUS));
+        stubDemo();
     }
 
     @Test
@@ -66,6 +82,48 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
         Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
         Assert.assertNotNull(flowNode);
         Assert.assertEquals(flowName, flowNode.getName());
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void should_delete_flow_success() throws Exception {
+        String flow = "flow1";
+
+        // mock user
+        setCurrentUser(mockUser);
+
+        Node rootForFlow = createRootFlow(flow, "demo_flow2.yaml");
+        Job job = createMockJob(rootForFlow.getPath());
+
+        NodeTree nodeTree = nodeService.find("flow1");
+        Node stepFirst = nodeTree.find(flow + "/step1");
+
+        // first create session success
+        final String sessionId = CommonUtil.randomId().toString();
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setSessionId(sessionId);
+        cmd.setStatus(CmdStatus.SENT);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+        job = reload(job);
+
+        // first step should running
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, stepFirst.getScript());
+        cmd.setStatus(CmdStatus.RUNNING);
+        cmd.setType(CmdType.RUN_SHELL);
+        cmd.setExtra(stepFirst.getPath());
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+
+        job = reload(job);
+        Assert.assertEquals(NodeStatus.RUNNING, job.getRootResult().getStatus());
+
+        // delete flow
+        MvcResult result = mockMvc.perform(delete("/flows/" + flow))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        Assert.assertNotNull(result.getResponse());
+
+        // job should delete
+        reload(job);
     }
 
     @Test

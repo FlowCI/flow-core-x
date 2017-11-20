@@ -18,6 +18,8 @@ package com.flow.platform.api.test.service;
 import static junit.framework.TestCase.fail;
 
 import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.envs.EnvUtil;
@@ -30,6 +32,7 @@ import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.http.HttpURL;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -194,7 +197,8 @@ public class NodeServiceTest extends TestBase {
         // then:
         String webhook = HttpURL.build(apiDomain).append("/hooks/git").append(emptyFlow.getName()).toString();
         Node loaded = nodeService.find("flow1").root();
-        Assert.assertEquals(15, loaded.getEnvs().size());
+        Assert.assertEquals(16, loaded.getEnvs().size());
+        Assert.assertEquals("flow1", loaded.getEnv(FlowEnvs.FLOW_NAME));
         Assert.assertEquals("hello", loaded.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", loaded.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", loaded.getEnv("FLOW_NEW_3"));
@@ -213,7 +217,7 @@ public class NodeServiceTest extends TestBase {
 
         // check env been sync with yml
         Node flow = flowDao.get("flow1");
-        Assert.assertEquals(15, flow.getEnvs().size());
+        Assert.assertEquals(16, flow.getEnvs().size());
         Assert.assertEquals("hello", flow.getEnv("FLOW_NEW_1"));
         Assert.assertEquals("world", flow.getEnv("FLOW_NEW_2"));
         Assert.assertEquals("done", flow.getEnv("FLOW_NEW_3"));
@@ -254,8 +258,10 @@ public class NodeServiceTest extends TestBase {
         ymlService.get(root);
     }
 
-    @Test
+    @Test(expected = NotFoundException.class)
     public void should_delete_flow() throws Throwable {
+        stubDemo();
+
         Node emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
 
@@ -264,6 +270,12 @@ public class NodeServiceTest extends TestBase {
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
         Assert.assertNotNull(ymlService.get(root).getFile());
+
+        setRequiredJobEnvsForFlow(root);
+        Job job = createMockJob(root.getPath());
+
+        Assert.assertNotNull(jobService.find(job.getId()));
+        Assert.assertEquals(2, nodeResultService.list(job, true).size());
 
         // when: delete flow
         nodeService.delete(root.getPath());
@@ -274,5 +286,36 @@ public class NodeServiceTest extends TestBase {
 
         // then: should return null if root node is not existed
         Assert.assertNull(ymlService.get(root));
+
+        // then: node result should be null
+        List<NodeResult> nodeResults = nodeResultService.list(job, true);
+        Assert.assertEquals(0, nodeResults.size());
+
+        // then: job should be null
+        jobService.find(job.getId());
+    }
+
+    @Test
+    public void should_create_flow_success() {
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow-test"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow_test"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow_12est"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow12est"));
+        Assert.assertNotNull(nodeService.createEmptyFlow("flow"));
+    }
+
+    @Test(expected = IllegalParameterException.class)
+    public void should_create_flow_error() {
+        // not start with _
+        nodeService.createEmptyFlow("_flow-test");
+
+        // not start with -
+        nodeService.createEmptyFlow("-flow-test");
+
+        // not include .
+        nodeService.createEmptyFlow("flow.test");
+
+        // not include 3 keys
+        nodeService.createEmptyFlow("flw");
     }
 }

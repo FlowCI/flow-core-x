@@ -16,6 +16,7 @@
 
 package com.flow.platform.cc.controller;
 
+import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
@@ -68,12 +69,12 @@ public class CmdController {
     @PostMapping(path = "/send")
     public Cmd sendCommand(@RequestBody CmdInfo cmd) {
         Cmd cmdToExec = cmdService.create(cmd);
-        return cmdDispatchService.dispatch(cmdToExec.getId(), false);
+        return cmdDispatchService.dispatch(cmdToExec);
     }
 
     @PostMapping(path = "/queue/send")
     public Cmd sendCommandToQueue(@RequestBody CmdInfo cmd, @RequestParam int priority, @RequestParam int retry) {
-        if (!Range.closed(1, 10).contains(priority)) {
+        if (!QueueConfig.PRIORITY_RANGE.contains(priority)) {
             throw new IllegalParameterException("Illegal priority value should between (1 - 10)");
         }
 
