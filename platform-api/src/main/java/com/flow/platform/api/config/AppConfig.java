@@ -16,15 +16,15 @@
 
 package com.flow.platform.api.config;
 
-import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
-import com.flow.platform.core.queue.InMemoryQueue;
-import com.flow.platform.core.queue.PlatformQueue;
+import com.flow.platform.core.queue.MemoryQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
+import com.flow.platform.queue.InMemoryQueue;
+import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -135,7 +135,7 @@ public class AppConfig extends AppConfigBase {
      */
     @Bean
     public PlatformQueue<PriorityMessage> cmdCallbackQueue() {
-        return new InMemoryQueue<>(executor, 50, "CmdCallbackQueue");
+        return new MemoryQueue(executor, 50, "CmdCallbackQueue");
     }
 
     @Override

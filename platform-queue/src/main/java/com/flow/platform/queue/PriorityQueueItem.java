@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.queue;
+package com.flow.platform.queue;
 
 /**
  * @author yang
  */
-public interface QueueListener<T> {
+public interface PriorityQueueItem extends Comparable<PriorityQueueItem> {
 
-    void onQueueItem(T item);
+    Integer getPriority();
 
+    byte[] getBody();
 }

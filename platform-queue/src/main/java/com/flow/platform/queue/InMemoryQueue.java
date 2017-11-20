@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.queue;
+package com.flow.platform.queue;
 
 import com.flow.platform.util.Logger;
 import java.util.Comparator;
+import java.util.concurrent.Executor;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yang
@@ -37,12 +37,12 @@ public class InMemoryQueue<T extends Comparable> extends PlatformQueue<T> {
 
     private volatile boolean pause = false;
 
-    public InMemoryQueue(ThreadPoolTaskExecutor executor, int maxSize, String name) {
+    public InMemoryQueue(Executor executor, int maxSize, String name) {
         super(executor, maxSize, name);
         this.queue = new PriorityBlockingQueue<>(maxSize);
     }
 
-    public InMemoryQueue(ThreadPoolTaskExecutor executor, int maxSize, String name, Comparator<T> comparator) {
+    public InMemoryQueue(Executor executor, int maxSize, String name, Comparator<T> comparator) {
         super(executor, maxSize, name);
         this.queue = new PriorityBlockingQueue<>(maxSize, comparator);
     }

@@ -32,13 +32,13 @@ import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.queue.PlatformQueue;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.google.common.collect.Lists;
 import java.io.IOException;
@@ -51,7 +51,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yh@firim
