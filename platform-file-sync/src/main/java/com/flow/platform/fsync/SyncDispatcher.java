@@ -28,6 +28,7 @@ import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
@@ -44,6 +45,7 @@ import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +59,8 @@ public class SyncDispatcher implements Closeable {
     private final static Logger LOGGER = new Logger(FileChangeWorker.class);
 
     private final static int DEFAULT_CLIENT_QUEUE_PRIORITY = 1;
+
+    private final static Set<String> SUPPORTED_FILE_EXTENSION = ImmutableSet.of("zip");
 
     private FileChangeWorker watcherWorker;
 
@@ -151,7 +155,10 @@ public class SyncDispatcher implements Closeable {
         for (File file : files) {
             try {
                 Path path = file.toPath();
-                syncCache.put(path, createFileSyncEvent(FileSyncEventType.CREATE, path));
+                FileSyncEvent syncEvent = createFileSyncEvent(FileSyncEventType.CREATE, path);
+                if (syncEvent != null) {
+                    syncCache.put(path, syncEvent);
+                }
             } catch (IOException e) {
                 LOGGER.warn("Fail to init file sync event: " + e.getMessage());
             }
@@ -160,6 +167,12 @@ public class SyncDispatcher implements Closeable {
 
     private FileSyncEvent createFileSyncEvent(FileSyncEventType eventType, Path path) throws IOException {
         FileSyncEvent event = null;
+
+        String extension = Files.getFileExtension(path.toString());
+        if (!SUPPORTED_FILE_EXTENSION.contains(extension)) {
+            LOGGER.warn("Cannot support file type" + extension);
+            return null;
+        }
 
         if (eventType == FileSyncEventType.CREATE) {
             long size = java.nio.file.Files.size(path);

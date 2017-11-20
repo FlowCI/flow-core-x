@@ -40,7 +40,7 @@ import org.junit.rules.TemporaryFolder;
 /**
  * @author yang
  */
-public class FileDispatcherTest {
+public class SyncDispatcherTest {
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -77,6 +77,9 @@ public class FileDispatcherTest {
         Path pathOfSecond = Paths.get(dispatcher.getWatchPath().toString(), "2.zip");
         Files.copy(getFileFromResource("2.zip"), pathOfSecond.toFile());
 
+        Path unsupported = Paths.get(dispatcher.getWatchPath().toString(), "unsupport.illegal");
+        Files.copy(getFileFromResource("unsupport.illegal"), unsupported.toFile());
+
         // when:
         dispatcher.start();
 
@@ -97,6 +100,9 @@ public class FileDispatcherTest {
 
         Path pathOfSecond = Paths.get(dispatcher.getWatchPath().toString(), "2.zip");
         Files.copy(getFileFromResource("2.zip"), pathOfSecond.toFile());
+
+        Path unsupported = Paths.get(dispatcher.getWatchPath().toString(), "unsupport.illegal");
+        Files.copy(getFileFromResource("unsupport.illegal"), unsupported.toFile());
 
         CountDownLatch latch = new CountDownLatch(2);
         dispatcher.setFileListener(syncEvent -> {
@@ -131,7 +137,7 @@ public class FileDispatcherTest {
     }
 
     private File getFileFromResource(String fileName) {
-        ClassLoader classLoader = FileDispatcherTest.class.getClassLoader();
+        ClassLoader classLoader = SyncDispatcherTest.class.getClassLoader();
         URL resource = classLoader.getResource(fileName);
         return new File(resource.getFile());
     }
