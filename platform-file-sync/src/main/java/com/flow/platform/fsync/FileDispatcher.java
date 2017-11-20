@@ -32,6 +32,7 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -45,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -68,6 +70,8 @@ public class FileDispatcher implements Closeable {
 
     private Consumer<FileSyncEvent> fileListener;
 
+    private volatile boolean stop = false;
+
     public FileDispatcher(Path path, Executor executor, int clientQueueSize) throws IOException {
         this.watchPath = path;
         this.executor = executor;
@@ -75,7 +79,19 @@ public class FileDispatcher implements Closeable {
 
         watcherWorker = new FileChangeWorker();
         path.register(watcherWorker.getWatcher(), ENTRY_CREATE, ENTRY_DELETE, OVERFLOW);
+    }
+
+    /**
+     * Start watch
+     */
+    public void start() {
+        stop = false;
+        initFileSyncEvent();
         executor.execute(watcherWorker);
+    }
+
+    public void stop() {
+        stop = true;
     }
 
     public Path getWatchPath() {
@@ -106,7 +122,47 @@ public class FileDispatcher implements Closeable {
 
     @Override
     public void close() throws IOException {
+        stop();
+    }
 
+    /**
+     * Init file from watch path and watch event
+     */
+    private void initFileSyncEvent() {
+        fileSyncCache.clear();
+
+        File[] files = watchPath.toFile().listFiles();
+        if (files == null) {
+            return;
+        }
+
+        for (File file : files) {
+            try {
+                Path path = file.toPath();
+                fileSyncCache.put(path, createFileSyncEvent(FileSyncEventType.CREATE, path));
+            } catch (IOException e) {
+                LOGGER.warn("Fail to init file sync event: " + e.getMessage());
+            }
+        }
+    }
+
+    private FileSyncEvent createFileSyncEvent(FileSyncEventType eventType, Path path) throws IOException {
+        if (eventType == FileSyncEventType.CREATE) {
+            long size = java.nio.file.Files.size(path);
+            HashCode hash = Files.hash(path.toFile(), Hashing.md5());
+            String checksum = hash.toString().toUpperCase();
+
+            FileSyncEvent eventForCreate = new FileSyncEvent(path.toString(), size, checksum, eventType);
+            fileSyncCache.put(path, eventForCreate);
+            return eventForCreate;
+        }
+
+        if (eventType == FileSyncEventType.DELETE) {
+            fileSyncCache.remove(path);
+            return new FileSyncEvent(path.toString(), 0L, StringUtil.EMPTY, eventType);
+        }
+
+        return null;
     }
 
     /**
@@ -129,23 +185,30 @@ public class FileDispatcher implements Closeable {
 
         @Override
         public void run() {
-            WatchKey key;
-            try {
-                while ((key = watcher.take()) != null) {
-                    for (WatchEvent<?> event : key.pollEvents()) {
-                        if (event.kind() == OVERFLOW) {
-                            continue;
-                        }
+            for (;!stop;) {
+                WatchKey key;
+                try {
+                    key = watcher.poll(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    LOGGER.warn(e.getMessage());
+                    return;
+                }
 
-                        // start new thread to get file size and checksum
-                        Path fullPath = Paths.get(watchPath.toString(), event.context().toString());
-                        executor.execute(new OnFileChangedWorker(fullPath, events.get(event.kind())));
+                if (key == null) {
+                    continue;
+                }
+
+                for (WatchEvent<?> event : key.pollEvents()) {
+                    if (event.kind() == OVERFLOW) {
+                        continue;
                     }
 
-                    key.reset();
+                    // start new thread to get file size and checksum
+                    Path fullPath = Paths.get(watchPath.toString(), event.context().toString());
+                    executor.execute(new OnFileChangedWorker(fullPath, events.get(event.kind())));
                 }
-            } catch (InterruptedException e) {
-                LOGGER.warn(e.getMessage());
+
+                key.reset();
             }
         }
     }
@@ -167,7 +230,7 @@ public class FileDispatcher implements Closeable {
         @Override
         public void run() {
             try {
-                FileSyncEvent syncEvent = onFileChanged(eventType, path);
+                FileSyncEvent syncEvent = createFileSyncEvent(eventType, path);
 
                 if (fileListener != null && syncEvent != null) {
                     fileListener.accept(syncEvent);
@@ -175,25 +238,6 @@ public class FileDispatcher implements Closeable {
             } catch (IOException e) {
                 LOGGER.warn("Cannot handle file changes: " + e.getMessage());
             }
-        }
-
-        private FileSyncEvent onFileChanged(FileSyncEventType eventType, Path path) throws IOException {
-            if (eventType == FileSyncEventType.CREATE) {
-                long size = java.nio.file.Files.size(path);
-                HashCode hash = Files.hash(path.toFile(), Hashing.md5());
-                String checksum = hash.toString().toUpperCase();
-
-                FileSyncEvent eventForCreate = new FileSyncEvent(path.toString(), size, checksum, eventType);
-                fileSyncCache.put(path, eventForCreate);
-                return eventForCreate;
-            }
-
-            if (eventType == FileSyncEventType.DELETE) {
-                fileSyncCache.remove(path);
-                return new FileSyncEvent(path.toString(), 0L, StringUtil.EMPTY, eventType);
-            }
-
-            return null;
         }
     }
 }

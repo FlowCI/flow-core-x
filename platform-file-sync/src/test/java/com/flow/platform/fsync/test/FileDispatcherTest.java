@@ -55,7 +55,26 @@ public class FileDispatcherTest {
     }
 
     @Test
+    public void should_init_events_if_file_exist() throws Throwable {
+        // given: copy two file to watch path
+        Path pathOfFirst = Paths.get(dispatcher.getWatchPath().toString(), "1.zip");
+        Files.copy(getFileFromResource("1.zip"), pathOfFirst.toFile());
+
+        Path pathOfSecond = Paths.get(dispatcher.getWatchPath().toString(), "2.zip");
+        Files.copy(getFileFromResource("2.zip"), pathOfSecond.toFile());
+
+        // when:
+        dispatcher.start();
+
+        // then:
+        Assert.assertEquals(2, dispatcher.files().size());
+    }
+
+    @Test
     public void should_init_file_sync_queue() throws Throwable {
+        // given:
+        dispatcher.start();
+
         // when: copy two file to watch path
         Path pathOfFirst = Paths.get(dispatcher.getWatchPath().toString(), "1.zip");
         Files.copy(getFileFromResource("1.zip"), pathOfFirst.toFile());
@@ -88,6 +107,7 @@ public class FileDispatcherTest {
 
     @After
     public void clean() {
+        dispatcher.stop();
         folder.delete();
     }
 
