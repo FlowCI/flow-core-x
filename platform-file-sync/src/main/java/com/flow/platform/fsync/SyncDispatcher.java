@@ -52,7 +52,7 @@ import java.util.function.Consumer;
 /**
  * @author yang
  */
-public class FileDispatcher implements Closeable {
+public class SyncDispatcher implements Closeable {
 
     private final static Logger LOGGER = new Logger(FileChangeWorker.class);
 
@@ -74,7 +74,7 @@ public class FileDispatcher implements Closeable {
 
     private volatile boolean stop = false;
 
-    public FileDispatcher(Path path, Executor executor, int clientQueueSize) throws IOException {
+    public SyncDispatcher(Path path, Executor executor, int clientQueueSize) throws IOException {
         this.watchPath = path;
         this.executor = executor;
         this.clientQueueSize = clientQueueSize;

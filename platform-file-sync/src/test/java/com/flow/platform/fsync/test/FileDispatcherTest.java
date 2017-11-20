@@ -16,7 +16,7 @@
 
 package com.flow.platform.fsync.test;
 
-import com.flow.platform.fsync.FileDispatcher;
+import com.flow.platform.fsync.SyncDispatcher;
 import com.flow.platform.fsync.domain.FileSyncEvent;
 import com.flow.platform.fsync.domain.FileSyncEventType;
 import com.google.common.io.Files;
@@ -45,13 +45,13 @@ public class FileDispatcherTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    private FileDispatcher dispatcher;
+    private SyncDispatcher dispatcher;
 
     @Before
     public void initFileDispatcher() throws IOException {
         File file = folder.newFolder("file-sync-test");
         ExecutorService executorService = Executors.newFixedThreadPool(10);
-        dispatcher = new FileDispatcher(file.toPath(), executorService, 10);
+        dispatcher = new SyncDispatcher(file.toPath(), executorService, 10);
     }
 
     @Test
