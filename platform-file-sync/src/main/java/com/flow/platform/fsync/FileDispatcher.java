@@ -22,6 +22,9 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 import com.flow.platform.fsync.domain.FileSyncEvent;
 import com.flow.platform.fsync.domain.FileSyncEventType;
+import com.flow.platform.queue.DefaultQueueMessage;
+import com.flow.platform.queue.InMemoryQueue;
+import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.google.common.collect.ImmutableList;
@@ -40,15 +43,16 @@ import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 /**
  * @author yang
  */
 public class FileDispatcher implements Closeable {
+
+    private final static Logger LOGGER = new Logger(FileChangeWorker.class);
 
     private FileChangeWorker watcherWorker;
 
@@ -56,25 +60,44 @@ public class FileDispatcher implements Closeable {
 
     private final Executor executor;
 
+    private final int clientQueueSize;
+
     private final Map<Path, FileSyncEvent> fileSyncCache = new ConcurrentHashMap<>();
 
-    private final Map<String, Queue<FileSyncEvent>> clientFileSyncQueue = new ConcurrentHashMap<>();
+    private final Map<String, PlatformQueue<DefaultQueueMessage>> clientFileSyncQueue = new ConcurrentHashMap<>();
 
-    public FileDispatcher(Path path, Executor executor) throws IOException {
+    private Consumer<FileSyncEvent> fileListener;
+
+    public FileDispatcher(Path path, Executor executor, int clientQueueSize) throws IOException {
         this.watchPath = path;
         this.executor = executor;
+        this.clientQueueSize = clientQueueSize;
 
         watcherWorker = new FileChangeWorker();
         path.register(watcherWorker.getWatcher(), ENTRY_CREATE, ENTRY_DELETE, OVERFLOW);
         executor.execute(watcherWorker);
     }
 
+    public Path getWatchPath() {
+        return watchPath;
+    }
+
+    public void setFileListener(Consumer<FileSyncEvent> listener) {
+        this.fileListener = listener;
+    }
+
     public void addClient(String clientId) {
-        clientFileSyncQueue.put(clientId, new ConcurrentLinkedQueue<>(fileSyncCache.values()));
+        removeClient(clientId);
+        PlatformQueue<DefaultQueueMessage> queue = new InMemoryQueue<>(executor, clientQueueSize, clientId + "-queue");
+        clientFileSyncQueue.put(clientId, queue);
     }
 
     public void removeClient(String clientId) {
-        clientFileSyncQueue.remove(clientId);
+        PlatformQueue<DefaultQueueMessage> exist = clientFileSyncQueue.remove(clientId);
+        if (exist != null) {
+            exist.cleanListener();
+            exist.stop();
+        }
     }
 
     public List<FileSyncEvent> files() {
@@ -114,30 +137,29 @@ public class FileDispatcher implements Closeable {
                             continue;
                         }
 
+                        // start new thread to get file size and checksum
                         Path fullPath = Paths.get(watchPath.toString(), event.context().toString());
-                        executor.execute(new OnFileEventHandler(fullPath, events.get(event.kind())));
+                        executor.execute(new OnFileChangedWorker(fullPath, events.get(event.kind())));
                     }
 
                     key.reset();
                 }
             } catch (InterruptedException e) {
-
+                LOGGER.warn(e.getMessage());
             }
         }
     }
 
     /**
-     * Calculate file checksum and put to file event queue
+     * Worker to get file size and checksum, then sync to cache
      */
-    private class OnFileEventHandler implements Runnable {
-
-        private final Logger LOGGER = new Logger(OnFileEventHandler.class);
+    private class OnFileChangedWorker implements Runnable {
 
         private final Path path;
 
         private final FileSyncEventType eventType;
 
-        public OnFileEventHandler(Path path, FileSyncEventType eventType) {
+        public OnFileChangedWorker(Path path, FileSyncEventType eventType) {
             this.path = path;
             this.eventType = eventType;
         }
@@ -145,27 +167,33 @@ public class FileDispatcher implements Closeable {
         @Override
         public void run() {
             try {
-                if (eventType == FileSyncEventType.CREATE) {
-                    long size = java.nio.file.Files.size(path);
-                    HashCode hash = Files.hash(path.toFile(), Hashing.md5());
-                    String checksum = hash.toString().toUpperCase();
+                FileSyncEvent syncEvent = onFileChanged(eventType, path);
 
-                    LOGGER.trace("The file '%s' is '%s' with checksum '%s'", path, eventType, checksum);
-
-                    FileSyncEvent eventForCreate = new FileSyncEvent(path.toString(), size, checksum, eventType);
-                    fileSyncCache.put(path, eventForCreate);
-                    return;
+                if (fileListener != null && syncEvent != null) {
+                    fileListener.accept(syncEvent);
                 }
-
-                if (eventType == FileSyncEventType.DELETE) {
-                    fileSyncCache.remove(path);
-
-                    FileSyncEvent eventForDelete = new FileSyncEvent(path.toString(), 0L, StringUtil.EMPTY, eventType);
-                }
-
             } catch (IOException e) {
-
+                LOGGER.warn("Cannot handle file changes: " + e.getMessage());
             }
+        }
+
+        private FileSyncEvent onFileChanged(FileSyncEventType eventType, Path path) throws IOException {
+            if (eventType == FileSyncEventType.CREATE) {
+                long size = java.nio.file.Files.size(path);
+                HashCode hash = Files.hash(path.toFile(), Hashing.md5());
+                String checksum = hash.toString().toUpperCase();
+
+                FileSyncEvent eventForCreate = new FileSyncEvent(path.toString(), size, checksum, eventType);
+                fileSyncCache.put(path, eventForCreate);
+                return eventForCreate;
+            }
+
+            if (eventType == FileSyncEventType.DELETE) {
+                fileSyncCache.remove(path);
+                return new FileSyncEvent(path.toString(), 0L, StringUtil.EMPTY, eventType);
+            }
+
+            return null;
         }
     }
 }

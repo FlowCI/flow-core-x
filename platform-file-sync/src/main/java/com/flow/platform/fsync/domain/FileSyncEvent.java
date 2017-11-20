@@ -27,18 +27,19 @@ public class FileSyncEvent {
     /**
      * The original file path in server
      */
-    private String serverPath;
+    private final String serverPath;
 
-    private Long size;
+    private final Long size;
 
-    private String checksum;
+    private final String checksum;
 
-    private FileSyncEventType event;
+    private final FileSyncEventType eventType;
 
     public FileSyncEvent(String serverPath, Long size, String checksum, FileSyncEventType event) {
         this.serverPath = serverPath;
         this.checksum = checksum;
-        this.event = event;
+        this.eventType = event;
+        this.size = size;
     }
 
     public String getServerPath() {
@@ -53,7 +54,7 @@ public class FileSyncEvent {
         return checksum;
     }
 
-    public FileSyncEventType getEvent() {
-        return event;
+    public FileSyncEventType getEventType() {
+        return eventType;
     }
 }
