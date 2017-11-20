@@ -55,6 +55,20 @@ public class FileDispatcherTest {
     }
 
     @Test
+    public void should_parse_and_convert_file_sync_event_as_bytes() throws Throwable {
+        FileSyncEvent raw = new FileSyncEvent("hello", 10L, "CHECKSUM", FileSyncEventType.CREATE);
+        byte[] bytes = raw.toBytes();
+        Assert.assertNotNull(bytes);
+
+        FileSyncEvent converted = FileSyncEvent.fromBytes(bytes);
+        Assert.assertNotNull(converted);
+        Assert.assertEquals(raw.getServerPath(), converted.getServerPath());
+        Assert.assertEquals(raw.getSize(), converted.getSize());
+        Assert.assertEquals(raw.getChecksum(), converted.getChecksum());
+        Assert.assertEquals(raw.getEventType(), converted.getEventType());
+    }
+
+    @Test
     public void should_init_events_if_file_exist() throws Throwable {
         // given: copy two file to watch path
         Path pathOfFirst = Paths.get(dispatcher.getWatchPath().toString(), "1.zip");

@@ -17,12 +17,21 @@
 package com.flow.platform.fsync.domain;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 /**
  * The file to be sync to client
  *
  * @author yang
  */
 public class FileSyncEvent {
+
+    private final static Gson GSON = new GsonBuilder().create();
+
+    public static FileSyncEvent fromBytes(byte[] bytes) {
+        return GSON.fromJson(new String(bytes), FileSyncEvent.class);
+    }
 
     /**
      * The original file path in server
@@ -56,5 +65,9 @@ public class FileSyncEvent {
 
     public FileSyncEventType getEventType() {
         return eventType;
+    }
+
+    public byte[] toBytes() {
+        return GSON.toJson(this).getBytes();
     }
 }

@@ -56,6 +56,8 @@ public class FileDispatcher implements Closeable {
 
     private final static Logger LOGGER = new Logger(FileChangeWorker.class);
 
+    private final static int DEFAULT_CLIENT_QUEUE_PRIORITY = 1;
+
     private FileChangeWorker watcherWorker;
 
     private final Path watchPath;
@@ -105,6 +107,12 @@ public class FileDispatcher implements Closeable {
     public void addClient(String clientId) {
         removeClient(clientId);
         PlatformQueue<DefaultQueueMessage> queue = new InMemoryQueue<>(executor, clientQueueSize, clientId + "-queue");
+
+        // init client file sync event into queue
+        for (FileSyncEvent syncEvent : fileSyncCache.values()) {
+            queue.enqueue(new DefaultQueueMessage(syncEvent.toBytes(), DEFAULT_CLIENT_QUEUE_PRIORITY));
+        }
+
         clientFileSyncQueue.put(clientId, queue);
     }
 
