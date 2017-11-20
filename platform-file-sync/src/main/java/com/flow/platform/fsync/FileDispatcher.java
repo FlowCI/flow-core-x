@@ -118,7 +118,7 @@ public class FileDispatcher implements Closeable {
 
         private final Map<Kind, FileSyncEventType> events = new HashMap<>();
 
-        private FileChangeWorker() throws IOException {
+        FileChangeWorker() throws IOException {
             events.put(ENTRY_CREATE, FileSyncEventType.CREATE);
             events.put(ENTRY_DELETE, FileSyncEventType.DELETE);
         }
@@ -159,7 +159,7 @@ public class FileDispatcher implements Closeable {
 
         private final FileSyncEventType eventType;
 
-        public OnFileChangedWorker(Path path, FileSyncEventType eventType) {
+        OnFileChangedWorker(Path path, FileSyncEventType eventType) {
             this.path = path;
             this.eventType = eventType;
         }

@@ -77,11 +77,13 @@ public class FileDispatcherTest {
         Assert.assertEquals(FileSyncEventType.CREATE, first.getEventType());
         Assert.assertEquals(pathOfFirst.toString(), first.getServerPath());
         Assert.assertEquals(222L, first.getSize().longValue());
+        Assert.assertEquals("26D3901E3AE5BB42F5288AA6FE121764", first.getChecksum());
 
         FileSyncEvent second = files.get(1);
         Assert.assertEquals(FileSyncEventType.CREATE, second.getEventType());
         Assert.assertEquals(pathOfSecond.toString(), second.getServerPath());
         Assert.assertEquals(222L, second.getSize().longValue());
+        Assert.assertEquals("84D7144283F7A9ECA89F60B178E1D24E", second.getChecksum());
     }
 
     @After
