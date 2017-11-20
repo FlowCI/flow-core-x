@@ -66,9 +66,9 @@ public class FileDispatcher implements Closeable {
 
     private final int clientQueueSize;
 
-    private final Map<Path, FileSyncEvent> fileSyncCache = new ConcurrentHashMap<>();
+    private final Map<Path, FileSyncEvent> syncCache = new ConcurrentHashMap<>();
 
-    private final Map<String, PlatformQueue<DefaultQueueMessage>> clientFileSyncQueue = new ConcurrentHashMap<>();
+    private final Map<String, PlatformQueue<DefaultQueueMessage>> clientSyncEventQueue = new ConcurrentHashMap<>();
 
     private Consumer<FileSyncEvent> fileListener;
 
@@ -84,7 +84,7 @@ public class FileDispatcher implements Closeable {
     }
 
     /**
-     * Start watch
+     * Start watching
      */
     public void start() {
         stop = false;
@@ -109,23 +109,27 @@ public class FileDispatcher implements Closeable {
         PlatformQueue<DefaultQueueMessage> queue = new InMemoryQueue<>(executor, clientQueueSize, clientId + "-queue");
 
         // init client file sync event into queue
-        for (FileSyncEvent syncEvent : fileSyncCache.values()) {
+        for (FileSyncEvent syncEvent : syncCache.values()) {
             queue.enqueue(new DefaultQueueMessage(syncEvent.toBytes(), DEFAULT_CLIENT_QUEUE_PRIORITY));
         }
 
-        clientFileSyncQueue.put(clientId, queue);
+        clientSyncEventQueue.put(clientId, queue);
     }
 
     public void removeClient(String clientId) {
-        PlatformQueue<DefaultQueueMessage> exist = clientFileSyncQueue.remove(clientId);
+        PlatformQueue<DefaultQueueMessage> exist = clientSyncEventQueue.remove(clientId);
         if (exist != null) {
             exist.cleanListener();
             exist.stop();
         }
     }
 
+    public PlatformQueue<DefaultQueueMessage> getClientQueue(String clientId) {
+        return clientSyncEventQueue.get(clientId);
+    }
+
     public List<FileSyncEvent> files() {
-        return ImmutableList.copyOf(fileSyncCache.values());
+        return ImmutableList.copyOf(syncCache.values());
     }
 
     @Override
@@ -137,7 +141,7 @@ public class FileDispatcher implements Closeable {
      * Init file from watch path and watch event
      */
     private void initFileSyncEvent() {
-        fileSyncCache.clear();
+        syncCache.clear();
 
         File[] files = watchPath.toFile().listFiles();
         if (files == null) {
@@ -147,7 +151,7 @@ public class FileDispatcher implements Closeable {
         for (File file : files) {
             try {
                 Path path = file.toPath();
-                fileSyncCache.put(path, createFileSyncEvent(FileSyncEventType.CREATE, path));
+                syncCache.put(path, createFileSyncEvent(FileSyncEventType.CREATE, path));
             } catch (IOException e) {
                 LOGGER.warn("Fail to init file sync event: " + e.getMessage());
             }
@@ -155,22 +159,30 @@ public class FileDispatcher implements Closeable {
     }
 
     private FileSyncEvent createFileSyncEvent(FileSyncEventType eventType, Path path) throws IOException {
+        FileSyncEvent event = null;
+
         if (eventType == FileSyncEventType.CREATE) {
             long size = java.nio.file.Files.size(path);
             HashCode hash = Files.hash(path.toFile(), Hashing.md5());
             String checksum = hash.toString().toUpperCase();
 
-            FileSyncEvent eventForCreate = new FileSyncEvent(path.toString(), size, checksum, eventType);
-            fileSyncCache.put(path, eventForCreate);
-            return eventForCreate;
+            event = new FileSyncEvent(path.toString(), size, checksum, eventType);
+            syncCache.put(path, event);
         }
 
         if (eventType == FileSyncEventType.DELETE) {
-            fileSyncCache.remove(path);
-            return new FileSyncEvent(path.toString(), 0L, StringUtil.EMPTY, eventType);
+            syncCache.remove(path);
+            event = new FileSyncEvent(path.toString(), 0L, StringUtil.EMPTY, eventType);
         }
 
-        return null;
+        // distribute event to clients
+        if (event != null) {
+            for (Map.Entry<String, PlatformQueue<DefaultQueueMessage>> entry : clientSyncEventQueue.entrySet()) {
+                entry.getValue().enqueue(new DefaultQueueMessage(event.toBytes(), DEFAULT_CLIENT_QUEUE_PRIORITY));
+            }
+        }
+
+        return event;
     }
 
     /**

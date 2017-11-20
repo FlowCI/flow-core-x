@@ -87,7 +87,9 @@ public class FileDispatcherTest {
     @Test
     public void should_init_file_sync_queue() throws Throwable {
         // given:
+        final String clientId = "/flow-agent/first";
         dispatcher.start();
+        dispatcher.addClient(clientId);
 
         // when: copy two file to watch path
         Path pathOfFirst = Paths.get(dispatcher.getWatchPath().toString(), "1.zip");
@@ -117,6 +119,9 @@ public class FileDispatcherTest {
         Assert.assertEquals(pathOfSecond.toString(), second.getServerPath());
         Assert.assertEquals(222L, second.getSize().longValue());
         Assert.assertEquals("84D7144283F7A9ECA89F60B178E1D24E", second.getChecksum());
+
+        // then: check client queue
+        Assert.assertEquals(2, dispatcher.getClientQueue(clientId).size());
     }
 
     @After
