@@ -16,7 +16,7 @@
 
 package com.flow.platform.plugin.test.util;
 
-import com.flow.platform.plugin.util.GitUtil;
+import com.flow.platform.plugin.util.GitHttpUtil;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,7 +34,7 @@ public class GitUtilTest {
         String fullName = "yunheli/info";
 
         // when: fetch tags
-        List<String> tags = GitUtil.listTags(fullName);
+        List<String> tags = GitHttpUtil.listTags(fullName);
 
         // then: tags is not 0
         Assert.assertNotEquals(0, tags.size());
@@ -48,7 +48,7 @@ public class GitUtilTest {
         String fullName = "yunheli/info";
 
         // when: fetch latest tags
-        String tag = GitUtil.fetchLatestTag(fullName);
+        String tag = GitHttpUtil.fetchLatestTag(fullName);
 
         // then: tag is not null
         Assert.assertNotNull(tag);
@@ -64,7 +64,7 @@ public class GitUtilTest {
         Path path = Paths.get("/tmp");
 
         // when: download tag zip
-        GitUtil.downloadTagZip(path, fullName, tag);
+        GitHttpUtil.downloadTagZip(path, fullName, tag);
         File file = new File(Paths.get(path.toString(), tag + ".zip").toString());
 
         // then: file should exist is true

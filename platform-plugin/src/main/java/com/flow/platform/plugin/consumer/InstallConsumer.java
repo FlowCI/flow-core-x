@@ -18,7 +18,7 @@ package com.flow.platform.plugin.consumer;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
-import com.flow.platform.plugin.util.GitUtil;
+import com.flow.platform.plugin.util.GitHttpUtil;
 import com.flow.platform.plugin.util.UriUtil;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
@@ -62,7 +62,7 @@ public class InstallConsumer {
                     if (!Objects.isNull(plugin)) {
                         System.out.println(String
                             .format("InstallConsumer: Thread - %s start download", Thread.currentThread().getId()));
-                        GitUtil.downloadLatestTag(pluginService.workspace(), UriUtil.getRoutePath(plugin.getDetails()));
+                        GitHttpUtil.downloadLatestTag(pluginService.workspace(), UriUtil.getRoutePath(plugin.getDetails()));
                         System.out.println(String
                             .format("InstallConsumer: Thread - %s finish download", Thread.currentThread().getId()));
                     }

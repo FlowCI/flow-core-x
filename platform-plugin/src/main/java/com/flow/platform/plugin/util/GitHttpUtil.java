@@ -30,7 +30,7 @@ import java.util.Objects;
 /**
  * @author yh@firim
  */
-public class GitUtil {
+public class GitHttpUtil {
 
     private final static String TAG_URL = "https://api.github.com/repos%s/git/refs/tags";
 
