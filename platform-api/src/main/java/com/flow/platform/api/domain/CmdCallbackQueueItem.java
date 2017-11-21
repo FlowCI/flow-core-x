@@ -31,12 +31,17 @@ public class CmdCallbackQueueItem extends Jsonable {
 
     private final Cmd cmd;
 
-    private Integer retryTimes = 0;
+    // default retry times 5
+    private Integer retryTimes = 5;
 
     public CmdCallbackQueueItem(BigInteger jobId, Cmd cmd) {
         this.jobId = jobId;
         this.cmd = cmd;
         this.path = cmd.getExtra();
+    }
+
+    public void setRetryTimes(Integer retryTimes) {
+        this.retryTimes = retryTimes;
     }
 
     public BigInteger getJobId() {

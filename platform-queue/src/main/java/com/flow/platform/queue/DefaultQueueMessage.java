@@ -14,13 +14,34 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.queue;
+package com.flow.platform.queue;
 
 /**
  * @author yang
  */
-public interface QueueListener<T> {
+public class DefaultQueueMessage implements PriorityQueueItem {
 
-    void onQueueItem(T item);
+    private final byte[] body;
 
+    private final Integer priority;
+
+    public DefaultQueueMessage(byte[] body, Integer priority) {
+        this.body = body;
+        this.priority = priority;
+    }
+
+    @Override
+    public Integer getPriority() {
+        return null;
+    }
+
+    @Override
+    public byte[] getBody() {
+        return new byte[0];
+    }
+
+    @Override
+    public int compareTo(PriorityQueueItem o) {
+        return o.getPriority().compareTo(getPriority());
+    }
 }

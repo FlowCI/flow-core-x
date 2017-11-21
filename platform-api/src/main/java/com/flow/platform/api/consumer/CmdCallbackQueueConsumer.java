@@ -18,10 +18,12 @@ package com.flow.platform.api.consumer;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.PriorityMessage;
-import com.flow.platform.core.queue.QueueListener;
+import com.flow.platform.core.util.ThreadUtil;
+import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,9 @@ import org.springframework.stereotype.Component;
 public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> {
 
     private final static Logger LOGGER = new Logger(CmdCallbackQueueConsumer.class);
+
+    // requeue 1 s
+    private final static int REQUEUE_DELAY_TIME = 1000;
 
     @Autowired
     private PlatformQueue<PriorityMessage> cmdCallbackQueue;
@@ -58,20 +63,34 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
             jobService.callback(item);
         } catch (NotFoundException notFoundException) {
 
+            // detect retry times is reach the limit or not
+            detectRetryTimes(item);
+
             // re-enqueue cmd callback if job not found since transaction problem
-            reEnqueueJobCallback(item, 1000);
+            reEnqueueJobCallback(item, REQUEUE_DELAY_TIME, message.getMessageProperties().getPriority());
 
         } catch (Throwable throwable) {
             LOGGER.traceMarker("onQueueItem", String.format("exception - %s", throwable));
         }
     }
 
-    private void reEnqueueJobCallback(CmdCallbackQueueItem item, long wait) {
-        try {
-            Thread.sleep(wait);
-        } catch (Throwable ignore) {
+    private void detectRetryTimes(CmdCallbackQueueItem item) {
+        if (item.getRetryTimes() <= 0) {
+            throw new FlowException("retry times has reach the limit");
         }
+    }
 
-        jobService.enterQueue(item);
+    private void reEnqueueJobCallback(CmdCallbackQueueItem item, long wait, int priority) {
+
+        // sleep seconds
+        ThreadUtil.sleep(wait);
+
+        // set retry times
+        item.setRetryTimes(item.getRetryTimes() - 1);
+
+        //priority inc 1
+        priority = priority + 1;
+
+        jobService.enterQueue(item, priority);
     }
 }

@@ -14,39 +14,24 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service.node;
+package com.flow.platform.core.queue;
 
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.core.context.ContextEvent;
-import java.util.List;
-import org.quartz.Trigger;
+import com.flow.platform.queue.InMemoryQueue;
+import java.util.Comparator;
+import java.util.concurrent.Executor;
 
 /**
  * @author yang
  */
-public interface NodeCrontabService extends ContextEvent {
+public class MemoryQueue extends InMemoryQueue<PriorityMessage> implements ContextEvent {
 
-    String KEY_BRANCH = "branch";
+    public MemoryQueue(Executor executor, int maxSize, String name) {
+        super(executor, maxSize, name);
+    }
 
-    String KEY_NODE_PATH = "node_path";
-
-    /**
-     * Set crontab task for node
-     */
-    void set(Node node);
-
-    /**
-     * Delete crontab task for node
-     */
-    void delete(Node node);
-
-    /**
-     * List current triggers
-     */
-    List<Trigger> triggers();
-
-    /**
-     * Clean triggers
-     */
-    void cleanTriggers();
+    public MemoryQueue(Executor executor, int maxSize, String name,
+                       Comparator<PriorityMessage> comparator) {
+        super(executor, maxSize, name, comparator);
+    }
 }
