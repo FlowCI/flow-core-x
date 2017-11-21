@@ -28,6 +28,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.StoredConfig;
 
 /**
  * @author yh@firim
@@ -86,6 +87,31 @@ public class GitHelperUtil {
             throw new PluginException("get tags error", e);
         }
         return tag;
+    }
+
+    /**
+     * set local remote url to git repo
+     * @param gitPath
+     * @param localRepoPath
+     * @return
+     */
+    public static Git setLocalRemote(Path gitPath, Path localRepoPath) {
+        // gitPath must be folder
+        if (!gitPath.toFile().isDirectory()) {
+            throw new PluginException("this path must be folder");
+        }
+        
+        Git git;
+        try {
+            git = Git.open(gitPath.toFile());
+            StoredConfig config = git.getRepository().getConfig();
+            config.setString("remote", "local", "url", localRepoPath.toString());
+            config.save();
+        } catch (IOException e) {
+            throw new PluginException("set local git remote error", e);
+        }
+
+        return git;
     }
 
     private static File doRenameBareGit(Path path) {

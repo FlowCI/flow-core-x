@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -96,6 +97,27 @@ public class GitHelperUtilTest {
 
         // then should get latest tag
         Assert.assertEquals("2.3", GitHelperUtil.getLatestTag(gitClient));
+
+        cleanFolder(basePath);
+    }
+
+    @Test
+    public void should_set_remote_url_success() throws IOException {
+        String gitUrl = "https://github.com/yunheli/info.git";
+        Path basePath = Paths.get("/tmp/test");
+
+        initFolder(basePath);
+        GitClient gitClient = new GitHttpClient(gitUrl, basePath, "", "");
+
+        // when clone code
+        GitHelperUtil.clone(gitClient);
+
+        Path gitPath = Paths.get(basePath.toString(), "info");
+        Path localGitPath = Paths.get("/tmp/.git");
+
+        Git git = GitHelperUtil.setLocalRemote(gitPath, localGitPath);
+
+        Assert.assertEquals(2, git.getRepository().getRemoteNames().size());
 
         cleanFolder(basePath);
     }
