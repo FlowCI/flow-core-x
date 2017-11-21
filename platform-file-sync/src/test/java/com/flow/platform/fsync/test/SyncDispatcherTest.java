@@ -40,10 +40,7 @@ import org.junit.rules.TemporaryFolder;
 /**
  * @author yang
  */
-public class SyncDispatcherTest {
-
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+public class SyncDispatcherTest extends TestBase {
 
     private SyncDispatcher dispatcher;
 
@@ -105,9 +102,7 @@ public class SyncDispatcherTest {
         Files.copy(getFileFromResource("unsupport.illegal"), unsupported.toFile());
 
         CountDownLatch latch = new CountDownLatch(2);
-        dispatcher.setFileListener(syncEvent -> {
-            latch.countDown();
-        });
+        dispatcher.setFileListener(syncEvent -> latch.countDown());
 
         // then: check cached events
         latch.await(10, TimeUnit.SECONDS);
@@ -134,11 +129,5 @@ public class SyncDispatcherTest {
     public void clean() {
         dispatcher.stop();
         folder.delete();
-    }
-
-    private File getFileFromResource(String fileName) {
-        ClassLoader classLoader = SyncDispatcherTest.class.getClassLoader();
-        URL resource = classLoader.getResource(fileName);
-        return new File(resource.getFile());
     }
 }
