@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -87,6 +88,26 @@ public class GitHelperUtil {
         }
 
         return destPath.toFile();
+    }
+
+    /**
+     * get latest tag
+     * @param gitClient
+     * @return
+     */
+    public static String getLatestTag(GitClient gitClient) {
+        String tag;
+        try {
+            List<String> tags = gitClient.tags();
+            if (tags.size() > 0) {
+                tag = tags.get(tags.size() - 1);
+            } else {
+                tag = null;
+            }
+        } catch (GitException e) {
+            throw new PluginException("get tags error", e);
+        }
+        return tag;
     }
 
     private static Boolean isGitOrNot(Path path) {

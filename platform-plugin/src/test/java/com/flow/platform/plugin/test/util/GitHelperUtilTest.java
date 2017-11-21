@@ -66,14 +66,7 @@ public class GitHelperUtilTest {
         String gitUrl = "https://github.com/yunheli/info.git";
         Path basePath = Paths.get("/tmp/test");
 
-        // if exists, delete
-        if (basePath.toFile().exists()) {
-            FileUtils.deleteDirectory(basePath.toFile());
-        }
-
-        if (!basePath.toFile().exists()) {
-            Files.createDirectories(basePath);
-        }
+        initFolder(basePath);
 
         GitClient gitClient = new GitHttpClient(gitUrl, basePath, "", "");
 
@@ -86,6 +79,39 @@ public class GitHelperUtilTest {
         // folder should exist
         Assert.assertEquals(true, Paths.get(basePath.toString(), "info").toFile().exists());
 
+        cleanFolder(basePath);
+    }
+
+    @Test
+    public void should_get_latest_tag() throws IOException {
+        String gitUrl = "https://github.com/yunheli/info.git";
+        Path basePath = Paths.get("/tmp/test");
+
+        initFolder(basePath);
+
+        GitClient gitClient = new GitHttpClient(gitUrl, basePath, "", "");
+
+        // when clone code
+        GitHelperUtil.clone(gitClient);
+
+        // then should get latest tag
+        Assert.assertEquals("2.3", GitHelperUtil.getLatestTag(gitClient));
+
+        cleanFolder(basePath);
+    }
+
+    private void initFolder(Path basePath) throws IOException {
+        // if exists, delete
+        if (basePath.toFile().exists()) {
+            FileUtils.deleteDirectory(basePath.toFile());
+        }
+
+        if (!basePath.toFile().exists()) {
+            Files.createDirectories(basePath);
+        }
+    }
+
+    private void cleanFolder(Path basePath) throws IOException {
         // when: delete folder
         FileUtils.deleteDirectory(basePath.toFile());
 
