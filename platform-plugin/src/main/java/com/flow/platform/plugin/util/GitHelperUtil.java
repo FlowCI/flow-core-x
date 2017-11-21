@@ -68,6 +68,26 @@ public class GitHelperUtil {
         return path.toFile();
     }
 
+    /**
+     * get latest tag
+     * @param gitClient
+     * @return
+     */
+    public static String getLatestTag(GitClient gitClient) {
+        String tag;
+        try {
+            List<String> tags = gitClient.tags();
+            if (tags.size() > 0) {
+                tag = tags.get(tags.size() - 1);
+            } else {
+                tag = null;
+            }
+        } catch (GitException e) {
+            throw new PluginException("get tags error", e);
+        }
+        return tag;
+    }
+
     private static File doRenameBareGit(Path path) {
         if (!isGitOrNot(path)) {
             throw new PluginException("sorry not a git project");
@@ -88,26 +108,6 @@ public class GitHelperUtil {
         }
 
         return destPath.toFile();
-    }
-
-    /**
-     * get latest tag
-     * @param gitClient
-     * @return
-     */
-    public static String getLatestTag(GitClient gitClient) {
-        String tag;
-        try {
-            List<String> tags = gitClient.tags();
-            if (tags.size() > 0) {
-                tag = tags.get(tags.size() - 1);
-            } else {
-                tag = null;
-            }
-        } catch (GitException e) {
-            throw new PluginException("get tags error", e);
-        }
-        return tag;
     }
 
     private static Boolean isGitOrNot(Path path) {
