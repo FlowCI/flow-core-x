@@ -78,7 +78,7 @@ public class GitHelperUtilTest {
         GitClient gitClient = new GitHttpClient(gitUrl, basePath, "", "");
 
         // when clone code
-        GitHelperUtil.clone(gitClient, basePath);
+        GitHelperUtil.clone(gitClient);
 
         //then: should is folder
         Assert.assertEquals(true, Paths.get(basePath.toString(), "info").toFile().isDirectory());

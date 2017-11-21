@@ -37,10 +37,9 @@ public class GitHelperUtil {
     /**
      * git clone to path
      * @param gitClient
-     * @param path
      * @return
      */
-    public static File clone(GitClient gitClient, Path path) {
+    public static File clone(GitClient gitClient) {
         File dist;
         try {
             dist = gitClient.clone("master", true);
