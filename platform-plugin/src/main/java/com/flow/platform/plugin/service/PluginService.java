@@ -35,6 +35,8 @@ public interface PluginService {
      */
     void install(String pluginName);
 
+    void doInstall(String pluginName);
+
     /**
      * uninstall plugin
      */

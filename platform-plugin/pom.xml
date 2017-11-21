@@ -29,8 +29,9 @@
     </dependency>
 
     <dependency>
-      <groupId></groupId>
-      <artifactId></artifactId>
+      <groupId>com.flow.platform</groupId>
+      <artifactId>platform-util-git</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>

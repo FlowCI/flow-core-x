@@ -20,10 +20,18 @@ import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.plugin.service.PluginServiceImpl;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import java.io.*;
 
 /**
  * @author yh@firim
@@ -63,5 +71,20 @@ public class PluginServiceTest {
 
         //then: should throw PluginException
         pluginService.list();
+    }
+
+    @Test
+    public void should_install_success() {
+        pluginService = new PluginServiceImpl(PLUGIN_SOURCE_URL,
+            Paths.get("/tmp"), Paths.get("/tmp"),
+            new ThreadPoolExecutor(1, 1, 600, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
+
+//        pluginService.doInstall("fircli");
+        File file = new File("/tmp/test/ecx");
+        try {
+            Git git = Git.init().setDirectory(file).call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
     }
 }
