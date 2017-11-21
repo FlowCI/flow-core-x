@@ -21,6 +21,7 @@ import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitProject;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -33,6 +34,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -194,6 +197,10 @@ public abstract class JGitBasedClient implements GitClient {
                 .setTags(true)
                 .setTimeout(GIT_TRANS_TIMEOUT)
                 .setRemote(gitUrl)).call();
+
+
+            List<Ref> listRefs = Lists.newArrayList(refs);
+            listRefs.sort(new RefComparator());
 
             return toRefString(refs);
         } catch (GitAPIException e) {
@@ -384,6 +391,17 @@ public abstract class JGitBasedClient implements GitClient {
         @Override
         public boolean isCancelled() {
             return false;
+        }
+    }
+
+    /**
+     * Comparator for Ref, The index 0 is latest
+     */
+    private class RefComparator implements Comparator<Ref> {
+
+        @Override
+        public int compare(Ref o1, Ref o2) {
+            return o1.getObjectId().compareTo(o2.getObjectId());
         }
     }
 }
