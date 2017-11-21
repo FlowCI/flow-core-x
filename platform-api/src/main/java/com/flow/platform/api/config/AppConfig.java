@@ -23,7 +23,6 @@ import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.core.queue.MemoryQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
-import com.flow.platform.queue.InMemoryQueue;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
 import java.io.IOException;

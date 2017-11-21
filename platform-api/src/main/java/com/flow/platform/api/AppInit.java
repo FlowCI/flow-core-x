@@ -21,9 +21,13 @@ import com.flow.platform.api.config.WebSocketConfig;
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.util.resource.AppResourceLoader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
+import javax.servlet.ServletRegistration.Dynamic;
+import org.eclipse.jgit.http.server.GitServlet;
 import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -31,8 +35,6 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 /**
  * Created by gyfirim on 14/07/2017.
- *
- * @Copyright fir.im
  */
 public class AppInit implements WebApplicationInitializer {
 
@@ -43,9 +45,9 @@ public class AppInit implements WebApplicationInitializer {
         applicationContext.register(WebConfig.class, WebSocketConfig.class);
         applicationContext.setServletContext(servletContext);
 
-        // Add the servlet mapping manually and make it initialize automatically
+        // Add the mvcServlet mapping manually and make it initialize automatically
         DispatcherServlet dispatcherServlet = new DispatcherServlet(applicationContext);
-        ServletRegistration.Dynamic servlet = servletContext.addServlet("mvc-dispatcher", dispatcherServlet);
+        Dynamic mvcServlet = servletContext.addServlet("mvc-dispatcher", dispatcherServlet);
 
         // set app property resource
         try {
@@ -55,11 +57,32 @@ public class AppInit implements WebApplicationInitializer {
                 .getPropertySources()
                 .addFirst(new ResourcePropertySource(propertyLoader.find()));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ServletException(e.getMessage());
         }
 
-        servlet.addMapping("/");
-        servlet.setAsyncSupported(true);
-        servlet.setLoadOnStartup(1);
+        mvcServlet.addMapping("/");
+        mvcServlet.setAsyncSupported(true);
+        mvcServlet.setLoadOnStartup(2);
+
+        try {
+            Path gitWorkspace = Paths.get(applicationContext.getEnvironment().getProperty("api.git.workspace"));
+            initGitServlet(gitWorkspace, servletContext);
+        } catch (IOException e) {
+            throw new ServletException(e.getMessage());
+        }
+    }
+
+    private void initGitServlet(Path gitWorkspace, ServletContext servletContext) throws IOException {
+        if (!Files.exists(gitWorkspace)) {
+            Files.createDirectories(gitWorkspace);
+        }
+
+        // add git servlet mapping
+        Dynamic gitServlet = servletContext.addServlet("git-servlet", new GitServlet());
+        gitServlet.addMapping("/git/*");
+        gitServlet.setInitParameter("base-path", gitWorkspace.toString());
+        gitServlet.setInitParameter("export-all", "true");
+        gitServlet.setAsyncSupported(true);
+        gitServlet.setLoadOnStartup(1);
     }
 }

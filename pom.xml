@@ -51,7 +51,7 @@
     <snakeyaml.version>1.18</snakeyaml.version>
     <curator.version>2.12.0</curator.version>
     <tyrus-server.version>1.13.1</tyrus-server.version>
-    <org.eclipse.jgit.version>4.8.0.201706111038-r</org.eclipse.jgit.version>
+    <jgit.version>4.8.0.201706111038-r</jgit.version>
     <jsch.version>0.1.54</jsch.version>
     <hibernate-validator.version>5.4.1.Final</hibernate-validator.version>
     <javax.mail-api.version>1.5.5</javax.mail-api.version>
@@ -60,6 +60,7 @@
     <velocity.version>1.5</velocity.version>
     <spring-context-support.version>4.3.8.RELEASE</spring-context-support.version>
     <quartz.version>2.2.1</quartz.version>
+    <jgit.server.version>4.9.0.201710071750-r</jgit.server.version>
   </properties>
 
   <build>
@@ -277,7 +278,13 @@
       <dependency>
         <groupId>org.eclipse.jgit</groupId>
         <artifactId>org.eclipse.jgit</artifactId>
-        <version>${org.eclipse.jgit.version}</version>
+        <version>${jgit.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jgit</groupId>
+        <artifactId>org.eclipse.jgit.http.server</artifactId>
+        <version>${jgit.server.version}</version>
       </dependency>
 
       <dependency>
