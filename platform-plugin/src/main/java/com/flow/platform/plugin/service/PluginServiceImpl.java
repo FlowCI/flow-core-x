@@ -20,9 +20,6 @@ import com.flow.platform.plugin.consumer.InstallConsumer;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.UriUtil;
-import com.flow.platform.util.git.GitClient;
-import com.flow.platform.util.git.GitException;
-import com.flow.platform.util.git.GitHttpClient;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.cache.Cache;
@@ -31,7 +28,6 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -117,40 +113,6 @@ public class PluginServiceImpl implements PluginService {
         mockPluginStore.put(plugin.getName(), plugin);
         return plugin;
     }
-
-    @Override
-    public void doInstall(String pluginName) {
-        Plugin plugin = findByName(pluginName);
-        GitClient gitClient = new GitHttpClient(plugin.getDetails() + ".git", gitCloneFolder, "", "");
-
-        // git clone
-        gitClone(gitClient);
-
-        // Fetch latest tag
-        try {
-            List<String> tags = gitClient.tags();
-        } catch (GitException e) {
-            throw new PluginException("when git tags, it throw some exceptions", e);
-        }
-
-        // init bared
-        // push tag to local repo
-
-        // callback
-    }
-
-    private void gitClone(GitClient gitClient) {
-        try {
-            gitClient.clone("master", true);
-        } catch (GitException e) {
-            throw new PluginException("when git clone, it throw some exceptions", e);
-        }
-    }
-
-    private void initBareLibrary(String name) {
-
-    }
-
 
     private List<Plugin> combinePluginStatus(List<Plugin> plugins) {
         for (Plugin plugin : plugins) {
