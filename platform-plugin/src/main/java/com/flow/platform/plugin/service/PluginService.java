@@ -41,10 +41,16 @@ public interface PluginService {
     void uninstall(String pluginName);
 
     /**
-     * plugin store place
+     * update plugin status
+     * @param plugin
      * @return
      */
-    Path workspace();
-
     Plugin update(Plugin plugin);
+
+    /**
+     * find plugin by name
+     * @param name
+     * @return
+     */
+    Plugin find(String name);
 }

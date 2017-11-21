@@ -22,22 +22,17 @@ import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.UriUtil;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -46,8 +41,6 @@ import java.util.concurrent.TimeUnit;
 public class PluginServiceImpl implements PluginService {
 
     private String pluginSourceUrl;
-
-    private final static String KEY = "plugins";
 
     private Map<String, Plugin> mockPluginStore = new HashMap<>();
 
@@ -59,9 +52,6 @@ public class PluginServiceImpl implements PluginService {
     private ThreadPoolExecutor threadPoolExecutor;
 
     private BlockingQueue<Plugin> pluginBlockingQueue = new LinkedBlockingDeque<>();
-
-    private Cache<String, List<Plugin>> pluginCache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS)
-        .maximumSize(1000).build();
 
     public PluginServiceImpl(String repoUrl) {
         this.pluginSourceUrl = repoUrl;
@@ -79,13 +69,22 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
+    public Plugin find(String name) {
+        doBuildList();
+        return mockPluginStore.get(name);
+    }
+
+    @Override
     public List<Plugin> list() {
-        return combinePluginStatus(doFind());
+        doBuildList();
+        List<Plugin> list = new LinkedList<>();
+        mockPluginStore.forEach((name, plugin) -> list.add(plugin));
+        return list;
     }
 
     @Override
     public void install(String pluginName) {
-        Plugin plugin = findByName(pluginName);
+        Plugin plugin = find(pluginName);
 
         if (Objects.isNull(plugin)) {
             throw new PluginException("not found plugin, please ensure the plugin name is exist");
@@ -93,7 +92,7 @@ public class PluginServiceImpl implements PluginService {
 
         // not finish can install plugin
         if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin)) {
-            enqueue(plugin);
+            doEnqueue(plugin);
         }
 
     }
@@ -104,85 +103,69 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public Path workspace() {
-        return gitCloneFolder;
-    }
-
-    @Override
     public Plugin update(Plugin plugin) {
         mockPluginStore.put(plugin.getName(), plugin);
         return plugin;
     }
 
-    private List<Plugin> combinePluginStatus(List<Plugin> plugins) {
-        for (Plugin plugin : plugins) {
-            Plugin plg = mockPluginStore.get(plugin.getName());
-            if (!Objects.isNull(plg)) {
-                plugin.setStatus(plg.getStatus());
-            }
-        }
-
-        return plugins;
-    }
-
-    private void enqueue(Plugin plugin) {
+    private void doEnqueue(Plugin plugin) {
         try {
             pluginBlockingQueue.put(plugin);
         } catch (Throwable throwable) {
         }
     }
 
-    private Plugin findByName(String name) {
-        for (Plugin plugin : list()) {
-            if (Objects.equals(plugin.getName(), name)) {
-                return plugin;
-            }
-        }
-
-        return null;
+    private void doBuildList() {
+        doSave(doFetchPlugins());
     }
+
+    private void doInstall() {
+        // git clone code
+
+        // fetch latest tag
+
+        // detect tag
+
+        // git init bare tag
+
+        // git push
+    }
+
 
     /**
      * list plugins
      * @return
      */
-    private List<Plugin> doFind() {
-        List<Plugin> plugins;
+    private List<Plugin> doFetchPlugins() {
         try {
-            plugins = pluginCache.get(KEY, () -> {
-                String body = fetchPluginInfo();
-                PluginRepository pluginRepository = new Gson().fromJson(body, PluginRepository.class);
-                return pluginRepository.plugins;
-            });
-        } catch (ExecutionException e) {
-            plugins = new ArrayList<>();
+            HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
+            HttpResponse<String> response = httpClient.bodyAsString();
+
+            UriUtil.detectResponseIsOKAndThrowable(response);
+
+            String body = response.getBody();
+            PluginRepository pluginRepository = new Gson().fromJson(body, PluginRepository.class);
+            return pluginRepository.plugins;
         } catch (Throwable throwable) {
             throw new PluginException(" Fetch Plugins Info Is Error ", throwable);
         }
-        return plugins;
     }
 
-    /**
-     * fetch plugin repos info
-     * @return
-     */
-    private String fetchPluginInfo() {
-        HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
-        HttpResponse<String> response = httpClient.bodyAsString();
+    private void doSave(List<Plugin> plugins) {
+        for (Plugin plugin : plugins) {
 
-        UriUtil.detectResponseIsOKAndThrowable(response);
-
-        String body = response.getBody();
-        return body;
+            // only update no plugins
+            if (Objects.isNull(mockPluginStore.get(plugin.getName()))) {
+                mockPluginStore.put(plugin.getName(), plugin);
+            }
+        }
     }
-
 
     private class PluginRepository {
 
         @SerializedName("packages")
         private List<Plugin> plugins;
     }
-
 
     private void registerConsumers() {
         for (int i = 0; i < threadPoolExecutor.getCorePoolSize(); i++) {
