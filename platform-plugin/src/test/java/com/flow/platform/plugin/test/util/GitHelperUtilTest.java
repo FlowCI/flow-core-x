@@ -37,7 +37,7 @@ public class GitHelperUtilTest {
 
     @Test
     public void should_init_bare_repo_success() throws IOException {
-        Path path = Paths.get("/tmp/test");
+        Path path = Paths.get("/tmp/test.git");
 
         // if folder is exist, then to delete
         if (path.toFile().exists()) {
@@ -47,7 +47,7 @@ public class GitHelperUtilTest {
         Assert.assertEquals(false, path.toFile().exists());
 
         // when: init bare git repository
-        GitHelperUtil.initBareGit(path);
+        GitHelperUtil.initBareGitRepository(path);
 
         // then: /tmp/test.git exist
         Assert.assertEquals(true, Paths.get("/tmp/test.git").toFile().exists());
@@ -95,8 +95,10 @@ public class GitHelperUtilTest {
         // when clone code
         GitHelperUtil.clone(gitClient);
 
+        Git git = Git.open(Paths.get(basePath.toString(), "info").toFile());
+
         // then should get latest tag
-        Assert.assertEquals("2.3", GitHelperUtil.getLatestTag(gitClient));
+        Assert.assertEquals("2.3.1", GitHelperUtil.getLatestTag(Paths.get(basePath.toString(), "info")));
 
         cleanFolder(basePath);
     }
@@ -119,6 +121,37 @@ public class GitHelperUtilTest {
 
         Assert.assertEquals(2, git.getRepository().getRemoteNames().size());
 
+        cleanFolder(basePath);
+    }
+
+    @Test
+    public void should_push_local_repo_success() throws IOException {
+        String gitUrl = "https://github.com/yunheli/info.git";
+        Path basePath = Paths.get("/tmp/test");
+        Path bareRepoPath = Paths.get("/tmp/test/test.git");
+
+        initFolder(basePath);
+        GitClient gitClient = new GitHttpClient(gitUrl, basePath, "", "");
+
+        // when clone code
+        Path path = GitHelperUtil.clone(gitClient);
+
+        // init bare repo
+        GitHelperUtil.initBareGitRepository(bareRepoPath);
+
+        // set local remote
+        GitHelperUtil.setLocalRemote(path, bareRepoPath);
+
+        // get latest tag
+        String tag = GitHelperUtil.getLatestTag(path);
+
+        // push tag to local
+        GitHelperUtil.pushTag(path, "local", tag);
+
+        // then: bare repo should has tag
+        Assert.assertEquals(tag, GitHelperUtil.getLatestTag(bareRepoPath));
+
+        // clean folder
         cleanFolder(basePath);
     }
 

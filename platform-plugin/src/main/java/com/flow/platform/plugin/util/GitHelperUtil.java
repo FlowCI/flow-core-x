@@ -24,40 +24,83 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.RefSpec;
 
 /**
  * @author yh@firim
  */
 public class GitHelperUtil {
 
+    private static final String REF_TAGS = "refs/tags/";
+    private static final String GIT_NOTE = ".git";
 
     /**
      * git clone to path
      * @param gitClient
      * @return
      */
-    public static File clone(GitClient gitClient) {
+    public static Path clone(GitClient gitClient) {
         File dist;
         try {
             dist = gitClient.clone("master", true);
         } catch (GitException e) {
             throw new PluginException("when clone code, it throw some error", e);
         }
-        return dist;
+        return dist.toPath().getParent();
     }
 
 
     /**
-     * init local git source
+     * push tag to remote
+     * @param path
+     * @param remote
+     * @param tag
+     */
+    public static void pushTag(Path path, String remote, String tag) {
+        checkIsFolderOrNot(path);
+        checkIsGitOrNot(path);
+        try {
+            Git git = Git.open(path.toFile());
+            git
+                .push()
+                .setRemote(remote)
+                .setRefSpecs(new RefSpec(tag))
+                .call();
+
+        } catch (IOException e) {
+            throw new PluginException("Io exception", e);
+        } catch (InvalidRemoteException e) {
+            throw new PluginException("invalid remote exception", e);
+        } catch (TransportException e) {
+            throw new PluginException("invalid transport exception", e);
+        } catch (GitAPIException e) {
+            throw new PluginException("git api exception", e);
+        }
+    }
+
+    /**
+     * init local git repository
      * @param path
      * @return
      */
-    public static File initBareGit(Path path) {
+    public static File initBareGitRepository(Path path) {
+        if (path.getFileName().endsWith(GIT_NOTE)) {
+            throw new PluginException("path must be end with .git");
+        }
+
+        path = Paths.get(path.getParent().toString(), path.getFileName().toString().replace(GIT_NOTE, Strings.EMPTY));
+
         try {
             Git git = Git.init().setDirectory(path.toFile()).call();
 
@@ -71,22 +114,39 @@ public class GitHelperUtil {
 
     /**
      * get latest tag
-     * @param gitClient
      * @return
      */
-    public static String getLatestTag(GitClient gitClient) {
-        String tag;
-        try {
-            List<String> tags = gitClient.tags();
-            if (tags.size() > 0) {
-                tag = tags.get(tags.size() - 1);
-            } else {
-                tag = null;
-            }
-        } catch (GitException e) {
-            throw new PluginException("get tags error", e);
+    public static String getLatestTag(Path gitPath) {
+        List<String> tags = tagList(gitPath);
+        if (tags.isEmpty()) {
+            return null;
         }
-        return tag;
+        return tags.get(tags.size() - 1);
+    }
+
+    /**
+     * get tag list from local Thread
+     * @param gitPath
+     * @return
+     */
+    public static List<String> tagList(Path gitPath) {
+        checkIsFolderOrNot(gitPath);
+        checkIsGitOrNot(gitPath);
+
+        List<String> tags = new LinkedList<>();
+        try {
+            Git git = Git.open(gitPath.toFile());
+            List<Ref> refs = git.tagList()
+                .call();
+            for (Ref ref : refs) {
+                tags.add(ref.getName().replace(REF_TAGS, Strings.EMPTY));
+            }
+        } catch (IOException e) {
+            throw new PluginException("io exception ", e);
+        } catch (GitAPIException e) {
+            throw new PluginException("api exception ", e);
+        }
+        return tags;
     }
 
     /**
@@ -96,11 +156,7 @@ public class GitHelperUtil {
      * @return
      */
     public static Git setLocalRemote(Path gitPath, Path localRepoPath) {
-        // gitPath must be folder
-        if (!gitPath.toFile().isDirectory()) {
-            throw new PluginException("this path must be folder");
-        }
-        
+        checkIsFolderOrNot(gitPath);
         Git git;
         try {
             git = Git.open(gitPath.toFile());
@@ -115,9 +171,7 @@ public class GitHelperUtil {
     }
 
     private static File doRenameBareGit(Path path) {
-        if (!isGitOrNot(path)) {
-            throw new PluginException("sorry not a git project");
-        }
+        checkIsGitOrNot(path);
 
         Path daoGitPath = Paths.get(path.toString(), ".git");
         Path parentPath = daoGitPath.getParent();
@@ -139,28 +193,34 @@ public class GitHelperUtil {
     private static Boolean isGitOrNot(Path path) {
         File file = new File(path.toString());
 
+        if (!file.exists()) {
+            return false;
+        }
+
         // if not directory, not a git project
         if (!file.isDirectory()) {
             return false;
         }
 
-        Path daoGitPath = Paths.get(path.toString(), ".git");
-        File daoGitFile = daoGitPath.toFile();
-
-        // if not exist, not git project
-        if (!daoGitFile.exists()) {
+        try {
+            Git.open(path.toFile());
+        } catch (RepositoryNotFoundException e) {
             return false;
+        } catch (Throwable throwable) {
         }
-
-        // if not directory, not a git project
-        if (!daoGitFile.isDirectory()) {
-            return false;
-        }
-
         return true;
     }
 
-    public static void push() {
+    private static void checkIsFolderOrNot(Path gitPath) {
+        // gitPath must be folder
+        if (!gitPath.toFile().isDirectory()) {
+            throw new PluginException("this path must be folder");
+        }
+    }
 
+    private static void checkIsGitOrNot(Path path) {
+        if (!isGitOrNot(path)) {
+            throw new PluginException("sorry not a git project");
+        }
     }
 }
