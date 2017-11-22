@@ -48,7 +48,21 @@ public class SyncEvent extends Jsonable {
     }
 
     public String toScript() {
-        return "git pull xxx";
+        int lastIndexOfSlash = gitUrl.lastIndexOf('/');
+        int lastIndexOfDot = gitUrl.lastIndexOf('.');
+        String name = gitUrl.substring(lastIndexOfSlash + 1, lastIndexOfDot);
+
+        if (syncType == SyncType.DELETE) {
+            return "rm -r -f " + name;
+        }
+
+        return "git init " + name +
+            "\n" +
+            "cd " + name +
+            "\n" +
+            "git pull " + gitUrl + " --tags" +
+            "\n" +
+            "git checkout " + tag;
     }
 
     @Override
