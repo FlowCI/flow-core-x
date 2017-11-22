@@ -50,4 +50,13 @@ public class SyncEvent extends Jsonable {
     public String toScript() {
         return "git pull xxx";
     }
+
+    @Override
+    public String toString() {
+        return "SyncEvent{" +
+            "gitUrl='" + gitUrl + '\'' +
+            ", tag='" + tag + '\'' +
+            ", syncType=" + syncType +
+            "} " + super.toString();
+    }
 }

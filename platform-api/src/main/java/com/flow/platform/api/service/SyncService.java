@@ -19,7 +19,9 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.queue.PlatformQueue;
+import java.util.Queue;
 
 /**
  * @author yang
@@ -45,6 +47,11 @@ public interface SyncService {
     PlatformQueue<PriorityMessage> getSyncQueue(AgentPath agent);
 
     /**
+     * Get sync task tree for agent
+     */
+    Queue<SyncEvent> getSyncTask(AgentPath agent);
+
+    /**
      * Register agent to sync service
      */
     void register(AgentPath agent);
@@ -58,6 +65,11 @@ public interface SyncService {
      * Clean agents
      */
     void clean();
+
+    /**
+     * Handle sync event cmd callback
+     */
+    void onCallback(Cmd cmd);
 
     /**
      * Task to sync git repo to agents

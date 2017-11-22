@@ -152,14 +152,13 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public void sendCmd(CmdInfo cmdInfo, boolean inQueue) {
+    public Cmd sendCmd(CmdInfo cmdInfo, boolean inQueue) {
         try {
             if (inQueue) {
-                sendToQueue(cmdInfo, 5);
+                return sendToQueue(cmdInfo, 5);
             }
-            else {
-                sendDirectly(cmdInfo);
-            }
+
+            return sendDirectly(cmdInfo);
         } catch (Throwable e) {
             String rootCause = ExceptionUtil.findRootCause(e).getMessage();
             throw new IllegalStatusException("Unable to send cmd since: " + rootCause);

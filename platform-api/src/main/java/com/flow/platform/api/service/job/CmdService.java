@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 
 /**
@@ -69,5 +70,5 @@ public interface CmdService {
     /**
      * send cmd to cc
      */
-    void sendCmd(CmdInfo cmdInfo, boolean inQueue);
+    Cmd sendCmd(CmdInfo cmdInfo, boolean inQueue);
 }

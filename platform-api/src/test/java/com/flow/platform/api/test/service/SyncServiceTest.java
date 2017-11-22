@@ -32,6 +32,9 @@ import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdResult;
+import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.google.common.collect.ImmutableList;
@@ -61,17 +64,27 @@ public class SyncServiceTest extends TestBase {
 
     private List<AgentPath> agents;
 
+    private Cmd createSessionCmdResponse;
+
     @Before
     public void init() {
         agents = ImmutableList.of(new AgentPath("default", "first"), new AgentPath("default", "second"));
 
-        Cmd mockCreateSessionCmdResponse = new Cmd();
-        mockCreateSessionCmdResponse.setId(UUID.randomUUID().toString());
-        mockCreateSessionCmdResponse.setSessionId(UUID.randomUUID().toString());
+        createSessionCmdResponse = new Cmd();
+        createSessionCmdResponse.setId(UUID.randomUUID().toString());
+        createSessionCmdResponse.setSessionId(UUID.randomUUID().toString());
 
         stubFor(post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
-                .withBody(mockCreateSessionCmdResponse.toJson())));
+                .withBody(createSessionCmdResponse.toJson())));
+
+
+        Cmd mockResponse = new Cmd();
+        mockResponse.setId(UUID.randomUUID().toString());
+        mockResponse.setSessionId(createSessionCmdResponse.getSessionId());
+
+        stubFor(post(urlEqualTo("/cmd/send"))
+            .willReturn(aResponse().withBody(mockResponse.toJson())));
     }
 
     @Test
@@ -127,7 +140,8 @@ public class SyncServiceTest extends TestBase {
         FileUtils.copyDirectoryToDirectory(path, gitWorkspace.toFile());
 
         // and: register agent to sync service
-        syncService.register(agents.get(0));
+        AgentPath agent = agents.get(0);
+        syncService.register(agent);
 
         // when: execute sync task
         syncService.syncTask();
@@ -135,6 +149,29 @@ public class SyncServiceTest extends TestBase {
         // then: the create session cmd should be send
         CountMatchingStrategy strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
         verify(strategy, postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
+
+        // when: mock create session cmd been callback
+        Cmd mockSessionCallback = new Cmd(agent.getZone(), agent.getName(), CmdType.CREATE_SESSION, null);
+        mockSessionCallback.setStatus(CmdStatus.SENT);
+        mockSessionCallback.setSessionId(createSessionCmdResponse.getSessionId());
+        syncService.onCallback(mockSessionCallback);
+
+        // then: send run shell cmd for sync event and sync task queue size not changed
+        strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
+        verify(strategy, postRequestedFor(urlEqualTo("/cmd/send")));
+        Assert.assertEquals(1, syncService.getSyncTask(agent).size());
+
+        // when: mock cmd been executed
+        Cmd mockRunShellSuccess = new Cmd(agent.getZone(), agent.getName(), CmdType.RUN_SHELL, "git pull xxx");
+        mockRunShellSuccess.setSessionId(mockSessionCallback.getSessionId());
+        mockRunShellSuccess.setStatus(CmdStatus.LOGGED);
+        mockRunShellSuccess.setCmdResult(new CmdResult(0));
+        syncService.onCallback(mockRunShellSuccess);
+
+        // then: should send delete session cmd and sync task queue size should be zero
+        strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 2);
+        verify(strategy, postRequestedFor(urlEqualTo("/cmd/send")));
+        Assert.assertEquals(0, syncService.getSyncTask(agent).size());
     }
 
     @After
