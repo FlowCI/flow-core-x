@@ -60,15 +60,13 @@ public class PluginStoreServiceImpl implements PluginStoreService {
 
     @Override
     public Plugin find(String name) {
-        loadFileToCache();
-        doBuildList();
+        loadCacheAndFetchList();
         return pluginCache.get(name);
     }
 
     @Override
     public List<Plugin> list() {
-        loadFileToCache();
-        doBuildList();
+        loadCacheAndFetchList();
         List<Plugin> list = new LinkedList<>();
         pluginCache.forEach((name, plugin) -> list.add(plugin));
         saveCacheToFile();
@@ -77,23 +75,10 @@ public class PluginStoreServiceImpl implements PluginStoreService {
 
     @Override
     public Plugin update(Plugin plugin) {
-        loadFileToCache();
+        loadCacheAndFetchList();
         pluginCache.put(plugin.getName(), plugin);
         saveCacheToFile();
-
         return plugin;
-    }
-
-    private void loadFileToCache() {
-        Type type = new TypeToken<Map<String, Plugin>>() {
-        }.getType();
-        if (!Objects.isNull(FileUtil.read(type, storePath))) {
-            pluginCache = FileUtil.read(type, storePath);
-        }
-    }
-
-    private void saveCacheToFile() {
-        FileUtil.write(pluginCache, storePath);
     }
 
     /**
@@ -133,8 +118,21 @@ public class PluginStoreServiceImpl implements PluginStoreService {
         }
     }
 
-    private void doBuildList() {
+    private void loadCacheAndFetchList() {
+        loadFileToCache();
         doSave(doFetchPlugins());
+    }
+
+    private void loadFileToCache() {
+        Type type = new TypeToken<Map<String, Plugin>>() {
+        }.getType();
+        if (!Objects.isNull(FileUtil.read(type, storePath))) {
+            pluginCache = FileUtil.read(type, storePath);
+        }
+    }
+
+    private void saveCacheToFile() {
+        FileUtil.write(pluginCache, storePath);
     }
 
     private class PluginRepository {
