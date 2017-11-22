@@ -32,6 +32,7 @@ import com.flow.platform.util.git.GitHttpClient;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -67,6 +68,14 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     private ThreadPoolExecutor threadPoolExecutor;
 
     private PluginStoreService pluginStoreService;
+
+    private List<Processor> processors = new LinkedList<>();
+
+    {
+        processors.add(new CloneProcessor());
+        processors.add(new InitLocalRepoProcessor());
+        processors.add(new PushProcessor());
+    }
 
     public PluginServiceImpl(String pluginSourceUrl,
                              Path gitCloneFolder,
@@ -159,45 +168,9 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     @Override
     public void execInstall(Plugin plugin) {
-
-        LOGGER.traceMarker("DoInstall",
-            String.format("Thread: %s Start Install Plugin %s", Thread.currentThread().getId(), plugin.getName()));
-        plugin.setStatus(PluginStatus.INSTALLING);
-        this.dispatchEvent(plugin, null, null);
-
-        Path bareRepoPath = doGenerateLocalRepositoryPath(plugin);
-
-        GitClient gitClient = new GitHttpClient(plugin.getDetails() + ".git", gitCloneFolder, "", "");
-
-        LOGGER.traceMarker("DoInstall",
-            String.format("Thread: %s Start Clone Plugin %s", Thread.currentThread().getId(), plugin.getName()));
-        // when clone code
-        Path path = GitHelperUtil.clone(gitClient);
-
-        LOGGER.traceMarker("DoInstall",
-            String.format("Thread: %s Start Init Local Repo Plugin %s", Thread.currentThread().getId(),
-                plugin.getName()));
-        // init bare repo
-        GitHelperUtil.initBareGitRepository(bareRepoPath);
-
-        // set local remote
-        GitHelperUtil.setLocalRemote(path, bareRepoPath);
-
-        LOGGER.traceMarker("DoInstall",
-            String.format("Thread: %s Start Get Latest Tag %s", Thread.currentThread().getId(), plugin.getName()));
-        // get latest tag
-        String tag = GitHelperUtil.getLatestTag(path);
-
-        LOGGER.traceMarker("DoInstall",
-            String.format("Thread: %s Start Push Tag To Local Repo %s", Thread.currentThread().getId(),
-                plugin.getName()));
-        // push tag to local
-        GitHelperUtil.pushTag(path, LOCAL_REMOTE, tag);
-
-        plugin.setStatus(PluginStatus.INSTALLED);
-        this.dispatchEvent(plugin, tag, bareRepoPath);
-
-        update(plugin);
+        for (Processor processor : processors) {
+            processor.exec(plugin);
+        }
     }
 
     private Path doGenerateLocalRepositoryPath(Plugin plugin) {
@@ -216,6 +189,65 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         // start many threads
         for (int i = 0; i < threadPoolExecutor.getCorePoolSize(); i++) {
             installerQueue.start();
+        }
+    }
+
+    private interface Processor {
+        void exec(Plugin plugin);
+    }
+
+    private class CloneProcessor implements Processor {
+
+        @Override
+        public void exec(Plugin plugin) {
+            LOGGER.traceMarker("CloneProcessor",
+                String.format("Thread: %s Start Clone %s", Thread.currentThread().getId(), plugin.getName()));
+            plugin.setStatus(PluginStatus.INSTALLING);
+            dispatchEvent(plugin, null, null);
+            update(plugin);
+
+            GitClient gitClient = new GitHttpClient(plugin.getDetails() + ".git", gitCloneFolder, "", "");
+
+            // when clone code
+            GitHelperUtil.clone(gitClient);
+        }
+    }
+
+    private class InitLocalRepoProcessor implements Processor {
+
+        @Override
+        public void exec(Plugin plugin) {
+            Path bareRepoPath = doGenerateLocalRepositoryPath(plugin);
+            Path path = doGenerateGitCloneFolderPath(plugin);
+            LOGGER.traceMarker("InitLocalRepoProcessor",
+                String.format("Thread: %s Start Init Local Repo Plugin %s", Thread.currentThread().getId(),
+                    plugin.getName()));
+            // init bare repo
+            GitHelperUtil.initBareGitRepository(bareRepoPath);
+
+            // set local remote
+            GitHelperUtil.setLocalRemote(path, bareRepoPath);
+        }
+    }
+
+    private class PushProcessor implements Processor {
+
+        @Override
+        public void exec(Plugin plugin) {
+            Path bareRepoPath = doGenerateLocalRepositoryPath(plugin);
+            Path path = doGenerateGitCloneFolderPath(plugin);
+            // get latest tag
+            String tag = GitHelperUtil.getLatestTag(path);
+
+            LOGGER.traceMarker("PushProcessor",
+                String.format("Thread: %s Start Push Tag To Local Repo %s", Thread.currentThread().getId(),
+                    plugin.getName()));
+            // push tag to local
+            GitHelperUtil.pushTag(path, LOCAL_REMOTE, tag);
+
+            plugin.setStatus(PluginStatus.INSTALLED);
+            dispatchEvent(plugin, tag, bareRepoPath);
+            update(plugin);
         }
     }
 }
