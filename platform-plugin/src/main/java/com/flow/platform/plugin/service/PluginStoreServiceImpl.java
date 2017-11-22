@@ -61,6 +61,7 @@ public class PluginStoreServiceImpl implements PluginStoreService {
     @Override
     public Plugin find(String name) {
         loadFileToCache();
+        doBuildList();
         return pluginCache.get(name);
     }
 
@@ -86,7 +87,9 @@ public class PluginStoreServiceImpl implements PluginStoreService {
     private void loadFileToCache() {
         Type type = new TypeToken<Map<String, Plugin>>() {
         }.getType();
-        pluginCache = FileUtil.read(type, storePath);
+        if (!Objects.isNull(FileUtil.read(type, storePath))) {
+            pluginCache = FileUtil.read(type, storePath);
+        }
     }
 
     private void saveCacheToFile() {

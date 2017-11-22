@@ -16,7 +16,6 @@
 
 package com.flow.platform.plugin.util;
 
-import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.exception.PluginException;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -44,6 +43,9 @@ public class FileUtil {
     }
 
     synchronized public static <T> T read(Type clazz, Path path) {
+        if (!path.toFile().exists()) {
+            return null;
+        }
         try {
             FileReader fileReader = new FileReader(path.toString());
             try (JsonReader jsonReader = new JsonReader(fileReader)) {

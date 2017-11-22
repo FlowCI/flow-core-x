@@ -23,29 +23,18 @@ import com.flow.platform.plugin.event.AbstractEvent;
 import com.flow.platform.plugin.event.PluginListener;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.GitHelperUtil;
-import com.flow.platform.plugin.util.UriUtil;
 import com.flow.platform.queue.InMemoryQueue;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitHttpClient;
-import com.flow.platform.util.http.HttpClient;
-import com.flow.platform.util.http.HttpResponse;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 
 
@@ -159,6 +148,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
         plugin.setStatus(PluginStatus.PENDING);
         dispatchEvent(plugin, null, null);
+        update(plugin);
     }
 
     @Override
@@ -167,6 +157,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         return plugin;
     }
 
+    @Override
     public void doInstall(Plugin plugin) {
 
         LOGGER.traceMarker("DoInstall",
@@ -218,7 +209,6 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         String[] aars = plugin.getDetails().split("/");
         return Paths.get(gitCloneFolder.toString(), aars[aars.length - 1]);
     }
-
 
     private void initConsumers() {
         QueueListener installConsumer = new InstallConsumer(installerQueue, this);
