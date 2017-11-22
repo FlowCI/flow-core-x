@@ -112,6 +112,7 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public void remove(AgentPath agent) {
         syncQueue.remove(agent);
+        syncTask.remove(agent);
     }
 
     @Override
@@ -122,6 +123,10 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public void onCallback(Cmd cmd) {
         Queue<SyncEvent> syncEventQueue = syncTask.get(cmd.getAgentPath());
+        if (syncEventQueue == null) {
+            return;
+        }
+
         SyncEvent next = null;
 
         if (cmd.getType() == CmdType.CREATE_SESSION) {
