@@ -42,7 +42,7 @@ public interface SyncService {
     /**
      * Get sync event queue for agent
      */
-    PlatformQueue<PriorityMessage> get(AgentPath agent);
+    PlatformQueue<PriorityMessage> getSyncQueue(AgentPath agent);
 
     /**
      * Register agent to sync service
@@ -58,5 +58,10 @@ public interface SyncService {
      * Clean agents
      */
     void clean();
+
+    /**
+     * Task to sync git repo to agents
+     */
+    void syncTask();
 
 }

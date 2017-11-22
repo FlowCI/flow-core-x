@@ -16,19 +16,31 @@
 
 package com.flow.platform.api.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+
 import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncType;
 import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.queue.PlatformQueue;
+import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -52,6 +64,14 @@ public class SyncServiceTest extends TestBase {
     @Before
     public void init() {
         agents = ImmutableList.of(new AgentPath("default", "first"), new AgentPath("default", "second"));
+
+        Cmd mockCreateSessionCmdResponse = new Cmd();
+        mockCreateSessionCmdResponse.setId(UUID.randomUUID().toString());
+        mockCreateSessionCmdResponse.setSessionId(UUID.randomUUID().toString());
+
+        stubFor(post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
+            .willReturn(aResponse()
+                .withBody(mockCreateSessionCmdResponse.toJson())));
     }
 
     @Test
@@ -68,8 +88,8 @@ public class SyncServiceTest extends TestBase {
         syncService.put(new SyncEvent("http://127.0.0.1/git/flow.git", "v1.0", SyncType.CREATE));
 
         // then: two events should be in the agent sync queue
-        Assert.assertEquals(2, syncService.get(firstAgent).size());
-        Assert.assertEquals(2, syncService.get(secondAgent).size());
+        Assert.assertEquals(2, syncService.getSyncQueue(firstAgent).size());
+        Assert.assertEquals(2, syncService.getSyncQueue(secondAgent).size());
     }
 
     @Test
@@ -85,17 +105,36 @@ public class SyncServiceTest extends TestBase {
         syncService.register(agents.get(1));
 
         // then: verify the sync event been initialized into both agents
-        PlatformQueue<PriorityMessage> queue = syncService.get(agents.get(0));
+        PlatformQueue<PriorityMessage> queue = syncService.getSyncQueue(agents.get(0));
         SyncEvent event = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
         Assert.assertEquals("http://localhost:8080/git/hello.git", event.getGitUrl());
         Assert.assertEquals("v1.0", event.getTag());
         Assert.assertEquals(SyncType.CREATE, event.getSyncType());
 
-        queue = syncService.get(agents.get(1));
+        queue = syncService.getSyncQueue(agents.get(1));
         event = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
         Assert.assertEquals("http://localhost:8080/git/hello.git", event.getGitUrl());
         Assert.assertEquals("v1.0", event.getTag());
         Assert.assertEquals(SyncType.CREATE, event.getSyncType());
+    }
+
+    @Test
+    public void should_send_create_session_cmd_for_sync_task() throws Throwable {
+        // given: copy exit git to workspace
+        ClassLoader classLoader = TestBase.class.getClassLoader();
+        URL resource = classLoader.getResource("hello.git");
+        File path = new File(resource.getFile());
+        FileUtils.copyDirectoryToDirectory(path, gitWorkspace.toFile());
+
+        // and: register agent to sync service
+        syncService.register(agents.get(0));
+
+        // when: execute sync task
+        syncService.syncTask();
+
+        // then: the create session cmd should be send
+        CountMatchingStrategy strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
+        verify(strategy, postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
     }
 
     @After

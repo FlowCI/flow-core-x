@@ -46,4 +46,8 @@ public class SyncEvent extends Jsonable {
     public SyncType getSyncType() {
         return syncType;
     }
+
+    public String toScript() {
+        return "git pull xxx";
+    }
 }

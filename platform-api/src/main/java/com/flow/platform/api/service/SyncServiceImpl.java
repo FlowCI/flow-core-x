@@ -16,10 +16,16 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncType;
+import com.flow.platform.api.service.job.CmdService;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
@@ -32,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
@@ -45,11 +52,16 @@ public class SyncServiceImpl implements SyncService {
 
     private final Map<AgentPath, PlatformQueue<PriorityMessage>> agentSyncQueue = new ConcurrentHashMap<>();
 
+    private final Map<AgentPath, NodeTree> syncTask = new ConcurrentHashMap<>();
+
     @Autowired
     private QueueCreator syncQueueCreator;
 
     @Autowired
     private GitService gitService;
+
+    @Autowired
+    private CmdService cmdService;
 
     @Value("${domain.api}")
     private String apiDomain;
@@ -62,7 +74,7 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public PlatformQueue<PriorityMessage> get(AgentPath agent) {
+    public PlatformQueue<PriorityMessage> getSyncQueue(AgentPath agent) {
         return agentSyncQueue.get(agent);
     }
 
@@ -72,7 +84,7 @@ public class SyncServiceImpl implements SyncService {
             return;
         }
 
-        PlatformQueue<PriorityMessage> queue = syncQueueCreator.create(agent.toString() + "-sync-queue");
+        PlatformQueue<PriorityMessage> queue = syncQueueCreator.create(agent.toString() + "-sync");
         agentSyncQueue.put(agent, queue);
 
         // init sync event from git
@@ -92,9 +104,51 @@ public class SyncServiceImpl implements SyncService {
         agentSyncQueue.clear();
     }
 
-    /**
-     * Init
-     */
+    @Override
+    @Scheduled(fixedDelay = 60 * 1000 * 30, initialDelay = 60 * 1000)
+    public void syncTask() {
+        for (Map.Entry<AgentPath, PlatformQueue<PriorityMessage>> entry : agentSyncQueue.entrySet()) {
+            PlatformQueue<PriorityMessage> queue = entry.getValue();
+            AgentPath agentPath = entry.getKey();
+
+            if (queue.size() == 0) {
+                continue;
+            }
+
+            // create node tree for agent task
+            NodeTree tree = buildNodeTree(queue);
+            syncTask.put(agentPath, tree);
+
+            // create cmd to create sync session
+            try {
+                CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.CREATE_SESSION, null);
+                cmdService.sendCmd(cmdInfo, true);
+                LOGGER.trace("Start sync '%s' git repo to agent '%s'", tree.childrenSize(), agentPath);
+            } catch (Throwable e) {
+                LOGGER.warn(e.getMessage());
+            }
+        }
+    }
+
+    private NodeTree buildNodeTree(PlatformQueue<PriorityMessage> agentSyncQueue) {
+        Node root = new Node(agentSyncQueue.getName(), agentSyncQueue.getName());
+
+        PriorityMessage message;
+        int count = 0;
+        while((message = agentSyncQueue.dequeue()) != null) {
+            SyncEvent event = SyncEvent.parse(message.getBody(), SyncEvent.class);
+
+            // create node for sync event
+            String name = Integer.toString(count++);
+            Node child = new Node(PathUtil.build(root.getName(), name), name);
+            child.setScript(event.toScript());
+            child.setAllowFailure(true);
+            root.getChildren().add(child);
+        }
+
+        return new NodeTree(root);
+    }
+
     private List<SyncEvent> initSyncEventFromGitWorkspace() {
         List<Repository> repos = gitService.repos();
         List<SyncEvent> syncEvents = new ArrayList<>(repos.size());

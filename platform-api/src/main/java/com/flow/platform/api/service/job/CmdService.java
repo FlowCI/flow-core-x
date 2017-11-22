@@ -68,7 +68,6 @@ public interface CmdService {
 
     /**
      * send cmd to cc
-     * @param agentPath required
      */
-    void sendCmd(AgentPath agentPath, CmdInfo cmdInfo);
+    void sendCmd(CmdInfo cmdInfo, boolean inQueue);
 }

@@ -152,10 +152,14 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public void sendCmd(AgentPath agentPath, CmdInfo cmdInfo) {
+    public void sendCmd(CmdInfo cmdInfo, boolean inQueue) {
         try {
-            LOGGER.traceMarker("sendCmd", "send sys cmd ");
-            sendDirectly(cmdInfo);
+            if (inQueue) {
+                sendToQueue(cmdInfo, 5);
+            }
+            else {
+                sendDirectly(cmdInfo);
+            }
         } catch (Throwable e) {
             String rootCause = ExceptionUtil.findRootCause(e).getMessage();
             throw new IllegalStatusException("Unable to send cmd since: " + rootCause);
@@ -198,7 +202,7 @@ public class CmdServiceImpl implements CmdService {
                 .bodyAsString();
 
             if (!response.hasSuccess()) {
-                final String message = "Create session cmd to queue failure for url: %s" + stringBuilder;
+                final String message = "Create session cmd to queue failure for url: " + stringBuilder;
                 throw new HttpException(message);
             }
 
