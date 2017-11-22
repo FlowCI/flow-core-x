@@ -107,26 +107,29 @@ public class SyncServiceImpl implements SyncService {
     @Override
     @Scheduled(fixedDelay = 60 * 1000 * 30, initialDelay = 60 * 1000)
     public void syncTask() {
-        for (Map.Entry<AgentPath, PlatformQueue<PriorityMessage>> entry : agentSyncQueue.entrySet()) {
-            PlatformQueue<PriorityMessage> queue = entry.getValue();
-            AgentPath agentPath = entry.getKey();
+        for (AgentPath agentPath : agentSyncQueue.keySet()) {
+            startSync(agentPath);
+        }
+    }
 
-            if (queue.size() == 0) {
-                continue;
-            }
+    private void startSync(AgentPath agentPath) {
+        PlatformQueue<PriorityMessage> queue = agentSyncQueue.get(agentPath);
 
-            // create node tree for agent task
-            NodeTree tree = buildNodeTree(queue);
-            syncTask.put(agentPath, tree);
+        if (agentPath == null || queue.size() == 0) {
+            return;
+        }
 
-            // create cmd to create sync session
-            try {
-                CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.CREATE_SESSION, null);
-                cmdService.sendCmd(cmdInfo, true);
-                LOGGER.trace("Start sync '%s' git repo to agent '%s'", tree.childrenSize(), agentPath);
-            } catch (Throwable e) {
-                LOGGER.warn(e.getMessage());
-            }
+        // create node tree for agent task
+        NodeTree tree = buildNodeTree(queue);
+        syncTask.put(agentPath, tree);
+
+        // create cmd to create sync session
+        try {
+            CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.CREATE_SESSION, null);
+            cmdService.sendCmd(cmdInfo, true);
+            LOGGER.trace("Start sync '%s' git repo to agent '%s'", tree.childrenSize(), agentPath);
+        } catch (Throwable e) {
+            LOGGER.warn(e.getMessage());
         }
     }
 
