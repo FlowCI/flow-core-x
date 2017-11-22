@@ -96,6 +96,12 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     }
 
     @Override
+    public Plugin update(Plugin plugin) {
+        pluginStoreService.update(plugin);
+        return plugin;
+    }
+
+    @Override
     public List<Plugin> list() {
         return pluginStoreService.list();
     }
@@ -152,13 +158,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     }
 
     @Override
-    public Plugin update(Plugin plugin) {
-        pluginStoreService.update(plugin);
-        return plugin;
-    }
-
-    @Override
-    public void doInstall(Plugin plugin) {
+    public void execInstall(Plugin plugin) {
 
         LOGGER.traceMarker("DoInstall",
             String.format("Thread: %s Start Install Plugin %s", Thread.currentThread().getId(), plugin.getName()));

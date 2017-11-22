@@ -42,7 +42,7 @@ public class InstallConsumer implements QueueListener<Plugin> {
         System.out.println(String.format("Thread: %s, Start Install Plugin", Thread.currentThread().getId()));
 
         // out stack install
-        pluginService.doInstall(item);
+        pluginService.execInstall(item);
 
         System.out.println(String.format("Thread: %s, Finish Install Plugin", Thread.currentThread().getId()));
     }

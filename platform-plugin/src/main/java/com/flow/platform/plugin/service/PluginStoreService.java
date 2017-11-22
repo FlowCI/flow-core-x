@@ -24,10 +24,24 @@ import java.util.List;
  */
 public interface PluginStoreService {
 
-    Plugin find(String name);
-
+    /**
+     * list all plugins
+     * @return
+     */
     List<Plugin> list();
 
+    /**
+     * find plugin
+     * @param name
+     * @return
+     */
+    Plugin find(String name);
+
+    /**
+     * update plugin
+     * @param plugin
+     * @return
+     */
     Plugin update(Plugin plugin);
 
 }
