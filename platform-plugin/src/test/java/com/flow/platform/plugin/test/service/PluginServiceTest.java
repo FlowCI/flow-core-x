@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.test.service;
 
 import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.plugin.service.PluginServiceImpl;
@@ -45,7 +46,7 @@ public class PluginServiceTest {
     @Before
     public void init() throws IOException {
         Path dest = Paths.get("/tmp/test");
-        if(!dest.toFile().exists()){
+        if (!dest.toFile().exists()) {
             Files.createDirectories(dest);
         }
 
@@ -75,25 +76,25 @@ public class PluginServiceTest {
 
     @Test(expected = PluginException.class)
     public void should_get_plugins_throw_exceptions() {
+        Path dest = Paths.get("/tmp/test");
+        pluginService = new PluginServiceImpl(
+            ERROR_PLUGIN_SOURCE_URL,
+            dest,
+            dest,
+            dest,
+            new ThreadPoolExecutor(5, 5, 5, TimeUnit.HOURS, new LinkedBlockingQueue<>(1000)));
 
-//        pluginService = new PluginServiceImpl(ERROR_PLUGIN_SOURCE_URL);
-//
-//        //then: should throw PluginException
-//        pluginService.list();
+        //then: should throw PluginException
+        pluginService.list();
     }
 
     @Test
-    public void should_install_success() {
-//        pluginService = new PluginServiceImpl(PLUGIN_SOURCE_URL,
-//            Paths.get("/tmp"), Paths.get("/tmp"),
-//            new ThreadPoolExecutor(1, 1, 600, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
-//
-////        pluginService.doInstall("fircli");
-//        File file = new File("/tmp/test/ecx");
-//        try {
-//            Git git = Git.init().setDirectory(file).call();
-//        } catch (GitAPIException e) {
-//            e.printStackTrace();
-//        }
+    public void should_update_success() {
+        Plugin plugin = pluginService.find("fircli");
+        plugin.setStatus(PluginStatus.INSTALLED);
+        pluginService.update(plugin);
+
+        plugin = pluginService.find(plugin.getName());
+        Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
     }
 }
