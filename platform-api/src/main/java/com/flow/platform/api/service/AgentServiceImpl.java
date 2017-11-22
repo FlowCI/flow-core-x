@@ -81,6 +81,9 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     @Autowired
     private JobService jobService;
 
+    @Autowired
+    private SyncService syncService;
+
     @Value(value = "${domain.api}")
     private String apiDomain;
 
@@ -259,7 +262,21 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     @Override
     public void onAgentStatusChange(Agent agent) {
         this.dispatchEvent(new AgentStatusChangeEvent(this, agent));
+        handleAgentOnSyncService(agent);
+        handleAgentOnJobService(agent);
+    }
 
+    private void handleAgentOnSyncService(final Agent agent) {
+        if (agent.getStatus() == AgentStatus.IDLE) {
+            syncService.register(agent.getPath());
+        }
+
+        else if (agent.getStatus() == AgentStatus.OFFLINE) {
+            syncService.remove(agent.getPath());
+        }
+    }
+
+    private void handleAgentOnJobService(final Agent agent) {
         // do not check related job if agent status not offline
         if (agent.getStatus() != AgentStatus.OFFLINE) {
             return;
