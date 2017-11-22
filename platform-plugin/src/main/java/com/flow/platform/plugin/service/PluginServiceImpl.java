@@ -22,6 +22,8 @@ import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.UriUtil;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.nio.file.Path;
@@ -33,6 +35,7 @@ import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -42,7 +45,12 @@ public class PluginServiceImpl implements PluginService {
 
     private String pluginSourceUrl;
 
-    private Map<String, Plugin> mockPluginStore = new HashMap<>();
+    private final Cache<String, List<Plugin>> pluginsCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(12, TimeUnit.HOURS).build();
+
+    private final Map<String, Plugin> mockPluginStore = new HashMap<>();
+
+    private final static String PLUGIN_KEY = "plugin";
 
     private Path gitCloneFolder;
 
@@ -138,16 +146,22 @@ public class PluginServiceImpl implements PluginService {
      */
     private List<Plugin> doFetchPlugins() {
         try {
-            HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
-            HttpResponse<String> response = httpClient.bodyAsString();
+            return pluginsCache.get(PLUGIN_KEY, () -> {
+                try {
+                    HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
+                    HttpResponse<String> response = httpClient.bodyAsString();
 
-            UriUtil.detectResponseIsOKAndThrowable(response);
+                    UriUtil.detectResponseIsOKAndThrowable(response);
 
-            String body = response.getBody();
-            PluginRepository pluginRepository = new Gson().fromJson(body, PluginRepository.class);
-            return pluginRepository.plugins;
+                    String body = response.getBody();
+                    PluginRepository pluginRepository = new Gson().fromJson(body, PluginRepository.class);
+                    return pluginRepository.plugins;
+                } catch (Throwable throwable) {
+                    throw new PluginException("Fetch Plugins Error ", throwable);
+                }
+            });
         } catch (Throwable throwable) {
-            throw new PluginException(" Fetch Plugins Info Is Error ", throwable);
+            throw new PluginException("Do Fetch Plugins Happens some Error", throwable);
         }
     }
 
