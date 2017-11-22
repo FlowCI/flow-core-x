@@ -56,11 +56,6 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     private String pluginSourceUrl;
 
-    private final Cache<String, List<Plugin>> pluginsCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(12, TimeUnit.HOURS).build();
-
-    private final Map<String, Plugin> mockPluginStore = new HashMap<>();
-
     private final static String PLUGIN_KEY = "plugin";
 
     private final static String GIT_SUFFIX = ".git";
@@ -71,7 +66,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     private final static Logger LOGGER = new Logger(PluginService.class);
 
-    private final PlatformQueue installerQueue;
+    private PlatformQueue installerQueue;
 
     // git clone folder
     private Path gitCloneFolder;
@@ -82,10 +77,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     private ThreadPoolExecutor threadPoolExecutor;
 
-    public PluginServiceImpl(String repoUrl) {
-        this.pluginSourceUrl = repoUrl;
-        installerQueue = new InMemoryQueue<>(threadPoolExecutor, QUEUE_MAX_SIZE, PLUGIN_KEY);
-    }
+    private PluginStoreService pluginStoreService;
 
     public PluginServiceImpl(String pluginSourceUrl,
                              Path gitCloneFolder,
@@ -99,6 +91,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         this.workspace = workspace;
         installerQueue = new InMemoryQueue<>(this.threadPoolExecutor, QUEUE_MAX_SIZE, PLUGIN_KEY);
 
+        pluginStoreService = new PluginStoreServiceImpl(workspace, pluginSourceUrl);
         // register consumer
         initConsumers();
     }
@@ -110,16 +103,12 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     @Override
     public Plugin find(String name) {
-        doBuildList();
-        return mockPluginStore.get(name);
+        return pluginStoreService.find(name);
     }
 
     @Override
     public List<Plugin> list() {
-        doBuildList();
-        List<Plugin> list = new LinkedList<>();
-        mockPluginStore.forEach((name, plugin) -> list.add(plugin));
-        return list;
+        return pluginStoreService.list();
     }
 
     @Override
@@ -174,12 +163,8 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     @Override
     public Plugin update(Plugin plugin) {
-        mockPluginStore.put(plugin.getName(), plugin);
+        pluginStoreService.update(plugin);
         return plugin;
-    }
-
-    private void doBuildList() {
-        doSave(doFetchPlugins());
     }
 
     public void doInstall(Plugin plugin) {
@@ -234,48 +219,6 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         return Paths.get(gitCloneFolder.toString(), aars[aars.length - 1]);
     }
 
-    /**
-     * list plugins
-     * @return
-     */
-    private List<Plugin> doFetchPlugins() {
-        try {
-            return pluginsCache.get(PLUGIN_KEY, () -> {
-                try {
-                    HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
-                    HttpResponse<String> response = httpClient.bodyAsString();
-
-                    UriUtil.detectResponseIsOKAndThrowable(response);
-
-                    String body = response.getBody();
-                    PluginRepository pluginRepository = new GsonBuilder().serializeNulls().create()
-                        .fromJson(body, PluginRepository.class);
-                    return pluginRepository.plugins;
-                } catch (Throwable throwable) {
-                    throw new PluginException("Fetch Plugins Error ", throwable);
-                }
-            });
-        } catch (Throwable throwable) {
-            throw new PluginException("Do Fetch Plugins Happens some Error", throwable);
-        }
-    }
-
-    private void doSave(List<Plugin> plugins) {
-        for (Plugin plugin : plugins) {
-
-            // only update no plugins
-            if (Objects.isNull(mockPluginStore.get(plugin.getName()))) {
-                plugin.setStatus(PluginStatus.PENDING);
-                mockPluginStore.put(plugin.getName(), plugin);
-            }
-        }
-    }
-
-    private class PluginRepository {
-
-        @SerializedName("packages")
-        private List<Plugin> plugins;
-    }
 
     private void initConsumers() {
         QueueListener installConsumer = new InstallConsumer(installerQueue, this);

@@ -54,6 +54,8 @@ public class Plugin implements Comparable {
     @Expose
     private PluginStatus status = PluginStatus.PENDING;
 
+    private String tag;
+
     public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
         this.name = name;
         this.details = details;
@@ -61,6 +63,18 @@ public class Plugin implements Comparable {
         this.author = author;
         this.platform = platform;
     }
+
+    public Plugin(String name, String details, List<String> labels, String author,
+                  List<String> platform, PluginStatus status, String tag) {
+        this.name = name;
+        this.details = details;
+        this.labels = labels;
+        this.author = author;
+        this.platform = platform;
+        this.status = status;
+        this.tag = tag;
+    }
+
 
     public String getName() {
         return name;
@@ -143,5 +157,13 @@ public class Plugin implements Comparable {
     @Override
     public int compareTo(Object o) {
         return 0;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 }
