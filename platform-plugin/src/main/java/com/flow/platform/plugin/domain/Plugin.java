@@ -16,15 +16,16 @@
 
 package com.flow.platform.plugin.domain;
 
-import com.flow.platform.plugin.service.PluginService;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import java.util.EnumSet;
 import java.util.List;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 
 /**
  * @author yh@firim
  */
-public class Plugin {
+public class Plugin implements Comparable {
 
     public final static EnumSet<PluginStatus> RUNNING_AND_FINISH_STATUS = EnumSet
         .of(PluginStatus.INSTALLING, PluginStatus.INSTALLED);
@@ -137,5 +138,10 @@ public class Plugin {
             ", author='" + author + '\'' +
             ", platform='" + platform + '\'' +
             '}';
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return 0;
     }
 }

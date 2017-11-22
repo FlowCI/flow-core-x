@@ -14,35 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.plugin.domain;
+package com.flow.platform.plugin.event;
+
+import com.flow.platform.plugin.domain.Plugin;
+import java.nio.file.Path;
 
 /**
  * @author yh@firim
  */
-public enum PluginStatus {
-    /**
-     * waiting install
-     */
-    PENDING,
-
-    /**
-     * installing
-     */
-    INSTALLING,
-
-    /**
-     * has installed
-     */
-    INSTALLED,
-
-    /**
-     * plugin update
-     */
-    UPDATE,
-
-    /**
-     * plugin delete
-     */
-    DELETE
-    
+public interface PluginListener {
+    void call(Plugin plugin, String tag, Path path);
 }

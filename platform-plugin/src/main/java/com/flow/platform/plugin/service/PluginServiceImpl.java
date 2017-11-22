@@ -18,30 +18,41 @@ package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.consumer.InstallConsumer;
 import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.event.AbstractEvent;
+import com.flow.platform.plugin.event.PluginListener;
 import com.flow.platform.plugin.exception.PluginException;
+import com.flow.platform.plugin.util.GitHelperUtil;
 import com.flow.platform.plugin.util.UriUtil;
+import com.flow.platform.queue.InMemoryQueue;
+import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.queue.QueueListener;
+import com.flow.platform.util.Logger;
+import com.flow.platform.util.git.GitClient;
+import com.flow.platform.util.git.GitHttpClient;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.io.FileUtils;
 
 
 /**
  * @author yh@firim
  */
-public class PluginServiceImpl implements PluginService {
+public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     private String pluginSourceUrl;
 
@@ -52,28 +63,49 @@ public class PluginServiceImpl implements PluginService {
 
     private final static String PLUGIN_KEY = "plugin";
 
-    private Path gitCloneFolder;
+    private final static String GIT_SUFFIX = ".git";
 
+    private final static String LOCAL_REMOTE = "local";
+
+    private final static int QUEUE_MAX_SIZE = 100000;
+
+    private final static Logger LOGGER = new Logger(PluginService.class);
+
+    private final PlatformQueue installerQueue;
+
+    // git clone folder
+    private Path gitCloneFolder;
     // local library
-    private Path gitLocalFolder;
+    private Path gitLocalRepositoryFolder;
+    // workspace
+    private Path workspace;
 
     private ThreadPoolExecutor threadPoolExecutor;
 
-    private BlockingQueue<Plugin> pluginBlockingQueue = new LinkedBlockingDeque<>();
-
     public PluginServiceImpl(String repoUrl) {
         this.pluginSourceUrl = repoUrl;
+        installerQueue = new InMemoryQueue<>(threadPoolExecutor, QUEUE_MAX_SIZE, PLUGIN_KEY);
     }
 
-    private List<InstallConsumer> installerConsumerPooler = new LinkedList<>();
-
-    public PluginServiceImpl(String pluginSourceUrl, Path workspace, Path gitLocalFolder,
+    public PluginServiceImpl(String pluginSourceUrl,
+                             Path gitCloneFolder,
+                             Path gitLocalRepositoryFolder,
+                             Path workspace,
                              ThreadPoolExecutor threadPoolExecutor) {
         this.pluginSourceUrl = pluginSourceUrl;
-        this.gitCloneFolder = workspace;
+        this.gitCloneFolder = gitCloneFolder;
         this.threadPoolExecutor = threadPoolExecutor;
-        this.gitLocalFolder = gitLocalFolder;
-        registerConsumers();
+        this.gitLocalRepositoryFolder = gitLocalRepositoryFolder;
+        this.workspace = workspace;
+        installerQueue = new InMemoryQueue<>(this.threadPoolExecutor, QUEUE_MAX_SIZE, PLUGIN_KEY);
+
+        // register consumer
+        initConsumers();
+    }
+
+    @Override
+    public void registerListener(PluginListener listener) {
+        this.listeners.add(listener);
     }
 
     @Override
@@ -99,15 +131,45 @@ public class PluginServiceImpl implements PluginService {
         }
 
         // not finish can install plugin
-        if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin)) {
-            doEnqueue(plugin);
+        if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin.getStatus())) {
+            LOGGER.trace(String.format("Plugin %s Enter To Queue", pluginName));
+            installerQueue.enqueue(plugin);
         }
-
     }
 
     @Override
     public void uninstall(String name) {
+        Plugin plugin = find(name);
 
+        if (Objects.isNull(plugin)) {
+            throw new PluginException("not found plugin, please ensure the plugin name is exist");
+        }
+
+        // Running Plugin not uninstall
+        if (Objects.equals(plugin.getStatus(), PluginStatus.INSTALLING)) {
+            throw new PluginException("running plugin not install");
+        }
+
+        Path localRepoPath = doGenerateLocalRepositoryPath(plugin);
+        Path remoteLocalPath = doGenerateGitCloneFolderPath(plugin);
+
+        if (!localRepoPath.toFile().exists()) {
+            throw new PluginException("Folder not exists");
+        }
+
+        if (!remoteLocalPath.toFile().exists()) {
+            throw new PluginException("Folder not exists");
+        }
+
+        try {
+            FileUtils.deleteDirectory(localRepoPath.toFile());
+            FileUtils.deleteDirectory(remoteLocalPath.toFile());
+        } catch (IOException e) {
+            LOGGER.error("Uninstall Error", e);
+        }
+
+        plugin.setStatus(PluginStatus.PENDING);
+        dispatchEvent(plugin, null, null);
     }
 
     @Override
@@ -116,29 +178,61 @@ public class PluginServiceImpl implements PluginService {
         return plugin;
     }
 
-    private void doEnqueue(Plugin plugin) {
-        try {
-            pluginBlockingQueue.put(plugin);
-        } catch (Throwable throwable) {
-        }
-    }
-
     private void doBuildList() {
         doSave(doFetchPlugins());
     }
 
-    private void doInstall() {
-        // git clone code
+    public void doInstall(Plugin plugin) {
 
-        // fetch latest tag
+        LOGGER.traceMarker("DoInstall",
+            String.format("Thread: %s Start Install Plugin %s", Thread.currentThread().getId(), plugin.getName()));
+        plugin.setStatus(PluginStatus.INSTALLING);
+        this.dispatchEvent(plugin, null, null);
 
-        // detect tag
+        Path bareRepoPath = doGenerateLocalRepositoryPath(plugin);
 
-        // git init bare tag
+        GitClient gitClient = new GitHttpClient(plugin.getDetails() + ".git", gitCloneFolder, "", "");
 
-        // git push
+        LOGGER.traceMarker("DoInstall",
+            String.format("Thread: %s Start Clone Plugin %s", Thread.currentThread().getId(), plugin.getName()));
+        // when clone code
+        Path path = GitHelperUtil.clone(gitClient);
+
+        LOGGER.traceMarker("DoInstall",
+            String.format("Thread: %s Start Init Local Repo Plugin %s", Thread.currentThread().getId(),
+                plugin.getName()));
+        // init bare repo
+        GitHelperUtil.initBareGitRepository(bareRepoPath);
+
+        // set local remote
+        GitHelperUtil.setLocalRemote(path, bareRepoPath);
+
+        LOGGER.traceMarker("DoInstall",
+            String.format("Thread: %s Start Get Latest Tag %s", Thread.currentThread().getId(), plugin.getName()));
+        // get latest tag
+        String tag = GitHelperUtil.getLatestTag(path);
+
+        LOGGER.traceMarker("DoInstall",
+            String.format("Thread: %s Start Push Tag To Local Repo %s", Thread.currentThread().getId(),
+                plugin.getName()));
+        // push tag to local
+        GitHelperUtil.pushTag(path, LOCAL_REMOTE, tag);
+
+        plugin.setStatus(PluginStatus.INSTALLED);
+        this.dispatchEvent(plugin, tag, bareRepoPath);
+
+        update(plugin);
     }
 
+    private Path doGenerateLocalRepositoryPath(Plugin plugin) {
+        String[] aars = plugin.getDetails().split("/");
+        return Paths.get(gitLocalRepositoryFolder.toString(), aars[aars.length - 1] + GIT_SUFFIX);
+    }
+
+    private Path doGenerateGitCloneFolderPath(Plugin plugin) {
+        String[] aars = plugin.getDetails().split("/");
+        return Paths.get(gitCloneFolder.toString(), aars[aars.length - 1]);
+    }
 
     /**
      * list plugins
@@ -154,7 +248,8 @@ public class PluginServiceImpl implements PluginService {
                     UriUtil.detectResponseIsOKAndThrowable(response);
 
                     String body = response.getBody();
-                    PluginRepository pluginRepository = new Gson().fromJson(body, PluginRepository.class);
+                    PluginRepository pluginRepository = new GsonBuilder().serializeNulls().create()
+                        .fromJson(body, PluginRepository.class);
                     return pluginRepository.plugins;
                 } catch (Throwable throwable) {
                     throw new PluginException("Fetch Plugins Error ", throwable);
@@ -170,6 +265,7 @@ public class PluginServiceImpl implements PluginService {
 
             // only update no plugins
             if (Objects.isNull(mockPluginStore.get(plugin.getName()))) {
+                plugin.setStatus(PluginStatus.PENDING);
                 mockPluginStore.put(plugin.getName(), plugin);
             }
         }
@@ -181,11 +277,12 @@ public class PluginServiceImpl implements PluginService {
         private List<Plugin> plugins;
     }
 
-    private void registerConsumers() {
+    private void initConsumers() {
+        QueueListener installConsumer = new InstallConsumer(installerQueue, this);
+
+        // start many threads
         for (int i = 0; i < threadPoolExecutor.getCorePoolSize(); i++) {
-            InstallConsumer installConsumer = new InstallConsumer(threadPoolExecutor, pluginBlockingQueue, this);
-            installConsumer.start();
-            installerConsumerPooler.add(installConsumer);
+            installerQueue.start();
         }
     }
 }

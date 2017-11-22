@@ -14,35 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.plugin.domain;
+package com.flow.platform.plugin.event;
+
+import com.flow.platform.plugin.domain.Plugin;
+import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author yh@firim
  */
-public enum PluginStatus {
-    /**
-     * waiting install
-     */
-    PENDING,
+public abstract class AbstractEvent {
 
-    /**
-     * installing
-     */
-    INSTALLING,
+    protected List<PluginListener> listeners = new LinkedList<>();
 
-    /**
-     * has installed
-     */
-    INSTALLED,
-
-    /**
-     * plugin update
-     */
-    UPDATE,
-
-    /**
-     * plugin delete
-     */
-    DELETE
-    
+    protected void dispatchEvent(Plugin plugin, String tag, Path path) {
+        for (PluginListener listener : listeners) {
+            listener.call(plugin, tag, path);
+        }
+    }
 }

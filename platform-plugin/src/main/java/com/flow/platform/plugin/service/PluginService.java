@@ -17,7 +17,7 @@
 package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.domain.Plugin;
-import java.nio.file.Path;
+import com.flow.platform.plugin.event.PluginListener;
 import java.util.List;
 
 /**
@@ -33,7 +33,9 @@ public interface PluginService {
     /**
      * install plugin
      */
-    void install(String pluginName);
+    void install(String name);
+
+    void doInstall(Plugin plugin);
 
     /**
      * uninstall plugin
@@ -53,4 +55,6 @@ public interface PluginService {
      * @return
      */
     Plugin find(String name);
+
+    void registerListener(PluginListener listener);
 }

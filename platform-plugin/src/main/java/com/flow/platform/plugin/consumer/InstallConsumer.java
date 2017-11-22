@@ -18,58 +18,32 @@ package com.flow.platform.plugin.consumer;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
-import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.queue.QueueListener;
 
 /**
  * @author yh@firim
  */
-public class InstallConsumer {
+public class InstallConsumer implements QueueListener<Plugin> {
 
-    private ThreadPoolExecutor threadPoolExecutor;
-
-    private BlockingQueue<Plugin> pluginBlockingQueue;
+    private PlatformQueue<Plugin> installPluginsQueue;
 
     private PluginService pluginService;
 
-    public InstallConsumer(ThreadPoolExecutor threadPoolExecutor,
-                           BlockingQueue<Plugin> pluginBlockingQueue,
-                           PluginService pluginService) {
-        this.threadPoolExecutor = threadPoolExecutor;
-        this.pluginBlockingQueue = pluginBlockingQueue;
+    public InstallConsumer(PlatformQueue<Plugin> installPluginsQueue, PluginService pluginService) {
+        this.installPluginsQueue = installPluginsQueue;
         this.pluginService = pluginService;
+        installPluginsQueue.register(this);
     }
 
-    public void start() {
-        threadPoolExecutor.execute(new QueueProcesser());
-    }
+    @Override
+    public void onQueueItem(Plugin item) {
 
-    private class QueueProcesser implements Runnable {
+        System.out.println(String.format("Thread: %s, Start Install Plugin", Thread.currentThread().getId()));
 
-        @Override
-        public void run() {
-            while (true) {
-                System.out.println(String.format("InstallConsumer: Thread - %s start", Thread.currentThread().getId()));
+        // out stack install
+        pluginService.doInstall(item);
 
-                try {
-                    Plugin plugin = pluginBlockingQueue.poll(1L, TimeUnit.SECONDS);
-
-                    // start download
-                    if (!Objects.isNull(plugin)) {
-                        System.out.println(String
-                            .format("InstallConsumer: Thread - %s start download", Thread.currentThread().getId()));
-
-                        System.out.println(String
-                            .format("InstallConsumer: Thread - %s finish download", Thread.currentThread().getId()));
-                    }
-                } catch (Throwable e) {
-                    System.out.println(String
-                        .format("InstallConsumer: Thread - %s, Exception - %s", Thread.currentThread().getId(),
-                            e.getMessage()));
-                }
-            }
-        }
+        System.out.println(String.format("Thread: %s, Finish Install Plugin", Thread.currentThread().getId()));
     }
 }

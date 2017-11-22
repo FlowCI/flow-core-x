@@ -82,6 +82,12 @@ public class AppConfig extends AppConfigBase {
     @Value("${api.workspace}")
     private String workspace;
 
+    @Value("${api.git.clone.workspace}")
+    private String gitCloneWorkspace;
+
+    @Value("${api.git.local.workspace}")
+    private String gitLocalWorkspace;
+
     @Value("${domain.cc}")
     private String ccDomain;
 
@@ -164,7 +170,8 @@ public class AppConfig extends AppConfigBase {
 
     @Bean
     public PluginService pluginService() {
-        return new PluginServiceImpl(pluginSourceUrl, Paths.get(workspace),
+        return new PluginServiceImpl(pluginSourceUrl, Paths.get(gitCloneWorkspace), Paths.get(gitLocalWorkspace),
+            Paths.get(workspace),
             new ThreadPoolExecutor(5, 5, 100, TimeUnit.SECONDS, new LinkedBlockingQueue<>(10000)));
     }
 
