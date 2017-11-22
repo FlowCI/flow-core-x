@@ -183,7 +183,7 @@ public abstract class JGitBasedClient implements GitClient {
                 .setTimeout(GIT_TRANS_TIMEOUT)
                 .setRemote(gitUrl)).call();
 
-            return toRefString(refs);
+            return JGitUtil.simpleRef(refs);
         } catch (GitAPIException e) {
             throw new GitException("Fail to list branches from remote repo", e);
         }
@@ -199,9 +199,9 @@ public abstract class JGitBasedClient implements GitClient {
 
 
             List<Ref> listRefs = Lists.newArrayList(refs);
-            listRefs.sort(new RefComparator());
+            listRefs.sort(JGitUtil.REF_COMPARATOR);
 
-            return toRefString(refs);
+            return JGitUtil.simpleRef(refs);
         } catch (GitAPIException e) {
             throw new GitException("Fail to list tags from remote repo", ExceptionUtil.findRootCause(e));
         }
@@ -248,23 +248,6 @@ public abstract class JGitBasedClient implements GitClient {
      * Git command builder
      */
     protected abstract <T extends TransportCommand> T buildCommand(T command);
-
-    private List<String> toRefString(Collection<Ref> refs) {
-        List<String> refStringList = new ArrayList<>(refs.size());
-
-        for (Ref ref : refs) {
-            // convert ref name from refs/heads/master to master
-            String refName = ref.getName();
-            String simpleName = refName
-                .replaceFirst("refs/heads/", StringUtil.EMPTY)
-                .replace("refs/tags/", StringUtil.EMPTY);
-
-            // add to result list
-            refStringList.add(simpleName);
-        }
-
-        return refStringList;
-    }
 
     /**
      * Create local .git with remote info
@@ -390,17 +373,6 @@ public abstract class JGitBasedClient implements GitClient {
         @Override
         public boolean isCancelled() {
             return false;
-        }
-    }
-
-    /**
-     * Comparator for Ref, The index 0 is latest
-     */
-    private class RefComparator implements Comparator<Ref> {
-
-        @Override
-        public int compare(Ref o1, Ref o2) {
-            return o1.getObjectId().compareTo(o2.getObjectId());
         }
     }
 }

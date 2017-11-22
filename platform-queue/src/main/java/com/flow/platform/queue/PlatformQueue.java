@@ -70,6 +70,11 @@ public abstract class PlatformQueue<T> {
     public abstract void enqueue(T item);
 
     /**
+     * Get top item from queue
+     */
+    public abstract T dequeue();
+
+    /**
      * Get current queue size
      */
     public abstract int size();

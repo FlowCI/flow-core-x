@@ -16,34 +16,14 @@
 
 package com.flow.platform.api.domain.sync;
 
-import com.flow.platform.domain.Jsonable;
-
 /**
  * @author yang
  */
-public class SyncEvent extends Jsonable {
+public enum SyncType {
 
-    private String gitUrl;
+    CREATE,
 
-    private String tag;
+    UPDATE,
 
-    private SyncType syncType;
-
-    public SyncEvent(String gitUrl, String tag, SyncType syncType) {
-        this.gitUrl = gitUrl;
-        this.tag = tag;
-        this.syncType = syncType;
-    }
-
-    public String getGitUrl() {
-        return gitUrl;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public SyncType getSyncType() {
-        return syncType;
-    }
+    DELETE
 }

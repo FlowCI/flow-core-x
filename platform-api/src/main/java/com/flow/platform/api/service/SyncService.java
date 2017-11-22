@@ -54,4 +54,9 @@ public interface SyncService {
      */
     void remove(AgentPath agent);
 
+    /**
+     * Clean agents
+     */
+    void clean();
+
 }

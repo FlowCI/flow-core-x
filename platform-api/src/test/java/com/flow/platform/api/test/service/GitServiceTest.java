@@ -83,6 +83,11 @@ public class GitServiceTest extends TestBase {
         Map<String, Ref> tags = helloRepo.getTags();
         Assert.assertEquals(1, tags.size());
         Assert.assertTrue(tags.keySet().contains("v1.0"));
+        Assert.assertEquals("hello.git", helloRepo.getDirectory().getName());
+
+        for (Repository repo : repos) {
+            repo.close();
+        }
     }
 
     @Test
