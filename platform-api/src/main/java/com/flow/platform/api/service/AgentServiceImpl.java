@@ -221,7 +221,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     @Override
     public void sendSysCmd(AgentPath agentPath) {
         CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SYSTEM_INFO, "");
-        cmdService.sendCmd(cmdInfo, false);
+        cmdService.sendCmd(cmdInfo, false, 0);
     }
 
     private String buildAgentWebhook() {

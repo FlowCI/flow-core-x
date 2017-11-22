@@ -31,6 +31,8 @@ public interface SyncService {
 
     int DEFAULT_SYNC_QUEUE_PRIORITY = 1;
 
+    int DEFAULT_CMD_PRIORITY = 10;
+
     interface QueueCreator {
 
         PlatformQueue<PriorityMessage> create(String name);
@@ -70,6 +72,11 @@ public interface SyncService {
      * Handle sync event cmd callback
      */
     void onCallback(Cmd cmd);
+
+    /**
+     * Start sync to agent
+     */
+    void sync(AgentPath agent);
 
     /**
      * Task to sync git repo to agents

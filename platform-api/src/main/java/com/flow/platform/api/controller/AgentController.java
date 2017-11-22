@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.AgentService;
+import com.flow.platform.api.service.SyncService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -48,6 +49,9 @@ public class AgentController {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private SyncService syncService;
 
     /**
      * @api {Get} /agents List
@@ -256,5 +260,11 @@ public class AgentController {
     @WebSecurity(action = Actions.ADMIN_DELETE)
     public void delete(@RequestBody AgentPath agentPath) {
         agentService.delete(agentPath);
+    }
+
+    @PostMapping(params = "/sync")
+    @WebSecurity(action = Actions.ADMIN_SHOW)
+    public void sync(@RequestBody AgentPath agentPath) {
+        syncService.sync(agentPath);
     }
 }

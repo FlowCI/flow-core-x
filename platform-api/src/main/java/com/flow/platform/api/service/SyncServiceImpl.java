@@ -123,7 +123,19 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public void onCallback(Cmd cmd) {
         Queue<SyncEvent> syncEventQueue = syncTask.get(cmd.getAgentPath());
-        if (syncEventQueue == null) {
+
+        // delete session if sync task for agent cannot be found
+        if (cmd.getType() != CmdType.DELETE_SESSION && syncEventQueue == null) {
+            CmdInfo deleteSession = new CmdInfo(cmd.getAgentPath(), CmdType.DELETE_SESSION, null);
+            deleteSession.setWebhook(callbackUrl);
+            deleteSession.setSessionId(cmd.getSessionId());
+            cmdService.sendCmd(deleteSession, false, 0);
+            return;
+        }
+
+        if (cmd.getType() == CmdType.DELETE_SESSION) {
+            syncTask.remove(cmd.getAgentPath());
+            LOGGER.trace("Sync task finished for agent " + cmd.getAgentPath());
             return;
         }
 
@@ -134,31 +146,43 @@ public class SyncServiceImpl implements SyncService {
                 // get next sync event but not remove
                 next = syncEventQueue.peek();
             }
+
+            else {
+                syncTask.remove(cmd.getAgentPath());
+                LOGGER.trace("Sync task stopped since create session failure for agent: " + cmd.getAgentPath());
+                return;
+            }
         }
 
         else if (cmd.getType() == CmdType.RUN_SHELL) {
             if (Cmd.FINISH_STATUS.contains(cmd.getStatus())) {
                 CmdResult result = cmd.getCmdResult();
-                if (result != null && result.getExitValue() != null) {
-                    SyncEvent current = syncEventQueue.peek();
 
-                    // the task not successfully executed so put to sync queue again
-                    if (result.getExitValue() != 0) {
-                        syncQueue.get(cmd.getAgentPath())
-                            .enqueue(PriorityMessage.create(current.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
-                    }
-
-                    // remove current sync event
-                    syncEventQueue.remove();
-
-                    // set next node whatever the result
-                    next = syncEventQueue.peek();
+                boolean shouldSendBack = false;
+                if (result == null) {
+                    shouldSendBack = true;
                 }
-            }
-        }
 
-        else if (cmd.getType() == CmdType.DELETE_SESSION) {
-            LOGGER.trace("Sync task finished for agent " + cmd.getAgentPath());
+                else if (result.getExitValue() == null) {
+                    shouldSendBack = true;
+                }
+
+                else if (result.getExitValue() != 0) {
+                    shouldSendBack = true;
+                }
+
+                SyncEvent current = syncEventQueue.peek();
+                if (shouldSendBack) {
+                    syncQueue.get(cmd.getAgentPath())
+                        .enqueue(PriorityMessage.create(current.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+                }
+
+                // remove current sync event
+                syncEventQueue.remove();
+
+                // set next node whatever the result
+                next = syncEventQueue.peek();
+            }
         }
 
         // run next sync event
@@ -166,7 +190,7 @@ public class SyncServiceImpl implements SyncService {
             CmdInfo runShell = new CmdInfo(cmd.getAgentPath(), CmdType.RUN_SHELL, next.toScript());
             runShell.setWebhook(callbackUrl);
             runShell.setSessionId(cmd.getSessionId());
-            cmdService.sendCmd(runShell, false);
+            cmdService.sendCmd(runShell, false, 0);
         }
 
         // delete session when queue is empty
@@ -174,19 +198,12 @@ public class SyncServiceImpl implements SyncService {
             CmdInfo deleteSession = new CmdInfo(cmd.getAgentPath(), CmdType.DELETE_SESSION, null);
             deleteSession.setWebhook(callbackUrl);
             deleteSession.setSessionId(cmd.getSessionId());
-            cmdService.sendCmd(deleteSession, false);
+            cmdService.sendCmd(deleteSession, false, 0);
         }
     }
 
     @Override
-    @Scheduled(fixedDelay = 60 * 1000 * 30, initialDelay = 60 * 1000)
-    public void syncTask() {
-        for (AgentPath agentPath : syncQueue.keySet()) {
-            startSync(agentPath);
-        }
-    }
-
-    private void startSync(AgentPath agentPath) {
+    public void sync(AgentPath agentPath) {
         PlatformQueue<PriorityMessage> queue = syncQueue.get(agentPath);
 
         if (agentPath == null || queue.size() == 0) {
@@ -197,14 +214,23 @@ public class SyncServiceImpl implements SyncService {
         Queue<SyncEvent> syncEventQueue = buildSyncEventQueueForTask(queue);
         syncTask.put(agentPath, syncEventQueue);
 
-        // create cmd to create sync session, the extra field record node path
+        // create cmd to create sync session with higher priority then job, the extra field record node path
         try {
             CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.CREATE_SESSION, null);
             cmdInfo.setWebhook(callbackUrl);
-            cmdService.sendCmd(cmdInfo, true);
+            cmdService.sendCmd(cmdInfo, true, DEFAULT_CMD_PRIORITY);
             LOGGER.trace("Start sync '%s' git repo to agent '%s'", syncEventQueue.size(), agentPath);
         } catch (Throwable e) {
+            syncTask.remove(agentPath);
             LOGGER.warn(e.getMessage());
+        }
+    }
+
+    @Override
+    @Scheduled(fixedDelay = 60 * 1000 * 30, initialDelay = 60 * 1000)
+    public void syncTask() {
+        for (AgentPath agentPath : syncQueue.keySet()) {
+            sync(agentPath);
         }
     }
 

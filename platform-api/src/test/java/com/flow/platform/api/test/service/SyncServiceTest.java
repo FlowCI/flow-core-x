@@ -21,8 +21,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.flow.platform.api.domain.sync.SyncEvent;
@@ -74,10 +72,9 @@ public class SyncServiceTest extends TestBase {
         createSessionCmdResponse.setId(UUID.randomUUID().toString());
         createSessionCmdResponse.setSessionId(UUID.randomUUID().toString());
 
-        stubFor(post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
+        stubFor(post(urlEqualTo("/cmd/queue/send?priority=10&retry=5"))
             .willReturn(aResponse()
                 .withBody(createSessionCmdResponse.toJson())));
-
 
         Cmd mockResponse = new Cmd();
         mockResponse.setId(UUID.randomUUID().toString());
@@ -117,7 +114,7 @@ public class SyncServiceTest extends TestBase {
 
     @Test
     public void should_init_sync_event_when_agent_registered() throws Throwable {
-        // given: copy exit git to workspace
+        // given: copy exist git to workspace
         ClassLoader classLoader = TestBase.class.getClassLoader();
         URL resource = classLoader.getResource("hello.git");
         File path = new File(resource.getFile());
@@ -142,8 +139,8 @@ public class SyncServiceTest extends TestBase {
     }
 
     @Test
-    public void should_send_create_session_cmd_for_sync_task() throws Throwable {
-        // given: copy exit git to workspace
+    public void should_execute_sync_event_callback() throws Throwable {
+        // given: copy exist git to workspace
         ClassLoader classLoader = TestBase.class.getClassLoader();
         URL resource = classLoader.getResource("hello.git");
         File path = new File(resource.getFile());
@@ -158,7 +155,7 @@ public class SyncServiceTest extends TestBase {
 
         // then: the create session cmd should be send
         CountMatchingStrategy strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
-        verify(strategy, postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
+        verify(strategy, postRequestedFor(urlEqualTo("/cmd/queue/send?priority=10&retry=5")));
 
         // when: mock create session cmd been callback
         Cmd mockSessionCallback = new Cmd(agent.getZone(), agent.getName(), CmdType.CREATE_SESSION, null);
@@ -182,6 +179,66 @@ public class SyncServiceTest extends TestBase {
         strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 2);
         verify(strategy, postRequestedFor(urlEqualTo("/cmd/send")));
         Assert.assertEquals(0, syncService.getSyncTask(agent).size());
+
+        // when: mock delete session cmd
+        Cmd mockDeleteSession = new Cmd(agent.getZone(), agent.getName(), CmdType.DELETE_SESSION, null);
+        mockDeleteSession.setSessionId(mockRunShellSuccess.getSessionId());
+        mockDeleteSession.setStatus(CmdStatus.SENT);
+        syncService.onCallback(mockDeleteSession);
+
+        // then: sync task of agent should be deleted
+        Assert.assertNull(syncService.getSyncTask(agent));
+    }
+
+    @Test
+    public void should_remove_sync_task_if_create_session_failure() throws Throwable {
+        // given: remove stub url
+        wireMockRule.resetAll();
+
+        // and copy exist git to workspace
+        ClassLoader classLoader = TestBase.class.getClassLoader();
+        URL resource = classLoader.getResource("hello.git");
+        File path = new File(resource.getFile());
+        FileUtils.copyDirectoryToDirectory(path, gitWorkspace.toFile());
+
+        // and: register agent to sync service
+        AgentPath agent = agents.get(0);
+        syncService.register(agent);
+
+        // when: execute sync task
+        syncService.syncTask();
+
+        // then: sync task for agent should be removed
+        Assert.assertNull(syncService.getSyncTask(agent));
+    }
+
+    @Test
+    public void should_remove_sync_task_if_create_session_failure_on_callback() throws Throwable {
+        // given: copy exist git to workspace
+        ClassLoader classLoader = TestBase.class.getClassLoader();
+        URL resource = classLoader.getResource("hello.git");
+        File path = new File(resource.getFile());
+        FileUtils.copyDirectoryToDirectory(path, gitWorkspace.toFile());
+
+        // and: register agent to sync service
+        AgentPath agent = agents.get(0);
+        syncService.register(agent);
+
+        // when: execute sync task
+        syncService.syncTask();
+
+        // then: the create session cmd should be send
+        CountMatchingStrategy strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
+        verify(strategy, postRequestedFor(urlEqualTo("/cmd/queue/send?priority=10&retry=5")));
+
+        // when: mock create session failure
+        Cmd mockSessionCallback = new Cmd(agent.getZone(), agent.getName(), CmdType.CREATE_SESSION, null);
+        mockSessionCallback.setStatus(CmdStatus.EXCEPTION);
+        mockSessionCallback.setSessionId(createSessionCmdResponse.getSessionId());
+        syncService.onCallback(mockSessionCallback);
+
+        // then: sync task for agent should be removed
+        Assert.assertNull(syncService.getSyncTask(agent));
     }
 
     @After

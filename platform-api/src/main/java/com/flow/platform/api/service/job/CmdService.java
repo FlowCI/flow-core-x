@@ -70,5 +70,5 @@ public interface CmdService {
     /**
      * send cmd to cc
      */
-    Cmd sendCmd(CmdInfo cmdInfo, boolean inQueue);
+    Cmd sendCmd(CmdInfo cmdInfo, boolean inQueue, int priority);
 }
