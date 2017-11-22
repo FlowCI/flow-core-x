@@ -20,6 +20,11 @@ import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.AgentPath;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +36,9 @@ public class SyncServiceTest extends TestBase {
 
     @Autowired
     private SyncService syncService;
+
+    @Autowired
+    private Path gitWorkspace;
 
     @Test
     public void should_event_been_added_for_agent() throws Throwable {
@@ -48,5 +56,15 @@ public class SyncServiceTest extends TestBase {
         // then: two events should be in the agent sync queue
         Assert.assertEquals(2, syncService.get(firstAgent).size());
         Assert.assertEquals(2, syncService.get(secondAgent).size());
+    }
+
+    @After
+    public void clean() throws IOException {
+        File[] files = gitWorkspace.toFile().listFiles();
+        if (files != null) {
+            for (File file : files) {
+                FileUtils.forceDelete(file);
+            }
+        }
     }
 }

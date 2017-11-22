@@ -24,8 +24,16 @@ import com.flow.platform.api.service.GitService.ProgressListener;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitSource;
+import java.io.File;
+import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,6 +52,9 @@ public class GitServiceTest extends TestBase {
     @Autowired
     private Path workspace;
 
+    @Autowired
+    private Path gitWorkspace;
+
     private Node node;
 
     @Before
@@ -53,6 +64,25 @@ public class GitServiceTest extends TestBase {
         node.putEnv(GitEnvs.FLOW_GIT_URL, TestBase.GITHUB_TEST_REPO_SSH);
         node.putEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY, getResourceContent("ssh_private_key"));
         node.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
+    }
+
+    @Test
+    public void should_list_existing_repo_from_git_workspace() throws Throwable {
+        // given: copy exit git to workspace
+        ClassLoader classLoader = TestBase.class.getClassLoader();
+        URL resource = classLoader.getResource("hello.git");
+        File path = new File(resource.getFile());
+        FileUtils.copyDirectoryToDirectory(path, gitWorkspace.toFile());
+
+        // when: load repos from git workspace
+        List<Repository> repos = gitService.repos();
+        Assert.assertEquals(1, repos.size());
+
+        // then:
+        Repository helloRepo = repos.get(0);
+        Map<String, Ref> tags = helloRepo.getTags();
+        Assert.assertEquals(1, tags.size());
+        Assert.assertTrue(tags.keySet().contains("v1.0"));
     }
 
     @Test

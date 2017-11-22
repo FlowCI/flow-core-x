@@ -30,17 +30,21 @@ import com.flow.platform.core.exception.UnsupportedException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitClient;
 import com.flow.platform.util.git.GitException;
+import com.flow.platform.util.git.JGitUtil;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitSource;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -81,6 +85,9 @@ public class GitServiceImpl implements GitService {
     @Autowired
     private Path workspace;
 
+    @Autowired
+    private Path gitWorkspace;
+
     @PostConstruct
     public void init() {
         clientBuilderType.put(GitSource.UNDEFINED_SSH, GitSshClientBuilder.class);
@@ -99,6 +106,31 @@ public class GitServiceImpl implements GitService {
         progressListener.onStart();
         String branch = node.getEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         return client.fetch(branch, filePath, new GitCloneProgressMonitor(progressListener));
+    }
+
+    @Override
+    public List<Repository> repos() {
+        List<Repository> repos = new LinkedList<>();
+        File[] files = gitWorkspace.toFile().listFiles();
+        if (files == null) {
+            return repos;
+        }
+
+        for (File file : files) {
+            if (!file.isDirectory()) {
+                continue;
+            }
+
+            if (file.getName().endsWith(".git")) {
+                try {
+                    repos.add(JGitUtil.getRepo(file.toPath()));
+                } catch (GitException e) {
+                    LOGGER.warn("Unable to get git repo: " + e.getMessage());
+                }
+            }
+        }
+
+        return repos;
     }
 
     @Override

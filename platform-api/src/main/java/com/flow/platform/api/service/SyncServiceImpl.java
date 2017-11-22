@@ -36,9 +36,6 @@ public class SyncServiceImpl implements SyncService {
     private final Map<AgentPath, PlatformQueue<PriorityMessage>> agentSyncQueue = new ConcurrentHashMap<>();
 
     @Autowired
-    private Path gitWorkspace;
-
-    @Autowired
     private QueueCreator syncQueueCreator;
 
     @Override
@@ -74,5 +71,6 @@ public class SyncServiceImpl implements SyncService {
      * Init
      */
     private void initFormGitWorkspace() {
+
     }
 }
