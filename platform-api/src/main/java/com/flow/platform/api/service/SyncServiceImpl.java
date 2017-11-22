@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.queue.PlatformQueue;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ import org.springframework.stereotype.Service;
 public class SyncServiceImpl implements SyncService {
 
     private final Map<AgentPath, PlatformQueue<PriorityMessage>> agentSyncQueue = new ConcurrentHashMap<>();
+
+    @Autowired
+    private Path gitWorkspace;
 
     @Autowired
     private QueueCreator syncQueueCreator;
@@ -64,5 +68,11 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public void remove(AgentPath agent) {
         agentSyncQueue.remove(agent);
+    }
+
+    /**
+     * Init
+     */
+    private void initFormGitWorkspace() {
     }
 }

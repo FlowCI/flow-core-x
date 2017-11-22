@@ -40,7 +40,7 @@ public class GitSshClientTest {
     private final static String TEST_GIT_SSH_URL = "git@github.com:flow-ci-plugin/for-testing.git";
 
     @Rule
-    public TemporaryFolder folder= new TemporaryFolder();
+    public TemporaryFolder folder = new TemporaryFolder();
 
     @Test
     public void should_load_all_branch_and_tags() throws Throwable {

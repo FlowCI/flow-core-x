@@ -74,6 +74,9 @@ public class AppConfig extends AppConfigBase {
     @Value("${api.workspace}")
     private String workspace;
 
+    @Value("${api.git.workspace}")
+    private String gitWorkspace;
+
     @Value("${domain.cc}")
     private String ccDomain;
 
@@ -100,6 +103,11 @@ public class AppConfig extends AppConfigBase {
         } catch (IOException e) {
             throw new RuntimeException("Fail to create flow.ci api working dir", e);
         }
+    }
+
+    @Bean
+    public Path gitWorkspace() {
+        return Paths.get(gitWorkspace);
     }
 
     @Bean(name = "applicationEventMulticaster")
