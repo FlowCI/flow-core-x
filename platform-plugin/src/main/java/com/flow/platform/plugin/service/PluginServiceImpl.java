@@ -23,6 +23,7 @@ import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.AbstractEvent;
 import com.flow.platform.plugin.event.PluginListener;
 import com.flow.platform.plugin.exception.PluginException;
+import com.flow.platform.plugin.util.FileUtil;
 import com.flow.platform.plugin.util.GitHelperUtil;
 import com.flow.platform.queue.InMemoryQueue;
 import com.flow.platform.queue.PlatformQueue;
@@ -91,6 +92,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         installerQueue = new InMemoryQueue<>(this.threadPoolExecutor, QUEUE_MAX_SIZE, PLUGIN_KEY);
 
         pluginStoreService = new PluginStoreServiceImpl(workspace, pluginSourceUrl);
+
         // register consumer
         initConsumers();
     }
@@ -144,22 +146,8 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             throw new PluginException("running plugin not install");
         }
 
-        Path localRepoPath = doGenerateLocalRepositoryPath(plugin);
-        Path remoteLocalPath = doGenerateGitCloneFolderPath(plugin);
-
-        if (!localRepoPath.toFile().exists()) {
-            throw new PluginException("Folder not exists");
-        }
-
-        if (!remoteLocalPath.toFile().exists()) {
-            throw new PluginException("Folder not exists");
-        }
-
-        try {
-            FileUtils.deleteDirectory(localRepoPath.toFile());
-            FileUtils.deleteDirectory(remoteLocalPath.toFile());
-        } catch (IOException e) {
-            LOGGER.error("Uninstall Error", e);
+        for (Processor processor : processors) {
+            processor.clean(plugin);
         }
 
         plugin.setStatus(PluginStatus.PENDING);
@@ -198,6 +186,8 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     private interface Processor {
 
         void exec(Plugin plugin);
+
+        void clean(Plugin plugin);
     }
 
     private class CloneProcessor implements Processor {
@@ -214,6 +204,19 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             } catch (GitException e) {
                 LOGGER.error("Git Clone", e);
                 throw new PluginException("Git Clone", e);
+            }
+        }
+
+        @Override
+        public void clean(Plugin plugin) {
+            Path gitPath = doGenerateGitCloneFolderPath(plugin);
+            if (!gitPath.toFile().exists()) {
+                try {
+                    FileUtils.deleteDirectory(gitPath.toFile());
+                } catch (Throwable throwable) {
+                    LOGGER
+                        .error(String.format("Delete Folder: %s Error: %s", gitPath.toString(), throwable), throwable);
+                }
             }
         }
     }
@@ -234,6 +237,19 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             } catch (GitException e) {
                 LOGGER.error("Init Local Repo Error", e);
                 throw new PluginException("Init Local Repo Error", e);
+            }
+        }
+
+        @Override
+        public void clean(Plugin plugin) {
+            Path gitPath = doGenerateLocalRepositoryPath(plugin);
+            if (!gitPath.toFile().exists()) {
+                try {
+                    FileUtils.deleteDirectory(gitPath.toFile());
+                } catch (Throwable throwable) {
+                    LOGGER
+                        .error(String.format("Delete Local Folder: %s Error: %s", gitPath.toString(), throwable), throwable);
+                }
             }
         }
     }
@@ -263,6 +279,11 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
             // dispatch Event
             dispatchEvent(PluginStatus.INSTALLED, tag, bareRepoPath);
+        }
+
+        @Override
+        public void clean(Plugin plugin) {
+
         }
     }
 }
