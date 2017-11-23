@@ -28,8 +28,8 @@ import com.flow.platform.queue.InMemoryQueue;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.git.GitClient;
-import com.flow.platform.util.git.GitHttpClient;
+import com.flow.platform.util.git.GitException;
+import com.flow.platform.util.git.JGitUtil;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -209,10 +209,12 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             plugin.setStatus(PluginStatus.INSTALLING);
             update(plugin);
 
-            GitClient gitClient = new GitHttpClient(plugin.getDetails() + ".git", gitCloneFolder, "", "");
-
-            // when clone code
-            GitHelperUtil.clone(gitClient);
+            try {
+                JGitUtil.clone(plugin.getDetails() + GIT_SUFFIX, doGenerateGitCloneFolderPath(plugin));
+            } catch (GitException e) {
+                LOGGER.error("Git Clone", e);
+                throw new PluginException("Git Clone", e);
+            }
         }
     }
 
@@ -225,11 +227,14 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             LOGGER.traceMarker("InitLocalRepoProcessor",
                 String.format("Thread: %s Start Init Local Repo Plugin %s", Thread.currentThread().getId(),
                     plugin.getName()));
-            // init bare repo
-            GitHelperUtil.initBareGitRepository(bareRepoPath);
 
-            // set local remote
-            GitHelperUtil.setLocalRemote(path, bareRepoPath);
+            try {
+                JGitUtil.initBare(bareRepoPath);
+                JGitUtil.remoteSet(path, LOCAL_REMOTE, bareRepoPath.toString());
+            } catch (GitException e) {
+                LOGGER.error("Init Local Repo Error", e);
+                throw new PluginException("Init Local Repo Error", e);
+            }
         }
     }
 
@@ -245,12 +250,19 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             LOGGER.traceMarker("PushProcessor",
                 String.format("Thread: %s Start Push Tag To Local Repo %s", Thread.currentThread().getId(),
                     plugin.getName()));
-            // push tag to local
-            GitHelperUtil.pushTag(path, LOCAL_REMOTE, tag);
+
+            try {
+                JGitUtil.push(path, LOCAL_REMOTE, tag);
+            } catch (GitException e) {
+                LOGGER.error("Push To Local Error", e);
+                throw new PluginException("Push To Local Error", e);
+            }
 
             plugin.setStatus(PluginStatus.INSTALLED);
-            dispatchEvent(PluginStatus.INSTALLED, tag, bareRepoPath);
             update(plugin);
+
+            // dispatch Event
+            dispatchEvent(PluginStatus.INSTALLED, tag, bareRepoPath);
         }
     }
 }
