@@ -166,7 +166,7 @@ public class SyncServiceTest extends TestBase {
         // then: send run shell cmd for sync event and sync task queue size not changed
         strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
         verify(strategy, postRequestedFor(urlEqualTo("/cmd/send")));
-        Assert.assertEquals(1, syncService.getSyncTask(agent).size());
+        Assert.assertEquals(1, syncService.getSyncTask(agent).getSyncQueue().size());
 
         // when: mock cmd been executed
         Cmd mockRunShellSuccess = new Cmd(agent.getZone(), agent.getName(), CmdType.RUN_SHELL, "git pull xxx");
@@ -178,7 +178,7 @@ public class SyncServiceTest extends TestBase {
         // then: should send delete session cmd and sync task queue size should be zero
         strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 2);
         verify(strategy, postRequestedFor(urlEqualTo("/cmd/send")));
-        Assert.assertEquals(0, syncService.getSyncTask(agent).size());
+        Assert.assertEquals(0, syncService.getSyncTask(agent).getSyncQueue().size());
 
         // when: mock delete session cmd
         Cmd mockDeleteSession = new Cmd(agent.getZone(), agent.getName(), CmdType.DELETE_SESSION, null);

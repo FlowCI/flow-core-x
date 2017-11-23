@@ -17,6 +17,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.sync.SyncEvent;
+import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
@@ -53,7 +54,7 @@ public interface SyncService {
     /**
      * Get sync task tree for agent
      */
-    Queue<SyncEvent> getSyncTask(AgentPath agent);
+    SyncTask getSyncTask(AgentPath agent);
 
     /**
      * Register agent to sync service

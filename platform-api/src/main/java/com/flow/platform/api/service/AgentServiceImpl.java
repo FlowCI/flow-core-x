@@ -18,9 +18,11 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.domain.agent.AgentItem;
+import com.flow.platform.api.domain.agent.AgentSync;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.service.job.JobService;
@@ -47,7 +49,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonSyntaxException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.http.entity.ContentType;
@@ -104,7 +106,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
         List<String> sessionIds = CollectionUtil.toPropertyList("sessionId", agents);
 
         // get all running jobs from agent sessions
-        List<Job> jobs = new ArrayList<>(0);
+        List<Job> jobs = Collections.emptyList();
         if (!CollectionUtil.isNullOrEmpty(sessionIds)) {
             jobs = jobDao.list(sessionIds, NodeStatus.RUNNING);
         }
@@ -112,33 +114,44 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
         // convert to session - job map
         Map<String, Job> sessionJobMap = CollectionUtil.toPropertyMap("sessionId", jobs);
         if (CollectionUtil.isNullOrEmpty(sessionJobMap)) {
-            sessionJobMap = new HashMap<>(0);
+            sessionJobMap = Collections.emptyMap();
         }
 
-        // build result list
-        List<AgentItem> agentWithFlows = new ArrayList<>(agents.length);
+        // build agent item list
+        List<AgentItem> list = new ArrayList<>(agents.length);
+
         for (Agent agent : agents) {
+            // add offline agent
             if (agent.getStatus() == AgentStatus.OFFLINE){
-                agentWithFlows.add(new AgentItem(agent, null));
+                list.add(new AgentItem(agent, null));
                 continue;
             }
 
-            String sessionIdFromAgent = agent.getSessionId();
-
-            if (Strings.isNullOrEmpty(sessionIdFromAgent)) {
-                agentWithFlows.add(new AgentItem(agent, null));
+            // add agent without session id
+            if (Strings.isNullOrEmpty(agent.getSessionId())) {
+                list.add(new AgentItem(agent, null));
                 continue;
             }
 
-            Job job = sessionJobMap.get(sessionIdFromAgent);
-            if (job == null) {
-                agentWithFlows.add(new AgentItem(agent, null));
+            // add agent which related a job by session id
+            Job job = sessionJobMap.get(agent.getSessionId());
+            if (job != null) {
+                list.add(new AgentItem(agent, job));
                 continue;
             }
 
-            agentWithFlows.add(new AgentItem(agent, job));
+            // add agent which related sync task by agent path
+            SyncTask syncTask = syncService.getSyncTask(agent.getPath());
+            if (syncTask != null) {
+                AgentItem item = new AgentItem(agent, null);
+                item.setSync(new AgentSync(syncTask.getTotal(), syncTask.getSyncQueue().size()));
+                list.add(item);
+            }
+
+            list.add(new AgentItem(agent, null));
         }
-        return agentWithFlows;
+
+        return list;
     }
 
     @Override
