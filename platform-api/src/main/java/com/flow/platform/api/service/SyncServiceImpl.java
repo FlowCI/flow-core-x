@@ -190,6 +190,7 @@ public class SyncServiceImpl implements SyncService {
             CmdInfo runShell = new CmdInfo(cmd.getAgentPath(), CmdType.RUN_SHELL, next.toScript());
             runShell.setWebhook(callbackUrl);
             runShell.setSessionId(cmd.getSessionId());
+            runShell.setWorkingDir(DEFAULT_CMD_DIR);
             cmdService.sendCmd(runShell, false, 0);
         }
 

@@ -33,6 +33,8 @@ public interface SyncService {
 
     int DEFAULT_CMD_PRIORITY = 10;
 
+    String DEFAULT_CMD_DIR = "${HOME}/flow-agent-repos";
+
     interface QueueCreator {
 
         PlatformQueue<PriorityMessage> create(String name);

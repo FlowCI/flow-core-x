@@ -31,6 +31,8 @@ import com.flow.platform.domain.CmdInfo;
  */
 public interface CmdService {
 
+    String DEFAULT_CMD_DIR = "${HOME}/flow-agent-workspace";
+
     /**
      * Send create session cmd job async
      *
