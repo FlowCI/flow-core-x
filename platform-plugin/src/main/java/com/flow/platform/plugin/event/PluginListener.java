@@ -16,12 +16,12 @@
 
 package com.flow.platform.plugin.event;
 
-import com.flow.platform.plugin.domain.Plugin;
 import java.nio.file.Path;
 
 /**
  * @author yh@firim
  */
-public interface PluginListener {
-    void call(Plugin plugin, String tag, Path path);
+public interface PluginListener<T> {
+
+    void call(T t, String tag, Path path);
 }

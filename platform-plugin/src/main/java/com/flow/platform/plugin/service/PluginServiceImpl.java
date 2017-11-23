@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.consumer.InstallConsumer;
+import com.flow.platform.plugin.consumer.PluginStatusChangedConsumer;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.AbstractEvent;
@@ -162,8 +163,8 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         }
 
         plugin.setStatus(PluginStatus.PENDING);
-        dispatchEvent(plugin, null, null);
         update(plugin);
+        dispatchEvent(PluginStatus.DELETE, null, doGenerateLocalRepositoryPath(plugin));
     }
 
     @Override
@@ -190,9 +191,12 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         for (int i = 0; i < threadPoolExecutor.getCorePoolSize(); i++) {
             installerQueue.start();
         }
+
+        registerListener(new PluginStatusChangedConsumer());
     }
 
     private interface Processor {
+
         void exec(Plugin plugin);
     }
 
@@ -203,7 +207,6 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             LOGGER.traceMarker("CloneProcessor",
                 String.format("Thread: %s Start Clone %s", Thread.currentThread().getId(), plugin.getName()));
             plugin.setStatus(PluginStatus.INSTALLING);
-            dispatchEvent(plugin, null, null);
             update(plugin);
 
             GitClient gitClient = new GitHttpClient(plugin.getDetails() + ".git", gitCloneFolder, "", "");
@@ -246,7 +249,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             GitHelperUtil.pushTag(path, LOCAL_REMOTE, tag);
 
             plugin.setStatus(PluginStatus.INSTALLED);
-            dispatchEvent(plugin, tag, bareRepoPath);
+            dispatchEvent(PluginStatus.INSTALLED, tag, bareRepoPath);
             update(plugin);
         }
     }

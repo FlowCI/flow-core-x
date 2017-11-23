@@ -16,7 +16,6 @@
 
 package com.flow.platform.plugin.event;
 
-import com.flow.platform.plugin.domain.Plugin;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,9 +27,9 @@ public abstract class AbstractEvent {
 
     protected List<PluginListener> listeners = new LinkedList<>();
 
-    protected void dispatchEvent(Plugin plugin, String tag, Path path) {
+    protected <T> void dispatchEvent(T t, String tag, Path path) {
         for (PluginListener listener : listeners) {
-            listener.call(plugin, tag, path);
+            listener.call(t, tag, path);
         }
     }
 }
