@@ -16,8 +16,10 @@
 
 package com.flow.platform.plugin.consumer;
 
+import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.PluginListener;
+import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.util.Logger;
 import java.nio.file.Path;
 
@@ -28,13 +30,32 @@ public class PluginStatusChangedConsumer implements PluginListener<PluginStatus>
 
     private final static Logger LOGGER = new Logger(PluginStatusChangedConsumer.class);
 
+    private PluginService pluginService;
+
+    public PluginStatusChangedConsumer(PluginService pluginService) {
+        this.pluginService = pluginService;
+    }
+
     @Override
-    public void call(PluginStatus pluginStatus, String tag, Path path) {
-        LOGGER.traceMarker("PluginStatusChangedConsumer", "Incoming Message PluginStatus:"
-            + pluginStatus.toString()
-            + ", Tag is "
-            + tag
-            + ", path is"
-            + path.toString());
+    public void call(PluginStatus pluginStatus, String tag, Path path, String pluginName) {
+        LOGGER.traceMarker("PluginStatusChangedConsumer", "Incoming Message PluginStatus:" + pluginStatus);
+
+        Plugin plugin = pluginService.find(pluginName);
+
+        switch (pluginStatus) {
+            case PENDING:
+            case DELETE:
+                plugin.setStatus(pluginStatus.PENDING);
+                break;
+            case UPDATE:
+            case INSTALLED:
+                plugin.setStatus(pluginStatus.INSTALLED);
+                break;
+            case INSTALLING:
+                plugin.setStatus(pluginStatus.INSTALLING);
+                break;
+        }
+
+        pluginService.update(plugin);
     }
 }

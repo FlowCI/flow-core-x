@@ -23,5 +23,5 @@ import java.nio.file.Path;
  */
 public interface PluginListener<T> {
 
-    void call(T t, String tag, Path path);
+    void call(T t, String tag, Path path, String pluginName);
 }

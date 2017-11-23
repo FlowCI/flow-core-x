@@ -27,9 +27,9 @@ public abstract class AbstractEvent {
 
     protected List<PluginListener> listeners = new LinkedList<>();
 
-    protected <T> void dispatchEvent(T t, String tag, Path path) {
+    protected <T> void dispatchEvent(T t, String tag, Path path, String pluginName) {
         for (PluginListener listener : listeners) {
-            listener.call(t, tag, path);
+            listener.call(t, tag, path, pluginName);
         }
     }
 }

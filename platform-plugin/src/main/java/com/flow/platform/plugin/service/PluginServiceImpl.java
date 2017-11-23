@@ -23,7 +23,6 @@ import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.AbstractEvent;
 import com.flow.platform.plugin.event.PluginListener;
 import com.flow.platform.plugin.exception.PluginException;
-import com.flow.platform.plugin.util.FileUtil;
 import com.flow.platform.plugin.util.GitHelperUtil;
 import com.flow.platform.queue.InMemoryQueue;
 import com.flow.platform.queue.PlatformQueue;
@@ -31,7 +30,6 @@ import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
@@ -150,9 +148,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             processor.clean(plugin);
         }
 
-        plugin.setStatus(PluginStatus.PENDING);
-        update(plugin);
-        dispatchEvent(PluginStatus.DELETE, null, doGenerateLocalRepositoryPath(plugin));
+        dispatchEvent(PluginStatus.DELETE, null, doGenerateLocalRepositoryPath(plugin), plugin.getName());
     }
 
     @Override
@@ -180,7 +176,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             installerQueue.start();
         }
 
-        registerListener(new PluginStatusChangedConsumer());
+        registerListener(new PluginStatusChangedConsumer(this));
     }
 
     private interface Processor {
@@ -196,8 +192,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         public void exec(Plugin plugin) {
             LOGGER.traceMarker("CloneProcessor",
                 String.format("Thread: %s Start Clone %s", Thread.currentThread().getId(), plugin.getName()));
-            plugin.setStatus(PluginStatus.INSTALLING);
-            update(plugin);
+            dispatchEvent(plugin.getStatus(), null, null, plugin.getName());
 
             try {
                 JGitUtil.clone(plugin.getDetails() + GIT_SUFFIX, doGenerateGitCloneFolderPath(plugin));
@@ -248,7 +243,8 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
                     FileUtils.deleteDirectory(gitPath.toFile());
                 } catch (Throwable throwable) {
                     LOGGER
-                        .error(String.format("Delete Local Folder: %s Error: %s", gitPath.toString(), throwable), throwable);
+                        .error(String.format("Delete Local Folder: %s Error: %s", gitPath.toString(), throwable),
+                            throwable);
                 }
             }
         }
@@ -274,11 +270,8 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
                 throw new PluginException("Push To Local Error", e);
             }
 
-            plugin.setStatus(PluginStatus.INSTALLED);
-            update(plugin);
-
             // dispatch Event
-            dispatchEvent(PluginStatus.INSTALLED, tag, bareRepoPath);
+            dispatchEvent(PluginStatus.INSTALLED, tag, bareRepoPath, plugin.getName());
         }
 
         @Override
