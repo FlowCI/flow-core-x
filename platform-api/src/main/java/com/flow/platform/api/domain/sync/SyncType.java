@@ -14,34 +14,16 @@
  * limitations under the License.
  */
 
-package com.flow.platform.queue;
+package com.flow.platform.api.domain.sync;
 
 /**
  * @author yang
  */
-public class DefaultQueueMessage implements PriorityQueueItem {
+public enum SyncType {
 
-    private final byte[] body;
+    CREATE,
 
-    private final Integer priority;
+    UPDATE,
 
-    public DefaultQueueMessage(byte[] body, Integer priority) {
-        this.body = body;
-        this.priority = priority;
-    }
-
-    @Override
-    public Integer getPriority() {
-        return priority;
-    }
-
-    @Override
-    public byte[] getBody() {
-        return new byte[0];
-    }
-
-    @Override
-    public int compareTo(PriorityQueueItem o) {
-        return o.getPriority().compareTo(getPriority());
-    }
+    DELETE
 }

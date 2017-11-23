@@ -16,14 +16,15 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitCommit;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Set;
+import org.eclipse.jgit.lib.Repository;
 
 /**
  * To fetch related git repo info
@@ -57,6 +58,11 @@ public interface GitService {
      * @return file content
      */
     String fetch(Node node, String filePath, ProgressListener progress) throws GitException;
+
+    /**
+     * List repos from git workspace
+     */
+    List<Repository> repos();
 
     /**
      * Fetch branches from git repo

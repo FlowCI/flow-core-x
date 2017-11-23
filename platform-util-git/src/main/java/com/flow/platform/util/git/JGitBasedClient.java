@@ -21,6 +21,7 @@ import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitProject;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -33,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -181,7 +183,7 @@ public abstract class JGitBasedClient implements GitClient {
                 .setTimeout(GIT_TRANS_TIMEOUT)
                 .setRemote(gitUrl)).call();
 
-            return toRefString(refs);
+            return JGitUtil.simpleRef(refs);
         } catch (GitAPIException e) {
             throw new GitException("Fail to list branches from remote repo", e);
         }
@@ -195,7 +197,11 @@ public abstract class JGitBasedClient implements GitClient {
                 .setTimeout(GIT_TRANS_TIMEOUT)
                 .setRemote(gitUrl)).call();
 
-            return toRefString(refs);
+
+            List<Ref> listRefs = Lists.newArrayList(refs);
+            listRefs.sort(JGitUtil.REF_COMPARATOR);
+
+            return JGitUtil.simpleRef(refs);
         } catch (GitAPIException e) {
             throw new GitException("Fail to list tags from remote repo", ExceptionUtil.findRootCause(e));
         }
@@ -242,23 +248,6 @@ public abstract class JGitBasedClient implements GitClient {
      * Git command builder
      */
     protected abstract <T extends TransportCommand> T buildCommand(T command);
-
-    private List<String> toRefString(Collection<Ref> refs) {
-        List<String> refStringList = new ArrayList<>(refs.size());
-
-        for (Ref ref : refs) {
-            // convert ref name from refs/heads/master to master
-            String refName = ref.getName();
-            String simpleName = refName
-                .replaceFirst("refs/heads/", StringUtil.EMPTY)
-                .replace("refs/tags/", StringUtil.EMPTY);
-
-            // add to result list
-            refStringList.add(simpleName);
-        }
-
-        return refStringList;
-    }
 
     /**
      * Create local .git with remote info
