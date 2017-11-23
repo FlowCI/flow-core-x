@@ -18,6 +18,7 @@ package com.flow.platform.util.git.test;
 
 import com.flow.platform.util.git.JGitUtil;
 import java.io.File;
+import java.nio.file.Path;
 import org.eclipse.jgit.lib.Repository;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -28,6 +29,8 @@ import org.junit.rules.TemporaryFolder;
  * @author yang
  */
 public class JGitUtilTest {
+
+    private static final String GIT_URL = "https://github.com/yunheli/info.git";
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -40,6 +43,13 @@ public class JGitUtilTest {
 
         Repository repo = JGitUtil.getRepo(gitDir.toPath());
         Assert.assertNotNull(repo);
+    }
+
+    @Test
+    public void should_git_clone_success() throws Throwable {
+        File baseDir = folder.newFolder("info");
+        Path path = JGitUtil.clone(GIT_URL, baseDir.toPath());
+        Assert.assertEquals(true, path.toFile().exists());
     }
 
 }
