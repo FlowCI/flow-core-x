@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +89,7 @@ public class JGitUtil {
     public static List<String> tags(Repository repo) throws GitException {
         Map<String, Ref> tags = repo.getTags();
         List<Ref> refs = Lists.newArrayList(tags.values());
-        refs.sort(REF_COMPARATOR);
+        Collections.reverse(refs);
         return simpleRef(refs);
     }
 
