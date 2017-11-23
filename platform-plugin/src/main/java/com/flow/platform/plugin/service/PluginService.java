@@ -60,5 +60,9 @@ public interface PluginService {
      */
     Plugin find(String name);
 
+    /**
+     * register listener
+     * @param listener
+     */
     void registerListener(PluginListener listener);
 }
