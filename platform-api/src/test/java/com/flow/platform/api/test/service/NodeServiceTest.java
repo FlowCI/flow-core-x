@@ -302,6 +302,11 @@ public class NodeServiceTest extends TestBase {
         Assert.assertNotNull(nodeService.createEmptyFlow("flow_12est"));
         Assert.assertNotNull(nodeService.createEmptyFlow("flow12est"));
         Assert.assertNotNull(nodeService.createEmptyFlow("flow"));
+
+        // 100 chars
+        String chars = "1111111111111111111111111111111111111111111111111111111111"
+            + "111111111111111111111111111111111111111111";
+        Assert.assertNotNull(nodeService.createEmptyFlow(chars));
     }
 
     @Test(expected = IllegalParameterException.class)
