@@ -17,7 +17,6 @@
 package com.flow.platform.util.git;
 
 import com.flow.platform.util.ExceptionUtil;
-import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitProject;
 import com.google.common.base.Strings;
@@ -32,9 +31,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

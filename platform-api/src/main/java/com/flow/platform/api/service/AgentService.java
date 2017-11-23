@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.agent.AgentItem;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentSettings;
@@ -27,7 +27,7 @@ import java.util.List;
  */
 public interface AgentService {
 
-    List<AgentWithFlow> list();
+    List<AgentItem> list();
 
     /**
      * agent shutdown
@@ -45,7 +45,7 @@ public interface AgentService {
     /**
      * Create agent and return token from cc
      */
-    AgentWithFlow create(AgentPath agentPath);
+    AgentItem create(AgentPath agentPath);
 
     /**
      * Get agent setting by token from cc

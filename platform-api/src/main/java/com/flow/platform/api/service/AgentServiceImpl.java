@@ -17,7 +17,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.job.JobDao;
-import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.agent.AgentItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
@@ -88,7 +88,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     private String apiDomain;
 
     @Override
-    public List<AgentWithFlow> list() {
+    public List<AgentItem> list() {
         HttpResponse<String> response = HttpClient.build(platformURL.getAgentUrl())
             .get()
             .retry(httpRetryTimes)
@@ -116,27 +116,27 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
         }
 
         // build result list
-        List<AgentWithFlow> agentWithFlows = new ArrayList<>(agents.length);
+        List<AgentItem> agentWithFlows = new ArrayList<>(agents.length);
         for (Agent agent : agents) {
             if (agent.getStatus() == AgentStatus.OFFLINE){
-                agentWithFlows.add(new AgentWithFlow(agent, null));
+                agentWithFlows.add(new AgentItem(agent, null));
                 continue;
             }
 
             String sessionIdFromAgent = agent.getSessionId();
 
             if (Strings.isNullOrEmpty(sessionIdFromAgent)) {
-                agentWithFlows.add(new AgentWithFlow(agent, null));
+                agentWithFlows.add(new AgentItem(agent, null));
                 continue;
             }
 
             Job job = sessionJobMap.get(sessionIdFromAgent);
             if (job == null) {
-                agentWithFlows.add(new AgentWithFlow(agent, null));
+                agentWithFlows.add(new AgentItem(agent, null));
                 continue;
             }
 
-            agentWithFlows.add(new AgentWithFlow(agent, job));
+            agentWithFlows.add(new AgentItem(agent, job));
         }
         return agentWithFlows;
     }
@@ -164,7 +164,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     }
 
     @Override
-    public AgentWithFlow create(AgentPath agentPath) {
+    public AgentItem create(AgentPath agentPath) {
         if (StringUtil.hasSpace(agentPath.getZone()) || StringUtil.hasSpace(agentPath.getName())) {
             throw new IllegalParameterException("Zone name or agent name cannot contain empty space");
         }
@@ -183,7 +183,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
             }
 
             Agent agent = Agent.parse(response.getBody(), Agent.class);
-            return new AgentWithFlow(agent, null);
+            return new AgentItem(agent, null);
 
         } catch (UnsupportedEncodingException | JsonSyntaxException e) {
             throw new IllegalStatusException("Unable to create agent", e);

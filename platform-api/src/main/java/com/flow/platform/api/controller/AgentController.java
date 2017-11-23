@@ -16,11 +16,9 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.AgentWithFlow;
-import com.flow.platform.api.domain.SearchCondition;
+import com.flow.platform.api.domain.agent.AgentItem;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.response.BooleanValue;
-import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.api.service.SyncService;
@@ -74,7 +72,7 @@ public class AgentController {
      */
     @GetMapping
     @WebSecurity(action = Actions.AGENT_SHOW)
-    public List<AgentWithFlow> index() {
+    public List<AgentItem> index() {
         return agentService.list();
     }
 
@@ -94,7 +92,7 @@ public class AgentController {
      */
     @PostMapping(path = "/create")
     @WebSecurity(action = Actions.ADMIN_CREATE)
-    public AgentWithFlow create(@RequestBody AgentPath agentPath) {
+    public AgentItem create(@RequestBody AgentPath agentPath) {
         if (agentPath.isEmpty()) {
             throw new IllegalParameterException("Zone and agent name are required");
         }
