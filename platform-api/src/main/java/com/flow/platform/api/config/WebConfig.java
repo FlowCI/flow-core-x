@@ -54,7 +54,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @Configuration
 @EnableWebMvc
 @ComponentScan({
-    "com.flow.platform.plugin.service",
     "com.flow.platform.core.controller",
     "com.flow.platform.api.controller",
     "com.flow.platform.api.service",
@@ -64,6 +63,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.context",
     "com.flow.platform.api.util",
     "com.flow.platform.api.consumer",
+    "com.flow.platform.plugin.service",
+    "com.flow.platform.plugin.consumer",
     "com.flow.platform.api.initializers"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
