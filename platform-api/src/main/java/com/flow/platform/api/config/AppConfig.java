@@ -67,10 +67,15 @@ public class AppConfig extends AppConfigBase {
 
     private final static String MULTICASTER_THREAD_NAME_PREFIX = "multi_async-task-";
 
+    private final static String PLUGIN_THREAD_NAME_PREFIX = "plugin_async-task-";
+
     private final static int MULTICASTER_ASYNC_POOL_SIZE = 1;
 
     private final static ThreadPoolTaskExecutor executor =
         ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
+
+    private final static ThreadPoolTaskExecutor pluginExecutor = ThreadUtil.createTaskExecutor(5, 5, 1000,
+        PLUGIN_THREAD_NAME_PREFIX);
 
     private final static ThreadPoolTaskExecutor multicasterExecutor =
         ThreadUtil.createTaskExecutor(MULTICASTER_ASYNC_POOL_SIZE, MULTICASTER_ASYNC_POOL_SIZE, 1000,
@@ -121,6 +126,11 @@ public class AppConfig extends AppConfigBase {
         return Paths.get(gitWorkspace);
     }
 
+    @Bean
+    public Path gitCacheWorkspace() {
+        return Paths.get(gitCloneCache);
+    }
+
     @Bean(name = "applicationEventMulticaster")
     public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
         multicasterExecutor.initialize();
@@ -145,6 +155,12 @@ public class AppConfig extends AppConfigBase {
         return executor;
     }
 
+    @Bean
+    public ThreadPoolTaskExecutor pluginPoolExecutor() {
+        return pluginExecutor;
+    }
+
+
     @Override
     protected String getName() {
         return NAME;
@@ -160,13 +176,6 @@ public class AppConfig extends AppConfigBase {
         PlatformURL platformURL = new PlatformURL(ccDomain);
         LOGGER.trace(platformURL.toString());
         return platformURL;
-    }
-
-    @Bean
-    public PluginService pluginService() {
-        return new PluginServiceImpl(pluginSourceUrl, Paths.get(gitCloneCache), Paths.get(gitWorkspace),
-            Paths.get(workspace),
-            new ThreadPoolExecutor(5, 5, 100, TimeUnit.SECONDS, new LinkedBlockingQueue<>(10000)));
     }
 
     @Bean

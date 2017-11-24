@@ -37,10 +37,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 /**
  * @author yh@firim
  */
+
+@Service
 public class PluginStoreServiceImpl implements PluginStoreService {
 
     private final static String PLUGIN_STORE_FILE = "plugin_data.log";
@@ -48,14 +54,16 @@ public class PluginStoreServiceImpl implements PluginStoreService {
     private Map<String, Plugin> pluginCache = new HashMap<>();
     private volatile Cache<String, List<Plugin>> pluginListCache = CacheBuilder.newBuilder()
         .expireAfterAccess(12, TimeUnit.HOURS).build();
+    @Autowired
     private Path workspace;
     private Path storePath;
+
+    @Value("${plugins.repository}")
     private String pluginSourceUrl;
 
-    public PluginStoreServiceImpl(Path workspace, String gitSourceUrl) {
-        this.workspace = workspace;
+    @PostConstruct
+    private void init() {
         this.storePath = Paths.get(workspace.toString(), PLUGIN_STORE_FILE);
-        this.pluginSourceUrl = gitSourceUrl;
     }
 
     @Override

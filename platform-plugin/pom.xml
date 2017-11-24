@@ -23,6 +23,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.flow.platform</groupId>
       <artifactId>platform-util-http</artifactId>
       <version>${project.version}</version>

@@ -17,7 +17,6 @@
 package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.consumer.InstallConsumer;
-import com.flow.platform.plugin.consumer.PluginStatusChangedConsumer;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.AbstractEvent;
@@ -37,16 +36,19 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadPoolExecutor;
+import javax.annotation.PostConstruct;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
 
 
 /**
  * @author yh@firim
  */
+@Service
 public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
-    private String pluginSourceUrl;
 
     private final static String PLUGIN_KEY = "plugin";
 
@@ -60,17 +62,20 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     private final static Logger LOGGER = new Logger(PluginService.class);
 
-    private PlatformQueue installerQueue;
+    @Autowired
+    private PlatformQueue pluginsQueue;
 
     // git clone folder
-    private Path gitCloneFolder;
+    @Autowired
+    private Path gitWorkspace;
     // local library
-    private Path gitLocalRepositoryFolder;
-    // workspace
-    private Path workspace;
+    @Autowired
+    private Path gitCacheWorkspace;
 
-    private ThreadPoolExecutor threadPoolExecutor;
+    @Autowired
+    private ThreadPoolTaskExecutor pluginPoolExecutor;
 
+    @Autowired
     private PluginStoreService pluginStoreService;
 
     private List<Processor> processors = new LinkedList<>();
@@ -81,20 +86,9 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         processors.add(new PushProcessor());
     }
 
-    public PluginServiceImpl(String pluginSourceUrl,
-                             Path gitCloneFolder,
-                             Path gitLocalRepositoryFolder,
-                             Path workspace,
-                             ThreadPoolExecutor threadPoolExecutor) {
-        this.pluginSourceUrl = pluginSourceUrl;
-        this.gitCloneFolder = gitCloneFolder;
-        this.threadPoolExecutor = threadPoolExecutor;
-        this.gitLocalRepositoryFolder = gitLocalRepositoryFolder;
-        this.workspace = workspace;
-        installerQueue = new InMemoryQueue<>(this.threadPoolExecutor, QUEUE_MAX_SIZE, PLUGIN_KEY);
-
-        pluginStoreService = new PluginStoreServiceImpl(workspace, pluginSourceUrl);
-
+    @PostConstruct
+    private void init() {
+        pluginsQueue = new InMemoryQueue(pluginPoolExecutor, QUEUE_MAX_SIZE, PLUGIN_KEY);
         // register consumer
         initConsumers();
     }
@@ -131,7 +125,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         // not finish can install plugin
         if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin.getStatus())) {
             LOGGER.trace(String.format("Plugin %s Enter To Queue", pluginName));
-            installerQueue.enqueue(plugin);
+            pluginsQueue.enqueue(plugin);
         }
     }
 
@@ -164,23 +158,21 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     private Path doGenerateLocalRepositoryPath(Plugin plugin) {
         String[] aars = plugin.getDetails().split("/");
-        return Paths.get(gitLocalRepositoryFolder.toString(), aars[aars.length - 1] + GIT_SUFFIX);
+        return Paths.get(gitCacheWorkspace.toString(), aars[aars.length - 1] + GIT_SUFFIX);
     }
 
     private Path doGenerateGitCloneFolderPath(Plugin plugin) {
         String[] aars = plugin.getDetails().split("/");
-        return Paths.get(gitCloneFolder.toString(), aars[aars.length - 1]);
+        return Paths.get(gitWorkspace.toString(), aars[aars.length - 1]);
     }
 
     private void initConsumers() {
-        QueueListener installConsumer = new InstallConsumer(installerQueue, this);
+        QueueListener installConsumer = new InstallConsumer(pluginsQueue, this);
 
         // start many threads
-        for (int i = 0; i < threadPoolExecutor.getCorePoolSize(); i++) {
-            installerQueue.start();
+        for (int i = 0; i < pluginPoolExecutor.getCorePoolSize(); i++) {
+            pluginsQueue.start();
         }
-
-        registerListener(new PluginStatusChangedConsumer(this));
     }
 
     private interface Processor {

@@ -22,18 +22,25 @@ import com.flow.platform.plugin.event.PluginListener;
 import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.util.Logger;
 import java.nio.file.Path;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author yh@firim
  */
+
+@Component
 public class PluginStatusChangedConsumer implements PluginListener<PluginStatus> {
 
     private final static Logger LOGGER = new Logger(PluginStatusChangedConsumer.class);
 
+    @Autowired
     private PluginService pluginService;
 
-    public PluginStatusChangedConsumer(PluginService pluginService) {
-        this.pluginService = pluginService;
+    @PostConstruct
+    private void init() {
+        pluginService.registerListener(this);
     }
 
     @Override
