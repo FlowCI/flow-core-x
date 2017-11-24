@@ -30,6 +30,8 @@ import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
+import com.google.common.base.Strings;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
@@ -52,6 +54,8 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     private final static String LOCAL_REMOTE = "local";
 
+    private final static String ORIGIN_REMOTE = "origin";
+
     private final static int QUEUE_MAX_SIZE = 100000;
 
     private final static Logger LOGGER = new Logger(PluginService.class);
@@ -72,8 +76,8 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     private List<Processor> processors = new LinkedList<>();
 
     {
-        processors.add(new CloneProcessor());
-        processors.add(new InitLocalRepoProcessor());
+        processors.add(new InitGitProcessor());
+        processors.add(new FetchProcessor());
         processors.add(new PushProcessor());
     }
 
@@ -186,67 +190,55 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         void clean(Plugin plugin);
     }
 
-    private class CloneProcessor implements Processor {
+    private class InitGitProcessor implements Processor {
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("CloneProcessor",
-                String.format("Thread: %s Start Clone %s", Thread.currentThread().getId(), plugin.getName()));
-            dispatchEvent(plugin.getStatus(), null, null, plugin.getName());
-
+            LOGGER.traceMarker("InitGitProcessor", "Start Init Git");
             try {
-                JGitUtil.clone(plugin.getDetails() + GIT_SUFFIX, doGenerateGitCloneFolderPath(plugin));
+                // init bare
+                JGitUtil.initBare(doGenerateGitCloneFolderPath(plugin), false);
+                JGitUtil.initBare(doGenerateLocalRepositoryPath(plugin), true);
+
+                // remote set
+                JGitUtil
+                    .remoteSet(doGenerateGitCloneFolderPath(plugin), ORIGIN_REMOTE, plugin.getDetails() + GIT_SUFFIX);
+                JGitUtil.remoteSet(doGenerateGitCloneFolderPath(plugin), LOCAL_REMOTE,
+                    doGenerateLocalRepositoryPath(plugin).toString());
             } catch (GitException e) {
-                LOGGER.error("Git Clone", e);
-                throw new PluginException("Git Clone", e);
+                LOGGER.error("Git Init", e);
+                throw new PluginException("Git Init", e);
             }
         }
 
         @Override
         public void clean(Plugin plugin) {
-            Path gitPath = doGenerateGitCloneFolderPath(plugin);
-            if (!gitPath.toFile().exists()) {
-                try {
-                    FileUtils.deleteDirectory(gitPath.toFile());
-                } catch (Throwable throwable) {
-                    LOGGER
-                        .error(String.format("Delete Folder: %s Error: %s", gitPath.toString(), throwable), throwable);
-                }
+            try {
+                FileUtils.deleteDirectory(doGenerateGitCloneFolderPath(plugin).toFile());
+                FileUtils.deleteDirectory(doGenerateLocalRepositoryPath(plugin).toFile());
+            } catch (IOException e) {
+                LOGGER.error("Git Init Clean", e);
+                throw new PluginException("Git Init Clean", e);
             }
         }
     }
 
-    private class InitLocalRepoProcessor implements Processor {
+    private class FetchProcessor implements Processor {
 
         @Override
         public void exec(Plugin plugin) {
-            Path bareRepoPath = doGenerateLocalRepositoryPath(plugin);
-            Path path = doGenerateGitCloneFolderPath(plugin);
-            LOGGER.traceMarker("InitLocalRepoProcessor",
-                String.format("Thread: %s Start Init Local Repo Plugin %s", Thread.currentThread().getId(),
-                    plugin.getName()));
-
+            LOGGER.traceMarker("FetchProcessor", "Start Fetch Tags");
             try {
-                JGitUtil.initBare(bareRepoPath);
-                JGitUtil.remoteSet(path, LOCAL_REMOTE, bareRepoPath.toString());
+                JGitUtil.fetchTags(doGenerateGitCloneFolderPath(plugin), ORIGIN_REMOTE);
             } catch (GitException e) {
-                LOGGER.error("Init Local Repo Error", e);
-                throw new PluginException("Init Local Repo Error", e);
+                LOGGER.error("Git Fetch", e);
+                throw new PluginException("Git Fetch", e);
             }
         }
 
         @Override
         public void clean(Plugin plugin) {
-            Path gitPath = doGenerateLocalRepositoryPath(plugin);
-            if (!gitPath.toFile().exists()) {
-                try {
-                    FileUtils.deleteDirectory(gitPath.toFile());
-                } catch (Throwable throwable) {
-                    LOGGER
-                        .error(String.format("Delete Local Folder: %s Error: %s", gitPath.toString(), throwable),
-                            throwable);
-                }
-            }
+
         }
     }
 
@@ -254,24 +246,25 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
         @Override
         public void exec(Plugin plugin) {
-            Path bareRepoPath = doGenerateLocalRepositoryPath(plugin);
-            Path path = doGenerateGitCloneFolderPath(plugin);
-            // get latest tag
-            String tag = GitHelperUtil.getLatestTag(path);
-
-            LOGGER.traceMarker("PushProcessor",
-                String.format("Thread: %s Start Push Tag To Local Repo %s", Thread.currentThread().getId(),
-                    plugin.getName()));
-
+            LOGGER.traceMarker("PushProcessor", "Start Push Tags");
             try {
-                JGitUtil.push(path, LOCAL_REMOTE, tag);
-            } catch (GitException e) {
-                LOGGER.error("Push To Local Error", e);
-                throw new PluginException("Push To Local Error", e);
-            }
+                Path gitPath = doGenerateGitCloneFolderPath(plugin);
+                Path gitLocalPath = doGenerateLocalRepositoryPath(plugin);
+                String latestGitTag = GitHelperUtil.getLatestTag(gitPath);
+                String latestLocalGitTag = GitHelperUtil.getLatestTag(gitLocalPath);
+                JGitUtil.push(gitPath, LOCAL_REMOTE, latestGitTag);
 
-            // dispatch Event
-            dispatchEvent(PluginStatus.INSTALLED, tag, bareRepoPath, plugin.getName());
+                if (Strings.isNullOrEmpty(latestLocalGitTag)) {
+                    dispatchEvent(PluginStatus.INSTALLED, latestGitTag, gitLocalPath, plugin.getName());
+                }
+
+                if (Objects.equals(latestGitTag, latestLocalGitTag)) {
+                    dispatchEvent(PluginStatus.UPDATE, latestGitTag, gitLocalPath, plugin.getName());
+                }
+            } catch (GitException e) {
+                LOGGER.error("Git Push", e);
+                throw new PluginException("Git Push", e);
+            }
         }
 
         @Override

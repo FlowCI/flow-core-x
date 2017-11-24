@@ -33,6 +33,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.TagOpt;
 
 /**
  * @author yang
@@ -72,9 +73,13 @@ public class JGitUtil {
      * @param gitPath xxx.git folder
      * @throws GitException
      */
-    public static void initBare(Path gitPath) throws GitException {
+    public static void initBare(Path gitPath, Boolean bare) throws GitException {
         try {
-            Git.init().setBare(true).setGitDir(gitPath.toFile()).call();
+            if (bare) {
+                Git.init().setBare(true).setGitDir(gitPath.toFile()).call();
+            } else {
+                Git.init().setDirectory(gitPath.toFile()).call();
+            }
         } catch (GitAPIException e) {
             throw new GitException(e.getMessage());
         }
@@ -157,5 +162,22 @@ public class JGitUtil {
         }
 
         return path;
+    }
+
+    public static Path fetchTags(Path path, String remoteName) throws GitException {
+
+        Git git;
+        try {
+            git = Git.open(path.toFile());
+            git
+                .fetch()
+                .setRemote(remoteName)
+                .setRefSpecs(new RefSpec("refs/tags/*:refs/tags/*"))
+                .setTagOpt(TagOpt.FETCH_TAGS)
+                .call();
+        } catch (Throwable throwable) {
+            throw new GitException("fetch tags error", throwable);
+        }
+        return null;
     }
 }

@@ -17,22 +17,10 @@
 package com.flow.platform.plugin.util;
 
 import com.flow.platform.plugin.exception.PluginException;
-import com.flow.platform.util.git.GitClient;
-import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.util.Strings;
+import java.util.List;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.errors.RepositoryNotFoundException;
-import org.eclipse.jgit.transport.RefSpec;
 
 /**
  * @author yh@firim
@@ -45,7 +33,12 @@ public class GitHelperUtil {
      */
     public static String getLatestTag(Path gitPath) {
         try {
-            return JGitUtil.tags(Git.open(gitPath.toFile()).getRepository()).get(0);
+            List<String> tags = JGitUtil.tags(Git.open(gitPath.toFile()).getRepository());
+            if (tags.isEmpty()) {
+                return "";
+            } else {
+                return tags.get(0);
+            }
         } catch (Throwable throwable) {
             throw new PluginException("get latest tag is error", throwable);
         }
