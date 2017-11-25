@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.core.queue.PriorityMessage;
@@ -47,9 +48,9 @@ public interface SyncService {
     void put(SyncEvent event);
 
     /**
-     * Get sync event queue for agent
+     * Get sync data for agent
      */
-    PlatformQueue<PriorityMessage> getSyncQueue(AgentPath agent);
+    Sync get(AgentPath agent);
 
     /**
      * Get sync task tree for agent
@@ -78,6 +79,8 @@ public interface SyncService {
 
     /**
      * Start sync to agent
+     * - do not execute if agent path has not been registered
+     * - just list exiting repos if no other sync events
      */
     void sync(AgentPath agent);
 

@@ -34,6 +34,8 @@ public class CmdResult extends Jsonable {
 
     public static final Integer EXIT_VALUE_FOR_TIMEOUT = -200;
 
+    public static final CmdResult EMPTY = new CmdResult();
+
     /**
      * Only agent local, cannot parse to json
      */

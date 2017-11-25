@@ -16,12 +16,15 @@
 
 package com.flow.platform.api.domain.sync;
 
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 
 /**
  * @author yang
  */
 public class SyncEvent extends Jsonable {
+
+    public final static String FLOW_SYNC_LIST = "FLOW_SYNC_LIST";
 
     private String gitUrl;
 
@@ -48,6 +51,10 @@ public class SyncEvent extends Jsonable {
     }
 
     public String toScript() {
+        if (syncType == SyncType.LIST) {
+            return "export " + FLOW_SYNC_LIST + "=\"$(ls)\"";
+        }
+
         String folder = createFolderName();
 
         if (syncType == SyncType.DELETE) {
@@ -55,11 +62,11 @@ public class SyncEvent extends Jsonable {
         }
 
         return "git init " + folder +
-            "\n" +
+            Cmd.NEW_LINE +
             "cd " + folder +
-            "\n" +
+            Cmd.NEW_LINE +
             "git pull " + gitUrl + " --tags" +
-            "\n" +
+            Cmd.NEW_LINE +
             "git checkout " + tag;
     }
 

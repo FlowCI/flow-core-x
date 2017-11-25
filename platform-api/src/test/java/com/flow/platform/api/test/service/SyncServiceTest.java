@@ -46,12 +46,15 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author yang
  */
+@FixMethodOrder(value = MethodSorters.JVM)
 public class SyncServiceTest extends TestBase {
 
     @Autowired
@@ -95,6 +98,9 @@ public class SyncServiceTest extends TestBase {
 
         SyncEvent deleteEvent = new SyncEvent("http://localhost/git/hello.git", "v1.0", SyncType.DELETE);
         Assert.assertEquals("rm -r -f hello[v1.0]", deleteEvent.toScript());
+
+        SyncEvent listEvent = new SyncEvent(null, null, SyncType.LIST);
+        Assert.assertEquals("export FLOW_SYNC_LIST=\"$(ls)\"", listEvent.toScript());
     }
 
     @Test
@@ -110,9 +116,9 @@ public class SyncServiceTest extends TestBase {
         syncService.put(new SyncEvent("http://127.0.0.1/git/hello.git", "v1.0", SyncType.CREATE));
         syncService.put(new SyncEvent("http://127.0.0.1/git/flow.git", "v1.0", SyncType.CREATE));
 
-        // then: two events should be in the agent sync queue
-        Assert.assertEquals(2, syncService.getSyncQueue(firstAgent).size());
-        Assert.assertEquals(2, syncService.getSyncQueue(secondAgent).size());
+        // then: three events should be in the agent sync queue, include list
+        Assert.assertEquals(2, syncService.get(firstAgent).getQueue().size());
+        Assert.assertEquals(2, syncService.get(secondAgent).getQueue().size());
     }
 
     @Test
@@ -128,17 +134,24 @@ public class SyncServiceTest extends TestBase {
         syncService.register(agents.get(1));
 
         // then: verify the sync event been initialized into both agents
-        PlatformQueue<PriorityMessage> queue = syncService.getSyncQueue(agents.get(0));
-        SyncEvent event = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
-        Assert.assertEquals("http://localhost:8080/git/hello.git", event.getGitUrl());
-        Assert.assertEquals("v1.0", event.getTag());
-        Assert.assertEquals(SyncType.CREATE, event.getSyncType());
 
-        queue = syncService.getSyncQueue(agents.get(1));
-        event = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
-        Assert.assertEquals("http://localhost:8080/git/hello.git", event.getGitUrl());
-        Assert.assertEquals("v1.0", event.getTag());
-        Assert.assertEquals(SyncType.CREATE, event.getSyncType());
+        // check sync queue for first agent
+        PlatformQueue<PriorityMessage> queue = syncService.get(agents.get(0)).getQueue();
+        Assert.assertEquals(1, queue.size());
+
+        SyncEvent createEvent = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
+        Assert.assertEquals("http://localhost:8080/git/hello.git", createEvent.getGitUrl());
+        Assert.assertEquals("v1.0", createEvent.getTag());
+        Assert.assertEquals(SyncType.CREATE, createEvent.getSyncType());
+
+        // check sync queue for second agent
+        queue = syncService.get(agents.get(1)).getQueue();
+        Assert.assertEquals(1, queue.size());
+
+        createEvent = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
+        Assert.assertEquals("http://localhost:8080/git/hello.git", createEvent.getGitUrl());
+        Assert.assertEquals("v1.0", createEvent.getTag());
+        Assert.assertEquals(SyncType.CREATE, createEvent.getSyncType());
     }
 
     @Test
@@ -152,6 +165,7 @@ public class SyncServiceTest extends TestBase {
         // and: register agent to sync service
         AgentPath agent = agents.get(0);
         syncService.register(agent);
+        Assert.assertEquals(1, syncService.get(agent).getQueue().size());
 
         // when: execute sync task
         syncService.syncTask();
@@ -169,7 +183,7 @@ public class SyncServiceTest extends TestBase {
         // then: send run shell cmd for sync event and sync task queue size not changed
         strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
         verify(strategy, postRequestedFor(urlEqualTo("/cmd/send")));
-        Assert.assertEquals(1, syncService.getSyncTask(agent).getSyncQueue().size());
+        Assert.assertEquals(2, syncService.getSyncTask(agent).getSyncQueue().size());
 
         // when: mock cmd been executed
         Cmd mockRunShellSuccess = new Cmd(agent.getZone(), agent.getName(), CmdType.RUN_SHELL, "git pull xxx");
@@ -178,8 +192,27 @@ public class SyncServiceTest extends TestBase {
         mockRunShellSuccess.setCmdResult(new CmdResult(0));
         syncService.onCallback(mockRunShellSuccess);
 
-        // then: should send delete session cmd and sync task queue size should be zero
+        // then: should send list repos cmd and sync task queue size should be 1
         strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 2);
+        verify(strategy, postRequestedFor(urlEqualTo("/cmd/send")));
+        Assert.assertEquals(1, syncService.getSyncTask(agent).getSyncQueue().size());
+
+        // when: mock list cmd been executed
+        Cmd mockListRepoSuccess =
+            new Cmd(agent.getZone(), agent.getName(), CmdType.RUN_SHELL, "export FLOW_SYNC_LIST=$(ls)");
+        mockListRepoSuccess.setSessionId(mockSessionCallback.getSessionId());
+        mockListRepoSuccess.setStatus(CmdStatus.LOGGED);
+        mockListRepoSuccess.setCmdResult(new CmdResult(0));
+        mockListRepoSuccess.getCmdResult().getOutput().put(SyncEvent.FLOW_SYNC_LIST, "A[v1]\nB[v2]");
+        syncService.onCallback(mockListRepoSuccess);
+
+        // then: agent repo list size should be 2
+        Assert.assertEquals(2, syncService.get(agent).getRepos().size());
+        Assert.assertEquals("A[v1]", syncService.get(agent).getRepos().get(0));
+        Assert.assertEquals("B[v2]", syncService.get(agent).getRepos().get(1));
+
+        // then: should send delete session cmd and sync task queue size should be zero
+        strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 3);
         verify(strategy, postRequestedFor(urlEqualTo("/cmd/send")));
         Assert.assertEquals(0, syncService.getSyncTask(agent).getSyncQueue().size());
 

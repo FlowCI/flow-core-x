@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.api.domain.sync.SyncType;
@@ -33,6 +34,9 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
 import com.flow.platform.util.http.HttpURL;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +59,7 @@ public class SyncServiceImpl implements SyncService {
 
     private final static Logger LOGGER = new Logger(SyncService.class);
 
-    private final Map<AgentPath, PlatformQueue<PriorityMessage>> syncQueue = new ConcurrentHashMap<>();
+    private final Map<AgentPath, Sync> syncs = new ConcurrentHashMap<>();
 
     private final Map<AgentPath, SyncTask> syncTasks = new ConcurrentHashMap<>();
 
@@ -92,14 +96,15 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public void put(SyncEvent event) {
-        for (PlatformQueue<PriorityMessage> agentQueue : syncQueue.values()) {
+        for (Sync syncForAgent : syncs.values()) {
+            PlatformQueue<PriorityMessage> agentQueue = syncForAgent.getQueue();
             agentQueue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
         }
     }
 
     @Override
-    public PlatformQueue<PriorityMessage> getSyncQueue(AgentPath agent) {
-        return syncQueue.get(agent);
+    public Sync get(AgentPath agent) {
+        return syncs.get(agent);
     }
 
     @Override
@@ -109,12 +114,12 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public void register(AgentPath agent) {
-        if (syncQueue.containsKey(agent)) {
+        if (syncs.containsKey(agent)) {
             return;
         }
 
         PlatformQueue<PriorityMessage> queue = syncQueueCreator.create(agent.toString() + "-sync");
-        syncQueue.put(agent, queue);
+        syncs.put(agent, new Sync(agent, queue));
 
         // init sync event from git
         List<SyncEvent> syncEvents = initSyncEventFromGitWorkspace();
@@ -125,13 +130,13 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public void remove(AgentPath agent) {
-        syncQueue.remove(agent);
         syncTasks.remove(agent);
+        syncs.remove(agent);
     }
 
     @Override
     public void clean() {
-        syncQueue.clear();
+        syncs.clear();
     }
 
     @Override
@@ -149,6 +154,11 @@ public class SyncServiceImpl implements SyncService {
 
         if (cmd.getType() == CmdType.DELETE_SESSION) {
             syncTasks.remove(cmd.getAgentPath());
+            Sync sync = syncs.get(cmd.getAgentPath());
+            if (sync != null) {
+                sync.setSyncTime(ZonedDateTime.now());
+            }
+
             LOGGER.trace("Sync task finished for agent " + cmd.getAgentPath());
             return;
         }
@@ -159,9 +169,7 @@ public class SyncServiceImpl implements SyncService {
             if (cmd.getStatus() == CmdStatus.SENT) {
                 // get next sync event but not remove
                 next = task.getSyncQueue().peek();
-            }
-
-            else {
+            } else {
                 syncTasks.remove(cmd.getAgentPath());
                 LOGGER.trace("Sync task stopped since create session failure for agent: " + cmd.getAgentPath());
                 return;
@@ -171,24 +179,27 @@ public class SyncServiceImpl implements SyncService {
         else if (cmd.getType() == CmdType.RUN_SHELL) {
             if (Cmd.FINISH_STATUS.contains(cmd.getStatus())) {
                 CmdResult result = cmd.getCmdResult();
+                if (result == null) {
+                    result = CmdResult.EMPTY;
+                }
 
                 boolean shouldSendBack = false;
-                if (result == null) {
-                    shouldSendBack = true;
-                }
-
-                else if (result.getExitValue() == null) {
-                    shouldSendBack = true;
-                }
-
-                else if (result.getExitValue() != 0) {
+                if (result.getExitValue() == null || result.getExitValue() != 0) {
                     shouldSendBack = true;
                 }
 
                 SyncEvent current = task.getSyncQueue().peek();
-                if (shouldSendBack) {
-                    syncQueue.get(cmd.getAgentPath())
-                        .enqueue(PriorityMessage.create(current.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+
+                Sync sync = syncs.get(cmd.getAgentPath());
+                if (sync != null) {
+                    if (shouldSendBack) {
+                        sync.getQueue()
+                            .enqueue(PriorityMessage.create(current.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+                    }
+
+                    // update agent repo list from env FLOW_SYNC_LIST
+                    String repos = result.getOutput().get(SyncEvent.FLOW_SYNC_LIST);
+                    updateAgentRepo(sync, repos);
                 }
 
                 // remove current sync event
@@ -205,6 +216,7 @@ public class SyncServiceImpl implements SyncService {
             runShell.setWebhook(callbackUrl);
             runShell.setSessionId(cmd.getSessionId());
             runShell.setWorkingDir(DEFAULT_CMD_DIR);
+            runShell.setOutputEnvFilter(SyncEvent.FLOW_SYNC_LIST);
             cmdService.sendCmd(runShell, false, 0);
         }
 
@@ -219,14 +231,14 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public void sync(AgentPath agentPath) {
-        PlatformQueue<PriorityMessage> queue = syncQueue.get(agentPath);
+        Sync sync = syncs.get(agentPath);
 
-        if (agentPath == null || queue.size() == 0) {
+        if (sync == null) {
             return;
         }
 
         // create queue for agent task
-        SyncTask task = new SyncTask(agentPath, buildSyncEventQueueForTask(queue));
+        SyncTask task = new SyncTask(agentPath, buildSyncEventQueueForTask(sync.getQueue()));
         syncTasks.put(agentPath, task);
 
         // create cmd to create sync session with higher priority then job, the extra field record node path
@@ -244,11 +256,29 @@ public class SyncServiceImpl implements SyncService {
     @Override
     @Scheduled(fixedDelay = 60 * 1000 * 30, initialDelay = 60 * 1000)
     public void syncTask() {
-        for (AgentPath agentPath : syncQueue.keySet()) {
+        for (AgentPath agentPath : syncs.keySet()) {
             sync(agentPath);
         }
     }
 
+    /**
+     * Update agent repo list
+     *
+     * @param sync Sync instance for agent
+     * @param latestRepos repo raw string, ex: RepoA[v1.0]\nRepoB[v1.0]
+     */
+    private void updateAgentRepo(Sync sync, String latestRepos) {
+        if (Strings.isNullOrEmpty(latestRepos)) {
+            return;
+        }
+
+        String[] repos = latestRepos.split(Cmd.NEW_LINE);
+        sync.setRepos(Lists.newArrayList(repos));
+    }
+
+    /**
+     * Build sync task from agent sync queue and list agent repos at the last
+     */
     private Queue<SyncEvent> buildSyncEventQueueForTask(PlatformQueue<PriorityMessage> agentSyncQueue) {
         Queue<SyncEvent> syncEventQueue = new ConcurrentLinkedQueue<>();
 
@@ -258,9 +288,16 @@ public class SyncServiceImpl implements SyncService {
             syncEventQueue.add(event);
         }
 
+        // list agent exist repos finally
+        SyncEvent listEvent = new SyncEvent(null, null, SyncType.LIST);
+        syncEventQueue.add(listEvent);
+
         return syncEventQueue;
     }
 
+    /**
+     * Load sync event from git repo
+     */
     private List<SyncEvent> initSyncEventFromGitWorkspace() {
         List<Repository> repos = gitService.repos();
         List<SyncEvent> syncEvents = new ArrayList<>(repos.size());
