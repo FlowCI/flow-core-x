@@ -97,9 +97,7 @@ public class AppConfig extends AppConfigBase {
     @Bean
     public Path workspace() {
         try {
-            Path dir = Files.createDirectories(Paths.get(workspace));
-            LOGGER.trace("flow.ci working dir been created : %s", dir);
-            return dir;
+            return Files.createDirectories(Paths.get(workspace));
         } catch (IOException e) {
             throw new RuntimeException("Fail to create flow.ci api working dir", e);
         }

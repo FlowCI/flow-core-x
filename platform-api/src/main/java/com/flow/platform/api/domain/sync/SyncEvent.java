@@ -48,17 +48,15 @@ public class SyncEvent extends Jsonable {
     }
 
     public String toScript() {
-        int lastIndexOfSlash = gitUrl.lastIndexOf('/');
-        int lastIndexOfDot = gitUrl.lastIndexOf('.');
-        String name = gitUrl.substring(lastIndexOfSlash + 1, lastIndexOfDot);
+        String folder = createFolderName();
 
         if (syncType == SyncType.DELETE) {
-            return "rm -r -f " + name;
+            return "rm -r -f " + folder;
         }
 
-        return "git init " + name +
+        return "git init " + folder +
             "\n" +
-            "cd " + name +
+            "cd " + folder +
             "\n" +
             "git pull " + gitUrl + " --tags" +
             "\n" +
@@ -72,5 +70,13 @@ public class SyncEvent extends Jsonable {
             ", tag='" + tag + '\'' +
             ", syncType=" + syncType +
             "} " + super.toString();
+    }
+
+    private String createFolderName() {
+        int lastIndexOfSlash = gitUrl.lastIndexOf('/');
+        int lastIndexOfDot = gitUrl.lastIndexOf('.');
+        String name = gitUrl.substring(lastIndexOfSlash + 1, lastIndexOfDot);
+
+        return name + "[" + tag + "]";
     }
 }

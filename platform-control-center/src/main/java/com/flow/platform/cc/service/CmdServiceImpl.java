@@ -95,6 +95,9 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
     @Autowired
     private AgentDao agentDao;
 
+    @Autowired
+    private Path cmdLogDir;
+
     /**
      * The queue item is cmd id as string
      */
@@ -263,7 +266,7 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
         }
 
         try {
-            Path target = Paths.get(AppConfig.CMD_LOG_DIR.toString(), file.getOriginalFilename());
+            Path target = Paths.get(cmdLogDir.toString(), file.getOriginalFilename());
             Files.write(target, file.getBytes());
             cmdLog.setLogPath(target.toString());
             cmdLogDao.update(cmdLog);

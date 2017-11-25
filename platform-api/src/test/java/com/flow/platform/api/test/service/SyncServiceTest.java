@@ -87,11 +87,14 @@ public class SyncServiceTest extends TestBase {
     @Test
     public void should_convert_sync_event_to_script() throws Throwable {
         SyncEvent createEvent = new SyncEvent("http://localhost/git/hello.git", "v1.0", SyncType.CREATE);
-        String script = "git init hello\ncd hello\ngit pull http://localhost/git/hello.git --tags\ngit checkout v1.0";
+        String script = "git init hello[v1.0]\n"
+            + "cd hello[v1.0]\n"
+            + "git pull http://localhost/git/hello.git --tags\n"
+            + "git checkout v1.0";
         Assert.assertEquals(script, createEvent.toScript());
 
         SyncEvent deleteEvent = new SyncEvent("http://localhost/git/hello.git", "v1.0", SyncType.DELETE);
-        Assert.assertEquals("rm -r -f hello", deleteEvent.toScript());
+        Assert.assertEquals("rm -r -f hello[v1.0]", deleteEvent.toScript());
     }
 
     @Test
