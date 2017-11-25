@@ -27,7 +27,15 @@ import java.util.List;
  */
 public interface AgentService {
 
-    List<AgentItem> list();
+    /**
+     * Load agent list from control center
+     */
+    List<Agent> list();
+
+    /**
+     * List agent item which includes flow and sync data
+     */
+    List<AgentItem> listItems();
 
     /**
      * agent shutdown

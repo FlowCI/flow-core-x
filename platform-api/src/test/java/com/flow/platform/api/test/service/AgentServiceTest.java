@@ -64,7 +64,7 @@ public class AgentServiceTest extends TestBase {
         createMockJobWithResult(sessionId, NodeStatus.TIMEOUT);
 
         // when:
-        List<AgentItem> list = agentService.list();
+        List<AgentItem> list = agentService.listItems();
         Assert.assertNotNull(list);
         Assert.assertEquals(1, list.size());
 
@@ -73,7 +73,7 @@ public class AgentServiceTest extends TestBase {
 
         // when: set a job in running status
         createMockJobWithResult(sessionId, NodeStatus.RUNNING);
-        list = agentService.list();
+        list = agentService.listItems();
         Assert.assertNotNull(list);
 
         // then: should has flow info

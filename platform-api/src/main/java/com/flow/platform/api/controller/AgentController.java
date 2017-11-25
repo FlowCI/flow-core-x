@@ -73,7 +73,7 @@ public class AgentController {
     @GetMapping
     @WebSecurity(action = Actions.AGENT_SHOW)
     public List<AgentItem> index() {
-        return agentService.list();
+        return agentService.listItems();
     }
 
     /**
@@ -260,7 +260,28 @@ public class AgentController {
         agentService.delete(agentPath);
     }
 
-    @PostMapping(params = "/sync")
+    /**
+     * @api {Post} /agents/sync Sync
+     * @apiName Sync
+     * @apiGroup Agent
+     * @apiDescription Sync api repository to agent
+     *
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         zone: xxx,
+     *         name: xxx
+     *     }
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
+    @PostMapping(path = "/sync")
     @WebSecurity(action = Actions.ADMIN_SHOW)
     public void sync(@RequestBody AgentPath agentPath) {
         syncService.sync(agentPath);

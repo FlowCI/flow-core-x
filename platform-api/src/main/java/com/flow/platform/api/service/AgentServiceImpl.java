@@ -46,6 +46,7 @@ import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonSyntaxException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -90,7 +91,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     private String apiDomain;
 
     @Override
-    public List<AgentItem> list() {
+    public List<Agent> list() {
         HttpResponse<String> response = HttpClient.build(platformURL.getAgentUrl())
             .get()
             .retry(httpRetryTimes)
@@ -101,6 +102,12 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
         }
 
         Agent[] agents = Jsonable.GSON_CONFIG.fromJson(response.getBody(), Agent[].class);
+        return Lists.newArrayList(agents);
+    }
+
+    @Override
+    public List<AgentItem> listItems() {
+        List<Agent> agents = list();
 
         // get all session id from agent collection
         List<String> sessionIds = CollectionUtil.toPropertyList("sessionId", agents);
@@ -118,7 +125,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
         }
 
         // build agent item list
-        List<AgentItem> list = new ArrayList<>(agents.length);
+        List<AgentItem> list = new ArrayList<>(agents.size());
 
         for (Agent agent : agents) {
             // add offline agent

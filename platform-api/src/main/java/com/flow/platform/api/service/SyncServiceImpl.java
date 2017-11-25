@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.api.domain.sync.SyncType;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.core.queue.PriorityMessage;
+import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
@@ -67,6 +68,9 @@ public class SyncServiceImpl implements SyncService {
     @Autowired
     private CmdService cmdService;
 
+    @Autowired
+    private AgentService agentService;
+
     @Value("${domain.api}")
     private String apiDomain;
 
@@ -75,6 +79,15 @@ public class SyncServiceImpl implements SyncService {
     @PostConstruct
     private void init() {
         callbackUrl = HttpURL.build(apiDomain).append("/hooks/sync").toString();
+
+        try {
+            List<Agent> agents = agentService.list();
+            for (Agent agent : agents) {
+                register(agent.getPath());
+            }
+        } catch (Throwable e) {
+            LOGGER.warn("Cannot load agent list " + e.getMessage());
+        }
     }
 
     @Override
