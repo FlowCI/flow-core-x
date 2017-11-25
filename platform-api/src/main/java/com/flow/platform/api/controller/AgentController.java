@@ -19,6 +19,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.api.domain.agent.AgentItem;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.response.BooleanValue;
+import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.AgentService;
 import com.flow.platform.api.service.SyncService;
@@ -264,7 +265,7 @@ public class AgentController {
      * @api {Post} /agents/sync Sync
      * @apiName Sync
      * @apiGroup Agent
-     * @apiDescription Sync api repository to agent
+     * @apiDescription Sync api repositories to agent
      *
      * @apiParamExample {json} Request-Example:
      *     {
@@ -283,7 +284,46 @@ public class AgentController {
      */
     @PostMapping(path = "/sync")
     @WebSecurity(action = Actions.ADMIN_SHOW)
-    public void sync(@RequestBody AgentPath agentPath) {
+    public void startSync(@RequestBody AgentPath agentPath) {
         syncService.sync(agentPath);
+    }
+
+    /**
+     * @api {Get} /agents/sync Sync Info
+     * @apiName Sync Info
+     * @apiGroup Agent
+     * @apiDescription Get sync info of agent
+     *
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         zone: xxx,
+     *         name: xxx
+     *     }
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *          path: {
+     *              zone: xxx,
+     *              name: xxx
+     *          },
+     *
+     *          repos: [
+     *              "A[v1.0]"
+     *          ],
+     *
+     *          syncTime: 15123123
+     *     }
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
+    @GetMapping(path = "/sync")
+    @WebSecurity(action = Actions.ADMIN_SHOW)
+    public Sync getSyncInfo(@RequestBody AgentPath agentPath) {
+        return syncService.get(agentPath);
     }
 }

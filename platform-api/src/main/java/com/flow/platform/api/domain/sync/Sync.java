@@ -19,6 +19,7 @@ package com.flow.platform.api.domain.sync;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.queue.PlatformQueue;
+import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +32,13 @@ public class Sync {
     /**
      * Agent path
      */
+    @Expose
     private AgentPath path;
 
     /**
      * Existing repo list for agent
      */
+    @Expose
     private List<String> repos = new ArrayList<>();
 
     /**
@@ -46,6 +49,7 @@ public class Sync {
     /**
      * Latest sync time
      */
+    @Expose
     private ZonedDateTime syncTime;
 
     public Sync(AgentPath path, PlatformQueue<PriorityMessage> queue) {
