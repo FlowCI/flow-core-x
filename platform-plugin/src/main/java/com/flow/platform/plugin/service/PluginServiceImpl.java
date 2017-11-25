@@ -62,7 +62,6 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     private final static Logger LOGGER = new Logger(PluginService.class);
 
-    @Autowired
     private PlatformQueue pluginsQueue;
 
     // git clone folder

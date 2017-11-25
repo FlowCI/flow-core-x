@@ -58,7 +58,7 @@ public class PluginStoreServiceImpl implements PluginStoreService {
     private Path workspace;
     private Path storePath;
 
-    @Value("${plugins.repository}")
+    @Autowired
     private String pluginSourceUrl;
 
     @PostConstruct

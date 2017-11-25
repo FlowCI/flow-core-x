@@ -93,6 +93,9 @@ public class AppConfig extends AppConfigBase {
     @Value("${domain.cc}")
     private String ccDomain;
 
+    @Value("${plugins.repository}")
+    private String pluginRepoUrl;
+
     @Value(value = "${system.email}")
     private String email;
 
@@ -129,6 +132,11 @@ public class AppConfig extends AppConfigBase {
     @Bean
     public Path gitCacheWorkspace() {
         return Paths.get(gitCloneCache);
+    }
+
+    @Bean
+    public String pluginSourceUrl() {
+        return pluginRepoUrl;
     }
 
     @Bean(name = "applicationEventMulticaster")

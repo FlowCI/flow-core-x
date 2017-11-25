@@ -19,31 +19,20 @@ package com.flow.platform.plugin.test.service;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.exception.PluginException;
-import com.flow.platform.plugin.service.PluginService;
-import com.flow.platform.plugin.service.PluginServiceImpl;
+import com.flow.platform.plugin.test.TestBase;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author yh@firim
  */
-public class PluginServiceTest {
-
-    private final static String PLUGIN_SOURCE_URL = "https://raw.githubusercontent.com/yunheli/plugins/master/repository.json";
-    private final static String ERROR_PLUGIN_SOURCE_URL = "https://raw.githubusercontent.com/yunheli/plugins/master/repository_error.json";
-
-    @Autowired
-    private PluginService pluginService;
+public class PluginServiceTest extends TestBase {
 
     @Before
     public void init() throws IOException {
@@ -51,13 +40,6 @@ public class PluginServiceTest {
         if (!dest.toFile().exists()) {
             Files.createDirectories(dest);
         }
-
-//        pluginService = new PluginServiceImpl(
-//            PLUGIN_SOURCE_URL,
-//            dest,
-//            dest,
-//            dest,
-//            new ThreadPoolExecutor(5, 5, 5, TimeUnit.HOURS, new LinkedBlockingQueue<>(1000)));
     }
 
     @Test
@@ -76,19 +58,6 @@ public class PluginServiceTest {
         Assert.assertEquals(2, pluginList.size());
     }
 
-    @Test(expected = PluginException.class)
-    public void should_get_plugins_throw_exceptions() {
-        Path dest = Paths.get("/tmp/test");
-//        pluginService = new PluginServiceImpl(
-//            ERROR_PLUGIN_SOURCE_URL,
-//            dest,
-//            dest,
-//            dest,
-//            new ThreadPoolExecutor(5, 5, 5, TimeUnit.HOURS, new LinkedBlockingQueue<>(1000)));
-//
-//        //then: should throw PluginException
-//        pluginService.list();
-    }
 
     @Test
     public void should_update_success() {

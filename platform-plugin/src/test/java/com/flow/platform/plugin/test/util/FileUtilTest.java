@@ -13,21 +13,23 @@ import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import java.io.*;
 
 /**
  * @author yh@firim
  */
 public class FileUtilTest {
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Test
     public void should_save_success() throws IOException {
-        Path basePath = Paths.get("/tmp/test");
-        if (!basePath.toFile().exists()) {
-            Files.createDirectories(basePath);
-        } else {
-            cleanFile(basePath);
-        }
+        File file = temporaryFolder.newFolder("test");
+        Path basePath = file.toPath();
 
         Path filePath = Paths.get(basePath.toString(), ".cache");
 
@@ -43,12 +45,8 @@ public class FileUtilTest {
 
     @Test
     public void should_save_success_demo_too() throws IOException {
-        Path basePath = Paths.get("/tmp/test");
-        if (!basePath.toFile().exists()) {
-            Files.createDirectories(basePath);
-        } else {
-            cleanFile(basePath);
-        }
+        File file = temporaryFolder.newFolder("test");
+        Path basePath = file.toPath();
 
         Path filePath = Paths.get(basePath.toString(), ".cache");
 

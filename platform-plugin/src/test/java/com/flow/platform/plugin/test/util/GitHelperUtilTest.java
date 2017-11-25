@@ -19,8 +19,6 @@ package com.flow.platform.plugin.test.util;
 import com.flow.platform.plugin.util.GitHelperUtil;
 import com.flow.platform.util.git.JGitUtil;
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,9 +37,8 @@ public class GitHelperUtilTest {
     @Test
     public void should_get_latest_tag() throws Throwable {
         String gitUrl = "https://github.com/yunheli/info.git";
-        Path basePath = Paths.get("/tmp/test");
 
-        File gitFile = folder.newFile("info");
+        File gitFile = folder.newFolder("info");
 
         // when clone code
         JGitUtil.clone(gitUrl, gitFile.toPath());
