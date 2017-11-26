@@ -85,7 +85,7 @@ public class PluginServiceTest extends TestBase {
         });
 
         // when: install plugin
-        pluginService.execInstall(plugin);
+        pluginService.install("fircli");
 
         countDownLatch.await();
 

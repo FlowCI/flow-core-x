@@ -20,12 +20,14 @@ import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
+import com.flow.platform.util.Logger;
 
 /**
  * @author yh@firim
  */
 public class InstallConsumer implements QueueListener<Plugin> {
 
+    private final static Logger LOGGER = new Logger(InstallConsumer.class);
     private PlatformQueue<Plugin> installPluginsQueue;
 
     private PluginService pluginService;
@@ -39,11 +41,13 @@ public class InstallConsumer implements QueueListener<Plugin> {
     @Override
     public void onQueueItem(Plugin item) {
 
-        System.out.println(String.format("Thread: %s, Start Install Plugin", Thread.currentThread().getId()));
+        LOGGER.traceMarker("InstallConsumer",
+            String.format("Thread: %s, Start Install Plugin", Thread.currentThread().getId()));
 
         // out stack install
         pluginService.execInstall(item);
 
-        System.out.println(String.format("Thread: %s, Finish Install Plugin", Thread.currentThread().getId()));
+        LOGGER.traceMarker("InstallConsumer",
+            String.format("Thread: %s, Finish Install Plugin", Thread.currentThread().getId()));
     }
 }
