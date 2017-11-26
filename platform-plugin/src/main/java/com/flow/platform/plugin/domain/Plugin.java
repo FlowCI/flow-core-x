@@ -58,6 +58,10 @@ public class Plugin implements Comparable {
     @Expose
     private String tag;
 
+    // if install error, the reason is error trace
+    @Expose
+    private String reason;
+
     public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
         this.name = name;
         this.details = details;
@@ -77,6 +81,13 @@ public class Plugin implements Comparable {
         this.tag = tag;
     }
 
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 
     public String getName() {
         return name;

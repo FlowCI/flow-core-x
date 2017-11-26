@@ -26,11 +26,11 @@ import com.flow.platform.plugin.util.GitHelperUtil;
 import com.flow.platform.queue.InMemoryQueue;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
 import com.google.common.base.Strings;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
@@ -150,8 +150,16 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     @Override
     public void execInstall(Plugin plugin) {
-        for (Processor processor : processors) {
-            processor.exec(plugin);
+        try {
+            for (Processor processor : processors) {
+                processor.exec(plugin);
+            }
+        } catch (PluginException e) {
+
+            // reset plugin status
+            plugin.setStatus(PluginStatus.PENDING);
+            plugin.setReason(ExceptionUtil.findRootCause(e).getMessage());
+            update(plugin);
         }
     }
 
@@ -196,7 +204,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
                     .remoteSet(doGenerateGitCloneFolderPath(plugin), ORIGIN_REMOTE, plugin.getDetails() + GIT_SUFFIX);
                 JGitUtil.remoteSet(doGenerateGitCloneFolderPath(plugin), LOCAL_REMOTE,
                     doGenerateLocalRepositoryPath(plugin).toString());
-            } catch (GitException e) {
+            } catch (Throwable e) {
                 LOGGER.error("Git Init", e);
                 throw new PluginException("Git Init", e);
             }
@@ -207,7 +215,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             try {
                 FileUtils.deleteDirectory(doGenerateGitCloneFolderPath(plugin).toFile());
                 FileUtils.deleteDirectory(doGenerateLocalRepositoryPath(plugin).toFile());
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 LOGGER.error("Git Init Clean", e);
                 throw new PluginException("Git Init Clean", e);
             }
@@ -221,7 +229,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             LOGGER.traceMarker("FetchProcessor", "Start Fetch Tags");
             try {
                 JGitUtil.fetchTags(doGenerateGitCloneFolderPath(plugin), ORIGIN_REMOTE);
-            } catch (GitException e) {
+            } catch (Throwable e) {
                 LOGGER.error("Git Fetch", e);
                 throw new PluginException("Git Fetch", e);
             }
@@ -247,7 +255,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
                 if (Strings.isNullOrEmpty(latestLocalGitTag)) {
                     dispatchEvent(PluginStatus.INSTALLED, latestGitTag, gitLocalPath, plugin.getName());
-                }else if (!Objects.equals(latestGitTag, latestLocalGitTag)) {
+                } else if (!Objects.equals(latestGitTag, latestLocalGitTag)) {
                     dispatchEvent(PluginStatus.UPDATE, latestGitTag, gitLocalPath, plugin.getName());
                 }
             } catch (GitException e) {
