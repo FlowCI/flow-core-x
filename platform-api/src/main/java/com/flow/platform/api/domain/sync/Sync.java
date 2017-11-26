@@ -39,7 +39,7 @@ public class Sync {
      * Existing repo list for agent
      */
     @Expose
-    private List<String> repos = new ArrayList<>();
+    private List<SyncRepo> repos = new ArrayList<>();
 
     /**
      * Agent sync queue
@@ -66,11 +66,11 @@ public class Sync {
         this.path = path;
     }
 
-    public List<String> getRepos() {
+    public List<SyncRepo> getRepos() {
         return repos;
     }
 
-    public void setRepos(List<String> repos) {
+    public void setRepos(List<SyncRepo> repos) {
         this.repos = repos;
     }
 

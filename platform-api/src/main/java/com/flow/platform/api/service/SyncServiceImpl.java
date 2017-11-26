@@ -266,15 +266,23 @@ public class SyncServiceImpl implements SyncService {
      * Update agent repo list
      *
      * @param sync Sync instance for agent
-     * @param latestRepos repo raw string, ex: RepoA[v1.0]\nRepoB[v1.0]
+     * @param latestReposStr repo raw string, ex: RepoA[v1.0]\nRepoB[v1.0]
      */
-    private void updateAgentRepo(Sync sync, String latestRepos) {
-        if (Strings.isNullOrEmpty(latestRepos)) {
+    private void updateAgentRepo(Sync sync, String latestReposStr) {
+        if (Strings.isNullOrEmpty(latestReposStr)) {
             return;
         }
 
-        String[] repos = latestRepos.split(Cmd.NEW_LINE);
-        sync.setRepos(Lists.newArrayList(repos));
+        String[] repos = latestReposStr.split(Cmd.NEW_LINE);
+        List<SyncRepo> latestRepos = new ArrayList<>(repos.length);
+        for (String repo : repos) {
+            SyncRepo repoObj = SyncRepo.build(repo);
+            if (repoObj != null) {
+                latestRepos.add(repoObj);
+            }
+        }
+
+        sync.setRepos(latestRepos);
     }
 
     /**

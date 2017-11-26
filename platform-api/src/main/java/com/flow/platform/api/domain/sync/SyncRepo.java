@@ -21,6 +21,26 @@ package com.flow.platform.api.domain.sync;
  */
 public class SyncRepo {
 
+    /**
+     * Create SyncRepo instance from string ex: A[v1.0]
+     *
+     * @return SyncRepo instance or {@code null} if str is illegal
+     */
+    public static SyncRepo build(String str) {
+        if (!str.endsWith("]")) {
+            return null;
+        }
+
+        int indexOfLeftBracket = str.lastIndexOf('[');
+        if (indexOfLeftBracket == -1) {
+            return null;
+        }
+
+        String name = str.substring(0, indexOfLeftBracket);
+        String tag = str.substring(indexOfLeftBracket + 1, str.length() - 1);
+        return new SyncRepo(name, tag);
+    }
+
     private String name;
 
     private String tag;
@@ -36,6 +56,30 @@ public class SyncRepo {
 
     public String getTag() {
         return tag;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        SyncRepo syncRepo = (SyncRepo) o;
+
+        if (!name.equals(syncRepo.name)) {
+            return false;
+        }
+        return tag.equals(syncRepo.tag);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + tag.hashCode();
+        return result;
     }
 
     @Override

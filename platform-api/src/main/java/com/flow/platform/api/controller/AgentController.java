@@ -309,7 +309,10 @@ public class AgentController {
      *          },
      *
      *          repos: [
-     *              "A[v1.0]"
+     *              {
+     *                  name: "repo name"
+     *                  tag: "v1.0
+     *              }
      *          ],
      *
      *          syncTime: 15123123
