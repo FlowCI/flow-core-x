@@ -30,7 +30,6 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {AppConfig.class})
-@PropertySource("classpath:app-default.properties")
 @FixMethodOrder(MethodSorters.JVM)
 public abstract class TestBase {
 
