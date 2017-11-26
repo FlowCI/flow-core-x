@@ -149,7 +149,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     }
 
     @Override
-    public void execInstall(Plugin plugin) {
+    public void execInstallOrUpdate(Plugin plugin) {
         try {
             for (Processor processor : processors) {
                 processor.exec(plugin);

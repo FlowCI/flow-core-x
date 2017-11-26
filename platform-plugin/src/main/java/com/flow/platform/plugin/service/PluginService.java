@@ -39,7 +39,7 @@ public interface PluginService {
      * exec install
      * @param plugin
      */
-    void execInstall(Plugin plugin);
+    void execInstallOrUpdate(Plugin plugin);
 
     /**
      * uninstall plugin

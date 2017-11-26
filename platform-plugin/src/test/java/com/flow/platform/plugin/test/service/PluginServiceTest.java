@@ -133,7 +133,7 @@ public class PluginServiceTest extends TestBase {
         plugin.setDetails(mocGit.getParent().toString() + "/test");
         pluginService.update(plugin);
 
-        pluginService.execInstall(plugin);
+        pluginService.execInstallOrUpdate(plugin);
 
         plugin = pluginService.find("flowCli");
         Assert.assertNotNull(plugin);
@@ -158,7 +158,7 @@ public class PluginServiceTest extends TestBase {
             }
         });
 
-        pluginService.execInstall(plugin);
+        pluginService.execInstallOrUpdate(plugin);
 
         countDownLatch.await(30, TimeUnit.SECONDS);
         plugin = pluginService.find("flowCli");
