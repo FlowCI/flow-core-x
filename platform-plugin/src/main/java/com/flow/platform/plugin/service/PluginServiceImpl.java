@@ -247,9 +247,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
                 if (Strings.isNullOrEmpty(latestLocalGitTag)) {
                     dispatchEvent(PluginStatus.INSTALLED, latestGitTag, gitLocalPath, plugin.getName());
-                }
-
-                if (Objects.equals(latestGitTag, latestLocalGitTag)) {
+                }else if (!Objects.equals(latestGitTag, latestLocalGitTag)) {
                     dispatchEvent(PluginStatus.UPDATE, latestGitTag, gitLocalPath, plugin.getName());
                 }
             } catch (GitException e) {
