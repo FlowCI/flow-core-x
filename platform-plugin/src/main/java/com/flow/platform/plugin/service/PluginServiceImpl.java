@@ -109,8 +109,8 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     }
 
     @Override
-    public List<Plugin> list() {
-        return pluginStoreService.list();
+    public List<Plugin> list(PluginStatus... statuses) {
+        return pluginStoreService.list(statuses);
     }
 
     @Override

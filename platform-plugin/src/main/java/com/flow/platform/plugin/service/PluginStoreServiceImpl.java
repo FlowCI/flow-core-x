@@ -49,7 +49,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PluginStoreServiceImpl implements PluginStoreService {
 
-    private final static String PLUGIN_STORE_FILE = "plugin_data.log";
+    private final static String PLUGIN_STORE_FILE = "plugin_cache.json";
     private final static String PLUGIN_KEY = "plugin";
     private Map<String, Plugin> pluginCache = new HashMap<>();
     private volatile Cache<String, List<Plugin>> pluginListCache = CacheBuilder.newBuilder()
@@ -73,12 +73,8 @@ public class PluginStoreServiceImpl implements PluginStoreService {
     }
 
     @Override
-    public List<Plugin> list() {
-        loadCacheAndFetchList();
-        List<Plugin> list = new LinkedList<>();
-        pluginCache.forEach((name, plugin) -> list.add(plugin));
-        saveCacheToFile();
-        return list;
+    public List<Plugin> list(PluginStatus... statuses) {
+        return doList(statuses);
     }
 
     @Override
@@ -137,6 +133,24 @@ public class PluginStoreServiceImpl implements PluginStoreService {
         if (!Objects.isNull(FileUtil.read(type, storePath))) {
             pluginCache = FileUtil.read(type, storePath);
         }
+    }
+
+    private List<Plugin> doList(PluginStatus... statuses){
+        loadCacheAndFetchList();
+        List<Plugin> list = new LinkedList<>();
+        if(Objects.equals(0, statuses.length)){
+            pluginCache.forEach((name, plugin) -> list.add(plugin));
+        }else{
+            for (PluginStatus status : statuses) {
+                pluginCache.forEach((name, plugin) ->{
+                    if(Objects.equals(status, plugin.getStatus())){
+                        list.add(plugin);
+                    }
+                });
+            }
+        }
+        saveCacheToFile();
+        return list;
     }
 
     private void saveCacheToFile() {

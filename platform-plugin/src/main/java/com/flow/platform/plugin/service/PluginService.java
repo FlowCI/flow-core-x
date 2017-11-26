@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.PluginListener;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public interface PluginService {
     /**
      * show plugin list
      */
-    List<Plugin> list();
+    List<Plugin> list(PluginStatus... statuses);
 
     /**
      * install plugin
