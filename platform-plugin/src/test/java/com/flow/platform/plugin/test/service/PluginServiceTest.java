@@ -19,12 +19,15 @@ package com.flow.platform.plugin.test.service;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.test.TestBase;
+import com.flow.platform.plugin.util.FileUtil;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,10 +39,11 @@ public class PluginServiceTest extends TestBase {
 
     @Before
     public void init() throws IOException {
-        Path dest = Paths.get("/tmp/test");
-        if (!dest.toFile().exists()) {
-            Files.createDirectories(dest);
-        }
+        FileUtils.deleteDirectory(gitCacheWorkspace.toFile());
+        Files.createDirectories(gitCacheWorkspace);
+
+        FileUtils.deleteDirectory(gitWorkspace.toFile());
+        Files.createDirectories(gitWorkspace);
     }
 
     @Test
@@ -67,6 +71,9 @@ public class PluginServiceTest extends TestBase {
 
         plugin = pluginService.find(plugin.getName());
         Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
+
+        plugin.setStatus(PluginStatus.PENDING);
+        pluginService.update(plugin);
     }
 
     @Test

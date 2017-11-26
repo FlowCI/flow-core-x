@@ -45,7 +45,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class AppConfig {
 
     private final static String PLUGIN_SOURCE_URL = "https://raw.githubusercontent.com/yunheli/plugins/master/repository.json";
-    private final static String ERROR_PLUGIN_SOURCE_URL = "https://raw.githubusercontent.com/yunheli/plugins/master/repository_error.json";
 
     public Path folder;
 

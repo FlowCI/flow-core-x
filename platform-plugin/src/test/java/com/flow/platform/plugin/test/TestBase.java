@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.test;
 
 import com.flow.platform.plugin.service.PluginService;
+import java.nio.file.Path;
 import org.junit.FixMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -35,4 +36,11 @@ public abstract class TestBase {
 
     @Autowired
     protected PluginService pluginService;
+
+    // git clone folder
+    @Autowired
+    protected Path gitWorkspace;
+    // local library
+    @Autowired
+    protected Path gitCacheWorkspace;
 }
