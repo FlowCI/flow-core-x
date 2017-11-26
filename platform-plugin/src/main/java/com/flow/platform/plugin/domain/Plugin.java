@@ -17,10 +17,8 @@
 package com.flow.platform.plugin.domain;
 
 import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
 import java.util.EnumSet;
 import java.util.List;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 
 /**
  * @author yh@firim
@@ -29,6 +27,9 @@ public class Plugin implements Comparable {
 
     public final static EnumSet<PluginStatus> RUNNING_AND_FINISH_STATUS = EnumSet
         .of(PluginStatus.INSTALLING, PluginStatus.INSTALLED);
+
+    public final static EnumSet<PluginStatus> FINISH_STATUSES = EnumSet
+        .of(PluginStatus.INSTALLED);
 
     //plugin name
     @Expose
@@ -54,6 +55,7 @@ public class Plugin implements Comparable {
     @Expose
     private PluginStatus status = PluginStatus.PENDING;
 
+    @Expose
     private String tag;
 
     public Plugin(String name, String details, List<String> label, String author, List<String> platform) {

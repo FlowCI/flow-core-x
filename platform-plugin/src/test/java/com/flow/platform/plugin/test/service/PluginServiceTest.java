@@ -18,13 +18,13 @@ package com.flow.platform.plugin.test.service;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
-import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.test.TestBase;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,5 +67,34 @@ public class PluginServiceTest extends TestBase {
 
         plugin = pluginService.find(plugin.getName());
         Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
+    }
+
+    @Test
+    public void should_exec_install_success() throws InterruptedException {
+        // when: find plugin
+        Plugin plugin = pluginService.find("fircli");
+        // then: plugin is not null
+        Assert.assertNotNull(plugin);
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        pluginService.registerListener((o, tag, path, pluginName) -> {
+            PluginStatus pluginStatus = (PluginStatus) o;
+            if (Plugin.FINISH_STATUSES.contains(pluginStatus)) {
+                countDownLatch.countDown();
+            }
+        });
+
+        // when: install plugin
+        pluginService.execInstall(plugin);
+
+        countDownLatch.await();
+
+        plugin = pluginService.find("fircli");
+
+        // then: plugin should install
+        Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
+
+        // then: tag should not null
+        Assert.assertNotNull(plugin.getTag());
     }
 }

@@ -21,6 +21,7 @@ import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.PluginListener;
 import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.util.Logger;
+import com.google.common.base.Strings;
 import java.nio.file.Path;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,9 @@ public class PluginStatusChangedConsumer implements PluginListener<PluginStatus>
                 break;
         }
 
+        if (!Strings.isNullOrEmpty(tag)) {
+            plugin.setTag(tag);
+        }
         pluginService.update(plugin);
     }
 }
