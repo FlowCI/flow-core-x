@@ -24,6 +24,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.flow.platform.api.domain.sync.SyncEvent;
+import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.domain.sync.SyncType;
 import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.test.TestBase;
@@ -34,6 +35,7 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.util.git.JGitUtil;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
@@ -89,14 +91,17 @@ public class SyncServiceTest extends TestBase {
 
     @Test
     public void should_convert_sync_event_to_script() throws Throwable {
-        SyncEvent createEvent = new SyncEvent("http://localhost/git/hello.git", "v1.0", SyncType.CREATE);
+        String gitUrl = "http://localhost/git/hello.git";
+        SyncRepo repo = new SyncRepo(JGitUtil.getRepoNameFromGitUrl(gitUrl), "v1.0");
+        SyncEvent createEvent = new SyncEvent(gitUrl, repo, SyncType.CREATE);
+
         String script = "git init hello[v1.0]\n"
             + "cd hello[v1.0]\n"
             + "git pull http://localhost/git/hello.git --tags\n"
             + "git checkout v1.0";
         Assert.assertEquals(script, createEvent.toScript());
 
-        SyncEvent deleteEvent = new SyncEvent("http://localhost/git/hello.git", "v1.0", SyncType.DELETE);
+        SyncEvent deleteEvent = new SyncEvent(gitUrl, repo, SyncType.DELETE);
         Assert.assertEquals("rm -r -f hello[v1.0]", deleteEvent.toScript());
 
         SyncEvent listEvent = new SyncEvent(null, null, SyncType.LIST);
@@ -113,8 +118,8 @@ public class SyncServiceTest extends TestBase {
         syncService.register(secondAgent);
 
         // when: put sync event to service
-        syncService.put(new SyncEvent("http://127.0.0.1/git/hello.git", "v1.0", SyncType.CREATE));
-        syncService.put(new SyncEvent("http://127.0.0.1/git/flow.git", "v1.0", SyncType.CREATE));
+        syncService.put(new SyncEvent("http://127.0.0.1/git/hello.git", new SyncRepo("hello", "v1.0"), SyncType.CREATE));
+        syncService.put(new SyncEvent("http://127.0.0.1/git/flow.git", new SyncRepo("flow", "v1.0"), SyncType.CREATE));
 
         // then: three events should be in the agent sync queue, include list
         Assert.assertEquals(2, syncService.get(firstAgent).getQueue().size());
@@ -141,7 +146,7 @@ public class SyncServiceTest extends TestBase {
 
         SyncEvent createEvent = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
         Assert.assertEquals("http://localhost:8080/git/hello.git", createEvent.getGitUrl());
-        Assert.assertEquals("v1.0", createEvent.getTag());
+        Assert.assertEquals("v1.0", createEvent.getRepo().getTag());
         Assert.assertEquals(SyncType.CREATE, createEvent.getSyncType());
 
         // check sync queue for second agent
@@ -150,7 +155,7 @@ public class SyncServiceTest extends TestBase {
 
         createEvent = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
         Assert.assertEquals("http://localhost:8080/git/hello.git", createEvent.getGitUrl());
-        Assert.assertEquals("v1.0", createEvent.getTag());
+        Assert.assertEquals("v1.0", createEvent.getRepo().getTag());
         Assert.assertEquals(SyncType.CREATE, createEvent.getSyncType());
     }
 

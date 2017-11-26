@@ -37,6 +37,12 @@ public class JGitUtil {
 
     public final static Comparator<Ref> REF_COMPARATOR = Comparator.comparing(Ref::getObjectId);
 
+    public static String getRepoNameFromGitUrl(String gitUrl) {
+        int lastIndexOfSlash = gitUrl.lastIndexOf('/');
+        int lastIndexOfDot = gitUrl.lastIndexOf('.');
+        return gitUrl.substring(lastIndexOfSlash + 1, lastIndexOfDot);
+    }
+
     public static List<String> simpleRef(Collection<Ref> refs) {
         List<String> refStringList = new ArrayList<>(refs.size());
 

@@ -18,6 +18,7 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.domain.sync.SyncEvent;
+import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.api.domain.sync.SyncType;
 import com.flow.platform.api.service.job.CmdService;
@@ -313,8 +314,9 @@ public class SyncServiceImpl implements SyncService {
                     continue;
                 }
 
-                HttpURL gitURL = HttpURL.build(apiDomain).append("git").append(gitRepoName);
-                syncEvents.add(new SyncEvent(gitURL.toString(), tags.get(0), SyncType.CREATE));
+                String gitURL = HttpURL.build(apiDomain).append("git").append(gitRepoName).toString();
+                String repoName = JGitUtil.getRepoNameFromGitUrl(gitURL);
+                syncEvents.add(new SyncEvent(gitURL, new SyncRepo(repoName, tags.get(0)), SyncType.CREATE));
             } catch (GitException e) {
                 LOGGER.warn(e.getMessage());
             } finally {

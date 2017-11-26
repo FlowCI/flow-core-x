@@ -24,17 +24,20 @@ import com.flow.platform.domain.Jsonable;
  */
 public class SyncEvent extends Jsonable {
 
+    /**
+     * Output env variable for agent repo list
+     */
     public final static String FLOW_SYNC_LIST = "FLOW_SYNC_LIST";
 
     private String gitUrl;
 
-    private String tag;
+    private SyncRepo repo;
 
     private SyncType syncType;
 
-    public SyncEvent(String gitUrl, String tag, SyncType syncType) {
+    public SyncEvent(String gitUrl, SyncRepo repo, SyncType syncType) {
         this.gitUrl = gitUrl;
-        this.tag = tag;
+        this.repo = repo;
         this.syncType = syncType;
     }
 
@@ -42,8 +45,8 @@ public class SyncEvent extends Jsonable {
         return gitUrl;
     }
 
-    public String getTag() {
-        return tag;
+    public SyncRepo getRepo() {
+        return repo;
     }
 
     public SyncType getSyncType() {
@@ -55,7 +58,7 @@ public class SyncEvent extends Jsonable {
             return "export " + FLOW_SYNC_LIST + "=\"$(ls)\"";
         }
 
-        String folder = createFolderName();
+        String folder = repo.toString();
 
         if (syncType == SyncType.DELETE) {
             return "rm -r -f " + folder;
@@ -67,23 +70,15 @@ public class SyncEvent extends Jsonable {
             Cmd.NEW_LINE +
             "git pull " + gitUrl + " --tags" +
             Cmd.NEW_LINE +
-            "git checkout " + tag;
+            "git checkout " + repo.getTag();
     }
 
     @Override
     public String toString() {
         return "SyncEvent{" +
             "gitUrl='" + gitUrl + '\'' +
-            ", tag='" + tag + '\'' +
+            ", repo='" + repo + '\'' +
             ", syncType=" + syncType +
             "} " + super.toString();
-    }
-
-    private String createFolderName() {
-        int lastIndexOfSlash = gitUrl.lastIndexOf('/');
-        int lastIndexOfDot = gitUrl.lastIndexOf('.');
-        String name = gitUrl.substring(lastIndexOfSlash + 1, lastIndexOfDot);
-
-        return name + "[" + tag + "]";
     }
 }
