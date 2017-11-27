@@ -23,6 +23,7 @@ import com.flow.platform.api.service.node.NodeCrontabService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.collect.Sets;
 import java.text.ParseException;
+import java.util.Objects;
 import java.util.Set;
 import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class FlowCrontabEnvHandler extends EnvHandler {
+
+    private final static String NO_SPECIFIC_VALUE = "?";
 
     @Autowired
     private NodeCrontabService nodeCrontabService;
@@ -54,11 +57,34 @@ public class FlowCrontabEnvHandler extends EnvHandler {
 
     @Override
     void onHandle(Node node, String value) {
+        String[] crons = value.split(" ");
+        if (crons.length != 5) {
+            throw new IllegalParameterException("Illegal crontab format");
+        }
+
+        String seconds = "0";
+        String minute = crons[0];
+        String hours = crons[1];
+        String dayOfMonth = crons[2];
+        String month = crons[3];
+        String dayOfWeek = crons[4];
+
+        // quartz not support for specifying both a day-of-week and a day-of-month
+        if (!Objects.equals(dayOfMonth, NO_SPECIFIC_VALUE) && !Objects.equals(dayOfWeek, NO_SPECIFIC_VALUE)) {
+            dayOfMonth = NO_SPECIFIC_VALUE;
+        }
+
+        String crontabValue = seconds + " " +
+            minute + " " +
+            hours + " " +
+            dayOfMonth + " " +
+            month + " " +
+            dayOfWeek;
+
         try {
             // fill seconds to crontab value
-            String valueWithSeconds = "0 " + value;
-            node.putEnv(env(), valueWithSeconds);
-            new CronExpression(valueWithSeconds);
+            node.putEnv(env(), crontabValue);
+            new CronExpression(crontabValue);
 
             // setup new value and crontab task
             nodeCrontabService.set(node);
