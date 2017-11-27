@@ -16,6 +16,13 @@
 
 package com.flow.platform.plugin.service;
 
+import static com.flow.platform.plugin.domain.PluginStatus.DELETE;
+import static com.flow.platform.plugin.domain.PluginStatus.INSTALLED;
+import static com.flow.platform.plugin.domain.PluginStatus.INSTALLING;
+import static com.flow.platform.plugin.domain.PluginStatus.IN_QUEUE;
+import static com.flow.platform.plugin.domain.PluginStatus.PENDING;
+import static com.flow.platform.plugin.domain.PluginStatus.UPDATE;
+
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.PluginStatusChangeEvent;
@@ -26,14 +33,14 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,25 +75,16 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     @Autowired
     private PluginStoreService pluginStoreService;
 
-    private Map<Plugin, Future<?>> taskCache = new HashMap<>();
+    private final Map<Plugin, Future<?>> taskCache = new ConcurrentHashMap<>();
 
-    private List<Processor> processors = new LinkedList<>();
-
-    {
-        processors.add(new InitGitProcessor());
-        processors.add(new FetchProcessor());
-        processors.add(new PushProcessor());
-    }
+    private final List<Processor> processors = ImmutableList.of(
+        new InitGitProcessor(),
+        new FetchProcessor(),
+        new PushProcessor());
 
     @Override
     public Plugin find(String name) {
         return pluginStoreService.find(name);
-    }
-
-    @Override
-    public Plugin update(Plugin plugin) {
-        pluginStoreService.update(plugin);
-        return plugin;
     }
 
     @Override
@@ -106,8 +104,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin.getStatus())) {
             LOGGER.trace(String.format("Plugin %s Enter To Queue", pluginName));
 
-            // set plugin in queue
-            dispatchEvent(new PluginStatusChangeEvent(this, pluginName, null, PluginStatus.IN_QUEUE));
+            // update plugin status
+            updatePluginStatus(plugin, IN_QUEUE, null);
 
             // record future task
             Future<?> submit = pluginPoolExecutor.submit(new InstallRunnable(plugin));
@@ -124,19 +122,18 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             throw new PluginException("not found plugin, please ensure the plugin name is exist");
         }
 
-        if (!Arrays.asList(PluginStatus.IN_QUEUE, PluginStatus.INSTALLING).contains(plugin.getStatus())) {
+        if (!ImmutableSet.of(IN_QUEUE, INSTALLING).contains(plugin.getStatus())) {
             throw new PluginException("Sorry can not stop");
         }
 
         Future<?> submit = taskCache.get(plugin);
-
         if (!Objects.isNull(submit)) {
             submit.cancel(true);
-        } else {
-            plugin.setStoped(true);
         }
 
-        dispatchEvent(new PluginStatusChangeEvent(this, plugin.getName(), null, PluginStatus.PENDING));
+        // update plugin status
+        plugin.setStopped(true);
+        updatePluginStatus(plugin, PENDING, null);
 
         taskCache.remove(plugin);
     }
@@ -150,7 +147,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
 
         // Running Plugin not uninstall
-        if (Objects.equals(plugin.getStatus(), PluginStatus.INSTALLING)) {
+        if (Objects.equals(plugin.getStatus(), INSTALLING)) {
             throw new PluginException("running plugin not install");
         }
 
@@ -163,28 +160,51 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             processor.clean(plugin);
         }
 
-        dispatchEvent(new PluginStatusChangeEvent(this, plugin.getName(), null, PluginStatus.DELETE));
+        // update plugin status to PENDING therefore the status been reset
+        updatePluginStatus(plugin, DELETE, null);
     }
 
     @Override
     public void execInstallOrUpdate(Plugin plugin) {
         try {
-            dispatchEvent(
-                new PluginStatusChangeEvent(this, plugin.getName(), null, PluginStatus.INSTALLING));
+            // update plugin status to INSTALLING
+            updatePluginStatus(plugin, INSTALLING, null);
 
             for (Processor processor : processors) {
                 processor.exec(plugin);
             }
         } catch (PluginException e) {
-
-            dispatchEvent(
-                new PluginStatusChangeEvent(this, plugin.getName(), null, PluginStatus.PENDING));
-
             plugin.setReason(ExceptionUtil.findRootCause(e).getMessage());
-            update(plugin);
+            updatePluginStatus(plugin, PENDING, null);
         } finally {
             taskCache.remove(plugin);
         }
+    }
+
+    private void updatePluginStatus(Plugin plugin, PluginStatus source, String latestTag) {
+        switch (source) {
+            case PENDING:
+            case IN_QUEUE:
+            case INSTALLING:
+            case INSTALLED:
+                plugin.setStatus(source);
+                break;
+
+            case UPDATE:
+                plugin.setStatus(INSTALLED);
+                break;
+
+            case DELETE:
+                plugin.setStatus(PENDING);
+                break;
+        }
+
+        if (!Strings.isNullOrEmpty(latestTag)) {
+            plugin.setTag(latestTag);
+        }
+
+        pluginStoreService.update(plugin);
+        dispatchEvent(new PluginStatusChangeEvent(this, plugin.getName(), latestTag, source));
     }
 
     private Path doGenerateLocalRepositoryPath(Plugin plugin) {
@@ -267,12 +287,15 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 JGitUtil.push(gitPath, LOCAL_REMOTE, latestGitTag);
 
                 if (Strings.isNullOrEmpty(latestLocalGitTag)) {
-                    dispatchEvent(
-                        new PluginStatusChangeEvent(this, plugin.getName(), latestGitTag, PluginStatus.INSTALLED));
-                } else if (!Objects.equals(latestGitTag, latestLocalGitTag)) {
-                    dispatchEvent(
-                        new PluginStatusChangeEvent(this, plugin.getName(), latestGitTag, PluginStatus.UPDATE));
+                    updatePluginStatus(plugin, INSTALLED, latestGitTag);
+                    return;
+
                 }
+
+                if (!Objects.equals(latestGitTag, latestLocalGitTag)) {
+                    updatePluginStatus(plugin, UPDATE, latestGitTag);
+                }
+
             } catch (GitException e) {
                 LOGGER.error("Git Push", e);
                 throw new PluginException("Git Push", e);
@@ -295,16 +318,16 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void run() {
-
-            if (Objects.isNull(plugin.getStoped()) || Objects.equals(false, plugin.getStoped())) {
+            if (Objects.equals(false, plugin.getStopped())) {
                 LOGGER.traceMarker("InstallRunnable", "Plugin Start Install Or Update");
                 execInstallOrUpdate(plugin);
                 LOGGER.traceMarker("InstallRunnable", "Plugin Finish Install Or Update");
                 return;
             }
 
+            plugin.setStopped(false);
+            pluginStoreService.update(plugin);
             LOGGER.traceMarker("InstallRunnable", "Plugin Stopped");
-
         }
     }
 }

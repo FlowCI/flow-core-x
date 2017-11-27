@@ -16,22 +16,23 @@
 
 package com.flow.platform.plugin.domain;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.annotations.Expose;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author yh@firim
  */
 public class Plugin implements Comparable {
 
-    public final static EnumSet<PluginStatus> RUNNING_AND_FINISH_STATUS = EnumSet
-        .of(PluginStatus.INSTALLING, PluginStatus.INSTALLED);
+    public final static Set<PluginStatus> RUNNING_AND_FINISH_STATUS =
+        ImmutableSet.of(PluginStatus.INSTALLING, PluginStatus.INSTALLED);
 
-    public final static EnumSet<PluginStatus> FINISH_STATUSES = EnumSet
-        .of(PluginStatus.INSTALLED);
+    public final static Set<PluginStatus> FINISH_STATUSES = ImmutableSet.of(PluginStatus.INSTALLED);
 
-    private Boolean isStoped = false;
+    private volatile Boolean isStopped = false;
 
     //plugin name
     @Expose
@@ -152,12 +153,12 @@ public class Plugin implements Comparable {
         this.tag = tag;
     }
 
-    public Boolean getStoped() {
-        return isStoped;
+    public Boolean getStopped() {
+        return isStopped;
     }
 
-    public void setStoped(Boolean stoped) {
-        isStoped = stoped;
+    public void setStopped(boolean stopped) {
+        isStopped = stopped;
     }
 
     @Override

@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
@@ -33,8 +32,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yh@firim
@@ -74,7 +71,7 @@ public class PluginServiceTest extends TestBase {
     public void should_update_success() {
         Plugin plugin = pluginService.find("fircli");
         plugin.setStatus(PluginStatus.INSTALLED);
-        pluginService.update(plugin);
+        pluginStoreService.update(plugin);
 
         plugin = pluginService.find(plugin.getName());
         Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
@@ -120,8 +117,8 @@ public class PluginServiceTest extends TestBase {
         JGitUtil.push(gitCloneMocGit.toPath(), "origin", "1.0");
 
         Plugin plugin = pluginService.find("flowCli");
-        plugin.setDetails(mocGit.getParent().toString() + "/test");
-        pluginService.update(plugin);
+        plugin.setDetails(mocGit.getParent() + "/test");
+        pluginStoreService.update(plugin);
 
         pluginService.execInstallOrUpdate(plugin);
 
@@ -153,6 +150,6 @@ public class PluginServiceTest extends TestBase {
     private void resetPluginStatus() {
         Plugin plugin = pluginService.find("fircli");
         plugin.setStatus(PluginStatus.PENDING);
-        pluginService.update(plugin);
+        pluginStoreService.update(plugin);
     }
 }

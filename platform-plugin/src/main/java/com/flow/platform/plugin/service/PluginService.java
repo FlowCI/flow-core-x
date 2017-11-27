@@ -53,13 +53,6 @@ public interface PluginService {
     void uninstall(String pluginName);
 
     /**
-     * update plugin status
-     * @param plugin
-     * @return
-     */
-    Plugin update(Plugin plugin);
-
-    /**
      * find plugin by name
      * @param name
      * @return
