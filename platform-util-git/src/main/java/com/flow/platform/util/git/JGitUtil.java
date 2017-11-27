@@ -22,13 +22,18 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.TagOpt;
 
 /**
  * @author yang
@@ -74,18 +79,111 @@ public class JGitUtil {
      * @param gitPath xxx.git folder
      * @throws GitException
      */
-    public static void initBare(Path gitPath) throws GitException {
+    public static void initBare(Path gitPath, Boolean bare) throws GitException {
         try {
-            Git.init().setBare(true).setGitDir(gitPath.toFile()).call();
+            if (bare) {
+                Git.init().setBare(true).setGitDir(gitPath.toFile()).call();
+            } else {
+                Git.init().setDirectory(gitPath.toFile()).call();
+            }
         } catch (GitAPIException e) {
             throw new GitException(e.getMessage());
         }
     }
 
+    /**
+     * list all tag from local git
+     * @param repo
+     * @return
+     * @throws GitException
+     */
     public static List<String> tags(Repository repo) throws GitException {
         Map<String, Ref> tags = repo.getTags();
         List<Ref> refs = Lists.newArrayList(tags.values());
-        refs.sort(REF_COMPARATOR);
+        Collections.reverse(refs);
         return simpleRef(refs);
+    }
+
+    /**
+     * clone code to folder
+     * @param gitUrl
+     * @param targetDir
+     * @return
+     * @throws GitException
+     */
+    public static Path clone(String gitUrl, Path targetDir) throws GitException {
+
+        CloneCommand cloneCommand = Git.cloneRepository()
+            .setURI(gitUrl)
+            .setDirectory(targetDir.toFile());
+
+        try (Git ignored = cloneCommand.call()) {
+            return targetDir;
+        } catch (GitAPIException e) {
+            throw new GitException("Fail to clone git repo", e);
+        }
+    }
+
+    /**
+     * push code to remote repo
+     * @param path
+     * @param remote
+     * @param branchOrTag
+     * @return
+     * @throws GitException
+     */
+    public static Path push(Path path, String remote, String branchOrTag) throws GitException {
+
+        try {
+            Git git = Git.open(path.toFile());
+            git
+                .push()
+                .setRemote(remote)
+                .setRefSpecs(new RefSpec(branchOrTag))
+                .call();
+        } catch (Throwable throwable) {
+            throw new GitException("Fail to Push ", throwable);
+        }
+
+        return path;
+    }
+
+    /**
+     * setting remote url to local repo
+     * @param path
+     * @param remoteName
+     * @param remoteUrl
+     * @return
+     * @throws GitException
+     */
+    public static Path remoteSet(Path path, String remoteName, String remoteUrl) throws GitException {
+        Git git;
+        try {
+            git = Git.open(path.toFile());
+            StoredConfig config = git.getRepository().getConfig();
+            config.setString("remote", remoteName, "url", remoteUrl);
+            config.save();
+        } catch (IOException e) {
+            throw new GitException("set remote url exception", e);
+        }
+
+        return path;
+    }
+
+    public static Path fetchTags(Path path, String remoteName) throws GitException {
+
+        Git git;
+        try {
+            git = Git.open(path.toFile());
+            git
+                .fetch()
+                .setRemote(remoteName)
+                .setRefSpecs(new RefSpec("refs/tags/*:refs/tags/*"))
+                .setTagOpt(TagOpt.FETCH_TAGS)
+                .call();
+        } catch (Throwable throwable) {
+            throw new GitException("fetch tags error", throwable);
+        }
+        return null;
     }
 }
