@@ -28,6 +28,7 @@ import com.flow.platform.util.git.JGitUtil;
 import com.google.common.base.Strings;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -123,6 +124,10 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             throw new PluginException("not found plugin, please ensure the plugin name is exist");
         }
 
+        if (!Arrays.asList(PluginStatus.IN_QUEUE, PluginStatus.INSTALLING).contains(plugin.getStatus())) {
+            throw new PluginException("Sorry can not stop");
+        }
+
         Future<?> submit = taskCache.get(plugin);
 
         if (!Objects.isNull(submit)) {
@@ -132,6 +137,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
 
         dispatchEvent(new PluginStatusChangeEvent(this, plugin.getName(), null, PluginStatus.PENDING));
+
+        taskCache.remove(plugin);
     }
 
     @Override
@@ -144,6 +151,11 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         // Running Plugin not uninstall
         if (Objects.equals(plugin.getStatus(), PluginStatus.INSTALLING)) {
+            throw new PluginException("running plugin not install");
+        }
+
+        // only finish to uninstall
+        if (!Plugin.FINISH_STATUSES.contains(plugin.getStatus())) {
             throw new PluginException("running plugin not install");
         }
 
@@ -170,6 +182,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
             plugin.setReason(ExceptionUtil.findRootCause(e).getMessage());
             update(plugin);
+        } finally {
+            taskCache.remove(plugin);
         }
     }
 
