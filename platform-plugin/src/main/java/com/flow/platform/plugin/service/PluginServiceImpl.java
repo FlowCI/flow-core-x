@@ -126,16 +126,19 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             throw new PluginException("Sorry can not stop");
         }
 
-        Future<?> submit = taskCache.get(plugin);
-        if (!Objects.isNull(submit)) {
-            submit.cancel(true);
+        try {
+            Future<?> submit = taskCache.get(plugin);
+            if (!Objects.isNull(submit)) {
+                submit.cancel(true);
+            }
+        } catch (Throwable e) {
+            LOGGER.warn("Cannot cancel future: " + e.getMessage());
+        } finally {
+            // update plugin status
+            plugin.setStopped(true);
+            updatePluginStatus(plugin, PENDING, null);
+            taskCache.remove(plugin);
         }
-
-        // update plugin status
-        plugin.setStopped(true);
-        updatePluginStatus(plugin, PENDING, null);
-
-        taskCache.remove(plugin);
     }
 
     @Override
