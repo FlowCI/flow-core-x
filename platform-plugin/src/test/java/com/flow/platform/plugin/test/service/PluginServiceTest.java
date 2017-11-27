@@ -18,20 +18,26 @@ package com.flow.platform.plugin.test.service;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.event.PluginStatusChangeEvent;
 import com.flow.platform.plugin.test.TestBase;
 import com.flow.platform.util.git.JGitUtil;
+import com.google.common.collect.ImmutableMultiset;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import org.apache.commons.io.FileUtils;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
 
 /**
  * @author yh@firim
@@ -41,13 +47,16 @@ public class PluginServiceTest extends TestBase {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+    protected ApplicationEventMulticaster applicationEventMulticaster;
+
     @Before
     public void init() throws IOException {
-        FileUtils.deleteDirectory(gitCacheWorkspace.toFile());
-        Files.createDirectories(gitCacheWorkspace);
+        if (Files.exists(Paths.get(gitWorkspace.toString(), "plugin_cache.json"))) {
+            Files.delete(Paths.get(gitWorkspace.toString(), "plugin_cache.json"));
+        }
 
-        FileUtils.deleteDirectory(gitWorkspace.toFile());
-        Files.createDirectories(gitWorkspace);
+        applicationEventMulticaster = (ApplicationEventMulticaster) applicationContext
+            .getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
     }
 
     @Test
@@ -63,13 +72,13 @@ public class PluginServiceTest extends TestBase {
         Assert.assertNotEquals(0, pluginList.size());
 
         // then: pluginList size is 2
-        Assert.assertEquals(2, pluginList.size());
+        Assert.assertEquals(false, pluginList.isEmpty());
     }
 
 
     @Test
     public void should_update_success() {
-        Plugin plugin = pluginService.find("fircli");
+        Plugin plugin = pluginService.find("flowCliC");
         plugin.setStatus(PluginStatus.INSTALLED);
         pluginStoreService.update(plugin);
 
@@ -82,14 +91,14 @@ public class PluginServiceTest extends TestBase {
     @Test
     public void should_exec_install_success() throws InterruptedException {
         // when: find plugin
-        Plugin plugin = pluginService.find("fircli");
+        Plugin plugin = pluginService.find("flowCliC");
         // then: plugin is not null
         Assert.assertNotNull(plugin);
 
         // when: install plugin
         pluginService.execInstallOrUpdate(plugin);
 
-        plugin = pluginService.find("fircli");
+        plugin = pluginService.find("flowCliC");
 
         // then: plugin should install
         Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
@@ -146,6 +155,58 @@ public class PluginServiceTest extends TestBase {
         resetPluginStatus();
     }
 
+    @Test
+    public void should_install_success() throws InterruptedException {
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        applicationEventMulticaster.addApplicationListener((ApplicationListener<PluginStatusChangeEvent>) event -> {
+            if (ImmutableMultiset.of(PluginStatus.INSTALLED, PluginStatus.UPDATE)
+                .contains(event.getPluginStatus())) {
+                countDownLatch.countDown();
+            }
+        });
+
+        pluginService.install("flowCliD");
+        countDownLatch.await(30, TimeUnit.SECONDS);
+        Plugin plugin = pluginStoreService.find("flowCliD");
+        Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
+    }
+
+    @Test
+    public void should_stop_success_demo_fisrt() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        applicationEventMulticaster.addApplicationListener(new ApplicationListener<PluginStatusChangeEvent>() {
+
+            @Override
+            public void onApplicationEvent(PluginStatusChangeEvent event) {
+                if (ImmutableMultiset.of(PluginStatus.IN_QUEUE).contains(event.getPluginStatus())) {
+                    countDownLatch.countDown();
+                }
+            }
+        });
+
+        pluginService.install("flowCliE");
+        countDownLatch.await(30, TimeUnit.SECONDS);
+        pluginService.stop("flowCliE");
+
+        Plugin plugin = pluginStoreService.find("flowCliE");
+        Assert.assertEquals(PluginStatus.PENDING, plugin.getStatus());
+        Assert.assertEquals(false, plugin.getStopped());
+    }
+
+    @Test
+    public void should_stop_success_demo_second() throws InterruptedException {
+
+        Plugin plugin = pluginStoreService.find("flowCliB");
+        plugin.setStopped(true);
+        pluginService.install("flowCliB");
+
+        Thread.sleep(1000);
+
+        plugin = pluginStoreService.find("flowCliB");
+        Assert.assertEquals(PluginStatus.PENDING, plugin.getStatus());
+        Assert.assertEquals(false, plugin.getStopped());
+    }
 
     private void resetPluginStatus() {
         Plugin plugin = pluginService.find("fircli");

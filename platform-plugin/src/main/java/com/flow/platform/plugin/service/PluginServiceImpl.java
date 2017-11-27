@@ -130,12 +130,13 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             Future<?> submit = taskCache.get(plugin);
             if (!Objects.isNull(submit)) {
                 submit.cancel(true);
+            } else {
+                plugin.setStopped(true);
             }
         } catch (Throwable e) {
             LOGGER.warn("Cannot cancel future: " + e.getMessage());
         } finally {
             // update plugin status
-            plugin.setStopped(true);
             updatePluginStatus(plugin, PENDING, null);
             taskCache.remove(plugin);
         }
@@ -329,6 +330,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             }
 
             plugin.setStopped(false);
+            plugin.setStatus(PluginStatus.PENDING);
             pluginStoreService.update(plugin);
             LOGGER.traceMarker("InstallRunnable", "Plugin Stopped");
         }
