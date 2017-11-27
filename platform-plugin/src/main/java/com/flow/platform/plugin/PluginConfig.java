@@ -16,9 +16,6 @@
 
 package com.flow.platform.plugin;
 
-import com.flow.platform.plugin.domain.Plugin;
-import com.flow.platform.queue.InMemoryQueue;
-import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.http.HttpURL;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,11 +53,6 @@ public class PluginConfig {
     private String pluginRepoUrl;
 
     @Bean
-    public PlatformQueue<Plugin> pluginInstallQueue() {
-        return new InMemoryQueue<>(executor, QUEUE_MAX_SIZE, PLUGIN_KEY);
-    }
-
-    @Bean
     public Path gitCacheWorkspace() {
         try {
             return Files.createDirectories(Paths.get(gitCloneCache));
@@ -87,6 +79,7 @@ public class PluginConfig {
     public ThreadPoolTaskExecutor pluginPoolExecutor() {
         return executor;
     }
+
     private static ThreadPoolTaskExecutor initExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setCorePoolSize(5);

@@ -37,7 +37,6 @@ public class PluginStatusChangedConsumer implements ApplicationListener<PluginSt
 
     @Override
     public void onApplicationEvent(PluginStatusChangeEvent event) {
-
         doSendEventToApi(event);
 
         doUpdatePlugin(event);

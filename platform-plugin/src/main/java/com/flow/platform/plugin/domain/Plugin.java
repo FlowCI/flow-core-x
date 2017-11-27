@@ -31,6 +31,8 @@ public class Plugin implements Comparable {
     public final static EnumSet<PluginStatus> FINISH_STATUSES = EnumSet
         .of(PluginStatus.INSTALLED);
 
+    private Boolean isStoped = false;
+
     //plugin name
     @Expose
     private String name;
@@ -138,6 +140,27 @@ public class Plugin implements Comparable {
     }
 
     @Override
+    public int compareTo(Object o) {
+        return 0;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public Boolean getStoped() {
+        return isStoped;
+    }
+
+    public void setStoped(Boolean stoped) {
+        isStoped = stoped;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -165,18 +188,5 @@ public class Plugin implements Comparable {
             ", author='" + author + '\'' +
             ", platform='" + platform + '\'' +
             '}';
-    }
-
-    @Override
-    public int compareTo(Object o) {
-        return 0;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
     }
 }

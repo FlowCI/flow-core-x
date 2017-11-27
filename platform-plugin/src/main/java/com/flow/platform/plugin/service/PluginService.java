@@ -36,6 +36,12 @@ public interface PluginService {
     void install(String name);
 
     /**
+     * stop plugin
+     * @param name
+     */
+    void stop(String name);
+
+    /**
      * exec install
      * @param plugin
      */

@@ -25,9 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
@@ -35,6 +33,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yh@firim
@@ -88,7 +88,6 @@ public class PluginServiceTest extends TestBase {
         Plugin plugin = pluginService.find("fircli");
         // then: plugin is not null
         Assert.assertNotNull(plugin);
-
 
         // when: install plugin
         pluginService.execInstallOrUpdate(plugin);
@@ -149,6 +148,7 @@ public class PluginServiceTest extends TestBase {
 
         resetPluginStatus();
     }
+
 
     private void resetPluginStatus() {
         Plugin plugin = pluginService.find("fircli");
