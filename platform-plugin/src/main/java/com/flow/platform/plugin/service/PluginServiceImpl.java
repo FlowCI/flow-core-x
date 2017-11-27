@@ -159,13 +159,11 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     }
 
     private Path doGenerateLocalRepositoryPath(Plugin plugin) {
-        String[] aars = plugin.getDetails().split("/");
-        return Paths.get(gitCacheWorkspace.toString(), aars[aars.length - 1] + GIT_SUFFIX);
+        return Paths.get(gitCacheWorkspace.toString(), plugin.getName() + GIT_SUFFIX);
     }
 
     private Path doGenerateGitCloneFolderPath(Plugin plugin) {
-        String[] aars = plugin.getDetails().split("/");
-        return Paths.get(gitWorkspace.toString(), aars[aars.length - 1]);
+        return Paths.get(gitWorkspace.toString(), plugin.getName());
     }
 
     private interface Processor {
