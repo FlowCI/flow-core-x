@@ -18,7 +18,6 @@ package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
-import com.flow.platform.plugin.event.PluginListener;
 import java.util.List;
 
 /**
@@ -60,10 +59,4 @@ public interface PluginService {
      * @return
      */
     Plugin find(String name);
-
-    /**
-     * register listener
-     * @param listener
-     */
-    void registerListener(PluginListener listener);
 }

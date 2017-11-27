@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.plugin.event;
+package com.flow.platform.plugin.service;
 
-import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
- * @author yh@firim
+ * Base service enable to send application event
+ *
+ * @author yang
  */
-public abstract class AbstractEvent {
+public abstract class ApplicationEventService {
 
-    //TODO: change abstractEvent to ApplicationContext
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
-    protected List<PluginListener> listeners = new LinkedList<>();
-
-    protected <T> void dispatchEvent(T t, String tag, Path path, String pluginName) {
-        for (PluginListener listener : listeners) {
-            listener.call(t, tag, path, pluginName);
-        }
+    protected void dispatchEvent(ApplicationEvent event) {
+        applicationEventPublisher.publishEvent(event);
     }
 }

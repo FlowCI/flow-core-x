@@ -18,8 +18,7 @@ package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
-import com.flow.platform.plugin.event.AbstractEvent;
-import com.flow.platform.plugin.event.PluginListener;
+import com.flow.platform.plugin.event.PluginStatusChangeEvent;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.GitHelperUtil;
 import com.flow.platform.queue.PlatformQueue;
@@ -43,7 +42,7 @@ import org.springframework.stereotype.Service;
  * @author yh@firim
  */
 @Service
-public class PluginServiceImpl extends AbstractEvent implements PluginService {
+public class PluginServiceImpl extends ApplicationEventService implements PluginService {
 
     private final static String GIT_SUFFIX = ".git";
 
@@ -86,11 +85,6 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     }
 
     @Override
-    public void registerListener(PluginListener listener) {
-        this.listeners.add(listener);
-    }
-
-    @Override
     public Plugin find(String name) {
         return pluginStoreService.find(name);
     }
@@ -119,7 +113,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             LOGGER.trace(String.format("Plugin %s Enter To Queue", pluginName));
 
             // set plugin in queue
-            dispatchEvent(PluginStatus.IN_QUEUE, null, null, pluginName);
+            dispatchEvent(new PluginStatusChangeEvent(this, pluginName, null, PluginStatus.IN_QUEUE));
 
             pluginInstallQueue.enqueue(plugin);
         }
@@ -142,20 +136,23 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
             processor.clean(plugin);
         }
 
-        dispatchEvent(PluginStatus.DELETE, null, doGenerateLocalRepositoryPath(plugin), plugin.getName());
+        dispatchEvent(new PluginStatusChangeEvent(this, plugin.getName(), null, PluginStatus.DELETE));
     }
 
     @Override
     public void execInstallOrUpdate(Plugin plugin) {
         try {
+            dispatchEvent(
+                new PluginStatusChangeEvent(this, plugin.getName(), null, PluginStatus.INSTALLING));
 
             for (Processor processor : processors) {
                 processor.exec(plugin);
             }
         } catch (PluginException e) {
 
-            // reset plugin status
-            plugin.setStatus(PluginStatus.PENDING);
+            dispatchEvent(
+                new PluginStatusChangeEvent(this, plugin.getName(), null, PluginStatus.PENDING));
+
             plugin.setReason(ExceptionUtil.findRootCause(e).getMessage());
             update(plugin);
         }
@@ -243,9 +240,11 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
                 JGitUtil.push(gitPath, LOCAL_REMOTE, latestGitTag);
 
                 if (Strings.isNullOrEmpty(latestLocalGitTag)) {
-                    dispatchEvent(PluginStatus.INSTALLED, latestGitTag, gitLocalPath, plugin.getName());
+                    dispatchEvent(
+                        new PluginStatusChangeEvent(this, plugin.getName(), latestGitTag, PluginStatus.INSTALLED));
                 } else if (!Objects.equals(latestGitTag, latestLocalGitTag)) {
-                    dispatchEvent(PluginStatus.UPDATE, latestGitTag, gitLocalPath, plugin.getName());
+                    dispatchEvent(
+                        new PluginStatusChangeEvent(this, plugin.getName(), latestGitTag, PluginStatus.UPDATE));
                 }
             } catch (GitException e) {
                 LOGGER.error("Git Push", e);

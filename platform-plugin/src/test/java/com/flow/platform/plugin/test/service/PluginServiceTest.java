@@ -89,18 +89,9 @@ public class PluginServiceTest extends TestBase {
         // then: plugin is not null
         Assert.assertNotNull(plugin);
 
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        pluginService.registerListener((o, tag, path, pluginName) -> {
-            PluginStatus pluginStatus = (PluginStatus) o;
-            if (Plugin.FINISH_STATUSES.contains(pluginStatus)) {
-                countDownLatch.countDown();
-            }
-        });
 
         // when: install plugin
-        pluginService.install("fircli");
-
-        countDownLatch.await();
+        pluginService.execInstallOrUpdate(plugin);
 
         plugin = pluginService.find("fircli");
 
@@ -150,17 +141,8 @@ public class PluginServiceTest extends TestBase {
         git.tag().setName("2.0").setMessage("add tag 2.0").call();
         JGitUtil.push(gitCloneMocGit.toPath(), "origin", "2.0");
 
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        pluginService.registerListener((o, tag, path, pluginName) -> {
-            PluginStatus pluginStatus = (PluginStatus) o;
-            if (Objects.equals(pluginStatus, PluginStatus.UPDATE)) {
-                countDownLatch.countDown();
-            }
-        });
-
         pluginService.execInstallOrUpdate(plugin);
 
-        countDownLatch.await(30, TimeUnit.SECONDS);
         plugin = pluginService.find("flowCli");
         Assert.assertNotNull(plugin);
         Assert.assertEquals("2.0", plugin.getTag());

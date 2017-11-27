@@ -18,58 +18,67 @@ package com.flow.platform.plugin.consumer;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
-import com.flow.platform.plugin.event.PluginListener;
+import com.flow.platform.plugin.event.PluginStatusChangeEvent;
 import com.flow.platform.plugin.service.PluginService;
-import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
-import java.nio.file.Path;
-import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 /**
  * @author yh@firim
  */
-
 @Component
-public class PluginStatusChangedConsumer implements PluginListener<PluginStatus> {
-
-    private final static Logger LOGGER = new Logger(PluginStatusChangedConsumer.class);
+public class PluginStatusChangedConsumer implements ApplicationListener<PluginStatusChangeEvent> {
 
     @Autowired
     private PluginService pluginService;
 
-    @PostConstruct
-    private void init() {
-        pluginService.registerListener(this);
+    @Override
+    public void onApplicationEvent(PluginStatusChangeEvent event) {
+
+        doSendEventToApi(event);
+
+        doUpdatePlugin(event);
     }
 
-    @Override
-    public void call(PluginStatus pluginStatus, String tag, Path path, String pluginName) {
-        LOGGER.traceMarker("PluginStatusChangedConsumer", "Incoming Message PluginStatus:" + pluginStatus);
+    private void doSendEventToApi(PluginStatusChangeEvent event) {
 
-        Plugin plugin = pluginService.find(pluginName);
+        // only installed delete update send to Api
+        if (Arrays.asList(PluginStatus.DELETE, PluginStatus.INSTALLED, PluginStatus.UPDATE)
+            .contains(event.getPluginStatus())) {
+            String tag = event.getTag();
+            String pluginName = event.getPluginName();
 
-        switch (pluginStatus) {
+            //TODO: callback
+        }
+    }
+
+    private void doUpdatePlugin(PluginStatusChangeEvent event) {
+        Plugin plugin = pluginService.find(event.getPluginName());
+
+        switch (event.getPluginStatus()) {
             case PENDING:
             case IN_QUEUE:
-                plugin.setStatus(PluginStatus.IN_QUEUE);
-                break;
-            case DELETE:
-                plugin.setStatus(pluginStatus.PENDING);
-                break;
-            case UPDATE:
-            case INSTALLED:
-                plugin.setStatus(pluginStatus.INSTALLED);
+                plugin.setStatus(event.getPluginStatus());
                 break;
             case INSTALLING:
-                plugin.setStatus(pluginStatus.INSTALLING);
+            case INSTALLED:
+                plugin.setStatus(event.getPluginStatus());
+                break;
+            case UPDATE:
+                plugin.setStatus(PluginStatus.INSTALLED);
+                break;
+            case DELETE:
+                plugin.setStatus(PluginStatus.PENDING);
                 break;
         }
 
-        if (!Strings.isNullOrEmpty(tag)) {
-            plugin.setTag(tag);
+        if (!Strings.isNullOrEmpty(event.getTag())) {
+            plugin.setTag(event.getTag());
         }
+
         pluginService.update(plugin);
     }
 }
