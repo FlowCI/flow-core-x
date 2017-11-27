@@ -23,6 +23,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -47,4 +48,7 @@ public abstract class TestBase {
     // local library
     @Autowired
     protected Path gitCacheWorkspace;
+
+    @Autowired
+    protected ApplicationContext applicationContext;
 }

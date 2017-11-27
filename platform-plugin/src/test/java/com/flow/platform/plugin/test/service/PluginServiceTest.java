@@ -18,13 +18,17 @@ package com.flow.platform.plugin.test.service;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.event.PluginStatusChangeEvent;
 import com.flow.platform.plugin.test.TestBase;
 import com.flow.platform.util.git.JGitUtil;
+import com.google.common.collect.ImmutableMultiset;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
@@ -32,6 +36,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
 
 /**
  * @author yh@firim
@@ -41,6 +48,8 @@ public class PluginServiceTest extends TestBase {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+    protected ApplicationEventMulticaster applicationEventMulticaster;
+
     @Before
     public void init() throws IOException {
         FileUtils.deleteDirectory(gitCacheWorkspace.toFile());
@@ -48,6 +57,13 @@ public class PluginServiceTest extends TestBase {
 
         FileUtils.deleteDirectory(gitWorkspace.toFile());
         Files.createDirectories(gitWorkspace);
+
+        if (Files.exists(Paths.get(gitWorkspace.toString(), "plugin_cache.json"))) {
+            Files.delete(Paths.get(gitWorkspace.toString(), "plugin_cache.json"));
+        }
+
+        applicationEventMulticaster = (ApplicationEventMulticaster) applicationContext
+            .getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
     }
 
     @Test
@@ -146,6 +162,48 @@ public class PluginServiceTest extends TestBase {
         resetPluginStatus();
     }
 
+    @Test
+    public void should_install_success() throws InterruptedException {
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        applicationEventMulticaster.addApplicationListener(new ApplicationListener<PluginStatusChangeEvent>() {
+
+            @Override
+            public void onApplicationEvent(PluginStatusChangeEvent event) {
+                if (ImmutableMultiset.of(PluginStatus.INSTALLED, PluginStatus.UPDATE)
+                    .contains(event.getPluginStatus())) {
+                    countDownLatch.countDown();
+                }
+            }
+        });
+
+        pluginService.install("fircli");
+        countDownLatch.await(30, TimeUnit.SECONDS);
+        Plugin plugin = pluginStoreService.find("fircli");
+        Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
+    }
+
+    @Test
+    public void should_stop_success() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        applicationEventMulticaster.addApplicationListener(new ApplicationListener<PluginStatusChangeEvent>() {
+
+            @Override
+            public void onApplicationEvent(PluginStatusChangeEvent event) {
+                if(ImmutableMultiset.of(PluginStatus.IN_QUEUE).contains(event.getPluginStatus())){
+                    countDownLatch.countDown();
+                }
+            }
+        });
+
+        pluginService.install("fircli");
+        countDownLatch.await(30, TimeUnit.SECONDS);
+        pluginService.stop("fircli");
+
+        Plugin plugin = pluginStoreService.find("fircli");
+        Assert.assertEquals(PluginStatus.PENDING, plugin.getStatus());
+        Assert.assertEquals(false, plugin.getStopped());
+    }
 
     private void resetPluginStatus() {
         Plugin plugin = pluginService.find("fircli");

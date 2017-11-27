@@ -18,7 +18,6 @@ package com.flow.platform.plugin.domain;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.annotations.Expose;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -82,6 +81,11 @@ public class Plugin implements Comparable {
         this.platform = platform;
         this.status = status;
         this.tag = tag;
+    }
+
+    public Plugin() {
+        this.isStopped = false;
+        this.status = PluginStatus.PENDING;
     }
 
     public String getReason() {
