@@ -19,7 +19,6 @@ package com.flow.platform.plugin.util;
 import com.flow.platform.plugin.exception.PluginException;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -32,13 +31,11 @@ import java.nio.file.Path;
 public class FileUtil {
 
     synchronized public static <T> void write(T object, Path path) {
-        try {
-            try (FileWriter writer = new FileWriter(path.toString())) {
-                String json = new Gson().toJson(object);
-                writer.write(json);
-            }
+        try (FileWriter writer = new FileWriter(path.toString())) {
+            String json = new Gson().toJson(object);
+            writer.write(json);
         } catch (IOException e) {
-            throw new PluginException("Io Exception ", e);
+            throw new PluginException("IOException: " + e.getMessage());
         }
     }
 
@@ -46,15 +43,13 @@ public class FileUtil {
         if (!path.toFile().exists()) {
             return null;
         }
-        try {
-            FileReader fileReader = new FileReader(path.toString());
+
+        try (FileReader fileReader = new FileReader(path.toString())) {
             try (JsonReader jsonReader = new JsonReader(fileReader)) {
                 return new Gson().fromJson(jsonReader, clazz);
-            } catch (IOException e) {
-                throw new PluginException("Io Exception", e);
             }
-        } catch (FileNotFoundException e) {
-            throw new PluginException("File Not Found Exception", e);
+        } catch (IOException e) {
+            throw new PluginException("IOException: " + e.getMessage());
         }
     }
 }

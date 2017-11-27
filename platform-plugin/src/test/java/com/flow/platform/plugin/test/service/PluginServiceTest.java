@@ -29,7 +29,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,12 +51,6 @@ public class PluginServiceTest extends TestBase {
 
     @Before
     public void init() throws IOException {
-        FileUtils.deleteDirectory(gitCacheWorkspace.toFile());
-        Files.createDirectories(gitCacheWorkspace);
-
-        FileUtils.deleteDirectory(gitWorkspace.toFile());
-        Files.createDirectories(gitWorkspace);
-
         if (Files.exists(Paths.get(gitWorkspace.toString(), "plugin_cache.json"))) {
             Files.delete(Paths.get(gitWorkspace.toString(), "plugin_cache.json"));
         }
@@ -166,14 +159,10 @@ public class PluginServiceTest extends TestBase {
     public void should_install_success() throws InterruptedException {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        applicationEventMulticaster.addApplicationListener(new ApplicationListener<PluginStatusChangeEvent>() {
-
-            @Override
-            public void onApplicationEvent(PluginStatusChangeEvent event) {
-                if (ImmutableMultiset.of(PluginStatus.INSTALLED, PluginStatus.UPDATE)
-                    .contains(event.getPluginStatus())) {
-                    countDownLatch.countDown();
-                }
+        applicationEventMulticaster.addApplicationListener((ApplicationListener<PluginStatusChangeEvent>) event -> {
+            if (ImmutableMultiset.of(PluginStatus.INSTALLED, PluginStatus.UPDATE)
+                .contains(event.getPluginStatus())) {
+                countDownLatch.countDown();
             }
         });
 
@@ -218,7 +207,6 @@ public class PluginServiceTest extends TestBase {
         Assert.assertEquals(PluginStatus.PENDING, plugin.getStatus());
         Assert.assertEquals(false, plugin.getStopped());
     }
-
 
     private void resetPluginStatus() {
         Plugin plugin = pluginService.find("fircli");
