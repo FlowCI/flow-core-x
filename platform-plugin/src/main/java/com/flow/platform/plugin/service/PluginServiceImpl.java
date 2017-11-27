@@ -330,6 +330,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             }
 
             plugin.setStopped(false);
+            plugin.setStatus(PluginStatus.PENDING);
             pluginStoreService.update(plugin);
             LOGGER.traceMarker("InstallRunnable", "Plugin Stopped");
         }

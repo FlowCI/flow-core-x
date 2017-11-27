@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -51,4 +52,7 @@ public abstract class TestBase {
 
     @Autowired
     protected ApplicationContext applicationContext;
+
+    @Autowired
+    protected ThreadPoolTaskExecutor pluginPoolExecutor;
 }
