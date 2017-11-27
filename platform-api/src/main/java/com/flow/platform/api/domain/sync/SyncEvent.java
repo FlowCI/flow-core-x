@@ -29,11 +29,26 @@ public class SyncEvent extends Jsonable {
      */
     public final static String FLOW_SYNC_LIST = "FLOW_SYNC_LIST";
 
+    /**
+     * Git source url
+     */
     private String gitUrl;
 
+    /**
+     * Repo name and tag
+     */
     private SyncRepo repo;
 
+    /**
+     * Sync type
+     */
     private SyncType syncType;
+
+    public SyncEvent(String gitUrl, String name, String tag, SyncType syncType) {
+        this.gitUrl = gitUrl;
+        this.repo = new SyncRepo(name, tag);
+        this.syncType = syncType;
+    }
 
     public SyncEvent(String gitUrl, SyncRepo repo, SyncType syncType) {
         this.gitUrl = gitUrl;

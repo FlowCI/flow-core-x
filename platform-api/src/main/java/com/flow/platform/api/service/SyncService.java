@@ -19,11 +19,11 @@ package com.flow.platform.api.service;
 import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncTask;
+import com.flow.platform.api.domain.sync.SyncType;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.queue.PlatformQueue;
-import java.util.Queue;
 
 /**
  * @author yang
@@ -46,6 +46,14 @@ public interface SyncService {
      * Put sync event
      */
     void put(SyncEvent event);
+
+    /**
+     * Put sync event with raw data
+     * @param name repo name
+     * @param tag repo tag
+     * @param type sync type
+     */
+    void put(String name, String tag, SyncType type);
 
     /**
      * Get sync data for agent

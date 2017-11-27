@@ -36,7 +36,6 @@ import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +100,12 @@ public class SyncServiceImpl implements SyncService {
             PlatformQueue<PriorityMessage> agentQueue = syncForAgent.getQueue();
             agentQueue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
         }
+    }
+
+    @Override
+    public void put(String name, String tag, SyncType type) {
+        SyncEvent event = new SyncEvent(createGitUrl(name), name, tag, type);
+        put(event);
     }
 
     @Override
@@ -175,9 +180,7 @@ public class SyncServiceImpl implements SyncService {
                 LOGGER.trace("Sync task stopped since create session failure for agent: " + cmd.getAgentPath());
                 return;
             }
-        }
-
-        else if (cmd.getType() == CmdType.RUN_SHELL) {
+        } else if (cmd.getType() == CmdType.RUN_SHELL) {
             if (Cmd.FINISH_STATUS.contains(cmd.getStatus())) {
                 CmdResult result = cmd.getCmdResult();
                 if (result == null) {
@@ -322,9 +325,7 @@ public class SyncServiceImpl implements SyncService {
                     continue;
                 }
 
-                String gitURL = HttpURL.build(apiDomain).append("git").append(gitRepoName).toString();
-                String repoName = JGitUtil.getRepoNameFromGitUrl(gitURL);
-                syncEvents.add(new SyncEvent(gitURL, new SyncRepo(repoName, tags.get(0)), SyncType.CREATE));
+                syncEvents.add(new SyncEvent(createGitUrl(gitRepoName), gitRepoName, tags.get(0), SyncType.CREATE));
             } catch (GitException e) {
                 LOGGER.warn(e.getMessage());
             } finally {
@@ -333,5 +334,9 @@ public class SyncServiceImpl implements SyncService {
         }
 
         return syncEvents;
+    }
+
+    private String createGitUrl(String repoName) {
+        return HttpURL.build(apiDomain).append("git").append(repoName).toString();
     }
 }

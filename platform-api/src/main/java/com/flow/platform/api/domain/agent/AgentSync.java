@@ -16,13 +16,17 @@
 
 package com.flow.platform.api.domain.agent;
 
+import com.google.gson.annotations.Expose;
+
 /**
  * @author yang
  */
 public class AgentSync {
 
+    @Expose
     private Integer total;
 
+    @Expose
     private Integer progress;
 
     public AgentSync() {
