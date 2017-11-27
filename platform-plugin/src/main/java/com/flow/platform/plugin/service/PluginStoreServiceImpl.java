@@ -20,12 +20,12 @@ import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.FileUtil;
-import com.flow.platform.plugin.util.UriUtil;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import java.lang.reflect.Type;
@@ -39,7 +39,6 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,12 +49,19 @@ import org.springframework.stereotype.Service;
 public class PluginStoreServiceImpl implements PluginStoreService {
 
     private final static String PLUGIN_STORE_FILE = "plugin_cache.json";
+
     private final static String PLUGIN_KEY = "plugin";
+
+    private final static Gson GSON = new GsonBuilder().create();
+
     private Map<String, Plugin> pluginCache = new HashMap<>();
+
     private volatile Cache<String, List<Plugin>> pluginListCache = CacheBuilder.newBuilder()
         .expireAfterAccess(12, TimeUnit.HOURS).build();
+
     @Autowired
-    private Path workspace;
+    private Path gitWorkspace;
+
     private Path storePath;
 
     @Autowired
@@ -63,7 +69,7 @@ public class PluginStoreServiceImpl implements PluginStoreService {
 
     @PostConstruct
     private void init() {
-        this.storePath = Paths.get(workspace.toString(), PLUGIN_STORE_FILE);
+        this.storePath = Paths.get(gitWorkspace.toString(), PLUGIN_STORE_FILE);
     }
 
     @Override
@@ -96,11 +102,15 @@ public class PluginStoreServiceImpl implements PluginStoreService {
                     HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
                     HttpResponse<String> response = httpClient.bodyAsString();
 
-                    UriUtil.detectResponseIsOKAndThrowable(response);
+                    if (!response.hasSuccess()) {
+                        throw new PluginException(String
+                            .format("status code is not 200, status code is %s, exception info is %s",
+                                response.getStatusCode(),
+                                response.getExceptions()));
+                    }
 
                     String body = response.getBody();
-                    PluginRepository pluginRepository = new GsonBuilder().serializeNulls().create()
-                        .fromJson(body, PluginRepository.class);
+                    PluginRepository pluginRepository = GSON.fromJson(body, PluginRepository.class);
                     return pluginRepository.plugins;
                 } catch (Throwable throwable) {
                     throw new PluginException("Fetch Plugins Error ", throwable);
@@ -135,15 +145,15 @@ public class PluginStoreServiceImpl implements PluginStoreService {
         }
     }
 
-    private List<Plugin> doList(PluginStatus... statuses){
+    private List<Plugin> doList(PluginStatus... statuses) {
         loadCacheAndFetchList();
         List<Plugin> list = new LinkedList<>();
-        if(Objects.equals(0, statuses.length)){
+        if (Objects.equals(0, statuses.length)) {
             pluginCache.forEach((name, plugin) -> list.add(plugin));
-        }else{
+        } else {
             for (PluginStatus status : statuses) {
-                pluginCache.forEach((name, plugin) ->{
-                    if(Objects.equals(status, plugin.getStatus())){
+                pluginCache.forEach((name, plugin) -> {
+                    if (Objects.equals(status, plugin.getStatus())) {
                         list.add(plugin);
                     }
                 });

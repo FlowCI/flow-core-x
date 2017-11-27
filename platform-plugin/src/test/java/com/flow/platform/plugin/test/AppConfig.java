@@ -16,10 +16,7 @@
 
 package com.flow.platform.plugin.test;
 
-import com.flow.platform.plugin.service.PluginService;
-import com.flow.platform.plugin.service.PluginServiceImpl;
-import com.flow.platform.plugin.service.PluginStoreService;
-import com.flow.platform.plugin.service.PluginStoreServiceImpl;
+import com.flow.platform.plugin.PluginConfig;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,23 +25,19 @@ import java.util.Random;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.apache.commons.io.FileUtils;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.PropertySource;
 
 /**
  * @author gyfirim
  */
 
 @Configuration
-@ComponentScan({
-    "com.flow.platform.plugin.consumer",
-    "com.flow.platform.plugin.service"
-})
+@Import(PluginConfig.class)
+@PropertySource({"classpath:plugin.properties"})
 public class AppConfig {
-
-    private final static String PLUGIN_SOURCE_URL = "https://raw.githubusercontent.com/yunheli/plugins/master/repository.json";
 
     public Path folder;
 
@@ -56,40 +49,5 @@ public class AppConfig {
     @PreDestroy
     protected void destroy() throws IOException {
         FileUtils.deleteDirectory(folder.toFile());
-    }
-
-    @Bean
-    protected Path gitWorkspace() throws IOException {
-        return Files.createDirectories(Paths.get(folder.toString(), "git-repo"));
-    }
-
-    @Bean
-    protected Path gitCacheWorkspace() throws IOException {
-        return Files.createDirectories(Paths.get(folder.toString(), "git-cache"));
-    }
-
-    @Bean
-    protected Path workspace() {
-        return folder;
-    }
-
-    @Bean
-    protected ThreadPoolTaskExecutor pluginPoolExecutor() {
-        return new ThreadPoolTaskExecutor();
-    }
-
-    @Bean
-    protected PluginService pluginService() {
-        return new PluginServiceImpl();
-    }
-
-    @Bean
-    protected PluginStoreService pluginStoreService() {
-        return new PluginStoreServiceImpl();
-    }
-
-    @Bean
-    protected String pluginSourceUrl() {
-        return PLUGIN_SOURCE_URL;
     }
 }

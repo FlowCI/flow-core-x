@@ -21,21 +21,28 @@ import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * @author yh@firim
  */
+@Component
 public class InstallConsumer implements QueueListener<Plugin> {
 
     private final static Logger LOGGER = new Logger(InstallConsumer.class);
-    private PlatformQueue<Plugin> installPluginsQueue;
 
+    @Autowired
+    private PlatformQueue<Plugin> pluginInstallQueue;
+
+    @Autowired
     private PluginService pluginService;
 
-    public InstallConsumer(PlatformQueue<Plugin> installPluginsQueue, PluginService pluginService) {
-        this.installPluginsQueue = installPluginsQueue;
-        this.pluginService = pluginService;
-        installPluginsQueue.register(this);
+    @PostConstruct()
+    public void registerToQueue() {
+        pluginInstallQueue.register(this);
     }
 
     @Override

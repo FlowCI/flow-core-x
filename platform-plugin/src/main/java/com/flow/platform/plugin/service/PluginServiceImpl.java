@@ -16,16 +16,13 @@
 
 package com.flow.platform.plugin.service;
 
-import com.flow.platform.plugin.consumer.InstallConsumer;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.AbstractEvent;
 import com.flow.platform.plugin.event.PluginListener;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.GitHelperUtil;
-import com.flow.platform.queue.InMemoryQueue;
 import com.flow.platform.queue.PlatformQueue;
-import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
@@ -42,15 +39,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-
 /**
  * @author yh@firim
  */
 @Service
 public class PluginServiceImpl extends AbstractEvent implements PluginService {
-
-
-    private final static String PLUGIN_KEY = "plugin";
 
     private final static String GIT_SUFFIX = ".git";
 
@@ -58,18 +51,18 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
 
     private final static String ORIGIN_REMOTE = "origin";
 
-    private final static int QUEUE_MAX_SIZE = 100000;
-
     private final static Logger LOGGER = new Logger(PluginService.class);
-
-    private PlatformQueue pluginsQueue;
 
     // git clone folder
     @Autowired
     private Path gitWorkspace;
+
     // local library
     @Autowired
     private Path gitCacheWorkspace;
+
+    @Autowired
+    private PlatformQueue<Plugin> pluginInstallQueue;
 
     @Autowired
     private ThreadPoolTaskExecutor pluginPoolExecutor;
@@ -86,10 +79,10 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     }
 
     @PostConstruct
-    private void init() {
-        pluginsQueue = new InMemoryQueue(pluginPoolExecutor, QUEUE_MAX_SIZE, PLUGIN_KEY);
-        // register consumer
-        initConsumers();
+    public void init() {
+        for (int i = 0; i < pluginPoolExecutor.getCorePoolSize(); i++) {
+            pluginInstallQueue.start();
+        }
     }
 
     @Override
@@ -124,7 +117,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         // not finish can install plugin
         if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin.getStatus())) {
             LOGGER.trace(String.format("Plugin %s Enter To Queue", pluginName));
-            pluginsQueue.enqueue(plugin);
+            pluginInstallQueue.enqueue(plugin);
         }
     }
 
@@ -171,15 +164,6 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     private Path doGenerateGitCloneFolderPath(Plugin plugin) {
         String[] aars = plugin.getDetails().split("/");
         return Paths.get(gitWorkspace.toString(), aars[aars.length - 1]);
-    }
-
-    private void initConsumers() {
-        QueueListener installConsumer = new InstallConsumer(pluginsQueue, this);
-
-        // start many threads
-        for (int i = 0; i < pluginPoolExecutor.getCorePoolSize(); i++) {
-            pluginsQueue.start();
-        }
     }
 
     private interface Processor {

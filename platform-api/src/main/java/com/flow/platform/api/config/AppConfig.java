@@ -21,17 +21,13 @@ import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.core.util.ThreadUtil;
-import com.flow.platform.plugin.service.PluginService;
-import com.flow.platform.plugin.service.PluginServiceImpl;
+import com.flow.platform.plugin.PluginConfig;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
@@ -48,7 +44,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author yang
  */
 @Configuration
-@Import({SchedulerConfig.class, CachingConfig.class, DatabaseConfig.class, QueueConfig.class})
+@Import({SchedulerConfig.class, CachingConfig.class, DatabaseConfig.class, QueueConfig.class, PluginConfig.class})
 public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "API";
@@ -67,15 +63,10 @@ public class AppConfig extends AppConfigBase {
 
     private final static String MULTICASTER_THREAD_NAME_PREFIX = "multi_async-task-";
 
-    private final static String PLUGIN_THREAD_NAME_PREFIX = "plugin_async-task-";
-
     private final static int MULTICASTER_ASYNC_POOL_SIZE = 1;
 
     private final static ThreadPoolTaskExecutor executor =
         ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
-
-    private final static ThreadPoolTaskExecutor pluginExecutor = ThreadUtil.createTaskExecutor(5, 5, 1000,
-        PLUGIN_THREAD_NAME_PREFIX);
 
     private final static ThreadPoolTaskExecutor multicasterExecutor =
         ThreadUtil.createTaskExecutor(MULTICASTER_ASYNC_POOL_SIZE, MULTICASTER_ASYNC_POOL_SIZE, 1000,
@@ -93,9 +84,6 @@ public class AppConfig extends AppConfigBase {
     @Value("${domain.cc}")
     private String ccDomain;
 
-    @Value("${plugins.repository}")
-    private String pluginRepoUrl;
-
     @Value(value = "${system.email}")
     private String email;
 
@@ -104,9 +92,6 @@ public class AppConfig extends AppConfigBase {
 
     @Value(value = "${system.password}")
     private String password;
-
-    @Value(value = "${plugins.repository}")
-    private String pluginSourceUrl;
 
     @Bean
     public User superUser() {
@@ -127,16 +112,6 @@ public class AppConfig extends AppConfigBase {
     @Bean
     public Path gitWorkspace() {
         return Paths.get(gitWorkspace);
-    }
-
-    @Bean
-    public Path gitCacheWorkspace() {
-        return Paths.get(gitCloneCache);
-    }
-
-    @Bean
-    public String pluginSourceUrl() {
-        return pluginRepoUrl;
     }
 
     @Bean(name = "applicationEventMulticaster")
@@ -162,12 +137,6 @@ public class AppConfig extends AppConfigBase {
     public ThreadPoolTaskExecutor taskExecutor() {
         return executor;
     }
-
-    @Bean
-    public ThreadPoolTaskExecutor pluginPoolExecutor() {
-        return pluginExecutor;
-    }
-
 
     @Override
     protected String getName() {
