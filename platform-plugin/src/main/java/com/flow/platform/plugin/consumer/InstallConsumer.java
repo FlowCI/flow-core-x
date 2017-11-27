@@ -32,6 +32,8 @@ import org.springframework.stereotype.Service;
 @Component
 public class InstallConsumer implements QueueListener<Plugin> {
 
+    //TODO: change to ThreadTaskExector
+
     private final static Logger LOGGER = new Logger(InstallConsumer.class);
 
     @Autowired

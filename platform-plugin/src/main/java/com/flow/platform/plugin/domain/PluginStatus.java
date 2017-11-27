@@ -26,6 +26,11 @@ public enum PluginStatus {
     PENDING,
 
     /**
+     * in queue
+     */
+    IN_QUEUE,
+
+    /**
      * installing
      */
     INSTALLING,

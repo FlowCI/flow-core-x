@@ -117,6 +117,10 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
         // not finish can install plugin
         if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin.getStatus())) {
             LOGGER.trace(String.format("Plugin %s Enter To Queue", pluginName));
+
+            // set plugin in queue
+            dispatchEvent(PluginStatus.IN_QUEUE, null, null, pluginName);
+
             pluginInstallQueue.enqueue(plugin);
         }
     }
@@ -144,6 +148,7 @@ public class PluginServiceImpl extends AbstractEvent implements PluginService {
     @Override
     public void execInstallOrUpdate(Plugin plugin) {
         try {
+
             for (Processor processor : processors) {
                 processor.exec(plugin);
             }

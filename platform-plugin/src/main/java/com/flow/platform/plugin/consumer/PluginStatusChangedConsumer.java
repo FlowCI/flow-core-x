@@ -52,6 +52,9 @@ public class PluginStatusChangedConsumer implements PluginListener<PluginStatus>
 
         switch (pluginStatus) {
             case PENDING:
+            case IN_QUEUE:
+                plugin.setStatus(PluginStatus.IN_QUEUE);
+                break;
             case DELETE:
                 plugin.setStatus(pluginStatus.PENDING);
                 break;

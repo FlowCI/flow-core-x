@@ -25,6 +25,8 @@ import java.util.List;
  */
 public abstract class AbstractEvent {
 
+    //TODO: change abstractEvent to ApplicationContext
+
     protected List<PluginListener> listeners = new LinkedList<>();
 
     protected <T> void dispatchEvent(T t, String tag, Path path, String pluginName) {
