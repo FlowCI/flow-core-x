@@ -18,6 +18,8 @@ package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.event.PluginRefreshEvent;
+import com.flow.platform.plugin.event.PluginRefreshEvent.Status;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.FileUtil;
 import com.flow.platform.util.Logger;
@@ -46,7 +48,7 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class PluginStoreServiceImpl implements PluginStoreService {
+public class PluginStoreServiceImpl extends ApplicationEventService implements PluginStoreService {
 
     private final static String PLUGIN_STORE_FILE = "plugin_cache.json";
 
@@ -133,9 +135,16 @@ public class PluginStoreServiceImpl implements PluginStoreService {
 
     @Scheduled(fixedDelay = REFRESH_CACHE_TASK_HEARTBEAT)
     private void scheduleRefreshCache() {
-        LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
-        refreshCache();
-        LOGGER.traceMarker("scheduleRefreshCache", "Finish Refresh Cache");
+        try {
+            LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
+            dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.ON_PROGRESS));
+            refreshCache();
+        } catch (Throwable e) {
+            LOGGER.warn(e.getMessage());
+        } finally {
+            dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.IDLE));
+            LOGGER.traceMarker("scheduleRefreshCache", "Finish Refresh Cache");
+        }
     }
 
     /**
