@@ -33,7 +33,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration
 @ComponentScan({
     "com.flow.platform.plugin.service",
-    "com.flow.platform.plugin.consumer"
+    "com.flow.platform.plugin.context"
 })
 public class PluginConfig {
 

@@ -20,6 +20,7 @@ import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.FileUtil;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.cache.Cache;
@@ -39,6 +40,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
@@ -51,6 +53,10 @@ public class PluginStoreServiceImpl implements PluginStoreService {
     private final static String PLUGIN_STORE_FILE = "plugin_cache.json";
 
     private final static String PLUGIN_KEY = "plugin";
+
+    private final static Logger LOGGER = new Logger(PluginStoreService.class);
+
+    private final static int REFRESH_CACHE_TASK_HEARTBEAT = 2 * 60 * 60 * 1000;
 
     private final static Gson GSON = new GsonBuilder().create();
 
@@ -70,11 +76,15 @@ public class PluginStoreServiceImpl implements PluginStoreService {
     @PostConstruct
     private void init() {
         this.storePath = Paths.get(gitWorkspace.toString(), PLUGIN_STORE_FILE);
+
+        // if load file error, refresh cache from online git
+        if (!loadFileToCache()) {
+            refreshCache();
+        }
     }
 
     @Override
     public Plugin find(String name) {
-        loadCacheAndFetchList();
         return pluginCache.get(name);
     }
 
@@ -85,10 +95,20 @@ public class PluginStoreServiceImpl implements PluginStoreService {
 
     @Override
     public Plugin update(Plugin plugin) {
-        loadCacheAndFetchList();
         pluginCache.put(plugin.getName(), plugin);
-        saveCacheToFile();
         return plugin;
+    }
+
+    @Override
+    public void dumpCacheToFile() {
+        FileUtil.write(pluginCache, storePath);
+    }
+
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = REFRESH_CACHE_TASK_HEARTBEAT)
+    private void scheduleRefreshCache() {
+        LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
+        refreshCache();
+        LOGGER.traceMarker("scheduleRefreshCache", "Finish Refresh Cache");
     }
 
     /**
@@ -132,21 +152,22 @@ public class PluginStoreServiceImpl implements PluginStoreService {
         }
     }
 
-    private void loadCacheAndFetchList() {
-        loadFileToCache();
+    private void refreshCache() {
         doSave(doFetchPlugins());
     }
 
-    private void loadFileToCache() {
+    private Boolean loadFileToCache() {
         Type type = new TypeToken<Map<String, Plugin>>() {
         }.getType();
         if (!Objects.isNull(FileUtil.read(type, storePath))) {
             pluginCache = FileUtil.read(type, storePath);
+            return true;
         }
+
+        return false;
     }
 
     private List<Plugin> doList(PluginStatus... statuses) {
-        loadCacheAndFetchList();
         List<Plugin> list = new LinkedList<>();
         if (Objects.equals(0, statuses.length)) {
             pluginCache.forEach((name, plugin) -> list.add(plugin));
@@ -159,12 +180,7 @@ public class PluginStoreServiceImpl implements PluginStoreService {
                 });
             }
         }
-        saveCacheToFile();
         return list;
-    }
-
-    private void saveCacheToFile() {
-        FileUtil.write(pluginCache, storePath);
     }
 
     private class PluginRepository {

@@ -45,4 +45,8 @@ public interface PluginStoreService {
      */
     Plugin update(Plugin plugin);
 
+    /**
+     * dump cache to file
+     */
+    void dumpCacheToFile();
 }
