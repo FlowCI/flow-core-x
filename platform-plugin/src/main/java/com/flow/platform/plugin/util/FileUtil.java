@@ -17,10 +17,10 @@
 package com.flow.platform.plugin.util;
 
 import com.flow.platform.plugin.exception.PluginException;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
-import java.io.FileReader;
-import java.io.FileWriter;
+import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
@@ -30,10 +30,11 @@ import java.nio.file.Path;
  */
 public class FileUtil {
 
+    private final static Gson GSON = new GsonBuilder().create();
+
     synchronized public static <T> void write(T object, Path path) {
-        try (FileWriter writer = new FileWriter(path.toString())) {
-            String json = new Gson().toJson(object);
-            writer.write(json);
+        try {
+            Files.write(GSON.toJson(object).getBytes(), path.toFile());
         } catch (IOException e) {
             throw new PluginException("IOException: " + e.getMessage());
         }
@@ -44,10 +45,8 @@ public class FileUtil {
             return null;
         }
 
-        try (FileReader fileReader = new FileReader(path.toString())) {
-            try (JsonReader jsonReader = new JsonReader(fileReader)) {
-                return new Gson().fromJson(jsonReader, clazz);
-            }
+        try {
+            return GSON.fromJson(Files.toString(path.toFile(), Charsets.UTF_8), clazz);
         } catch (IOException e) {
             throw new PluginException("IOException: " + e.getMessage());
         }
