@@ -79,11 +79,7 @@ public class PluginStoreServiceImpl implements PluginStoreService {
 
         // if load file error, refresh cache from online git
         if (!loadFileToCache()) {
-            try {
-                refreshCache();
-            } catch (Throwable throwable) {
-                LOGGER.error("Spring Start Refresh Cache Error", throwable);
-            }
+            refreshCache();
         }
     }
 

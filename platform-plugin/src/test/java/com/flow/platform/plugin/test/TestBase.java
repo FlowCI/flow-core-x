@@ -59,6 +59,18 @@ public abstract class TestBase {
 
     protected File gitCloneMocGit;
 
+    @Rule
+    public WireMockRule wiremock = new WireMockRule(8080);
+
+
+    {
+        try {
+            stubDemo();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Autowired
     protected PluginService pluginService;
 
@@ -78,9 +90,6 @@ public abstract class TestBase {
 
     @Autowired
     protected ThreadPoolTaskExecutor pluginPoolExecutor;
-
-    @Rule
-    public WireMockRule wiremock = new WireMockRule(8080);
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
