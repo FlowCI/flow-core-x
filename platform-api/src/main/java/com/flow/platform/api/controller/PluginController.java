@@ -19,6 +19,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class PluginController {
     private PluginService pluginService;
 
     @GetMapping
-    public List<Plugin> index() {
+    public Collection<Plugin> index() {
         return pluginService.list();
     }
 
