@@ -86,6 +86,7 @@ public abstract class TestBase {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 
+
     protected void stubDemo() throws IOException {
         wiremock.resetAll();
         wiremock.stubFor(

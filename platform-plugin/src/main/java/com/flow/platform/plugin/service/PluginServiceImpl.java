@@ -286,7 +286,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             try {
                 Path gitPath = doGenerateGitCloneFolderPath(plugin);
                 Path gitLocalPath = doGenerateLocalRepositoryPath(plugin);
-                String latestGitTag = GitHelperUtil.getLatestTag(gitPath);
+                String latestGitTag = plugin.getTag();
                 String latestLocalGitTag = GitHelperUtil.getLatestTag(gitLocalPath);
                 JGitUtil.push(gitPath, LOCAL_REMOTE, latestGitTag);
 

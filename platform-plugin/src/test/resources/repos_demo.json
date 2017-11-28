@@ -10,7 +10,8 @@
       "author": "fir",
       "platform": [
         "*"
-      ]
+      ],
+      "tag": "1.0"
     },
     {
       "name": "flowCli",
@@ -21,7 +22,8 @@
       "author": "fir",
       "platform": [
         "*"
-      ]
+      ],
+      "tag": "1.0"
     },
     {
       "name": "flowCliA",
@@ -32,7 +34,8 @@
       "author": "fir",
       "platform": [
         "*"
-      ]
+      ],
+      "tag": "1.0"
     },
     {
       "name": "flowCliB",
@@ -43,7 +46,8 @@
       "author": "fir",
       "platform": [
         "*"
-      ]
+      ],
+      "tag": "1.0"
     },
     {
       "name": "flowCliC",
@@ -54,7 +58,8 @@
       "author": "fir",
       "platform": [
         "*"
-      ]
+      ],
+      "tag": "1.0"
     },
     {
       "name": "flowCliD",
@@ -65,7 +70,8 @@
       "author": "fir",
       "platform": [
         "*"
-      ]
+      ],
+      "tag": "1.0"
     },
     {
       "name": "flowCliE",
@@ -76,7 +82,8 @@
       "author": "fir",
       "platform": [
         "*"
-      ]
+      ],
+      "tag": "1.0"
     },
     {
       "name": "flowCliF",
@@ -87,7 +94,8 @@
       "author": "fir",
       "platform": [
         "*"
-      ]
+      ],
+      "tag": "1.0"
     }
   ]
 }

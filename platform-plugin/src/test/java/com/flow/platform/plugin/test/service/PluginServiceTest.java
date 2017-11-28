@@ -51,6 +51,8 @@ public class PluginServiceTest extends TestBase {
     public void init() throws Throwable {
         stubDemo();
 
+        pluginStoreService.refreshCache();
+
         initGit();
 
         if (Files.exists(Paths.get(gitWorkspace.toString(), "plugin_cache.json"))) {
@@ -116,63 +118,6 @@ public class PluginServiceTest extends TestBase {
 
         // then: tag should not null
         Assert.assertNotNull(plugin.getTag());
-    }
-
-    @Test
-    public void should_update_tag_success() throws Throwable {
-        // delete folder avoid affect other
-        cleanFolder("flowCli");
-
-        // init local repo
-        File mocGit = temporaryFolder.newFolder("test.git");
-        File gitCloneMocGit = temporaryFolder.newFolder("test");
-        JGitUtil.initBare(mocGit.toPath(), true);
-        JGitUtil.clone(mocGit.toString(), gitCloneMocGit.toPath());
-
-        // git commit something
-        Files.createFile(Paths.get(gitCloneMocGit.toString(), "readme.md"));
-        Git git = Git.open(gitCloneMocGit);
-        git.add().addFilepattern(".").call();
-        git.commit().setMessage("test").call();
-        JGitUtil.push(gitCloneMocGit.toPath(), "origin", "master");
-
-        // git push tag
-        git.tag().setName("1.0").setMessage("add tag 1.0").call();
-        JGitUtil.push(gitCloneMocGit.toPath(), "origin", "1.0");
-
-        // update plugin repo
-        Plugin plugin = pluginService.find("flowCli");
-        plugin.setDetails(mocGit.getParent() + "/test");
-        pluginStoreService.update(plugin);
-
-        // run install
-        pluginService.execInstallOrUpdate(plugin);
-
-        plugin = pluginService.find("flowCli");
-        Assert.assertNotNull(plugin);
-        Assert.assertEquals("1.0", plugin.getTag());
-        Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
-
-        // add something again
-        Files.createFile(Paths.get(gitCloneMocGit.toString(), "test.md"));
-
-        git = Git.open(gitCloneMocGit);
-        git.add().addFilepattern(".").call();
-        git.commit().setMessage("test").call();
-        JGitUtil.push(gitCloneMocGit.toPath(), "origin", "master");
-
-        // add tag again
-        git.tag().setName("2.0").setMessage("add tag 2.0").call();
-        JGitUtil.push(gitCloneMocGit.toPath(), "origin", "2.0");
-
-        // install again
-        pluginService.execInstallOrUpdate(plugin);
-
-        plugin = pluginService.find("flowCli");
-        Assert.assertNotNull(plugin);
-        Assert.assertEquals("2.0", plugin.getTag());
-
-        resetPluginStatus();
     }
 
     @Test
