@@ -68,10 +68,10 @@ public class PluginStoreServiceImpl implements PluginStoreService {
     @Autowired
     private Path gitWorkspace;
 
-    private Path storePath;
-
     @Autowired
     private String pluginSourceUrl;
+
+    private Path storePath;
 
     @PostConstruct
     private void init() {
