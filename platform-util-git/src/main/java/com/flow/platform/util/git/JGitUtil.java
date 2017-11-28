@@ -79,10 +79,10 @@ public class JGitUtil {
      * @param gitPath xxx.git folder
      * @throws GitException
      */
-    public static void initBare(Path gitPath, Boolean bare) throws GitException {
+    public static void init(Path gitPath, boolean bare) throws GitException {
         try {
             if (bare) {
-                Git.init().setBare(true).setGitDir(gitPath.toFile()).call();
+                Git.init().setBare(bare).setGitDir(gitPath.toFile()).call();
             } else {
                 Git.init().setDirectory(gitPath.toFile()).call();
             }

@@ -42,7 +42,7 @@ public class GitHelperUtilTest {
         // init local repo
         File mocGit = folder.newFolder("test.git");
         File gitCloneMocGit = folder.newFolder("test");
-        JGitUtil.initBare(mocGit.toPath(), true);
+        JGitUtil.init(mocGit.toPath(), true);
         JGitUtil.clone(mocGit.toString(), gitCloneMocGit.toPath());
 
         // git commit something

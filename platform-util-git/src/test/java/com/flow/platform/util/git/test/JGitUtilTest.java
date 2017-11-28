@@ -18,7 +18,6 @@ package com.flow.platform.util.git.test;
 
 import com.flow.platform.util.git.JGitUtil;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Repository;
@@ -40,7 +39,7 @@ public class JGitUtilTest {
     @Test
     public void should_init_git_with_bare() throws Throwable {
         File gitDir = folder.newFolder("hello.git");
-        JGitUtil.initBare(gitDir.toPath(), true);
+        JGitUtil.init(gitDir.toPath(), true);
         Assert.assertTrue(gitDir.exists());
 
         Repository repo = JGitUtil.getRepo(gitDir.toPath());
@@ -60,7 +59,7 @@ public class JGitUtilTest {
 
         File onlineGitFolder = folder.newFolder("info");
         JGitUtil.clone(GIT_URL, onlineGitFolder.toPath());
-        JGitUtil.initBare(localGitFolder.toPath(), true);
+        JGitUtil.init(localGitFolder.toPath(), true);
 
         // when get tags should get latest tag
         Assert.assertEquals(true, JGitUtil.tags(Git.open(localGitFolder).getRepository()).isEmpty());
@@ -71,7 +70,7 @@ public class JGitUtilTest {
     public void should_push_success() throws Throwable {
         File localGitFolder = folder.newFolder("info.git");
         // when: init bareGit
-        JGitUtil.initBare(localGitFolder.toPath(), true);
+        JGitUtil.init(localGitFolder.toPath(), true);
 
         // then: tag list is 0
         Assert.assertEquals(0, Git.open(localGitFolder).tagList().call().size());
@@ -108,8 +107,8 @@ public class JGitUtilTest {
     public void should_fetch_tags_success() throws Throwable {
         File localGitFolder = folder.newFolder("info.git");
         File onlineGitFolder = folder.newFolder("info");
-        JGitUtil.initBare(onlineGitFolder.toPath(), false);
-        JGitUtil.initBare(localGitFolder.toPath(), true);
+        JGitUtil.init(onlineGitFolder.toPath(), false);
+        JGitUtil.init(localGitFolder.toPath(), true);
         JGitUtil.remoteSet(onlineGitFolder.toPath(), "origin", GIT_URL);
         JGitUtil.remoteSet(onlineGitFolder.toPath(), "local", localGitFolder.toString());
         JGitUtil.fetchTags(onlineGitFolder.toPath(), GIT_URL);

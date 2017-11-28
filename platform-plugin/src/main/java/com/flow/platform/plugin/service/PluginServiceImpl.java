@@ -213,11 +213,11 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     }
 
     private Path doGenerateLocalRepositoryPath(Plugin plugin) {
-        return Paths.get(gitCacheWorkspace.toString(), plugin.getName() + GIT_SUFFIX);
+        return Paths.get(gitWorkspace.toString(), plugin.getName() + GIT_SUFFIX);
     }
 
     private Path doGenerateGitCloneFolderPath(Plugin plugin) {
-        return Paths.get(gitWorkspace.toString(), plugin.getName());
+        return Paths.get(gitCacheWorkspace.toString(), plugin.getName());
     }
 
     private interface Processor {
@@ -234,8 +234,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             LOGGER.traceMarker("InitGitProcessor", "Start Init Git");
             try {
                 // init bare
-                JGitUtil.initBare(doGenerateGitCloneFolderPath(plugin), false);
-                JGitUtil.initBare(doGenerateLocalRepositoryPath(plugin), true);
+                JGitUtil.init(doGenerateGitCloneFolderPath(plugin), false);
+                JGitUtil.init(doGenerateLocalRepositoryPath(plugin), true);
 
                 // remote set
                 JGitUtil

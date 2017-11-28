@@ -110,7 +110,7 @@ public abstract class TestBase {
             gitCloneMocGit = temporaryFolder.newFolder(DEMO_GIT_NAME);
             initGit();
 
-            JGitUtil.initBare(mocGit.toPath(), true);
+            JGitUtil.init(mocGit.toPath(), true);
             JGitUtil.clone(mocGit.toString(), gitCloneMocGit.toPath());
 
             // git commit something

@@ -20,7 +20,6 @@ import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
