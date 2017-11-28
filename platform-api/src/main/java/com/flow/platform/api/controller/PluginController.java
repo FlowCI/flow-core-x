@@ -19,6 +19,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
+import com.flow.platform.plugin.service.PluginStoreService;
 import java.util.Collection;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +41,17 @@ public class PluginController {
     @Autowired
     private PluginService pluginService;
 
+    @Autowired
+    private PluginStoreService pluginStoreService;
+
     @GetMapping
     public Collection<Plugin> index() {
         return pluginService.list();
+    }
+
+    @PostMapping("/sync")
+    public void sync() {
+        pluginStoreService.refreshCache();
     }
 
     @PostMapping("/install")

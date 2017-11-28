@@ -133,11 +133,8 @@ public class JGitUtil {
      * @throws GitException
      */
     public static Path push(Path path, String remote, String branchOrTag) throws GitException {
-
-        try {
-            Git git = Git.open(path.toFile());
-            git
-                .push()
+        try (Git git = Git.open(path.toFile())) {
+            git.push()
                 .setRemote(remote)
                 .setRefSpecs(new RefSpec(branchOrTag))
                 .call();
@@ -157,9 +154,7 @@ public class JGitUtil {
      * @throws GitException
      */
     public static Path remoteSet(Path path, String remoteName, String remoteUrl) throws GitException {
-        Git git;
-        try {
-            git = Git.open(path.toFile());
+        try (Git git = Git.open(path.toFile())) {
             StoredConfig config = git.getRepository().getConfig();
             config.setString("remote", remoteName, "url", remoteUrl);
             config.save();
@@ -171,19 +166,15 @@ public class JGitUtil {
     }
 
     public static Path fetchTags(Path path, String remoteName) throws GitException {
-
-        Git git;
-        try {
-            git = Git.open(path.toFile());
-            git
-                .fetch()
+        try (Git git = Git.open(path.toFile())) {
+            git.pull()
                 .setRemote(remoteName)
-                .setRefSpecs(new RefSpec("refs/tags/*:refs/tags/*"))
                 .setTagOpt(TagOpt.FETCH_TAGS)
                 .call();
         } catch (Throwable throwable) {
             throw new GitException("fetch tags error", throwable);
         }
-        return null;
+
+        return path;
     }
 }
