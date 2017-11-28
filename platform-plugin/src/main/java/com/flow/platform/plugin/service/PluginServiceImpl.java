@@ -35,6 +35,7 @@ import com.flow.platform.util.git.JGitUtil;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -44,6 +45,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.api.Git;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -235,6 +237,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private class InitGitProcessor implements Processor {
 
+        private final static String EMPTY_FILE = "empty.file";
+
         @Override
         public void exec(Plugin plugin) {
             LOGGER.traceMarker("InitGitProcessor", "Start Init Git");
@@ -249,6 +253,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 // remote set
                 JGitUtil.remoteSet(cachePath, ORIGIN_REMOTE, plugin.getDetails() + GIT_SUFFIX);
                 JGitUtil.remoteSet(cachePath, LOCAL_REMOTE, barePath.toString());
+
+                // if branch not exists then push branch
+                if (!checkExistBranchOrNot(barePath)) {
+                    commitSomething(cachePath);
+                    JGitUtil.push(cachePath, LOCAL_REMOTE, "master");
+                }
             } catch (Throwable e) {
                 LOGGER.error("Git Init", e);
                 throw new PluginException("Git Init", e);
@@ -264,6 +274,35 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 LOGGER.error("Git Init Clean", e);
                 throw new PluginException("Git Init Clean", e);
             }
+        }
+
+        private void commitSomething(Path path) {
+            try (Git git = Git.open(path.toFile())) {
+                Path emptyFilePath = Paths.get(path.toString(), EMPTY_FILE);
+                Files.createFile(emptyFilePath);
+
+                git.add()
+                    .addFilepattern(".")
+                    .call();
+
+                git.commit()
+                    .setMessage("add test branch")
+                    .call();
+
+            } catch (Throwable e) {
+                LOGGER.error("Method: commitSomething Exception", e);
+            }
+        }
+
+        private boolean checkExistBranchOrNot(Path path) {
+            try (Git git = Git.open(path.toFile())) {
+                if (Strings.isNullOrEmpty(git.getRepository().getBranch())) {
+                    return true;
+                }
+            } catch (Throwable e) {
+                LOGGER.error("Method: checkExistBranchOrNot Exception", e);
+            }
+            return false;
         }
     }
 
