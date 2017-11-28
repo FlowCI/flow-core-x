@@ -20,10 +20,9 @@ import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.util.FileUtil;
+import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,14 +30,15 @@ import com.google.gson.annotations.SerializedName;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,121 +50,129 @@ public class PluginStoreServiceImpl implements PluginStoreService {
 
     private final static String PLUGIN_STORE_FILE = "plugin_cache.json";
 
-    private final static String PLUGIN_KEY = "plugin";
+    private final static Logger LOGGER = new Logger(PluginStoreService.class);
+
+    private final static int REFRESH_CACHE_TASK_HEARTBEAT = 2 * 60 * 60 * 1000;
 
     private final static Gson GSON = new GsonBuilder().create();
 
-    private Map<String, Plugin> pluginCache = new HashMap<>();
-
-    private volatile Cache<String, List<Plugin>> pluginListCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(12, TimeUnit.HOURS).build();
+    private Map<String, Plugin> pluginCache = new ConcurrentHashMap<>();
 
     @Autowired
     private Path gitWorkspace;
 
-    private Path storePath;
-
     @Autowired
     private String pluginSourceUrl;
+
+    private Path storePath;
 
     @PostConstruct
     private void init() {
         this.storePath = Paths.get(gitWorkspace.toString(), PLUGIN_STORE_FILE);
+        loadFileToCache();
+    }
+
+    @Override
+    public void refreshCache() {
+        List<Plugin> plugins = doFetchPlugins();
+
+        for (Plugin plugin : plugins) {
+            Plugin cached = pluginCache.get(plugin.getName());
+
+            // only update no plugins
+            if (Objects.isNull(cached)) {
+                plugin.setStatus(PluginStatus.PENDING);
+                pluginCache.put(plugin.getName(), plugin);
+                continue;
+            }
+
+            // copy latest plugin data to cached
+            cached.setAuthor(plugin.getAuthor());
+            cached.setTag(plugin.getTag());
+            cached.setDetails(plugin.getDetails());
+            cached.setPlatform(plugin.getPlatform());
+            cached.setLabels(plugin.getLabels());
+        }
     }
 
     @Override
     public Plugin find(String name) {
-        loadCacheAndFetchList();
         return pluginCache.get(name);
     }
 
     @Override
-    public List<Plugin> list(PluginStatus... statuses) {
-        return doList(statuses);
+    public Collection<Plugin> list(PluginStatus... statuses) {
+        // statues length is 0
+        if (Objects.equals(0, statuses.length)) {
+            return pluginCache.values();
+        }
+
+        List<Plugin> list = new LinkedList<>();
+
+        for (PluginStatus status : statuses) {
+            pluginCache.forEach((name, plugin) -> {
+                if (Objects.equals(status, plugin.getStatus())) {
+                    list.add(plugin);
+                }
+            });
+        }
+
+        return list;
     }
 
     @Override
     public Plugin update(Plugin plugin) {
-        loadCacheAndFetchList();
         pluginCache.put(plugin.getName(), plugin);
-        saveCacheToFile();
         return plugin;
     }
 
+    @Override
+    public void dumpCacheToFile() {
+        FileUtil.write(pluginCache, storePath);
+    }
+
+    @Scheduled(fixedDelay = REFRESH_CACHE_TASK_HEARTBEAT)
+    private void scheduleRefreshCache() {
+        LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
+        refreshCache();
+        LOGGER.traceMarker("scheduleRefreshCache", "Finish Refresh Cache");
+    }
+
     /**
-     * list plugins
-     * @return
+     * Load plugin list from remote url
+     *
+     * @return Plugin list, the item without status
      */
-    private synchronized List<Plugin> doFetchPlugins() {
+    private List<Plugin> doFetchPlugins() {
         try {
-            return pluginListCache.get(PLUGIN_KEY, () -> {
-                try {
-                    HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
-                    HttpResponse<String> response = httpClient.bodyAsString();
+            HttpClient httpClient = HttpClient.build(pluginSourceUrl).get();
+            HttpResponse<String> response = httpClient.bodyAsString();
 
-                    if (!response.hasSuccess()) {
-                        throw new PluginException(String
-                            .format("status code is not 200, status code is %s, exception info is %s",
-                                response.getStatusCode(),
-                                response.getExceptions()));
-                    }
-
-                    String body = response.getBody();
-                    PluginRepository pluginRepository = GSON.fromJson(body, PluginRepository.class);
-                    return pluginRepository.plugins;
-                } catch (Throwable throwable) {
-                    throw new PluginException("Fetch Plugins Error ", throwable);
-                }
-            });
-        } catch (Throwable throwable) {
-            throw new PluginException("Do Fetch Plugins Happens some Error", throwable);
-        }
-    }
-
-    private void doSave(List<Plugin> plugins) {
-        for (Plugin plugin : plugins) {
-
-            // only update no plugins
-            if (Objects.isNull(pluginCache.get(plugin.getName()))) {
-                plugin.setStatus(PluginStatus.PENDING);
-                pluginCache.put(plugin.getName(), plugin);
+            if (!response.hasSuccess()) {
+                throw new PluginException(String
+                    .format("status code is not 200, status code is %s, exception info is %s",
+                        response.getStatusCode(),
+                        response.getExceptions()));
             }
+
+            String body = response.getBody();
+            PluginRepository pluginRepository = GSON.fromJson(body, PluginRepository.class);
+            return pluginRepository.plugins;
+        } catch (Throwable throwable) {
+            throw new PluginException("Fetch Plugins Error ", throwable);
         }
     }
 
-    private void loadCacheAndFetchList() {
-        loadFileToCache();
-        doSave(doFetchPlugins());
-    }
-
-    private void loadFileToCache() {
+    private Boolean loadFileToCache() {
         Type type = new TypeToken<Map<String, Plugin>>() {
         }.getType();
+
         if (!Objects.isNull(FileUtil.read(type, storePath))) {
             pluginCache = FileUtil.read(type, storePath);
+            return true;
         }
-    }
 
-    private List<Plugin> doList(PluginStatus... statuses) {
-        loadCacheAndFetchList();
-        List<Plugin> list = new LinkedList<>();
-        if (Objects.equals(0, statuses.length)) {
-            pluginCache.forEach((name, plugin) -> list.add(plugin));
-        } else {
-            for (PluginStatus status : statuses) {
-                pluginCache.forEach((name, plugin) -> {
-                    if (Objects.equals(status, plugin.getStatus())) {
-                        list.add(plugin);
-                    }
-                });
-            }
-        }
-        saveCacheToFile();
-        return list;
-    }
-
-    private void saveCacheToFile() {
-        FileUtil.write(pluginCache, storePath);
+        return false;
     }
 
     private class PluginRepository {

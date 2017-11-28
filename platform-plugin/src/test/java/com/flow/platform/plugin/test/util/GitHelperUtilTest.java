@@ -19,6 +19,9 @@ package com.flow.platform.plugin.test.util;
 import com.flow.platform.plugin.util.GitHelperUtil;
 import com.flow.platform.util.git.JGitUtil;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,7 +39,24 @@ public class GitHelperUtilTest {
 
     @Test
     public void should_get_latest_tag() throws Throwable {
-        String gitUrl = "https://github.com/yunheli/info.git";
+        // init local repo
+        File mocGit = folder.newFolder("test.git");
+        File gitCloneMocGit = folder.newFolder("test");
+        JGitUtil.initBare(mocGit.toPath(), true);
+        JGitUtil.clone(mocGit.toString(), gitCloneMocGit.toPath());
+
+        // git commit something
+        Files.createFile(Paths.get(gitCloneMocGit.toString(), "readme.md"));
+        Git git = Git.open(gitCloneMocGit);
+        git.add().addFilepattern(".").call();
+        git.commit().setMessage("test").call();
+        JGitUtil.push(gitCloneMocGit.toPath(), "origin", "master");
+
+        // git push tag
+        git.tag().setName("1.0").setMessage("add tag 1.0").call();
+        JGitUtil.push(gitCloneMocGit.toPath(), "origin", "1.0");
+
+        String gitUrl = mocGit.toString();
 
         File gitFile = folder.newFolder("info");
 
@@ -44,7 +64,7 @@ public class GitHelperUtilTest {
         JGitUtil.clone(gitUrl, gitFile.toPath());
 
         // then should get latest tag
-        Assert.assertEquals("2.3.1", GitHelperUtil.getLatestTag(gitFile.toPath()));
+        Assert.assertEquals("1.0", GitHelperUtil.getLatestTag(gitFile.toPath()));
 
     }
 

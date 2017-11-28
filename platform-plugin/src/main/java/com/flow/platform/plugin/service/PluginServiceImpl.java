@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,7 +89,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     }
 
     @Override
-    public List<Plugin> list(PluginStatus... statuses) {
+    public Collection<Plugin> list(PluginStatus... statuses) {
         return pluginStoreService.list(statuses);
     }
 
@@ -286,7 +287,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             try {
                 Path gitPath = doGenerateGitCloneFolderPath(plugin);
                 Path gitLocalPath = doGenerateLocalRepositoryPath(plugin);
-                String latestGitTag = GitHelperUtil.getLatestTag(gitPath);
+                String latestGitTag = plugin.getTag();
                 String latestLocalGitTag = GitHelperUtil.getLatestTag(gitLocalPath);
                 JGitUtil.push(gitPath, LOCAL_REMOTE, latestGitTag);
 
