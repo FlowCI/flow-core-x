@@ -69,11 +69,7 @@ public class PluginStoreServiceImpl implements PluginStoreService {
     @PostConstruct
     private void init() {
         this.storePath = Paths.get(gitWorkspace.toString(), PLUGIN_STORE_FILE);
-
-        // if load file error, refresh cache from online git
-        if (!loadFileToCache()) {
-            refreshCache();
-        }
+        loadFileToCache();
     }
 
     @Override
@@ -135,7 +131,7 @@ public class PluginStoreServiceImpl implements PluginStoreService {
         FileUtil.write(pluginCache, storePath);
     }
 
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = REFRESH_CACHE_TASK_HEARTBEAT)
+    @Scheduled(fixedDelay = REFRESH_CACHE_TASK_HEARTBEAT)
     private void scheduleRefreshCache() {
         LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
         refreshCache();
