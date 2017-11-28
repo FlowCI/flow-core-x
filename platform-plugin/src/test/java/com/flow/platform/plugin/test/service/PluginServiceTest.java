@@ -25,10 +25,12 @@ import com.google.common.collect.ImmutableMultiset;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
 import org.junit.Before;
@@ -78,20 +80,27 @@ public class PluginServiceTest extends TestBase {
 
     @Test
     public void should_update_success() {
+        // when: update plugin status
         Plugin plugin = pluginService.find("flowCliC");
         plugin.setStatus(PluginStatus.INSTALLED);
         pluginStoreService.update(plugin);
 
         plugin = pluginService.find(plugin.getName());
+
+        // then: plugin status should equal installed
         Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
 
         resetPluginStatus();
     }
 
     @Test
-    public void should_exec_install_success() throws InterruptedException {
+    public void should_exec_install_success() throws Throwable {
+        // delete folder avoid affect other
+        cleanFolder("flowCliC");
+
         // when: find plugin
         Plugin plugin = pluginService.find("flowCliC");
+
         // then: plugin is not null
         Assert.assertNotNull(plugin);
 
@@ -109,26 +118,32 @@ public class PluginServiceTest extends TestBase {
 
     @Test
     public void should_update_tag_success() throws Throwable {
+        // delete folder avoid affect other
+        cleanFolder("flowCli");
+
+        // init local repo
         File mocGit = temporaryFolder.newFolder("test.git");
         File gitCloneMocGit = temporaryFolder.newFolder("test");
-
         JGitUtil.initBare(mocGit.toPath(), true);
         JGitUtil.clone(mocGit.toString(), gitCloneMocGit.toPath());
 
+        // git commit something
         Files.createFile(Paths.get(gitCloneMocGit.toString(), "readme.md"));
-
         Git git = Git.open(gitCloneMocGit);
         git.add().addFilepattern(".").call();
         git.commit().setMessage("test").call();
         JGitUtil.push(gitCloneMocGit.toPath(), "origin", "master");
 
+        // git push tag
         git.tag().setName("1.0").setMessage("add tag 1.0").call();
         JGitUtil.push(gitCloneMocGit.toPath(), "origin", "1.0");
 
+        // update plugin repo
         Plugin plugin = pluginService.find("flowCli");
         plugin.setDetails(mocGit.getParent() + "/test");
         pluginStoreService.update(plugin);
 
+        // run install
         pluginService.execInstallOrUpdate(plugin);
 
         plugin = pluginService.find("flowCli");
@@ -136,6 +151,7 @@ public class PluginServiceTest extends TestBase {
         Assert.assertEquals("1.0", plugin.getTag());
         Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
 
+        // add something again
         Files.createFile(Paths.get(gitCloneMocGit.toString(), "test.md"));
 
         git = Git.open(gitCloneMocGit);
@@ -143,9 +159,11 @@ public class PluginServiceTest extends TestBase {
         git.commit().setMessage("test").call();
         JGitUtil.push(gitCloneMocGit.toPath(), "origin", "master");
 
+        // add tag again
         git.tag().setName("2.0").setMessage("add tag 2.0").call();
         JGitUtil.push(gitCloneMocGit.toPath(), "origin", "2.0");
 
+        // install again
         pluginService.execInstallOrUpdate(plugin);
 
         plugin = pluginService.find("flowCli");
@@ -156,7 +174,9 @@ public class PluginServiceTest extends TestBase {
     }
 
     @Test
-    public void should_install_success() throws InterruptedException {
+    public void should_install_success() throws Throwable {
+
+        cleanFolder("flowCliD");
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         applicationEventMulticaster.addApplicationListener((ApplicationListener<PluginStatusChangeEvent>) event -> {
@@ -173,13 +193,15 @@ public class PluginServiceTest extends TestBase {
     }
 
     @Test
-    public void should_stop_success_demo_fisrt() throws InterruptedException {
+    public void should_stop_success_demo_fisrt() throws Throwable {
+        cleanFolder("flowCliE");
+
         CountDownLatch countDownLatch = new CountDownLatch(1);
         applicationEventMulticaster.addApplicationListener(new ApplicationListener<PluginStatusChangeEvent>() {
 
             @Override
             public void onApplicationEvent(PluginStatusChangeEvent event) {
-                if (ImmutableMultiset.of(PluginStatus.IN_QUEUE).contains(event.getPluginStatus())) {
+                if (ImmutableMultiset.of(PluginStatus.INSTALLING).contains(event.getPluginStatus())) {
                     countDownLatch.countDown();
                 }
             }
@@ -195,7 +217,8 @@ public class PluginServiceTest extends TestBase {
     }
 
     @Test
-    public void should_stop_success_demo_second() throws InterruptedException {
+    public void should_stop_success_demo_second() throws Throwable {
+        cleanFolder("flowCliB");
 
         Plugin plugin = pluginStoreService.find("flowCliB");
         plugin.setStopped(true);
@@ -212,5 +235,18 @@ public class PluginServiceTest extends TestBase {
         Plugin plugin = pluginService.find("fircli");
         plugin.setStatus(PluginStatus.PENDING);
         pluginStoreService.update(plugin);
+    }
+
+    private void cleanFolder(String pluginName) throws IOException {
+        Path gitFolder = Paths.get(gitWorkspace.toString(), pluginName);
+        Path gitLocalFolder = Paths.get(gitCacheWorkspace.toString(), pluginName + ".git");
+
+        if (gitFolder.toFile().exists()) {
+            FileUtils.deleteDirectory(gitFolder.toFile());
+        }
+
+        if (gitLocalFolder.toFile().exists()) {
+            FileUtils.deleteDirectory(gitLocalFolder.toFile());
+        }
     }
 }
