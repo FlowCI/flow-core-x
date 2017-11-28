@@ -212,11 +212,17 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         dispatchEvent(new PluginStatusChangeEvent(this, plugin.getName(), latestTag, source));
     }
 
-    private Path doGenerateLocalRepositoryPath(Plugin plugin) {
+    /**
+     * Git bare repos workspace
+     */
+    private Path gitRepoPath(Plugin plugin) {
         return Paths.get(gitWorkspace.toString(), plugin.getName() + GIT_SUFFIX);
     }
 
-    private Path doGenerateGitCloneFolderPath(Plugin plugin) {
+    /**
+     * Build git clone path which clone repo from remote
+     */
+    private Path gitClonePath(Plugin plugin) {
         return Paths.get(gitCacheWorkspace.toString(), plugin.getName());
     }
 
@@ -234,14 +240,15 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             LOGGER.traceMarker("InitGitProcessor", "Start Init Git");
             try {
                 // init bare
-                JGitUtil.init(doGenerateGitCloneFolderPath(plugin), false);
-                JGitUtil.init(doGenerateLocalRepositoryPath(plugin), true);
+                Path cachePath = gitClonePath(plugin);
+                Path barePath = gitRepoPath(plugin);
+
+                JGitUtil.init(cachePath, false);
+                JGitUtil.init(barePath, true);
 
                 // remote set
-                JGitUtil
-                    .remoteSet(doGenerateGitCloneFolderPath(plugin), ORIGIN_REMOTE, plugin.getDetails() + GIT_SUFFIX);
-                JGitUtil.remoteSet(doGenerateGitCloneFolderPath(plugin), LOCAL_REMOTE,
-                    doGenerateLocalRepositoryPath(plugin).toString());
+                JGitUtil.remoteSet(cachePath, ORIGIN_REMOTE, plugin.getDetails() + GIT_SUFFIX);
+                JGitUtil.remoteSet(cachePath, LOCAL_REMOTE, barePath.toString());
             } catch (Throwable e) {
                 LOGGER.error("Git Init", e);
                 throw new PluginException("Git Init", e);
@@ -251,8 +258,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         @Override
         public void clean(Plugin plugin) {
             try {
-                FileUtils.deleteDirectory(doGenerateGitCloneFolderPath(plugin).toFile());
-                FileUtils.deleteDirectory(doGenerateLocalRepositoryPath(plugin).toFile());
+                FileUtils.deleteDirectory(gitClonePath(plugin).toFile());
+                FileUtils.deleteDirectory(gitRepoPath(plugin).toFile());
             } catch (Throwable e) {
                 LOGGER.error("Git Init Clean", e);
                 throw new PluginException("Git Init Clean", e);
@@ -266,7 +273,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         public void exec(Plugin plugin) {
             LOGGER.traceMarker("FetchProcessor", "Start Fetch Tags");
             try {
-                JGitUtil.fetchTags(doGenerateGitCloneFolderPath(plugin), ORIGIN_REMOTE);
+                JGitUtil.fetchTags(gitClonePath(plugin), ORIGIN_REMOTE);
             } catch (Throwable e) {
                 LOGGER.error("Git Fetch", e);
                 throw new PluginException("Git Fetch", e);
@@ -285,8 +292,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         public void exec(Plugin plugin) {
             LOGGER.traceMarker("PushProcessor", "Start Push Tags");
             try {
-                Path gitPath = doGenerateGitCloneFolderPath(plugin);
-                Path gitLocalPath = doGenerateLocalRepositoryPath(plugin);
+                Path gitPath = gitClonePath(plugin);
+                Path gitLocalPath = gitRepoPath(plugin);
                 String latestGitTag = plugin.getTag();
                 String latestLocalGitTag = GitHelperUtil.getLatestTag(gitLocalPath);
                 JGitUtil.push(gitPath, LOCAL_REMOTE, latestGitTag);
