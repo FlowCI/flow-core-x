@@ -170,17 +170,21 @@ public class PluginStoreServiceImpl implements PluginStoreService {
 
     private List<Plugin> doList(PluginStatus... statuses) {
         List<Plugin> list = new LinkedList<>();
+
+        // statues length is 0
         if (Objects.equals(0, statuses.length)) {
             pluginCache.forEach((name, plugin) -> list.add(plugin));
-        } else {
-            for (PluginStatus status : statuses) {
-                pluginCache.forEach((name, plugin) -> {
-                    if (Objects.equals(status, plugin.getStatus())) {
-                        list.add(plugin);
-                    }
-                });
-            }
+            return list;
         }
+
+        for (PluginStatus status : statuses) {
+            pluginCache.forEach((name, plugin) -> {
+                if (Objects.equals(status, plugin.getStatus())) {
+                    list.add(plugin);
+                }
+            });
+        }
+
         return list;
     }
 
