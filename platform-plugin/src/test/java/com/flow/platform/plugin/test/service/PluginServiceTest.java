@@ -34,9 +34,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -46,13 +44,15 @@ import org.springframework.context.support.AbstractApplicationContext;
  */
 public class PluginServiceTest extends TestBase {
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
     protected ApplicationEventMulticaster applicationEventMulticaster;
 
+
     @Before
-    public void init() throws IOException {
+    public void init() throws Throwable {
+        stubDemo();
+
+        initGit();
+
         if (Files.exists(Paths.get(gitWorkspace.toString(), "plugin_cache.json"))) {
             Files.delete(Paths.get(gitWorkspace.toString(), "plugin_cache.json"));
         }
@@ -72,6 +72,8 @@ public class PluginServiceTest extends TestBase {
 
         // then: pluginList size is not 0
         Assert.assertNotEquals(0, pluginList.size());
+
+        Assert.assertEquals(8, pluginList.size());
 
         // then: pluginList size is 2
         Assert.assertEquals(false, pluginList.isEmpty());
@@ -174,26 +176,7 @@ public class PluginServiceTest extends TestBase {
     }
 
     @Test
-    public void should_install_success() throws Throwable {
-
-        cleanFolder("flowCliD");
-
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        applicationEventMulticaster.addApplicationListener((ApplicationListener<PluginStatusChangeEvent>) event -> {
-            if (ImmutableMultiset.of(PluginStatus.INSTALLED, PluginStatus.UPDATE)
-                .contains(event.getPluginStatus())) {
-                countDownLatch.countDown();
-            }
-        });
-
-        pluginService.install("flowCliD");
-        countDownLatch.await(30, TimeUnit.SECONDS);
-        Plugin plugin = pluginStoreService.find("flowCliD");
-        Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
-    }
-
-    @Test
-    public void should_stop_success_demo_fisrt() throws Throwable {
+    public void should_stop_success_demo_first() throws Throwable {
         cleanFolder("flowCliE");
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
