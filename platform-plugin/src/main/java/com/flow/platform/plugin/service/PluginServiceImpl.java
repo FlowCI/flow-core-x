@@ -256,6 +256,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                 // if branch not exists then push branch
                 if (!checkExistBranchOrNot(barePath)) {
+                    LOGGER.traceMarker("InitGitProcessor", "Not Found Branch Create Empty Branch");
                     commitSomething(cachePath);
                     JGitUtil.push(cachePath, LOCAL_REMOTE, "master");
                 }
@@ -296,13 +297,13 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         private boolean checkExistBranchOrNot(Path path) {
             try (Git git = Git.open(path.toFile())) {
-                if (Strings.isNullOrEmpty(git.getRepository().getBranch())) {
-                    return true;
+                if (git.branchList().call().isEmpty()) {
+                    return false;
                 }
             } catch (Throwable e) {
                 LOGGER.error("Method: checkExistBranchOrNot Exception", e);
             }
-            return false;
+            return true;
         }
     }
 
