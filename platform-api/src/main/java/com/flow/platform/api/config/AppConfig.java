@@ -20,11 +20,8 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
-import com.flow.platform.core.queue.MemoryQueue;
-import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
-import com.flow.platform.queue.InMemoryQueue;
-import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.plugin.PluginConfig;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -47,7 +44,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author yang
  */
 @Configuration
-@Import({SchedulerConfig.class, CachingConfig.class, DatabaseConfig.class})
+@Import({SchedulerConfig.class, CachingConfig.class, DatabaseConfig.class, QueueConfig.class, PluginConfig.class})
 public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "API";
@@ -78,6 +75,12 @@ public class AppConfig extends AppConfigBase {
     @Value("${api.workspace}")
     private String workspace;
 
+    @Value("${api.git.cache}")
+    private String gitCloneCache;
+
+    @Value("${api.git.workspace}")
+    private String gitWorkspace;
+
     @Value("${domain.cc}")
     private String ccDomain;
 
@@ -106,6 +109,11 @@ public class AppConfig extends AppConfigBase {
         }
     }
 
+    @Bean
+    public Path gitWorkspace() {
+        return Paths.get(gitWorkspace);
+    }
+
     @Bean(name = "applicationEventMulticaster")
     public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
         multicasterExecutor.initialize();
@@ -128,14 +136,6 @@ public class AppConfig extends AppConfigBase {
     @Override
     public ThreadPoolTaskExecutor taskExecutor() {
         return executor;
-    }
-
-    /**
-     * Queue to process cmd callback task
-     */
-    @Bean
-    public PlatformQueue<PriorityMessage> cmdCallbackQueue() {
-        return new MemoryQueue(executor, 50, "CmdCallbackQueue");
     }
 
     @Override

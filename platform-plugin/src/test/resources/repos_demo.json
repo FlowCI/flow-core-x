@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "packages": [
+    {
+      "name": "fircli",
+      "details": "https://github.com/yunheli/info",
+      "labels": [
+        "language syntax"
+      ],
+      "author": "fir",
+      "platform": [
+        "*"
+      ],
+      "tag": "1.0"
+    },
+    {
+      "name": "flowCli",
+      "details": "https://github.com/yunheli/info",
+      "labels": [
+        "language syntax"
+      ],
+      "author": "fir",
+      "platform": [
+        "*"
+      ],
+      "tag": "1.0"
+    },
+    {
+      "name": "flowCliA",
+      "details": "https://github.com/yunheli/info",
+      "labels": [
+        "language syntax"
+      ],
+      "author": "fir",
+      "platform": [
+        "*"
+      ],
+      "tag": "1.0"
+    },
+    {
+      "name": "flowCliB",
+      "details": "https://github.com/yunheli/info",
+      "labels": [
+        "language syntax"
+      ],
+      "author": "fir",
+      "platform": [
+        "*"
+      ],
+      "tag": "1.0"
+    },
+    {
+      "name": "flowCliC",
+      "details": "https://github.com/yunheli/info",
+      "labels": [
+        "language syntax"
+      ],
+      "author": "fir",
+      "platform": [
+        "*"
+      ],
+      "tag": "1.0"
+    },
+    {
+      "name": "flowCliD",
+      "details": "https://github.com/yunheli/info",
+      "labels": [
+        "language syntax"
+      ],
+      "author": "fir",
+      "platform": [
+        "*"
+      ],
+      "tag": "1.0"
+    },
+    {
+      "name": "flowCliE",
+      "details": "https://github.com/yunheli/info",
+      "labels": [
+        "language syntax"
+      ],
+      "author": "fir",
+      "platform": [
+        "*"
+      ],
+      "tag": "1.0"
+    },
+    {
+      "name": "flowCliF",
+      "details": "https://github.com/yunheli/info",
+      "labels": [
+        "language syntax"
+      ],
+      "author": "fir",
+      "platform": [
+        "*"
+      ],
+      "tag": "1.0"
+    }
+  ]
+}

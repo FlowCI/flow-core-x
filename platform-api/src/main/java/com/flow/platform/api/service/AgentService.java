@@ -63,7 +63,7 @@ public interface AgentService {
     void sendSysCmd(AgentPath agentPath);
 
     /**
-     * Handle agent status call back from cc
+     * Handle agent status callback from cc
      */
     void onAgentStatusChange(Agent agent);
 }

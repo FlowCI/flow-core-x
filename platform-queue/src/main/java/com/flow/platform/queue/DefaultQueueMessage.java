@@ -32,7 +32,7 @@ public class DefaultQueueMessage implements PriorityQueueItem {
 
     @Override
     public Integer getPriority() {
-        return null;
+        return priority;
     }
 
     @Override
