@@ -90,8 +90,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     private final List<Processor> processors = ImmutableList.of(
         new InitGitProcessor(),
         new FetchProcessor(),
-        new PushProcessor(),
-        new AnalysisYmlProcessor()
+        new AnalysisYmlProcessor(),
+        new PushProcessor()
     );
 
     @Override
@@ -357,7 +357,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 JGitUtil.checkout(gitClonePath(plugin), MASTER_BRANCH);
 
             } catch (Throwable throwable) {
-
+                throw new PluginException("AnalysisYmlProcessor Exception" + throwable.getMessage());
             }
         }
 
