@@ -46,4 +46,47 @@ public class PluginDetail {
     @Expose
     @YmlSerializer
     private String build;
+
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public List<PluginEnvKey> getInputs() {
+        return inputs;
+    }
+
+    public void setInputs(List<PluginEnvKey> inputs) {
+        this.inputs = inputs;
+    }
+
+    public List<String> getOutputs() {
+        return outputs;
+    }
+
+    public void setOutputs(List<String> outputs) {
+        this.outputs = outputs;
+    }
+
+    public String getRun() {
+        return run;
+    }
+
+    public void setRun(String run) {
+        this.run = run;
+    }
+
+    public String getBuild() {
+        return build;
+    }
+
+    public void setBuild(String build) {
+        this.build = build;
+    }
+
+
 }
