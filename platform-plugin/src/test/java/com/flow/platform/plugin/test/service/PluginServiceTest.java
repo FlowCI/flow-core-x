@@ -43,7 +43,6 @@ public class PluginServiceTest extends TestBase {
 
     protected ApplicationEventMulticaster applicationEventMulticaster;
 
-
     @Before
     public void init() throws Throwable {
         stubDemo();

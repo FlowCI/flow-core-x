@@ -31,7 +31,7 @@ import org.junit.rules.TemporaryFolder;
  */
 public class JGitUtilTest {
 
-    private static final String GIT_URL = "https://github.com/yunheli/info.git";
+    private static final String GIT_URL = "https://github.com/flow-ci-plugin/for-testing.git";
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -63,7 +63,7 @@ public class JGitUtilTest {
 
         // when get tags should get latest tag
         Assert.assertEquals(true, JGitUtil.tags(Git.open(localGitFolder).getRepository()).isEmpty());
-        Assert.assertEquals("2.3.1", JGitUtil.tags(Git.open(onlineGitFolder).getRepository()).get(0));
+        Assert.assertEquals("v1.1", JGitUtil.tags(onlineGitFolder.toPath()).get(0));
     }
 
     @Test
@@ -87,8 +87,8 @@ public class JGitUtilTest {
         // then: tag size is 1
         Assert.assertEquals(1, Git.open(localGitFolder).tagList().call().size());
 
-        // then: tag is 2.3.1
-        Assert.assertEquals("2.3.1", JGitUtil.tags(Git.open(localGitFolder).getRepository()).get(0));
+        // then: tag is v1.1
+        Assert.assertEquals("v1.1", JGitUtil.tags(localGitFolder.toPath()).get(0));
     }
 
     @Test

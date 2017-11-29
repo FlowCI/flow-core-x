@@ -33,13 +33,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration
 @ComponentScan({
     "com.flow.platform.plugin.service",
+    "com.flow.platform.plugin.dao",
     "com.flow.platform.plugin.context"
 })
 public class PluginConfig {
-
-    private final static int QUEUE_MAX_SIZE = 100;
-
-    private final static String PLUGIN_KEY = "plugin";
 
     private final static ThreadPoolTaskExecutor executor = initExecutor();
 

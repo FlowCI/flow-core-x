@@ -19,12 +19,19 @@ package com.flow.platform.plugin.service;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author yh@firim
  */
 public interface PluginService {
+
+    /**
+     * find plugin by name
+     * @param name
+     * @return
+     */
+    Plugin find(String name);
+
 
     /**
      * show plugin list
@@ -54,9 +61,7 @@ public interface PluginService {
     void uninstall(String pluginName);
 
     /**
-     * find plugin by name
-     * @param name
-     * @return
+     * Sync plugin list from github
      */
-    Plugin find(String name);
+    void syncTask();
 }

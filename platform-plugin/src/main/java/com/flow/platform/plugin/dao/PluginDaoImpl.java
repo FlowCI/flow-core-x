@@ -19,7 +19,6 @@ package com.flow.platform.plugin.dao;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.exception.PluginException;
-import com.flow.platform.plugin.service.ApplicationEventService;
 import com.flow.platform.plugin.util.FileUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
@@ -46,7 +45,7 @@ import org.springframework.stereotype.Repository;
  */
 
 @Repository
-public class PluginDaoImpl extends ApplicationEventService implements PluginDao {
+public class PluginDaoImpl implements PluginDao {
 
     private final static String PLUGIN_STORE_FILE = "plugin_cache.json";
 

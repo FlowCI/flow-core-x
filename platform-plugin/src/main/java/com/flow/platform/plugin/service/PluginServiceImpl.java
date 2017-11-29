@@ -194,8 +194,9 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
+    @Override
     @Scheduled(fixedDelay = REFRESH_CACHE_TASK_HEARTBEAT)
-    private void syncTask() {
+    public void syncTask() {
         try {
             LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
             dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.ON_PROGRESS));
