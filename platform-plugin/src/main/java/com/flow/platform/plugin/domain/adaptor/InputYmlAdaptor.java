@@ -20,6 +20,7 @@ import com.flow.platform.plugin.domain.envs.BooleanPluginEnvKey;
 import com.flow.platform.plugin.domain.envs.IntegerPluginEnvKey;
 import com.flow.platform.plugin.domain.envs.ListPluginEnvKey;
 import com.flow.platform.plugin.domain.envs.PluginEnvKey;
+import com.flow.platform.plugin.domain.envs.PluginEnvType;
 import com.flow.platform.plugin.domain.envs.StringPluginEnvKey;
 import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
 import com.google.common.base.Strings;
@@ -82,7 +83,7 @@ public class InputYmlAdaptor extends YmlAdaptor<List<PluginEnvKey>> {
 
         @Override
         public PluginEnvKey handle(Map map) {
-            if (Objects.equals("string", map.get("type"))) {
+            if (Objects.equals(PluginEnvType.STRING.getValue(), map.get("type"))) {
                 return new StringPluginEnvKey(
                     getMapValue(map, "name"),
                     getMapValue(map, "default"),
@@ -98,7 +99,7 @@ public class InputYmlAdaptor extends YmlAdaptor<List<PluginEnvKey>> {
 
         @Override
         public PluginEnvKey handle(Map map) {
-            if (Objects.equals("integer", map.get("type"))) {
+            if (Objects.equals(PluginEnvType.INTEGER.getValue(), map.get("type"))) {
                 return new IntegerPluginEnvKey(
                     getMapValue(map, "name"),
                     integerOfString(getMapValue(map, "default")),
@@ -114,7 +115,7 @@ public class InputYmlAdaptor extends YmlAdaptor<List<PluginEnvKey>> {
 
         @Override
         public PluginEnvKey handle(Map map) {
-            if (Objects.equals("boolean", map.get("type"))) {
+            if (Objects.equals(PluginEnvType.BOOLEAN.getValue(), map.get("type"))) {
                 return new BooleanPluginEnvKey(
                     getMapValue(map, "name"),
                     booleanOfString(getMapValue(map, "default")),
@@ -130,7 +131,7 @@ public class InputYmlAdaptor extends YmlAdaptor<List<PluginEnvKey>> {
 
         @Override
         public PluginEnvKey handle(Map map) {
-            if (Objects.equals("list", map.get("type"))) {
+            if (Objects.equals(PluginEnvType.LIST.getValue(), map.get("type"))) {
                 PluginEnvKey pluginEnvKey = new ListPluginEnvKey(
                     getMapValue(map, "name"),
                     getMapValue(map, "default"),

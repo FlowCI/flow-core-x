@@ -20,8 +20,22 @@ package com.flow.platform.plugin.domain.envs;
  * @author yh@firim
  */
 public enum PluginEnvType {
-    STRING,
-    INTEGER,
-    BOOLEAN,
-    LIST
+
+    STRING("string"),
+
+    INTEGER("integer"),
+
+    BOOLEAN("boolean"),
+
+    LIST("list");
+
+    private String value;
+
+    PluginEnvType(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
 }
