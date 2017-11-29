@@ -21,7 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
-import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.agent.AgentItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
@@ -30,7 +30,6 @@ import com.flow.platform.api.service.AgentService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.domain.Agent;
-import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Jsonable;
 import com.google.common.collect.Lists;
@@ -65,7 +64,7 @@ public class AgentServiceTest extends TestBase {
         createMockJobWithResult(sessionId, NodeStatus.TIMEOUT);
 
         // when:
-        List<AgentWithFlow> list = agentService.list();
+        List<AgentItem> list = agentService.listItems();
         Assert.assertNotNull(list);
         Assert.assertEquals(1, list.size());
 
@@ -74,7 +73,7 @@ public class AgentServiceTest extends TestBase {
 
         // when: set a job in running status
         createMockJobWithResult(sessionId, NodeStatus.RUNNING);
-        list = agentService.list();
+        list = agentService.listItems();
         Assert.assertNotNull(list);
 
         // then: should has flow info

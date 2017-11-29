@@ -16,6 +16,7 @@
 
 package com.flow.platform.cmd;
 
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
@@ -282,14 +283,14 @@ public final class CmdExecutor {
         return () -> {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
                 for (String cmd : cmdList) {
-                    writer.write(cmd + "\n");
+                    writer.write(cmd + Cmd.NEW_LINE);
                     writer.flush();
                 }
 
                 // find env and set to result output if output filter is not null or empty
                 if (!Strings.isNullOrEmpty(outputEnvFilter)) {
-                    writer.write(String.format("echo %s\n", endTerm));
-                    writer.write("env\n");
+                    writer.write(String.format("echo %s" + Cmd.NEW_LINE, endTerm));
+                    writer.write("env" + Cmd.NEW_LINE);
                     writer.flush();
                 }
 
@@ -357,12 +358,40 @@ public final class CmdExecutor {
                          final Map<String, String> output,
                          final String filter) throws IOException {
         String line;
+        String currentKey = null;
+        StringBuilder value = null;
+
         while ((line = reader.readLine()) != null) {
+            int index = line.indexOf('=');
+
+            // reset value builder and current key
+            if (index != -1 && !line.startsWith(filter)) {
+                if (value != null && currentKey != null) {
+                    output.put(currentKey, value.toString());
+                }
+
+                currentKey = null;
+                value = null;
+                continue;
+            }
+
             if (line.startsWith(filter)) {
-                int index = line.indexOf('=');
-                String key = line.substring(0, index);
-                String value = line.substring(index + 1);
-                output.put(key, value);
+
+                // put previous env to output and reset
+                if (value != null && currentKey != null) {
+                    output.put(currentKey, value.toString());
+                    value = null;
+                    currentKey = null;
+                }
+
+                value = new StringBuilder();
+                currentKey = line.substring(0, index);
+                value.append(line.substring(index + 1));
+                continue;
+            }
+
+            if (index == -1 && value != null) {
+                value.append(Cmd.NEW_LINE + line);
             }
         }
     }

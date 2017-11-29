@@ -34,7 +34,7 @@ public class PathUtil {
 
     private final static int MAX_DEPTH = 10;
 
-    private final static Range<Integer> NAME_LENGTH_RANGE = Range.closed(2, 100);
+    private final static Range<Integer> NAME_LENGTH_RANGE = Range.closed(1, 100);
 
     private PathUtil() {
 
