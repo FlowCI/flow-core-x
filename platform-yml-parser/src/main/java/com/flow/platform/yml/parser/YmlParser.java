@@ -61,6 +61,17 @@ public class YmlParser {
      * @return T instance
      */
     public static <T> T fromYml(String str, Type typeOfT) {
+        Map result = ymlToMap(str);
+        return fromObject(result.get("flow"), typeOfT);
+    }
+
+
+    /**
+     * Yml To Map
+     * @param str
+     * @return
+     */
+    public static Map ymlToMap(String str) {
         Map result;
         try {
             YamlReader yamlReader = new YamlReader(str, yamlConfig);
@@ -68,7 +79,7 @@ public class YmlParser {
         } catch (Throwable throwable) {
             throw new YmlParseException(YML_ILLEGAL_MESSAGE);
         }
-        return fromObject(result.get("flow"), typeOfT);
+        return result;
     }
 
     /**
