@@ -17,10 +17,12 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.job.JobDao;
-import com.flow.platform.api.domain.AgentWithFlow;
+import com.flow.platform.api.domain.agent.AgentItem;
+import com.flow.platform.api.domain.agent.AgentSync;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
+import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.api.events.AgentStatusChangeEvent;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.api.service.job.JobService;
@@ -44,10 +46,11 @@ import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonSyntaxException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.http.entity.ContentType;
@@ -81,11 +84,14 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     @Autowired
     private JobService jobService;
 
+    @Autowired
+    private SyncService syncService;
+
     @Value(value = "${domain.api}")
     private String apiDomain;
 
     @Override
-    public List<AgentWithFlow> list() {
+    public List<Agent> list() {
         HttpResponse<String> response = HttpClient.build(platformURL.getAgentUrl())
             .get()
             .retry(httpRetryTimes)
@@ -96,12 +102,18 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
         }
 
         Agent[] agents = Jsonable.GSON_CONFIG.fromJson(response.getBody(), Agent[].class);
+        return Lists.newArrayList(agents);
+    }
+
+    @Override
+    public List<AgentItem> listItems() {
+        List<Agent> agents = list();
 
         // get all session id from agent collection
         List<String> sessionIds = CollectionUtil.toPropertyList("sessionId", agents);
 
         // get all running jobs from agent sessions
-        List<Job> jobs = new ArrayList<>(0);
+        List<Job> jobs = Collections.emptyList();
         if (!CollectionUtil.isNullOrEmpty(sessionIds)) {
             jobs = jobDao.list(sessionIds, NodeStatus.RUNNING);
         }
@@ -109,33 +121,44 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
         // convert to session - job map
         Map<String, Job> sessionJobMap = CollectionUtil.toPropertyMap("sessionId", jobs);
         if (CollectionUtil.isNullOrEmpty(sessionJobMap)) {
-            sessionJobMap = new HashMap<>(0);
+            sessionJobMap = Collections.emptyMap();
         }
 
-        // build result list
-        List<AgentWithFlow> agentWithFlows = new ArrayList<>(agents.length);
+        // build agent item list
+        List<AgentItem> list = new ArrayList<>(agents.size());
+
         for (Agent agent : agents) {
+            // add offline agent
             if (agent.getStatus() == AgentStatus.OFFLINE){
-                agentWithFlows.add(new AgentWithFlow(agent, null));
+                list.add(new AgentItem(agent, null));
                 continue;
             }
 
-            String sessionIdFromAgent = agent.getSessionId();
-
-            if (Strings.isNullOrEmpty(sessionIdFromAgent)) {
-                agentWithFlows.add(new AgentWithFlow(agent, null));
+            // add agent without session id
+            if (Strings.isNullOrEmpty(agent.getSessionId())) {
+                list.add(new AgentItem(agent, null));
                 continue;
             }
 
-            Job job = sessionJobMap.get(sessionIdFromAgent);
-            if (job == null) {
-                agentWithFlows.add(new AgentWithFlow(agent, null));
+            // add agent which related a job by session id
+            Job job = sessionJobMap.get(agent.getSessionId());
+            if (job != null) {
+                list.add(new AgentItem(agent, job));
                 continue;
             }
 
-            agentWithFlows.add(new AgentWithFlow(agent, job));
+            // add agent which related sync task by agent path
+            SyncTask syncTask = syncService.getSyncTask(agent.getPath());
+            if (syncTask != null) {
+                AgentItem item = new AgentItem(agent, null);
+                item.setSync(new AgentSync(syncTask.getTotal(), syncTask.getSyncQueue().size()));
+                list.add(item);
+            }
+
+            list.add(new AgentItem(agent, null));
         }
-        return agentWithFlows;
+
+        return list;
     }
 
     @Override
@@ -161,7 +184,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     }
 
     @Override
-    public AgentWithFlow create(AgentPath agentPath) {
+    public AgentItem create(AgentPath agentPath) {
         if (StringUtil.hasSpace(agentPath.getZone()) || StringUtil.hasSpace(agentPath.getName())) {
             throw new IllegalParameterException("Zone name or agent name cannot contain empty space");
         }
@@ -180,7 +203,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
             }
 
             Agent agent = Agent.parse(response.getBody(), Agent.class);
-            return new AgentWithFlow(agent, null);
+            return new AgentItem(agent, null);
 
         } catch (UnsupportedEncodingException | JsonSyntaxException e) {
             throw new IllegalStatusException("Unable to create agent", e);
@@ -221,7 +244,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     @Override
     public void sendSysCmd(AgentPath agentPath) {
         CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.SYSTEM_INFO, "");
-        cmdService.sendCmd(agentPath, cmdInfo);
+        cmdService.sendCmd(cmdInfo, false, 0);
     }
 
     private String buildAgentWebhook() {
@@ -259,7 +282,21 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     @Override
     public void onAgentStatusChange(Agent agent) {
         this.dispatchEvent(new AgentStatusChangeEvent(this, agent));
+        handleAgentOnSyncService(agent);
+        handleAgentOnJobService(agent);
+    }
 
+    private void handleAgentOnSyncService(final Agent agent) {
+        if (agent.getStatus() == AgentStatus.IDLE) {
+            syncService.register(agent.getPath());
+        }
+
+        else if (agent.getStatus() == AgentStatus.OFFLINE) {
+            syncService.remove(agent.getPath());
+        }
+    }
+
+    private void handleAgentOnJobService(final Agent agent) {
         // do not check related job if agent status not offline
         if (agent.getStatus() != AgentStatus.OFFLINE) {
             return;

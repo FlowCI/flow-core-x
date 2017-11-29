@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.queue;
+package com.flow.platform.plugin.exception;
 
 /**
- * @author yang
+ * @author yh@firim
  */
-public interface QueueListener<T> {
+public class PluginException extends RuntimeException {
 
-    void onQueueItem(T item);
+    public PluginException(String message) {
+        super(message);
+    }
 
+    public PluginException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

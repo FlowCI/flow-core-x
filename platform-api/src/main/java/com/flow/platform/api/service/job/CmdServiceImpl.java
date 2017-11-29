@@ -71,7 +71,7 @@ public class CmdServiceImpl implements CmdService {
 
         // create session
         try {
-            Cmd cmd = sendToQueue(cmdInfo, retry);
+            Cmd cmd = sendToQueue(cmdInfo, 1, retry);
 
             if (Strings.isNullOrEmpty(cmd.getSessionId())) {
                 throw new IllegalStatusException("Invalid session id");
@@ -109,7 +109,7 @@ public class CmdServiceImpl implements CmdService {
         cmdInfo.setSessionId(job.getSessionId());
         cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
         cmdInfo.setCustomizedId(cmdId);
-        cmdInfo.setWorkingDir(envVars.getEnv(AgentEnvs.FLOW_AGENT_WORKSPACE, null));
+        cmdInfo.setWorkingDir(envVars.getEnv(AgentEnvs.FLOW_AGENT_WORKSPACE, DEFAULT_CMD_DIR));
 
         try {
             LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());
@@ -152,10 +152,13 @@ public class CmdServiceImpl implements CmdService {
     }
 
     @Override
-    public void sendCmd(AgentPath agentPath, CmdInfo cmdInfo) {
+    public Cmd sendCmd(CmdInfo cmdInfo, boolean inQueue, int priority) {
         try {
-            LOGGER.traceMarker("sendCmd", "send sys cmd ");
-            sendDirectly(cmdInfo);
+            if (inQueue) {
+                return sendToQueue(cmdInfo, priority, 5);
+            }
+
+            return sendDirectly(cmdInfo);
         } catch (Throwable e) {
             String rootCause = ExceptionUtil.findRootCause(e).getMessage();
             throw new IllegalStatusException("Unable to send cmd since: " + rootCause);
@@ -185,20 +188,22 @@ public class CmdServiceImpl implements CmdService {
      * @throws HttpException
      * @throws IllegalStatusException
      */
-    private Cmd sendToQueue(CmdInfo cmdInfo, Integer retry) {
-        final StringBuilder stringBuilder = new StringBuilder(platformURL.getQueueUrl());
-        stringBuilder.append("?priority=1&retry=").append(retry);
+    private Cmd sendToQueue(CmdInfo cmdInfo, int priority, int retry) {
+        final String url = HttpURL.build(platformURL.getQueueUrl())
+            .withParam("priority", Integer.toString(priority))
+            .withParam("retry", Integer.toString(retry))
+            .toString();
 
         try {
 
-            HttpResponse<String> response = HttpClient.build(stringBuilder.toString())
+            HttpResponse<String> response = HttpClient.build(url)
                 .post(cmdInfo.toJson())
                 .withContentType(ContentType.APPLICATION_JSON)
                 .retry(httpRetryTimes)
                 .bodyAsString();
 
             if (!response.hasSuccess()) {
-                final String message = "Create session cmd to queue failure for url: %s" + stringBuilder;
+                final String message = "Create session cmd to queue failure for url: " + url;
                 throw new HttpException(message);
             }
 
