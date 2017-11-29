@@ -326,6 +326,21 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
+    private class AnalysisYmlProcessor implements Processor {
+
+        @Override
+        public void exec(Plugin plugin) {
+            // first checkout plugin tag
+
+        }
+
+        @Override
+        public void clean(Plugin plugin) {
+
+        }
+
+    }
+
     private class PushProcessor implements Processor {
 
         @Override

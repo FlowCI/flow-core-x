@@ -64,6 +64,9 @@ public class Plugin implements Comparable {
     @Expose
     private String reason;
 
+    @Expose
+    private PluginDetail pluginDetail;
+
     public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
         this.name = name;
         this.details = details;

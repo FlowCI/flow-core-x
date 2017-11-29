@@ -165,6 +165,14 @@ public class JGitUtil {
         return path;
     }
 
+
+    /**
+     * fetch tags from remote
+     * @param path
+     * @param remoteName
+     * @return
+     * @throws GitException
+     */
     public static Path fetchTags(Path path, String remoteName) throws GitException {
         try (Git git = Git.open(path.toFile())) {
             git.pull()
