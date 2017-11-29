@@ -47,9 +47,6 @@ public class PluginEventConsumer implements ApplicationListener<PluginStatusChan
                 syncType = SyncType.CREATE;
                 break;
 
-            case UPDATE:
-                syncType = SyncType.UPDATE;
-
             case DELETE:
                 syncType = SyncType.DELETE;
                 break;

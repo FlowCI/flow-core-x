@@ -19,7 +19,7 @@ package com.flow.platform.api.controller;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
-import com.flow.platform.plugin.service.PluginStoreService;
+import com.flow.platform.plugin.dao.PluginDao;
 import java.util.Collection;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +42,16 @@ public class PluginController {
     private PluginService pluginService;
 
     @Autowired
-    private PluginStoreService pluginStoreService;
+    private PluginDao pluginStoreService;
 
     @GetMapping
     public Collection<Plugin> index() {
         return pluginService.list();
+    }
+
+    @GetMapping("/{name}")
+    public Plugin get(@PathVariable String name) {
+        return pluginService.find(name);
     }
 
     @PostMapping("/sync")
@@ -56,7 +61,7 @@ public class PluginController {
 
     @PostMapping("/install")
     public void install(@RequestParam String name) {
-        if(Objects.isNull(name)){
+        if (Objects.isNull(name)) {
             throw new IllegalParameterException("plugin name is null");
         }
         pluginService.install(name);
@@ -64,7 +69,7 @@ public class PluginController {
 
     @DeleteMapping("/uninstall")
     public void uninstall(@RequestParam String name) {
-        if(Objects.isNull(name)){
+        if (Objects.isNull(name)) {
             throw new IllegalParameterException("plugin name is null");
         }
         pluginService.uninstall(name);
@@ -72,7 +77,7 @@ public class PluginController {
 
     @PostMapping("/{name}/stop")
     public void stop(@PathVariable String name) {
-        if(Objects.isNull(name)){
+        if (Objects.isNull(name)) {
             throw new IllegalParameterException("plugin name is null");
         }
         pluginService.stop(name);

@@ -14,30 +14,29 @@
  * limitations under the License.
  */
 
-package com.flow.platform.plugin.service;
+package com.flow.platform.plugin.dao;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
-import java.util.Collection;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
-public interface PluginStoreService {
+public interface PluginDao {
 
     /**
      * list all plugins
      * @return
      */
-    Collection<Plugin> list(PluginStatus... statuses);
+    List<Plugin> list(PluginStatus... status);
 
     /**
      * find plugin
      * @param name
      * @return
      */
-    Plugin find(String name);
+    Plugin get(String name);
 
     /**
      * update plugin
