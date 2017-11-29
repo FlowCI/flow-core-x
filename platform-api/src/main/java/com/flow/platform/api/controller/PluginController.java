@@ -56,7 +56,7 @@ public class PluginController {
 
     @PostMapping("/install")
     public void install(@RequestParam String name) {
-        if(Objects.isNull(name)){
+        if (Objects.isNull(name)) {
             throw new IllegalParameterException("plugin name is null");
         }
         pluginService.install(name);
@@ -64,7 +64,7 @@ public class PluginController {
 
     @DeleteMapping("/uninstall")
     public void uninstall(@RequestParam String name) {
-        if(Objects.isNull(name)){
+        if (Objects.isNull(name)) {
             throw new IllegalParameterException("plugin name is null");
         }
         pluginService.uninstall(name);
@@ -72,7 +72,7 @@ public class PluginController {
 
     @PostMapping("/{name}/stop")
     public void stop(@PathVariable String name) {
-        if(Objects.isNull(name)){
+        if (Objects.isNull(name)) {
             throw new IllegalParameterException("plugin name is null");
         }
         pluginService.stop(name);

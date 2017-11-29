@@ -41,11 +41,6 @@ public enum PluginStatus {
     INSTALLED,
 
     /**
-     * plugin update
-     */
-    UPDATE,
-
-    /**
      * plugin delete
      */
     DELETE

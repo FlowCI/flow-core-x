@@ -126,13 +126,9 @@ public class PluginServiceTest extends TestBase {
         cleanFolder("flowCliE");
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        applicationEventMulticaster.addApplicationListener(new ApplicationListener<PluginStatusChangeEvent>() {
-
-            @Override
-            public void onApplicationEvent(PluginStatusChangeEvent event) {
-                if (ImmutableMultiset.of(PluginStatus.INSTALLING).contains(event.getPluginStatus())) {
-                    countDownLatch.countDown();
-                }
+        applicationEventMulticaster.addApplicationListener((ApplicationListener<PluginStatusChangeEvent>) event -> {
+            if (ImmutableMultiset.of(PluginStatus.INSTALLING).contains(event.getPluginStatus())) {
+                countDownLatch.countDown();
             }
         });
 

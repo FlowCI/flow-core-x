@@ -25,6 +25,7 @@ import com.flow.platform.plugin.util.FileUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -32,7 +33,6 @@ import com.google.gson.annotations.SerializedName;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -103,17 +103,17 @@ public class PluginStoreServiceImpl extends ApplicationEventService implements P
     }
 
     @Override
-    public Collection<Plugin> list(PluginStatus... statuses) {
+    public List<Plugin> list(PluginStatus... status) {
         // statues length is 0
-        if (Objects.equals(0, statuses.length)) {
-            return pluginCache.values();
+        if (Objects.equals(0, status.length)) {
+            return Lists.newArrayList(pluginCache.values());
         }
 
         List<Plugin> list = new LinkedList<>();
 
-        for (PluginStatus status : statuses) {
+        for (PluginStatus item : status) {
             pluginCache.forEach((name, plugin) -> {
-                if (Objects.equals(status, plugin.getStatus())) {
+                if (Objects.equals(item, plugin.getStatus())) {
                     list.add(plugin);
                 }
             });

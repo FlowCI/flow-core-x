@@ -289,7 +289,7 @@ public class AgentController {
     }
 
     /**
-     * @api {Get} /agents/sync Sync Info
+     * @api {Post} /agents/sync/info Sync Info
      * @apiName Sync Info
      * @apiGroup Agent
      * @apiDescription Get sync info of agent
@@ -324,7 +324,7 @@ public class AgentController {
      *         "message": xxx
      *     }
      */
-    @GetMapping(path = "/sync")
+    @PostMapping(path = "/sync/info")
     @WebSecurity(action = Actions.ADMIN_SHOW)
     public Sync getSyncInfo(@RequestBody AgentPath agentPath) {
         return syncService.get(agentPath);

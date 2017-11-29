@@ -92,7 +92,8 @@ public class JGitUtil {
     }
 
     /**
-     * list all tag from local git
+     * List all tag from local git
+     *
      * @param repo
      * @return
      * @throws GitException
@@ -104,8 +105,19 @@ public class JGitUtil {
         return simpleRef(refs);
     }
 
+    public static List<String> tags(Path gitPath) throws GitException {
+        try (Git git = Git.open(gitPath.toFile())) {
+            try (Repository repo = git.getRepository()) {
+                return tags(repo);
+            }
+        } catch (IOException e) {
+            throw new GitException(e.getMessage());
+        }
+    }
+
     /**
-     * clone code to folder
+     * Clone code to folder
+     *
      * @param gitUrl
      * @param targetDir
      * @return
@@ -125,7 +137,8 @@ public class JGitUtil {
     }
 
     /**
-     * push code to remote repo
+     * Push code to remote repo
+     *
      * @param path
      * @param remote
      * @param branchOrTag
@@ -146,7 +159,8 @@ public class JGitUtil {
     }
 
     /**
-     * setting remote url to local repo
+     * Setting remote url to local repo
+     *
      * @param path
      * @param remoteName
      * @param remoteUrl
@@ -167,8 +181,9 @@ public class JGitUtil {
 
     public static Path fetchTags(Path path, String remoteName) throws GitException {
         try (Git git = Git.open(path.toFile())) {
-            git.pull()
+            git.fetch()
                 .setRemote(remoteName)
+                .setRefSpecs(new RefSpec("refs/tags/*:refs/tags/*"))
                 .setTagOpt(TagOpt.FETCH_TAGS)
                 .call();
         } catch (Throwable throwable) {

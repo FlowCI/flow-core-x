@@ -18,7 +18,6 @@ package com.flow.platform.plugin.service;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,7 +29,7 @@ public interface PluginStoreService {
      * list all plugins
      * @return
      */
-    Collection<Plugin> list(PluginStatus... statuses);
+    List<Plugin> list(PluginStatus... status);
 
     /**
      * find plugin

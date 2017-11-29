@@ -16,7 +16,6 @@
 
 package com.flow.platform.plugin.test.util;
 
-import com.flow.platform.plugin.util.GitHelperUtil;
 import com.flow.platform.util.git.JGitUtil;
 import java.io.File;
 import java.nio.file.Files;
@@ -64,7 +63,7 @@ public class GitHelperUtilTest {
         JGitUtil.clone(gitUrl, gitFile.toPath());
 
         // then should get latest tag
-        Assert.assertEquals("1.0", GitHelperUtil.getLatestTag(gitFile.toPath()));
+        Assert.assertEquals("1.0", JGitUtil.tags(gitFile.toPath()).get(0));
 
     }
 
