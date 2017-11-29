@@ -16,6 +16,7 @@
 
 package com.flow.platform.plugin.domain.envs;
 
+import com.google.gson.annotations.Expose;
 import java.util.List;
 
 /**
@@ -23,14 +24,19 @@ import java.util.List;
  */
 public class PluginEnvKey<T> {
 
+    @Expose
     private String name;
 
+    @Expose
     private PluginEnvType type;
 
+    @Expose
     private T defaultValue;
 
+    @Expose
     private Boolean required;
 
+    @Expose
     private List<String> values;
 
     public PluginEnvKey(String name, PluginEnvType type, T defaultValue, Boolean required) {

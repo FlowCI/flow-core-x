@@ -19,6 +19,7 @@ package com.flow.platform.plugin.domain;
 import com.flow.platform.plugin.domain.adaptor.InputAdaptor;
 import com.flow.platform.plugin.domain.envs.PluginEnvKey;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
+import com.google.gson.annotations.Expose;
 import java.util.List;
 
 /**
@@ -26,18 +27,23 @@ import java.util.List;
  */
 public class PluginDetail {
 
+    @Expose
     @YmlSerializer
     private String language;
 
+    @Expose
     @YmlSerializer(adaptor = InputAdaptor.class)
     private List<PluginEnvKey> inputs;
 
+    @Expose
     @YmlSerializer
     private List<String> outputs;
 
+    @Expose
     @YmlSerializer
     private String run;
 
+    @Expose
     @YmlSerializer
     private String build;
 }
