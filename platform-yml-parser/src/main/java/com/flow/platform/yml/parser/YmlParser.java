@@ -42,14 +42,14 @@ public class YmlParser {
         yamlConfig.writeConfig.setWriteClassname(WriteClassName.NEVER);
     }
 
-    private static <T> T fromObject(Object o, Type typeOfT) {
+    public static <T> T fromObject(Object o, Type typeOfT) {
         if (o == null) {
             throw new YmlParseException(YML_ILLEGAL_MESSAGE);
         }
         return (T) TypeAdaptorFactory.getAdaptor(typeOfT).read(o);
     }
 
-    private static <T> Object toObject(T t) {
+    public static <T> Object toObject(T t) {
         return TypeAdaptorFactory.getAdaptor(t.getClass()).write(t);
     }
 

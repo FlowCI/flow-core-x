@@ -97,7 +97,7 @@ public abstract class TestBase {
                 .willReturn(aResponse().withStatus(200).withBody(getResource("repos_demo.json"))));
     }
 
-    private String getResource(String fileName) throws IOException {
+    protected String getResource(String fileName) throws IOException {
         Path path = Paths.get(TestBase.class.getClassLoader().getResource(fileName).getPath());
         return Files.toString(path.toFile(), Charsets.UTF_8);
     }

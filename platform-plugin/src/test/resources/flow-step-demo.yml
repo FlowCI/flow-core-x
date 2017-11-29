@@ -1,0 +1,33 @@
+name: fir-cli
+description: Posts Wercker build/deploy status to a Slack channel.
+language: java
+inputs:
+  - name: username
+    type: string
+    default: admin
+    required: true
+  - name: password
+    type: string
+    required: true
+  - name: age
+    type: integer
+    required: true
+  - name: isMarried
+    type: boolean
+    required: true
+    default: true
+  - name: cities
+    type: list
+    required: false
+    values:
+      - beijing
+      - shanghai
+      - nanjing
+    default: beijing
+outputs:
+  - USER_NAME
+  - PASSWORD
+run: |
+  bash ./run.sh
+build: |
+  mvn clean build -dist=xxxx
