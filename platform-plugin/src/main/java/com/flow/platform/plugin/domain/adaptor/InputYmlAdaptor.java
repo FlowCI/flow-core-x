@@ -29,22 +29,23 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.eclipse.jgit.util.BlockList;
 
 /**
  * @author yh@firim
  */
-public class InputAdaptor extends YmlAdaptor<ArrayList<PluginEnvKey>> {
+public class InputYmlAdaptor extends YmlAdaptor<ArrayList<PluginEnvKey>> {
 
-    private final static Collection<Adaptor> adaptors = ImmutableSet.of(
-        new StringAdaptor(),
-        new IntegerAdaptor(),
-        new BooleanAdaptor(),
-        new ListAdaptor()
+    private final static Collection<Factory> factories = ImmutableSet.of(
+        new StringFactory(),
+        new IntegerFactory(),
+        new BooleanFactory(),
+        new ListFactory()
     );
 
     private static PluginEnvKey handle(Map map) {
         PluginEnvKey pluginEnvKey = null;
-        for (Adaptor adaptor : adaptors) {
+        for (Factory adaptor : factories) {
             pluginEnvKey = adaptor.handle(map);
             if (!Objects.isNull(pluginEnvKey)) {
                 break;
@@ -55,10 +56,13 @@ public class InputAdaptor extends YmlAdaptor<ArrayList<PluginEnvKey>> {
 
     @Override
     public ArrayList<PluginEnvKey> read(Object o) {
-        ArrayList<Map> maps = (ArrayList<Map>) o;
-        List<PluginEnvKey> list = new ArrayList<>();
-        for (Map map : maps) {
-            list.add(handle(map));
+        List<PluginEnvKey> list = new BlockList<>();
+
+        for (Map map : (ArrayList<Map>) o) {
+            PluginEnvKey pluginEnvKey = handle(map);
+            if (!Objects.isNull(pluginEnvKey)) {
+                list.add(handle(map));
+            }
         }
 
         return (ArrayList<PluginEnvKey>) list;
@@ -69,12 +73,12 @@ public class InputAdaptor extends YmlAdaptor<ArrayList<PluginEnvKey>> {
         return null;
     }
 
-    private interface Adaptor {
+    private interface Factory {
 
         PluginEnvKey handle(Map map);
     }
 
-    private static class StringAdaptor implements Adaptor {
+    private static class StringFactory implements Factory {
 
         @Override
         public PluginEnvKey handle(Map map) {
@@ -90,7 +94,7 @@ public class InputAdaptor extends YmlAdaptor<ArrayList<PluginEnvKey>> {
         }
     }
 
-    private static class IntegerAdaptor implements Adaptor {
+    private static class IntegerFactory implements Factory {
 
         @Override
         public PluginEnvKey handle(Map map) {
@@ -106,7 +110,7 @@ public class InputAdaptor extends YmlAdaptor<ArrayList<PluginEnvKey>> {
         }
     }
 
-    private static class BooleanAdaptor implements Adaptor {
+    private static class BooleanFactory implements Factory {
 
         @Override
         public PluginEnvKey handle(Map map) {
@@ -122,7 +126,7 @@ public class InputAdaptor extends YmlAdaptor<ArrayList<PluginEnvKey>> {
         }
     }
 
-    private static class ListAdaptor implements Adaptor {
+    private static class ListFactory implements Factory {
 
         @Override
         public PluginEnvKey handle(Map map) {

@@ -17,7 +17,6 @@
 package com.flow.platform.plugin.util;
 
 import com.esotericsoftware.yamlbeans.YamlConfig;
-import com.esotericsoftware.yamlbeans.YamlReader;
 import com.flow.platform.yml.parser.YmlParser;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -30,12 +29,7 @@ public class YmlUtil {
     private final static YamlConfig yamlConfig = new YamlConfig();
 
     public static <T> T fromYml(String yml, Type type) {
-        Map result = null;
-        try {
-            YamlReader yamlReader = new YamlReader(yml, yamlConfig);
-            result = (Map) yamlReader.read();
-        } catch (Throwable throwable) {
-        }
+        Map result = YmlParser.ymlToMap(yml);
         return YmlParser.fromObject(result, type);
     }
 }
