@@ -83,8 +83,9 @@ public class SecurityTest extends TestBase {
         permissionService.assign(ymlOperator, Sets.newHashSet(actionService.find(Actions.FLOW_YML.name())));
 
         // init mock user
-        userForAdmin = userService.initSysUser(new User("test1@flow.ci", "test1", password),
+        userForAdmin = userService.register(new User("test1@flow.ci", "test1", password),
             ImmutableList.of(SysRole.ADMIN.name()),
+            false,
             ImmutableList.of("flow2"));
 
         userForUser = userService.register(new User("test2@flow.ci", "test2", password),

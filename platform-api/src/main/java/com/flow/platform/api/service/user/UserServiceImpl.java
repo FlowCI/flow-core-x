@@ -131,9 +131,6 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     @Override
     public User register(User user, List<String> roles, boolean isSendEmail, List<String> flowsList) {
         String errMsg = "Illegal register request parameter: ";
-
-        String originPassword = user.getPassword();
-
         // check user params is legal
         checkUserInfoIsLegal(user);
 
@@ -148,9 +145,10 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             throw new IllegalParameterException(errMsg + "username already exist");
         }
 
+        String originPassword = user.getPassword();
+
         // Insert the user info into the database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
-        user.setPassword(passwordForMD5);
+        user.setPassword(encodePassword(user.getPassword()));
         user.setCreatedBy(currentUser().getEmail());
         user = userDao.save(user);
 
@@ -163,33 +161,14 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         return user;
     }
 
-    public User initSysUser(User user, List<String> roles, List<String> flowsList) {
-
-        // check user params is legal
-        checkUserInfoIsLegal(user);
-
-        User existed = userDao.getByUsername(user.getUsername());
-        if (existed != null) {
-            // if password not equal , update password
-            checkPasswordAndUpdatePassword(existed, user.getPassword());
-            return existed;
+    @Override
+    public void changePassword(User user, String oldPassword, String newPassword) {
+        if (oldPassword != null && !Objects.equals(user.getPassword(), encodePassword(oldPassword))) {
+            throw new IllegalParameterException("The old password input is incorrect");
         }
 
-        // Validate database
-        existed = userDao.get(user.getEmail());
-        if (existed != null) {
-            return existed;
-        }
-
-        // Insert the user info into the database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
-        user.setPassword(passwordForMD5);
-        user.setCreatedBy(currentUser().getEmail());
-        user = userDao.save(user);
-
-        assignRoleToUser(user, roles, flowsList);
-
-        return user;
+        user.setPassword(encodePassword(newPassword));
+        userDao.update(user);
     }
 
     @Override
@@ -242,6 +221,10 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     @Override
     public Long usersCount() {
         return userDao.count();
+    }
+
+    private String encodePassword(String password) {
+        return StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
     }
 
     /**

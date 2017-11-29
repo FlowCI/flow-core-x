@@ -80,9 +80,8 @@ public class UserServiceTest extends TestBase {
     }
 
     @Test
-    public void should_init_sys_user_success() {
-
-        // init role
+    public void should_init_user_and_then_change_password() {
+        // given: init role
         for (SysRole role : SysRole.values()) {
             try {
                 roleService.create(role.name(), "System default role");
@@ -91,30 +90,25 @@ public class UserServiceTest extends TestBase {
             }
         }
 
+        // when: init sys user
         User superUser = new User();
         superUser.setUsername("willadmin");
         superUser.setEmail("yh@fir.im");
         superUser.setPassword("123456");
-        // when init sys user
-        userService.initSysUser(superUser, ImmutableList.of(SysRole.ADMIN.name()), Collections.emptyList());
-        User user = userDao.getByUsername("willadmin");
+        userService.register(superUser, ImmutableList.of(SysRole.ADMIN.name()), false, Collections.emptyList());
 
         // then: user is not null
+        User user = userDao.getByUsername("willadmin");
         Assert.assertNotNull(user);
-
-        // then: email is equal
         Assert.assertEquals("yh@fir.im", user.getEmail());
 
         // when: update password
         superUser.setPassword("qwertyui");
-        userService.initSysUser(superUser, ImmutableList.of(SysRole.ADMIN.name()), Collections.emptyList());
-
-        user = userDao.getByUsername("willadmin");
-        Assert.assertNotNull(user);
-        Assert.assertEquals("yh@fir.im", user.getEmail());
-        Assert.assertEquals("willadmin", user.getUsername());
+        User exist = userService.findByEmail(superUser.getEmail());
+        userService.changePassword(exist, "123456", superUser.getPassword());
 
         // then: password is equal
+        user = userDao.getByUsername("willadmin");
         Assert.assertEquals(StringEncodeUtil.encodeByMD5("qwertyui", AppConfig.DEFAULT_CHARSET.name()),
             user.getPassword());
     }
