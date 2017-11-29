@@ -16,7 +16,7 @@
 
 package com.flow.platform.plugin.context;
 
-import com.flow.platform.plugin.service.PluginStoreService;
+import com.flow.platform.plugin.dao.PluginDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 public class PluginContextCloseHandler implements ApplicationListener<ContextClosedEvent> {
 
     @Autowired
-    private PluginStoreService pluginStoreService;
+    private PluginDao pluginStoreService;
 
     @Autowired
     private ThreadPoolTaskExecutor pluginPoolExecutor;

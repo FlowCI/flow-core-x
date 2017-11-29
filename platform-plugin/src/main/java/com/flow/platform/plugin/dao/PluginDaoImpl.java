@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.flow.platform.plugin.service;
+package com.flow.platform.plugin.dao;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
-import com.flow.platform.plugin.event.PluginRefreshEvent;
-import com.flow.platform.plugin.event.PluginRefreshEvent.Status;
 import com.flow.platform.plugin.exception.PluginException;
+import com.flow.platform.plugin.service.ApplicationEventService;
 import com.flow.platform.plugin.util.FileUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
@@ -40,21 +39,18 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author yh@firim
  */
 
-@Service
-public class PluginStoreServiceImpl extends ApplicationEventService implements PluginStoreService {
+@Repository
+public class PluginDaoImpl extends ApplicationEventService implements PluginDao {
 
     private final static String PLUGIN_STORE_FILE = "plugin_cache.json";
 
-    private final static Logger LOGGER = new Logger(PluginStoreService.class);
-
-    private final static int REFRESH_CACHE_TASK_HEARTBEAT = 2 * 60 * 60 * 1000;
+    private final static Logger LOGGER = new Logger(PluginDao.class);
 
     private final static Gson GSON = new GsonBuilder().create();
 
@@ -98,7 +94,7 @@ public class PluginStoreServiceImpl extends ApplicationEventService implements P
     }
 
     @Override
-    public Plugin find(String name) {
+    public Plugin get(String name) {
         return pluginCache.get(name);
     }
 
@@ -131,20 +127,6 @@ public class PluginStoreServiceImpl extends ApplicationEventService implements P
     @Override
     public void dumpCacheToFile() {
         FileUtil.write(pluginCache, storePath);
-    }
-
-    @Scheduled(fixedDelay = REFRESH_CACHE_TASK_HEARTBEAT)
-    private void scheduleRefreshCache() {
-        try {
-            LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
-            dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.ON_PROGRESS));
-            refreshCache();
-        } catch (Throwable e) {
-            LOGGER.warn(e.getMessage());
-        } finally {
-            dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.IDLE));
-            LOGGER.traceMarker("scheduleRefreshCache", "Finish Refresh Cache");
-        }
     }
 
     /**

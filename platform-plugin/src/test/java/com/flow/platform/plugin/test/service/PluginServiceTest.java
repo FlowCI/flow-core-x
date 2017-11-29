@@ -20,19 +20,15 @@ import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.PluginStatusChangeEvent;
 import com.flow.platform.plugin.test.TestBase;
-import com.flow.platform.util.git.JGitUtil;
 import com.google.common.collect.ImmutableMultiset;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jgit.api.Git;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +48,7 @@ public class PluginServiceTest extends TestBase {
     public void init() throws Throwable {
         stubDemo();
 
-        pluginStoreService.refreshCache();
+        pluginDao.refreshCache();
 
         initGit();
 
@@ -88,7 +84,7 @@ public class PluginServiceTest extends TestBase {
         // when: update plugin status
         Plugin plugin = pluginService.find("flowCliC");
         plugin.setStatus(PluginStatus.INSTALLED);
-        pluginStoreService.update(plugin);
+        pluginDao.update(plugin);
 
         plugin = pluginService.find(plugin.getName());
 
@@ -136,7 +132,7 @@ public class PluginServiceTest extends TestBase {
         countDownLatch.await(30, TimeUnit.SECONDS);
         pluginService.stop("flowCliE");
 
-        Plugin plugin = pluginStoreService.find("flowCliE");
+        Plugin plugin = pluginDao.get("flowCliE");
         Assert.assertEquals(PluginStatus.PENDING, plugin.getStatus());
         Assert.assertEquals(false, plugin.getStopped());
     }
@@ -145,13 +141,13 @@ public class PluginServiceTest extends TestBase {
     public void should_stop_success_demo_second() throws Throwable {
         cleanFolder("flowCliB");
 
-        Plugin plugin = pluginStoreService.find("flowCliB");
+        Plugin plugin = pluginService.find("flowCliB");
         plugin.setStopped(true);
         pluginService.install("flowCliB");
 
         Thread.sleep(1000);
 
-        plugin = pluginStoreService.find("flowCliB");
+        plugin = pluginService.find("flowCliB");
         Assert.assertEquals(PluginStatus.PENDING, plugin.getStatus());
         Assert.assertEquals(false, plugin.getStopped());
     }
@@ -159,7 +155,7 @@ public class PluginServiceTest extends TestBase {
     private void resetPluginStatus() {
         Plugin plugin = pluginService.find("fircli");
         plugin.setStatus(PluginStatus.PENDING);
-        pluginStoreService.update(plugin);
+        pluginDao.update(plugin);
     }
 
     private void cleanFolder(String pluginName) throws IOException {

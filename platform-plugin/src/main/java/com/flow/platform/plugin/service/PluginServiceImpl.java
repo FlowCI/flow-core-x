@@ -22,8 +22,11 @@ import static com.flow.platform.plugin.domain.PluginStatus.INSTALLING;
 import static com.flow.platform.plugin.domain.PluginStatus.IN_QUEUE;
 import static com.flow.platform.plugin.domain.PluginStatus.PENDING;
 
+import com.flow.platform.plugin.dao.PluginDao;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.event.PluginRefreshEvent;
+import com.flow.platform.plugin.event.PluginRefreshEvent.Status;
 import com.flow.platform.plugin.event.PluginStatusChangeEvent;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.util.ExceptionUtil;
@@ -44,6 +47,7 @@ import java.util.concurrent.Future;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -59,6 +63,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private final static String ORIGIN_REMOTE = "origin";
 
+    private final static int REFRESH_CACHE_TASK_HEARTBEAT = 2 * 60 * 60 * 1000;
+
     private final static Logger LOGGER = new Logger(PluginService.class);
 
     // git clone folder
@@ -73,7 +79,10 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     private ThreadPoolTaskExecutor pluginPoolExecutor;
 
     @Autowired
-    private PluginStoreService pluginStoreService;
+    private PluginDao pluginDao;
+
+    @Autowired
+    private String pluginSourceUrl;
 
     private final Map<Plugin, Future<?>> taskCache = new ConcurrentHashMap<>();
 
@@ -84,12 +93,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     @Override
     public Plugin find(String name) {
-        return pluginStoreService.find(name);
+        return pluginDao.get(name);
     }
 
     @Override
     public Collection<Plugin> list(PluginStatus... statuses) {
-        return pluginStoreService.list(statuses);
+        return pluginDao.list(statuses);
     }
 
     @Override
@@ -185,6 +194,20 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
+    @Scheduled(fixedDelay = REFRESH_CACHE_TASK_HEARTBEAT)
+    private void syncTask() {
+        try {
+            LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
+            dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.ON_PROGRESS));
+            pluginDao.refreshCache();
+        } catch (Throwable e) {
+            LOGGER.warn(e.getMessage());
+        } finally {
+            dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.IDLE));
+            LOGGER.traceMarker("scheduleRefreshCache", "Finish Refresh Cache");
+        }
+    }
+
     private void updatePluginStatus(Plugin plugin, PluginStatus target) {
         switch (target) {
             case PENDING:
@@ -199,7 +222,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 break;
         }
 
-        pluginStoreService.update(plugin);
+        pluginDao.update(plugin);
         dispatchEvent(new PluginStatusChangeEvent(this, plugin.getName(), plugin.getTag(), target));
     }
 
@@ -358,7 +381,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
             plugin.setStopped(false);
             plugin.setStatus(PluginStatus.PENDING);
-            pluginStoreService.update(plugin);
+            pluginDao.update(plugin);
             LOGGER.traceMarker("InstallRunnable", "Plugin Stopped");
         }
     }

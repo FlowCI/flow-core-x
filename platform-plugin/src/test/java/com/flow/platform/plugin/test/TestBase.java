@@ -22,7 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
-import com.flow.platform.plugin.service.PluginStoreService;
+import com.flow.platform.plugin.dao.PluginDao;
 import com.flow.platform.util.git.JGitUtil;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
@@ -61,7 +61,6 @@ public abstract class TestBase {
     @Rule
     public WireMockRule wiremock = new WireMockRule(8080);
 
-
     {
         try {
             stubDemo();
@@ -74,7 +73,7 @@ public abstract class TestBase {
     protected PluginService pluginService;
 
     @Autowired
-    protected PluginStoreService pluginStoreService;
+    protected PluginDao pluginDao;
 
     // git clone folder
     @Autowired
@@ -128,9 +127,9 @@ public abstract class TestBase {
         }
 
         // update plugin to local git
-        for (Plugin plugin : pluginStoreService.list()) {
+        for (Plugin plugin : pluginDao.list()) {
             plugin.setDetails(mocGit.getParent() + "/firCi");
-            pluginStoreService.update(plugin);
+            pluginDao.update(plugin);
         }
     }
 }
