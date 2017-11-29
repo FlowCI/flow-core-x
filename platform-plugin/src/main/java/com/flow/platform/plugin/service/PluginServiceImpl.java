@@ -352,6 +352,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
+            LOGGER.traceMarker("AnalysisYmlProcessor", "Start Analysis Yml");
             try {
                 // first checkout plugin tag
                 JGitUtil.checkout(gitCachePath(plugin), plugin.getTag());
@@ -370,6 +371,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 JGitUtil.checkout(gitCachePath(plugin), MASTER_BRANCH);
 
             } catch (Throwable throwable) {
+                LOGGER.traceMarker("AnalysisYmlProcessor", "Found Exception " + throwable.getMessage());
                 throw new PluginException("AnalysisYmlProcessor Exception" + throwable.getMessage());
             }
         }
