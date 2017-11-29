@@ -348,7 +348,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 // detect yml
                 if (ymlFilePath.toFile().exists()) {
                     String body = FileUtils.readFileToString(ymlFilePath.toFile(), Charsets.UTF_8);
-                    plugin.setDetails(YmlUtil.fromYml(body, PluginDetail.class));
+                    plugin.setPluginDetail(YmlUtil.fromYml(body, PluginDetail.class));
                 } else {
                     throw new PluginException("not found Yml Plugin file");
                 }

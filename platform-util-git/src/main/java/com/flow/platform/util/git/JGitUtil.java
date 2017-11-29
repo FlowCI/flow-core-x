@@ -175,8 +175,9 @@ public class JGitUtil {
      */
     public static Path fetchTags(Path path, String remoteName) throws GitException {
         try (Git git = Git.open(path.toFile())) {
-            git.pull()
+            git.fetch()
                 .setRemote(remoteName)
+                .setRefSpecs(new RefSpec("refs/tags/*:refs/tags/*"))
                 .setTagOpt(TagOpt.FETCH_TAGS)
                 .call();
         } catch (Throwable throwable) {
