@@ -168,6 +168,14 @@ public class Plugin implements Comparable {
         isStopped = stopped;
     }
 
+    public PluginDetail getPluginDetail() {
+        return pluginDetail;
+    }
+
+    public void setPluginDetail(PluginDetail pluginDetail) {
+        this.pluginDetail = pluginDetail;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

@@ -185,4 +185,17 @@ public class JGitUtil {
 
         return path;
     }
+
+    public static Path checkout(Path path, String branch) throws GitException {
+        try (Git git = Git.open(path.toFile())) {
+            git
+                .checkout()
+                .setName(branch)
+                .call();
+        } catch (Throwable throwable) {
+            throw new GitException("fetch tags error", throwable);
+        }
+
+        return path;
+    }
 }
