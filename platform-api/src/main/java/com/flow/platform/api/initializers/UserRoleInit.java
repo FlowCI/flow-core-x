@@ -87,7 +87,7 @@ public class UserRoleInit extends Initializer {
 
     private void initDefaultAdminUser() {
         try {
-            userService.register(superUser, ImmutableList.of(SysRole.ADMIN.name()), false, Collections.emptyList());
+            userService.initSysUser(superUser, ImmutableList.of(SysRole.ADMIN.name()), Collections.emptyList());
         } catch (Throwable ignore) {
             // ignore existed
         }

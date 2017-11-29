@@ -134,16 +134,8 @@ public class UserServiceImpl extends CurrentUser implements UserService {
 
         String originPassword = user.getPassword();
 
-        // Check format
-        if (!checkEmailFormatIsPass(user.getEmail())) {
-            throw new IllegalParameterException(errMsg + "email format false");
-        }
-        if (!checkUsernameFormatIsPass(user.getUsername())) {
-            throw new IllegalParameterException(errMsg + "username format false");
-        }
-        if (!checkPasswordFormatIsPass(user.getPassword())) {
-            throw new IllegalParameterException(errMsg + "password format false");
-        }
+        // check user params is legal
+        checkUserInfoIsLegal(user);
 
         // Validate database
         User existed = userDao.get(user.getEmail());
@@ -166,29 +158,36 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             sendEmail(currentUser(), user, originPassword);
         }
 
-        for (String rootPath : flowsList) {
-            NodeTree nodeTree = nodeService.find(rootPath);
-            if (nodeTree == null) {
-                continue;
-            }
+        assignRoleToUser(user, roles, flowsList);
 
-            Node flow = nodeTree.root();
-            if (flow == null) {
-                continue;
-            }
+        return user;
+    }
 
-            userFlowService.assign(user, flow);
+    public User initSysUser(User user, List<String> roles, List<String> flowsList) {
+
+        // check user params is legal
+        checkUserInfoIsLegal(user);
+
+        User existed = userDao.getByUsername(user.getUsername());
+        if (existed != null) {
+            // if password not equal , update password
+            checkPasswordAndUpdatePassword(existed, user.getPassword());
+            return existed;
         }
 
-        if (roles == null || roles.isEmpty()) {
-            return user;
+        // Validate database
+        existed = userDao.get(user.getEmail());
+        if (existed != null) {
+            return existed;
         }
 
-        // assign user to role
-        for (String roleName : roles) {
-            Role targetRole = roleService.find(roleName);
-            roleService.assign(user, targetRole);
-        }
+        // Insert the user info into the database
+        String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
+        user.setPassword(passwordForMD5);
+        user.setCreatedBy(currentUser().getEmail());
+        user = userDao.save(user);
+
+        assignRoleToUser(user, roles, flowsList);
 
         return user;
     }
@@ -230,7 +229,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     }
 
     @Override
-    public User findByToken(String token){
+    public User findByToken(String token) {
         return loginUserMap.get(token);
     }
 
@@ -323,6 +322,60 @@ public class UserServiceImpl extends CurrentUser implements UserService {
                 ExceptionUtil.findRootCause(e).getMessage());
             return null;
         }
+    }
+
+    private void assignRoleToUser(User user, List<String> roles, List<String> flowsList) {
+        for (String rootPath : flowsList) {
+            NodeTree nodeTree = nodeService.find(rootPath);
+            if (nodeTree == null) {
+                continue;
+            }
+
+            Node flow = nodeTree.root();
+            if (flow == null) {
+                continue;
+            }
+
+            userFlowService.assign(user, flow);
+        }
+
+        if (roles == null || roles.isEmpty()) {
+            return;
+        }
+
+        // assign user to role
+        for (String roleName : roles) {
+            Role targetRole = roleService.find(roleName);
+            roleService.assign(user, targetRole);
+        }
+    }
+
+    private void checkUserInfoIsLegal(User user) {
+
+        String errMsg = "Illegal register request parameter: ";
+
+        // Check format
+        if (!checkEmailFormatIsPass(user.getEmail())) {
+            throw new IllegalParameterException(errMsg + "email format false");
+        }
+        if (!checkUsernameFormatIsPass(user.getUsername())) {
+            throw new IllegalParameterException(errMsg + "username format false");
+        }
+        if (!checkPasswordFormatIsPass(user.getPassword())) {
+            throw new IllegalParameterException(errMsg + "password format false");
+        }
+
+    }
+
+    private void checkPasswordAndUpdatePassword(User existed, String newPassword) {
+        // Insert the user info into the database
+        String passwordForMD5 = StringEncodeUtil.encodeByMD5(newPassword, AppConfig.DEFAULT_CHARSET.name());
+        if (Objects.equals(existed.getPassword(), passwordForMD5)) {
+            return;
+        }
+
+        existed.setPassword(passwordForMD5);
+        userDao.update(existed);
     }
 
 }

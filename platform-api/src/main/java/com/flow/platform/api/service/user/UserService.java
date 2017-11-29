@@ -37,6 +37,14 @@ public interface UserService {
     User register(User user, List<String> roles, boolean isSendEmail, List<String> flowsList);
 
     /**
+     * init sys user
+     * @param user
+     * @param roles
+     * @param flowsList
+     */
+    User initSysUser(User user, List<String> roles, List<String> flowsList);
+
+    /**
      * Delete a user
      */
     void delete(List<String> emailList);
