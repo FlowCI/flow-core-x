@@ -20,6 +20,7 @@ import com.flow.platform.plugin.domain.PluginDetail;
 import com.flow.platform.plugin.test.TestBase;
 import com.flow.platform.plugin.util.YmlUtil;
 import java.io.IOException;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -32,5 +33,7 @@ public class YmlUtilTest extends TestBase {
         String ymlBody = getResource("flow-step-demo.yml");
 
         PluginDetail pluginDetail = YmlUtil.fromYml(ymlBody, PluginDetail.class);
+
+        Assert.assertNotNull(pluginDetail);
     }
 }

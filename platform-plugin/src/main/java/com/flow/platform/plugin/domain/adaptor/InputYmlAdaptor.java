@@ -34,7 +34,7 @@ import org.eclipse.jgit.util.BlockList;
 /**
  * @author yh@firim
  */
-public class InputYmlAdaptor extends YmlAdaptor<ArrayList<PluginEnvKey>> {
+public class InputYmlAdaptor extends YmlAdaptor<List<PluginEnvKey>> {
 
     private final static Collection<Factory> factories = ImmutableSet.of(
         new StringFactory(),
@@ -55,21 +55,21 @@ public class InputYmlAdaptor extends YmlAdaptor<ArrayList<PluginEnvKey>> {
     }
 
     @Override
-    public ArrayList<PluginEnvKey> read(Object o) {
+    public List<PluginEnvKey> read(Object o) {
         List<PluginEnvKey> list = new BlockList<>();
 
         for (Map map : (ArrayList<Map>) o) {
             PluginEnvKey pluginEnvKey = handle(map);
             if (!Objects.isNull(pluginEnvKey)) {
-                list.add(handle(map));
+                list.add(pluginEnvKey);
             }
         }
 
-        return (ArrayList<PluginEnvKey>) list;
+        return list;
     }
 
     @Override
-    public Object write(ArrayList<PluginEnvKey> pluginEnvKeys) {
+    public Object write(List<PluginEnvKey> pluginEnvKeys) {
         return null;
     }
 
