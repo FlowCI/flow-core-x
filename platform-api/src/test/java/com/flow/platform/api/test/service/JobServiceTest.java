@@ -16,6 +16,11 @@
 
 package com.flow.platform.api.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThan;
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -157,8 +162,7 @@ public class JobServiceTest extends TestBase {
         Job job = createMockJob(root.getPath());
 
         // then: check cmd request to create session
-        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
-        verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         // when: simulate cc callback for create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -166,6 +170,7 @@ public class JobServiceTest extends TestBase {
         cmd.setStatus(CmdStatus.SENT);
         CmdCallbackQueueItem createSessionItem = new CmdCallbackQueueItem(job.getId(), cmd);
         jobService.callback(createSessionItem);
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/send")));
 
         // then: check job status should be running
         job = reload(job);
@@ -178,6 +183,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(7, steps.size());
 
         // when: simulate callback for all steps
+        int numOfRequestForCmdSend = 2;
         for (Node step : steps) {
             NodeResult stepResult = nodeResultService.find(step.getPath(), job.getId());
 
@@ -204,16 +210,20 @@ public class JobServiceTest extends TestBase {
             stepCmd.getCmdResult().setFinishTime(finish);
 
             // build mock identifier
-
             CmdCallbackQueueItem runStepShellItem = new CmdCallbackQueueItem(job.getId(), stepCmd);
             jobService.callback(runStepShellItem);
             stepResult = nodeResultService.find(step.getPath(), job.getId());
             Assert.assertEquals(NodeStatus.SUCCESS, stepResult.getStatus());
+
+            verify(exactly(numOfRequestForCmdSend++), postRequestedFor(urlEqualTo("/cmd/send")));
+
+            verify(moreThanOrExactly(1),
+                postRequestedFor(urlEqualTo("/cmd/send"))
+                    .withRequestBody(matchingJsonPath("$.inputs[?(@.FLOW_JOB_LAST_STATUS == 'SUCCESS')]")));
         }
 
         // then: check num of cmd request to run shell, 5 steps + 1 del session requests
-        countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 6);
-        verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/send")));
+        verify(exactly(6), postRequestedFor(urlEqualTo("/cmd/send")));
 
         // then: check job status
         job = reload(job);
