@@ -16,6 +16,7 @@
 
 package com.flow.platform.plugin.domain.envs;
 
+import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import java.util.List;
 

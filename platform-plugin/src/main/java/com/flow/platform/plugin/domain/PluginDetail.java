@@ -16,7 +16,6 @@
 
 package com.flow.platform.plugin.domain;
 
-import com.flow.platform.plugin.domain.adaptor.InputYmlAdaptor;
 import com.flow.platform.plugin.domain.envs.PluginEnvKey;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
