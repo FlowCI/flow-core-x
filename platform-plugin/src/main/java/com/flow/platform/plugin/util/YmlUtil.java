@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.util;
 
 import com.esotericsoftware.yamlbeans.YamlConfig;
+import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.yml.parser.YmlParser;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -29,7 +30,11 @@ public class YmlUtil {
     private final static YamlConfig yamlConfig = new YamlConfig();
 
     public static <T> T fromYml(String yml, Type type) {
-        Map result = YmlParser.ymlToMap(yml);
-        return YmlParser.fromObject(result, type);
+        try {
+            Map result = YmlParser.ymlToMap(yml);
+            return YmlParser.fromObject(result, type);
+        } catch (Throwable throwable) {
+            throw new PluginException("Yml Converter To Type Exception " + throwable.getMessage());
+        }
     }
 }

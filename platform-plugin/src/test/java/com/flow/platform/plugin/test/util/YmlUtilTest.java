@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.test.util;
 
 import com.flow.platform.plugin.domain.PluginDetail;
+import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.test.TestBase;
 import com.flow.platform.plugin.util.YmlUtil;
 import java.io.IOException;
@@ -35,5 +36,12 @@ public class YmlUtilTest extends TestBase {
         PluginDetail pluginDetail = YmlUtil.fromYml(ymlBody, PluginDetail.class);
 
         Assert.assertNotNull(pluginDetail);
+    }
+
+    @Test(expected = PluginException.class)
+    public void should_transfer_object_error() throws IOException {
+        String ymlBody = getResource("flow-step-demo.error.yml");
+
+        YmlUtil.fromYml(ymlBody, PluginDetail.class);
     }
 }
