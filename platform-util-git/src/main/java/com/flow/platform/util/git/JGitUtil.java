@@ -54,15 +54,19 @@ public class JGitUtil {
         for (Ref ref : refs) {
             // convert ref name from refs/heads/master to master
             String refName = ref.getName();
-            String simpleName = refName
-                .replaceFirst("refs/heads/", StringUtil.EMPTY)
-                .replace("refs/tags/", StringUtil.EMPTY);
+            String simpleName = simpleRef(refName);
 
             // add to result list
             refStringList.add(simpleName);
         }
 
         return refStringList;
+    }
+
+    public static String simpleRef(String ref) {
+        return ref
+            .replaceFirst("refs/heads/", StringUtil.EMPTY)
+            .replace("refs/tags/", StringUtil.EMPTY);
     }
 
     public static Repository getRepo(Path path) throws GitException {
