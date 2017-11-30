@@ -345,7 +345,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     /**
-     * run node
+     * Collect env variables and run node
      *
      * @param node job node's script and record cmdId and sync send http
      */
