@@ -54,11 +54,17 @@ public class YmlUtilTest extends TestBase {
         PluginEnvKey booleanEnvKey = pluginDetail.getInputs().get(3);
         PluginEnvKey listEnvKey = pluginDetail.getInputs().get(4);
 
+        // then: converter should equal instance
         Assert.assertEquals(true, stringEnvKey.converter() instanceof String);
         Assert.assertEquals(true, integerEnvKey.converter() instanceof Integer);
         Assert.assertEquals(true, booleanEnvKey.converter() instanceof Boolean);
         Assert.assertEquals(true, listEnvKey.converter() instanceof String);
 
+        // then: should equal
+        Assert.assertEquals(false, booleanEnvKey.converter());
+        Assert.assertEquals(new Integer(1), integerEnvKey.converter());
+        Assert.assertEquals("nanjing", listEnvKey.converter());
+        Assert.assertEquals("admin", stringEnvKey.converter());
     }
 
     // test integer not format to integer

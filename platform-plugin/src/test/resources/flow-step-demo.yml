@@ -17,7 +17,7 @@ properties:
   - name: isMarried
     type: boolean
     required: true
-    default: true
+    default: false
 
   - name: cities
     type: list
