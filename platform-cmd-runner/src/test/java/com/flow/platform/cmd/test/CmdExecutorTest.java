@@ -36,7 +36,7 @@ public class CmdExecutorTest {
             logListener,
             null,
             null,
-            "CMD_RUNNER_TEST",
+            Lists.newArrayList("CMD_RUNNER_TEST"),
             null,
             Lists.newArrayList(String.format("source %s", path)));
         CmdResult result = executor.run();

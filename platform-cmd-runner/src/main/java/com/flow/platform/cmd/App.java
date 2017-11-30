@@ -93,7 +93,7 @@ public final class App {
             logListener,
             inputs,
             null,
-            "FLOW_", // find env start with FLOW_ and put to cmd result output map
+            Lists.newArrayList("FLOW_"), // find env start with FLOW_ and put to cmd result output map
             null,
             Lists.newArrayList("sleep 20", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/"));
 

@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.api.domain.sync.SyncType;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.Agent;
@@ -220,7 +221,7 @@ public class SyncServiceImpl implements SyncService {
             runShell.setWebhook(callbackUrl);
             runShell.setSessionId(cmd.getSessionId());
             runShell.setWorkingDir(DEFAULT_CMD_DIR);
-            runShell.setOutputEnvFilter(SyncEvent.FLOW_SYNC_LIST);
+            runShell.setOutputEnvFilter(EnvUtil.parseCommaEnvToList(SyncEvent.FLOW_SYNC_LIST));
             cmdService.sendCmd(runShell, false, 0);
         }
 

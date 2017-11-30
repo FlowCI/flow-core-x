@@ -33,7 +33,7 @@ CREATE TABLE `credential` (
 
 CREATE TABLE `flow` (
   `path` varchar(255) NOT NULL,
-  `name` varchar(50) DEFAULT NULL,
+  `name` varchar(100) DEFAULT NULL,
   `envs` longtext,
   `created_by` varchar(100) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -17,6 +17,7 @@
 package com.flow.platform.domain;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -72,7 +73,7 @@ public abstract class CmdBase extends Webhookable {
     /**
      * Filter for env input to CmdResult.output map
      */
-    protected String outputEnvFilter;
+    protected List<String> outputEnvFilter;
 
     /**
      * Extra info used for webhook callback
@@ -177,11 +178,11 @@ public abstract class CmdBase extends Webhookable {
         this.workingDir = workingDir;
     }
 
-    public String getOutputEnvFilter() {
+    public List<String> getOutputEnvFilter() {
         return outputEnvFilter;
     }
 
-    public void setOutputEnvFilter(String outputEnvFilter) {
+    public void setOutputEnvFilter(List<String> outputEnvFilter) {
         this.outputEnvFilter = outputEnvFilter;
     }
 
