@@ -45,10 +45,6 @@ public enum PluginEnvType {
         return value;
     }
 
-    public Handler getHandler() {
-        return handler;
-    }
-
     public <T> T converter(String value) {
         return (T) handler.converter(value);
     }
@@ -135,7 +131,6 @@ public enum PluginEnvType {
             return Boolean.valueOf(value);
         }
     }
-
 
     private static Integer integerOfString(String value) {
         if (Strings.isNullOrEmpty(value)) {
