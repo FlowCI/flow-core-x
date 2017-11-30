@@ -49,6 +49,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -76,6 +77,9 @@ public class SyncServiceImpl implements SyncService {
     @Autowired
     private AgentService agentService;
 
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
     @Value("${domain.api}")
     private String apiDomain;
 
@@ -85,14 +89,18 @@ public class SyncServiceImpl implements SyncService {
     private void init() {
         callbackUrl = HttpURL.build(apiDomain).append("/hooks/sync").toString();
 
-        try {
-            List<Agent> agents = agentService.list();
-            for (Agent agent : agents) {
-                register(agent.getPath());
+        taskExecutor.execute(() -> {
+            try {
+                LOGGER.trace("Start to init agent list in thread: " + Thread.currentThread().getName());
+
+                List<Agent> agents = agentService.list();
+                for (Agent agent : agents) {
+                    register(agent.getPath());
+                }
+            } catch (Throwable e) {
+                LOGGER.warn(e.getMessage());
             }
-        } catch (Throwable e) {
-            LOGGER.warn("Cannot load agent list " + e.getMessage());
-        }
+        });
     }
 
     @Override
