@@ -1,6 +1,4 @@
 name: fir-cli
-description: Posts Wercker build/deploy status to a Slack channel.
-language: java
 properties:
   - name: username
     type: string

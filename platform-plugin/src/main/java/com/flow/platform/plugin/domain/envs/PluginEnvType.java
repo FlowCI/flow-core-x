@@ -23,12 +23,24 @@ import com.google.common.base.Strings;
  */
 public enum PluginEnvType {
 
+    /**
+     * ENV Type String
+     */
     STRING("string", new StringHandler()),
 
+    /**
+     * ENV Type Integer
+     */
     INTEGER("integer", new IntegerHandler()),
 
+    /**
+     * ENV Type Boolean
+     */
     BOOLEAN("boolean", new BooleanHandler()),
 
+    /**
+     * ENV Type List
+     */
     LIST("list", new ListHandler());
 
 
