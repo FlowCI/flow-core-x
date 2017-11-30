@@ -88,7 +88,7 @@ public class PluginEnvKey {
     }
 
     public <T> T converter() {
-        return getType().converter(defaultValue);
+        return getType().converter(this);
     }
 
     @Override

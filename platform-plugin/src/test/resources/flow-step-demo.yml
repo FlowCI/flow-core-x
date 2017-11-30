@@ -4,16 +4,20 @@ properties:
     type: string
     default: admin
     required: true
+
   - name: password
     type: string
     required: true
+
   - name: age
     type: integer
     required: true
+
   - name: isMarried
     type: boolean
     required: true
     default: true
+
   - name: cities
     type: list
     required: false
@@ -21,10 +25,12 @@ properties:
       - beijing
       - shanghai
       - nanjing
-    default: beijing
+    default: nanjing
+
 outputs:
   - USER_NAME
   - PASSWORD
+
 run: |
   bash ./run.sh
 build: |

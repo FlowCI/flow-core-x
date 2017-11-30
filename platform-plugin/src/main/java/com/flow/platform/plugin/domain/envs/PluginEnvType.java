@@ -17,6 +17,8 @@
 package com.flow.platform.plugin.domain.envs;
 
 import com.google.common.base.Strings;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yh@firim
@@ -57,40 +59,40 @@ public enum PluginEnvType {
         return value;
     }
 
-    public <T> T converter(String value) {
-        return (T) handler.converter(value);
+    public <T> T converter(PluginEnvKey pluginEnvKey) {
+        return (T) handler.converter(pluginEnvKey);
     }
 
-    public Boolean isValidated(String value) {
-        return handler.isValidated(value);
+    public Boolean isValidated(PluginEnvKey pluginEnvKey) {
+        return handler.isValidated(pluginEnvKey);
     }
 
     private interface Handler<T> {
 
-        Boolean isValidated(String value);
+        Boolean isValidated(PluginEnvKey pluginEnvKey);
 
-        T converter(String value);
+        T converter(PluginEnvKey pluginEnvKey);
     }
 
     private static class StringHandler implements Handler<String> {
 
         @Override
-        public Boolean isValidated(String value) {
+        public Boolean isValidated(PluginEnvKey pluginEnvKey) {
             return true;
         }
 
         @Override
-        public String converter(String value) {
-            return value;
+        public String converter(PluginEnvKey pluginEnvKey) {
+            return pluginEnvKey.getDefaultValue();
         }
     }
 
     private static class IntegerHandler implements Handler<Integer> {
 
         @Override
-        public Boolean isValidated(String value) {
+        public Boolean isValidated(PluginEnvKey pluginEnvKey) {
             try {
-                integerOfString(value);
+                integerOfString(pluginEnvKey.getDefaultValue());
             } catch (Throwable throwable) {
                 return false;
             }
@@ -99,17 +101,17 @@ public enum PluginEnvType {
         }
 
         @Override
-        public Integer converter(String value) {
-            return integerOfString(value);
+        public Integer converter(PluginEnvKey pluginEnvKey) {
+            return integerOfString(pluginEnvKey.getDefaultValue());
         }
     }
 
     private static class BooleanHandler implements Handler<Boolean> {
 
         @Override
-        public Boolean isValidated(String value) {
+        public Boolean isValidated(PluginEnvKey pluginEnvKey) {
             try {
-                booleanOfString(value);
+                booleanOfString(pluginEnvKey.getDefaultValue());
             } catch (Throwable throwable) {
                 return false;
             }
@@ -118,21 +120,35 @@ public enum PluginEnvType {
         }
 
         @Override
-        public Boolean converter(String value) {
-            return booleanOfString(value);
+        public Boolean converter(PluginEnvKey pluginEnvKey) {
+            return booleanOfString(pluginEnvKey.getDefaultValue());
         }
     }
 
     private static class ListHandler implements Handler<String> {
 
         @Override
-        public Boolean isValidated(String value) {
+        public Boolean isValidated(PluginEnvKey pluginEnvKey) {
+            List<String> values = pluginEnvKey.getValues();
+
+            if (Objects.isNull(values) || values.isEmpty()) {
+                return false;
+            }
+
+            if (Strings.isNullOrEmpty(pluginEnvKey.getDefaultValue())) {
+                return true;
+            }
+
+            if (!values.contains(pluginEnvKey.getDefaultValue())) {
+                return false;
+            }
+
             return true;
         }
 
         @Override
-        public String converter(String value) {
-            return value;
+        public String converter(PluginEnvKey pluginEnvKey) {
+            return pluginEnvKey.getDefaultValue();
         }
     }
 

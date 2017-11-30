@@ -29,7 +29,7 @@ public class PluginEnvValidator implements YmlValidator<List<PluginEnvKey>> {
     public Boolean validate(List<PluginEnvKey> pluginEnvKeys) {
         Boolean result = true;
         for (PluginEnvKey pluginEnvKey : pluginEnvKeys) {
-            result = pluginEnvKey.getType().isValidated(pluginEnvKey.getDefaultValue());
+            result = pluginEnvKey.getType().isValidated(pluginEnvKey);
             if (!result) {
                 break;
             }

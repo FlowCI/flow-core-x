@@ -1,20 +1,25 @@
 name: fir-cli
 properties:
+
   - name: username
     type: string
     default: admin
     required: true
+
   - name: password
     type: string
     required: true
+
   - name: age
     type: integer
     required: true
     default: abc
+
   - name: isMarried
     type: boolean
     required: true
     default: aaa
+
   - name: cities
     type: list
     required: false
@@ -23,10 +28,13 @@ properties:
       - shanghai
       - nanjing
     default: beijing
+
 outputs:
   - USER_NAME
   - PASSWORD
+
 run: |
   bash ./run.sh
+
 build: |
   mvn clean build -dist=xxxx
