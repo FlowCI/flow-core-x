@@ -1,7 +1,9 @@
 flow-platform
 ============
+![](https://img.shields.io/badge/language-java-orange.svg)
+[![Build Status](https://api.flow.ci/projects/59099b2b6c112a7c4805eea5/jobs/build_state)](https://flow.ci)
 
-'flow-platform' is a backend project for flow.ci, it consist three main sub projects:
+'flow-platform' is a backend project for flow.ci, it consist three main sub projects:  
 
 - api: 
 - control-center: to handle agent status and dispatch task to agent

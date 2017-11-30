@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.domain;
+package com.flow.platform.api.domain.agent;
 
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.domain.Agent;
@@ -24,9 +24,11 @@ import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 
 /**
+ * Class with flow and sync information
+ *
  * @author yh@firim
  */
-public class AgentWithFlow extends Jsonable {
+public class AgentItem extends Jsonable {
 
     @Expose
     private String name;
@@ -52,7 +54,10 @@ public class AgentWithFlow extends Jsonable {
     @Expose
     private String branch;
 
-    public AgentWithFlow(AgentPath path, String flowName, AgentStatus agentStatus, Integer number) {
+    @Expose
+    private AgentSync sync;
+
+    public AgentItem(AgentPath path, String flowName, AgentStatus agentStatus, Integer number) {
         this.name = path.getName();
         this.zone = path.getZone();
         this.flowName = flowName;
@@ -60,10 +65,10 @@ public class AgentWithFlow extends Jsonable {
         this.number = number;
     }
 
-    public AgentWithFlow() {
+    public AgentItem() {
     }
 
-    public AgentWithFlow(Agent agent, Job job) {
+    public AgentItem(Agent agent, Job job) {
         this.name = agent.getPath().getName();
         this.zone = agent.getPath().getZone();
         this.agentStatus = agent.getStatus();
@@ -139,5 +144,13 @@ public class AgentWithFlow extends Jsonable {
 
     public void setNumber(Integer number) {
         this.number = number;
+    }
+
+    public AgentSync getSync() {
+        return sync;
+    }
+
+    public void setSync(AgentSync sync) {
+        this.sync = sync;
     }
 }

@@ -131,19 +131,8 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     @Override
     public User register(User user, List<String> roles, boolean isSendEmail, List<String> flowsList) {
         String errMsg = "Illegal register request parameter: ";
-
-        String originPassword = user.getPassword();
-
-        // Check format
-        if (!checkEmailFormatIsPass(user.getEmail())) {
-            throw new IllegalParameterException(errMsg + "email format false");
-        }
-        if (!checkUsernameFormatIsPass(user.getUsername())) {
-            throw new IllegalParameterException(errMsg + "username format false");
-        }
-        if (!checkPasswordFormatIsPass(user.getPassword())) {
-            throw new IllegalParameterException(errMsg + "password format false");
-        }
+        // check user params is legal
+        checkUserInfoIsLegal(user);
 
         // Validate database
         User existed = userDao.get(user.getEmail());
@@ -156,9 +145,10 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             throw new IllegalParameterException(errMsg + "username already exist");
         }
 
+        String originPassword = user.getPassword();
+
         // Insert the user info into the database
-        String passwordForMD5 = StringEncodeUtil.encodeByMD5(user.getPassword(), AppConfig.DEFAULT_CHARSET.name());
-        user.setPassword(passwordForMD5);
+        user.setPassword(encodePassword(user.getPassword()));
         user.setCreatedBy(currentUser().getEmail());
         user = userDao.save(user);
 
@@ -166,31 +156,19 @@ public class UserServiceImpl extends CurrentUser implements UserService {
             sendEmail(currentUser(), user, originPassword);
         }
 
-        for (String rootPath : flowsList) {
-            NodeTree nodeTree = nodeService.find(rootPath);
-            if (nodeTree == null) {
-                continue;
-            }
-
-            Node flow = nodeTree.root();
-            if (flow == null) {
-                continue;
-            }
-
-            userFlowService.assign(user, flow);
-        }
-
-        if (roles == null || roles.isEmpty()) {
-            return user;
-        }
-
-        // assign user to role
-        for (String roleName : roles) {
-            Role targetRole = roleService.find(roleName);
-            roleService.assign(user, targetRole);
-        }
+        assignRoleToUser(user, roles, flowsList);
 
         return user;
+    }
+
+    @Override
+    public void changePassword(User user, String oldPassword, String newPassword) {
+        if (oldPassword != null && !Objects.equals(user.getPassword(), encodePassword(oldPassword))) {
+            throw new IllegalParameterException("The old password input is incorrect");
+        }
+
+        user.setPassword(encodePassword(newPassword));
+        userDao.update(user);
     }
 
     @Override
@@ -230,7 +208,7 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     }
 
     @Override
-    public User findByToken(String token){
+    public User findByToken(String token) {
         return loginUserMap.get(token);
     }
 
@@ -243,6 +221,10 @@ public class UserServiceImpl extends CurrentUser implements UserService {
     @Override
     public Long usersCount() {
         return userDao.count();
+    }
+
+    private String encodePassword(String password) {
+        return StringEncodeUtil.encodeByMD5(password, AppConfig.DEFAULT_CHARSET.name());
     }
 
     /**
@@ -323,6 +305,60 @@ public class UserServiceImpl extends CurrentUser implements UserService {
                 ExceptionUtil.findRootCause(e).getMessage());
             return null;
         }
+    }
+
+    private void assignRoleToUser(User user, List<String> roles, List<String> flowsList) {
+        for (String rootPath : flowsList) {
+            NodeTree nodeTree = nodeService.find(rootPath);
+            if (nodeTree == null) {
+                continue;
+            }
+
+            Node flow = nodeTree.root();
+            if (flow == null) {
+                continue;
+            }
+
+            userFlowService.assign(user, flow);
+        }
+
+        if (roles == null || roles.isEmpty()) {
+            return;
+        }
+
+        // assign user to role
+        for (String roleName : roles) {
+            Role targetRole = roleService.find(roleName);
+            roleService.assign(user, targetRole);
+        }
+    }
+
+    private void checkUserInfoIsLegal(User user) {
+
+        String errMsg = "Illegal register request parameter: ";
+
+        // Check format
+        if (!checkEmailFormatIsPass(user.getEmail())) {
+            throw new IllegalParameterException(errMsg + "email format false");
+        }
+        if (!checkUsernameFormatIsPass(user.getUsername())) {
+            throw new IllegalParameterException(errMsg + "username format false");
+        }
+        if (!checkPasswordFormatIsPass(user.getPassword())) {
+            throw new IllegalParameterException(errMsg + "password format false");
+        }
+
+    }
+
+    private void checkPasswordAndUpdatePassword(User existed, String newPassword) {
+        // Insert the user info into the database
+        String passwordForMD5 = StringEncodeUtil.encodeByMD5(newPassword, AppConfig.DEFAULT_CHARSET.name());
+        if (Objects.equals(existed.getPassword(), passwordForMD5)) {
+            return;
+        }
+
+        existed.setPassword(passwordForMD5);
+        userDao.update(existed);
     }
 
 }

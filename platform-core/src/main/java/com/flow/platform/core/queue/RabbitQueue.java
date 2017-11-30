@@ -103,6 +103,11 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
     }
 
     @Override
+    public PriorityMessage dequeue() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void clean() {
         throw new UnsupportedOperationException();
     }

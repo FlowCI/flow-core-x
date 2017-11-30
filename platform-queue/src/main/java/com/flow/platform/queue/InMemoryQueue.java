@@ -65,6 +65,15 @@ public class InMemoryQueue<T extends Comparable> extends PlatformQueue<T> {
     }
 
     @Override
+    public T dequeue() {
+        try {
+            return queue.poll(1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            return null;
+        }
+    }
+
+    @Override
     public int size() {
         return queue.size();
     }

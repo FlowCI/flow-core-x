@@ -18,7 +18,6 @@ package com.flow.platform.cc.test.service;
 
 import static junit.framework.TestCase.fail;
 
-import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.cc.service.AgentService;
@@ -42,6 +41,7 @@ import com.google.common.collect.Sets;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -72,6 +72,9 @@ public class CmdServiceTest extends TestBase {
 
     @Autowired
     private List<Zone> defaultZones;
+
+    @Autowired
+    private Path cmdLogDir;
 
     private final static String MOCK_PROVIDER_NAME = "mock-cloud-provider";
 
@@ -473,7 +476,7 @@ public class CmdServiceTest extends TestBase {
         cmdService.saveLog(created.getId(), mockMultipartFile);
 
         // then:
-        Assert.assertTrue(Files.exists(Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename)));
+        Assert.assertTrue(Files.exists(Paths.get(cmdLogDir.toString(), originalFilename)));
     }
 
     private Cmd send(CmdInfo info) {
