@@ -33,7 +33,7 @@ public class PathUtilTest {
 
     @Test(expected = IllegalParameterException.class)
     public void should_raise_exception_if_less_than_min_length() {
-        PathUtil.validateName("h");
+        PathUtil.validateName("");
     }
 
     @Test(expected = IllegalParameterException.class)

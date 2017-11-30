@@ -16,7 +16,6 @@
 
 package com.flow.platform.cc.test;
 
-import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.WebConfig;
 import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
@@ -30,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import javax.annotation.PostConstruct;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -99,7 +99,17 @@ public abstract class TestBase {
     @Autowired
     protected ZKClient zkClient;
 
+    @Autowired
+    protected Path cmdLogDir;
+
     protected MockMvc mockMvc;
+
+    private static Path CMD_LOG_DIR;
+
+    @PostConstruct
+    private void init() {
+        CMD_LOG_DIR = cmdLogDir;
+    }
 
     @Before
     public void beforeEach() throws IOException, InterruptedException {
@@ -116,7 +126,7 @@ public abstract class TestBase {
     @AfterClass
     public static void afterClass() throws IOException {
         // clean up cmd log folder
-        Stream<Path> list = Files.list(AppConfig.CMD_LOG_DIR);
+        Stream<Path> list = Files.list(CMD_LOG_DIR);
         list.forEach(path -> {
             try {
                 Files.deleteIfExists(path);

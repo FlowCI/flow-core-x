@@ -16,13 +16,14 @@
 
 package com.flow.platform.core.queue;
 
+import com.flow.platform.queue.PriorityQueueItem;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 
 /**
  * @author yang
  */
-public class PriorityMessage extends Message implements Comparable<PriorityMessage> {
+public class PriorityMessage extends Message implements PriorityQueueItem {
 
     public static PriorityMessage create(byte[] content, int priority) {
         MessageProperties properties = new MessageProperties();
@@ -39,7 +40,12 @@ public class PriorityMessage extends Message implements Comparable<PriorityMessa
     }
 
     @Override
-    public int compareTo(PriorityMessage o) {
-        return o.getMessageProperties().getPriority().compareTo(this.getMessageProperties().getPriority());
+    public Integer getPriority() {
+        return getMessageProperties().getPriority();
+    }
+
+    @Override
+    public int compareTo(PriorityQueueItem o) {
+        return o.getPriority().compareTo(getPriority());
     }
 }

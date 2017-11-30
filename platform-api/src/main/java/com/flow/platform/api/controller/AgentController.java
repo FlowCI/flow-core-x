@@ -16,13 +16,13 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.AgentWithFlow;
-import com.flow.platform.api.domain.SearchCondition;
+import com.flow.platform.api.domain.agent.AgentItem;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.response.BooleanValue;
-import com.flow.platform.api.events.AgentStatusChangeEvent;
+import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.AgentService;
+import com.flow.platform.api.service.SyncService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -49,6 +49,9 @@ public class AgentController {
     @Autowired
     private AgentService agentService;
 
+    @Autowired
+    private SyncService syncService;
+
     /**
      * @api {Get} /agents List
      * @apiName AgentList
@@ -70,8 +73,8 @@ public class AgentController {
      */
     @GetMapping
     @WebSecurity(action = Actions.AGENT_SHOW)
-    public List<AgentWithFlow> index() {
-        return agentService.list();
+    public List<AgentItem> index() {
+        return agentService.listItems();
     }
 
     /**
@@ -90,7 +93,7 @@ public class AgentController {
      */
     @PostMapping(path = "/create")
     @WebSecurity(action = Actions.ADMIN_CREATE)
-    public AgentWithFlow create(@RequestBody AgentPath agentPath) {
+    public AgentItem create(@RequestBody AgentPath agentPath) {
         if (agentPath.isEmpty()) {
             throw new IllegalParameterException("Zone and agent name are required");
         }
@@ -256,5 +259,74 @@ public class AgentController {
     @WebSecurity(action = Actions.ADMIN_DELETE)
     public void delete(@RequestBody AgentPath agentPath) {
         agentService.delete(agentPath);
+    }
+
+    /**
+     * @api {Post} /agents/sync Sync
+     * @apiName Sync
+     * @apiGroup Agent
+     * @apiDescription Sync api repositories to agent
+     *
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         zone: xxx,
+     *         name: xxx
+     *     }
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
+    @PostMapping(path = "/sync")
+    @WebSecurity(action = Actions.ADMIN_SHOW)
+    public void startSync(@RequestBody AgentPath agentPath) {
+        syncService.sync(agentPath);
+    }
+
+    /**
+     * @api {Post} /agents/sync/info Sync Info
+     * @apiName Sync Info
+     * @apiGroup Agent
+     * @apiDescription Get sync info of agent
+     *
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         zone: xxx,
+     *         name: xxx
+     *     }
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *          path: {
+     *              zone: xxx,
+     *              name: xxx
+     *          },
+     *
+     *          repos: [
+     *              {
+     *                  name: "repo name"
+     *                  tag: "v1.0
+     *              }
+     *          ],
+     *
+     *          syncTime: 15123123
+     *     }
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
+    @PostMapping(path = "/sync/info")
+    @WebSecurity(action = Actions.ADMIN_SHOW)
+    public Sync getSyncInfo(@RequestBody AgentPath agentPath) {
+        return syncService.get(agentPath);
     }
 }

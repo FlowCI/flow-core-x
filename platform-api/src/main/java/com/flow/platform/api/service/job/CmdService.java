@@ -21,6 +21,7 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 
 /**
@@ -29,6 +30,8 @@ import com.flow.platform.domain.CmdInfo;
  * @author yang
  */
 public interface CmdService {
+
+    String DEFAULT_CMD_DIR = "${HOME}/flow-agent-workspace";
 
     /**
      * Send create session cmd job async
@@ -68,7 +71,6 @@ public interface CmdService {
 
     /**
      * send cmd to cc
-     * @param agentPath required
      */
-    void sendCmd(AgentPath agentPath, CmdInfo cmdInfo);
+    Cmd sendCmd(CmdInfo cmdInfo, boolean inQueue, int priority);
 }
