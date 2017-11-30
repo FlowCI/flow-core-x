@@ -27,11 +27,11 @@ import java.util.List;
 public class PluginEnvKey {
 
     @Expose
-    @YmlSerializer(required = true)
+    @YmlSerializer
     private String name;
 
     @Expose
-    @YmlSerializer(adaptor = EnvTypeAdaptor.class, required = true)
+    @YmlSerializer(adaptor = EnvTypeAdaptor.class)
     private PluginEnvType type;
 
     @Expose
@@ -85,6 +85,10 @@ public class PluginEnvKey {
 
     public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
+    }
+
+    public <T> T converter() {
+        return getType().converter(defaultValue);
     }
 
     @Override
