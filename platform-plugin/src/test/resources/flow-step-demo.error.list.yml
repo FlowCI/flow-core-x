@@ -1,5 +1,6 @@
 name: fir-cli
 properties:
+
   - name: username
     type: string
     default: admin
@@ -11,8 +12,8 @@ properties:
 
   - name: age
     type: integer
-    default: 1
     required: true
+    default: 1
 
   - name: isMarried
     type: boolean
@@ -26,7 +27,7 @@ properties:
       - beijing
       - shanghai
       - nanjing
-    default: nanjing
+    default: xxxxx
 
 outputs:
   - USER_NAME
@@ -34,5 +35,6 @@ outputs:
 
 run: |
   bash ./run.sh
+
 build: |
   mvn clean build -dist=xxxx

@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.test.util;
 
 import com.flow.platform.plugin.domain.PluginDetail;
+import com.flow.platform.plugin.domain.envs.PluginEnvKey;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.test.TestBase;
 import com.flow.platform.plugin.util.YmlUtil;
@@ -47,12 +48,41 @@ public class YmlUtilTest extends TestBase {
 
         // then: inputs size is Equal
         Assert.assertEquals(5, pluginDetail.getInputs().size());
+
+        PluginEnvKey stringEnvKey = pluginDetail.getInputs().get(0);
+        PluginEnvKey integerEnvKey = pluginDetail.getInputs().get(2);
+        PluginEnvKey booleanEnvKey = pluginDetail.getInputs().get(3);
+        PluginEnvKey listEnvKey = pluginDetail.getInputs().get(4);
+
+        Assert.assertEquals(true, stringEnvKey.converter() instanceof String);
+        Assert.assertEquals(true, integerEnvKey.converter() instanceof Integer);
+        Assert.assertEquals(true, booleanEnvKey.converter() instanceof Boolean);
+        Assert.assertEquals(true, listEnvKey.converter() instanceof String);
+
     }
 
+    // test integer not format to integer
     @Test(expected = PluginException.class)
-    public void should_transfer_object_error() throws IOException {
-        String ymlBody = getResource("flow-step-demo.error.yml");
+    public void should_transfer_object_error_integer() throws IOException {
+        String ymlBody = getResource("flow-step-demo.error.integer.yml");
 
         YmlUtil.fromYml(ymlBody, PluginDetail.class);
+    }
+
+
+    // test list default not in values
+    @Test(expected = PluginException.class)
+    public void should_transfer_object_error_list() throws IOException {
+        String ymlBody = getResource("flow-step-demo.error.list.yml");
+
+        YmlUtil.fromYml(ymlBody, PluginDetail.class);
+    }
+
+    // test boolean default not in values
+    @Test(expected = PluginException.class)
+    public void should_transfer_object_error_boolean() throws IOException {
+        String ymlBody = getResource("flow-step-demo.error.boolean.yml");
+
+        PluginDetail pluginDetail = YmlUtil.fromYml(ymlBody, PluginDetail.class);
     }
 }

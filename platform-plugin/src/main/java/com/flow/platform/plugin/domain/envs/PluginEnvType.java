@@ -110,13 +110,20 @@ public enum PluginEnvType {
 
         @Override
         public Boolean isValidated(PluginEnvKey pluginEnvKey) {
-            try {
-                booleanOfString(pluginEnvKey.getDefaultValue());
-            } catch (Throwable throwable) {
-                return false;
+
+            if (Strings.isNullOrEmpty(pluginEnvKey.getDefaultValue())) {
+                return true;
             }
 
-            return true;
+            if (Objects.equals("true", pluginEnvKey.getDefaultValue().toLowerCase())) {
+                return true;
+            }
+
+            if (Objects.equals("false", pluginEnvKey.getDefaultValue().toLowerCase())) {
+                return true;
+            }
+
+            return false;
         }
 
         @Override
@@ -155,9 +162,17 @@ public enum PluginEnvType {
     private static boolean booleanOfString(String value) {
         if (Strings.isNullOrEmpty(value)) {
             return false;
-        } else {
-            return Boolean.valueOf(value);
         }
+
+        if (Objects.equals("true", value.toLowerCase())) {
+            return true;
+        }
+
+        if (Objects.equals("false", value.toLowerCase())) {
+            return false;
+        }
+
+        return false;
     }
 
     private static Integer integerOfString(String value) {
