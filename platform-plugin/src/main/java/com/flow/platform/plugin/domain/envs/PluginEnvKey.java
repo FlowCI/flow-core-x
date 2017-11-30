@@ -44,9 +44,7 @@ public class PluginEnvKey<T> {
         this.type = type;
         this.defaultValue = defaultValue;
         this.required = required;
-
     }
-
 
     public String getName() {
         return name;
