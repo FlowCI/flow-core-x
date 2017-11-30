@@ -31,7 +31,7 @@ public class PluginDetail {
     private String language;
 
     @Expose
-    @YmlSerializer(adaptor = InputYmlAdaptor.class, name = "properties")
+    @YmlSerializer(name = "properties")
     private List<PluginEnvKey> inputs;
 
     @Expose

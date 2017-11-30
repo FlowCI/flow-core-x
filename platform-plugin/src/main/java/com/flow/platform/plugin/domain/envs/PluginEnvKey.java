@@ -16,6 +16,7 @@
 
 package com.flow.platform.plugin.domain.envs;
 
+import com.flow.platform.plugin.domain.adaptor.EnvTypeAdaptor;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import java.util.List;
@@ -26,18 +27,23 @@ import java.util.List;
 public class PluginEnvKey {
 
     @Expose
+    @YmlSerializer(required = true)
     private String name;
 
     @Expose
+    @YmlSerializer(adaptor = EnvTypeAdaptor.class, required = true)
     private PluginEnvType type;
 
     @Expose
+    @YmlSerializer(name = "default", required = false)
     private String defaultValue;
 
     @Expose
+    @YmlSerializer(required = false)
     private Boolean required;
 
     @Expose
+    @YmlSerializer(required = false)
     private List<String> values;
 
 
