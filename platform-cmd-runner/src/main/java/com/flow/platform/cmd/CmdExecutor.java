@@ -218,8 +218,6 @@ public final class CmdExecutor {
 
     public CmdResult run() {
         outputResult = new CmdResult();
-
-        long startTime = System.currentTimeMillis();
         outputResult.setStartTime(DateUtil.now());
 
         try {
@@ -254,7 +252,7 @@ public final class CmdExecutor {
             logThreadCountDown.await(DEFAULT_LOGGING_WAITING_SECONDS, TimeUnit.SECONDS);
             executor.shutdown();
 
-            // try to shutdown all threads with max 30 seconds waitting time
+            // try to shutdown all threads with max 30 seconds waiting time
             if (!executor.awaitTermination(DEFAULT_SHUTDOWN_WAITING_SECONDS, TimeUnit.SECONDS)) {
                 executor.shutdownNow();
             }
