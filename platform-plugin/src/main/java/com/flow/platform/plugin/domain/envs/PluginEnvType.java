@@ -16,7 +16,6 @@
 
 package com.flow.platform.plugin.domain.envs;
 
-import com.google.common.base.Converter;
 import com.google.common.base.Strings;
 
 /**
@@ -52,6 +51,10 @@ public enum PluginEnvType {
 
     public <T> T converter(String value) {
         return (T) handler.converter(value);
+    }
+
+    public Boolean isValidated(String value) {
+        return handler.isValidated(value);
     }
 
     private interface Handler<T> {

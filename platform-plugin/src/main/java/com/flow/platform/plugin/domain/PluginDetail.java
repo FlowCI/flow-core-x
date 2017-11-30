@@ -16,6 +16,7 @@
 
 package com.flow.platform.plugin.domain;
 
+import com.flow.platform.plugin.domain.adaptor.PluginEnvValidator;
 import com.flow.platform.plugin.domain.envs.PluginEnvKey;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
@@ -31,7 +32,7 @@ public class PluginDetail {
     private String language;
 
     @Expose
-    @YmlSerializer(name = "properties")
+    @YmlSerializer(name = "properties", validator = PluginEnvValidator.class)
     private List<PluginEnvKey> inputs;
 
     @Expose
