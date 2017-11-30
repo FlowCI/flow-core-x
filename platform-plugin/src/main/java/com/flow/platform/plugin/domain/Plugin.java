@@ -65,6 +65,9 @@ public class Plugin implements Comparable {
     private String reason;
 
     @Expose
+    private String description;
+
+    @Expose
     private PluginDetail pluginDetail;
 
     public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
@@ -145,6 +148,14 @@ public class Plugin implements Comparable {
 
     public void setPlatform(List<String> platform) {
         this.platform = platform;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
