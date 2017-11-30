@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.domain.adaptor;
 
 import com.flow.platform.plugin.domain.envs.PluginEnvType;
+import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
 import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
@@ -36,7 +37,11 @@ public class EnvTypeAdaptor extends YmlAdaptor<PluginEnvType> {
 
     @Override
     public PluginEnvType read(Object obj) {
-        return selectEnvType(obj.toString());
+        PluginEnvType pluginEnvType = selectEnvType(obj.toString());
+        if (pluginEnvType == null) {
+            throw new PluginException("Yml Env Type Error, Not Found Env Type");
+        }
+        return pluginEnvType;
     }
 
     @Override
