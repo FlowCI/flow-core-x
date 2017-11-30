@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.commons.io.Charsets;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
@@ -96,7 +97,7 @@ public abstract class TestBase {
                 .willReturn(aResponse().withStatus(200).withBody(getResource("repos_demo.json"))));
     }
 
-    private String getResource(String fileName) throws IOException {
+    protected String getResource(String fileName) throws IOException {
         Path path = Paths.get(TestBase.class.getClassLoader().getResource(fileName).getPath());
         return Files.toString(path.toFile(), Charsets.UTF_8);
     }
@@ -114,6 +115,13 @@ public abstract class TestBase {
 
             // git commit something
             java.nio.file.Files.createFile(Paths.get(gitCloneMocGit.toString(), "readme.md"));
+
+            // add yml file
+            String body = getResource("flow-step-demo.yml");
+            Path path = Paths.get(gitCloneMocGit.toString(), "flow-step.yml");
+            FileUtils.write(path.toFile(), body);
+
+            // add
             Git git = Git.open(gitCloneMocGit);
             git.add().addFilepattern(".").call();
             git.commit().setMessage("firCi").call();

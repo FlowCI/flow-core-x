@@ -87,7 +87,18 @@ public class UserRoleInit extends Initializer {
 
     private void initDefaultAdminUser() {
         try {
-            userService.register(superUser, ImmutableList.of(SysRole.ADMIN.name()), false, Collections.emptyList());
+            ImmutableList<String> roles = ImmutableList.of(SysRole.ADMIN.name());
+            User exist = userService.findByEmail(superUser.getEmail());
+
+            // create super user
+            if (exist == null) {
+                userService.register(superUser, roles, false, Collections.emptyList());
+                return;
+            }
+
+            // update password
+            userService.changePassword(exist, null, superUser.getPassword());
+
         } catch (Throwable ignore) {
             // ignore existed
         }

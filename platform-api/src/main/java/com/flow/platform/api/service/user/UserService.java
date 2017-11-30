@@ -37,6 +37,15 @@ public interface UserService {
     User register(User user, List<String> roles, boolean isSendEmail, List<String> flowsList);
 
     /**
+     * Change password
+     *
+     * @param user user instance
+     * @param oldPassword old raw password, directly change to new password if set to null
+     * @param newPassword new raw password
+     */
+    void changePassword(User user, String oldPassword, String newPassword);
+
+    /**
      * Delete a user
      */
     void delete(List<String> emailList);

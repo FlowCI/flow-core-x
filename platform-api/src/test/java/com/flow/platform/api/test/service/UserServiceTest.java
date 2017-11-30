@@ -4,6 +4,7 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.response.LoginResponse;
+import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.user.RoleService;
@@ -13,6 +14,7 @@ import com.flow.platform.api.util.StringEncodeUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.Assert;
@@ -75,6 +77,40 @@ public class UserServiceTest extends TestBase {
         Assert.assertEquals("test", user.getFlows().get(0));
 
         Assert.assertEquals(2, user.getRoles().size());
+    }
+
+    @Test
+    public void should_init_user_and_then_change_password() {
+        // given: init role
+        for (SysRole role : SysRole.values()) {
+            try {
+                roleService.create(role.name(), "System default role");
+            } catch (Throwable ignore) {
+                // ignore duplication
+            }
+        }
+
+        // when: init sys user
+        User superUser = new User();
+        superUser.setUsername("willadmin");
+        superUser.setEmail("yh@fir.im");
+        superUser.setPassword("123456");
+        userService.register(superUser, ImmutableList.of(SysRole.ADMIN.name()), false, Collections.emptyList());
+
+        // then: user is not null
+        User user = userDao.getByUsername("willadmin");
+        Assert.assertNotNull(user);
+        Assert.assertEquals("yh@fir.im", user.getEmail());
+
+        // when: update password
+        superUser.setPassword("qwertyui");
+        User exist = userService.findByEmail(superUser.getEmail());
+        userService.changePassword(exist, "123456", superUser.getPassword());
+
+        // then: password is equal
+        user = userDao.getByUsername("willadmin");
+        Assert.assertEquals(StringEncodeUtil.encodeByMD5("qwertyui", AppConfig.DEFAULT_CHARSET.name()),
+            user.getPassword());
     }
 
     @Test

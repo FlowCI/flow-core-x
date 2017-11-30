@@ -64,6 +64,12 @@ public class Plugin implements Comparable {
     @Expose
     private String reason;
 
+    @Expose
+    private String description;
+
+    @Expose
+    private PluginDetail pluginDetail;
+
     public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
         this.name = name;
         this.details = details;
@@ -144,6 +150,14 @@ public class Plugin implements Comparable {
         this.platform = platform;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public int compareTo(Object o) {
         return 0;
@@ -163,6 +177,14 @@ public class Plugin implements Comparable {
 
     public void setStopped(boolean stopped) {
         isStopped = stopped;
+    }
+
+    public PluginDetail getPluginDetail() {
+        return pluginDetail;
+    }
+
+    public void setPluginDetail(PluginDetail pluginDetail) {
+        this.pluginDetail = pluginDetail;
     }
 
     @Override

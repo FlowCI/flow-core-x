@@ -371,6 +371,15 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         NodeResult rootResult = nodeResultService.find(tree.root().getPath(), job.getId());
         envVars.putAll(rootResult.getOutputs());
 
+        // pass last step noed status
+        Node prev = tree.prev(node.getPath());
+        if (prev != null) {
+            NodeResult prevResult = nodeResultService.find(prev.getPath(), job.getId());
+            if (prevResult != null) {
+                envVars.putEnv(JobEnvs.FLOW_JOB_LAST_STATUS, prevResult.getStatus().toString());
+            }
+        }
+
         // to run node with customized cmd id
         try {
             NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
@@ -379,7 +388,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             EnvUtil.keepNewlineForEnv(credentialEnvs, null);
             envVars.putAll(credentialEnvs);
 
-            CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
+            cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
         } catch (IllegalStatusException e) {
             CmdInfo rawCmd = (CmdInfo) e.getData();
             rawCmd.setStatus(CmdStatus.EXCEPTION);

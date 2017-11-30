@@ -99,7 +99,7 @@ public class NodeUtil {
      * get all nodes includes flow and steps
      *
      * @param node the parent node
-     * @return List<Node> include parent node
+     * @return {@code List<Node>} include parent node
      */
     public static List<Node> flat(final Node node) {
         final List<Node> flatted = new LinkedList<>();
@@ -122,21 +122,17 @@ public class NodeUtil {
      * get prev node from flow
      */
     public static Node prev(Node node, List<Node> ordered) {
-        Integer index = -1;
-        Node target = null;
+        Integer index = ordered.indexOf(node);
 
-        for (int i = 0; i < ordered.size(); i++) {
-            Node item = ordered.get(i);
-            if (item.equals(node)) {
-                index = i;
-            }
+        if (index == -1) {
+            return null;
         }
 
-        if (index >= 1 && index != -1 && index < ordered.size() - 1) {
-            target = ordered.get(index - 1);
+        if (index >= 1 && index <= ordered.size() - 1) {
+            return ordered.get(index - 1);
         }
 
-        return target;
+        return null;
     }
 
     /**
@@ -147,29 +143,18 @@ public class NodeUtil {
      * @return next node of current
      */
     public static Node next(Node node, List<Node> ordered) {
-        Integer index = -1;
-        Node target = null;
+        Integer index = ordered.indexOf(node);
 
-        //find node
-        for (int i = 0; i < ordered.size(); i++) {
-            Node item = ordered.get(i);
-            if (item.equals(node)) {
-                index = i;
-                break;
-            }
+        if (index == -1) {
+            return null;
         }
 
         // find node
-        if (index != -1) {
-            try {
-                target = ordered.get(index + 1);
-            } catch (Throwable ignore) {
-                //not found ignore
-                target = null;
-            }
+        try {
+            return ordered.get(index + 1);
+        } catch (Throwable ignore) {
+            return null;
         }
-
-        return target;
     }
 
     /**
