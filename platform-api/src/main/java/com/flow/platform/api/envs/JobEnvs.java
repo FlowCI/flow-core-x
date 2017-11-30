@@ -25,11 +25,25 @@ public enum JobEnvs implements EnvKey {
 
     FLOW_JOB_BUILD_NUMBER,
 
+    /**
+     * Job build category (trigger type)
+     */
     FLOW_JOB_BUILD_CATEGORY,
 
+    /**
+     * Agent zone and name
+     */
     FLOW_JOB_AGENT_INFO,
 
-    FLOW_JOB_LOG_PATH;
+    /**
+     * Job log download url
+     */
+    FLOW_JOB_LOG_PATH,
+
+    /**
+     * The last step status: values in {@code NodeStatus}
+     */
+    FLOW_JOB_LAST_STATUS;
 
     private boolean readonly;
 

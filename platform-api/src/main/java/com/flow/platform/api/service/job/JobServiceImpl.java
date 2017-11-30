@@ -55,13 +55,13 @@ import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
-import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitCommit;
@@ -345,7 +345,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     /**
-     * run node
+     * Collect env variables and run node
      *
      * @param node job node's script and record cmdId and sync send http
      */
@@ -371,6 +371,18 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         NodeResult rootResult = nodeResultService.find(tree.root().getPath(), job.getId());
         envVars.putAll(rootResult.getOutputs());
 
+        // pass last step node status
+        Node prev = tree.prev(node.getPath());
+        if (prev != null) {
+            NodeResult prevResult = nodeResultService.find(prev.getPath(), job.getId());
+            if (prevResult != null) {
+                envVars.putEnv(JobEnvs.FLOW_JOB_LAST_STATUS, prevResult.getStatus().toString());
+            }
+        }
+
+        // pass current node envs
+        envVars.putAll(node.getEnvs());
+
         // to run node with customized cmd id
         try {
             NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
@@ -379,7 +391,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             EnvUtil.keepNewlineForEnv(credentialEnvs, null);
             envVars.putAll(credentialEnvs);
 
-            CmdInfo cmd = cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
+            cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
         } catch (IllegalStatusException e) {
             CmdInfo rawCmd = (CmdInfo) e.getData();
             rawCmd.setStatus(CmdStatus.EXCEPTION);

@@ -30,7 +30,7 @@ CREATE TABLE `cmd` (
   `timeout` int(11) DEFAULT NULL,
   `session_id` varchar(36) DEFAULT NULL,
   `working_dir` varchar(255) DEFAULT NULL,
-  `output_env_filter` varchar(50) DEFAULT NULL,
+  `output_env_filter` longtext,
   `log_path` varchar(255) DEFAULT NULL,
   `inputs` longtext,
   `webhook` varchar(255) DEFAULT NULL,

@@ -18,10 +18,9 @@ package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.CmdService;
-import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.PriorityMessage;
-import com.flow.platform.core.queue.QueueListener;
-import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;

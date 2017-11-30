@@ -19,6 +19,7 @@ package com.flow.platform.api.git;
 import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.util.git.JGitUtil;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventType;
@@ -67,13 +68,13 @@ public class GitEventEnvConverter {
 
             // the branch is on source for open pr
             if (pr.getState() == State.OPEN) {
-                info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pr.getSource().getBranch()));
+                info.put(GitEnvs.FLOW_GIT_BRANCH.name(), JGitUtil.simpleRef(pr.getSource().getBranch()));
                 info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pr.getSubmitter());
             }
 
             // the branch is on target for close pr
             if (pr.getState() == State.CLOSE) {
-                info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pr.getTarget().getBranch()));
+                info.put(GitEnvs.FLOW_GIT_BRANCH.name(), JGitUtil.simpleRef(pr.getTarget().getBranch()));
                 info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pr.getMergedBy());
             }
 
@@ -93,7 +94,7 @@ public class GitEventEnvConverter {
             Map<String, String> info = new HashMap<>(10);
             info.put(GitEnvs.FLOW_GIT_EVENT_TYPE.name(), pt.getType().name());
             info.put(GitEnvs.FLOW_GIT_EVENT_SOURCE.name(), pt.getGitSource().name());
-            info.put(GitEnvs.FLOW_GIT_BRANCH.name(), simpleRef(pt.getRef()));
+            info.put(GitEnvs.FLOW_GIT_BRANCH.name(), JGitUtil.simpleRef(pt.getRef()));
             info.put(GitEnvs.FLOW_GIT_AUTHOR.name(), pt.getUsername());
             info.put(GitEnvs.FLOW_GIT_AUTHOR_EMAIL.name(), pt.getUserEmail());
             info.put(GitEnvs.FLOW_GIT_COMMIT_ID.name(), pt.getAfter());
@@ -112,16 +113,5 @@ public class GitEventEnvConverter {
         }
 
         throw new IllegalParameterException("Git event type not supported");
-    }
-
-    /**
-     * Simplify ref from 'ref/head/master' to 'master'
-     */
-    private static String simpleRef(String ref) {
-        int slashIndex = ref.lastIndexOf('/');
-        if (slashIndex == -1) {
-            return ref;
-        }
-        return ref.substring(slashIndex + 1);
     }
 }

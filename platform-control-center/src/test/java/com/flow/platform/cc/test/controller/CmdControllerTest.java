@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.cc.service.ZoneService;
@@ -72,6 +71,9 @@ public class CmdControllerTest extends TestBase {
 
     @Autowired
     private ZoneService zoneService;
+
+    @Autowired
+    private Path cmdLogDir;
 
     @Test
     public void should_list_cmd_types() throws Throwable {
@@ -192,7 +194,7 @@ public class CmdControllerTest extends TestBase {
             .andExpect(status().isOk());
 
         // then: check upload file path and logging queue
-        Path zippedLogPath = Paths.get(AppConfig.CMD_LOG_DIR.toString(), originalFilename);
+        Path zippedLogPath = Paths.get(cmdLogDir.toString(), originalFilename);
         Assert.assertTrue(Files.exists(zippedLogPath));
         Assert.assertEquals(data.length, Files.size(zippedLogPath));
 

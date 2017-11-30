@@ -59,7 +59,7 @@ public class ZooKeeperConfig {
     private final static Properties EMBEDDED_ZOOKEEPER_PROP = new Properties();
 
     static {
-        File zkDataPath = Paths.get(System.getProperty("java.io.tmpdir", "/var/tmp"), "zookeeper", "data").toFile();
+        File zkDataPath = Paths.get(System.getProperty("java.io.tmpdir", "/tmp/flow-zookeeper"), "zookeeper", "data").toFile();
         EMBEDDED_ZOOKEEPER_PROP.setProperty("dataDir", zkDataPath.getAbsolutePath());
         EMBEDDED_ZOOKEEPER_PROP.setProperty("clientPort", "2181");
         EMBEDDED_ZOOKEEPER_PROP.setProperty("clientPortAddress", "0.0.0.0");

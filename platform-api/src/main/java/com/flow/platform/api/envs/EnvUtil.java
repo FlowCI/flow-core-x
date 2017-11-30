@@ -17,10 +17,14 @@
 package com.flow.platform.api.envs;
 
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.domain.Cmd;
 import com.google.common.base.Strings;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -29,6 +33,26 @@ import java.util.Set;
  * @author yang
  */
 public class EnvUtil {
+
+    /**
+     * Parse env format with comma like A,B,C to list
+     * @return List instance
+     */
+    public static List<String> parseCommaEnvToList(String input) {
+        if (input == null) {
+            return Collections.emptyList();
+        }
+
+        String[] list = input.split(FlowEnvs.ENV_OUTPUT_SEPARATE);
+        List<String> commaList = new LinkedList<>();
+        for (String item : list) {
+            if (Strings.isNullOrEmpty(item)) {
+                continue;
+            }
+            commaList.add(item);
+        }
+        return commaList;
+    }
 
     /**
      * Convert "\n" to "\\n" in env variable, therefore the env variable still keep \n
@@ -42,7 +66,7 @@ public class EnvUtil {
 
         for (String key : keys) {
             String origin = source.get(key);
-            source.put(key, origin.replace("\n", "\\n"));
+            source.put(key, origin.replace(Cmd.NEW_LINE, "\\" + Cmd.NEW_LINE));
         }
     }
 

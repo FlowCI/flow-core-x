@@ -20,7 +20,6 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.ObjectUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -41,7 +40,7 @@ public class CmdDaoTest extends TestBase {
         Cmd cmd = new Cmd("zone", "agent", CmdType.SHUTDOWN, "123");
         cmd.setId(UUID.randomUUID().toString());
         cmd.setStatus(CmdStatus.KILLED);
-        cmd.setOutputEnvFilter("FLOW_VAR");
+        cmd.setOutputEnvFilter(Lists.newArrayList("FLOW_VAR"));
         cmd.setLogPath("/test/log/path");
         cmd.setTimeout(10);
         cmd.setWebhook("http://webhook.com");

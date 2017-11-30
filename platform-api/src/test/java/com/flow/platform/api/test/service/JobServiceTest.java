@@ -16,6 +16,9 @@
 
 package com.flow.platform.api.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -32,14 +35,13 @@ import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
-import com.flow.platform.core.queue.PlatformQueue;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
+import com.flow.platform.queue.PlatformQueue;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -51,7 +53,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yh@firim
@@ -158,8 +159,7 @@ public class JobServiceTest extends TestBase {
         Job job = createMockJob(root.getPath());
 
         // then: check cmd request to create session
-        CountMatchingStrategy countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 1);
-        verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         // when: simulate cc callback for create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -167,6 +167,7 @@ public class JobServiceTest extends TestBase {
         cmd.setStatus(CmdStatus.SENT);
         CmdCallbackQueueItem createSessionItem = new CmdCallbackQueueItem(job.getId(), cmd);
         jobService.callback(createSessionItem);
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/send")));
 
         // then: check job status should be running
         job = reload(job);
@@ -179,6 +180,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(7, steps.size());
 
         // when: simulate callback for all steps
+        int numOfRequestForCmdSend = 2;
         for (Node step : steps) {
             NodeResult stepResult = nodeResultService.find(step.getPath(), job.getId());
 
@@ -205,16 +207,20 @@ public class JobServiceTest extends TestBase {
             stepCmd.getCmdResult().setFinishTime(finish);
 
             // build mock identifier
-
             CmdCallbackQueueItem runStepShellItem = new CmdCallbackQueueItem(job.getId(), stepCmd);
             jobService.callback(runStepShellItem);
             stepResult = nodeResultService.find(step.getPath(), job.getId());
             Assert.assertEquals(NodeStatus.SUCCESS, stepResult.getStatus());
+
+            verify(exactly(numOfRequestForCmdSend++), postRequestedFor(urlEqualTo("/cmd/send")));
+
+            verify(moreThanOrExactly(1),
+                postRequestedFor(urlEqualTo("/cmd/send"))
+                    .withRequestBody(matchingJsonPath("$.inputs[?(@.FLOW_JOB_LAST_STATUS == 'SUCCESS')]")));
         }
 
         // then: check num of cmd request to run shell, 5 steps + 1 del session requests
-        countStrategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 6);
-        verify(countStrategy, postRequestedFor(urlEqualTo("/cmd/send")));
+        verify(exactly(6), postRequestedFor(urlEqualTo("/cmd/send")));
 
         // then: check job status
         job = reload(job);

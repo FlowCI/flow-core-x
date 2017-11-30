@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -43,8 +43,6 @@ public class AppConfig extends AppConfigBase {
 
     public final static String VERSION = "v0.1-alpha";
 
-    public final static Path CMD_LOG_DIR = Paths.get(System.getenv("HOME"), "uploaded-agent-log");
-
     private final static int ASYNC_POOL_SIZE = 100;
 
     private final static String THREAD_NAME_PREFIX = "async-task-";
@@ -54,12 +52,25 @@ public class AppConfig extends AppConfigBase {
     private final static ThreadPoolTaskExecutor executor =
         ThreadUtil.createTaskExecutor(ASYNC_POOL_SIZE, ASYNC_POOL_SIZE / 10, 100, THREAD_NAME_PREFIX);
 
-    @PostConstruct
-    public void init() {
+    @Value("${cc.workspace}")
+    private String workspace;
+
+    @Bean
+    public Path workspace() {
         try {
-            Files.createDirectories(CMD_LOG_DIR);
+            return Files.createDirectories(Paths.get(workspace));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Fail to create flow.ci control center working dir", e);
+        }
+    }
+
+    @Bean
+    public Path cmdLogDir() {
+        Path cmdLogDir = Paths.get(workspace().toString(), "agent-logs");
+        try {
+            return Files.createDirectories(cmdLogDir);
+        } catch (IOException e) {
+            throw new RuntimeException("Fail to create agent log dir", e);
         }
     }
 

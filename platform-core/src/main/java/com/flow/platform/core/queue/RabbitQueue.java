@@ -16,6 +16,9 @@
 
 package com.flow.platform.core.queue;
 
+import com.flow.platform.core.context.ContextEvent;
+import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,7 +39,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author yang
  */
-public class RabbitQueue extends PlatformQueue<PriorityMessage> {
+public class RabbitQueue extends PlatformQueue<PriorityMessage> implements ContextEvent {
 
     private final static Logger LOGGER = new Logger(RabbitQueue.class);
 
@@ -97,6 +100,11 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> {
     public void enqueue(PriorityMessage item) {
         template.send("", name, item);
         size.incrementAndGet();
+    }
+
+    @Override
+    public PriorityMessage dequeue() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
