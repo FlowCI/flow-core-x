@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * @author yh@firim
  */
-public class PluginEnvKey<T> {
+public class PluginEnvKey {
 
     @Expose
     private String name;
@@ -31,7 +31,7 @@ public class PluginEnvKey<T> {
     private PluginEnvType type;
 
     @Expose
-    private T defaultValue;
+    private String defaultValue;
 
     @Expose
     private Boolean required;
@@ -39,12 +39,6 @@ public class PluginEnvKey<T> {
     @Expose
     private List<String> values;
 
-    public PluginEnvKey(String name, PluginEnvType type, T defaultValue, Boolean required) {
-        this.name = name;
-        this.type = type;
-        this.defaultValue = defaultValue;
-        this.required = required;
-    }
 
     public String getName() {
         return name;
@@ -60,14 +54,6 @@ public class PluginEnvKey<T> {
 
     public void setType(PluginEnvType type) {
         this.type = type;
-    }
-
-    public T getDefaultValue() {
-        return defaultValue;
-    }
-
-    public void setDefaultValue(T defaultValue) {
-        this.defaultValue = defaultValue;
     }
 
     public Boolean getRequired() {
@@ -86,6 +72,14 @@ public class PluginEnvKey<T> {
         this.values = values;
     }
 
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -95,7 +89,7 @@ public class PluginEnvKey<T> {
             return false;
         }
 
-        PluginEnvKey<?> that = (PluginEnvKey<?>) o;
+        PluginEnvKey that = (PluginEnvKey) o;
 
         return name != null ? name.equals(that.name) : that.name == null;
     }
