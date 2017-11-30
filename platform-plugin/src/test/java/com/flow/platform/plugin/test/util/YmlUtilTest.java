@@ -33,9 +33,20 @@ public class YmlUtilTest extends TestBase {
     public void should_transfer_object_success() throws IOException {
         String ymlBody = getResource("flow-step-demo.yml");
 
+        // when : Transfer
         PluginDetail pluginDetail = YmlUtil.fromYml(ymlBody, PluginDetail.class);
 
+        // then: Not Null
         Assert.assertNotNull(pluginDetail);
+
+        // then: name should equal
+        Assert.assertEquals("fir-cli", pluginDetail.getName());
+
+        // then: outputs Size is Equal
+        Assert.assertEquals(2, pluginDetail.getOutputs().size());
+
+        // then: inputs size is Equal
+        Assert.assertEquals(5, pluginDetail.getInputs().size());
     }
 
     @Test(expected = PluginException.class)

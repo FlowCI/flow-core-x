@@ -39,7 +39,7 @@ public class PluginEnvKey {
     private String defaultValue;
 
     @Expose
-    @YmlSerializer(required = false)
+    @YmlSerializer
     private Boolean required;
 
     @Expose
