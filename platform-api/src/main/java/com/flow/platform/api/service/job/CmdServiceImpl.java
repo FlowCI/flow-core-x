@@ -20,6 +20,7 @@ import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.AgentEnvs;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
@@ -105,7 +106,10 @@ public class CmdServiceImpl implements CmdService {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
         cmdInfo.setInputs(envVars.getEnvs());
         cmdInfo.setWebhook(buildCmdWebhook(job));
-        cmdInfo.setOutputEnvFilter(envVars.getEnv(FlowEnvs.FLOW_ENV_OUTPUT_PREFIX, "FLOW_OUTPUT"));
+
+        String outputFilter = envVars.getEnv(FlowEnvs.FLOW_ENV_OUTPUT_PREFIX, "FLOW_OUTPUT");
+        cmdInfo.setOutputEnvFilter(EnvUtil.parseCommaEnvToList(outputFilter));
+
         cmdInfo.setSessionId(job.getSessionId());
         cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
         cmdInfo.setCustomizedId(cmdId);
