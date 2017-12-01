@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.domain.sync;
 
+import com.google.gson.annotations.Expose;
+
 /**
  * @author yang
  */
@@ -41,8 +43,10 @@ public class SyncRepo {
         return new SyncRepo(name, tag);
     }
 
+    @Expose
     private String name;
 
+    @Expose
     private String tag;
 
     public SyncRepo(String name, String tag) {
