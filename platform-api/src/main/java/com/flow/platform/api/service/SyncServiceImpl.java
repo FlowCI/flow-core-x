@@ -377,6 +377,6 @@ public class SyncServiceImpl implements SyncService {
     }
 
     private String createGitUrl(String repoName) {
-        return HttpURL.build(apiDomain).append("git").append(repoName).toString();
+        return HttpURL.build(apiDomain).append("git").append(repoName + ".git").toString();
     }
 }
