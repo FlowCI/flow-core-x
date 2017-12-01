@@ -42,7 +42,7 @@ public class Sync {
     private List<SyncRepo> repos = new ArrayList<>();
 
     /**
-     * Agent sync queue
+     * Agent sync event queue
      */
     private PlatformQueue<PriorityMessage> queue;
 

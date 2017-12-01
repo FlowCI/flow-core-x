@@ -24,6 +24,7 @@ import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.queue.PlatformQueue;
+import java.util.List;
 
 /**
  * @author yang
@@ -43,9 +44,17 @@ public interface SyncService {
     }
 
     /**
-     * Put sync event
+     * Put sync event to event queue
      */
     void put(SyncEvent event);
+
+    /**
+     * Put list of sync events
+     *
+     * @param events     event list
+     * @param cleanQueue is clean current event queue
+     */
+    void put(List<SyncEvent> events, boolean cleanQueue);
 
     /**
      * Put sync event with raw data

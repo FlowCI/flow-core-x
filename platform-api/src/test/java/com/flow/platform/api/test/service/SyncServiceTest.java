@@ -109,7 +109,7 @@ public class SyncServiceTest extends TestBase {
     }
 
     @Test
-    public void should_sync_event_been_added_for_agent() throws Throwable {
+    public void should_add_sync_event_been_added_for_agent() throws Throwable {
         // given:
         AgentPath firstAgent = agents.get(0);
         AgentPath secondAgent = agents.get(1);
@@ -121,7 +121,43 @@ public class SyncServiceTest extends TestBase {
         syncService.put(new SyncEvent("http://127.0.0.1/git/hello.git", new SyncRepo("hello", "v1.0"), SyncType.CREATE));
         syncService.put(new SyncEvent("http://127.0.0.1/git/flow.git", new SyncRepo("flow", "v1.0"), SyncType.CREATE));
 
-        // then: three events should be in the agent sync queue, include list
+        // then: two events should be in the agent sync queue, include list
+        Assert.assertEquals(2, syncService.get(firstAgent).getQueue().size());
+        Assert.assertEquals(2, syncService.get(secondAgent).getQueue().size());
+    }
+
+    @Test
+    public void should_batch_add_sync_event_agent() throws Throwable {
+        // given:
+        AgentPath firstAgent = agents.get(0);
+        AgentPath secondAgent = agents.get(1);
+
+        syncService.register(firstAgent);
+        syncService.register(secondAgent);
+
+        List<SyncEvent> events = ImmutableList.of(
+            new SyncEvent("http://127.0.0.1/git/hello.git", new SyncRepo("hello", "v1.0"), SyncType.CREATE),
+            new SyncEvent("http://127.0.0.1/git/flow.git", new SyncRepo("flow", "v1.0"), SyncType.CREATE)
+        );
+
+        // when: put sync event list to service without clean event queue
+        syncService.put(events, false);
+
+        // then: two events should be in the agent sync queue, include list
+        Assert.assertEquals(2, syncService.get(firstAgent).getQueue().size());
+        Assert.assertEquals(2, syncService.get(secondAgent).getQueue().size());
+
+        // when: put sync event list to service again
+        syncService.put(events, false);
+
+        // then:
+        Assert.assertEquals(4, syncService.get(firstAgent).getQueue().size());
+        Assert.assertEquals(4, syncService.get(secondAgent).getQueue().size());
+
+        // when: put sync event list to service again with clean current queue
+        syncService.put(events, true);
+
+        // then: the event queue should clean
         Assert.assertEquals(2, syncService.get(firstAgent).getQueue().size());
         Assert.assertEquals(2, syncService.get(secondAgent).getQueue().size());
     }

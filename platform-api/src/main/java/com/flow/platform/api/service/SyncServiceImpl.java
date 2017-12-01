@@ -41,9 +41,11 @@ import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.annotation.PostConstruct;
@@ -113,6 +115,24 @@ public class SyncServiceImpl implements SyncService {
         for (Sync syncForAgent : syncs.values()) {
             PlatformQueue<PriorityMessage> agentQueue = syncForAgent.getQueue();
             agentQueue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+        }
+    }
+
+    @Override
+    public void put(List<SyncEvent> events, boolean cleanQueue) {
+        Set<Sync> cleanSet = new HashSet<>(syncs.size());
+
+        for (Sync syncForAgent : syncs.values()) {
+            PlatformQueue<PriorityMessage> agentQueue = syncForAgent.getQueue();
+
+            if (!cleanSet.contains(syncForAgent) && cleanQueue) {
+                agentQueue.clean();
+                cleanSet.add(syncForAgent);
+            }
+
+            for (SyncEvent event : events) {
+                agentQueue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+            }
         }
     }
 
