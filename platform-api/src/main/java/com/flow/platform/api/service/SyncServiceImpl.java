@@ -26,6 +26,7 @@ import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
@@ -95,6 +96,9 @@ public class SyncServiceImpl implements SyncService {
 
                 List<Agent> agents = agentService.list();
                 for (Agent agent : agents) {
+                    if (agent.getStatus() == AgentStatus.OFFLINE) {
+                        continue;
+                    }
                     register(agent.getPath());
                 }
             } catch (Throwable e) {
