@@ -61,9 +61,6 @@ public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
     private CmdDispatchService cmdDispatchService;
 
     @Autowired
-    private AgentService agentService;
-
-    @Autowired
     private PlatformQueue<PriorityMessage> cmdQueue;
 
     @PostConstruct
