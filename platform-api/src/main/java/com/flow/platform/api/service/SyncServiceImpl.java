@@ -34,6 +34,7 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
 import com.flow.platform.util.http.HttpURL;
@@ -119,18 +120,22 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public void put(List<SyncEvent> events, boolean cleanQueue) {
+    public void reset() {
+        List<SyncEvent> events = initSyncEventFromGitWorkspace();
+        events.add(0, SyncEvent.DELETE_ALL);
+
         Set<Sync> cleanSet = new HashSet<>(syncs.size());
 
         for (Sync syncForAgent : syncs.values()) {
             PlatformQueue<PriorityMessage> agentQueue = syncForAgent.getQueue();
 
-            if (!cleanSet.contains(syncForAgent) && cleanQueue) {
+            if (!cleanSet.contains(syncForAgent)) {
                 agentQueue.clean();
                 cleanSet.add(syncForAgent);
             }
 
             for (SyncEvent event : events) {
+                event.setGitUrl(createGitUrl(event.getRepo().getName())); // ensure git url is correct
                 agentQueue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
             }
         }
@@ -336,8 +341,7 @@ public class SyncServiceImpl implements SyncService {
         }
 
         // list agent exist repos finally
-        SyncEvent listEvent = new SyncEvent(null, null, SyncType.LIST);
-        syncEventQueue.add(listEvent);
+        syncEventQueue.add(SyncEvent.LIST);
 
         return syncEventQueue;
     }
@@ -360,6 +364,7 @@ public class SyncServiceImpl implements SyncService {
                     continue;
                 }
 
+                gitRepoName = StringUtil.trimEnd(gitRepoName, ".git");
                 syncEvents.add(new SyncEvent(createGitUrl(gitRepoName), gitRepoName, tags.get(0), SyncType.CREATE));
             } catch (GitException e) {
                 LOGGER.warn(e.getMessage());

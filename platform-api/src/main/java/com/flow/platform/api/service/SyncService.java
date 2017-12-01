@@ -49,20 +49,17 @@ public interface SyncService {
     void put(SyncEvent event);
 
     /**
-     * Put list of sync events
-     *
-     * @param events     event list
-     * @param cleanQueue is clean current event queue
-     */
-    void put(List<SyncEvent> events, boolean cleanQueue);
-
-    /**
      * Put sync event with raw data
      * @param name repo name
      * @param tag repo tag
      * @param type sync type
      */
     void put(String name, String tag, SyncType type);
+
+    /**
+     * Reload sync event from git repo and reset all agent event queue
+     */
+    void reset();
 
     /**
      * Get sync data for agent

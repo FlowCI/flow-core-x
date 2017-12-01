@@ -265,7 +265,7 @@ public class AgentController {
      * @api {Post} /agents/sync Sync
      * @apiName Sync
      * @apiGroup Agent
-     * @apiDescription Sync api repositories to agent
+     * @apiDescription Execute sync event of agent
      *
      * @apiParamExample {json} Request-Example:
      *     {
