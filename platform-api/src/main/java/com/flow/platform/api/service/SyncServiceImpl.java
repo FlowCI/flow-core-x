@@ -21,10 +21,12 @@ import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.api.domain.sync.SyncType;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.service.job.CmdService;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
@@ -48,6 +50,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -75,6 +78,9 @@ public class SyncServiceImpl implements SyncService {
     @Autowired
     private AgentService agentService;
 
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
     @Value("${domain.api}")
     private String apiDomain;
 
@@ -84,14 +90,21 @@ public class SyncServiceImpl implements SyncService {
     private void init() {
         callbackUrl = HttpURL.build(apiDomain).append("/hooks/sync").toString();
 
-        try {
-            List<Agent> agents = agentService.list();
-            for (Agent agent : agents) {
-                register(agent.getPath());
+        taskExecutor.execute(() -> {
+            try {
+                LOGGER.trace("Start to init agent list in thread: " + Thread.currentThread().getName());
+
+                List<Agent> agents = agentService.list();
+                for (Agent agent : agents) {
+                    if (agent.getStatus() == AgentStatus.OFFLINE) {
+                        continue;
+                    }
+                    register(agent.getPath());
+                }
+            } catch (Throwable e) {
+                LOGGER.warn(e.getMessage());
             }
-        } catch (Throwable e) {
-            LOGGER.warn("Cannot load agent list " + e.getMessage());
-        }
+        });
     }
 
     @Override
@@ -220,7 +233,7 @@ public class SyncServiceImpl implements SyncService {
             runShell.setWebhook(callbackUrl);
             runShell.setSessionId(cmd.getSessionId());
             runShell.setWorkingDir(DEFAULT_CMD_DIR);
-            runShell.setOutputEnvFilter(SyncEvent.FLOW_SYNC_LIST);
+            runShell.setOutputEnvFilter(EnvUtil.parseCommaEnvToList(SyncEvent.FLOW_SYNC_LIST));
             cmdService.sendCmd(runShell, false, 0);
         }
 

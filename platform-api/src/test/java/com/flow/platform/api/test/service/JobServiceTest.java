@@ -16,10 +16,8 @@
 
 package com.flow.platform.api.test.service;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
-import static com.github.tomakehurst.wiremock.client.WireMock.moreThan;
 import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -44,7 +42,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
-import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;

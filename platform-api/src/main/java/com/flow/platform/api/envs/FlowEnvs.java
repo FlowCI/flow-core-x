@@ -58,6 +58,8 @@ public enum FlowEnvs implements EnvKey {
 
     /**
      * Defined env variable output prefix
+     *
+     * Support multiple export, format ex: OUT_VAR_A,OUT_VAR_B,OUT_VAR_C
      */
     FLOW_ENV_OUTPUT_PREFIX(false, true, null),
 
@@ -70,6 +72,8 @@ public enum FlowEnvs implements EnvKey {
      * To define crontab task branch
      */
     FLOW_TASK_CRONTAB_BRANCH(false, false, null);
+
+    public final static String ENV_OUTPUT_SEPARATE = ",";
 
     private boolean readonly;
 

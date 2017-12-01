@@ -18,6 +18,7 @@ package com.flow.platform.util.http;
 
 import static com.flow.platform.util.http.HttpResponse.EXCEPTION_STATUS_CODE;
 
+import com.flow.platform.util.StringUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -36,7 +38,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -62,6 +64,14 @@ public class HttpClient {
     public static HttpClient build(String url) {
         return new HttpClient(url);
     }
+
+    private final static int HTTP_TIMEOUT = 5 * 1000;
+
+    private final RequestConfig config = RequestConfig.custom()
+        .setConnectTimeout(HTTP_TIMEOUT)
+        .setConnectionRequestTimeout(HTTP_TIMEOUT)
+        .setSocketTimeout(HTTP_TIMEOUT)
+        .build();
 
     private final String url;
 
@@ -142,7 +152,7 @@ public class HttpClient {
 
         exec(httpResponse -> {
             if (httpResponse == null) {
-                wrapper.add(new HttpResponse<>(retried, EXCEPTION_STATUS_CODE, exceptions, ""));
+                wrapper.add(new HttpResponse<>(retried, EXCEPTION_STATUS_CODE, exceptions, StringUtil.EMPTY));
                 return;
             }
 
@@ -152,7 +162,7 @@ public class HttpClient {
                 wrapper.add(new HttpResponse<>(retried, statusCode, exceptions, body));
             } catch (IOException e) {
                 exceptions.add(e);
-                wrapper.add(new HttpResponse<>(retried, EXCEPTION_STATUS_CODE, exceptions, ""));
+                wrapper.add(new HttpResponse<>(retried, EXCEPTION_STATUS_CODE, exceptions, StringUtil.EMPTY));
             }
         });
 
@@ -186,7 +196,7 @@ public class HttpClient {
             return;
         }
 
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
             try (CloseableHttpResponse response = httpClient.execute(httpRequest)) {
                 int statusCode = response.getStatusLine().getStatusCode();
 

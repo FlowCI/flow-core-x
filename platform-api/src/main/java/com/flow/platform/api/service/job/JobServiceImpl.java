@@ -345,7 +345,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     /**
-     * run node
+     * Collect env variables and run node
      *
      * @param node job node's script and record cmdId and sync send http
      */
@@ -371,7 +371,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         NodeResult rootResult = nodeResultService.find(tree.root().getPath(), job.getId());
         envVars.putAll(rootResult.getOutputs());
 
-        // pass last step noed status
+        // pass last step node status
         Node prev = tree.prev(node.getPath());
         if (prev != null) {
             NodeResult prevResult = nodeResultService.find(prev.getPath(), job.getId());
@@ -379,6 +379,9 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                 envVars.putEnv(JobEnvs.FLOW_JOB_LAST_STATUS, prevResult.getStatus().toString());
             }
         }
+
+        // pass current node envs
+        envVars.putAll(node.getEnvs());
 
         // to run node with customized cmd id
         try {

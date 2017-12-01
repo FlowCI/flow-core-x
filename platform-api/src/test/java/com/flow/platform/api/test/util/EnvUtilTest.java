@@ -19,6 +19,7 @@ package com.flow.platform.api.test.util;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvUtil;
 import com.google.common.collect.Sets;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,12 +46,27 @@ public class EnvUtilTest {
     }
 
     @Test
+    public void should_parse_comma_env_format() {
+        List<String> emptyVar = EnvUtil.parseCommaEnvToList("");
+        Assert.assertTrue(emptyVar.isEmpty());
+
+        List<String> singleVar = EnvUtil.parseCommaEnvToList("FIR_VAR");
+        Assert.assertEquals(1, singleVar.size());
+
+        singleVar = EnvUtil.parseCommaEnvToList("FIR_VAR,");
+        Assert.assertEquals(1, singleVar.size());
+
+        List<String> multipleVar = EnvUtil.parseCommaEnvToList("VAR_1,VAR_2,VAR_3,");
+        Assert.assertEquals(3, multipleVar.size());
+    }
+
+    @Test
     public void should_merge_env_without_overwrite() {
         // given:
         Node source = nodes[0];
         Node target = nodes[1];
 
-        // when: merget without overwrite
+        // when: merge without overwrite
         EnvUtil.merge(source, target, false);
 
         // then:
@@ -65,7 +81,7 @@ public class EnvUtilTest {
         Node source = nodes[0];
         Node target = nodes[1];
 
-        // when: merget without overwrite
+        // when: merge without overwrite
         EnvUtil.merge(source, target, true);
 
         // then:
