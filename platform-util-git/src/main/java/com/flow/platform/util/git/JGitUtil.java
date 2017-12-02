@@ -183,12 +183,33 @@ public class JGitUtil {
         return path;
     }
 
+
+    /**
+     * fetch tags from remote
+     * @param path
+     * @param remoteName
+     * @return
+     * @throws GitException
+     */
     public static Path fetchTags(Path path, String remoteName) throws GitException {
         try (Git git = Git.open(path.toFile())) {
             git.fetch()
                 .setRemote(remoteName)
                 .setRefSpecs(new RefSpec("refs/tags/*:refs/tags/*"))
                 .setTagOpt(TagOpt.FETCH_TAGS)
+                .call();
+        } catch (Throwable throwable) {
+            throw new GitException("fetch tags error", throwable);
+        }
+
+        return path;
+    }
+
+    public static Path checkout(Path path, String branch) throws GitException {
+        try (Git git = Git.open(path.toFile())) {
+            git
+                .checkout()
+                .setName(branch)
                 .call();
         } catch (Throwable throwable) {
             throw new GitException("fetch tags error", throwable);

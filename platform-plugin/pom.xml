@@ -18,6 +18,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.flow.platform</groupId>
+      <artifactId>platform-yml-parser</artifactId>
+      <version>${project.version}</version>
+      </dependency>
+
+    <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
     </dependency>

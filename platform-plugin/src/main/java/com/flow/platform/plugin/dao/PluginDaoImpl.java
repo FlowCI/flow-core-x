@@ -89,6 +89,7 @@ public class PluginDaoImpl implements PluginDao {
             cached.setDetails(plugin.getDetails());
             cached.setPlatform(plugin.getPlatform());
             cached.setLabels(plugin.getLabels());
+            cached.setDescription(plugin.getDescription());
         }
     }
 
