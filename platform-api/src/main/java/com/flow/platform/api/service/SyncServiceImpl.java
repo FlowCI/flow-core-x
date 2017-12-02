@@ -40,6 +40,7 @@ import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -286,6 +287,7 @@ public class SyncServiceImpl implements SyncService {
      */
     private void updateAgentRepo(Sync sync, String latestReposStr) {
         if (Strings.isNullOrEmpty(latestReposStr)) {
+            sync.setRepos(Collections.emptyList());
             return;
         }
 
