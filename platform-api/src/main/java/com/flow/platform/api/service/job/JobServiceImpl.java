@@ -387,10 +387,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         try {
             NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
 
-            Map<String, String> credentialEnvs = credentialService.find(node);
-            EnvUtil.keepNewlineForEnv(credentialEnvs, null);
-            envVars.putAll(credentialEnvs);
-
             cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
         } catch (IllegalStatusException e) {
             CmdInfo rawCmd = (CmdInfo) e.getData();

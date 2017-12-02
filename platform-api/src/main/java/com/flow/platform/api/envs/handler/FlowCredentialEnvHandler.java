@@ -52,7 +52,7 @@ public class FlowCredentialEnvHandler extends EnvHandler {
 
     @Override
     void onHandle(Node node, String value) {
-        Map<String, String> credentialEnvs = credentialService.find(node);
+        Map<String, String> credentialEnvs = credentialService.findByName(value);
         EnvUtil.keepNewlineForEnv(credentialEnvs, null);
         node.putAll(credentialEnvs);
     }
