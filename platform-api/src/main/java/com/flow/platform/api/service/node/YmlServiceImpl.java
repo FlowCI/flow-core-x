@@ -140,6 +140,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         if (isYmlLoading(root)) {
             throw new IllegalStatusException("Yml file is loading");
         }
+        
 
         // update FLOW_YML_STATUS to LOADING
         nodeService.updateYmlState(root, YmlStatusValue.GIT_CONNECTING, null);

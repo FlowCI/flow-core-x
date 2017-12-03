@@ -41,6 +41,7 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.git.GitEventEnvConverter;
@@ -386,6 +387,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // to run node with customized cmd id
         try {
             NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+
+            Map<String, String> credentialEnvs = credentialService.findByName(node.getEnv(GitEnvs.FLOW_GIT_CREDENTIAL));
+            EnvUtil.keepNewlineForEnv(credentialEnvs, null);
+            envVars.putAll(credentialEnvs);
 
             cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
         } catch (IllegalStatusException e) {
