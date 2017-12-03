@@ -20,7 +20,7 @@ import static com.flow.platform.api.envs.GitEnvs.FLOW_GIT_CREDENTIAL;
 
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvKey;
-import com.flow.platform.api.envs.EnvUtil;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.service.node.NodeService;
 import java.util.Map;
@@ -58,6 +58,9 @@ public class FlowCredentialEnvHandler extends EnvHandler {
 
     @Override
     void onUnHandle(Node node, String value) {
-
+        node.removeEnv(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY);
+        node.removeEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY);
+        node.removeEnv(GitEnvs.FLOW_GIT_HTTP_USER);
+        node.removeEnv(GitEnvs.FLOW_GIT_HTTP_PASS);
     }
 }
