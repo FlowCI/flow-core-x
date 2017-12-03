@@ -114,6 +114,12 @@ public class PluginServiceTest extends TestBase {
 
         // then: tag should not null
         Assert.assertNotNull(plugin.getTag());
+
+        // then: current tag should not null
+        Assert.assertNotNull(plugin.getCurrentTag());
+
+        // then: latestTag should equal currentTag
+        Assert.assertEquals(plugin.getTag(), plugin.getCurrentTag());
     }
 
     @Test

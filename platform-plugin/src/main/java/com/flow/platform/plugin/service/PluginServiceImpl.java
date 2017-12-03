@@ -394,7 +394,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 Path cachePath = gitCachePath(plugin);
                 String latestGitTag = plugin.getTag();
                 JGitUtil.push(cachePath, LOCAL_REMOTE, latestGitTag);
-
+                // set currentTag latestTag
+                plugin.setCurrentTag(latestGitTag);
                 updatePluginStatus(plugin, INSTALLED);
             } catch (GitException e) {
                 LOGGER.error("Git Push", e);

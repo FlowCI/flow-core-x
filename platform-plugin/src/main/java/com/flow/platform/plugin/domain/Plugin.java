@@ -57,8 +57,13 @@ public class Plugin implements Comparable {
     @Expose
     private PluginStatus status = PluginStatus.PENDING;
 
+    // latest tag
     @Expose
     private String tag;
+
+    // current used Tag
+    @Expose
+    private String currentTag;
 
     // if install error, the reason is error trace
     @Expose
@@ -185,6 +190,14 @@ public class Plugin implements Comparable {
 
     public void setPluginDetail(PluginDetail pluginDetail) {
         this.pluginDetail = pluginDetail;
+    }
+
+    public String getCurrentTag() {
+        return currentTag;
+    }
+
+    public void setCurrentTag(String currentTag) {
+        this.currentTag = currentTag;
     }
 
     @Override
