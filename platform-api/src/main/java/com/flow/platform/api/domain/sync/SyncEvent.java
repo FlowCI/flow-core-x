@@ -18,6 +18,7 @@ package com.flow.platform.api.domain.sync;
 
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.StringUtil;
 
 /**
  * @author yang
@@ -28,6 +29,12 @@ public class SyncEvent extends Jsonable {
      * Output env variable for agent repo list
      */
     public final static String FLOW_SYNC_LIST = "FLOW_SYNC_LIST";
+
+    public final static SyncEvent DELETE_ALL =
+        new SyncEvent(null, StringUtil.EMPTY, StringUtil.EMPTY, SyncType.DELETE_ALL);
+
+    public final static SyncEvent LIST =
+        new SyncEvent(null, StringUtil.EMPTY, StringUtil.EMPTY, SyncType.LIST);
 
     /**
      * Git source url
@@ -60,6 +67,10 @@ public class SyncEvent extends Jsonable {
         return gitUrl;
     }
 
+    public void setGitUrl(String gitUrl) {
+        this.gitUrl = gitUrl;
+    }
+
     public SyncRepo getRepo() {
         return repo;
     }
@@ -73,10 +84,15 @@ public class SyncEvent extends Jsonable {
             return "export " + FLOW_SYNC_LIST + "=\"$(ls)\"";
         }
 
+        if (syncType == SyncType.DELETE_ALL) {
+            return "rm -rf ./*/";
+        }
+
+        // the sync event type DELETE, CREATE, UPDATE needs folder name
         String folder = repo.toString();
 
         if (syncType == SyncType.DELETE) {
-            return "rm -r -f " + folder;
+            return "rm -rf " + folder;
         }
 
         return "git init " + folder +

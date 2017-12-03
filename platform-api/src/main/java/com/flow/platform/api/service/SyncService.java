@@ -24,6 +24,7 @@ import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.queue.PlatformQueue;
+import java.util.List;
 
 /**
  * @author yang
@@ -43,7 +44,7 @@ public interface SyncService {
     }
 
     /**
-     * Put sync event
+     * Put sync event to event queue
      */
     void put(SyncEvent event);
 
@@ -54,6 +55,11 @@ public interface SyncService {
      * @param type sync type
      */
     void put(String name, String tag, SyncType type);
+
+    /**
+     * Reload sync event from git repo and reset all agent event queue
+     */
+    void reset();
 
     /**
      * Get sync data for agent

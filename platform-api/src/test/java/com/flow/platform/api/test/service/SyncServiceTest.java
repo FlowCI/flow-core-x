@@ -91,6 +91,7 @@ public class SyncServiceTest extends TestBase {
 
     @Test
     public void should_convert_sync_event_to_script() throws Throwable {
+        // test create event script
         String gitUrl = "http://localhost/git/hello.git";
         SyncRepo repo = new SyncRepo(JGitUtil.getRepoNameFromGitUrl(gitUrl), "v1.0");
         SyncEvent createEvent = new SyncEvent(gitUrl, repo, SyncType.CREATE);
@@ -101,15 +102,21 @@ public class SyncServiceTest extends TestBase {
             + "git checkout v1.0";
         Assert.assertEquals(script, createEvent.toScript());
 
+        // test delete event script
         SyncEvent deleteEvent = new SyncEvent(gitUrl, repo, SyncType.DELETE);
-        Assert.assertEquals("rm -r -f hello[v1.0]", deleteEvent.toScript());
+        Assert.assertEquals("rm -rf hello[v1.0]", deleteEvent.toScript());
 
+        // test delete event script
+        SyncEvent deleteAllEvent = new SyncEvent(null, null, SyncType.DELETE_ALL);
+        Assert.assertEquals("rm -rf ./*/", deleteAllEvent.toScript());
+
+        // test list event script
         SyncEvent listEvent = new SyncEvent(null, null, SyncType.LIST);
         Assert.assertEquals("export FLOW_SYNC_LIST=\"$(ls)\"", listEvent.toScript());
     }
 
     @Test
-    public void should_sync_event_been_added_for_agent() throws Throwable {
+    public void should_add_sync_event_been_added_for_agent() throws Throwable {
         // given:
         AgentPath firstAgent = agents.get(0);
         AgentPath secondAgent = agents.get(1);
@@ -121,7 +128,7 @@ public class SyncServiceTest extends TestBase {
         syncService.put(new SyncEvent("http://127.0.0.1/git/hello.git", new SyncRepo("hello", "v1.0"), SyncType.CREATE));
         syncService.put(new SyncEvent("http://127.0.0.1/git/flow.git", new SyncRepo("flow", "v1.0"), SyncType.CREATE));
 
-        // then: three events should be in the agent sync queue, include list
+        // then: two events should be in the agent sync queue, include list
         Assert.assertEquals(2, syncService.get(firstAgent).getQueue().size());
         Assert.assertEquals(2, syncService.get(secondAgent).getQueue().size());
     }

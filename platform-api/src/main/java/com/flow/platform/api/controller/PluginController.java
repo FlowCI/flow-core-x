@@ -16,10 +16,11 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.service.SyncService;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.plugin.dao.PluginDao;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
-import com.flow.platform.plugin.dao.PluginDao;
 import java.util.Collection;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class PluginController {
     @Autowired
     private PluginDao pluginStoreService;
 
+    @Autowired
+    private SyncService syncService;
+
     @GetMapping
     public Collection<Plugin> index() {
         return pluginService.list();
@@ -57,6 +61,11 @@ public class PluginController {
     @PostMapping("/sync")
     public void sync() {
         pluginStoreService.refreshCache();
+    }
+
+    @PostMapping(path = "/reset")
+    public void reset() {
+        syncService.reset();
     }
 
     @PostMapping("/install")
