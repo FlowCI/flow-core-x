@@ -47,7 +47,7 @@ public class FlowCredentialEnvHandler extends EnvHandler {
 
     @Override
     public boolean isRequired() {
-        return false;
+        return true;
     }
 
     @Override
