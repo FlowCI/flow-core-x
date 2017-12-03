@@ -72,6 +72,8 @@ import com.google.common.collect.Sets;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -388,8 +390,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         try {
             NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
 
-            Map<String, String> credentialEnvs = credentialService.findByName(node.getEnv(GitEnvs.FLOW_GIT_CREDENTIAL));
-            EnvUtil.keepNewlineForEnv(credentialEnvs, null);
+            Map<String, String> credentialEnvs = keepNewLineForCredentialEnvs(node);
+
             envVars.putAll(credentialEnvs);
 
             cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
@@ -398,6 +400,27 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             rawCmd.setStatus(CmdStatus.EXCEPTION);
             nodeResultService.updateStatusByCmd(job, node, Cmd.convert(rawCmd), e.getMessage());
         }
+    }
+
+    /**
+     * keep new line to private key and public key
+     * @param node
+     * @return Map
+     */
+    private Map<String, String> keepNewLineForCredentialEnvs(Node node) {
+        Map<String, String> map = new HashMap<>(2);
+
+        String privateKey = node.getEnv(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY);
+        String publicKey = node.getEnv(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY);
+
+        if (!Strings.isNullOrEmpty(privateKey) && !Strings.isNullOrEmpty(publicKey)) {
+            map.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), privateKey);
+            map.put(GitEnvs.FLOW_GIT_SSH_PUBLIC_KEY.name(), publicKey);
+            EnvUtil.keepNewlineForEnv(map, null);
+            return map;
+        }
+
+        return Collections.emptyMap();
     }
 
     /**
