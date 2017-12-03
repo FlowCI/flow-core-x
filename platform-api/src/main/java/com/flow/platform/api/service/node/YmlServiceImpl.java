@@ -18,18 +18,12 @@ package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.YmlDao;
-import com.flow.platform.api.domain.credential.Credential;
-import com.flow.platform.api.domain.credential.CredentialType;
-import com.flow.platform.api.domain.credential.RSACredentialDetail;
-import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.request.ThreadConfigParam;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
-import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.exception.NodeSettingsException;
 import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.task.UpdateNodeYmlTask;
@@ -40,8 +34,6 @@ import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.git.model.GitSource;
-import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.io.ByteArrayInputStream;
@@ -140,7 +132,6 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         if (isYmlLoading(root)) {
             throw new IllegalStatusException("Yml file is loading");
         }
-        
 
         // update FLOW_YML_STATUS to LOADING
         nodeService.updateYmlState(root, YmlStatusValue.GIT_CONNECTING, null);
