@@ -91,7 +91,7 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
         // mock user
         setCurrentUser(mockUser);
 
-        Node rootForFlow = createRootFlow(flow, "demo_flow2.yaml");
+        Node rootForFlow = createRootFlow(flow, "yml/demo_flow2.yaml");
         Job job = createMockJob(rootForFlow.getPath());
 
         NodeTree nodeTree = nodeService.find("flow1");
@@ -258,7 +258,7 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
     }
 
     private MockMultipartFile createYmlFilePart(String name) throws IOException {
-        String resourceContent = getResourceContent("demo_flow.yaml");
+        String resourceContent = getResourceContent("yml/demo_flow.yaml");
         return new MockMultipartFile("file", name, "", resourceContent.getBytes());
     }
 }

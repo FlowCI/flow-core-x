@@ -40,7 +40,7 @@ public class SearchServiceTest extends TestBase {
     public void before_test() throws IOException {
         stubDemo();
 
-        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/flow.yaml");
         Map<String, String> envs = new HashMap<>();
         envs.put(GitEnvs.FLOW_GIT_BRANCH.toString(), "master");
         Job jobManual = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, envs, mockUser);

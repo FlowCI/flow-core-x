@@ -40,7 +40,7 @@ public class NodeUtilYmlTest {
     @Before
     public void before() {
         ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
-        URL resource = classLoader.getResource("flow.yaml");
+        URL resource = classLoader.getResource("yml/flow.yaml");
         ymlSampleFile = new File(resource.getFile());
     }
 

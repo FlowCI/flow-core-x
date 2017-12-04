@@ -22,7 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.permission.Actions;
-import com.flow.platform.api.domain.request.LoginParam;
 import com.flow.platform.api.domain.response.LoginResponse;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
@@ -120,7 +119,7 @@ public class SecurityTest extends TestBase {
     @Test
     public void should_user_role_operate_show_and_yml() throws Throwable {
         // given: crate flow
-        createRootFlow(flowName, "demo_flow.yaml");
+        createRootFlow(flowName, "yml/demo_flow.yaml");
 
         // set to original password before md5
         userForUser.setPassword(password);
