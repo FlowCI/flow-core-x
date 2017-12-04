@@ -98,7 +98,7 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
             try {
                 STATUS_LOCKER.wait();
             } catch (InterruptedException e) {
-                LOGGER.warn("InterrupatdException : " + e.getMessage());
+                LOGGER.warn("InterruptedException : " + e.getMessage());
             }
         }
     }
