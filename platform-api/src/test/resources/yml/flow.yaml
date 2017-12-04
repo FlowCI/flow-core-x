@@ -1,11 +1,16 @@
 flow:
   - script: "echo 'hello world'"
+
     envs:
       FLOW_WORKSPACE: "echo hello"
       FLOW_VERSION: "echo version"
 
     steps:
      - name: step1
+       condition: |
+         println(FLOW_WORKSPACE)
+         true
+
        envs:
          FLOW_WORKSPACE: "echo step"
          FLOW_VERSION: "echo step version"

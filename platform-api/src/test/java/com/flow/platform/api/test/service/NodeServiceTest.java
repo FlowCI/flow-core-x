@@ -58,7 +58,7 @@ public class NodeServiceTest extends TestBase {
     public void should_find_any_node() throws Throwable {
         Node emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
-        String resourceContent = getResourceContent("demo_flow.yaml");
+        String resourceContent = getResourceContent("yml/demo_flow.yaml");
         Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
@@ -78,7 +78,7 @@ public class NodeServiceTest extends TestBase {
         flowEnv.put("FLOW_SP_2", "222");
         envService.save(emptyFlow, flowEnv, false);
 
-        String resourceContent = getResourceContent("demo_flow.yaml");
+        String resourceContent = getResourceContent("yml/demo_flow.yaml");
         Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
 
         // then: check is created in dao
@@ -177,7 +177,7 @@ public class NodeServiceTest extends TestBase {
         Node emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
 
-        String resourceContent = getResourceContent("demo_flow.yaml");
+        String resourceContent = getResourceContent("yml/demo_flow.yaml");
         Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
         Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
@@ -249,7 +249,7 @@ public class NodeServiceTest extends TestBase {
         Node emptyFlow = nodeService.createEmptyFlow("flow_name_not_same");
         setFlowToReady(emptyFlow);
 
-        String resourceContent = getResourceContent("demo_flow.yaml");
+        String resourceContent = getResourceContent("yml/demo_flow.yaml");
         Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
 
         Assert.assertEquals("FOUND", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
@@ -265,7 +265,7 @@ public class NodeServiceTest extends TestBase {
         Node emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
 
-        String resourceContent = getResourceContent("demo_flow.yaml");
+        String resourceContent = getResourceContent("yml/demo_flow.yaml");
         Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));

@@ -27,8 +27,6 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.test.TestBase;
-import com.flow.platform.domain.Jsonable;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,7 +48,7 @@ public class JobControllerTest extends ControllerTestWithoutAuth {
     @Test
     public void should_show_job_success() throws Exception {
         stubDemo();
-        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/flow.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -65,14 +63,14 @@ public class JobControllerTest extends ControllerTestWithoutAuth {
 
         // when: load yml
         String ymlForJob = requestToGetYml(job.getNodePath(), job.getNumber());
-        String originYml = getResourceContent("flow.yaml");
+        String originYml = getResourceContent("yml/flow.yaml");
         Assert.assertEquals(originYml, ymlForJob);
     }
 
     @Test
     public void should_stop_job_success() throws Exception {
         stubDemo();
-        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/flow.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -89,7 +87,7 @@ public class JobControllerTest extends ControllerTestWithoutAuth {
     @Test
     public void should_get_step_log_success() throws Exception {
         stubDemo();
-        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/flow.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
         jobDao.update(job);
@@ -104,7 +102,7 @@ public class JobControllerTest extends ControllerTestWithoutAuth {
     @Test
     public void should_get_job_zip_error() throws Exception {
         stubDemo();
-        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/flow.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");
@@ -119,7 +117,7 @@ public class JobControllerTest extends ControllerTestWithoutAuth {
     @Test
     public void should_get_job_zip_success() throws Exception {
         stubDemo();
-        Node rootForFlow = createRootFlow("flow1", "flow.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/flow.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
 
         job.putEnv(GitEnvs.FLOW_GIT_BRANCH, "master");

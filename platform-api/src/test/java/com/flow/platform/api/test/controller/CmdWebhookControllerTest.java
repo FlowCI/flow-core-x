@@ -54,7 +54,7 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_callback_session_success() throws Throwable {
         // given: flow with two steps , step1 and step2
-        Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
 
         final String sessionId = "1111111";
@@ -156,7 +156,7 @@ public class CmdWebhookControllerTest extends TestBase {
     @Test
     public void should_on_callback_with_timeout() throws Throwable {
         // init
-        Node rootForFlow = createRootFlow("flow1", "demo_flow.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
 
         NodeTree nodeTree = nodeService.find("flow1");
@@ -204,7 +204,7 @@ public class CmdWebhookControllerTest extends TestBase {
 
     @Test
     public void should_callback_with_timeout_but_allow_failure() throws Throwable {
-        Node rootForFlow = createRootFlow("flow1", "demo_flow1.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow1.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
 
         final String sessionId = "1111111";

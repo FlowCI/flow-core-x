@@ -38,8 +38,18 @@ public final class Node extends EnvObject {
     @YmlSerializer(required = false)
     private String name;
 
+    /**
+     * Node body which is shell script
+     */
     @YmlSerializer(required = false)
     private String script;
+
+    /**
+     * Groovy script that to indicate the node can start or not
+     */
+    @Expose
+    @YmlSerializer(required = false, name = "condition")
+    private String conditionScript;
 
     private Node parent;
 
@@ -129,6 +139,14 @@ public final class Node extends EnvObject {
 
     public void setScript(String script) {
         this.script = script;
+    }
+
+    public String getConditionScript() {
+        return conditionScript;
+    }
+
+    public void setConditionScript(String conditionScript) {
+        this.conditionScript = conditionScript;
     }
 
     public Boolean getAllowFailure() {

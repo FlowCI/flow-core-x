@@ -40,7 +40,7 @@ public class NodeUtilYmlTest {
     @Before
     public void before() {
         ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
-        URL resource = classLoader.getResource("flow.yaml");
+        URL resource = classLoader.getResource("yml/flow.yaml");
         ymlSampleFile = new File(resource.getFile());
     }
 
@@ -76,17 +76,20 @@ public class NodeUtilYmlTest {
         Node step1 = steps.get(0);
         Assert.assertEquals("echo step", step1.getEnvs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo step version", step1.getEnvs().get("FLOW_VERSION"));
+        Assert.assertNotNull(step1.getConditionScript());
 
-        Assert.assertEquals("step2", steps.get(1).getName());
-        Assert.assertEquals("flow1/step2", steps.get(1).getPath());
+        Node step2 = steps.get(1);
+        Assert.assertEquals("step2", step2.getName());
+        Assert.assertEquals("flow1/step2", step2.getPath());
+        Assert.assertNull(step2.getConditionScript());
 
         // verify parent node relationship
-        Assert.assertEquals(root, steps.get(0).getParent());
-        Assert.assertEquals(root, steps.get(1).getParent());
+        Assert.assertEquals(root, step1.getParent());
+        Assert.assertEquals(root, step2.getParent());
 
         // verify prev next node relationship
-        Assert.assertEquals(steps.get(1), steps.get(0).getNext());
-        Assert.assertEquals(steps.get(0), steps.get(1).getPrev());
+        Assert.assertEquals(step2, step1.getNext());
+        Assert.assertEquals(step1, step2.getPrev());
     }
 
     @Test

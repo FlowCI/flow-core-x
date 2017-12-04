@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 public class PluginContextCloseHandler implements ApplicationListener<ContextClosedEvent> {
 
     @Autowired
-    private PluginDao pluginStoreService;
+    private PluginDao pluginDao;
 
     @Autowired
     private ThreadPoolTaskExecutor pluginPoolExecutor;
@@ -44,7 +44,6 @@ public class PluginContextCloseHandler implements ApplicationListener<ContextClo
         pluginPoolExecutor.shutdown();
 
         // dump cache to file
-        pluginStoreService.dumpCacheToFile();
-
+        pluginDao.dumpCacheToFile();
     }
 }
