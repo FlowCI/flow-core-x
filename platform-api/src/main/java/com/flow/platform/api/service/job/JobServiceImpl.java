@@ -440,7 +440,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         // return true when condition is passed
-        if (result) {
+        if (result != null && result) {
             return true;
         }
 
