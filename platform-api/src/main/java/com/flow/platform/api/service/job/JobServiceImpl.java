@@ -363,17 +363,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         EnvObject envVars = buildEnvsBeforeStart(node, tree, job);
 
         // run condition script
-        try {
-            if (!executeConditionScript(node, envVars)) {
-                String message = String.format("Step '%s' condition not match", node.getName());
-                job.setFailureMessage(message);
-                stopJob(job);
-                return;
-            }
-        } catch (ScriptException e) {
-            String message = String.format("Step '%s' condition error: %s", node.getName(), e.getMessage());
-            job.setFailureMessage(message);
-            stopJob(job);
+        if (!executeConditionScript(job, node, envVars)) {
             return;
         }
 
@@ -416,7 +406,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         return envVars;
     }
 
-    private Boolean executeConditionScript(Node node, EnvObject envVars) throws ScriptException {
+    private Boolean executeConditionScript(Job job, Node node, EnvObject envVars) {
         String conditionScript = node.getConditionScript();
         if (Strings.isNullOrEmpty(conditionScript)) {
             return true;
@@ -427,10 +417,36 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             runner.putVariable(entry.getKey(), entry.getValue());
         }
 
-        return runner.setTimeOut(10)
-            .setExecutor(taskExecutor)
-            .setScript(node.getConditionScript())
-            .runAndReturnBoolean();
+        Boolean result = null;
+        String errorMessage = null;
+
+        try {
+            result = runner.setTimeOut(10)
+                .setExecutor(taskExecutor)
+                .setScript(node.getConditionScript())
+                .runAndReturnBoolean();
+
+            errorMessage = "Step '" + node.getName() + "' condition not match";
+        } catch (ScriptException e) {
+            result = false;
+            errorMessage = "Step '" + node.getName() + "' condition script eror: " + e.getMessage();
+        }
+
+        // return true when condition is passed
+        if (result) {
+            return true;
+        }
+
+        // set current node result to exception status and stop job
+        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
+        Cmd failureCmd = new Cmd();
+        failureCmd.setStatus(CmdStatus.EXCEPTION);
+        String message = String.format("Step '%s' condition not match", node.getName());
+        nodeResultService.updateStatusByCmd(job, node, failureCmd, message);
+
+        job.setFailureMessage(message);
+        stopJob(job);
+        return false;
     }
 
     /**
