@@ -12,7 +12,7 @@ RUN mkdir -p $FLOW_PLATFORM_DIR \
 	&& mkdir -p $FLOW_PLATFORM_SOURCE_CODE
 
 # intall open jdk
-RUN apt-get install openjdk-8-jdk
+RUN apt-get -y install openjdk-8-jdk
 
 
 # install git
