@@ -1,4 +1,3 @@
-FROM java:8-jre
 FROM flowci/flow.ci.tomcat:latest
 
 # setup flow.ci default environments
@@ -11,6 +10,10 @@ RUN mkdir -p $FLOW_PLATFORM_DIR \
 	&& mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
 	&& mkdir -p $FLOW_PLATFORM_DIR/migration \
 	&& mkdir -p $FLOW_PLATFORM_SOURCE_CODE
+
+# intall open jdk
+RUN apt-get install openjdk-8-jdk
+
 
 # install git
 RUN apt-get update \
