@@ -69,4 +69,24 @@ public class GroovyRunnerTest {
     public void should_raise_exception_when_expect_return_boolean() throws Throwable {
         GroovyRunner.create().setScript("3 * 5").runAndReturnBoolean();
     }
+
+    @Test
+    public void should_success_exec_script_within_timeout() throws Throwable {
+        Boolean result = GroovyRunner.<Boolean>create()
+            .setExecutor(executor)
+            .setTimeOut(1)
+            .setScript("sleep(100) \n true")
+            .run();
+
+        Assert.assertTrue(result);
+    }
+
+    @Test(expected = ScriptException.class)
+    public void should_raise_exception_when_script_timeout() throws Throwable {
+        GroovyRunner.create()
+            .setExecutor(executor)
+            .setTimeOut(1)
+            .setScript("sleep(2000) \n true")
+            .run();
+    }
 }
