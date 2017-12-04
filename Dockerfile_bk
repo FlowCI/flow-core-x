@@ -26,6 +26,7 @@ RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binar
 # install mysql
 RUN apt-get install -y mysql-server
 
+
 # copy code
 COPY . $FLOW_PLATFORM_SOURCE_CODE
 
