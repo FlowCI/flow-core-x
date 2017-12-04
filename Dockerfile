@@ -6,10 +6,11 @@
 # please mount to /etc/flow.ci to customize  app-api.properties,
 # and app-cc.properties in config folder
 
-FROM flow.ci.tomcat:latest
+FROM flowci/flow.ci.tomcat:latest
+
+#ADD ./docker/sources.list /etc/apt/sources.list
 
 ENV MAVEN_VERSION 3.3.9
-
 # setup flow.ci default environments
 ENV FLOW_PLATFORM_DIR=/etc/flow.ci
 ENV FLOW_PLATFORM_CONFIG_DIR=/etc/flow.ci/config
@@ -20,17 +21,16 @@ RUN mkdir -p $FLOW_PLATFORM_DIR \
 	mkdir -p $FLOW_PLATFORM_DIR/migration \
 	mkdir -p $FLOW_PLATFORM_SOURCE_CODE
 
-# install maven
-RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
-    && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
-    && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-
-
 # install git
 RUN apt-get update \
 	&& apt-get -y install git \
 	&& git config --global user.email "flowci@flow.ci" \
 	&& git config --global user.name "flowci"
+
+# install maven
+RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
+    && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
+    && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
 # install mysql
 RUN apt-get install -y mysql-server-5.6 mysql-client-5.6

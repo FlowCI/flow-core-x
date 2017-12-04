@@ -18,9 +18,9 @@ deb-src http://mirrors.yun-idc.com/ubuntu/ trusty universe
 deb http://mirrors.yun-idc.com/ubuntu/ trusty-updates universe
 deb-src http://mirrors.yun-idc.com/ubuntu/ trusty-updates universe
 
-## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu
-## team, and may not be under a free licence. Please satisfy yourself as to
-## your rights to use the software. Also, please note that software in
+## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu 
+## team, and may not be under a free licence. Please satisfy yourself as to 
+## your rights to use the software. Also, please note that software in 
 ## multiverse WILL NOT receive any review or updates from the Ubuntu
 ## security team.
 deb http://mirrors.yun-idc.com/ubuntu/ trusty multiverse
