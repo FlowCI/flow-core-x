@@ -24,7 +24,6 @@ import com.flow.platform.api.domain.request.ThreadConfigParam;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
-import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.task.UpdateNodeYmlTask;
 import com.flow.platform.api.util.NodeUtil;
@@ -75,9 +74,6 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
     @Autowired
     private NodeService nodeService;
-
-    @Autowired
-    private CredentialService credentialService;
 
     @Autowired
     private YmlDao ymlDao;
