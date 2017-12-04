@@ -16,6 +16,11 @@
 
 package com.flow.platform.api.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
@@ -41,10 +46,10 @@ public class JobServiceConditionTest extends TestBase {
     @Before
     public void init() {
         stubDemo();
-//
-//        stubFor(get(urlEqualTo("/mock-return-true"))
-//            .willReturn(aResponse()
-//                .withBody("true")));
+
+        stubFor(get(urlEqualTo("/mock-return-true"))
+            .willReturn(aResponse()
+                .withBody("true")));
     }
 
     @Test

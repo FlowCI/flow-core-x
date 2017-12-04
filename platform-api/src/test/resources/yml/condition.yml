@@ -12,5 +12,8 @@ flow:
         script: "echo 1"
 
       - name: step2
+        condition: |
+          String html = 'http://localhost:8080/mock-return-true'.toURL().text
+          return html.toBoolean()
         isAllowFailure: false
         script: "echo 2"
