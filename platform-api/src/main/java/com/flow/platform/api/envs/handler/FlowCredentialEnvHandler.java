@@ -22,7 +22,6 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.service.CredentialService;
-import com.flow.platform.api.service.node.NodeService;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,9 +36,6 @@ public class FlowCredentialEnvHandler extends EnvHandler {
     @Autowired
     private CredentialService credentialService;
 
-    @Autowired
-    private NodeService nodeService;
-
     @Override
     public EnvKey env() {
         return FLOW_GIT_CREDENTIAL;
@@ -47,7 +43,7 @@ public class FlowCredentialEnvHandler extends EnvHandler {
 
     @Override
     public boolean isRequired() {
-        return true;
+        return false;
     }
 
     @Override
