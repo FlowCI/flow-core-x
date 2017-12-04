@@ -24,7 +24,9 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import org.junit.Assert;
@@ -39,13 +41,17 @@ public class JobServiceConditionTest extends TestBase {
     @Before
     public void init() {
         stubDemo();
+//
+//        stubFor(get(urlEqualTo("/mock-return-true"))
+//            .willReturn(aResponse()
+//                .withBody("true")));
     }
 
     @Test
     public void should_job_failure_since_condition_return_false() throws Throwable {
         // given: init flow and job
         String name = "flow-condition";
-        Node rootForFlow = createRootFlow(name, "yml/condition_failure.yml");
+        Node rootForFlow = createRootFlow(name, "yml/condition.yml");
         Job job = createMockJob(rootForFlow.getPath());
 
         // when: mock create session callback, and condition should be executed
@@ -56,12 +62,33 @@ public class JobServiceConditionTest extends TestBase {
         jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
         job = reload(job);
 
-        // then: job should be stopped since step1 condition is return false
-        NodeResult step1Result = nodeResultService.find("flow-condition/step1", job.getId());
-        Assert.assertEquals("Step 'step1' condition not match", step1Result.getFailureMessage());
-        Assert.assertEquals(NodeStatus.FAILURE, step1Result.getStatus());
+        // then: node status should be stopped since step1 condition is return false
+        NodeResult resultForStep1 = nodeResultService.find(PathUtil.build(name, "step1"), job.getId());
+        Assert.assertEquals("Step 'step1' condition not match", resultForStep1.getFailureMessage());
+        Assert.assertEquals(NodeStatus.STOPPED, resultForStep1.getStatus());
+        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
 
-        Assert.assertEquals("Step 'step1' condition not match", job.getFailureMessage());
-        Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
+        // when: mock create step2 callback
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, null);
+        cmd.setSessionId(sessionId);
+        cmd.setStatus(CmdStatus.LOGGED);
+        cmd.setCmdResult(new CmdResult(0));
+        cmd.setExtra(PathUtil.build(name, "step2"));
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+
+        // then: step2 should be success
+        NodeResult resultForStep2 = nodeResultService.find(PathUtil.build(name, "step2"), job.getId());
+        Assert.assertEquals(NodeStatus.SUCCESS, resultForStep2.getStatus());
+        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+
+        // when: mock delete session callback
+        cmd = new Cmd("default", null, CmdType.DELETE_SESSION, null);
+        cmd.setSessionId(sessionId);
+        cmd.setStatus(CmdStatus.SENT);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+
+        // then:
+        job = reload(job);
+        Assert.assertEquals(JobStatus.SUCCESS, job.getStatus());
     }
 }

@@ -364,6 +364,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // run condition script
         if (!executeConditionScript(job, node, envVars)) {
+            Node next = tree.next(node.getPath());
+            if (next == null) {
+                stopJob(job);
+                return;
+            }
+
+            run(next, job);
             return;
         }
 
@@ -429,7 +436,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             errorMessage = "Step '" + node.getName() + "' condition not match";
         } catch (ScriptException e) {
             result = false;
-            errorMessage = "Step '" + node.getName() + "' condition script eror: " + e.getMessage();
+            errorMessage = "Step '" + node.getName() + "' condition script error: " + e.getMessage();
         }
 
         // return true when condition is passed
@@ -437,15 +444,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return true;
         }
 
-        // set current node result to exception status and stop job
+        // set current node result to STOPPED status
         NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
         Cmd failureCmd = new Cmd();
-        failureCmd.setStatus(CmdStatus.EXCEPTION);
-        String message = String.format("Step '%s' condition not match", node.getName());
-        nodeResultService.updateStatusByCmd(job, node, failureCmd, message);
-
-        job.setFailureMessage(message);
-        stopJob(job);
+        failureCmd.setStatus(CmdStatus.STOPPED);
+        nodeResultService.updateStatusByCmd(job, node, failureCmd, errorMessage);
         return false;
     }
 
