@@ -24,8 +24,6 @@ import static com.flow.platform.api.envs.FlowEnvs.FLOW_YML_STATUS;
 import static com.flow.platform.api.envs.FlowEnvs.StatusValue;
 
 import com.flow.platform.api.dao.job.JobDao;
-import com.flow.platform.api.dao.job.JobYmlDao;
-import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.api.domain.job.Job;
@@ -45,7 +43,7 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.git.GitEventEnvConverter;
-import com.flow.platform.api.service.CredentialService;
+import com.flow.platform.api.script.GroovyRunner;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
@@ -68,21 +66,23 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
+import groovy.util.ScriptException;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,14 +106,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     @Value("${task.job.toggle.execution_running_duration}")
     private Long jobExecuteTimeoutRunningDuration;
 
+    @Value(value = "${domain.api}")
+    private String apiDomain;
+
     @Autowired
     private NodeResultService nodeResultService;
 
     @Autowired
     private JobNodeService jobNodeService;
-
-    @Autowired
-    private PlatformQueue<PriorityMessage> cmdCallbackQueue;
 
     @Autowired
     private JobDao jobDao;
@@ -134,16 +134,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private YmlService ymlService;
 
     @Autowired
-    private NodeResultDao nodeResultDao;
+    private PlatformQueue<PriorityMessage> cmdCallbackQueue;
 
     @Autowired
-    private CredentialService credentialService;
-
-    @Autowired
-    private JobYmlDao jobYmlDao;
-
-    @Value(value = "${domain.api}")
-    private String apiDomain;
+    private ThreadPoolTaskExecutor taskExecutor;
 
     @Override
     public Job find(String flowName, Integer number) {
@@ -268,8 +262,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             //first clear agent jobs
             stopAllJobs(path);
 
-            jobYmlDao.delete(jobIds);
-            nodeResultDao.delete(jobIds);
+            jobNodeService.delete(jobIds);
+            nodeResultService.delete(jobIds);
             jobDao.deleteJob(path);
         }
     }
@@ -358,7 +352,6 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         NodeTree tree = jobNodeService.get(job);
-
         if (!tree.canRun(node.getPath())) {
             // run next node
             Node next = tree.next(node.getPath());
@@ -366,6 +359,36 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return;
         }
 
+        // build all require env variables
+        EnvObject envVars = buildEnvsBeforeStart(node, tree, job);
+
+        // run condition script
+        try {
+            if (!executeConditionScript(node, envVars)) {
+                String message = String.format("Step '%s' condition not match", node.getName());
+                job.setFailureMessage(message);
+                stopJob(job);
+                return;
+            }
+        } catch (ScriptException e) {
+            String message = String.format("Step '%s' condition error: %s", node.getName(), e.getMessage());
+            job.setFailureMessage(message);
+            stopJob(job);
+            return;
+        }
+
+        // to run node with customized cmd id
+        try {
+            NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+            cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
+        } catch (IllegalStatusException e) {
+            CmdInfo rawCmd = (CmdInfo) e.getData();
+            rawCmd.setStatus(CmdStatus.EXCEPTION);
+            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(rawCmd), e.getMessage());
+        }
+    }
+
+    private EnvObject buildEnvsBeforeStart(Node node, NodeTree tree, Job job) {
         // create env vars instance which will pass to agent
         EnvObject envVars = new EnvObject();
         envVars.putAll(job.getEnvs());
@@ -386,20 +409,28 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // pass current node envs
         envVars.putAll(node.getEnvs());
 
-        // to run node with customized cmd id
-        try {
-            NodeResult nodeResult = nodeResultService.find(node.getPath(), job.getId());
+        // format credential variables
+        Map<String, String> credentialEnvs = keepNewLineForCredentialEnvs(node);
+        envVars.putAll(credentialEnvs);
 
-            Map<String, String> credentialEnvs = keepNewLineForCredentialEnvs(node);
+        return envVars;
+    }
 
-            envVars.putAll(credentialEnvs);
-
-            cmdService.runShell(job, node, nodeResult.getCmdId(), envVars);
-        } catch (IllegalStatusException e) {
-            CmdInfo rawCmd = (CmdInfo) e.getData();
-            rawCmd.setStatus(CmdStatus.EXCEPTION);
-            nodeResultService.updateStatusByCmd(job, node, Cmd.convert(rawCmd), e.getMessage());
+    private Boolean executeConditionScript(Node node, EnvObject envVars) throws ScriptException {
+        String conditionScript = node.getConditionScript();
+        if (Strings.isNullOrEmpty(conditionScript)) {
+            return true;
         }
+
+        GroovyRunner<Boolean> runner = GroovyRunner.create();
+        for (Map.Entry<String, String> entry : envVars.getEnvs().entrySet()) {
+            runner.putVariable(entry.getKey(), entry.getValue());
+        }
+
+        return runner.setTimeOut(10)
+            .setExecutor(taskExecutor)
+            .setScript(node.getConditionScript())
+            .runAndReturnBoolean();
     }
 
     /**
@@ -517,7 +548,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // do not handle job since it is not in running status
         try {
-            final HashSet<NodeStatus> skipStatus = Sets.newHashSet(SUCCESS, FAILURE, TIMEOUT);
+            final Set<NodeStatus> skipStatus = ImmutableSet.of(SUCCESS, FAILURE, TIMEOUT);
             nodeResultService.updateStatus(runningJob, STOPPED, skipStatus);
 
             stopJob(runningJob);

@@ -23,6 +23,8 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
+import java.math.BigInteger;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -82,6 +84,11 @@ public class JobNodeServiceImpl implements JobNodeService {
         }
 
         return jobYml;
+    }
+
+    @Override
+    public void delete(List<BigInteger> jobIds) {
+        jobYmlDao.delete(jobIds);
     }
 
     private Cache jobNodeCache() {
