@@ -46,7 +46,7 @@ public interface CredentialService {
      *
      * @return Credential related env
      */
-    Map<String, String> find(Node node);
+    Map<String, String> findByName(String rsaOrUsernameCredentialName);
 
     /**
      * find credential by name

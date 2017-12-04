@@ -102,9 +102,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
     }
 
     @Override
-    public Map<String, String> find(Node node) {
-        String rsaOrUsernameCredentialName = node.getEnv(GitEnvs.FLOW_GIT_CREDENTIAL);
-
+    public Map<String, String> findByName(String rsaOrUsernameCredentialName) {
         if (Strings.isNullOrEmpty(rsaOrUsernameCredentialName)) {
             return Collections.emptyMap();
         }
@@ -115,10 +113,6 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
 
             // for git ssh client needs rsa credential
             if (credentialType.equals(CredentialType.RSA)) {
-                if (!node.getEnv(GitEnvs.FLOW_GIT_SOURCE).equals(GitSource.UNDEFINED_SSH.name())) {
-                    throw new NodeSettingsException("The SSH git source need RSA credential");
-                }
-
                 RSACredentialDetail credentialDetail = (RSACredentialDetail) credential.getDetail();
 
                 Map<String, String> envs = new HashMap<>(2);
@@ -129,9 +123,6 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
 
             // for git http client needs username credential
             if (credentialType.equals(CredentialType.USERNAME)) {
-                if (!node.getEnv(GitEnvs.FLOW_GIT_SOURCE).equals(GitSource.UNDEFINED_HTTP.name())) {
-                    throw new NodeSettingsException("The HTTP git source need USERNAME credential");
-                }
 
                 UsernameCredentialDetail credentialDetail = (UsernameCredentialDetail) credential.getDetail();
 

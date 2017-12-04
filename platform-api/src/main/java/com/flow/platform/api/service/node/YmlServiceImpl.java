@@ -133,9 +133,6 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
             throw new IllegalStatusException("Yml file is loading");
         }
 
-        Map<String, String> credentialEnvs = credentialService.find(root);
-        EnvUtil.merge(credentialEnvs, root.getEnvs(), true);
-
         // update FLOW_YML_STATUS to LOADING
         nodeService.updateYmlState(root, YmlStatusValue.GIT_CONNECTING, null);
 
