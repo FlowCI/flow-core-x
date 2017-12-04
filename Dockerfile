@@ -24,7 +24,7 @@ RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binar
     && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
 # install mysql
-RUN apt-get install -y mysql-server-5.6
+RUN apt-get install -y mysql-server
 
 
 # copy code
