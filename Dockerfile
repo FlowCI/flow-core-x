@@ -1,4 +1,4 @@
-
+FROM java:8-jre
 FROM flowci/flow.ci.tomcat:latest
 
 # setup flow.ci default environments
