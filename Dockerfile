@@ -1,25 +1,16 @@
-# flow.ci.backend docker includes war of flow.ci api and control center
-# VERSION beta 0.1
-
-# The image provides default settings for flow.ci
-# if you want to customize flow.ci settings file,
-# please mount to /etc/flow.ci to customize  app-api.properties,
-# and app-cc.properties in config folder
 
 FROM flowci/flow.ci.tomcat:latest
 
-#ADD ./docker/sources.list /etc/apt/sources.list
-
-ENV MAVEN_VERSION 3.3.9
 # setup flow.ci default environments
+ENV MAVEN_VERSION 3.3.9
 ENV FLOW_PLATFORM_DIR=/etc/flow.ci
 ENV FLOW_PLATFORM_CONFIG_DIR=/etc/flow.ci/config
 ENV FLOW_PLATFORM_SOURCE_CODE=/flow-platform
 
 RUN mkdir -p $FLOW_PLATFORM_DIR \
-	mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
-	mkdir -p $FLOW_PLATFORM_DIR/migration \
-	mkdir -p $FLOW_PLATFORM_SOURCE_CODE
+	&& mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
+	&& mkdir -p $FLOW_PLATFORM_DIR/migration \
+	&& mkdir -p $FLOW_PLATFORM_SOURCE_CODE
 
 # install git
 RUN apt-get update \
@@ -33,15 +24,16 @@ RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binar
     && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
 # install mysql
-RUN apt-get install -y mysql-server-5.6 mysql-client-5.6
+RUN apt-get install -y mysql-server-5.6
+
 
 # copy code
 COPY . $FLOW_PLATFORM_SOURCE_CODE
 
 # mvn build
 RUN	cd $FLOW_PLATFORM_SOURCE_CODE \
-    rm -rf $FLOW_PLATFORM_SOURCE_CODE/dist \
-    mvn clean install -DskipTests=true
+    && rm -rf $FLOW_PLATFORM_SOURCE_CODE/dist \
+    && mvn clean install -DskipTests=true
 
 # setup flow.ci default configuration
 COPY ./docker/app-cc.properties $FLOW_PLATFORM_CONFIG_DIR
@@ -59,8 +51,8 @@ COPY ./schema/migration $FLOW_PLATFORM_DIR/migration
 # COPY ./target/flow-api.war $CATALINA_HOME/webapps
 
 RUN   cd  $FLOW_PLATFORM_SOURCE_CODE \
-      mv ./dist/flow-control-center-*.war $CATALINA_HOME/webapps/flow-control-center.war \
-      mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war
+      && mv ./dist/flow-control-center-*.war $CATALINA_HOME/webapps/flow-control-center.war \
+      && mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war
 
 WORKDIR $FLOW_PLATFORM_DIR
 
