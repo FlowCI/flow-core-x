@@ -315,7 +315,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // verify required envs for create job
         if (!EnvUtil.hasRequiredEnvKey(root, REQUIRED_ENVS)) {
-            throw new IllegalStatusException("Missing required env vailable for flow " + path);
+            throw new IllegalStatusException("Missing required env variables for flow " + path);
         }
 
         // verify flow status
