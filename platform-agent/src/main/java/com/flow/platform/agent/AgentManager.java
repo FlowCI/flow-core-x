@@ -20,7 +20,6 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
-import com.flow.platform.util.zk.ZkException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,9 +46,6 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
     private String zkHost;
     private int zkTimeout;
     private ZKClient zkClient;
-
-    // node delete or not, default true
-    private Boolean canDeleted = true;
 
     private String zone; // agent running zone
     private String name; // agent name, can be machine name
@@ -96,9 +92,6 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
         // init zookeeper
         zkClient.start();
 
-        // if node is exists, exit
-        checkNodePathExistAndExit();
-
         registerZkNodeAndWatch();
 
         synchronized (STATUS_LOCKER) {
@@ -110,17 +103,7 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
         }
     }
 
-    /**
-     * if node exist , exit
-     */
-    private void checkNodePathExistAndExit() {
-        if (this.zkClient.exist(this.nodePath)) {
-            exit();
-        }
-    }
-
-    private void exit(){
-        this.canDeleted = false;
+    private void exit() {
         LOGGER.info("One Agent is running in other place. Please first to stop another agent, thx!");
         Runtime.getRuntime().exit(1);
     }
@@ -165,11 +148,7 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
 
     @Override
     public void close() throws IOException {
-        // only this node can delete
-        if (this.canDeleted) {
-            removeZkNode();
-        }
-
+        removeZkNode();
         stop();
     }
 
@@ -220,13 +199,8 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
      * @return path of zookeeper or null if failure
      */
     private String registerZkNodeAndWatch() {
-        String path = null;
-        try {
-            path = zkClient.createEphemeral(nodePath);
-            zkClient.watchTree(path, this);
-        } catch (ZkException e) {
-            exit();
-        }
+        String path = zkClient.createEphemeral(nodePath, null);
+        zkClient.watchTree(path, this);
         return path;
     }
 
