@@ -18,14 +18,13 @@ flow-platform
  
 > 环境变量的设置:
 > 
-> - `FLOW_API_DOMAIN`： 部署的后端 API 域名地址
-> - `FLOW_WEB_DOMAIN`： 部署的前端 Web 页面的域名地址
+> - `FLOW_API_DOMAIN`：部署的后端 API 域名地址
+> - `FLOW_WEB_DOMAIN`：部署的前端 Web 页面的域名地址
 > - `FLOW_SYS_EMAIL`：flowci 系统管理员账号
 > - `FLOW_SYS_USERNAME`：flowci 系统管理员的用户名
-> - `FLOW_SYS_PASSWORD`: flowci 系统管理员密码
-> - `MYSQL_PASSWORD`： flowci MYSQL 数据库 `root`
-> - `MYSQL_USER`： flowci MYSQL 数据库 `root`
-> - `MYSQL_HOST`： flowci MYSQL 数据库 `root` 用户的密码
+> - `FLOW_SYS_PASSWORD`：flowci 系统管理员密码
+> - `MYSQL_PASSWORD`：flowci MYSQL 数据库的密码
+> - `MYSQL_HOST`：flowci MYSQL 数据库的 `HOST`
 > - `MYSQL 的存储路径`: `~/flow-ci/db`
 
 ```
