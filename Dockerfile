@@ -18,14 +18,6 @@ RUN apt-get update \
 	&& git config --global user.email "flowci@flow.ci" \
 	&& git config --global user.name "flowci"
 
-# intall open jdk
-RUN apt-get -y install openjdk-8-jdk
-
-# install maven
-RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
-    && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
-    && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-
 # install mysql
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r mysql && useradd -r -g mysql mysql
@@ -91,6 +83,15 @@ ADD ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
 
 # copy code
 COPY . $FLOW_PLATFORM_SOURCE_CODE
+
+# intall open jdk
+RUN apt-get -y install openjdk-8-jdk
+
+# install maven
+RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
+    && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
+    && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
+
 
 # mvn build
 RUN	cd $FLOW_PLATFORM_SOURCE_CODE \
