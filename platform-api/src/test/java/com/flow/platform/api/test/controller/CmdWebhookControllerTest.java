@@ -29,14 +29,17 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.envs.EnvUtil;
+import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.http.HttpURL;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -46,9 +49,13 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  */
 public class CmdWebhookControllerTest extends TestBase {
 
+    @Autowired
+    private PlatformQueue<PriorityMessage> cmdCallbackQueue;
+
     @Before
     public void before() throws Throwable {
         stubDemo();
+        cmdCallbackQueue.clean();
     }
 
     @Test
