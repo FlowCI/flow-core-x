@@ -7,6 +7,7 @@ ENV FLOW_PLATFORM_CONFIG_DIR=/etc/flow.ci/config
 ENV FLOW_PLATFORM_SOURCE_CODE=/flow-platform
 ENV MVN_CACHE=/root/.m2
 
+# create used dir
 RUN mkdir -p $FLOW_PLATFORM_DIR \
 	&& mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
 	&& mkdir -p $FLOW_PLATFORM_DIR/migration \
@@ -19,7 +20,7 @@ RUN apt-get update \
 	&& git config --global user.email "flowci@flow.ci" \
 	&& git config --global user.name "flowci"
 
-# intall open jdk
+# install open jdk
 RUN apt-get -y install openjdk-8-jdk \
     && apt-get -y install procps \
     && apt-get -y install vim
