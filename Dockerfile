@@ -55,7 +55,7 @@ COPY ./schema/migration $FLOW_PLATFORM_DIR/migration
 RUN   cd  $FLOW_PLATFORM_SOURCE_CODE \
       && mv ./dist/flow-control-center-*.war $CATALINA_HOME/webapps/flow-control-center.war \
       && mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war \
-      && rm -rf $FLOW_PLATFORM_SOURCE_CODE
+      && rm -rf $FLOW_PLATFORM_SOURCE_CODE \
       && rm -rf $MVN_CACHE
 
 WORKDIR $FLOW_PLATFORM_DIR
