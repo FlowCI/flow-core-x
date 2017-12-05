@@ -29,9 +29,6 @@ isMysqlInit=$?
 if [[ ${isMysqlInit} -eq 0 ]];then
   # mysql is init
   mysql --host=$MYSQL_HOST --user=$MYSQL_USER -e "${rootCreate}"
-
-  kill `cat /var/run/mysqld/mysqld.pid`
-  service mysql start
 fi
 
 # First: waiting mysql up to do next cmd
