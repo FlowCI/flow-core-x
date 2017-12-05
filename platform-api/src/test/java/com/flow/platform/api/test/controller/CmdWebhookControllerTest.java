@@ -56,7 +56,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @FixMethodOrder(value = MethodSorters.JVM)
 public class CmdWebhookControllerTest extends TestBase {
 
-    private final static int CMD_CALLBACK_QUEUE_WAITING_TIME = 1000;
+    private final static int CMD_CALLBACK_QUEUE_WAITING_TIME = 5000;
 
     private final static String sessionId = "1111111";
 
@@ -67,7 +67,6 @@ public class CmdWebhookControllerTest extends TestBase {
     public void before() throws Throwable {
         stubSendCmdToQueue(sessionId);
         stubSendCmd(sessionId);
-
         cmdCallbackQueue.clean();
     }
 
@@ -185,7 +184,6 @@ public class CmdWebhookControllerTest extends TestBase {
         // create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
-        String sessionId = "1111111";
         cmd.setSessionId(sessionId);
 
         performMockHttpRequest(cmd, job);
@@ -224,8 +222,6 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_callback_with_timeout_but_allow_failure() throws Throwable {
         Node rootForFlow = createRootFlow("flow1", "yml/demo_flow1.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
-
-        final String sessionId = "1111111";
 
         // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
