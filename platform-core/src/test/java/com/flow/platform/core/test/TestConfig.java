@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.test.sysinfo;
+package com.flow.platform.core.test;
 
 import com.flow.platform.core.queue.MemoryQueue;
 import com.flow.platform.core.queue.PriorityMessage;

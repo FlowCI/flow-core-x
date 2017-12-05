@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.test.sysinfo;
+package com.flow.platform.core.test;
 
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.queue.PlatformQueue;
@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,12 @@ public class PlatformQueueTest {
     @Autowired
     private PlatformQueue<PriorityMessage> rabbitQueue;
 
+    @Before
+    public void init() {
+        inMemoryQueue.clean();
+        inMemoryQueue.cleanListener();
+    }
+
     @Test
     public void should_enqueue_for_in_memory_queue() throws Throwable {
         // given: queue listener
@@ -62,7 +69,7 @@ public class PlatformQueueTest {
         inMemoryQueue.enqueue(PriorityMessage.create("Hello".getBytes(), 1));
 
         // then:
-        latch.await(10, TimeUnit.SECONDS);
+        latch.await(30, TimeUnit.SECONDS);
         Assert.assertEquals(0, inMemoryQueue.size());
         Assert.assertEquals("Hello", new String(result.getInstance().getBody()));
 
@@ -137,11 +144,8 @@ public class PlatformQueueTest {
     }
 
     @After
-    public void clean() {
+    public void stop() {
         inMemoryQueue.stop();
-        inMemoryQueue.clean();
-        inMemoryQueue.cleanListener();
-
         rabbitQueue.stop();
     }
 
