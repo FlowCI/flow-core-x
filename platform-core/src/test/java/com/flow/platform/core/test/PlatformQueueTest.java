@@ -58,8 +58,8 @@ public class PlatformQueueTest {
         CountDownLatch latch = new CountDownLatch(1);
         ObjectWrapper<PriorityMessage> result = new ObjectWrapper<>();
         QueueListener<PriorityMessage> listener = item -> {
-            latch.countDown();
             result.setInstance(item);
+            latch.countDown();
         };
 
         inMemoryQueue.register(listener);
@@ -92,8 +92,8 @@ public class PlatformQueueTest {
         List<String> prioritizedList = new ArrayList<>(size);
 
         QueueListener<PriorityMessage> listener = item -> {
-            latch.countDown();
             prioritizedList.add(new String(item.getBody()));
+            latch.countDown();
         };
 
         // when:
@@ -117,8 +117,8 @@ public class PlatformQueueTest {
         CountDownLatch latch = new CountDownLatch(1);
         ObjectWrapper<PriorityMessage> result = new ObjectWrapper<>();
         QueueListener<PriorityMessage> listener = item -> {
-            latch.countDown();
             result.setInstance(item);
+            latch.countDown();
         };
 
         rabbitQueue.register(listener);
