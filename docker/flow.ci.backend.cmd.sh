@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set +e
 
 cmd="$@"
 
@@ -8,6 +8,13 @@ read -r -d '' rootCreate <<-EOSQL || true
   update user set password=PASSWORD('${MYSQL_PASSWORD}') where User='root';
   update user set plugin='mysql_native_password';
 EOSQL
+
+
+DATA_DIRECTORY=/var/lib/mysql
+if [ "`ls -A $DATA_DIRECTORY`" = "" ]; then
+  # init mysql data
+  mysql_install_db
+fi
 
 # Start Mysql
 service mysql start
@@ -23,7 +30,8 @@ if [[ ${isMysqlInit} -eq 0 ]];then
   # mysql is init
   mysql --host=$MYSQL_HOST --user=$MYSQL_USER -e "${rootCreate}"
 
-  service mysql restart
+  kill `cat /var/run/mysqld/mysqld.pid`
+  service mysql start
 fi
 
 # First: waiting mysql up to do next cmd

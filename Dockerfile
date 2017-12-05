@@ -20,7 +20,9 @@ RUN apt-get update \
 	&& git config --global user.name "flowci"
 
 # intall open jdk
-RUN apt-get -y install openjdk-8-jdk
+RUN apt-get -y install openjdk-8-jdk \
+    && apt-get -y install procps \
+    && apt-get -y install vim
 
 # install maven
 RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
