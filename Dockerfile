@@ -53,7 +53,8 @@ COPY ./schema/migration $FLOW_PLATFORM_DIR/migration
 # set wars to tomcat
 RUN   cd  $FLOW_PLATFORM_SOURCE_CODE \
       && mv ./dist/flow-control-center-*.war $CATALINA_HOME/webapps/flow-control-center.war \
-      && mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war
+      && mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war \
+      && rm -rf $FLOW_PLATFORM_SOURCE_CODE
 
 WORKDIR $FLOW_PLATFORM_DIR
 
