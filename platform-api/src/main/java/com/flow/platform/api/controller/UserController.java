@@ -10,14 +10,13 @@ import com.flow.platform.api.domain.response.UserListResponse;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.user.UserService;
-import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.List;
 
 /**
  * @author liangpengyv
@@ -29,9 +28,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private HttpServletRequest request;
 
     /**
      * @api {get} List
@@ -71,8 +67,7 @@ public class UserController {
         Long userCount = userService.usersCount();
         Long userAdminCount = userService.adminUserCount();
         List<User> users = userService.list(true, true);
-        UserListResponse userListResponse = new UserListResponse(userCount, userAdminCount, users);
-        return userListResponse;
+        return new UserListResponse(userCount, userAdminCount, users);
     }
 
     /**
