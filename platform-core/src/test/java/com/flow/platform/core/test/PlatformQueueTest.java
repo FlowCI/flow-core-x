@@ -87,7 +87,7 @@ public class PlatformQueueTest {
     @Test
     public void should_enqueue_with_priority_in_memory_queue() throws Throwable {
         // given: queue listener
-        int size = 2;
+        final int size = 2;
         CountDownLatch latch = new CountDownLatch(size);
         List<String> prioritizedList = new ArrayList<>(size);
 
@@ -103,8 +103,9 @@ public class PlatformQueueTest {
         inMemoryQueue.start();
 
         // then:
-        latch.await(30, TimeUnit.SECONDS);
-        Assert.assertEquals(2, prioritizedList.size());
+        boolean await = latch.await(60, TimeUnit.SECONDS);
+        Assert.assertTrue(await);
+        Assert.assertEquals(size, prioritizedList.size());
 
         Assert.assertEquals("2", prioritizedList.get(0));
         Assert.assertEquals("1", prioritizedList.get(1));
