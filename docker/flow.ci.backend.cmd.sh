@@ -3,6 +3,9 @@ set +e
 
 cmd="$@"
 
+# default mysql user name root
+export MYSQL_USER=root
+
 read -r -d '' rootCreate <<-EOSQL || true
   use mysql;
   update user set password=PASSWORD('${MYSQL_PASSWORD}') where User='root';

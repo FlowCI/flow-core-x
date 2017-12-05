@@ -11,7 +11,37 @@ flow-platform
 
 
 ## Getting Start
+
+### Start with docker
+
+首先 Docker pull flowci/flow-platform ， 把对应的镜像拉下来
  
+> 环境变量的设置:
+> 
+> - `FLOW_API_DOMAIN`：部署的后端 API 域名地址
+> - `FLOW_WEB_DOMAIN`：部署的前端 Web 页面的域名地址
+> - `FLOW_SYS_EMAIL`：flowci 系统管理员账号
+> - `FLOW_SYS_USERNAME`：flowci 系统管理员的用户名
+> - `FLOW_SYS_PASSWORD`：flowci 系统管理员密码
+> - `MYSQL_PASSWORD`：flowci MYSQL 数据库的密码
+> - `MYSQL_HOST`：flowci MYSQL 数据库的 `HOST`
+> - `MYSQL 的存储路径`: `~/flow-ci/db`
+
+```
+ docker run -it \
+   -e MYSQL_HOST=127.0.0.1 \
+   -e MYSQL_PASSWORD=123456 \
+   -e FLOW_SYS_EMAIL=admin@fir.im \
+   -e FLOW_SYS_USERNAME=admin \
+   -e FLOW_SYS_PASSWORD=123456  \
+   -e FLOW_API_DOMAIN=127.0.0.1 \
+   -e FLOW_WEB_DOMAIN=127.0.0.1 \
+   -p 8080:8080 \
+   -v ~/flow-ci/data:/var/lib/mysql \
+   flowci/flow-platform
+
+``` 
+
 ### Build by maven
 
 Using standard maven `mvn clean install -DskipTests=true` to generate packages

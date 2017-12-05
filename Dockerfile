@@ -9,16 +9,16 @@ ENV MVN_CACHE=/root/.m2
 
 # create used dir
 RUN mkdir -p $FLOW_PLATFORM_DIR \
-	&& mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
-	&& mkdir -p $FLOW_PLATFORM_DIR/migration \
-	&& mkdir -p $FLOW_PLATFORM_SOURCE_CODE
+    && mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
+    && mkdir -p $FLOW_PLATFORM_DIR/migration \
+    && mkdir -p $FLOW_PLATFORM_SOURCE_CODE
 
 # install git
 RUN apt-get update \
     && apt-get install -y --no-install-recommends apt-utils \
-	&& apt-get -y install git \
-	&& git config --global user.email "flowci@flow.ci" \
-	&& git config --global user.name "flowci"
+    && apt-get -y install git \
+    && git config --global user.email "flowci@flow.ci" \
+    && git config --global user.name "flowci"
 
 # install open jdk
 RUN apt-get -y install openjdk-8-jdk \
@@ -39,7 +39,7 @@ VOLUME /var/lib/mysql
 COPY . $FLOW_PLATFORM_SOURCE_CODE
 
 # mvn build
-RUN	cd $FLOW_PLATFORM_SOURCE_CODE \
+RUN cd $FLOW_PLATFORM_SOURCE_CODE \
     && rm -rf $FLOW_PLATFORM_SOURCE_CODE/dist \
     && mvn clean install -DskipTests=true
 
