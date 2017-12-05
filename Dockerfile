@@ -6,18 +6,6 @@ ENV FLOW_PLATFORM_DIR=/etc/flow.ci
 ENV FLOW_PLATFORM_CONFIG_DIR=/etc/flow.ci/config
 ENV FLOW_PLATFORM_SOURCE_CODE=/flow-platform
 
-RUN mkdir -p $FLOW_PLATFORM_DIR \
-	&& mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
-	&& mkdir -p $FLOW_PLATFORM_DIR/migration \
-	&& mkdir -p $FLOW_PLATFORM_SOURCE_CODE
-
-# install git
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends apt-utils \
-	&& apt-get -y install git \
-	&& git config --global user.email "flowci@flow.ci" \
-	&& git config --global user.name "flowci"
-
 # install mysql
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r mysql && useradd -r -g mysql mysql
@@ -79,19 +67,33 @@ RUN { \
 # don't reverse lookup hostnames, they are usually another container
 	&& echo '[mysqld]\nskip-host-cache\nskip-name-resolve' > /etc/mysql/conf.d/docker.cnf
 
-ADD ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
+COPY ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
+
+VOLUME /var/lib/mysql
+COPY ./docker/docker-entrypoint.sh /usr/local/bin/
+RUN ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat
 
 # copy code
 COPY . $FLOW_PLATFORM_SOURCE_CODE
 
-# intall open jdk
-RUN apt-get -y install openjdk-8-jdk
+RUN mkdir -p $FLOW_PLATFORM_DIR \
+	&& mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
+	&& mkdir -p $FLOW_PLATFORM_DIR/migration \
+	&& mkdir -p $FLOW_PLATFORM_SOURCE_CODE
+
+# install git and jdk
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends apt-utils \
+	&& apt-get -y install git \
+	&& git config --global user.email "flowci@flow.ci" \
+	&& git config --global user.name "flowci" \
+	&& apt-get -y install openjdk-8-jdk
+
 
 # install maven
 RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
     && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
     && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-
 
 # mvn build
 RUN	cd $FLOW_PLATFORM_SOURCE_CODE \
