@@ -3,10 +3,10 @@ set -e
 
 cmd="$@"
 
-read -r -d '' rootCreate <<-EOSQL
-  user mysql;
-  update user set password=PASSWORD("$MYSQL_PASSWORD") where User='root';
-  update user set plugin="mysql_native_password";
+read -r -d '' rootCreate <<-EOSQL || true
+  use mysql;
+  update user set password=PASSWORD('${MYSQL_PASSWORD}') where User='root';
+  update user set plugin='mysql_native_password';
 EOSQL
 
 # Start Mysql
