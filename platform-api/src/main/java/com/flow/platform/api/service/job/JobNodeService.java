@@ -19,6 +19,7 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobYml;
 import com.flow.platform.api.domain.node.NodeTree;
 import java.math.BigInteger;
+import java.util.List;
 
 /**
  * @author lhl
@@ -40,5 +41,10 @@ public interface JobNodeService {
      * Get job yml data
      */
     JobYml find(Job job);
+
+    /**
+     * Delete job node data by list of job id
+     */
+    void delete(List<BigInteger> jobIds);
 
 }

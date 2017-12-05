@@ -68,4 +68,9 @@ public interface NodeResultService {
     NodeResult updateStatusByCmd(Job job, Node node, Cmd cmd, String errorMsg);
 
     NodeResult update(NodeResult nodeResult);
+
+    /**
+     * Delete node result by list of job id
+     */
+    void delete(List<BigInteger> jobIds);
 }

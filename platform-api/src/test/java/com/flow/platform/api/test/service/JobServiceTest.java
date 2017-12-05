@@ -82,7 +82,7 @@ public class JobServiceTest extends TestBase {
         wireMockRule.resetAll();
 
         // when: create job
-        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow2.yaml");
 
         // mock latest commit for git service
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
@@ -96,7 +96,7 @@ public class JobServiceTest extends TestBase {
 
     @Test
     public void should_create_node_success() throws IOException {
-        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow2.yaml");
         Job job = createMockJob(rootForFlow.getPath());
         Assert.assertNotNull(job.getEnv("FLOW_WORKSPACE"));
         Assert.assertNotNull(job.getEnv("FLOW_VERSION"));
@@ -153,7 +153,7 @@ public class JobServiceTest extends TestBase {
     public void should_run_job_with_success_status() throws Throwable {
         // given:
         final String sessionId = "session-id-1";
-        Node root = createRootFlow("flow_run_job", "for_job_service_run_job.yaml");
+        Node root = createRootFlow("flow_run_job", "yml/for_job_service_run_job.yaml");
 
         // when: create job and job should be SESSION_CREATING
         Job job = createMockJob(root.getPath());
@@ -230,7 +230,7 @@ public class JobServiceTest extends TestBase {
 
     @Test
     public void should_stop_success() throws IOException {
-        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow2.yaml");
         Job job = createMockJob(rootForFlow.getPath());
 
         Job stoppedJob = jobService.stop(job.getNodeName(), job.getNumber());
@@ -243,7 +243,7 @@ public class JobServiceTest extends TestBase {
     public void should_stop_running_job_success() throws IOException {
 
         // init flow
-        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow2.yaml");
         NodeTree nodeTree = nodeService.find("flow1");
         Node stepFirst = nodeTree.find("flow1/step1");
 
@@ -279,7 +279,7 @@ public class JobServiceTest extends TestBase {
     @Test
     public void should_job_time_out_and_reject_callback() throws IOException, InterruptedException {
         // given: job and mock updated time as expired
-        Node rootForFlow = createRootFlow("flow1", "demo_flow2.yaml");
+        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow2.yaml");
         Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.TAG, null, mockUser);
         Assert.assertNotNull(job.getEnv("FLOW_WORKSPACE"));
         Assert.assertNotNull(job.getEnv("FLOW_VERSION"));
@@ -305,7 +305,7 @@ public class JobServiceTest extends TestBase {
 
     @Test
     public void should_get_latest_job_by_node_path() throws IOException {
-        Node rootForFlow = createRootFlow("flowTest", "demo_flow1.yaml");
+        Node rootForFlow = createRootFlow("flowTest", "yml/demo_flow1.yaml");
         createMockJob(rootForFlow.getPath());
         createMockJob(rootForFlow.getPath());
 

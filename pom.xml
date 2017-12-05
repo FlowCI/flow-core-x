@@ -62,6 +62,8 @@
     <spring-context-support.version>4.3.8.RELEASE</spring-context-support.version>
     <quartz.version>2.2.1</quartz.version>
     <jgit.server.version>4.9.0.201710071750-r</jgit.server.version>
+    <java-gitlab-api.version>4.0.0-SNAPSHOT</java-gitlab-api.version>
+    <groovy-all.version>2.4.12</groovy-all.version>
   </properties>
 
   <build>
@@ -327,7 +329,13 @@
       <dependency>
         <groupId>org.gitlab</groupId>
         <artifactId>java-gitlab-api</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>${java-gitlab-api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <version>${groovy-all.version}</version>
       </dependency>
 
       <!--library for testing-->

@@ -46,7 +46,7 @@ public class JobYmlDaoTest extends TestBase {
     public void should_save_and_get_yml_success() throws IOException {
         Job job = new Job(CommonUtil.randomId());
         ClassLoader classLoader = JobYmlDaoTest.class.getClassLoader();
-        URL resource = classLoader.getResource("flow.yaml");
+        URL resource = classLoader.getResource("yml/flow.yaml");
         File path = new File(resource.getFile());
         String ymlString = Files.toString(path, AppConfig.DEFAULT_CHARSET);
         JobYml jys = new JobYml(job.getId(), ymlString);

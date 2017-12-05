@@ -24,15 +24,13 @@ import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.LogService;
-import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.JobSearchService;
+import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
-import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.I18nUtil;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
-import com.flow.platform.util.git.model.GitEventType;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -58,9 +56,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class JobController extends NodeController {
 
     private final static Logger LOGGER = new Logger(JobController.class);
-
-    @Autowired
-    private YmlService ymlService;
 
     @Autowired
     private JobService jobService;
