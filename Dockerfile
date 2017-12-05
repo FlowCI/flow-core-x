@@ -5,6 +5,7 @@ ENV MAVEN_VERSION 3.3.9
 ENV FLOW_PLATFORM_DIR=/etc/flow.ci
 ENV FLOW_PLATFORM_CONFIG_DIR=/etc/flow.ci/config
 ENV FLOW_PLATFORM_SOURCE_CODE=/flow-platform
+ENV MVN_CACHE=/root/.m2
 
 RUN mkdir -p $FLOW_PLATFORM_DIR \
 	&& mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
@@ -28,8 +29,8 @@ RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binar
 
 # install mysql
 RUN apt-get install -y mysql-server
-
 ADD ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
+VOLUME /var/lib/mysql
 
 # copy code
 COPY . $FLOW_PLATFORM_SOURCE_CODE
@@ -50,11 +51,12 @@ COPY ./docker/tomcat-users.xml $CATALINA_HOME/conf
 COPY ./docker/flow.ci.backend.cmd.sh $FLOW_PLATFORM_DIR
 COPY ./schema/migration $FLOW_PLATFORM_DIR/migration
 
-# set wars to tomcat
+# set wars to tomcat and delete no use code
 RUN   cd  $FLOW_PLATFORM_SOURCE_CODE \
       && mv ./dist/flow-control-center-*.war $CATALINA_HOME/webapps/flow-control-center.war \
       && mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war \
       && rm -rf $FLOW_PLATFORM_SOURCE_CODE
+      && rm -rf $MVN_CACHE
 
 WORKDIR $FLOW_PLATFORM_DIR
 
