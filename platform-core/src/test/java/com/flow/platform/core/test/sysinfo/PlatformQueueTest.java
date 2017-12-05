@@ -96,8 +96,9 @@ public class PlatformQueueTest {
         inMemoryQueue.start();
 
         // then:
-        latch.await(10, TimeUnit.SECONDS);
+        latch.await(30, TimeUnit.SECONDS);
         Assert.assertEquals(2, prioritizedList.size());
+
         Assert.assertEquals("2", prioritizedList.get(0));
         Assert.assertEquals("1", prioritizedList.get(1));
     }
