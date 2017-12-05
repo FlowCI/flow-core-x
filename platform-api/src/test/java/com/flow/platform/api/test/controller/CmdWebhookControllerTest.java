@@ -56,7 +56,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @FixMethodOrder(value = MethodSorters.JVM)
 public class CmdWebhookControllerTest extends TestBase {
 
-    private final static int CMD_CALLBACK_QUEUE_WAITING_TIME = 5000;
+    private final static int CMD_CALLBACK_QUEUE_WAITING_TIME = 1000 * 10;
 
     private final static String sessionId = "1111111";
 
@@ -78,6 +78,7 @@ public class CmdWebhookControllerTest extends TestBase {
 
         // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setId(UUID.randomUUID().toString());
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
 

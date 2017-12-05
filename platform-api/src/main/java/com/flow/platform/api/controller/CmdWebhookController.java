@@ -45,7 +45,7 @@ public class CmdWebhookController {
     @Autowired
     private JobService jobService;
 
-    @PostMapping(path = "")
+    @PostMapping
     public void execute(@RequestBody Cmd cmd, @RequestParam String identifier) {
         String jobIdStr = HttpURL.encode(identifier);
 
