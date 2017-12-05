@@ -254,9 +254,13 @@ public class CmdManager {
      */
     public synchronized void kill() {
         cmdExecutor.shutdown();
+        ZonedDateTime now = ZonedDateTime.now();
 
         for (Map.Entry<Cmd, CmdResult> entry : running.entrySet()) {
             CmdResult r = entry.getValue();
+            r.setExecutedTime(now);
+            r.setFinishTime(now);
+
             Cmd cmd = entry.getKey();
             finished.put(cmd, r);
 

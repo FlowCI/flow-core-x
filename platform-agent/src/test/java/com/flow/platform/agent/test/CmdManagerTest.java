@@ -175,7 +175,8 @@ public class CmdManagerTest extends TestBase {
     @Test
     public void should_be_correct_status_for_killed_process() throws Throwable {
         // given
-        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        String content = String.format("source %s", resourcePath);
+        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
         cmd.setId(UUID.randomUUID().toString());
 
         CountDownLatch startLatch = new CountDownLatch(1);
@@ -221,8 +222,8 @@ public class CmdManagerTest extends TestBase {
 
     @Test
     public void should_success_run_sys_cmd() throws InterruptedException {
-
-        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        String content = String.format("source %s", resourcePath);
+        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
         cmd.setId(UUID.randomUUID().toString());
         CountDownLatch finishCountDownLatch = new CountDownLatch(1);
         CountDownLatch startCountDownLatch = new CountDownLatch(1);
