@@ -37,6 +37,7 @@ import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -302,7 +303,10 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         private void commitSomething(Path path) {
             try (Git git = Git.open(path.toFile())) {
                 Path emptyFilePath = Paths.get(path.toString(), EMPTY_FILE);
-                Files.createFile(emptyFilePath);
+
+                try {
+                    Files.createFile(emptyFilePath);
+                } catch (FileAlreadyExistsException ignore) { }
 
                 git.add()
                     .addFilepattern(".")
