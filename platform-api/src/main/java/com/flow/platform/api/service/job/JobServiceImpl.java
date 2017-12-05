@@ -602,6 +602,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         if (Job.FINISH_STATUS.contains(originStatus)) {
             return;
         }
+
+        LOGGER.debug("Job '%s' status is changed to : %s", job.getId(), newStatus);
         job.setStatus(newStatus);
         jobDao.update(job);
 

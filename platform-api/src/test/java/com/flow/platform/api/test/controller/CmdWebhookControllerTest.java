@@ -284,7 +284,7 @@ public class CmdWebhookControllerTest extends TestBase {
     }
 
     protected Job reload(Job job) {
-        return jobService.find(job.getNodePath(), job.getNumber());
+        return jobService.find(job.getId());
     }
 
     private MvcResult performMockHttpRequest(Cmd cmd, Job job) throws Throwable {
