@@ -332,7 +332,8 @@ public class JobServiceTest extends TestBase {
 
         // when: enter queue one not found job id
         jobService.enterQueue(new CmdCallbackQueueItem(CommonUtil.randomId(), cmd), 1);
-        countDownLatch.await(6, TimeUnit.SECONDS);
+        boolean await = countDownLatch.await(10, TimeUnit.SECONDS);
+        Assert.assertTrue(await);
 
         // then: should try 5 times
         Assert.assertEquals(1, atomicInteger.get());

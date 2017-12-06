@@ -15,6 +15,7 @@ package com.flow.platform.api.test;/*
  */
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -253,15 +254,17 @@ public abstract class TestBase {
 
         wireMockRule.resetAll();
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
+        stubFor(post(urlEqualTo("/agents/list")).willReturn(aResponse().withBody("[]")));
+
+        stubFor(post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
+        stubFor(post(urlEqualTo("/cmd/send"))
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/stop/" + mockCmdResponse.getId()))
+        stubFor(post(urlEqualTo("/cmd/stop/" + mockCmdResponse.getId()))
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));
 

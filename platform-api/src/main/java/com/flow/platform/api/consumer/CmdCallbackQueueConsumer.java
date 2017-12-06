@@ -70,7 +70,7 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
             reEnqueueJobCallback(item, REQUEUE_DELAY_TIME, message.getMessageProperties().getPriority());
 
         } catch (Throwable throwable) {
-            LOGGER.traceMarker("onQueueItem", String.format("exception - %s", throwable));
+            LOGGER.traceMarker("onQueueItem", "exception - %s", throwable.getMessage());
         }
     }
 
@@ -81,7 +81,6 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
     }
 
     private void reEnqueueJobCallback(CmdCallbackQueueItem item, long wait, int priority) {
-
         // sleep seconds
         ThreadUtil.sleep(wait);
 
@@ -89,8 +88,6 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
         item.setRetryTimes(item.getRetryTimes() - 1);
 
         //priority inc 1
-        priority = priority + 1;
-
-        jobService.enterQueue(item, priority);
+        jobService.enterQueue(item, ++priority);
     }
 }

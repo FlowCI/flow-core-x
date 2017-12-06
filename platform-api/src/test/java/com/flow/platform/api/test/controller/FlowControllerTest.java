@@ -20,7 +20,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
@@ -31,7 +30,6 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.NotFoundException;
@@ -44,7 +42,6 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
@@ -57,11 +54,10 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
 
     private final String flowName = "flow_default";
 
-    @Autowired
-    private JobNodeService jobNodeService;
-
     @Before
     public void initToCreateEmptyFlow() throws Throwable {
+        stubDemo();
+
         MockHttpServletRequestBuilder request = post("/flows/" + flowName)
             .contentType(MediaType.APPLICATION_JSON);
 
@@ -70,7 +66,6 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
         Assert.assertNotNull(flowNode);
         Assert.assertNotNull(flowNode.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
         Assert.assertEquals("PENDING", flowNode.getEnv(FlowEnvs.FLOW_STATUS));
-        stubDemo();
     }
 
     @Test
@@ -169,14 +164,13 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
     @Test
     public void should_response_false_if_flow_name_not_exist() throws Throwable {
         // given:
-        String flowName = "default";
+        String flowName = "not-exit";
 
         // when:
         MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/exist")
             .contentType(MediaType.APPLICATION_JSON);
 
         MvcResult mvcResult = this.mockMvc.perform(request)
-            .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
 
