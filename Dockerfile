@@ -22,7 +22,8 @@ COPY . $FLOW_PLATFORM_SOURCE_CODE
 # mvn build
 RUN cd $FLOW_PLATFORM_SOURCE_CODE \
     && rm -rf $FLOW_PLATFORM_SOURCE_CODE/dist \
-    && mvn clean install -DskipTests=true
+    && mvn clean install -DskipTests=true \
+    && mkdir -p $FLOW_PLATFORM_CONFIG_DIR
 
 # setup flow.ci default configuration
 COPY ./docker/app-cc.properties $FLOW_PLATFORM_CONFIG_DIR
