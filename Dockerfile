@@ -16,6 +16,9 @@ ENV MVN_CACHE=/root/.m2
 ADD ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
 VOLUME /var/lib/mysql
 
+# config tomcat
+COPY ./docker/tomcat-users.xml $CATALINA_HOME/conf
+
 # copy code
 COPY . $FLOW_PLATFORM_SOURCE_CODE
 
@@ -28,9 +31,6 @@ RUN cd $FLOW_PLATFORM_SOURCE_CODE \
 # setup flow.ci default configuration
 COPY ./docker/app-cc.properties $FLOW_PLATFORM_CONFIG_DIR
 COPY ./docker/app-api.properties $FLOW_PLATFORM_CONFIG_DIR
-
-# config tomcat
-COPY ./docker/tomcat-users.xml $CATALINA_HOME/conf
 
 # wait for mysql
 COPY ./docker/flow.ci.backend.cmd.sh $FLOW_PLATFORM_DIR
