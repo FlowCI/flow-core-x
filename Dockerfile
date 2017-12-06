@@ -22,11 +22,16 @@ COPY ./docker/tomcat-users.xml $CATALINA_HOME/conf
 # copy code
 COPY . $FLOW_PLATFORM_SOURCE_CODE
 
-# mvn build
+# mvn build and set wars to tomcat and delete no use thing
 RUN cd $FLOW_PLATFORM_SOURCE_CODE \
     && rm -rf $FLOW_PLATFORM_SOURCE_CODE/dist \
     && mvn clean install -DskipTests=true \
-    && mkdir -p $FLOW_PLATFORM_CONFIG_DIR
+    && mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
+    && cd  $FLOW_PLATFORM_SOURCE_CODE \
+    && mv ./dist/flow-control-center-*.war $CATALINA_HOME/webapps/flow-control-center.war \
+    && mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war \
+    && rm -rf $FLOW_PLATFORM_SOURCE_CODE \
+    && rm -rf $MVN_CACHE
 
 # setup flow.ci default configuration
 COPY ./docker/app-cc.properties $FLOW_PLATFORM_CONFIG_DIR
@@ -35,13 +40,6 @@ COPY ./docker/app-api.properties $FLOW_PLATFORM_CONFIG_DIR
 # wait for mysql
 COPY ./docker/flow.ci.backend.cmd.sh $FLOW_PLATFORM_DIR
 COPY ./schema/migration $FLOW_PLATFORM_DIR/migration
-
-# set wars to tomcat and delete no use code 
-RUN   cd  $FLOW_PLATFORM_SOURCE_CODE \
-      && mv ./dist/flow-control-center-*.war $CATALINA_HOME/webapps/flow-control-center.war \
-      && mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war \
-      && rm -rf $FLOW_PLATFORM_SOURCE_CODE \
-      && rm -rf $MVN_CACHE
 
 WORKDIR $FLOW_PLATFORM_DIR
 
