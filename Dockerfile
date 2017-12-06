@@ -1,7 +1,6 @@
 FROM flowci/flow-platform-base:latest
 
 # setup flow.ci default environments
-ENV MAVEN_VERSION 3.3.9
 ENV FLOW_PLATFORM_DIR=/etc/flow.ci
 ENV FLOW_PLATFORM_CONFIG_DIR=/etc/flow.ci/config
 ENV FLOW_PLATFORM_SOURCE_CODE=/flow-platform

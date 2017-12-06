@@ -1,7 +1,12 @@
 #
-# build flow platform base image
+# FlowPlatform Base Dockerfile
+# Image Name: flowci/flow-platform-base
+#
+# https://github.com/FlowCI/flow-platform
 #
 FROM flowci/flow.ci.tomcat:latest
+
+ENV MAVEN_VERSION 3.3.9
 
 # install git
 RUN apt-get update \
