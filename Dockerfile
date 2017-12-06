@@ -1,4 +1,4 @@
-FROM flowci/flow.ci.tomcat:latest
+FROM flowci/flow-platform-base:latest
 
 # setup flow.ci default environments
 ENV MAVEN_VERSION 3.3.9
@@ -7,31 +7,7 @@ ENV FLOW_PLATFORM_CONFIG_DIR=/etc/flow.ci/config
 ENV FLOW_PLATFORM_SOURCE_CODE=/flow-platform
 ENV MVN_CACHE=/root/.m2
 
-# create used dir
-RUN mkdir -p $FLOW_PLATFORM_DIR \
-    && mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
-    && mkdir -p $FLOW_PLATFORM_DIR/migration \
-    && mkdir -p $FLOW_PLATFORM_SOURCE_CODE
-
-# install git
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends apt-utils \
-    && apt-get -y install git \
-    && git config --global user.email "flowci@flow.ci" \
-    && git config --global user.name "flowci"
-
-# install open jdk
-RUN apt-get -y install openjdk-8-jdk \
-    && apt-get -y install procps \
-    && apt-get -y install vim
-
-# install maven
-RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
-    && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
-    && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-
-# install mysql
-RUN apt-get install -y mysql-server
+# setup mysql config
 ADD ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
 VOLUME /var/lib/mysql
 
