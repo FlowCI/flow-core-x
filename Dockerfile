@@ -36,7 +36,7 @@ COPY ./docker/app-api.properties $FLOW_PLATFORM_CONFIG_DIR
 COPY ./docker/flow.ci.backend.cmd.sh $FLOW_PLATFORM_DIR
 COPY ./schema/migration $FLOW_PLATFORM_DIR/migration
 
-# set wars to tomcat and delete no use code
+# set wars to tomcat and delete no use code 
 RUN   cd  $FLOW_PLATFORM_SOURCE_CODE \
       && mv ./dist/flow-control-center-*.war $CATALINA_HOME/webapps/flow-control-center.war \
       && mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war \
