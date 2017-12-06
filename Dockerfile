@@ -1,3 +1,9 @@
+#
+# Flow Platform Dockerfile
+# Image Name: flowci/flow-platform
+#
+# https://github.com/FlowCI/flow-platform
+#
 FROM flowci/flow-platform-base:latest
 
 # setup flow.ci default environments
