@@ -83,16 +83,7 @@ public class CmdWebhookControllerTest extends TestBase {
         // given: flow with two steps , step1 and step2
         final Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
         final Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
-
-        final CountDownLatch runningLatch = new CountDownLatch(1);
-        springContext.registerApplicationListener(new JobStatusEventConsumer() {
-            @Override
-            public void onApplicationEvent(JobStatusChangeEvent event) {
-                if (event.getJob().equals(job) && event.getTo() == JobStatus.RUNNING) {
-                    runningLatch.countDown();
-                }
-            }
-        });
+        final CountDownLatch runningLatch = createCountDownForJobStatusChange(job, JobStatus.RUNNING, 1);
 
         // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -194,26 +185,8 @@ public class CmdWebhookControllerTest extends TestBase {
         // given: job and listener
         final Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
         final Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
-
-        final CountDownLatch runningLatch = new CountDownLatch(1);
-        springContext.registerApplicationListener(new JobStatusEventConsumer() {
-            @Override
-            public void onApplicationEvent(JobStatusChangeEvent event) {
-                if (event.getJob().equals(job) && event.getTo() == JobStatus.RUNNING) {
-                    runningLatch.countDown();
-                }
-            }
-        });
-
-        final CountDownLatch failureLatch = new CountDownLatch(1);
-        springContext.registerApplicationListener(new JobStatusEventConsumer() {
-            @Override
-            public void onApplicationEvent(JobStatusChangeEvent event) {
-                if (event.getJob().equals(job) && event.getTo() == JobStatus.FAILURE) {
-                    failureLatch.countDown();
-                }
-            }
-        });
+        final CountDownLatch runningLatch = createCountDownForJobStatusChange(job, JobStatus.RUNNING, 1);
+        final CountDownLatch failureLatch = createCountDownForJobStatusChange(job, JobStatus.FAILURE, 1);
 
         NodeTree nodeTree = nodeService.find("flow1");
         Node step2 = nodeTree.find("flow1/step2");
@@ -240,7 +213,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
         cmd.setExtra(step1.getPath());
 
-        performMockHttpRequest(cmd, job);
+        performMockHttpRequest(cmd, reloaded);
         Assert.assertTrue(failureLatch.await(10, TimeUnit.SECONDS));
 
         // then: verify job status
@@ -248,20 +221,21 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(JobStatus.FAILURE, reloaded.getStatus());
 
         // then: verify first node result status
-        NodeResult firstStepResult = nodeResultService.find(step1.getPath(), job.getId());
+        NodeResult firstStepResult = nodeResultService.find(step1.getPath(), reloaded.getId());
         Assert.assertNotNull(firstStepResult.getCmdId());
         Assert.assertEquals(NodeStatus.TIMEOUT, firstStepResult.getStatus());
 
         // then: verify root result
-        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
-        Assert.assertEquals(job.getRootResult(), rootResult);
+        NodeResult rootResult = nodeResultService.find(reloaded.getNodePath(), reloaded.getId());
+        Assert.assertEquals(reloaded.getRootResult(), rootResult);
         Assert.assertEquals(NodeStatus.TIMEOUT, rootResult.getStatus());
     }
 
     @Test
     public void should_callback_with_timeout_but_allow_failure() throws Throwable {
-        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow1.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
+        final Node rootForFlow = createRootFlow("flow1", "yml/demo_flow1.yaml");
+        final Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
+        final CountDownLatch runningLatch = createCountDownForJobStatusChange(job, JobStatus.RUNNING, 1);
 
         // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -269,12 +243,12 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        Assert.assertTrue(runningLatch.await(10, TimeUnit.SECONDS));
 
         // then: check job session id
-        job = refresh(job);
-        Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(NodeStatus.PENDING, job.getRootResult().getStatus());
+        Job reloaded = refresh(job);
+        Assert.assertEquals(sessionId, reloaded.getSessionId());
+        Assert.assertEquals(NodeStatus.PENDING, reloaded.getRootResult().getStatus());
 
         Node step1 = nodeService.find("flow1").find("flow1/step1");
 
@@ -284,33 +258,33 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setExtra(step1.getPath());
 
-        performMockHttpRequest(cmd, job);
+        performMockHttpRequest(cmd, reloaded);
         Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
 
         // then: check root node result status should be RUNNING
-        job = refresh(job);
-        Assert.assertEquals(NodeStatus.RUNNING, job.getRootResult().getStatus());
+        reloaded = refresh(reloaded);
+        Assert.assertEquals(NodeStatus.RUNNING, reloaded.getRootResult().getStatus());
 
         // mock timeout kill status from agent
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
         cmd.setExtra(step1.getPath());
 
-        performMockHttpRequest(cmd, job);
+        performMockHttpRequest(cmd, reloaded);
         Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
 
         // then: check step node status should be timeout
-        NodeResult stepResult = nodeResultService.find(step1.getPath(), job.getId());
+        NodeResult stepResult = nodeResultService.find(step1.getPath(), reloaded.getId());
         Assert.assertNotNull(stepResult.getCmdId());
         Assert.assertEquals(NodeStatus.TIMEOUT, stepResult.getStatus());
 
         // then: check root node status should be timeout as well
-        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
+        NodeResult rootResult = nodeResultService.find(reloaded.getNodePath(), reloaded.getId());
         Assert.assertEquals(NodeStatus.RUNNING, rootResult.getStatus());
 
         // then: check job status should be running since time out allow failure
-        job = refresh(job);
-        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+        reloaded = refresh(reloaded);
+        Assert.assertEquals(JobStatus.RUNNING, reloaded.getStatus());
     }
 
     @Test
@@ -356,5 +330,18 @@ public class CmdWebhookControllerTest extends TestBase {
         stubFor(WireMock.post(urlEqualTo("/cmd/send"))
             .willReturn(aResponse()
                 .withBody(sendCmd.toJson())));
+    }
+
+    private CountDownLatch createCountDownForJobStatusChange(Job job, JobStatus expect, int num) {
+        final CountDownLatch countDown = new CountDownLatch(num);
+        springContext.registerApplicationListener(new JobStatusEventConsumer() {
+            @Override
+            public void onApplicationEvent(JobStatusChangeEvent event) {
+                if (event.getJob().equals(job) && event.getTo() == expect) {
+                    countDown.countDown();
+                }
+            }
+        });
+        return countDown;
     }
 }
