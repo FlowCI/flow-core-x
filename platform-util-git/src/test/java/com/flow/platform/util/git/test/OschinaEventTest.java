@@ -80,6 +80,7 @@ public class OschinaEventTest {
         Assert.assertEquals(null, event.getMessage());
         Assert.assertEquals("CodingWill", event.getUsername());
         Assert.assertEquals("CodingWill", event.getUserEmail());
+        Assert.assertNull(event.getCommits());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {
