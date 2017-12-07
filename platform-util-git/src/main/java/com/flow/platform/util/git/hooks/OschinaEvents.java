@@ -26,6 +26,7 @@ import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.annotations.SerializedName;
+import java.util.ArrayList;
 import java.util.Objects;
 
 /**
@@ -35,7 +36,7 @@ public class OschinaEvents {
 
     public static class Hooks {
 
-        public final static String HEADER = "HTTP_X_GIT_OSCHINA_EVENT";
+        public final static String HEADER = "x-git-oschina-event";
 
         public final static String EVENT_TYPE_PUSH = "Push Hook";
 
@@ -99,8 +100,12 @@ public class OschinaEvents {
             final String compareUrl = jsonHelper.repository.homepage + "/compare/" + compareId;
             event.setCompareUrl(compareUrl);
 
+            if (Objects.isNull(event.getCommits())) {
+                event.setCommits(new ArrayList<>(0));
+            }
+
             // set commit message
-            if (!Objects.isNull(event.getCommits()) && !event.getCommits().isEmpty()) {
+            if (!event.getCommits().isEmpty()) {
                 GitEventCommit commit = event.getCommits().get(0);
                 event.setMessage(commit.getMessage());
                 event.setUserEmail(commit.getAuthor().getEmail());
