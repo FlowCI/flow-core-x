@@ -50,7 +50,7 @@
 
   <Loggers>
     <Logger name="org.springframework" level="info"/>
-    <Logger name="org.hibernate" level="error"/>
+    <Logger name="org.hibernate" level="off"/>
     <Logger name="org.jboss.logging" level="off"/>
 
     <Root level="all">
