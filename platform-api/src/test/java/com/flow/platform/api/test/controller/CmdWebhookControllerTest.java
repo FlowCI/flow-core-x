@@ -196,7 +196,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
 
         performMockHttpRequest(cmd, job);
-        Assert.assertTrue(runningLatch.await(10, TimeUnit.SECONDS));
+        Assert.assertTrue(runningLatch.await(30, TimeUnit.SECONDS));
 
         Job reloaded = refresh(job);
         Assert.assertNotNull(reloaded.getSessionId());
@@ -211,7 +211,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setExtra(step1.getPath());
 
         performMockHttpRequest(cmd, reloaded);
-        Assert.assertTrue(failureLatch.await(10, TimeUnit.SECONDS));
+        Assert.assertTrue(failureLatch.await(30, TimeUnit.SECONDS));
 
         // then: verify job status
         reloaded = refresh(reloaded);
