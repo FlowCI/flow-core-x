@@ -20,8 +20,12 @@ import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventCommit;
 import com.flow.platform.util.git.model.GitEventType;
+import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
+import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
+import com.google.gson.annotations.SerializedName;
 import java.util.Objects;
 
 /**
@@ -97,6 +101,7 @@ public class OschinaEvents {
                 event.setUserEmail(commit.getAuthor().getEmail());
             }
 
+            // only tag set name and email
             if (eventType == GitEventType.TAG) {
                 event.setUserEmail(jsonHelper.user.name);
                 event.setUsername(jsonHelper.user.name);
@@ -104,6 +109,106 @@ public class OschinaEvents {
 
             // return event
             return event;
+        }
+    }
+
+    public static class PullRequestAdaptor extends GitHookEventAdapter {
+
+        private final static String STATE_OPEN = "opened";
+
+        private final static String STATE_CLOSE = "merged";
+
+        private class JsonHelper {
+
+            @SerializedName(value = "iid")
+            private Integer id;
+
+            private String title;
+
+            private String state;
+
+            private String url;
+
+            @SerializedName(value = "target_branch")
+            private String targetBranch;
+
+            @SerializedName(value = "source_branch")
+            private String sourceBranch;
+
+            private Author author;
+
+            @SerializedName(value = "updated_by")
+            private Author merger;
+
+            private String action;
+
+            @SerializedName(value = "target_repo")
+            private RepoHelper targetRepo;
+
+            @SerializedName(value = "source_repo")
+            private RepoHelper sourceRepo;
+        }
+
+        private class Author {
+
+            private String name;
+
+            @SerializedName(value = "user_name")
+            private String username;
+
+            private String email;
+        }
+
+        private class RepoHelper {
+
+            private ProjectHelper project;
+        }
+
+        private class ProjectHelper {
+
+            private String name;
+            private String path;
+            private String url;
+        }
+
+        public PullRequestAdaptor(GitSource gitSource, GitEventType eventType) {
+            super(gitSource, eventType);
+        }
+
+        @Override
+        public GitEvent convert(String json) throws GitException {
+            GitPullRequestEvent prEvent = new GitPullRequestEvent(gitSource, eventType);
+            JsonHelper jsonHelper = GSON.fromJson(json, JsonHelper.class);
+
+            prEvent.setGitSource(GitSource.OSCHINA);
+            prEvent.setAction(jsonHelper.action);
+            prEvent.setDescription(jsonHelper.title);
+            prEvent.setCompareUrl(jsonHelper.url);
+            prEvent.setCompareId(jsonHelper.id.toString());
+            prEvent.setRequestId(jsonHelper.id);
+            prEvent.setUrl(jsonHelper.url);
+
+            GitPullRequestInfo targetPullRequestInfo = new GitPullRequestInfo();
+            targetPullRequestInfo.setBranch(jsonHelper.targetBranch);
+            targetPullRequestInfo.setProjectName(jsonHelper.targetRepo.project.name);
+            prEvent.setTarget(targetPullRequestInfo);
+
+            GitPullRequestInfo sourcePullRequestInfo = new GitPullRequestInfo();
+            sourcePullRequestInfo.setBranch(jsonHelper.sourceBranch);
+            sourcePullRequestInfo.setProjectName(jsonHelper.sourceRepo.project.name);
+            prEvent.setSource(sourcePullRequestInfo);
+
+            if (Objects.equals(jsonHelper.state, STATE_OPEN)) {
+                prEvent.setState(State.OPEN);
+                prEvent.setSubmitter(jsonHelper.author.email);
+            }
+
+            if (Objects.equals(jsonHelper.state, STATE_CLOSE)) {
+                prEvent.setState(State.OPEN);
+                prEvent.setMergedBy(jsonHelper.merger.email);
+            }
+
+            return prEvent;
         }
     }
 
