@@ -1,0 +1,30 @@
+{
+  "ref": "refs/tags/2.0",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "d2c58d16816f9722b48d9d00a0180c3c4da0486a",
+  "user": {
+    "name": "CodingWill",
+    "username": "willcoding",
+    "url": "https://gitee.com/willcoding"
+  },
+  "project": {
+    "name": "fir_cli",
+    "path": "fir_cli",
+    "url": "https://gitee.com/willcoding/fir_cli",
+    "git_ssh_url": "git@gitee.com:willcoding/fir_cli.git",
+    "git_http_url": "https://gitee.com/willcoding/fir_cli.git",
+    "git_svn_url": "svn://gitee.com/willcoding/fir_cli",
+    "namespace": "willcoding",
+    "name_with_namespace": "CodingWill/fir_cli",
+    "path_with_namespace": "willcoding/fir_cli",
+    "default_branch": "master"
+  },
+  "repository": {
+    "name": "fir_cli",
+    "url": "https://gitee.com/willcoding/fir_cli",
+    "description": "",
+    "homepage": "https://gitee.com/willcoding/fir_cli"
+  },
+  "hook_name": "tag_push_hooks",
+  "password": ""
+}
