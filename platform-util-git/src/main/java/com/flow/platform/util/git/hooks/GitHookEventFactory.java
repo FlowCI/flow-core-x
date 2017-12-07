@@ -76,6 +76,7 @@ public class GitHookEventFactory {
         Map<String, GitHookEventAdapter> oschinaAdaptors = new HashMap<>(3);
         oschinaAdaptors.put(OschinaEvents.Hooks.EVENT_TYPE_PUSH, new OschinaEvents.PushAndTagAdapter(OSCHINA, PUSH));
         oschinaAdaptors.put(OschinaEvents.Hooks.EVENT_TYPE_TAG, new OschinaEvents.PushAndTagAdapter(OSCHINA, TAG));
+        oschinaAdaptors.put(OschinaEvents.Hooks.EVENT_TYPE_PR, new OschinaEvents.PullRequestAdaptor(OSCHINA, PR));
         adaptors.put(OschinaEvents.Hooks.HEADER, oschinaAdaptors);
     }
 
