@@ -24,6 +24,7 @@ import static com.flow.platform.util.git.model.GitSource.BITBUCKET;
 import static com.flow.platform.util.git.model.GitSource.CODING;
 import static com.flow.platform.util.git.model.GitSource.GITHUB;
 import static com.flow.platform.util.git.model.GitSource.GITLAB;
+import static com.flow.platform.util.git.model.GitSource.OSCHINA;
 
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.BitbucketEvents.Hooks;
@@ -55,22 +56,27 @@ public class GitHookEventFactory {
         adaptors.put(GitLabEvents.Hooks.HEADER, gitLabAdaptors);
 
         // init GitHub hook data adaptor
-        Map<String, GitHookEventAdapter> gitHubAdaptors = new HashMap<>(3);
+        Map<String, GitHookEventAdapter> gitHubAdaptors = new HashMap<>(2);
         gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PR, new PullRequestAdapter(GITHUB, PR));
         gitHubAdaptors.put(GitHubEvents.Hooks.EVENT_TYPE_PUSH_OR_TAG, new GitHubEvents.PushAndTagAdapter(GITHUB, NONE));
         adaptors.put(GitHubEvents.Hooks.HEADER, gitHubAdaptors);
 
-        Map<String, GitHookEventAdapter> codingAdaptors = new HashMap<>(3);
+        Map<String, GitHookEventAdapter> codingAdaptors = new HashMap<>(2);
         codingAdaptors.put(CodingEvents.Hooks.EVENT_TYPE_PR, new CodingEvents.PullRequestAdapter(CODING, PR));
         codingAdaptors.put(CodingEvents.Hooks.EVENT_TYPE_PUSH_OR_TAG, new CodingEvents.PushAndTagAdapter(CODING, NONE));
         adaptors.put(CodingEvents.Hooks.HEADER, codingAdaptors);
 
-        Map<String, GitHookEventAdapter> bitbucketAdaptors = new HashMap<>(3);
+        Map<String, GitHookEventAdapter> bitbucketAdaptors = new HashMap<>(4);
         bitbucketAdaptors.put(Hooks.EVENT_TYPE_PUSH, new PushAndTagAdapter(BITBUCKET, PUSH));
         bitbucketAdaptors.put(Hooks.EVENT_TYPE_PR_MERGERED, new BitbucketEvents.PullRequestAdapter(BITBUCKET, PR));
         bitbucketAdaptors.put(Hooks.EVENT_TYPE_PR_CREATED, new BitbucketEvents.PullRequestAdapter(BITBUCKET, PR));
         bitbucketAdaptors.put(Hooks.EVENT_TYPE_PR_UPDATED, new BitbucketEvents.PullRequestAdapter(BITBUCKET, PR));
         adaptors.put(Hooks.HEADER, bitbucketAdaptors);
+
+        Map<String, GitHookEventAdapter> oschinaAdaptors = new HashMap<>(3);
+        oschinaAdaptors.put(OschinaEvents.Hooks.EVENT_TYPE_PUSH, new OschinaEvents.PushAndTagAdapter(OSCHINA, PUSH));
+        oschinaAdaptors.put(OschinaEvents.Hooks.EVENT_TYPE_TAG, new OschinaEvents.PushAndTagAdapter(OSCHINA, TAG));
+        adaptors.put(OschinaEvents.Hooks.HEADER, oschinaAdaptors);
     }
 
     /**
@@ -103,6 +109,12 @@ public class GitHookEventFactory {
         String bitbucketEventType = header.get(Hooks.HEADER);
         if (bitbucketEventType != null) {
             matchedAdaptor = adaptors.get(BitbucketEvents.Hooks.HEADER).get(bitbucketEventType);
+        }
+
+        // looking for Oschina event adaptors
+        String oschinaEventType = header.get(OschinaEvents.Hooks.HEADER);
+        if (oschinaEventType != null) {
+            matchedAdaptor = adaptors.get(OschinaEvents.Hooks.HEADER).get(oschinaEventType);
         }
 
         if (matchedAdaptor != null) {
