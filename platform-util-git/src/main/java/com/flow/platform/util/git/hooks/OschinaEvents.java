@@ -166,6 +166,7 @@ public class OschinaEvents {
 
         private class ProjectHelper {
 
+            @SerializedName(value = "name_with_namespace")
             private String name;
             private String path;
             private String url;
@@ -204,8 +205,10 @@ public class OschinaEvents {
             }
 
             if (Objects.equals(jsonHelper.state, STATE_CLOSE)) {
-                prEvent.setState(State.OPEN);
-                prEvent.setMergedBy(jsonHelper.merger.email);
+                prEvent.setState(State.CLOSE);
+
+                // merger have no email
+                prEvent.setMergedBy(jsonHelper.merger.name);
             }
 
             return prEvent;

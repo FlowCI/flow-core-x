@@ -17,8 +17,12 @@
 package com.flow.platform.util.git.test;
 
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
+import com.flow.platform.util.git.hooks.OschinaEvents;
 import com.flow.platform.util.git.hooks.OschinaEvents.Hooks;
 import com.flow.platform.util.git.model.GitEventType;
+import com.flow.platform.util.git.model.GitPullRequestEvent;
+import com.flow.platform.util.git.model.GitPullRequestEvent.State;
+import com.flow.platform.util.git.model.GitPullRequestInfo;
 import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.common.io.Files;
@@ -81,6 +85,57 @@ public class OschinaEventTest {
         Assert.assertEquals("CodingWill", event.getUsername());
         Assert.assertEquals("CodingWill", event.getUserEmail());
         Assert.assertNull(event.getCommits());
+    }
+
+    @Test
+    public void should_convert_to_pr_open_event_obj() throws Throwable {
+        // given:
+        String pushEventContent = loadWebhookSampleJson("oschina/webhook_pr_open.json");
+        Map<String, String> header = new HashMap<>();
+        header.put(OschinaEvents.Hooks.HEADER, Hooks.EVENT_TYPE_PR);
+        GitPullRequestEvent event = (GitPullRequestEvent) GitHookEventFactory.build(header, pushEventContent);
+        Assert.assertNotNull(event);
+        Assert.assertEquals(State.OPEN, event.getState());
+        Assert.assertEquals(GitSource.OSCHINA, event.getGitSource());
+        Assert.assertEquals(GitEventType.PR, event.getType());
+
+        Assert.assertEquals("make pr", event.getDescription());
+        Assert.assertEquals("https://gitee.com/willcoding/fir_cli/pulls/1", event.getUrl());
+        Assert.assertEquals("yh@fir.im", event.getSubmitter());
+        Assert.assertNull(event.getMergedBy());
+
+        GitPullRequestInfo source = event.getSource();
+        Assert.assertEquals("feature/develop", source.getBranch());
+        Assert.assertEquals("CodingWill/fir_cli", source.getProjectName());
+
+        GitPullRequestInfo target = event.getTarget();
+        Assert.assertEquals("master", target.getBranch());
+        Assert.assertEquals("CodingWill/fir_cli", target.getProjectName());
+    }
+
+    @Test
+    public void should_convert_to_pr_close_event_obj() throws Throwable {
+        // given:
+        String pushEventContent = loadWebhookSampleJson("oschina/webhook_pr_close.json");
+        Map<String, String> header = new HashMap<>();
+        header.put(OschinaEvents.Hooks.HEADER, Hooks.EVENT_TYPE_PR);
+        GitPullRequestEvent event = (GitPullRequestEvent) GitHookEventFactory.build(header, pushEventContent);
+        Assert.assertNotNull(event);
+        Assert.assertEquals(GitSource.OSCHINA, event.getGitSource());
+        Assert.assertEquals(GitEventType.PR, event.getType());
+        Assert.assertEquals(State.CLOSE, event.getState());
+
+        Assert.assertEquals("make pr", event.getDescription());
+        Assert.assertEquals("https://gitee.com/willcoding/fir_cli/pulls/2", event.getUrl());
+        Assert.assertEquals("CodingWill", event.getMergedBy());
+
+        GitPullRequestInfo source = event.getSource();
+        Assert.assertEquals("feature/develop", source.getBranch());
+        Assert.assertEquals("CodingWill/fir_cli", source.getProjectName());
+
+        GitPullRequestInfo target = event.getTarget();
+        Assert.assertEquals("master", target.getBranch());
+        Assert.assertEquals("CodingWill/fir_cli", target.getProjectName());
     }
 
     private static String loadWebhookSampleJson(String classPath) throws IOException {
