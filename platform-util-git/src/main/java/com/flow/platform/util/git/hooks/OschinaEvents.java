@@ -57,15 +57,20 @@ public class OschinaEvents {
         private class Repository {
 
             private String name;
+
             private String homepage;
+
             private String url;
+
             private String description;
         }
 
         private class User {
 
             private String name;
+
             private String username;
+
             private String url;
         }
 
@@ -168,7 +173,9 @@ public class OschinaEvents {
 
             @SerializedName(value = "name_with_namespace")
             private String name;
+
             private String path;
+
             private String url;
         }
 
@@ -178,9 +185,11 @@ public class OschinaEvents {
 
         @Override
         public GitEvent convert(String json) throws GitException {
+
             GitPullRequestEvent prEvent = new GitPullRequestEvent(gitSource, eventType);
             JsonHelper jsonHelper = GSON.fromJson(json, JsonHelper.class);
 
+            // set info to pr event
             prEvent.setGitSource(GitSource.OSCHINA);
             prEvent.setAction(jsonHelper.action);
             prEvent.setDescription(jsonHelper.title);
@@ -189,21 +198,25 @@ public class OschinaEvents {
             prEvent.setRequestId(jsonHelper.id);
             prEvent.setUrl(jsonHelper.url);
 
+            // set target repo info
             GitPullRequestInfo targetPullRequestInfo = new GitPullRequestInfo();
             targetPullRequestInfo.setBranch(jsonHelper.targetBranch);
             targetPullRequestInfo.setProjectName(jsonHelper.targetRepo.project.name);
             prEvent.setTarget(targetPullRequestInfo);
 
+            // set source repo info
             GitPullRequestInfo sourcePullRequestInfo = new GitPullRequestInfo();
             sourcePullRequestInfo.setBranch(jsonHelper.sourceBranch);
             sourcePullRequestInfo.setProjectName(jsonHelper.sourceRepo.project.name);
             prEvent.setSource(sourcePullRequestInfo);
 
+            // set open pr
             if (Objects.equals(jsonHelper.state, STATE_OPEN)) {
                 prEvent.setState(State.OPEN);
                 prEvent.setSubmitter(jsonHelper.author.email);
             }
 
+            // set close pr
             if (Objects.equals(jsonHelper.state, STATE_CLOSE)) {
                 prEvent.setState(State.CLOSE);
 
