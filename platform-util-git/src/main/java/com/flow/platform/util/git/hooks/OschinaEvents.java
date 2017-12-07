@@ -27,6 +27,7 @@ import com.flow.platform.util.git.model.GitPushTagEvent;
 import com.flow.platform.util.git.model.GitSource;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -101,7 +102,7 @@ public class OschinaEvents {
             event.setCompareUrl(compareUrl);
 
             if (Objects.isNull(event.getCommits())) {
-                event.setCommits(new ArrayList<>(0));
+                event.setCommits(Collections.emptyList());
             }
 
             // set commit message
