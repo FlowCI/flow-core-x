@@ -549,7 +549,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public void enterQueue(CmdCallbackQueueItem cmdQueueItem, int priority) {
+    public void enqueue(CmdCallbackQueueItem cmdQueueItem, int priority) {
         cmdCallbackQueue.enqueue(PriorityMessage.create(cmdQueueItem.toBytes(), priority));
     }
 

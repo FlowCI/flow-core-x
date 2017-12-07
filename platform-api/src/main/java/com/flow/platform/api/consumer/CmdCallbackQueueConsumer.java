@@ -76,7 +76,8 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
 
     private void detectRetryTimes(CmdCallbackQueueItem item) {
         if (item.getRetryTimes() <= 0) {
-            throw new FlowException("retry times has reach the limit");
+            String message = "Retry times has reach the limitation since job '" + item.getJobId() + "'is not found";
+            throw new FlowException(message);
         }
     }
 
@@ -88,6 +89,6 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
         item.setRetryTimes(item.getRetryTimes() - 1);
 
         //priority inc 1
-        jobService.enterQueue(item, ++priority);
+        jobService.enqueue(item, ++priority);
     }
 }
