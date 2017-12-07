@@ -84,7 +84,6 @@ public class OschinaEventTest {
         Assert.assertEquals(null, event.getMessage());
         Assert.assertEquals("CodingWill", event.getUsername());
         Assert.assertEquals("CodingWill", event.getUserEmail());
-        Assert.assertNull(event.getCommits());
     }
 
     @Test
