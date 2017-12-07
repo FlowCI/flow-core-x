@@ -76,7 +76,9 @@ public class CmdWebhookControllerTest extends TestBase {
     public void before() throws Throwable {
         stubSendCmdToQueue(sessionId);
         stubSendCmd(sessionId);
+
         cmdCallbackQueue.clean();
+        springContext.cleanApplictionListener();
     }
 
     @Test
@@ -178,7 +180,7 @@ public class CmdWebhookControllerTest extends TestBase {
     }
 
     @Test
-    public void should_on_callback_with_timeout() throws Throwable {
+    public void should_callback_with_timeout() throws Throwable {
         // given: job and listener
         final Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
         final Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
