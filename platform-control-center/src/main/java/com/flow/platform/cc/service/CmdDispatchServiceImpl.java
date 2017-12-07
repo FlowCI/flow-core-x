@@ -34,6 +34,7 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import com.flow.platform.util.zk.ZkException;
@@ -157,7 +158,7 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         List<Cmd> workingCmdList = cmdService.listWorkingCmd(null);
 
         for (Cmd cmd : workingCmdList) {
-            if (cmd.isCmdTimeout()) {
+            if (DateUtil.isTimeOut(cmd.getCreatedDate(), ZonedDateTime.now(), cmd.getTimeout())) {
                 Cmd killCmd = cmdService.create(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
                 dispatch(killCmd);
                 LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);

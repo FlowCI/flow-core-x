@@ -19,6 +19,7 @@ package com.flow.platform.util;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 /**
@@ -54,5 +55,18 @@ public class DateUtil {
         } catch (Throwable e) {
             return utcNow();
         }
+    }
+
+    public static boolean isTimeOut(ZonedDateTime start, ZonedDateTime target, long timeOutSeconds) {
+        if (start.getZone() != ZONE_UTC) {
+            start = toUtc(start);
+        }
+
+        if (target.getZone() != ZONE_UTC) {
+            target = toUtc(target);
+        }
+
+        final long runningInSeconds = ChronoUnit.SECONDS.between(start, target);
+        return runningInSeconds >= timeOutSeconds;
     }
 }

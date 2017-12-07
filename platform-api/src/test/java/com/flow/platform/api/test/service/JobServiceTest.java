@@ -286,7 +286,7 @@ public class JobServiceTest extends TestBase {
 
         // when: check job timeout
         ThreadUtil.sleep(20000);
-        jobService.checkTimeoutTask();
+        jobService.checkTimeOut(job);
 
         // then: job status should be timeout
         Job jobRes = jobDao.get(rootForFlow.getPath(), job.getNumber());

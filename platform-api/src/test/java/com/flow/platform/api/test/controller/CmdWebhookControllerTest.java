@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.consumer.JobStatusEventConsumer;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
@@ -91,7 +92,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
 
-        performMockHttpRequest(cmd, job);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
         Assert.assertTrue(runningLatch.await(10, TimeUnit.SECONDS));
 
         // then: verify job status and root node status
@@ -109,8 +110,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setExtra(step1.getPath());
-
-        performMockHttpRequest(cmd, reloaded);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
         Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
 
         // then: verify node status
@@ -132,9 +132,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmdResult.setDuration(100L);
         cmdResult.setOutput(EnvUtil.build("OUTPUT_ENV", "hello"));
         cmd.setCmdResult(cmdResult);
-
-        performMockHttpRequest(cmd, reloaded);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: verify job and node status
         reloaded = refresh(job);
@@ -165,8 +163,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmdResult.setDuration(100L);
         cmd.setCmdResult(cmdResult);
 
-        performMockHttpRequest(cmd, reloaded);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: verify job and node status
         reloaded = refresh(reloaded);

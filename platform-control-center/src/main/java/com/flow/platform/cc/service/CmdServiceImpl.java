@@ -23,9 +23,7 @@ import static com.flow.platform.domain.CmdType.RUN_SHELL;
 import static com.flow.platform.domain.CmdType.SHUTDOWN;
 import static com.flow.platform.domain.CmdType.STOP;
 
-import com.flow.platform.cc.config.AppConfig;
 import com.flow.platform.cc.config.QueueConfig;
-import com.flow.platform.cc.dao.AgentDao;
 import com.flow.platform.cc.dao.CmdDao;
 import com.flow.platform.cc.dao.CmdLogDao;
 import com.flow.platform.cc.dao.CmdResultDao;
@@ -91,9 +89,6 @@ public class CmdServiceImpl extends WebhookServiceImplBase implements CmdService
 
     @Autowired
     private CmdResultDao cmdResultDao;
-
-    @Autowired
-    private AgentDao agentDao;
 
     @Autowired
     private Path cmdLogDir;
