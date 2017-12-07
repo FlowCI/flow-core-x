@@ -19,8 +19,6 @@ package com.flow.platform.api.test.controller;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.consumer.JobStatusEventConsumer;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
@@ -41,7 +39,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
-import com.flow.platform.util.http.HttpURL;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -52,17 +49,12 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * @author yh@firim
  */
 @FixMethodOrder(value = MethodSorters.JVM)
 public class CmdWebhookControllerTest extends TestBase {
-
-    private final static int CMD_CALLBACK_QUEUE_WAITING_TIME = 1000 * 2;
 
     private final static String sessionId = "1111111";
 
@@ -113,7 +105,6 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setExtra(step1.getPath());
         jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
 
         // then: verify node status
         reloaded = refresh(reloaded);
@@ -184,8 +175,6 @@ public class CmdWebhookControllerTest extends TestBase {
         // given: job and listener
         final Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
         final Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
-        final CountDownLatch runningLatch = createCountDownForJobStatusChange(job, JobStatus.RUNNING, 1);
-        final CountDownLatch failureLatch = createCountDownForJobStatusChange(job, JobStatus.FAILURE, 1);
 
         NodeTree nodeTree = nodeService.find("flow1");
         Node step2 = nodeTree.find("flow1/step2");
@@ -196,9 +185,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
-
-        performMockHttpRequest(cmd, job);
-        Assert.assertTrue(runningLatch.await(30, TimeUnit.SECONDS));
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         Job reloaded = refresh(job);
         Assert.assertNotNull(reloaded.getSessionId());
@@ -211,9 +198,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
         cmd.setExtra(step1.getPath());
-
-        performMockHttpRequest(cmd, reloaded);
-        Assert.assertTrue(failureLatch.await(30, TimeUnit.SECONDS));
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: verify job status
         reloaded = refresh(reloaded);
@@ -234,15 +219,12 @@ public class CmdWebhookControllerTest extends TestBase {
     public void should_callback_with_timeout_but_allow_failure() throws Throwable {
         final Node rootForFlow = createRootFlow("flow1", "yml/demo_flow1.yaml");
         final Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
-        final CountDownLatch runningLatch = createCountDownForJobStatusChange(job, JobStatus.RUNNING, 1);
 
         // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
-
-        performMockHttpRequest(cmd, job);
-        Assert.assertTrue(runningLatch.await(10, TimeUnit.SECONDS));
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: check job session id
         Job reloaded = refresh(job);
@@ -256,9 +238,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setExtra(step1.getPath());
-
-        performMockHttpRequest(cmd, reloaded);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: check root node result status should be RUNNING
         reloaded = refresh(reloaded);
@@ -268,9 +248,7 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
         cmd.setExtra(step1.getPath());
-
-        performMockHttpRequest(cmd, reloaded);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: check step node status should be timeout
         NodeResult stepResult = nodeResultService.find(step1.getPath(), reloaded.getId());
@@ -298,17 +276,6 @@ public class CmdWebhookControllerTest extends TestBase {
 
     protected Job refresh(Job job) {
         return jobService.find(job.getId());
-    }
-
-    private MvcResult performMockHttpRequest(Cmd cmd, Job job) throws Throwable {
-        MockHttpServletRequestBuilder content = post(
-            "/hooks/cmd?identifier=" + HttpURL.encode(job.getId().toString()))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson());
-
-        return this.mockMvc.perform(content)
-            .andExpect(status().isOk())
-            .andReturn();
     }
 
     private void stubSendCmdToQueue(String sessionId) {
