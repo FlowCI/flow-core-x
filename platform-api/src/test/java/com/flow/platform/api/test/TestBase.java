@@ -197,6 +197,9 @@ public abstract class TestBase {
         WORKSPACE = workspace;
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         setCurrentUser(null);
+
+        wireMockRule.resetAll();
+        stubFor(post(urlEqualTo("/agents/list")).willReturn(aResponse().withBody("[]")));
     }
 
     public void setCurrentUser(User user) {
@@ -251,10 +254,6 @@ public abstract class TestBase {
         Cmd mockCmdResponse = new Cmd();
         mockCmdResponse.setId(UUID.randomUUID().toString());
         mockCmdResponse.setSessionId(UUID.randomUUID().toString());
-
-        wireMockRule.resetAll();
-
-        stubFor(post(urlEqualTo("/agents/list")).willReturn(aResponse().withBody("[]")));
 
         stubFor(post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
