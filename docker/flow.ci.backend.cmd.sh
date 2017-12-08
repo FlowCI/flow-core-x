@@ -3,16 +3,22 @@ set +e
 
 cmd="$@"
 
-# default mysql user name root
+# set default mysql user name root
 export MYSQL_USER=root
 
+# set default port, default is 8080
+if [[ ! -n $PORT ]]; then
+	export PORT=8080
+fi
+
+# update db user
 read -r -d '' rootCreate <<-EOSQL || true
   use mysql;
   update user set password=PASSWORD('${MYSQL_PASSWORD}') where User='root';
   update user set plugin='mysql_native_password';
 EOSQL
 
-
+# detect mysql init or not
 DATA_DIRECTORY=/var/lib/mysql
 if [ "`ls -A $DATA_DIRECTORY`" = "" ]; then
   # init mysql data
