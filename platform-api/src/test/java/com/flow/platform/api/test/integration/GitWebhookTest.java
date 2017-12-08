@@ -95,7 +95,7 @@ public class GitWebhookTest extends TestBase {
             .andExpect(status().isOk());
 
         // then: job should not created
-        jobService.find(flow.getPath(), 0);
+        jobService.find(flow.getPath(), 0L);
     }
 
     @Test(expected = NotFoundException.class)
@@ -113,7 +113,7 @@ public class GitWebhookTest extends TestBase {
             .andExpect(status().isOk());
 
         // then: job should not created
-        jobService.find(flow.getPath(), 0);
+        jobService.find(flow.getPath(), 0L);
     }
 
     @Test

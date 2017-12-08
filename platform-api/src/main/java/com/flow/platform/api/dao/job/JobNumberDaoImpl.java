@@ -45,11 +45,13 @@ public class JobNumberDaoImpl extends AbstractBaseDao<String, JobNumber> impleme
                 "set a.build_number = (b.build_number + 1)\n" +
                 "where a.node_path = :nodePath";
 
-            session.createNativeQuery(sql)
+            int numOfUpdated = session.createNativeQuery(sql)
                 .setParameter("nodePath", path)
                 .executeUpdate();
 
-            return session.get(getEntityClass(), path);
+            JobNumber number = session.get(getEntityClass(), path);
+            session.refresh(number);
+            return number;
         });
     }
 }

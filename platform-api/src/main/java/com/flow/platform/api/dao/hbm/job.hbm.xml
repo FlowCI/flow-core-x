@@ -18,7 +18,7 @@
         not-null="true"/>
     </property>
 
-    <property name="number" type="integer">
+    <property name="number" type="long">
       <column name="build_number" unique-key="idx_job_node_path_build_number" not-null="true"/>
     </property>
 

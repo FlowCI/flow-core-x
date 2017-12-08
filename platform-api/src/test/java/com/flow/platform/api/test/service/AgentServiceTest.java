@@ -46,7 +46,7 @@ public class AgentServiceTest extends TestBase {
     @Autowired
     private AgentService agentService;
 
-    private Integer jobNumber = 1;
+    private Long jobNumber = 1L;
 
     @Test
     public void should_list_agent_for_job() throws Throwable {

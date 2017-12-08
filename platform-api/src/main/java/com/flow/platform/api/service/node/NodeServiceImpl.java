@@ -17,8 +17,10 @@ package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.YmlDao;
+import com.flow.platform.api.dao.job.JobNumberDao;
 import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.job.JobNumber;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
@@ -82,6 +84,9 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private JobNumberDao jobNumberDao;
 
     @Autowired
     private UserFlowService userFlowService;
@@ -171,6 +176,9 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         // delete job
         jobService.delete(rootPath);
 
+        // delete job number
+        jobNumberDao.delete(new JobNumber(path));
+
         // delete flow
         flowDao.delete(flow);
 
@@ -218,6 +226,9 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
         flow.setCreatedBy(currentUser().getEmail());
         flow = flowDao.save(flow);
+
+        // init job number for flow
+        jobNumberDao.save(new JobNumber(flow.getPath(), 0L));
 
         userFlowService.assign(currentUser(), flow);
         return flow;

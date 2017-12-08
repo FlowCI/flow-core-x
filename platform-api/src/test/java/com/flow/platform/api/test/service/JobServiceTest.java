@@ -51,12 +51,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author yh@firim
  */
+@FixMethodOrder(MethodSorters.JVM)
 public class JobServiceTest extends TestBase {
 
     @Autowired
@@ -314,6 +317,7 @@ public class JobServiceTest extends TestBase {
         List<String> rootPath = Lists.newArrayList(rootForFlow.getPath());
         List<Job> jobs = jobService.list(rootPath, true);
         Assert.assertEquals(1, jobs.size());
+        Assert.assertEquals(2L, jobNumberDao.get(rootForFlow.getPath()).getNumber().longValue());
         Assert.assertEquals("2", jobs.get(0).getNumber().toString());
     }
 

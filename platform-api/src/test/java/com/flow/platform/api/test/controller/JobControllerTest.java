@@ -143,7 +143,7 @@ public class JobControllerTest extends ControllerTestWithoutAuth {
         Assert.assertEquals(true, zipFile.exists());
     }
 
-    private Job requestToShowJob(String path, Integer buildNumber) throws Exception {
+    private Job requestToShowJob(String path, Long buildNumber) throws Exception {
         MvcResult mvcResult = this.mockMvc.perform(
             get(String.format("/jobs/%s/%s", path, buildNumber))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -153,7 +153,7 @@ public class JobControllerTest extends ControllerTestWithoutAuth {
         return Job.parse(response, Job.class);
     }
 
-    private String requestToGetYml(String path, Integer buildNumber) throws Exception {
+    private String requestToGetYml(String path, Long buildNumber) throws Exception {
         MvcResult mvcResult = this.mockMvc.perform(get(String.format("/jobs/%s/%s/yml", path, buildNumber)))
             .andExpect(status().isOk())
             .andReturn();

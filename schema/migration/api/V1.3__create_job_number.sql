@@ -6,4 +6,4 @@ CREATE TABLE `job_number` (
   PRIMARY KEY (`node_path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-ALTER TABLE job Modify column build_number bigint;
+ALTER TABLE job Modify column build_number bigint not null;

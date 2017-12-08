@@ -65,7 +65,7 @@ public class LogServiceImpl implements LogService {
     private Path workspace;
 
     @Override
-    public String findNodeLog(String path, Integer number, Integer order) {
+    public String findNodeLog(String path, Long number, Integer order) {
         Job job = jobService.find(path, number);
         NodeResult nodeResult = nodeResultService.find(job.getId(), order);
 
@@ -77,7 +77,7 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public Resource findJobLog(String path, Integer buildNumber) {
+    public Resource findJobLog(String path, Long buildNumber) {
         Job job = jobService.find(path, buildNumber);
 
         // only job finish can to download log

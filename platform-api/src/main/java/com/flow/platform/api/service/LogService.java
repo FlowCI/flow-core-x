@@ -26,11 +26,11 @@ public interface LogService {
     /**
      * get job log
      */
-    String findNodeLog(String path, Integer buildNumber, Integer stepOrder);
+    String findNodeLog(String path, Long buildNumber, Integer stepOrder);
 
     /**
      * get full job log
      */
-    Resource findJobLog(String path, Integer buildNumber);
+    Resource findJobLog(String path, Long buildNumber);
 
 }

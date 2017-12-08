@@ -50,7 +50,7 @@ public class Job extends EnvObject {
     private String nodePath;
 
     @Expose
-    private Integer number;
+    private Long number;
 
     private String sessionId;
 
@@ -105,11 +105,11 @@ public class Job extends EnvObject {
         this.rootResult = rootResult;
     }
 
-    public Integer getNumber() {
+    public Long getNumber() {
         return number;
     }
 
-    public void setNumber(Integer number) {
+    public void setNumber(Long number) {
         this.number = number;
     }
 
