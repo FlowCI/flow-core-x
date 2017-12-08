@@ -12,7 +12,7 @@
   <artifactId>platform-agent</artifactId>
 
   <properties>
-    <agent.version>0.1.0</agent.version>
+    <agent.version>v0.1.2-alpha</agent.version>
   </properties>
 
   <dependencies>

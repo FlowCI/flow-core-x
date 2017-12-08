@@ -34,15 +34,19 @@ import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.annotation.PostConstruct;
@@ -112,6 +116,28 @@ public class SyncServiceImpl implements SyncService {
         for (Sync syncForAgent : syncs.values()) {
             PlatformQueue<PriorityMessage> agentQueue = syncForAgent.getQueue();
             agentQueue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+        }
+    }
+
+    @Override
+    public void reset() {
+        List<SyncEvent> events = initSyncEventFromGitWorkspace();
+        events.add(0, SyncEvent.DELETE_ALL);
+
+        Set<Sync> cleanSet = new HashSet<>(syncs.size());
+
+        for (Sync syncForAgent : syncs.values()) {
+            PlatformQueue<PriorityMessage> agentQueue = syncForAgent.getQueue();
+
+            if (!cleanSet.contains(syncForAgent)) {
+                agentQueue.clean();
+                cleanSet.add(syncForAgent);
+            }
+
+            for (SyncEvent event : events) {
+                event.setGitUrl(createGitUrl(event.getRepo().getName())); // ensure git url is correct
+                agentQueue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+            }
         }
     }
 
@@ -286,6 +312,7 @@ public class SyncServiceImpl implements SyncService {
      */
     private void updateAgentRepo(Sync sync, String latestReposStr) {
         if (Strings.isNullOrEmpty(latestReposStr)) {
+            sync.setRepos(Collections.emptyList());
             return;
         }
 
@@ -314,8 +341,7 @@ public class SyncServiceImpl implements SyncService {
         }
 
         // list agent exist repos finally
-        SyncEvent listEvent = new SyncEvent(null, null, SyncType.LIST);
-        syncEventQueue.add(listEvent);
+        syncEventQueue.add(SyncEvent.LIST);
 
         return syncEventQueue;
     }
@@ -338,6 +364,7 @@ public class SyncServiceImpl implements SyncService {
                     continue;
                 }
 
+                gitRepoName = StringUtil.trimEnd(gitRepoName, ".git");
                 syncEvents.add(new SyncEvent(createGitUrl(gitRepoName), gitRepoName, tags.get(0), SyncType.CREATE));
             } catch (GitException e) {
                 LOGGER.warn(e.getMessage());
@@ -350,6 +377,6 @@ public class SyncServiceImpl implements SyncService {
     }
 
     private String createGitUrl(String repoName) {
-        return HttpURL.build(apiDomain).append("git").append(repoName).toString();
+        return HttpURL.build(apiDomain).append("git").append(repoName + ".git").toString();
     }
 }

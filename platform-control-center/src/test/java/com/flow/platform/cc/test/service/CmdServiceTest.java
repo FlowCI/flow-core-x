@@ -37,6 +37,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -57,6 +58,8 @@ import org.springframework.mock.web.MockMultipartFile;
  */
 @FixMethodOrder(MethodSorters.JVM)
 public class CmdServiceTest extends TestBase {
+
+    private final static int ZK_NODE_WAIT_TIME = 2 * 1000;
 
     @Autowired
     private CmdService cmdService;
@@ -253,7 +256,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertTrue(cmd.isCurrent());
 
         // then: check should not timeout
-        Assert.assertEquals(false, cmd.isCmdTimeout());
+        Assert.assertEquals(false, DateUtil.isTimeOut(cmd.getCreatedDate(), ZonedDateTime.now(), cmd.getTimeout()));
 
         // when: mock cmd timeout
         ZonedDateTime timeoutDate = ZonedDateTime.now().minusSeconds(cmd.getTimeout() + 100);
@@ -262,7 +265,7 @@ public class CmdServiceTest extends TestBase {
         cmdDao.update(cmd);
 
         // then: should timeout and status should be TIMEOUT_KILL
-        Assert.assertEquals(true, cmd.isCmdTimeout());
+        Assert.assertEquals(true, DateUtil.isTimeOut(cmd.getCreatedDate(), ZonedDateTime.now(), cmd.getTimeout()));
         cmdDispatchService.checkTimeoutTask();
         Thread.sleep(500); // wait for cmd status update queue to process
         Assert.assertEquals(CmdStatus.TIMEOUT_KILL, cmdService.find(cmd.getId()).getStatus());
@@ -275,7 +278,7 @@ public class CmdServiceTest extends TestBase {
         String agentName = "test-agent-001";
         String agentPath = ZKHelper.buildPath(zoneName, agentName);
         zkClient.createEphemeral(agentPath, null);
-        Thread.sleep(1000);
+        Thread.sleep(ZK_NODE_WAIT_TIME);
 
         // should Agent.status.IDLE from cmd finish status
         for (CmdStatus reportStatus : Cmd.FINISH_STATUS) {
@@ -332,7 +335,7 @@ public class CmdServiceTest extends TestBase {
 
         String agentPath = ZKHelper.buildPath(zoneName, agentName);
         zkClient.createEphemeral(agentPath, null);
-        Thread.sleep(1000);
+        Thread.sleep(ZK_NODE_WAIT_TIME);
 
         // when: send command
         CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
@@ -377,7 +380,7 @@ public class CmdServiceTest extends TestBase {
         String agentName = "test-for-shutdown";
         String agentPath = ZKHelper.buildPath(zoneName, agentName);
         zkClient.createEphemeral(agentPath, null);
-        Thread.sleep(1000);
+        Thread.sleep(ZK_NODE_WAIT_TIME);
 
         // when: send shutdown command
         CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.SHUTDOWN, null);
@@ -389,7 +392,7 @@ public class CmdServiceTest extends TestBase {
         // given:
         String zoneName = "auto-select-zone";
         zoneService.createZone(new Zone(zoneName, MOCK_PROVIDER_NAME));
-        Thread.sleep(1000);
+        Thread.sleep(ZK_NODE_WAIT_TIME);
 
         AgentPath agentIdle1 = new AgentPath(zoneName, "idle-agent-01");
         AgentPath agentIdle2 = new AgentPath(zoneName, "idle-agent-02");
@@ -398,7 +401,7 @@ public class CmdServiceTest extends TestBase {
         zkClient.createEphemeral(ZKHelper.buildPath(agentIdle1), null);
         zkClient.createEphemeral(ZKHelper.buildPath(agentIdle2), null);
         zkClient.createEphemeral(ZKHelper.buildPath(agentBusy1), null);
-        Thread.sleep(2000);
+        Thread.sleep(ZK_NODE_WAIT_TIME);
 
         // report busy status
         send(new CmdInfo(agentBusy1, CmdType.RUN_SHELL, "echo \"hello\""));
@@ -450,7 +453,7 @@ public class CmdServiceTest extends TestBase {
 
         // when: create node and send command to agent
         zkClient.createEphemeral(ZKHelper.buildPath(zoneName, agentName), null);
-        Thread.sleep(1000);
+        Thread.sleep(ZK_NODE_WAIT_TIME);
 
         CmdInfo cmd = new CmdInfo(zoneName, agentName, CmdType.RUN_SHELL, "/test.sh");
         send(cmd);

@@ -164,6 +164,11 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         return nodeResult;
     }
 
+    @Override
+    public void delete(List<BigInteger> jobIds) {
+        nodeResultDao.delete(jobIds);
+    }
+
     private void updateNodeResultStatus(NodeResult nodeResult, NodeStatus targetStatus) {
         NodeStatus originStatus = nodeResult.getStatus();
         if (originStatus == targetStatus) {

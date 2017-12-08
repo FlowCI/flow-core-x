@@ -40,6 +40,7 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -68,15 +69,20 @@ public class NodeCrontabServiceImpl implements NodeCrontabService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    public ThreadPoolTaskExecutor taskExecutor;
+
     @PostConstruct
     public void initCrontabTask() {
-        List<Node> flows = nodeService.listFlows(false);
-        for (Node flow : flows) {
-            try {
-                set(flow);
-            } catch (Throwable ignore) {
+        taskExecutor.execute(() -> {
+            List<Node> flows = nodeService.listFlows(false);
+            for (Node flow : flows) {
+                try {
+                    set(flow);
+                } catch (Throwable ignore) {
+                }
             }
-        }
+        });
     }
 
     @Override

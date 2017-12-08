@@ -1,0 +1,47 @@
+{
+  "before": "039ace200fe4e142d89e6dd4f3531a7f3765b4b0",
+  "after": "be9cd46d9dd4067846a7a486c599bd44f29777e2",
+  "ref": "refs/heads/feature/develop",
+  "user_id": 1336703,
+  "user_name": "CodingWill",
+  "user": {
+    "name": "CodingWill",
+    "username": "willcoding",
+    "url": "https://gitee.com/willcoding"
+  },
+  "repository": {
+    "name": "fir_cli",
+    "url": "https://gitee.com/willcoding/fir_cli",
+    "description": "",
+    "homepage": "https://gitee.com/willcoding/fir_cli"
+  },
+  "commits": [
+    {
+      "id": "be9cd46d9dd4067846a7a486c599bd44f29777e2",
+      "message": "change",
+      "timestamp": "2017-12-07T13:38:12+08:00",
+      "url": "https://gitee.com/willcoding/fir_cli/commit/be9cd46d9dd4067846a7a486c599bd44f29777e2",
+      "author": {
+        "name": "will",
+        "email": "yh@fir.im",
+        "time": "2017-12-07T13:38:12+08:00"
+      }
+    }
+  ],
+  "total_commits_count": 1,
+  "commits_more_than_ten": false,
+  "project": {
+    "name": "fir_cli",
+    "path": "fir_cli",
+    "url": "https://gitee.com/willcoding/fir_cli",
+    "git_ssh_url": "git@gitee.com:willcoding/fir_cli.git",
+    "git_http_url": "https://gitee.com/willcoding/fir_cli.git",
+    "git_svn_url": "svn://gitee.com/willcoding/fir_cli",
+    "namespace": "willcoding",
+    "name_with_namespace": "CodingWill/fir_cli",
+    "path_with_namespace": "willcoding/fir_cli",
+    "default_branch": "master"
+  },
+  "hook_name": "push_hooks",
+  "password": ""
+}

@@ -258,7 +258,7 @@ public class FlowController extends NodeController {
      */
     @GetMapping("/{root}/exist")
     @WebSecurity(action = Actions.FLOW_SHOW)
-    public BooleanValue isFlowNameExist() {
+    public BooleanValue exist() {
         boolean exist = nodeService.exist(currentNodePath.get());
         return new BooleanValue(exist);
     }

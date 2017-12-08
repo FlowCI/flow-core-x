@@ -42,7 +42,7 @@ public class Sync {
     private List<SyncRepo> repos = new ArrayList<>();
 
     /**
-     * Agent sync queue
+     * Agent sync event queue
      */
     private PlatformQueue<PriorityMessage> queue;
 
@@ -88,5 +88,24 @@ public class Sync {
 
     public void setSyncTime(ZonedDateTime syncTime) {
         this.syncTime = syncTime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Sync sync = (Sync) o;
+
+        return path.equals(sync.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return path.hashCode();
     }
 }

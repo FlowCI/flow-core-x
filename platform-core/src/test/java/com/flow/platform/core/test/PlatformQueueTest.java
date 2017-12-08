@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.flow.platform.core.test.sysinfo;
+package com.flow.platform.core.test;
 
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.queue.PlatformQueue;
@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,14 +46,20 @@ public class PlatformQueueTest {
     @Autowired
     private PlatformQueue<PriorityMessage> rabbitQueue;
 
+    @Before
+    public void init() {
+        inMemoryQueue.clean();
+        inMemoryQueue.cleanListener();
+    }
+
     @Test
     public void should_enqueue_for_in_memory_queue() throws Throwable {
         // given: queue listener
         CountDownLatch latch = new CountDownLatch(1);
         ObjectWrapper<PriorityMessage> result = new ObjectWrapper<>();
         QueueListener<PriorityMessage> listener = item -> {
-            latch.countDown();
             result.setInstance(item);
+            latch.countDown();
         };
 
         inMemoryQueue.register(listener);
@@ -62,7 +69,7 @@ public class PlatformQueueTest {
         inMemoryQueue.enqueue(PriorityMessage.create("Hello".getBytes(), 1));
 
         // then:
-        latch.await(10, TimeUnit.SECONDS);
+        latch.await(30, TimeUnit.SECONDS);
         Assert.assertEquals(0, inMemoryQueue.size());
         Assert.assertEquals("Hello", new String(result.getInstance().getBody()));
 
@@ -80,13 +87,13 @@ public class PlatformQueueTest {
     @Test
     public void should_enqueue_with_priority_in_memory_queue() throws Throwable {
         // given: queue listener
-        int size = 2;
+        final int size = 2;
         CountDownLatch latch = new CountDownLatch(size);
         List<String> prioritizedList = new ArrayList<>(size);
 
         QueueListener<PriorityMessage> listener = item -> {
-            latch.countDown();
             prioritizedList.add(new String(item.getBody()));
+            latch.countDown();
         };
 
         // when:
@@ -96,8 +103,10 @@ public class PlatformQueueTest {
         inMemoryQueue.start();
 
         // then:
-        latch.await(10, TimeUnit.SECONDS);
-        Assert.assertEquals(2, prioritizedList.size());
+        boolean await = latch.await(60, TimeUnit.SECONDS);
+        Assert.assertTrue(await);
+        Assert.assertEquals(size, prioritizedList.size());
+
         Assert.assertEquals("2", prioritizedList.get(0));
         Assert.assertEquals("1", prioritizedList.get(1));
     }
@@ -108,8 +117,8 @@ public class PlatformQueueTest {
         CountDownLatch latch = new CountDownLatch(1);
         ObjectWrapper<PriorityMessage> result = new ObjectWrapper<>();
         QueueListener<PriorityMessage> listener = item -> {
-            latch.countDown();
             result.setInstance(item);
+            latch.countDown();
         };
 
         rabbitQueue.register(listener);
@@ -136,11 +145,8 @@ public class PlatformQueueTest {
     }
 
     @After
-    public void clean() {
+    public void stop() {
         inMemoryQueue.stop();
-        inMemoryQueue.clean();
-        inMemoryQueue.cleanListener();
-
         rabbitQueue.stop();
     }
 

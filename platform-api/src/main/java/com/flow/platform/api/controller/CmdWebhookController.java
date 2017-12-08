@@ -45,7 +45,7 @@ public class CmdWebhookController {
     @Autowired
     private JobService jobService;
 
-    @PostMapping(path = "")
+    @PostMapping
     public void execute(@RequestBody Cmd cmd, @RequestParam String identifier) {
         String jobIdStr = HttpURL.encode(identifier);
 
@@ -64,7 +64,7 @@ public class CmdWebhookController {
                 cmd.getStatus(),
                 cmd.getId(),
                 cmd.getCmdResult());
-            jobService.enterQueue(new CmdCallbackQueueItem(jobId, cmd), 1);
+            jobService.enqueue(new CmdCallbackQueueItem(jobId, cmd), 1);
         } catch (NumberFormatException warn) {
             LOGGER.warn("Invalid job id format");
         }

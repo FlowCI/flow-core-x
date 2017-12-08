@@ -157,21 +157,6 @@ public class Cmd extends CmdBase {
         return false;
     }
 
-    public boolean isCmdTimeout() {
-        if (type != CmdType.RUN_SHELL) {
-            return false;
-        }
-
-        // not timeout since cmd is executed
-        if (!isCurrent()) {
-            return false;
-        }
-
-        ZonedDateTime createdAt = getCreatedDate();
-        final long runningInSeconds = ChronoUnit.SECONDS.between(createdAt, ZonedDateTime.now());
-        return runningInSeconds >= getTimeout();
-    }
-
     public Boolean isCurrent() {
         return WORKING_STATUS.contains(status);
     }

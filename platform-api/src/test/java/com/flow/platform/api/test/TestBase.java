@@ -15,6 +15,8 @@ package com.flow.platform.api.test;/*
  */
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -196,6 +198,9 @@ public abstract class TestBase {
         WORKSPACE = workspace;
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         setCurrentUser(null);
+
+        wireMockRule.resetAll();
+        stubFor(get(urlEqualTo("/agents/list")).willReturn(aResponse().withBody("[]")));
     }
 
     public void setCurrentUser(User user) {
@@ -251,17 +256,15 @@ public abstract class TestBase {
         mockCmdResponse.setId(UUID.randomUUID().toString());
         mockCmdResponse.setSessionId(UUID.randomUUID().toString());
 
-        wireMockRule.resetAll();
-
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
+        stubFor(post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/send"))
+        stubFor(post(urlEqualTo("/cmd/send"))
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));
 
-        stubFor(com.github.tomakehurst.wiremock.client.WireMock.post(urlEqualTo("/cmd/stop/" + mockCmdResponse.getId()))
+        stubFor(post(urlEqualTo("/cmd/stop/" + mockCmdResponse.getId()))
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));
 
@@ -270,8 +273,8 @@ public abstract class TestBase {
         File path = new File(resource.getFile());
 
         try (InputStream inputStream = new FileInputStream(path)) {
-            stubFor(com.github.tomakehurst.wiremock.client.WireMock
-                .get(urlPathEqualTo("/cmd/log/download"))
+            stubFor(
+                get(urlPathEqualTo("/cmd/log/download"))
                 .willReturn(aResponse().withBody(org.apache.commons.io.IOUtils.toByteArray(inputStream))));
         } catch (Throwable throwable) {
         }

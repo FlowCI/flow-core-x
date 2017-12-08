@@ -24,17 +24,20 @@ import static com.flow.platform.plugin.domain.PluginStatus.PENDING;
 
 import com.flow.platform.plugin.dao.PluginDao;
 import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginDetail;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.event.PluginRefreshEvent;
 import com.flow.platform.plugin.event.PluginRefreshEvent.Status;
 import com.flow.platform.plugin.event.PluginStatusChangeEvent;
 import com.flow.platform.plugin.exception.PluginException;
+import com.flow.platform.plugin.util.YmlUtil;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.JGitUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,6 +47,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +71,10 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private final static Logger LOGGER = new Logger(PluginService.class);
 
+    private final static String YML_FILE_NAME = "flow-step.yml";
+
+    private final static String MASTER_BRANCH = "master";
+
     // git clone folder
     @Autowired
     private Path gitWorkspace;
@@ -89,7 +97,9 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     private final List<Processor> processors = ImmutableList.of(
         new InitGitProcessor(),
         new FetchProcessor(),
-        new PushProcessor());
+        new AnalysisYmlProcessor(),
+        new PushProcessor()
+    );
 
     @Override
     public Plugin find(String name) {
@@ -293,7 +303,10 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         private void commitSomething(Path path) {
             try (Git git = Git.open(path.toFile())) {
                 Path emptyFilePath = Paths.get(path.toString(), EMPTY_FILE);
-                Files.createFile(emptyFilePath);
+
+                try {
+                    Files.createFile(emptyFilePath);
+                } catch (FileAlreadyExistsException ignore) { }
 
                 git.add()
                     .addFilepattern(".")
@@ -339,6 +352,42 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
+    private class AnalysisYmlProcessor implements Processor {
+
+        @Override
+        public void exec(Plugin plugin) {
+            LOGGER.traceMarker("AnalysisYmlProcessor", "Start Analysis Yml");
+            try {
+                // first checkout plugin tag
+                JGitUtil.checkout(gitCachePath(plugin), plugin.getTag());
+
+                Path ymlFilePath = Paths.get(gitCachePath(plugin).toString(), YML_FILE_NAME);
+
+                // detect yml
+                if (ymlFilePath.toFile().exists()) {
+                    String body = FileUtils.readFileToString(ymlFilePath.toFile(), Charsets.UTF_8);
+                    plugin.setPluginDetail(YmlUtil.fromYml(body, PluginDetail.class));
+                    updatePluginStatus(plugin, INSTALLING);
+
+                    // return to master branch
+                    JGitUtil.checkout(gitCachePath(plugin), MASTER_BRANCH);
+                } else {
+                    throw new PluginException("not found Yml Plugin file");
+                }
+
+            } catch (Throwable throwable) {
+                LOGGER.traceMarker("AnalysisYmlProcessor", "Found Exception " + throwable.getMessage());
+                throw new PluginException("AnalysisYmlProcessor Exception" + throwable.getMessage());
+            }
+        }
+
+        @Override
+        public void clean(Plugin plugin) {
+
+        }
+
+    }
+
     private class PushProcessor implements Processor {
 
         @Override
@@ -349,7 +398,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 Path cachePath = gitCachePath(plugin);
                 String latestGitTag = plugin.getTag();
                 JGitUtil.push(cachePath, LOCAL_REMOTE, latestGitTag);
-
+                // set currentTag latestTag
+                plugin.setCurrentTag(latestGitTag);
                 updatePluginStatus(plugin, INSTALLED);
             } catch (GitException e) {
                 LOGGER.error("Git Push", e);

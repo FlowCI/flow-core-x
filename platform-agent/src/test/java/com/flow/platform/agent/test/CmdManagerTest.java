@@ -23,6 +23,7 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.Map;
@@ -118,21 +119,22 @@ public class CmdManagerTest extends TestBase {
 
         // create mock cmd
         String content = String.format("source %s", resourcePath);
+        ImmutableList<String> envFilter = ImmutableList.of("FLOW_UT_OUTPUT_1", "FLOW_UT_OUTPUT_2");
 
         Cmd cmd1 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
-        cmd1.setOutputEnvFilter(Lists.newArrayList("FLOW_AGENT"));
+        cmd1.setOutputEnvFilter(envFilter);
         cmd1.setId(UUID.randomUUID().toString());
 
         Cmd cmd2 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
-        cmd2.setOutputEnvFilter(Lists.newArrayList("FLOW_AGENT"));
+        cmd2.setOutputEnvFilter(envFilter);
         cmd2.setId(UUID.randomUUID().toString());
 
         Cmd cmd3 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
-        cmd3.setOutputEnvFilter(Lists.newArrayList("FLOW_AGENT"));
+        cmd3.setOutputEnvFilter(envFilter);
         cmd3.setId(UUID.randomUUID().toString());
 
         Cmd cmd4 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
-        cmd4.setOutputEnvFilter(Lists.newArrayList("FLOW_AGENT"));
+        cmd4.setOutputEnvFilter(envFilter);
         cmd4.setId(UUID.randomUUID().toString());
 
         // when: execute four command by thread
@@ -173,7 +175,8 @@ public class CmdManagerTest extends TestBase {
     @Test
     public void should_be_correct_status_for_killed_process() throws Throwable {
         // given
-        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        String content = String.format("source %s", resourcePath);
+        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
         cmd.setId(UUID.randomUUID().toString());
 
         CountDownLatch startLatch = new CountDownLatch(1);
@@ -219,8 +222,8 @@ public class CmdManagerTest extends TestBase {
 
     @Test
     public void should_success_run_sys_cmd() throws InterruptedException {
-
-        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, resourcePath);
+        String content = String.format("source %s", resourcePath);
+        Cmd cmd = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
         cmd.setId(UUID.randomUUID().toString());
         CountDownLatch finishCountDownLatch = new CountDownLatch(1);
         CountDownLatch startCountDownLatch = new CountDownLatch(1);

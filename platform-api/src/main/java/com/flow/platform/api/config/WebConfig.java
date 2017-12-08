@@ -24,7 +24,7 @@ import com.flow.platform.api.security.token.TokenGenerator;
 import com.flow.platform.core.http.converter.RawGsonMessageConverter;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.resource.AppResourceLoader;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
@@ -63,13 +63,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
     "com.flow.platform.api.context",
     "com.flow.platform.api.util",
     "com.flow.platform.api.consumer",
-    "com.flow.platform.plugin.service",
-    "com.flow.platform.plugin.consumer",
     "com.flow.platform.api.initializers"})
 @Import({AppConfig.class})
 public class WebConfig extends WebMvcConfigurerAdapter {
 
-    private final static Gson GSON_CONFIG_FOR_RESPONE = new GsonBuilder()
+    private final static Gson GSON_CONFIG_FOR_RESPONSE = new GsonBuilder()
         .excludeFieldsWithoutExposeAnnotation()
         .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdaptor())
         .create();
@@ -77,7 +75,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     private final static int MAX_UPLOAD_SIZE = 2 * 1024 * 1024;
 
     private final RawGsonMessageConverter jsonConverter =
-        new RawGsonMessageConverter(true, GSON_CONFIG_FOR_RESPONE, Jsonable.GSON_CONFIG);
+        new RawGsonMessageConverter(true, GSON_CONFIG_FOR_RESPONSE, Jsonable.GSON_CONFIG);
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -112,7 +110,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     public AuthenticationInterceptor authInterceptor() {
-        List<RequestMatcher> matchers = Lists.newArrayList(
+        List<RequestMatcher> matchers = ImmutableList.of(
             new AntPathRequestMatcher("/flows/**"),
             new AntPathRequestMatcher("/user/register"),
             new AntPathRequestMatcher("/user/delete"),

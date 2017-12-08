@@ -22,19 +22,24 @@ package com.flow.platform.api.domain.sync;
 public enum SyncType {
 
     /**
-     * New repo has been created
+     * New repo created
      */
     CREATE,
 
     /**
-     * The repo has been updated
+     * The repo has update
      */
     UPDATE,
 
     /**
-     * The repo has been deleted
+     * The repo should be deleted
      */
     DELETE,
+
+    /**
+     * Delete all repos
+     */
+    DELETE_ALL,
 
     /**
      * List repos of agent

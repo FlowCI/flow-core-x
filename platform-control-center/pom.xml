@@ -12,7 +12,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <cc.version>0.1.0</cc.version>
+    <cc.version>v0.1.2-alpha</cc.version>
   </properties>
 
   <build>
