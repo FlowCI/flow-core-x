@@ -19,7 +19,6 @@ COPY . $FLOW_PLATFORM_SOURCE_CODE
 RUN cd $FLOW_PLATFORM_SOURCE_CODE \
     && rm -rf $FLOW_PLATFORM_SOURCE_CODE/dist \
     && mvn clean install -DskipTests=true \
-    && mkdir -p $FLOW_PLATFORM_CONFIG_DIR \
     && cd  $FLOW_PLATFORM_SOURCE_CODE \
     && mv ./dist/flow-agent-*.jar $FLOW_AGENT_DIR/flow-agent.jar \
     && rm -rf $FLOW_PLATFORM_SOURCE_CODE \
