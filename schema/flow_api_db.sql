@@ -66,6 +66,16 @@ CREATE TABLE `job` (
 
 # ------------------------------------------------------------
 
+CREATE TABLE `job_number` (
+  `node_path` varchar(255) NOT NULL,
+  `build_number` bigint NOT NULL,
+  PRIMARY KEY (`node_path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# ------------------------------------------------------------
+
 CREATE TABLE `job_yml_raw` (
   `job_id` decimal(25,0) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,

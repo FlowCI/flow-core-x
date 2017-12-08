@@ -55,6 +55,14 @@
     </property>
   </class>
 
+  <!--Job Number-->
+  <class name="com.flow.platform.api.domain.job.JobNumber" table="job_number">
+    <id name="nodePath" column="node_path">
+      <generator class="assigned"/>
+    </id>
+    <property name="number" column="build_number" not-null="true"/>
+  </class>
+
   <!--Job Yml Class-->
   <class name="com.flow.platform.api.domain.job.JobYml" table="job_yml_raw">
     <id name="jobId" type="big_integer">
