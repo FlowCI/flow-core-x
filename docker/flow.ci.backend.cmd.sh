@@ -53,7 +53,7 @@ done
 mysql --host=$MYSQL_HOST --user=$MYSQL_USER --password=$MYSQL_PASSWORD -e 'Create Database If Not Exists flow_api_db Character Set UTF8;'
 mysql --host=$MYSQL_HOST --user=$MYSQL_USER --password=$MYSQL_PASSWORD -e 'Create Database If Not Exists flow_cc_db Character Set UTF8;'
 
-# Third running migration to update table stucture
+# Third running migration to update table structure
 MIGRATION_PATH=./migration
 
 # use flyway control database structure update
