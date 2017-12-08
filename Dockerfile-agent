@@ -15,7 +15,7 @@ ENV FLOW_AGENT_DIR=$HOME/agent
 # copy code
 COPY . $FLOW_PLATFORM_SOURCE_CODE
 
-# mvn build and set wars to tomcat and delete no use thing
+# Build Agent and delete no use thing
 RUN cd $FLOW_PLATFORM_SOURCE_CODE \
     && rm -rf $FLOW_PLATFORM_SOURCE_CODE/dist \
     && mvn clean install -DskipTests=true \
