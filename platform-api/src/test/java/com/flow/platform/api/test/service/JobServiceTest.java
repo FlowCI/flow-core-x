@@ -341,6 +341,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(1, atomicInteger.get());
 
         // then: cmdCallbackQueue size should 0
+        Assert.assertNull(cmdCallbackQueue.dequeue());
         Assert.assertEquals(0, cmdCallbackQueue.size());
     }
 }
