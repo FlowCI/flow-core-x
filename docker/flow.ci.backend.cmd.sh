@@ -11,6 +11,12 @@ if [[ ! -n $PORT ]]; then
 	export PORT=8080
 fi
 
+# PASSWORD NOT NULL
+if [[ ! -n $MYSQL_PASSWORD ]]; then
+    echo "Please Set MYSQL_PASSWORD"
+    exit;
+fi
+
 # update db user
 read -r -d '' rootCreate <<-EOSQL || true
   use mysql;
