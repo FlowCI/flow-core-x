@@ -3,12 +3,26 @@ set +e
 
 cmd="$@"
 
-# set default mysql user name root
-export MYSQL_USER=root
+# if mysql user is null, set default user root
+if [[ ! -n $MYSQL_USER ]]; then
+    # set default mysql user name root
+	export MYSQL_USER=root
+fi
+
+# set mysql host, default 127.0.0.1
+if [[ ! -n $MYSQL_HOST ]]; then
+	export $MYSQL_HOST=127.0.0.1
+fi
 
 # set default port, default is 8080
 if [[ ! -n $PORT ]]; then
 	export PORT=8080
+fi
+
+# PASSWORD NOT NULL
+if [[ ! -n $MYSQL_PASSWORD ]]; then
+    echo "Please Set MYSQL_PASSWORD"
+    exit;
 fi
 
 # update db user
