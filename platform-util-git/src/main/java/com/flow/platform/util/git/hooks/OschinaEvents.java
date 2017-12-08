@@ -199,6 +199,7 @@ public class OschinaEvents {
             prEvent.setGitSource(GitSource.OSCHINA);
             prEvent.setAction(jsonHelper.action);
             prEvent.setDescription(jsonHelper.title);
+            prEvent.setTitle(jsonHelper.title);
             prEvent.setCompareUrl(jsonHelper.url);
             prEvent.setCompareId(jsonHelper.id.toString());
             prEvent.setRequestId(jsonHelper.id);
@@ -215,6 +216,9 @@ public class OschinaEvents {
             sourcePullRequestInfo.setBranch(jsonHelper.sourceBranch);
             sourcePullRequestInfo.setProjectName(jsonHelper.sourceRepo.project.name);
             prEvent.setSource(sourcePullRequestInfo);
+
+            // set user email
+            prEvent.setUserEmail(jsonHelper.author.email);
 
             // set open pr
             if (Objects.equals(jsonHelper.state, STATE_OPEN)) {
