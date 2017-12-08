@@ -24,6 +24,7 @@ import com.flow.platform.core.dao.AbstractBaseDao;
 import com.flow.platform.util.CollectionUtil;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -135,21 +136,10 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
-    public List<Job> listForExpired(ZonedDateTime updatedTime, JobStatus... status) {
-        return execute((Session session) -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-
-            CriteriaQuery<Job> select = builder.createQuery(Job.class);
-            Root<Job> from = select.from(Job.class);
-
-            Predicate createdPredicate = builder.lessThan(from.get("updatedAt"), updatedTime);
-            Predicate statusPredicate = from.get("status").in(status);
-
-            select.where(createdPredicate, statusPredicate);
-
-            return session.createQuery(select).list();
-
-        });
+    public List<Job> listByStatus(EnumSet<JobStatus> status) {
+        return execute(session -> session.createQuery("from Job where status in :status", Job.class)
+            .setParameterList("status", status)
+            .list());
     }
 
     @Override

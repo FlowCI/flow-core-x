@@ -61,6 +61,7 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitCommit;
@@ -98,13 +99,13 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private final Integer createSessionRetryTimes = 5;
 
     @Value("${task.job.toggle.execution_timeout}")
-    private Boolean isJobTimeoutExecuteTimeout;
+    private Boolean isEnableJobTimeOut;
 
     @Value("${task.job.toggle.execution_create_session_duration}")
-    private Long jobExecuteTimeoutCreateSessionDuration;
+    private Long jobTimeOutOnCreateSession;
 
     @Value("${task.job.toggle.execution_running_duration}")
-    private Long jobExecuteTimeoutRunningDuration;
+    private Long jobTimeOutOnRunning;
 
     @Value(value = "${domain.api}")
     private String apiDomain;
@@ -548,7 +549,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public void enterQueue(CmdCallbackQueueItem cmdQueueItem, int priority) {
+    public void enqueue(CmdCallbackQueueItem cmdQueueItem, int priority) {
         cmdCallbackQueue.enqueue(PriorityMessage.create(cmdQueueItem.toBytes(), priority));
     }
 
@@ -742,26 +743,41 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
+    public void checkTimeOut(Job job) {
+        if (Job.FINISH_STATUS.contains(job.getStatus())) {
+            return;
+        }
+
+        // check job is timeout when create session
+        if (job.getStatus() == JobStatus.SESSION_CREATING) {
+            boolean isTimeOut = DateUtil.isTimeOut(job.getCreatedAt(), ZonedDateTime.now(), jobTimeOutOnCreateSession);
+            if (isTimeOut) {
+                updateJobAndNodeResultTimeout(job);
+            }
+            return;
+        }
+
+        // check job is timeout when running
+        if (job.RUNNING_STATUS.contains(job.getStatus())) {
+            boolean isTimeOut = DateUtil.isTimeOut(job.getCreatedAt(), ZonedDateTime.now(), jobTimeOutOnRunning);
+            if (isTimeOut) {
+                updateJobAndNodeResultTimeout(job);
+            }
+        }
+    }
+
+    @Override
     @Scheduled(fixedDelay = 60 * 1000, initialDelay = 60 * 1000)
-    public void checkTimeoutTask() {
-        if (!isJobTimeoutExecuteTimeout) {
+    public void checkTimeOutTask() {
+        if (!isEnableJobTimeOut) {
             return;
         }
 
         LOGGER.trace("job timeout task start");
 
-        // job timeout on create session
-        ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutCreateSessionDuration);
-        List<Job> jobs = jobDao.listForExpired(finishZoneDateTime, JobStatus.SESSION_CREATING);
+        List<Job> jobs = jobDao.listByStatus(Job.RUNNING_STATUS);
         for (Job job : jobs) {
-            updateJobAndNodeResultTimeout(job);
-        }
-
-        // job timeout on running
-        ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutRunningDuration);
-        List<Job> runningJobs = jobDao.listForExpired(finishRunningZoneDateTime, JobStatus.RUNNING);
-        for (Job job : runningJobs) {
-            updateJobAndNodeResultTimeout(job);
+            checkTimeOut(job);
         }
 
         LOGGER.trace("job timeout task end");

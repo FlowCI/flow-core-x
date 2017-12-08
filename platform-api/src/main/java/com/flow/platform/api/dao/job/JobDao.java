@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -29,14 +30,28 @@ import java.util.List;
  */
 public interface JobDao extends BaseDao<BigInteger, Job> {
 
+    /**
+     * List job by session id and node status
+     *
+     * @return Job with NodeResult
+     */
     List<Job> list(List<String> sessionId, NodeStatus nodeStatus);
 
     /**
-     * get jobs from node paths
+     * List job by node paths
      *
      * @param paths node path or null
+     * @return Job with Node Result
      */
     List<Job> listByPath(List<String> paths);
+
+    /**
+     * List jobs by job status
+     *
+     * @param status status set
+     * @return Job
+     */
+    List<Job> listByStatus(EnumSet<JobStatus> status);
 
     /**
      * delete jobs by node path
@@ -51,11 +66,6 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      * @param path node path
      */
     List<BigInteger> findJobIdsByPath(String path);
-
-    /**
-     * show expired jobs
-     */
-    List<Job> listForExpired(ZonedDateTime updatedTime, JobStatus... status);
 
     /**
      * get latest job by flow path

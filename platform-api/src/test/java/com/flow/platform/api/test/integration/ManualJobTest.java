@@ -16,27 +16,35 @@
 
 package com.flow.platform.api.test.integration;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.EnvUtil;
-import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.util.ObjectWrapper;
 import com.flow.platform.util.git.model.GitSource;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * @author yang
  */
 public class ManualJobTest extends TestBase {
+
+    @Before
+    public void init() {
+        stubFor(post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
+            .willReturn(aResponse().withStatus(500)));
+    }
 
     @Test
     public void should_manual_create_job_with_failure_since_unable_to_create_session() throws Throwable {
@@ -48,33 +56,19 @@ public class ManualJobTest extends TestBase {
         env.put(GitEnvs.FLOW_GIT_SOURCE.name(), GitSource.UNDEFINED_SSH.name());
         env.put(GitEnvs.FLOW_GIT_URL.name(), GITHUB_TEST_REPO_SSH);
         env.put(GitEnvs.FLOW_GIT_SSH_PRIVATE_KEY.name(), getResourceContent("ssh_private_key"));
-        env.put(FlowEnvs.FLOW_YML_FILE.name(), ".flow.yml");
         envService.save(flow, env, false);
 
+        String content = getResourceContent("yml/for_manual_job_test.yml");
+        Node yml = nodeService.createOrUpdateYml(flow.getPath(), content);
+
         // when: manual start job
-        CountDownLatch latch = new CountDownLatch(1);
-        ObjectWrapper<Job> wrapper = new ObjectWrapper<>();
-
         Map<String, String> envs = EnvUtil.build(GitEnvs.FLOW_GIT_BRANCH.name(), "master");
-        jobService.createWithYmlLoad(
-            flow.getPath(), JobCategory.MANUAL, envs, currentUser.get(), job -> {
-                wrapper.setInstance(job);
-                latch.countDown();
-            }
-        );
+        Job created = jobService.createFromFlowYml(flow.getPath(), JobCategory.MANUAL, envs, currentUser.get());
 
-        latch.await(60, TimeUnit.SECONDS);
 
         // then: verify job
-        Job created = wrapper.getInstance();
         Assert.assertNotNull(created);
         Assert.assertEquals(JobStatus.FAILURE, created.getStatus());
-
-        // check git commit info
-        Assert.assertNotNull(created.getEnv(GitEnvs.FLOW_GIT_COMMIT_ID));
-        Assert.assertNotNull(created.getEnv(GitEnvs.FLOW_GIT_AUTHOR));
-        Assert.assertNotNull(created.getEnv(GitEnvs.FLOW_GIT_CHANGELOG));
-        Assert.assertNotNull(created.getEnv(GitEnvs.FLOW_GIT_BRANCH));
     }
 
 }

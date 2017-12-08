@@ -108,9 +108,9 @@ public interface JobService {
     void callback(CmdCallbackQueueItem cmdQueueItem);
 
     /**
-     * Enqueue cmd callback item
+     * Send cmd callback item to queue
      */
-    void enterQueue(CmdCallbackQueueItem cmdQueueItem, int priority);
+    void enqueue(CmdCallbackQueueItem cmdQueueItem, int priority);
 
     /**
      * stop job
@@ -123,9 +123,14 @@ public interface JobService {
     Job update(Job job);
 
     /**
+     * Check job is timeout, and close session if it is timeout
+     */
+    void checkTimeOut(Job job);
+
+    /**
      * check timeout job
      */
-    void checkTimeoutTask();
+    void checkTimeOutTask();
 
     /**
      * Set job status and save job instance

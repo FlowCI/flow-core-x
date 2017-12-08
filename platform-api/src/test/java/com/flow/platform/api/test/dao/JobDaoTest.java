@@ -17,6 +17,7 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
@@ -24,6 +25,7 @@ import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
 import org.junit.Assert;
@@ -101,6 +103,20 @@ public class JobDaoTest extends TestBase {
         Assert.assertEquals(1, number.intValue());
 
         Assert.assertEquals(0, jobDao.maxBuildNumber("flows").intValue());
+    }
+
+    @Test
+    public void should_list_job_by_status() {
+        // given: job with created status
+        Assert.assertEquals(1, jobDao.listByStatus(EnumSet.of(JobStatus.CREATED)).size());
+
+        // when: update job status to SESSION_CREATING
+        job.setStatus(JobStatus.SESSION_CREATING);
+        jobDao.update(job);
+
+        // then:
+        Assert.assertEquals(0, jobDao.listByStatus(EnumSet.of(JobStatus.CREATED)).size());
+        Assert.assertEquals(1, jobDao.listByStatus(EnumSet.of(JobStatus.SESSION_CREATING)).size());
     }
 
     @Test

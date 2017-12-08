@@ -36,7 +36,7 @@ public class Job extends EnvObject {
         .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.SUCCESS, JobStatus.TIMEOUT);
 
     public final static EnumSet<JobStatus> RUNNING_STATUS = EnumSet
-        .of(JobStatus.RUNNING);
+        .of(JobStatus.YML_LOADING, JobStatus.RUNNING, JobStatus.SESSION_CREATING, JobStatus.CREATED);
 
     public final static EnumSet<JobStatus> FAILURE_STATUS = EnumSet
         .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.TIMEOUT);

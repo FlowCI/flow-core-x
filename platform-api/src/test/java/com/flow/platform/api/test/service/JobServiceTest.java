@@ -286,7 +286,7 @@ public class JobServiceTest extends TestBase {
 
         // when: check job timeout
         ThreadUtil.sleep(20000);
-        jobService.checkTimeoutTask();
+        jobService.checkTimeOut(job);
 
         // then: job status should be timeout
         Job jobRes = jobDao.get(rootForFlow.getPath(), job.getNumber());
@@ -318,12 +318,14 @@ public class JobServiceTest extends TestBase {
     }
 
     @Test
-    public void should_cmd_enqueue_limit_times_success() throws InterruptedException {
+    public void should_cmd_enqueue_within_limit_times() throws InterruptedException {
+        // init:
         Cmd cmd = new Cmd("default", "test", CmdType.RUN_SHELL, "echo 1");
         CountDownLatch countDownLatch = new CountDownLatch(5);
         AtomicInteger atomicInteger = new AtomicInteger(0);
+        cmdCallbackQueue.clean();
 
-        // register new queue to get item info
+        // given: register new queue listener to get item info
         cmdCallbackQueue.register(message -> {
             CmdCallbackQueueItem item = CmdCallbackQueueItem.parse(message.getBody(), CmdCallbackQueueItem.class);
             atomicInteger.set(item.getRetryTimes());
@@ -331,8 +333,8 @@ public class JobServiceTest extends TestBase {
         });
 
         // when: enter queue one not found job id
-        jobService.enterQueue(new CmdCallbackQueueItem(CommonUtil.randomId(), cmd), 1);
-        boolean await = countDownLatch.await(10, TimeUnit.SECONDS);
+        jobService.enqueue(new CmdCallbackQueueItem(CommonUtil.randomId(), cmd), 1);
+        boolean await = countDownLatch.await(30, TimeUnit.SECONDS);
         Assert.assertTrue(await);
 
         // then: should try 5 times
