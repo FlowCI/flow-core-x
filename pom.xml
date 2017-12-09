@@ -64,6 +64,7 @@
     <jgit.server.version>4.9.0.201710071750-r</jgit.server.version>
     <java-gitlab-api.version>4.0.0-SNAPSHOT</java-gitlab-api.version>
     <groovy-all.version>2.4.12</groovy-all.version>
+    <jfiglet.version>0.0.3</jfiglet.version>
   </properties>
 
   <build>
@@ -336,6 +337,12 @@
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy-all</artifactId>
         <version>${groovy-all.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.github.lalyos</groupId>
+        <artifactId>jfiglet</artifactId>
+        <version>${jfiglet.version}</version>
       </dependency>
 
       <!--library for testing-->

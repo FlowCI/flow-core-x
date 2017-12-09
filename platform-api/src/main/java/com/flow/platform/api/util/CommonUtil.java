@@ -17,6 +17,7 @@
 package com.flow.platform.api.util;
 
 import com.flow.platform.api.config.AppConfig;
+import com.github.lalyos.jfiglet.FigletFont;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -54,6 +55,19 @@ public class CommonUtil {
             return IOUtils.toString(is, AppConfig.DEFAULT_CHARSET.name());
         } catch (Throwable throwable) {
             return null;
+        }
+    }
+
+    /**
+     * show Jfiglet message
+     * @param message
+     * @return
+     */
+    public static String showJfigletMessage(String message) {
+        try {
+            return FigletFont.convertOneLine(message);
+        } catch (Throwable throwable) {
+            return "";
         }
     }
 
