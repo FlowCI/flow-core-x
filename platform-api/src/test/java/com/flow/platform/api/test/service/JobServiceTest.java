@@ -42,6 +42,7 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -55,6 +56,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yh@firim
@@ -68,6 +70,9 @@ public class JobServiceTest extends TestBase {
     @Autowired
     private PlatformQueue<PriorityMessage> cmdCallbackQueue;
 
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
     @Before
     public void init() {
         stubDemo();
@@ -77,6 +82,27 @@ public class JobServiceTest extends TestBase {
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Node rootForFlow = nodeService.createEmptyFlow("flow1");
         jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
+    }
+
+    @Test
+    public void should_create_job_with_unique_job_number() throws Throwable {
+        // given:
+        final Node flow = createRootFlow("flow-job-number", "yml/demo_flow2.yaml");
+        final int numOfJob = 10;
+        final CountDownLatch countDown = new CountDownLatch(numOfJob);
+
+        // when:
+        for (int i = 0; i < numOfJob; i++) {
+            taskExecutor.execute(() -> {
+                jobService.createFromFlowYml(flow.getPath(), JobCategory.MANUAL, null, mockUser);
+                countDown.countDown();
+            });
+        }
+
+        // then:
+        countDown.await(30, TimeUnit.SECONDS);
+        List<Job> jobs = jobService.list(ImmutableList.of(flow.getPath()), false);
+        Assert.assertEquals(numOfJob, jobs.size());
     }
 
     @Test
