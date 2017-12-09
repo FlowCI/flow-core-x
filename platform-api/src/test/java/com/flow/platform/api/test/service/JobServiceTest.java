@@ -101,8 +101,7 @@ public class JobServiceTest extends TestBase {
 
         // then:
         countDown.await(30, TimeUnit.SECONDS);
-        List<Job> jobs = jobService.list(ImmutableList.of(flow.getPath()), false);
-        Assert.assertEquals(numOfJob, jobs.size());
+        Assert.assertEquals(numOfJob, jobDao.numOfJob(flow.getPath()).intValue());
     }
 
     @Test

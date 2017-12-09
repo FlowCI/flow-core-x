@@ -83,4 +83,9 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      * get job by session id
      */
     Job get(String sessionId);
+
+    /**
+     * Count number of jobs for path
+     */
+    Long numOfJob(String path);
 }
