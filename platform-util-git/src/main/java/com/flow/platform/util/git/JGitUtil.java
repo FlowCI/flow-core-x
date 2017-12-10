@@ -237,4 +237,9 @@ public class JGitUtil {
             throw new GitException("get commits error", throwable);
         }
     }
+
+    public static RevCommit latestCommit(Path path) throws GitException {
+        List<RevCommit> commits = listCommits(path);
+        return commits.get(0);
+    }
 }
