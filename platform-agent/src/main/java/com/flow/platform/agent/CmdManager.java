@@ -260,6 +260,7 @@ public class CmdManager {
             CmdResult r = entry.getValue();
             r.setExecutedTime(now);
             r.setFinishTime(now);
+            r.setExitValue(CmdResult.EXIT_VALUE_FOR_KILL);
 
             Cmd cmd = entry.getKey();
             finished.put(cmd, r);

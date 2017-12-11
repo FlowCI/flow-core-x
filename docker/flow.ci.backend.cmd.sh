@@ -3,16 +3,36 @@ set +e
 
 cmd="$@"
 
-# default mysql user name root
-export MYSQL_USER=root
+# if mysql user is null, set default user root
+if [[ ! -n $MYSQL_USER ]]; then
+    # set default mysql user name root
+	export MYSQL_USER=root
+fi
 
+# set mysql host, default 127.0.0.1
+if [[ ! -n $MYSQL_HOST ]]; then
+	export $MYSQL_HOST=127.0.0.1
+fi
+
+# set default port, default is 8080
+if [[ ! -n $PORT ]]; then
+	export PORT=8080
+fi
+
+# PASSWORD NOT NULL
+if [[ ! -n $MYSQL_PASSWORD ]]; then
+    echo "Please Set MYSQL_PASSWORD"
+    exit;
+fi
+
+# update db user
 read -r -d '' rootCreate <<-EOSQL || true
   use mysql;
   update user set password=PASSWORD('${MYSQL_PASSWORD}') where User='root';
   update user set plugin='mysql_native_password';
 EOSQL
 
-
+# detect mysql init or not
 DATA_DIRECTORY=/var/lib/mysql
 if [ "`ls -A $DATA_DIRECTORY`" = "" ]; then
   # init mysql data
@@ -47,7 +67,7 @@ done
 mysql --host=$MYSQL_HOST --user=$MYSQL_USER --password=$MYSQL_PASSWORD -e 'Create Database If Not Exists flow_api_db Character Set UTF8;'
 mysql --host=$MYSQL_HOST --user=$MYSQL_USER --password=$MYSQL_PASSWORD -e 'Create Database If Not Exists flow_cc_db Character Set UTF8;'
 
-# Third running migration to update table stucture
+# Third running migration to update table structure
 MIGRATION_PATH=./migration
 
 # use flyway control database structure update

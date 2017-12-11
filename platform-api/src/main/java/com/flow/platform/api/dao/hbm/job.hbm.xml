@@ -18,7 +18,7 @@
         not-null="true"/>
     </property>
 
-    <property name="number" type="integer">
+    <property name="number" type="long">
       <column name="build_number" unique-key="idx_job_node_path_build_number" not-null="true"/>
     </property>
 
@@ -53,6 +53,14 @@
     <property name="updatedAt" type="java.time.ZonedDateTime" update="false">
       <column name="updated_at" sql-type="timestamp" default="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
     </property>
+  </class>
+
+  <!--Job Number-->
+  <class name="com.flow.platform.api.domain.job.JobNumber" table="job_number">
+    <id name="nodePath" column="node_path">
+      <generator class="assigned"/>
+    </id>
+    <property name="number" column="build_number" not-null="true"/>
   </class>
 
   <!--Job Yml Class-->

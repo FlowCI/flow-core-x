@@ -19,9 +19,9 @@ package com.flow.platform.api.test.controller;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.flow.platform.api.consumer.JobStatusEventConsumer;
+import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.job.JobStatus;
@@ -30,25 +30,25 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.envs.EnvUtil;
+import com.flow.platform.api.events.JobStatusChangeEvent;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.context.SpringContext;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
-import com.flow.platform.util.http.HttpURL;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * @author yh@firim
@@ -56,25 +56,29 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @FixMethodOrder(value = MethodSorters.JVM)
 public class CmdWebhookControllerTest extends TestBase {
 
-    private final static int CMD_CALLBACK_QUEUE_WAITING_TIME = 1000 * 10;
-
     private final static String sessionId = "1111111";
 
     @Autowired
     private PlatformQueue<PriorityMessage> cmdCallbackQueue;
 
+    @Autowired
+    private SpringContext springContext;
+
     @Before
     public void before() throws Throwable {
         stubSendCmdToQueue(sessionId);
         stubSendCmd(sessionId);
+
         cmdCallbackQueue.clean();
+        springContext.cleanApplictionListener();
     }
 
     @Test
     public void should_callback_session_success() throws Throwable {
         // given: flow with two steps , step1 and step2
-        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
+        final Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
+        final Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
+        final CountDownLatch runningLatch = createCountDownForJobStatusChange(job, JobStatus.RUNNING, 1);
 
         // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -82,15 +86,15 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
 
-        performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
+        Assert.assertTrue(runningLatch.await(10, TimeUnit.SECONDS));
 
         // then: verify job status and root node status
-        job = reload(job);
-        Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(NodeStatus.PENDING, job.getRootResult().getStatus());
-        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
-        Assert.assertEquals(JobCategory.PR, job.getCategory());
+        Job reloaded = refresh(job);
+        Assert.assertEquals(sessionId, reloaded.getSessionId());
+        Assert.assertEquals(NodeStatus.PENDING, reloaded.getRootResult().getStatus());
+        Assert.assertEquals(JobStatus.RUNNING, reloaded.getStatus());
+        Assert.assertEquals(JobCategory.PR, reloaded.getCategory());
 
         NodeTree nodeTree = nodeService.find("flow1");
         Node step1 = nodeTree.find("flow1/step1");
@@ -100,18 +104,16 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setExtra(step1.getPath());
-
-        performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: verify node status
-        job = reload(job);
-        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+        reloaded = refresh(reloaded);
+        Assert.assertEquals(JobStatus.RUNNING, reloaded.getStatus());
 
-        NodeResult resultForStep1 = nodeResultService.find(step1.getPath(), job.getId());
+        NodeResult resultForStep1 = nodeResultService.find(step1.getPath(), reloaded.getId());
         Assert.assertEquals(NodeStatus.RUNNING, resultForStep1.getStatus());
 
-        NodeResult resultForRoot = nodeResultService.find(job.getNodePath(), job.getId());
+        NodeResult resultForRoot = nodeResultService.find(reloaded.getNodePath(), reloaded.getId());
         Assert.assertEquals(NodeStatus.RUNNING, resultForRoot.getStatus());
 
         // when: first step callback with logged status
@@ -123,28 +125,26 @@ public class CmdWebhookControllerTest extends TestBase {
         cmdResult.setDuration(100L);
         cmdResult.setOutput(EnvUtil.build("OUTPUT_ENV", "hello"));
         cmd.setCmdResult(cmdResult);
-
-        performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: verify job and node status
-        job = reload(job);
-        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+        reloaded = refresh(job);
+        Assert.assertEquals(JobStatus.RUNNING, reloaded.getStatus());
 
         // check step 1 node result
-        resultForStep1 = nodeResultService.find(step1.getPath(), job.getId());
+        resultForStep1 = nodeResultService.find(step1.getPath(), reloaded.getId());
         Assert.assertEquals(NodeStatus.SUCCESS, resultForStep1.getStatus());
         Assert.assertEquals(0, resultForStep1.getExitCode().intValue());
         Assert.assertEquals(1, resultForStep1.getOutputs().size());
         Assert.assertEquals("hello", resultForStep1.getOutputs().get("OUTPUT_ENV"));
 
         // check root node result
-        NodeResult rootNodeResult = nodeResultService.find(job.getNodePath(), job.getId());
+        NodeResult rootNodeResult = nodeResultService.find(reloaded.getNodePath(), reloaded.getId());
         Assert.assertEquals(2, rootNodeResult.getOutputs().size());
         Assert.assertNotNull(rootNodeResult.getOutputs().get("FLOW_JOB_LOG_PATH"));
         Assert.assertEquals("hello", rootNodeResult.getOutputs().get("OUTPUT_ENV"));
 
-        resultForRoot = nodeResultService.find(job.getNodePath(), job.getId());
+        resultForRoot = nodeResultService.find(reloaded.getNodePath(), reloaded.getId());
         Assert.assertEquals(NodeStatus.RUNNING, resultForRoot.getStatus());
 
         // when: second step callback with logged status
@@ -156,26 +156,25 @@ public class CmdWebhookControllerTest extends TestBase {
         cmdResult.setDuration(100L);
         cmd.setCmdResult(cmdResult);
 
-        performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: verify job and node status
-        job = reload(job);
-        Assert.assertEquals(JobStatus.SUCCESS, job.getStatus());
+        reloaded = refresh(reloaded);
+        Assert.assertEquals(JobStatus.SUCCESS, reloaded.getStatus());
 
-        NodeResult resultForStep2 = nodeResultService.find(step2.getPath(), job.getId());
+        NodeResult resultForStep2 = nodeResultService.find(step2.getPath(), reloaded.getId());
         Assert.assertEquals(NodeStatus.SUCCESS, resultForStep2.getStatus());
         Assert.assertEquals(0, resultForStep2.getExitCode().intValue());
 
-        resultForRoot = nodeResultService.find(job.getNodePath(), job.getId());
+        resultForRoot = nodeResultService.find(reloaded.getNodePath(), reloaded.getId());
         Assert.assertEquals(NodeStatus.SUCCESS, resultForRoot.getStatus());
     }
 
     @Test
-    public void should_on_callback_with_timeout() throws Throwable {
-        // init
-        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
+    public void should_callback_with_timeout() throws Throwable {
+        // given: job and listener
+        final Node rootForFlow = createRootFlow("flow1", "yml/demo_flow.yaml");
+        final Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
 
         NodeTree nodeTree = nodeService.find("flow1");
         Node step2 = nodeTree.find("flow1/step2");
@@ -186,56 +185,51 @@ public class CmdWebhookControllerTest extends TestBase {
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
-        performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
-
-        job = jobService.find(job.getNodePath(), job.getNumber());
-        Assert.assertNotNull(job.getSessionId());
-        Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(NodeStatus.PENDING, job.getRootResult().getStatus());
-        Assert.assertEquals(JobCategory.PR, job.getCategory());
+        Job reloaded = refresh(job);
+        Assert.assertNotNull(reloaded.getSessionId());
+        Assert.assertEquals(sessionId, reloaded.getSessionId());
+        Assert.assertEquals(NodeStatus.PENDING, reloaded.getRootResult().getStatus());
+        Assert.assertEquals(JobCategory.PR, reloaded.getCategory());
+        Assert.assertEquals(JobStatus.RUNNING, reloaded.getStatus());
 
         // when: first step with timeout status
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
         cmd.setExtra(step1.getPath());
-
-        performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: verify job status
-        job = jobService.find(job.getNodePath(), job.getNumber());
-        Assert.assertEquals(JobStatus.FAILURE, job.getStatus());
+        reloaded = refresh(reloaded);
+        Assert.assertEquals(JobStatus.FAILURE, reloaded.getStatus());
 
         // then: verify first node result status
-        NodeResult firstStepResult = nodeResultService.find(step1.getPath(), job.getId());
+        NodeResult firstStepResult = nodeResultService.find(step1.getPath(), reloaded.getId());
         Assert.assertNotNull(firstStepResult.getCmdId());
         Assert.assertEquals(NodeStatus.TIMEOUT, firstStepResult.getStatus());
 
         // then: verify root result
-        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
-        Assert.assertEquals(job.getRootResult(), rootResult);
+        NodeResult rootResult = nodeResultService.find(reloaded.getNodePath(), reloaded.getId());
+        Assert.assertEquals(reloaded.getRootResult(), rootResult);
         Assert.assertEquals(NodeStatus.TIMEOUT, rootResult.getStatus());
     }
 
     @Test
     public void should_callback_with_timeout_but_allow_failure() throws Throwable {
-        Node rootForFlow = createRootFlow("flow1", "yml/demo_flow1.yaml");
-        Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
+        final Node rootForFlow = createRootFlow("flow1", "yml/demo_flow1.yaml");
+        final Job job = jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.PR, null, mockUser);
 
         // when: create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setStatus(CmdStatus.SENT);
         cmd.setSessionId(sessionId);
-
-        performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: check job session id
-        job = reload(job);
-        Assert.assertEquals(sessionId, job.getSessionId());
-        Assert.assertEquals(NodeStatus.PENDING, job.getRootResult().getStatus());
+        Job reloaded = refresh(job);
+        Assert.assertEquals(sessionId, reloaded.getSessionId());
+        Assert.assertEquals(NodeStatus.PENDING, reloaded.getRootResult().getStatus());
 
         Node step1 = nodeService.find("flow1").find("flow1/step1");
 
@@ -244,34 +238,30 @@ public class CmdWebhookControllerTest extends TestBase {
         cmd.setSessionId(sessionId);
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setExtra(step1.getPath());
-
-        performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: check root node result status should be RUNNING
-        job = reload(job);
-        Assert.assertEquals(NodeStatus.RUNNING, job.getRootResult().getStatus());
+        reloaded = refresh(reloaded);
+        Assert.assertEquals(NodeStatus.RUNNING, reloaded.getRootResult().getStatus());
 
         // mock timeout kill status from agent
         cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
         cmd.setExtra(step1.getPath());
-
-        performMockHttpRequest(cmd, job);
-        Thread.sleep(CMD_CALLBACK_QUEUE_WAITING_TIME);
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
 
         // then: check step node status should be timeout
-        NodeResult stepResult = nodeResultService.find(step1.getPath(), job.getId());
+        NodeResult stepResult = nodeResultService.find(step1.getPath(), reloaded.getId());
         Assert.assertNotNull(stepResult.getCmdId());
         Assert.assertEquals(NodeStatus.TIMEOUT, stepResult.getStatus());
 
         // then: check root node status should be timeout as well
-        NodeResult rootResult = nodeResultService.find(job.getNodePath(), job.getId());
+        NodeResult rootResult = nodeResultService.find(reloaded.getNodePath(), reloaded.getId());
         Assert.assertEquals(NodeStatus.RUNNING, rootResult.getStatus());
 
         // then: check job status should be running since time out allow failure
-        job = reload(job);
-        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+        reloaded = refresh(reloaded);
+        Assert.assertEquals(JobStatus.RUNNING, reloaded.getStatus());
     }
 
     @Test
@@ -284,19 +274,8 @@ public class CmdWebhookControllerTest extends TestBase {
         // TODO:
     }
 
-    protected Job reload(Job job) {
+    protected Job refresh(Job job) {
         return jobService.find(job.getId());
-    }
-
-    private MvcResult performMockHttpRequest(Cmd cmd, Job job) throws Throwable {
-        MockHttpServletRequestBuilder content = post(
-            "/hooks/cmd?identifier=" + HttpURL.encode(job.getId().toString()))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(cmd.toJson());
-
-        return this.mockMvc.perform(content)
-            .andExpect(status().isOk())
-            .andReturn();
     }
 
     private void stubSendCmdToQueue(String sessionId) {
@@ -317,5 +296,18 @@ public class CmdWebhookControllerTest extends TestBase {
         stubFor(WireMock.post(urlEqualTo("/cmd/send"))
             .willReturn(aResponse()
                 .withBody(sendCmd.toJson())));
+    }
+
+    private CountDownLatch createCountDownForJobStatusChange(Job job, JobStatus expect, int num) {
+        final CountDownLatch countDown = new CountDownLatch(num);
+        springContext.registerApplicationListener(new JobStatusEventConsumer() {
+            @Override
+            public void onApplicationEvent(JobStatusChangeEvent event) {
+                if (event.getJob().equals(job) && event.getTo() == expect) {
+                    countDown.countDown();
+                }
+            }
+        });
+        return countDown;
     }
 }

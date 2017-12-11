@@ -34,6 +34,7 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import com.flow.platform.util.zk.ZkException;
@@ -157,14 +158,22 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
         List<Cmd> workingCmdList = cmdService.listWorkingCmd(null);
 
         for (Cmd cmd : workingCmdList) {
-            if (cmd.isCmdTimeout()) {
-                Cmd killCmd = cmdService.create(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
-                dispatch(killCmd);
-                LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
+            if (cmd.getType() != CmdType.RUN_SHELL || !cmd.isCurrent()) {
+                continue;
+            }
 
-                // update cmd status via queue
-                CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.TIMEOUT_KILL, null, true, true);
-                cmdService.updateStatus(statusItem, true);
+            if (DateUtil.isTimeOut(cmd.getCreatedDate(), ZonedDateTime.now(), cmd.getTimeout())) {
+                try {
+                    Cmd killCmd = cmdService.create(new CmdInfo(cmd.getAgentPath(), CmdType.KILL, null));
+                    dispatch(killCmd);
+                    LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
+
+                    // update cmd status via queue
+                    CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.TIMEOUT_KILL, null, true, true);
+                    cmdService.updateStatus(statusItem, true);
+                } catch (Throwable e) {
+                    LOGGER.warn(e.getMessage());
+                }
             }
         }
 

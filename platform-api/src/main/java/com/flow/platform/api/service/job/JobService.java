@@ -50,7 +50,7 @@ public interface JobService {
      *
      * @return job with children node result
      */
-    Job find(String path, Integer number);
+    Job find(String path, Long number);
 
     /**
      * Find by job id
@@ -67,7 +67,7 @@ public interface JobService {
     /**
      * Get job yml content
      */
-    String findYml(String path, Integer number);
+    String findYml(String path, Long number);
 
     /**
      * delete jobs by flowPath
@@ -108,14 +108,14 @@ public interface JobService {
     void callback(CmdCallbackQueueItem cmdQueueItem);
 
     /**
-     * Enqueue cmd callback item
+     * Send cmd callback item to queue
      */
-    void enterQueue(CmdCallbackQueueItem cmdQueueItem, int priority);
+    void enqueue(CmdCallbackQueueItem cmdQueueItem, int priority);
 
     /**
      * stop job
      */
-    Job stop(String name, Integer buildNumber);
+    Job stop(String name, Long buildNumber);
 
     /**
      * update job
@@ -123,9 +123,14 @@ public interface JobService {
     Job update(Job job);
 
     /**
+     * Check job is timeout, and close session if it is timeout
+     */
+    void checkTimeOut(Job job);
+
+    /**
      * check timeout job
      */
-    void checkTimeoutTask();
+    void checkTimeOutTask();
 
     /**
      * Set job status and save job instance

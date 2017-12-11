@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.core.dao.BaseDao;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -29,14 +30,28 @@ import java.util.List;
  */
 public interface JobDao extends BaseDao<BigInteger, Job> {
 
+    /**
+     * List job by session id and node status
+     *
+     * @return Job with NodeResult
+     */
     List<Job> list(List<String> sessionId, NodeStatus nodeStatus);
 
     /**
-     * get jobs from node paths
+     * List job by node paths
      *
      * @param paths node path or null
+     * @return Job with Node Result
      */
     List<Job> listByPath(List<String> paths);
+
+    /**
+     * List jobs by job status
+     *
+     * @param status status set
+     * @return Job
+     */
+    List<Job> listByStatus(EnumSet<JobStatus> status);
 
     /**
      * delete jobs by node path
@@ -53,11 +68,6 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     List<BigInteger> findJobIdsByPath(String path);
 
     /**
-     * show expired jobs
-     */
-    List<Job> listForExpired(ZonedDateTime updatedTime, JobStatus... status);
-
-    /**
      * get latest job by flow path
      *
      * @param paths node path or null for all latest jobs
@@ -67,7 +77,7 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     /**
      * get job from node path and number
      */
-    Job get(String path, Integer number);
+    Job get(String path, Long number);
 
     /**
      * get job by session id
@@ -75,7 +85,7 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
     Job get(String sessionId);
 
     /**
-     * get max build number for node path
+     * Count number of jobs for path
      */
-    Integer maxBuildNumber(String path);
+    Long numOfJob(String path);
 }

@@ -37,6 +37,7 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.util.DateUtil;
 import com.google.common.collect.Sets;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -255,7 +256,7 @@ public class CmdServiceTest extends TestBase {
         Assert.assertTrue(cmd.isCurrent());
 
         // then: check should not timeout
-        Assert.assertEquals(false, cmd.isCmdTimeout());
+        Assert.assertEquals(false, DateUtil.isTimeOut(cmd.getCreatedDate(), ZonedDateTime.now(), cmd.getTimeout()));
 
         // when: mock cmd timeout
         ZonedDateTime timeoutDate = ZonedDateTime.now().minusSeconds(cmd.getTimeout() + 100);
@@ -264,7 +265,7 @@ public class CmdServiceTest extends TestBase {
         cmdDao.update(cmd);
 
         // then: should timeout and status should be TIMEOUT_KILL
-        Assert.assertEquals(true, cmd.isCmdTimeout());
+        Assert.assertEquals(true, DateUtil.isTimeOut(cmd.getCreatedDate(), ZonedDateTime.now(), cmd.getTimeout()));
         cmdDispatchService.checkTimeoutTask();
         Thread.sleep(500); // wait for cmd status update queue to process
         Assert.assertEquals(CmdStatus.TIMEOUT_KILL, cmdService.find(cmd.getId()).getStatus());

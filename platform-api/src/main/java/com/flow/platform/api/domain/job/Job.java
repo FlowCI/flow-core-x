@@ -36,7 +36,7 @@ public class Job extends EnvObject {
         .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.SUCCESS, JobStatus.TIMEOUT);
 
     public final static EnumSet<JobStatus> RUNNING_STATUS = EnumSet
-        .of(JobStatus.RUNNING);
+        .of(JobStatus.YML_LOADING, JobStatus.RUNNING, JobStatus.SESSION_CREATING, JobStatus.CREATED);
 
     public final static EnumSet<JobStatus> FAILURE_STATUS = EnumSet
         .of(JobStatus.FAILURE, JobStatus.STOPPED, JobStatus.TIMEOUT);
@@ -50,7 +50,7 @@ public class Job extends EnvObject {
     private String nodePath;
 
     @Expose
-    private Integer number;
+    private Long number;
 
     private String sessionId;
 
@@ -105,11 +105,11 @@ public class Job extends EnvObject {
         this.rootResult = rootResult;
     }
 
-    public Integer getNumber() {
+    public Long getNumber() {
         return number;
     }
 
-    public void setNumber(Integer number) {
+    public void setNumber(Long number) {
         this.number = number;
     }
 

@@ -31,7 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface CmdService extends WebhookService {
 
-    Integer DEFAULT_CMD_TIMEOUT = 600; // in seconds 10 mins
+    Integer DEFAULT_CMD_TIMEOUT = 3600; // in seconds, default 1 hour
 
     /**
      * Create command from CmdInfo

@@ -14,7 +14,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <api.version>v0.1.2-alpha</api.version>
+    <api.version>v0.1.3-alpha</api.version>
   </properties>
 
   <build>
@@ -128,6 +128,11 @@
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.lalyos</groupId>
+      <artifactId>jfiglet</artifactId>
     </dependency>
 
     <dependency>

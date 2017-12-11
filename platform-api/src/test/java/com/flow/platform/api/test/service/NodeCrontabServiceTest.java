@@ -63,7 +63,7 @@ public class NodeCrontabServiceTest extends TestBase {
 
         // then: job should be created
         Assert.assertEquals(1, flowCrontabService.triggers().size());
-        Job job = jobService.find(flow.getPath(), 1);
+        Job job = jobService.find(flow.getPath(), 1L);
         Assert.assertEquals(JobCategory.SCHEDULER, job.getCategory());
         Assert.assertEquals("master", job.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_BRANCH));
         Assert.assertEquals("0/1 * * * ?", job.getEnv(FlowEnvs.FLOW_TASK_CRONTAB_CONTENT));

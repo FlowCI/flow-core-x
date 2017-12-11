@@ -65,6 +65,8 @@ public abstract class GitEvent implements Serializable {
         this.userEmail = userEmail;
     }
 
+    public abstract String getTitle();
+
     @Override
     public String toString() {
         return "GitEvent{" +

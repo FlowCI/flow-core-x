@@ -157,7 +157,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}")
     @WebSecurity(action = Actions.JOB_SHOW)
-    public Job show(@PathVariable Integer buildNumber) {
+    public Job show(@PathVariable Long buildNumber) {
         return jobService.find(currentNodePath.get(), buildNumber);
     }
 
@@ -179,7 +179,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/yml")
     @WebSecurity(action = Actions.JOB_YML)
-    public String yml(@PathVariable Integer buildNumber) {
+    public String yml(@PathVariable Long buildNumber) {
         String path = currentNodePath.get();
         try {
             return jobService.findYml(path, buildNumber);
@@ -224,7 +224,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/nodes")
     @WebSecurity(action = Actions.JOB_SHOW)
-    public List<NodeResult> indexNodeResults(@PathVariable Integer buildNumber) {
+    public List<NodeResult> indexNodeResults(@PathVariable Long buildNumber) {
         String path = currentNodePath.get();
         Job job = jobService.find(path, buildNumber);
         return nodeResultService.list(job, true);
@@ -244,7 +244,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/{stepOrder}/log")
     @WebSecurity(action = Actions.JOB_LOG)
-    public String stepLogs(@PathVariable Integer buildNumber, @PathVariable Integer stepOrder) {
+    public String stepLogs(@PathVariable Long buildNumber, @PathVariable Integer stepOrder) {
         String path = currentNodePath.get();
         try {
             return logService.findNodeLog(path, buildNumber, stepOrder);
@@ -268,7 +268,7 @@ public class JobController extends NodeController {
      */
     @PostMapping(path = "/{root}/{buildNumber}/stop")
     @WebSecurity(action = Actions.JOB_STOP)
-    public void stopJob(@PathVariable Integer buildNumber) {
+    public void stopJob(@PathVariable Long buildNumber) {
         String path = currentNodePath.get();
         jobService.stop(path, buildNumber);
     }
@@ -338,7 +338,7 @@ public class JobController extends NodeController {
      */
     @GetMapping(path = "/{root}/{buildNumber}/log/download")
     @WebSecurity(action = Actions.JOB_LOG)
-    public Resource jobLog(@PathVariable Integer buildNumber,
+    public Resource jobLog(@PathVariable Long buildNumber,
                            HttpServletResponse httpResponse) {
         String path = currentNodePath.get();
         httpResponse.setHeader(

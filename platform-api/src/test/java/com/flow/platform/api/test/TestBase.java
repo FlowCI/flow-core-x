@@ -15,6 +15,7 @@ package com.flow.platform.api.test;/*
  */
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -28,6 +29,7 @@ import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.JobNumberDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.dao.user.ActionDao;
@@ -126,6 +128,9 @@ public abstract class TestBase {
     protected JobYmlDao jobYmlDao;
 
     @Autowired
+    protected JobNumberDao jobNumberDao;
+
+    @Autowired
     protected NodeResultDao nodeResultDao;
 
     @Autowired
@@ -197,6 +202,9 @@ public abstract class TestBase {
         WORKSPACE = workspace;
         mockMvc = MockMvcBuilders.webAppContextSetup(webAppContext).build();
         setCurrentUser(null);
+
+        wireMockRule.resetAll();
+        stubFor(get(urlEqualTo("/agents/list")).willReturn(aResponse().withBody("[]")));
     }
 
     public void setCurrentUser(User user) {
@@ -252,10 +260,6 @@ public abstract class TestBase {
         mockCmdResponse.setId(UUID.randomUUID().toString());
         mockCmdResponse.setSessionId(UUID.randomUUID().toString());
 
-        wireMockRule.resetAll();
-
-        stubFor(post(urlEqualTo("/agents/list")).willReturn(aResponse().withBody("[]")));
-
         stubFor(post(urlEqualTo("/cmd/queue/send?priority=1&retry=5"))
             .willReturn(aResponse()
                 .withBody(mockCmdResponse.toJson())));
@@ -273,8 +277,8 @@ public abstract class TestBase {
         File path = new File(resource.getFile());
 
         try (InputStream inputStream = new FileInputStream(path)) {
-            stubFor(com.github.tomakehurst.wiremock.client.WireMock
-                .get(urlPathEqualTo("/cmd/log/download"))
+            stubFor(
+                get(urlPathEqualTo("/cmd/log/download"))
                 .willReturn(aResponse().withBody(org.apache.commons.io.IOUtils.toByteArray(inputStream))));
         } catch (Throwable throwable) {
         }
@@ -299,6 +303,7 @@ public abstract class TestBase {
         userRoleDao.deleteAll();
         permissionDao.deleteAll();
         userFlowDao.deleteAll();
+        jobNumberDao.deleteAll();
     }
 
     @After

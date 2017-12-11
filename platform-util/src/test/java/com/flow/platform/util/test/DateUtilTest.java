@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
+package com.flow.platform.util.test;
 
-import org.springframework.core.io.Resource;
+import com.flow.platform.util.DateUtil;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public interface LogService {
+public class DateUtilTest {
 
-    /**
-     * get job log
-     */
-    String findNodeLog(String path, Long buildNumber, Integer stepOrder);
-
-    /**
-     * get full job log
-     */
-    Resource findJobLog(String path, Long buildNumber);
-
+    @Test
+    public void should_date_timeout() {
+        ZonedDateTime start = ZonedDateTime.now(ZoneId.of("America/Los_Angeles"));
+        ZonedDateTime target = ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).plusSeconds(10);
+        Assert.assertTrue(DateUtil.isTimeOut(start, target, 5));
+    }
 }

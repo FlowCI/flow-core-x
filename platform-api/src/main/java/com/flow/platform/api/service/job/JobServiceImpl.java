@@ -24,10 +24,12 @@ import static com.flow.platform.api.envs.FlowEnvs.FLOW_YML_STATUS;
 import static com.flow.platform.api.envs.FlowEnvs.StatusValue;
 
 import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.JobNumberDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
+import com.flow.platform.api.domain.job.JobNumber;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
@@ -61,6 +63,7 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitCommit;
@@ -98,25 +101,28 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private final Integer createSessionRetryTimes = 5;
 
     @Value("${task.job.toggle.execution_timeout}")
-    private Boolean isJobTimeoutExecuteTimeout;
+    private Boolean isEnableJobTimeOut;
 
     @Value("${task.job.toggle.execution_create_session_duration}")
-    private Long jobExecuteTimeoutCreateSessionDuration;
+    private Long jobTimeOutOnCreateSession;
 
     @Value("${task.job.toggle.execution_running_duration}")
-    private Long jobExecuteTimeoutRunningDuration;
+    private Long jobTimeOutOnRunning;
 
     @Value(value = "${domain.api}")
     private String apiDomain;
+
+    @Autowired
+    private JobDao jobDao;
+
+    @Autowired
+    private JobNumberDao jobNumberDao;
 
     @Autowired
     private NodeResultService nodeResultService;
 
     @Autowired
     private JobNodeService jobNodeService;
-
-    @Autowired
-    private JobDao jobDao;
 
     @Autowired
     private GitService gitService;
@@ -140,7 +146,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private ThreadPoolTaskExecutor taskExecutor;
 
     @Override
-    public Job find(String flowName, Integer number) {
+    public Job find(String flowName, Long number) {
         Job job = jobDao.get(flowName, number);
         return find(job);
     }
@@ -157,7 +163,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public String findYml(String path, Integer number) {
+    public String findYml(String path, Long number) {
         Job job = find(path, number);
         return jobNodeService.find(job).getFile();
     }
@@ -171,7 +177,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    @Transactional(noRollbackFor = FlowException.class, isolation = Isolation.SERIALIZABLE)
+    @Transactional(noRollbackFor = FlowException.class)
     public Job createFromFlowYml(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         // verify flow yml status
         Node flow = nodeService.find(path).root();
@@ -299,11 +305,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     private Job createJob(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         Node root = nodeService.find(PathUtil.rootPath(path)).root();
-        if (root == null) {
+        if (Objects.isNull(root)) {
             throw new IllegalParameterException("Path does not existed");
         }
 
-        if (creator == null) {
+        if (Objects.isNull(creator)) {
             throw new IllegalParameterException("User is required while create job");
         }
 
@@ -318,11 +324,19 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
+        // increate flow job number
+        JobNumber jobNumber = jobNumberDao.get(root.getPath());
+        if (Objects.isNull(jobNumber)) {
+            throw new IllegalStatusException("Job number not been initialized");
+        }
+
+        jobNumber = jobNumberDao.increase(root.getPath());
+
         // create job
         Job job = new Job(CommonUtil.randomId());
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
-        job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
+        job.setNumber(jobNumber.getNumber());
         job.setCategory(eventType);
         job.setCreatedBy(creator.getEmail());
         job.setCreatedAt(ZonedDateTime.now());
@@ -548,12 +562,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public void enterQueue(CmdCallbackQueueItem cmdQueueItem, int priority) {
+    public void enqueue(CmdCallbackQueueItem cmdQueueItem, int priority) {
         cmdCallbackQueue.enqueue(PriorityMessage.create(cmdQueueItem.toBytes(), priority));
     }
 
     @Override
-    public Job stop(String path, Integer buildNumber) {
+    public Job stop(String path, Long buildNumber) {
         Job runningJob = find(path, buildNumber);
         NodeResult result = runningJob.getRootResult();
 
@@ -742,26 +756,41 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
+    public void checkTimeOut(Job job) {
+        if (Job.FINISH_STATUS.contains(job.getStatus())) {
+            return;
+        }
+
+        // check job is timeout when create session
+        if (job.getStatus() == JobStatus.SESSION_CREATING) {
+            boolean isTimeOut = DateUtil.isTimeOut(job.getCreatedAt(), ZonedDateTime.now(), jobTimeOutOnCreateSession);
+            if (isTimeOut) {
+                updateJobAndNodeResultTimeout(job);
+            }
+            return;
+        }
+
+        // check job is timeout when running
+        if (job.RUNNING_STATUS.contains(job.getStatus())) {
+            boolean isTimeOut = DateUtil.isTimeOut(job.getCreatedAt(), ZonedDateTime.now(), jobTimeOutOnRunning);
+            if (isTimeOut) {
+                updateJobAndNodeResultTimeout(job);
+            }
+        }
+    }
+
+    @Override
     @Scheduled(fixedDelay = 60 * 1000, initialDelay = 60 * 1000)
-    public void checkTimeoutTask() {
-        if (!isJobTimeoutExecuteTimeout) {
+    public void checkTimeOutTask() {
+        if (!isEnableJobTimeOut) {
             return;
         }
 
         LOGGER.trace("job timeout task start");
 
-        // job timeout on create session
-        ZonedDateTime finishZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutCreateSessionDuration);
-        List<Job> jobs = jobDao.listForExpired(finishZoneDateTime, JobStatus.SESSION_CREATING);
+        List<Job> jobs = jobDao.listByStatus(Job.RUNNING_STATUS);
         for (Job job : jobs) {
-            updateJobAndNodeResultTimeout(job);
-        }
-
-        // job timeout on running
-        ZonedDateTime finishRunningZoneDateTime = ZonedDateTime.now().minusSeconds(jobExecuteTimeoutRunningDuration);
-        List<Job> runningJobs = jobDao.listForExpired(finishRunningZoneDateTime, JobStatus.RUNNING);
-        for (Job job : runningJobs) {
-            updateJobAndNodeResultTimeout(job);
+            checkTimeOut(job);
         }
 
         LOGGER.trace("job timeout task end");
