@@ -16,9 +16,13 @@
 
 package com.flow.platform.api.context;
 
+import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.context.AbstractContextInitHandler;
 import com.flow.platform.core.context.SpringContext;
+import com.flow.platform.util.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,11 +31,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class ContextInitHandler extends AbstractContextInitHandler {
 
+    private static final Logger LOGGER = new Logger(ContextInitHandler.class);
+
     @Autowired
     private SpringContext springContext;
 
     @Override
     public SpringContext getSpringContext() {
         return springContext;
+    }
+
+    @Value("${jfiglet.message}")
+    private String tipMessage;
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        super.onApplicationEvent(event);
+
+        // show start success message
+        LOGGER.trace(CommonUtil.showJfigletMessage(tipMessage));
     }
 }
