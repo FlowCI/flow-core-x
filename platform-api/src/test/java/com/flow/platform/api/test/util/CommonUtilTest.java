@@ -18,6 +18,8 @@ package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.cmd.Log;
+import com.flow.platform.util.Logger;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 /**
  * @author yh@firim
@@ -56,5 +59,15 @@ public class CommonUtilTest extends TestBase {
 
         latch.await(30, TimeUnit.SECONDS);
         Assert.assertEquals(numOfIdPerThread * numOfThread, hashMap.size());
+    }
+
+
+    @Test
+    public void should_show_jfiglet_success() {
+        String message = CommonUtil.showJfigletMessage("Hello World");
+        Logger logger = new Logger(CommonUtilTest.class);
+        logger.trace(message);
+
+        Assert.assertNotNull(message);
     }
 }

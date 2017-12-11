@@ -31,6 +31,8 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public class CommonUtil {
 
+    private final static String LINE_BREAK = "\n";
+
     /**
      * random ordered id
      *
@@ -65,7 +67,7 @@ public class CommonUtil {
      */
     public static String showJfigletMessage(String message) {
         try {
-            return FigletFont.convertOneLine(message);
+            return LINE_BREAK + FigletFont.convertOneLine(message);
         } catch (Throwable throwable) {
             return "";
         }
