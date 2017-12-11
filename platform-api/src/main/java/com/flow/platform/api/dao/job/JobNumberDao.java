@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service;
+package com.flow.platform.api.dao.job;
 
-import org.springframework.core.io.Resource;
+import com.flow.platform.api.domain.job.JobNumber;
+import com.flow.platform.core.dao.BaseDao;
 
 /**
- * @author yh@firim
+ * @author yang
  */
-public interface LogService {
+public interface JobNumberDao extends BaseDao<String, JobNumber> {
 
-    /**
-     * get job log
-     */
-    String findNodeLog(String path, Long buildNumber, Integer stepOrder);
-
-    /**
-     * get full job log
-     */
-    Resource findJobLog(String path, Long buildNumber);
+    JobNumber increase(String path);
 
 }
