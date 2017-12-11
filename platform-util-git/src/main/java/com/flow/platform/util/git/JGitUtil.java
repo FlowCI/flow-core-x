@@ -238,8 +238,17 @@ public class JGitUtil {
         }
     }
 
+    /**
+     *
+     * @param path
+     * @return
+     * @throws GitException
+     */
     public static RevCommit latestCommit(Path path) throws GitException {
         List<RevCommit> commits = listCommits(path);
+        if (commits.isEmpty()) {
+            throw new GitException("Not found latest commit this branch, please confirm");
+        }
         return commits.get(0);
     }
 }
