@@ -376,7 +376,6 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void clean(Plugin plugin) {
-
         }
     }
 
