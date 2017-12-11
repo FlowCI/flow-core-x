@@ -140,4 +140,16 @@ public class JGitUtilTest {
         Assert.assertEquals("30b728df5bdd3c51f8e032e90542d5d19eecf0f3",
             JGitUtil.listCommits(folder.toPath()).get(0).getId().getName());
     }
+
+    @Test
+    public void should_get_latest_commitid_success() throws Throwable {
+        File folder = this.folder.newFolder("info");
+        JGitUtil.clone(GIT_URL, folder.toPath());
+        JGitUtil.fetchTags(folder.toPath(), ORIGIN);
+
+        JGitUtil.checkout(folder.toPath(), "v1.0");
+        Assert.assertEquals("ebc23db37df07069db39ad728288f5ef252298b8",
+            JGitUtil.latestCommit(folder.toPath()).getId().getName());
+
+    }
 }
