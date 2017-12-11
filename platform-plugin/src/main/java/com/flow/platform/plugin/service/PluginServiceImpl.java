@@ -50,6 +50,7 @@ import java.util.concurrent.Future;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -97,6 +98,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     private final List<Processor> processors = ImmutableList.of(
         new InitGitProcessor(),
         new FetchProcessor(),
+        new CompareCommitProcessor(),
         new AnalysisYmlProcessor(),
         new PushProcessor()
     );
@@ -306,7 +308,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                 try {
                     Files.createFile(emptyFilePath);
-                } catch (FileAlreadyExistsException ignore) { }
+                } catch (FileAlreadyExistsException ignore) {
+                }
 
                 git.add()
                     .addFilepattern(".")
@@ -343,6 +346,31 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             } catch (Throwable e) {
                 LOGGER.error("Git Fetch", e);
                 throw new PluginException("Git Fetch", e);
+            }
+        }
+
+        @Override
+        public void clean(Plugin plugin) {
+
+        }
+    }
+
+    private class CompareCommitProcessor implements Processor {
+
+        @Override
+        public void exec(Plugin plugin) {
+            try {
+                // first checkout tag branch
+                JGitUtil.checkout(gitCachePath(plugin), plugin.getTag());
+
+                // compare commit id is equal tag's latest commit id
+                RevCommit commit = JGitUtil.latestCommit(gitCachePath(plugin));
+
+                if (!Objects.equals(plugin.getLatestCommit(), commit.getId().getName())) {
+                    throw new PluginException("Tag's latest commit id is not user provided id");
+                }
+            } catch (GitException e) {
+                throw new PluginException("Jgit happens some errors " + e.getMessage());
             }
         }
 

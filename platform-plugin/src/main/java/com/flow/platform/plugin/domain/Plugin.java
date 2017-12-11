@@ -73,6 +73,9 @@ public class Plugin implements Comparable {
     private String description;
 
     @Expose
+    private String latestCommit;
+
+    @Expose
     private PluginDetail pluginDetail;
 
     public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
@@ -198,6 +201,14 @@ public class Plugin implements Comparable {
 
     public void setCurrentTag(String currentTag) {
         this.currentTag = currentTag;
+    }
+
+    public String getLatestCommit() {
+        return latestCommit;
+    }
+
+    public void setLatestCommit(String latestCommit) {
+        this.latestCommit = latestCommit;
     }
 
     @Override
