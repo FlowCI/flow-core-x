@@ -59,6 +59,8 @@ public class GitWebHookController extends NodeController {
 
     private final static Logger LOGGER = new Logger(GitWebHookController.class);
 
+    private final static String SKIP_SIGNAL = "[skip]";
+
     @Autowired
     private JobService jobService;
 
@@ -81,6 +83,11 @@ public class GitWebHookController extends NodeController {
         try {
             final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
             LOGGER.trace("Git Webhook received: %s", hookEvent.toString());
+
+            if (hookEvent.getTitle().contains(SKIP_SIGNAL)) {
+                LOGGER.trace("Skipped");
+                return;
+            }
 
             Node flow = nodeService.find(path).root();
 

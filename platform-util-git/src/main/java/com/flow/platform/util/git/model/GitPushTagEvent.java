@@ -196,4 +196,9 @@ public class GitPushTagEvent extends GitEvent {
     public void setCommits(List<GitEventCommit> commits) {
         this.commits = commits;
     }
+
+    @Override
+    public String getTitle() {
+        return message;
+    }
 }
