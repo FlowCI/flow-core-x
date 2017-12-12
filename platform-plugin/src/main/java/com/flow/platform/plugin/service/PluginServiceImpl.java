@@ -99,7 +99,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         new InitGitProcessor(),
         new FetchProcessor(),
         new CompareCommitProcessor(),
-        new AnalysisYmlProcessor(),
+//        new AnalysisYmlProcessor(),
         new PushProcessor()
     );
 
@@ -367,7 +367,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 RevCommit commit = JGitUtil.latestCommit(gitCachePath(plugin));
 
                 if (!Objects.equals(plugin.getLatestCommit(), commit.getId().getName())) {
-                    throw new PluginException("Tag's latest commit id is not user provided id");
+                    throw new PluginException("Tag's latest commit id is not user provided");
                 }
             } catch (GitException e) {
                 throw new PluginException("Jgit happens some errors " + e.getMessage());

@@ -300,7 +300,6 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public void sync(AgentPath agentPath) {
         Sync sync = syncs.get(agentPath);
-
         if (sync == null) {
             return;
         }
