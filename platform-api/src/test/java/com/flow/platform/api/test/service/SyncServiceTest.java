@@ -219,8 +219,8 @@ public class SyncServiceTest extends TestBase {
 
         // then: agent repo list size should be 2
         Assert.assertEquals(2, syncService.get(agent).getRepos().size());
-        Assert.assertEquals(new SyncRepo("A", "v1"), syncService.get(agent).getRepos().get(0));
-        Assert.assertEquals(new SyncRepo("B", "v2"), syncService.get(agent).getRepos().get(1));
+        Assert.assertTrue(syncService.get(agent).getRepos().contains(new SyncRepo("A", "v1")));
+        Assert.assertTrue(syncService.get(agent).getRepos().contains(new SyncRepo("B", "v2")));
 
         // then: should send delete session cmd and sync task queue size should be zero
         strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 3);

@@ -21,8 +21,8 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.queue.PlatformQueue;
 import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author yang
@@ -39,7 +39,7 @@ public class Sync {
      * Synced repo list for agent
      */
     @Expose
-    private List<SyncRepo> repos = new LinkedList<>();
+    private Set<SyncRepo> repos = new LinkedHashSet<>();
 
     /**
      * Agent sync event queue
@@ -62,7 +62,7 @@ public class Sync {
         return path;
     }
 
-    public List<SyncRepo> getRepos() {
+    public Set<SyncRepo> getRepos() {
         return repos;
     }
 
