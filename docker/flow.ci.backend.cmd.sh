@@ -11,21 +11,21 @@ fi
 
 # set mysql host, default 127.0.0.1
 if [[ ! -n $MYSQL_HOST ]]; then
-	export $MYSQL_HOST=127.0.0.1
+	export MYSQL_HOST=127.0.0.1
 fi
 
 # set default port, default is 2181
 if [[ ! -n $FLOW_ZOOKEEPER_PORT ]]; then
-    FLOW_ZOOKEEPER_PORT=2181
+    export FLOW_ZOOKEEPER_PORT=2181
 fi
 
 # set zookeeper is embedded or not, default is true
 if [[ ! -n $FLOW_ZOOKEEPER_EMBEDDED ]]; then
-    FLOW_ZOOKEEPER_EMBEDDED=true
+    export FLOW_ZOOKEEPER_EMBEDDED=true
 fi
 
 if [[ $FLOW_ZOOKEEPER_EMBEDDED = "true" ]]; then
-	FLOW_ZOOKEEPER_HOST=$FLOW_API_DOMAIN
+	export FLOW_ZOOKEEPER_HOST=$FLOW_API_DOMAIN
 else
 	if [[ ! -n $FLOW_ZOOKEEPER_HOST ]]; then
 		echo "Because you select auto define zookeeper, Please set FLOW_ZOOKEEPER_HOST"
