@@ -28,7 +28,7 @@ if [[ $FLOW_ZOOKEEPER_EMBEDDED = "true" ]]; then
 	FLOW_ZOOKEEPER_HOST=$FLOW_API_DOMAIN
 else
 	if [[ ! -n $FLOW_ZOOKEEPER_HOST ]]; then
-		echo "Becase you select auto defing zookeeper, Please set FLOW_ZOOKEEPER_HOST"
+		echo "Because you select auto define zookeeper, Please set FLOW_ZOOKEEPER_HOST"
 		exit 1;
 	fi
 fi
