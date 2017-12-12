@@ -18,15 +18,12 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.zk.ZKClient;
-import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
@@ -126,7 +123,7 @@ public class Config {
     }
 
     public static Path logDir() {
-        Path defaultPath = Paths.get(System.getenv("HOME"), "agent-log");
+        Path defaultPath = Paths.get(System.getenv("HOME"), ".flow-agent", "run-log");
         String pathStr = System.getProperty(PROP_LOG_DIR, defaultPath.toString());
 
         try {
@@ -142,7 +139,7 @@ public class Config {
     }
 
     public static String sudoPassword() {
-        return System.getProperty(PROP_SUDO_PASSWORD, "");
+        return System.getProperty(PROP_SUDO_PASSWORD, StringUtil.EMPTY);
     }
 
     public static AgentSettings agentSettings() {

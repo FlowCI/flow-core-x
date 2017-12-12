@@ -72,7 +72,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private final static Logger LOGGER = new Logger(PluginService.class);
 
-    private final static String YML_FILE_NAME = "flow-step.yml";
+    private final static String YML_FILE_NAME = ".flow-plugin.yml";
 
     private final static String MASTER_BRANCH = "master";
 
