@@ -39,7 +39,10 @@ import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -86,6 +89,8 @@ public class SyncServiceImpl implements SyncService {
     @Value("${domain.api}")
     private String apiDomain;
 
+    private Set<SyncRepo> repos = Collections.emptySet();
+
     private String callbackUrl;
 
     @PostConstruct
@@ -95,6 +100,7 @@ public class SyncServiceImpl implements SyncService {
         taskExecutor.execute(() -> {
             try {
                 LOGGER.trace("Start to init agent list in thread: " + Thread.currentThread().getName());
+                load();
 
                 List<Agent> agents = agentService.list();
                 for (Agent agent : agents) {
@@ -110,6 +116,32 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
+    public void load() {
+        final List<Repository> gitRepos = gitService.repos();
+        repos = new HashSet<>(gitRepos.size());
+
+        for (Repository repo : gitRepos) {
+            try {
+                List<String> tags = JGitUtil.tags(repo);
+                String gitRepoName = repo.getDirectory().getName();
+
+                // git repo needs tags
+                if (tags.isEmpty()) {
+                    LOGGER.warn("Git repo '%s' cannot be synced since missing tag", gitRepoName);
+                    continue;
+                }
+
+                gitRepoName = StringUtil.trimEnd(gitRepoName, ".git");
+                repos.add(new SyncRepo(gitRepoName, tags.get(0)));
+            } catch (GitException e) {
+                LOGGER.warn(e.getMessage());
+            } finally {
+                repo.close();
+            }
+        }
+    }
+
+    @Override
     public void put(SyncEvent event) {
         for (Sync syncForAgent : syncs.values()) {
             syncForAgent.enqueue(event, DEFAULT_SYNC_QUEUE_PRIORITY);
@@ -118,7 +150,7 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public void reset() {
-        List<SyncEvent> events = initSyncEventFromGitWorkspace();
+        List<SyncEvent> events = toEvents(repos, SyncType.CREATE);
         events.add(0, SyncEvent.DELETE_ALL);
 
         Set<Sync> cleanSet = new HashSet<>(syncs.size());
@@ -162,8 +194,7 @@ public class SyncServiceImpl implements SyncService {
         syncs.put(agent, sync);
 
         // init sync event from git
-        List<SyncEvent> syncEvents = initSyncEventFromGitWorkspace();
-        for (SyncEvent event : syncEvents) {
+        for (SyncEvent event : toEvents(repos, SyncType.CREATE)) {
             sync.enqueue(event, DEFAULT_SYNC_QUEUE_PRIORITY);
         }
     }
@@ -337,34 +368,12 @@ public class SyncServiceImpl implements SyncService {
         return syncEventQueue;
     }
 
-    /**
-     * Load sync event from git repo
-     */
-    private List<SyncEvent> initSyncEventFromGitWorkspace() {
-        List<Repository> repos = gitService.repos();
-        List<SyncEvent> syncEvents = new ArrayList<>(repos.size());
-
-        for (Repository repo : repos) {
-            try {
-                List<String> tags = JGitUtil.tags(repo);
-                String gitRepoName = repo.getDirectory().getName();
-
-                // git repo needs tags
-                if (tags.isEmpty()) {
-                    LOGGER.warn("Git repo '%s' cannot be synced since missing tag", gitRepoName);
-                    continue;
-                }
-
-                gitRepoName = StringUtil.trimEnd(gitRepoName, ".git");
-                syncEvents.add(new SyncEvent(createGitUrl(gitRepoName), gitRepoName, tags.get(0), SyncType.CREATE));
-            } catch (GitException e) {
-                LOGGER.warn(e.getMessage());
-            } finally {
-                repo.close();
-            }
+    private List<SyncEvent> toEvents(Collection<SyncRepo> repos, SyncType syncType) {
+        List<SyncEvent> events = new LinkedList<>();
+        for (SyncRepo repo : repos) {
+            events.add(new SyncEvent(createGitUrl(repo.getName()), repo.getName(), repo.getTag(), syncType));
         }
-
-        return syncEvents;
+        return events;
     }
 
     private String createGitUrl(String repoName) {

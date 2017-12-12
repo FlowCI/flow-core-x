@@ -141,6 +141,7 @@ public class SyncServiceTest extends TestBase {
         FileUtils.copyDirectoryToDirectory(path, gitWorkspace.toFile());
 
         // when: register agent to sync service
+        syncService.load();
         syncService.register(agents.get(0));
         syncService.register(agents.get(1));
 
@@ -175,6 +176,7 @@ public class SyncServiceTest extends TestBase {
 
         // and: register agent to sync service
         AgentPath agent = agents.get(0);
+        syncService.load();
         syncService.register(agent);
         Assert.assertEquals(1, syncService.get(agent).queueSize());
 

@@ -43,6 +43,11 @@ public interface SyncService {
     }
 
     /**
+     * Load and init repos from file system
+     */
+    void load();
+
+    /**
      * Put sync event to event queue
      */
     void put(SyncEvent event);
