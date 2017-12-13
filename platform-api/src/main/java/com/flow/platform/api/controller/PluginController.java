@@ -179,7 +179,7 @@ public class PluginController {
      *   }
      */
     @PostMapping("/refresh")
-    public void reload() {
+    public void refresh() {
         pluginStoreService.refreshCache();
     }
 
