@@ -351,7 +351,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 JGitUtil.fetchTags(gitCachePath(plugin), ORIGIN_REMOTE);
             } catch (Throwable e) {
                 LOGGER.error("Git Fetch", e);
-                throw new PluginException("Git Fetch", e);
+                throw new PluginException(e.getMessage());
             }
         }
 
@@ -378,7 +378,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                     throw new PluginException("Tag's latest commit id is not user provided");
                 }
             } catch (GitException e) {
-                throw new PluginException("Jgit happens some errors " + e.getMessage());
+                throw new PluginException(e.getMessage());
             }
         }
 
@@ -407,13 +407,14 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                     // return to master branch
                     JGitUtil.checkout(gitCachePath(plugin), MASTER_BRANCH);
-                } else {
-                    throw new PluginException("not found Yml Plugin file");
+                    return;
                 }
 
+                throw new PluginException("The plugin description file '" + YML_FILE_NAME + "' is missing");
+
             } catch (Throwable throwable) {
-                LOGGER.traceMarker("AnalysisYmlProcessor", "Found Exception " + throwable.getMessage());
-                throw new PluginException("AnalysisYmlProcessor Exception" + throwable.getMessage());
+                LOGGER.warnMarker("AnalysisYmlProcessor", "Found Exception " + throwable.getMessage());
+                throw new PluginException(throwable.getMessage());
             }
         }
 
@@ -452,7 +453,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private class InstallRunnable implements Runnable {
 
-        private Plugin plugin;
+        private final Plugin plugin;
 
         public InstallRunnable(Plugin plugin) {
             this.plugin = plugin;
