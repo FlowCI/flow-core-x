@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import org.apache.commons.io.Charsets;
@@ -72,7 +73,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private final static Logger LOGGER = new Logger(PluginService.class);
 
-    private final static String YML_FILE_NAME = "flow-step.yml";
+    private final static String YML_FILE_NAME = ".flow-plugin.yml";
 
     private final static String MASTER_BRANCH = "master";
 
@@ -99,7 +100,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         new InitGitProcessor(),
         new FetchProcessor(),
         new CompareCommitProcessor(),
-        new AnalysisYmlProcessor(),
+//        new AnalysisYmlProcessor(),
         new PushProcessor()
     );
 
@@ -109,8 +110,13 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     }
 
     @Override
-    public Collection<Plugin> list(PluginStatus... statuses) {
-        return pluginDao.list(statuses);
+    public Collection<Plugin> list(Set<PluginStatus> status, String keyword, Set<String> labels) {
+        return pluginDao.list(status, keyword, labels);
+    }
+
+    @Override
+    public Collection<String> labels() {
+        return pluginDao.labels();
     }
 
     @Override
@@ -340,12 +346,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("FetchProcessor", "Start Fetch Tags");
+            LOGGER.traceMarker("FetchProcessor", "Fetch tags");
             try {
                 JGitUtil.fetchTags(gitCachePath(plugin), ORIGIN_REMOTE);
             } catch (Throwable e) {
                 LOGGER.error("Git Fetch", e);
-                throw new PluginException("Git Fetch", e);
+                throw new PluginException(e.getMessage());
             }
         }
 
@@ -359,6 +365,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
+            LOGGER.traceMarker("CompareCommitProcessor", "Compare commit id");
+
             try {
                 // first checkout tag branch
                 JGitUtil.checkout(gitCachePath(plugin), plugin.getTag());
@@ -367,10 +375,10 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 RevCommit commit = JGitUtil.latestCommit(gitCachePath(plugin));
 
                 if (!Objects.equals(plugin.getLatestCommit(), commit.getId().getName())) {
-                    throw new PluginException("Tag's latest commit id is not user provided id");
+                    throw new PluginException("Tag's latest commit id is not user provided");
                 }
             } catch (GitException e) {
-                throw new PluginException("Jgit happens some errors " + e.getMessage());
+                throw new PluginException(e.getMessage());
             }
         }
 
@@ -383,7 +391,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("AnalysisYmlProcessor", "Start Analysis Yml");
+            LOGGER.traceMarker("AnalysisYmlProcessor", "Analysis YML");
+
             try {
                 // first checkout plugin tag
                 JGitUtil.checkout(gitCachePath(plugin), plugin.getTag());
@@ -398,13 +407,14 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                     // return to master branch
                     JGitUtil.checkout(gitCachePath(plugin), MASTER_BRANCH);
-                } else {
-                    throw new PluginException("not found Yml Plugin file");
+                    return;
                 }
 
+                throw new PluginException("The plugin description file '" + YML_FILE_NAME + "' is missing");
+
             } catch (Throwable throwable) {
-                LOGGER.traceMarker("AnalysisYmlProcessor", "Found Exception " + throwable.getMessage());
-                throw new PluginException("AnalysisYmlProcessor Exception" + throwable.getMessage());
+                LOGGER.warnMarker("AnalysisYmlProcessor", "Found Exception " + throwable.getMessage());
+                throw new PluginException(throwable.getMessage());
             }
         }
 
@@ -419,7 +429,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("PushProcessor", "Start Push Tags");
+            LOGGER.traceMarker("PushProcessor", "Push tags to local");
+
             try {
                 // put from cache to local git workspace
                 Path cachePath = gitCachePath(plugin);
@@ -442,7 +453,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private class InstallRunnable implements Runnable {
 
-        private Plugin plugin;
+        private final Plugin plugin;
 
         public InstallRunnable(Plugin plugin) {
             this.plugin = plugin;

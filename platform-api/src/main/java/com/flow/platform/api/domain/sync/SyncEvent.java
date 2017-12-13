@@ -19,6 +19,7 @@ package com.flow.platform.api.domain.sync;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.StringUtil;
+import com.google.gson.annotations.Expose;
 
 /**
  * @author yang
@@ -44,11 +45,13 @@ public class SyncEvent extends Jsonable {
     /**
      * Repo name and tag
      */
+    @Expose
     private SyncRepo repo;
 
     /**
      * Sync type
      */
+    @Expose
     private SyncType syncType;
 
     public SyncEvent(String gitUrl, String name, String tag, SyncType syncType) {

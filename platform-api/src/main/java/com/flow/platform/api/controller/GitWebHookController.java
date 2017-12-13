@@ -35,6 +35,7 @@ import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventType;
+import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 import java.io.IOException;
 import java.util.Map;
@@ -84,7 +85,8 @@ public class GitWebHookController extends NodeController {
             final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
             LOGGER.trace("Git Webhook received: %s", hookEvent.toString());
 
-            if (hookEvent.getTitle().contains(SKIP_SIGNAL)) {
+            String title = hookEvent.getTitle();
+            if (!Strings.isNullOrEmpty(title) && title.contains(SKIP_SIGNAL)) {
                 LOGGER.trace("Skipped");
                 return;
             }

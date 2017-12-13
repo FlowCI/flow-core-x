@@ -2,6 +2,7 @@ package com.flow.platform.plugin.test.util;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.util.FileUtil;
+import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -33,13 +34,11 @@ public class FileUtilTest {
 
         Path filePath = Paths.get(basePath.toString(), ".cache");
 
-        Plugin plugin = new Plugin("test", "test", Arrays.asList("1", "2"), "a", Arrays.asList("a"));
+        Plugin plugin = new Plugin("test", "test", Sets.newHashSet("1", "2"), "hello@flow.ci", Sets.newHashSet("a"));
         FileUtil.write(plugin, filePath);
 
         Plugin rPlugin = FileUtil.read(Plugin.class, filePath);
-
         Assert.assertEquals(plugin.getName(), rPlugin.getName());
-
         cleanFile(basePath);
     }
 
@@ -51,7 +50,7 @@ public class FileUtilTest {
         Path filePath = Paths.get(basePath.toString(), ".cache");
 
         Map<String, Plugin> map = new HashMap<>();
-        Plugin plugin = new Plugin("test", "test", Arrays.asList("1", "2"), "a", Arrays.asList("a"));
+        Plugin plugin = new Plugin("test", "test", Sets.newHashSet("1", "2"), "hello@flow.ci", Sets.newHashSet("a"));
         map.put(plugin.getName(), plugin);
         FileUtil.write(map, filePath);
 

@@ -21,8 +21,8 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.queue.PlatformQueue;
 import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author yang
@@ -36,10 +36,10 @@ public class Sync {
     private AgentPath path;
 
     /**
-     * Existing repo list for agent
+     * Synced repo list for agent
      */
     @Expose
-    private List<SyncRepo> repos = new ArrayList<>();
+    private Set<SyncRepo> repos = new LinkedHashSet<>();
 
     /**
      * Agent sync event queue
@@ -62,24 +62,29 @@ public class Sync {
         return path;
     }
 
-    public void setPath(AgentPath path) {
-        this.path = path;
-    }
-
-    public List<SyncRepo> getRepos() {
+    public Set<SyncRepo> getRepos() {
         return repos;
     }
 
-    public void setRepos(List<SyncRepo> repos) {
-        this.repos = repos;
+    public void enqueue(SyncEvent event, Integer priority) {
+        this.queue.enqueue(PriorityMessage.create(event.toBytes(), priority));
     }
 
-    public PlatformQueue<PriorityMessage> getQueue() {
-        return queue;
+    public SyncEvent dequeue() {
+        PriorityMessage message = this.queue.dequeue();
+        if (message == null) {
+            return null;
+        }
+
+        return SyncEvent.parse(message.getBody(), SyncEvent.class);
     }
 
-    public void setQueue(PlatformQueue<PriorityMessage> queue) {
-        this.queue = queue;
+    public void cleanQueue() {
+        this.queue.clean();
+    }
+
+    public int queueSize() {
+        return this.queue.size();
     }
 
     public ZonedDateTime getSyncTime() {

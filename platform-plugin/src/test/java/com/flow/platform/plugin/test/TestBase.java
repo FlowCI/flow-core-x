@@ -136,7 +136,7 @@ public abstract class TestBase {
         }
 
         // update plugin to local git
-        for (Plugin plugin : pluginDao.list()) {
+        for (Plugin plugin : pluginDao.list(null, null, null)) {
             plugin.setDetails(mocGit.getParent() + "/firCi");
             plugin.setLatestCommit(commit.getId().getName());
             pluginDao.update(plugin);

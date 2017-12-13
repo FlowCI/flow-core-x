@@ -33,17 +33,14 @@ import com.flow.platform.domain.Zone;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Executor;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
-import org.apache.zookeeper.ZKUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -67,9 +64,6 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
     @Autowired
     private AgentSettings agentSettings;
-
-    @Autowired
-    private Executor taskExecutor;
 
     @Autowired
     private SpringContext springContext;
