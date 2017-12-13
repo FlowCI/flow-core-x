@@ -115,6 +115,11 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     }
 
     @Override
+    public Collection<String> labels() {
+        return pluginDao.labels();
+    }
+
+    @Override
     public void install(String pluginName) {
         Plugin plugin = find(pluginName);
 

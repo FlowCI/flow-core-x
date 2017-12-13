@@ -61,22 +61,17 @@ public class PluginServiceTest extends TestBase {
 
     @Test
     public void should_get_plugins_success() {
-
         // when: get plugins list
         Collection<Plugin> pluginList = pluginService.list(null, null, null);
 
         // then: pluginList not null
         Assert.assertNotNull(pluginList);
+        Assert.assertEquals(1, pluginService.labels().size());
 
         // then: pluginList size is not 0
         Assert.assertNotEquals(0, pluginList.size());
-
         Assert.assertEquals(8, pluginList.size());
-
-        // then: pluginList size is 2
-        Assert.assertEquals(false, pluginList.isEmpty());
     }
-
 
     @Test
     public void should_update_success() {

@@ -40,6 +40,11 @@ public interface PluginService {
     Collection<Plugin> list(Set<PluginStatus> status, String keyword, Set<String> labels);
 
     /**
+     * List unique labels
+     */
+    Collection<String> labels();
+
+    /**
      * install plugin
      */
     void install(String name);

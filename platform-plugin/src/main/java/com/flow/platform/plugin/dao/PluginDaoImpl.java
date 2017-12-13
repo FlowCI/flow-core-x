@@ -24,6 +24,8 @@ import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
@@ -64,6 +66,11 @@ public class PluginDaoImpl implements PluginDao {
 
     private Map<String, Plugin> pluginCache = new ConcurrentHashMap<>();
 
+    /**
+     * Unique label list
+     */
+    private Set<String> allLabels = Collections.emptySet();
+
     @Autowired
     private Path gitWorkspace;
 
@@ -82,8 +89,12 @@ public class PluginDaoImpl implements PluginDao {
     public void refreshCache() {
         List<Plugin> plugins = doFetchPlugins();
 
+        allLabels = new HashSet<>(plugins.size() * 2);
+
         for (Plugin plugin : plugins) {
             Plugin cached = pluginCache.get(plugin.getName());
+
+            allLabels.addAll(plugin.getLabels());
 
             // only update no plugins
             if (Objects.isNull(cached)) {
@@ -148,6 +159,11 @@ public class PluginDaoImpl implements PluginDao {
         });
 
         return list;
+    }
+
+    @Override
+    public Set<String> labels() {
+        return ImmutableSet.<String>builder().addAll(allLabels).build();
     }
 
     @Override

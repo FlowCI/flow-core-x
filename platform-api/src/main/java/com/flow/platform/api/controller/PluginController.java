@@ -117,6 +117,27 @@ public class PluginController {
     }
 
     /**
+     * @api {Get} /plugins/labels Labels
+     * @apiName Labels
+     * @apiGroup Plugin
+     * @apiDescription List unique label for all plugin
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     ["fir", "database"]
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
+    @GetMapping("/labels")
+    public Collection<String> labels() {
+        return pluginService.labels();
+    }
+
+    /**
      * @api {Get} /plugins/{name} Get
      * @apiName Get
      * @apiParam {String} name plugin name

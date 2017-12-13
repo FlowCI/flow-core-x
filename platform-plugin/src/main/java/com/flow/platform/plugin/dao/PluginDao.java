@@ -32,6 +32,12 @@ public interface PluginDao {
     Set<Plugin> list(Set<PluginStatus> status, String keyword, Set<String> labels);
 
     /**
+     * List unique labels
+     * @return
+     */
+    Set<String> labels();
+
+    /**
      * find plugin
      * @param name
      * @return
