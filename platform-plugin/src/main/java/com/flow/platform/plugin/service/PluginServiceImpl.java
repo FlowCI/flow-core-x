@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import org.apache.commons.io.Charsets;
@@ -109,8 +110,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     }
 
     @Override
-    public Collection<Plugin> list(PluginStatus... statuses) {
-        return pluginDao.list(statuses);
+    public Collection<Plugin> list(Set<PluginStatus> status, String keyword, Set<String> labels) {
+        return pluginDao.list(status, keyword, labels);
     }
 
     @Override

@@ -63,7 +63,7 @@ public class PluginServiceTest extends TestBase {
     public void should_get_plugins_success() {
 
         // when: get plugins list
-        Collection<Plugin> pluginList = pluginService.list();
+        Collection<Plugin> pluginList = pluginService.list(null, null, null);
 
         // then: pluginList not null
         Assert.assertNotNull(pluginList);

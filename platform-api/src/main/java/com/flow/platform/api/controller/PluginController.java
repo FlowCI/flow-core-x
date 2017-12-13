@@ -17,6 +17,7 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.permission.Actions;
+import com.flow.platform.api.domain.request.PluginListParam;
 import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.domain.sync.SyncTask;
@@ -76,6 +77,13 @@ public class PluginController {
      * @apiGroup Plugin
      * @apiDescription List all plugins
      *
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         status: ["INSTALLED"],
+     *         labels: ["fir"],
+     *         keyword: "xxxxx"
+     *     }
+     *
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     [
@@ -84,6 +92,8 @@ public class PluginController {
      *              "details": http://github.com/fir/fir-cli,
      *              "labels": ["fir", "plugin"],
      *              "author": xx@fir.im,
+     *              "tag": "1.4.9"
+     *              "currentTag": "1.5.0",
      *              "platform": ["windows", "mac"],
      *              "status": "INSTALLED" | "PENDING" | "IN_QUEUE" | "INSTALLING"
      *          },
@@ -97,9 +107,13 @@ public class PluginController {
      *         "message": xxx
      *     }
      */
-    @GetMapping
-    public Collection<Plugin> index() {
-        return pluginService.list();
+    @PostMapping
+    public Collection<Plugin> index(@RequestBody(required = false) PluginListParam param) {
+        if (param == null) {
+            param = new PluginListParam();
+        }
+
+        return pluginService.list(param.getStatus(), param.getKeyword(), param.getLabels());
     }
 
     /**

@@ -43,7 +43,7 @@ public class Plugin implements Comparable {
 
     // plugin labels
     @Expose
-    private List<String> labels;
+    private Set<String> labels;
 
     // plugin author
     @Expose
@@ -51,7 +51,7 @@ public class Plugin implements Comparable {
 
     // plugin support platform
     @Expose
-    private List<String> platform;
+    private Set<String> platform;
 
     // plugin status
     @Expose
@@ -62,6 +62,7 @@ public class Plugin implements Comparable {
     private String tag;
 
     // current used Tag
+    // TODO
     @Expose
     private String currentTag;
 
@@ -78,7 +79,7 @@ public class Plugin implements Comparable {
     @Expose
     private PluginDetail pluginDetail;
 
-    public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
+    public Plugin(String name, String details, Set<String> label, String author, Set<String> platform) {
         this.name = name;
         this.details = details;
         this.labels = label;
@@ -86,8 +87,8 @@ public class Plugin implements Comparable {
         this.platform = platform;
     }
 
-    public Plugin(String name, String details, List<String> labels, String author,
-                  List<String> platform, PluginStatus status, String tag) {
+    public Plugin(String name, String details, Set<String> labels, String author,
+                  Set<String> platform, PluginStatus status, String tag) {
         this.name = name;
         this.details = details;
         this.labels = labels;
@@ -126,11 +127,11 @@ public class Plugin implements Comparable {
         this.details = details;
     }
 
-    public List<String> getLabels() {
+    public Set<String> getLabels() {
         return labels;
     }
 
-    public void setLabels(List<String> labels) {
+    public void setLabels(Set<String> labels) {
         this.labels = labels;
     }
 
@@ -142,7 +143,7 @@ public class Plugin implements Comparable {
         this.author = author;
     }
 
-    public List<String> getPlatform() {
+    public Set<String> getPlatform() {
         return platform;
     }
 
@@ -154,7 +155,7 @@ public class Plugin implements Comparable {
         this.status = status;
     }
 
-    public void setPlatform(List<String> platform) {
+    public void setPlatform(Set<String> platform) {
         this.platform = platform;
     }
 

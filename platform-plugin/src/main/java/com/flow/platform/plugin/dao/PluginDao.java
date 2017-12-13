@@ -18,7 +18,7 @@ package com.flow.platform.plugin.dao;
 
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author yh@firim
@@ -29,7 +29,7 @@ public interface PluginDao {
      * list all plugins
      * @return
      */
-    List<Plugin> list(PluginStatus... status);
+    Set<Plugin> list(Set<PluginStatus> status, String keyword, Set<String> labels);
 
     /**
      * find plugin

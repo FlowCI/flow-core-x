@@ -19,6 +19,7 @@ package com.flow.platform.plugin.service;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author yh@firim
@@ -36,7 +37,7 @@ public interface PluginService {
     /**
      * show plugin list
      */
-    Collection<Plugin> list(PluginStatus... statuses);
+    Collection<Plugin> list(Set<PluginStatus> status, String keyword, Set<String> labels);
 
     /**
      * install plugin
