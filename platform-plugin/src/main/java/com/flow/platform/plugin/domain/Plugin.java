@@ -167,11 +167,6 @@ public class Plugin implements Comparable {
         this.description = description;
     }
 
-    @Override
-    public int compareTo(Object o) {
-        return 0;
-    }
-
     public String getTag() {
         return tag;
     }
@@ -210,6 +205,11 @@ public class Plugin implements Comparable {
 
     public void setLatestCommit(String latestCommit) {
         this.latestCommit = latestCommit;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return 0;
     }
 
     @Override

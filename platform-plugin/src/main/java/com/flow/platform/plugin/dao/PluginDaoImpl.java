@@ -23,10 +23,7 @@ import com.flow.platform.plugin.util.FileUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 import com.google.common.reflect.TypeToken;
@@ -40,8 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -150,7 +145,6 @@ public class PluginDaoImpl implements PluginDao {
             if (Objects.isNull(keyword)) {
                 return;
             }
-
 
             if (!plugin.getName().contains(keyword) && !plugin.getDescription().contains(keyword)) {
                 list.add(plugin);

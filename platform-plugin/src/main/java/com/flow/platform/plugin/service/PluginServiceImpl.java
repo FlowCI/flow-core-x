@@ -346,7 +346,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("FetchProcessor", "Start Fetch Tags");
+            LOGGER.traceMarker("FetchProcessor", "Fetch tags");
             try {
                 JGitUtil.fetchTags(gitCachePath(plugin), ORIGIN_REMOTE);
             } catch (Throwable e) {
@@ -365,6 +365,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
+            LOGGER.traceMarker("CompareCommitProcessor", "Compare commit id");
+
             try {
                 // first checkout tag branch
                 JGitUtil.checkout(gitCachePath(plugin), plugin.getTag());
@@ -389,7 +391,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("AnalysisYmlProcessor", "Start Analysis Yml");
+            LOGGER.traceMarker("AnalysisYmlProcessor", "Analysis YML");
+
             try {
                 // first checkout plugin tag
                 JGitUtil.checkout(gitCachePath(plugin), plugin.getTag());
@@ -425,7 +428,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("PushProcessor", "Start Push Tags");
+            LOGGER.traceMarker("PushProcessor", "Push tags to local");
+
             try {
                 // put from cache to local git workspace
                 Path cachePath = gitCachePath(plugin);
