@@ -69,43 +69,141 @@ public class PluginController {
     @Autowired
     private AgentService agentService;
 
+    /**
+     * @api {Get} /plugins List
+     * @apiName List
+     * @apiParam {String} name plugin name
+     * @apiGroup Plugin
+     * @apiDescription List all plugins
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     [
+     *          {
+     *              "name": fir-cli,
+     *              "details": http://github.com/fir/fir-cli,
+     *              "labels": ["fir", "plugin"],
+     *              "author": xx@fir.im,
+     *              "platform": ["windows", "mac"],
+     *              "status": "INSTALLED" | "PENDING" | "IN_QUEUE" | "INSTALLING"
+     *          },
+     *
+     *          ....
+     *     ]
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
     @GetMapping
     public Collection<Plugin> index() {
         return pluginService.list();
     }
 
+    /**
+     * @api {Get} /plugins/{name} Get
+     * @apiName Get
+     * @apiParam {String} name plugin name
+     * @apiGroup Plugin
+     * @apiDescription Get plugin detail
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *         "name": fir-cli,
+     *         "details": http://github.com/fir/fir-cli,
+     *         "labels": ["fir", "plugin"],
+     *         "author": xx@fir.im,
+     *         "platform": ["windows", "mac"],
+     *         "status": "INSTALLED" | "PENDING" | "IN_QUEUE" | "INSTALLING"
+     *     }
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
     @GetMapping("/{name}")
     public Plugin get(@PathVariable String name) {
         return pluginService.find(name);
     }
 
-    @PostMapping("/sync")
-    public void sync() {
+    /**
+     * @api {Post} /plugins/refresh Refresh
+     * @apiName Refresh
+     * @apiGroup Plugin
+     * @apiDescription Reload plugin list from main git repo
+     *
+     * @apiErrorExample {json} Error-Response:
+     *   HTTP/1.1 400
+     *   {
+     *      "message": xxx
+     *   }
+     */
+    @PostMapping("/refresh")
+    public void reload() {
         pluginStoreService.refreshCache();
     }
 
-    @PostMapping(path = "/reset")
-    public void reset() {
-        syncService.reset();
-    }
-
-    @PostMapping("/install")
-    public void install(@RequestParam String name) {
+    /**
+     * @api {Post} /plugins/install/{name} Install
+     * @apiName Install
+     * @apiParam {String} name plugin name
+     * @apiGroup Plugin
+     * @apiDescription Install plugin
+     *
+     * @apiErrorExample {json} Error-Response:
+     *  HTTP/1.1 400
+     *  {
+     *      "message": xxx
+     *  }
+     */
+    @PostMapping("/install/{name}")
+    public void install(@PathVariable String name) {
         if (Objects.isNull(name)) {
             throw new IllegalParameterException("plugin name is null");
         }
         pluginService.install(name);
     }
 
-    @DeleteMapping("/uninstall")
-    public void uninstall(@RequestParam String name) {
+    /**
+     * @api {Delete} /plugins/uninstall/{name} Uninstall
+     * @apiName Uninstall
+     * @apiParam {String} name plugin name
+     * @apiGroup Plugin
+     * @apiDescription Uninstall plugin
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
+    @DeleteMapping("/uninstall/{name}")
+    public void uninstall(@PathVariable String name) {
         if (Objects.isNull(name)) {
             throw new IllegalParameterException("plugin name is null");
         }
         pluginService.uninstall(name);
     }
 
-    @PostMapping("/{name}/stop")
+    /**
+     * @api {Post} /plugins/stop/{name} Stop
+     * @apiName Stop
+     * @apiParam {String} name plugin name
+     * @apiGroup Plugin
+     * @apiDescription Stop install plugin
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 400
+     *     {
+     *         "message": xxx
+     *     }
+     */
+    @PostMapping("/stop/{name}")
     public void stop(@PathVariable String name) {
         if (Objects.isNull(name)) {
             throw new IllegalParameterException("plugin name is null");
@@ -113,16 +211,17 @@ public class PluginController {
         pluginService.stop(name);
     }
 
-
     /**
      * @api {Post} /plugins/sync Sync
      * @apiName Sync
-     * @apiParam [String] agent Agent name ex: zone#name, for all agents if its not defined
      * @apiGroup Plugin
      * @apiDescription Sync plugin to agent
      *
-     * @apiSuccessExample {json} Success-Response:
-     *     HTTP/1.1 200 OK
+     * @apiParamExample {json} Request-Example:
+     *     {
+     *         zone: xxx,
+     *         name: xxx
+     *     }
      *
      * @apiErrorExample {json} Error-Response:
      *     HTTP/1.1 400
@@ -150,7 +249,7 @@ public class PluginController {
      * @api {Post} /plugins/sync/progress In Progress List
      * @apiName In Progress List
      * @apiGroup Plugin
-     * @apiDescription Get sync info of agent
+     * @apiDescription Plugin list which been not syned on agent but in progress
      *
      * @apiParamExample {json} Request-Example:
      *     {
@@ -186,7 +285,7 @@ public class PluginController {
      */
     @PostMapping(path = "/sync/progress")
     @WebSecurity(action = Actions.ADMIN_SHOW)
-    public Map<String, SyncTask> getSyncProgress(@RequestBody(required = false) AgentPath path) {
+    public Map<String, SyncTask> getProgressList(@RequestBody(required = false) AgentPath path) {
         if (!Objects.isNull(path) && !path.isEmpty()) {
             SyncTask syncTask = syncService.getSyncTask(path);
             if (Objects.isNull(syncTask)) {
@@ -213,10 +312,10 @@ public class PluginController {
     }
 
     /**
-     * @api {Post} /plugins/sync/installed Installed List
-     * @apiName Installed List
+     * @api {Post} /plugins/sync/synced Synced List
+     * @apiName Synced List
      * @apiGroup Plugin
-     * @apiDescription Plugin installed list for agent
+     * @apiDescription Installed plugin list for agent
      *
      * @apiParamExample {json} Request-Example:
      *     {
@@ -241,9 +340,9 @@ public class PluginController {
      *         "message": xxx
      *     }
      */
-    @PostMapping(path = "/sync/installed")
+    @PostMapping(path = "/sync/synced")
     @WebSecurity(action = Actions.ADMIN_SHOW)
-    public Map<String, Set<SyncRepo>> getInstalledPlugin(@RequestBody(required = false) AgentPath path) {
+    public Map<String, Set<SyncRepo>> getSyncedList(@RequestBody(required = false) AgentPath path) {
         if (!Objects.isNull(path) && !path.isEmpty()) {
             Sync sync = syncService.get(path);
             if (Objects.isNull(sync)) {
