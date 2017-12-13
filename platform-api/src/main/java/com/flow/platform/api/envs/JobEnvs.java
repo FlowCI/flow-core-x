@@ -43,7 +43,12 @@ public enum JobEnvs implements EnvKey {
     /**
      * The last step status: values in {@code NodeStatus}
      */
-    FLOW_JOB_LAST_STATUS;
+    FLOW_JOB_LAST_STATUS,
+
+    /**
+     * The job cmd timeout in seconds
+     */
+    FLOW_JOB_CMD_TIMEOUT(false, true);
 
     private boolean readonly;
 
@@ -54,6 +59,12 @@ public enum JobEnvs implements EnvKey {
     JobEnvs() {
         this.readonly = true;
         this.editable = false;
+        this.values = null;
+    }
+
+    JobEnvs(boolean readonly, boolean editable) {
+        this.readonly = readonly;
+        this.editable = editable;
         this.values = null;
     }
 

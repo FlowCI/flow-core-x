@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.AgentEnvs;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.JobEnvs;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -52,6 +53,8 @@ import org.springframework.stereotype.Service;
 public class CmdServiceImpl implements CmdService {
 
     private final static Logger LOGGER = new Logger(CmdService.class);
+
+    private final static String DEFAULT_CMD_TIMEOUT = "3600";
 
     private final int httpRetryTimes = 5;
 
@@ -109,6 +112,13 @@ public class CmdServiceImpl implements CmdService {
 
         String outputFilter = envVars.getEnv(FlowEnvs.FLOW_ENV_OUTPUT_PREFIX, "FLOW_OUTPUT");
         cmdInfo.setOutputEnvFilter(EnvUtil.parseCommaEnvToList(outputFilter));
+
+        try {
+            cmdInfo.setTimeout(Integer.parseInt(envVars.getEnv(JobEnvs.FLOW_JOB_CMD_TIMEOUT, DEFAULT_CMD_TIMEOUT)));
+        } catch (NumberFormatException e) {
+            cmdInfo.setTimeout(Integer.parseInt(DEFAULT_CMD_TIMEOUT));
+            LOGGER.warn("JobEnvs.FLOW_JOB_CMD_TIMEOUT env value is invalid");
+        }
 
         cmdInfo.setSessionId(job.getSessionId());
         cmdInfo.setExtra(node.getPath()); // use cmd.extra to keep node path info
