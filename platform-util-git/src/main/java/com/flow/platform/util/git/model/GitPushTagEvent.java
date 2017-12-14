@@ -16,6 +16,7 @@
 
 package com.flow.platform.util.git.model;
 
+import com.flow.platform.util.StringUtil;
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class GitPushTagEvent extends GitEvent {
             return afterShortcut + "..." + tag;
         }
 
-        return "";
+        return StringUtil.EMPTY;
     }
 
     /**
@@ -195,10 +196,5 @@ public class GitPushTagEvent extends GitEvent {
 
     public void setCommits(List<GitEventCommit> commits) {
         this.commits = commits;
-    }
-
-    @Override
-    public String getTitle() {
-        return message;
     }
 }
