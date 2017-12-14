@@ -103,12 +103,6 @@
 
     <dependency>
       <groupId>com.flow.platform</groupId>
-      <artifactId>platform-yml-parser</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.flow.platform</groupId>
       <artifactId>platform-plugin</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -173,7 +167,6 @@
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
-      <version>1.19</version>
     </dependency>
 
     <dependency>
