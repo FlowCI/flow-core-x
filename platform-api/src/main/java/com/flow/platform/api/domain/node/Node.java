@@ -41,6 +41,7 @@ public final class Node extends EnvObject {
     /**
      * Node body which is shell script
      */
+    @Expose
     @YmlSerializer(required = false)
     private String script;
 
@@ -61,6 +62,7 @@ public final class Node extends EnvObject {
 
     private Node next;
 
+    @Expose
     @YmlSerializer(required = false)
     private Boolean allowFailure = false;
 

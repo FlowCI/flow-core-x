@@ -42,7 +42,7 @@ public class StepControllerTest extends ControllerTestWithoutAuth {
     @Test
     public void should_list_children_node_of_root() throws Throwable {
         // given:
-        createYml(flowName, "yml/demo_flow2.yaml");
+        createYml(flowName, "yml/for_flow_update.yml");
 
         // when:
         MvcResult result = mockMvc.perform(get("/flows/" + flowName + "/steps")
@@ -53,6 +53,29 @@ public class StepControllerTest extends ControllerTestWithoutAuth {
         // then:
         Node[] children = Node.parseArray(result.getResponse().getContentAsString().getBytes(), Node[].class);
         Assert.assertNotNull(children);
-        Assert.assertEquals(8, children.length);
+        Assert.assertEquals(3, children.length);
+
+        // then:
+        Node firstStep = children[0];
+        Assert.assertEquals("step1", firstStep.getName());
+        Assert.assertEquals("echo 1", firstStep.getScript());
+        Assert.assertEquals(true, firstStep.getAllowFailure());
+
+        // then:
+        Node secondStep = children[1];
+        Assert.assertEquals("step2", secondStep.getName());
+        Assert.assertNull(secondStep.getScript());
+        Assert.assertEquals("fir-cli", secondStep.getPlugin());
+        Assert.assertEquals(false, secondStep.getAllowFailure());
+        Assert.assertEquals("firtoken", secondStep.getEnv("FIR_TOKEN"));
+        Assert.assertEquals("${HOME}/PATH", secondStep.getEnv("FIR_PATH"));
+
+        // then:
+        Node thirdStep = children[2];
+        Assert.assertEquals("step3", thirdStep.getName());
+        Assert.assertEquals("echo 3", thirdStep.getScript());
+        Assert.assertEquals(false, thirdStep.getAllowFailure());
+        Assert.assertEquals("AA", thirdStep.getEnv("FLOW_A"));
+        Assert.assertEquals("BB", thirdStep.getEnv("FLOW_B"));
     }
 }
