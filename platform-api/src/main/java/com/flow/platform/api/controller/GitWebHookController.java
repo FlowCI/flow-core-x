@@ -83,18 +83,17 @@ public class GitWebHookController extends NodeController {
 
         try {
             final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
+            Node flow = nodeService.find(path).root();
+            // extract git related env variables from event, and temporary set to node for git loading
+            final Map<String, String> gitEnvs = GitEventEnvConverter.convert(hookEvent);
+
             LOGGER.trace("Git Webhook received: %s", hookEvent.toString());
 
-            String title = hookEvent.getTitle();
-            if (!Strings.isNullOrEmpty(title) && title.contains(SKIP_SIGNAL)) {
+            final String changeLog = gitEnvs.get(GitEnvs.FLOW_GIT_CHANGELOG.toString());
+            if (!Strings.isNullOrEmpty(changeLog) && changeLog.contains(SKIP_SIGNAL)) {
                 LOGGER.trace("Skipped");
                 return;
             }
-
-            Node flow = nodeService.find(path).root();
-
-            // extract git related env variables from event, and temporary set to node for git loading
-            final Map<String, String> gitEnvs = GitEventEnvConverter.convert(hookEvent);
 
             if (!canExecuteGitEvent(flow, gitEnvs)) {
                 LOGGER.warn("The git event not match flow settings");
