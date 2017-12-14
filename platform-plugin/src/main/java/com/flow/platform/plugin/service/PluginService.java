@@ -47,13 +47,13 @@ public interface PluginService {
     /**
      * install plugin
      */
-    void install(String name);
+    Plugin install(String name);
 
     /**
      * stop plugin
      * @param name
      */
-    void stop(String name);
+    Plugin stop(String name);
 
     /**
      * exec install
@@ -64,7 +64,7 @@ public interface PluginService {
     /**
      * uninstall plugin
      */
-    void uninstall(String pluginName);
+    Plugin uninstall(String pluginName);
 
     /**
      * Sync plugin list from github

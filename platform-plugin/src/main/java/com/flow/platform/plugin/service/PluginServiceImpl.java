@@ -120,7 +120,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     }
 
     @Override
-    public void install(String pluginName) {
+    public Plugin install(String pluginName) {
         Plugin plugin = find(pluginName);
 
         if (Objects.isNull(plugin)) {
@@ -139,10 +139,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             taskCache.put(plugin, submit);
             LOGGER.trace(String.format("Plugin %s finish To Queue", pluginName));
         }
+
+        return plugin;
     }
 
     @Override
-    public void stop(String name) {
+    public Plugin stop(String name) {
         Plugin plugin = find(name);
 
         if (Objects.isNull(plugin)) {
@@ -167,10 +169,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             updatePluginStatus(plugin, PENDING);
             taskCache.remove(plugin);
         }
+
+        return plugin;
     }
 
     @Override
-    public void uninstall(String name) {
+    public Plugin uninstall(String name) {
         Plugin plugin = find(name);
 
         if (Objects.isNull(plugin)) {
@@ -193,6 +197,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         // update plugin status to PENDING therefore the status been reset
         updatePluginStatus(plugin, DELETE);
+        return plugin;
     }
 
     @Override
