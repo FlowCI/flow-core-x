@@ -19,7 +19,6 @@ package com.flow.platform.api.test.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
@@ -29,7 +28,6 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.response.BooleanValue;
 import com.flow.platform.api.envs.FlowEnvs;
-import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.NotFoundException;
@@ -55,17 +53,9 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
     private final String flowName = "flow_default";
 
     @Before
-    public void initToCreateEmptyFlow() throws Throwable {
+    public void init() throws Throwable {
         stubDemo();
-
-        MockHttpServletRequestBuilder request = post("/flows/" + flowName)
-            .contentType(MediaType.APPLICATION_JSON);
-
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
-        Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
-        Assert.assertNotNull(flowNode);
-        Assert.assertNotNull(flowNode.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
-        Assert.assertEquals("PENDING", flowNode.getEnv(FlowEnvs.FLOW_STATUS));
+        createEmptyFlow(flowName);
     }
 
     @Test

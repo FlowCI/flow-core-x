@@ -16,11 +16,22 @@
 
 package com.flow.platform.api.test.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.security.AuthenticationInterceptor;
 import com.flow.platform.api.test.TestBase;
+import java.io.IOException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * @author yang
@@ -40,4 +51,23 @@ public abstract class ControllerTestWithoutAuth extends TestBase {
         authInterceptor.enable();
     }
 
+    void createEmptyFlow(String flow) throws Throwable {
+        MvcResult result = mockMvc.perform(post("/flows/" + flow)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
+        Assert.assertNotNull(flowNode);
+        Assert.assertNotNull(flowNode.getEnv(GitEnvs.FLOW_GIT_WEBHOOK));
+        Assert.assertEquals("PENDING", flowNode.getEnv(FlowEnvs.FLOW_STATUS));
+    }
+
+    void createYml(String flow, String resourcePath) throws Exception {
+        String content = getResourceContent(resourcePath);
+
+        mockMvc.perform(post("/flows/" + flow + "/yml").content(content))
+            .andExpect(status().isOk())
+            .andReturn();
+    }
 }
