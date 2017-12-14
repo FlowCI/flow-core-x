@@ -22,8 +22,10 @@ import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.node.NodeService;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,5 +45,11 @@ public class StepController extends NodeController {
         String root = currentNodePath.get();
         NodeTree tree = nodeService.find(root);
         return tree.children();
+    }
+
+    @PostMapping
+    @WebSecurity(action = Actions.FLOW_SHOW)
+    public void updateChildren(Set<Node> children) {
+
     }
 }

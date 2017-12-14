@@ -35,13 +35,13 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class NodeUtilYmlTest {
 
-    private File ymlSampleFile;
+    private String ymlContent;
 
     @Before
-    public void before() {
+    public void before() throws Throwable {
         ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
         URL resource = classLoader.getResource("yml/flow.yaml");
-        ymlSampleFile = new File(resource.getFile());
+        ymlContent = Files.toString(new File(resource.getFile()), AppConfig.DEFAULT_CHARSET);
     }
 
     @Test(expected = YmlException.class)
@@ -51,10 +51,7 @@ public class NodeUtilYmlTest {
 
     @Test
     public void should_create_node_by_file() throws IOException {
-
-        String ymlString = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
-
-        Node node = NodeUtil.buildFromYml(ymlString, "flow1");
+        Node node = NodeUtil.buildFromYml(ymlContent, "flow1");
 
         // verify flow
         Assert.assertEquals("flow1", node.getName());
@@ -94,11 +91,21 @@ public class NodeUtilYmlTest {
 
     @Test
     public void should_create_node_by_string() throws Throwable {
-        String yamlRaw = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
-        Node node = NodeUtil.buildFromYml(yamlRaw, "flow");
+        Node node = NodeUtil.buildFromYml(ymlContent, "flow");
         Assert.assertEquals("flow", node.getName());
 
         String yml = new Yaml().dump(node);
         Assert.assertNotNull(yml);
+    }
+
+    @Test
+    public void should_parse_node_yml() throws Throwable {
+        final String flow = "yml-test";
+        Node root = NodeUtil.buildFromYml(ymlContent, flow);
+        Assert.assertEquals(flow, root.getName());
+        Assert.assertEquals(flow, root.getPath());
+
+        String parsedYml = NodeUtil.parseToYml(root);
+        Assert.assertEquals(ymlContent, parsedYml);
     }
 }

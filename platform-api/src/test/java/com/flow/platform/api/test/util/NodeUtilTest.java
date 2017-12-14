@@ -113,7 +113,7 @@ public class NodeUtilTest extends TestBase {
     @Test
     public void should_flat() {
         List<Node> nodes = NodeUtil.flat(initNodes());
-        StringBuilder out = new StringBuilder("");
+        StringBuilder out = new StringBuilder();
 
         for (Node node : nodes) {
             out.append(node.getName()).append(";");
@@ -128,7 +128,7 @@ public class NodeUtilTest extends TestBase {
         List<Node> nodeList = new LinkedList<>();
         NodeUtil.recurse(node, nodeList::add);
 
-        StringBuilder out = new StringBuilder("");
+        StringBuilder out = new StringBuilder();
         for (Node iNode : nodeList) {
             out.append(iNode.getName()).append(";");
         }

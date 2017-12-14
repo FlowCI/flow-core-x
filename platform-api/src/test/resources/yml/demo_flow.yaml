@@ -6,9 +6,9 @@ flow:
 
     steps:
      - name: step1
-       isAllowFailure: false
+       allowFailure: false
        script: "echo 1"
 
      - name: step2
-       isAllowFailure: false
+       allowFailure: false
        script: "echo 2"
