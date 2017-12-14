@@ -37,17 +37,21 @@ public interface YmlService {
     Node verifyYml(Node root, String yml);
 
     /**
-     * Find raw yml file content by node path from
-     * - yam storage
-     * - flow workspace if yml storage not found
-     *
-     * @param root root node
-     * @return <p> - yml content - empty string while loading </p>
-     * @throws com.flow.platform.core.exception.NotFoundException if FLOW_YML_STATUS is NOT_FOUND
-     * @throws com.flow.platform.api.exception.YmlException if FLOW_YML_STATUS is ERROR
-     * @throws IllegalStateException if FLOW_YML_STATUS is illegal
+     * Save or update yml for root node
+     */
+    void saveOrUpdate(Node root, String yml);
+
+    /**
+     * Find raw yml file content by node from
      */
     Yml get(Node root);
+
+    /**
+     * {@see get(Node root)}
+     *
+     * @param path root path
+     */
+    Yml get(String path);
 
     /**
      * yml content to resource
@@ -55,6 +59,11 @@ public interface YmlService {
      * @return
      */
     Resource getResource(Node root);
+
+    /**
+     * Delete yml for root node
+     */
+    void delete(Node root);
 
     /**
      * Load yml content from git repo in async and create tree from yml,

@@ -23,6 +23,7 @@ import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +102,11 @@ public class UserServiceImpl extends CurrentUser implements UserService {
         }
 
         return users;
+    }
+
+    @Override
+    public List<User> list(Collection<String> emails) {
+        return userDao.list(emails);
     }
 
     @Override

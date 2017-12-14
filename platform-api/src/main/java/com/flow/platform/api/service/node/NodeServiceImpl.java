@@ -16,9 +16,7 @@
 package com.flow.platform.api.service.node;
 
 import com.flow.platform.api.dao.FlowDao;
-import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.dao.job.JobNumberDao;
-import com.flow.platform.api.dao.user.UserDao;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.job.JobNumber;
 import com.flow.platform.api.domain.node.Node;
@@ -38,6 +36,7 @@ import com.flow.platform.api.service.CurrentUser;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
+import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.FlowException;
@@ -77,13 +76,10 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     private FlowDao flowDao;
 
     @Autowired
-    private YmlDao ymlDao;
-
-    @Autowired
     private Path workspace;
 
     @Autowired
-    private UserDao userDao;
+    private UserService userService;
 
     @Autowired
     private JobNumberDao jobNumberDao;
@@ -123,8 +119,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         EnvUtil.merge(rootFromYml, flow, true);
         flowDao.update(flow);
 
-        Yml ymlStorage = new Yml(flow.getPath(), yml);
-        ymlDao.saveOrUpdate(ymlStorage);
+        ymlService.saveOrUpdate(flow, yml);
 
         // reset cache
         getTreeCache().evict(flow.getPath());
@@ -140,7 +135,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         // load tree from tree cache
         NodeTree tree = getTreeCache().get(rootPath, () -> {
 
-            Yml ymlStorage = ymlDao.get(rootPath);
+            Yml ymlStorage = ymlService.get(rootPath);
             Node flow = flowDao.get(path);
 
             // has related yml
@@ -183,7 +178,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         flowDao.delete(flow);
 
         // delete related yml storage
-        ymlDao.delete(new Yml(flow.getPath(), null));
+        ymlService.delete(flow);
 
         // delete local flow folder
         Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);
@@ -277,7 +272,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             throw new IllegalParameterException("Email list must be provided");
         }
 
-        List<User> users = userDao.list(emailList);
+        List<User> users = userService.list(emailList);
         List<String> paths = Lists.newArrayList(rootPath);
 
         Node flow = find(rootPath).root();

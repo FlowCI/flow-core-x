@@ -100,13 +100,23 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
+    public void saveOrUpdate(Node root, String yml) {
+        Yml ymlStorage = new Yml(root.getPath(), yml);
+        ymlDao.saveOrUpdate(ymlStorage);
+    }
+
+    @Override
     public Yml get(final Node root) {
-        return ymlDao.get(root.getPath());
+        return get(root.getPath());
+    }
+
+    @Override
+    public Yml get(String path) {
+        return ymlDao.get(path);
     }
 
     @Override
     public Resource getResource(Node root) {
-
         Yml yml = ymlDao.get(root.getPath());
         String body = yml.getFile();
         Resource allResource;
@@ -117,6 +127,11 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         }
 
         return allResource;
+    }
+
+    @Override
+    public void delete(Node root) {
+        ymlDao.delete(new Yml(root.getPath(), null));
     }
 
     @Override
