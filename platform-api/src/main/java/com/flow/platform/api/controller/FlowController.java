@@ -17,7 +17,6 @@
 package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.request.ListParam;
 import com.flow.platform.api.domain.request.TriggerParam;
@@ -28,14 +27,11 @@ import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.util.StringUtil;
 import com.google.common.base.Strings;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -299,146 +295,6 @@ public class FlowController extends NodeController {
     public List<String> listTags() {
         Node root = nodeService.find(currentNodePath.get()).root();
         return gitService.tags(root, false);
-    }
-
-    /**
-     * @api {get} /flows/:root/yml Get
-     * @apiParam {String} root flow node name of yml
-     * @apiGroup Flow Yml
-     * @apiDescription Get flow node related yml content,
-     * response empty yml content if it is loading from git repo
-     *
-     * @apiSuccessExample {yaml} Success-Response
-     *  - flows
-     *      - name: xx
-     *      - steps:
-     *          - name: xxx
-     */
-    @GetMapping(value = "/{root}/yml")
-    @WebSecurity(action = Actions.FLOW_SHOW)
-    public String getRawYml() {
-        Node root = nodeService.find(currentNodePath.get()).root();
-        Yml yml = ymlService.get(root);
-
-        if (yml != null) {
-            return yml.getFile();
-        }
-
-        return StringUtil.EMPTY;
-    }
-
-    /**
-     * @api {get} /flows/:root/yml/load Load
-     * @apiParam {String} root flow node name to load yml
-     * @apiGroup Flow Yml
-     * @apiDescription Async to load yml content from git repo,
-     * the env variable FLOW_GIT_SOURCE and FLOW_GIT_URL variables are required,
-     * otherwise it will response 400 error
-     *
-     * @apiSuccessExample {json} Success-Response
-     *  {
-     *      path: /flow-name,
-     *      name: flow-name,
-     *      createdAt: 15123123
-     *      updatedAt: 15123123
-     *      envs: {
-     *          FLOW_ENV_VAR_1: xxx,
-     *          FLOW_ENV_VAR_2: xxx
-     *      }
-     *  }
-     */
-    @GetMapping("/{root}/yml/load")
-    @WebSecurity(action = Actions.FLOW_YML)
-    public Node loadRawYmlFromGit() {
-        Node root = nodeService.find(currentNodePath.get()).root();
-        return ymlService.startLoad(root, null, null);
-    }
-
-    /**
-     * @api {post} /flows/:root/yml/stop Stop Load
-     * @apiParam {String} root flow node name for stop yml loading
-     * @apiGroup Flow Yml
-     * @apiDescription Stop current yml loading threads,
-     * and reset FLOW_YML_STATUS to NOF_FOUND if on loading status
-     */
-    @PostMapping("/{root}/yml/stop")
-    @WebSecurity(action = Actions.FLOW_YML)
-    public void stopLoadYml() {
-        Node root = nodeService.find(currentNodePath.get()).root();
-        ymlService.stopLoad(root);
-    }
-
-    /**
-     * @api {post} /flows/:root/yml/verify YML Verify
-     * @apiParam {String} root flow node name to verify yml
-     * @apiParamExample {Yaml} Request-Body
-     *  - flows:
-     *      - name: xxx
-     *      - steps:
-     *          - name: xxx
-     * @apiGroup Flow Yml
-     *
-     * @apiSuccessExample Success-Response
-     *  HTTP/1.1 200 OK
-     *
-     * @apiErrorExample Error-Response
-     *  HTTP/1.1 400 BAD REQUEST
-     *
-     *  {
-     *      message: xxxx
-     *  }
-     */
-    @PostMapping("/{root}/yml/verify")
-    @WebSecurity(action = Actions.FLOW_YML)
-    public void ymlVerification(@RequestBody String yml) {
-        Node root = nodeService.find(currentNodePath.get()).root();
-        ymlService.build(root, yml);
-    }
-
-    /**
-     * @api {post} /flows/:root/yml YML Update
-     * @apiParam {String} root flow node name to update yml content
-     * @apiParam Request-Body
-     *  - flows:
-     *      - name: xxx
-     *      - steps:
-     *          - name: xxx
-     *
-     * @apiGroup Flow Yml
-     * @apiDescription Update yml for flow,
-     * the flow name must be matched with flow name defined in yml
-     *
-     * @apiSuccessExample {json} Success-Response
-     *
-     *  yml body
-     */
-    @PostMapping("/{root}/yml")
-    @WebSecurity(action = Actions.FLOW_CREATE)
-    public String updateYml(@RequestBody String yml) {
-        nodeService.updateByYml(currentNodePath.get(), yml);
-        return yml;
-    }
-
-    /**
-     * @api {post} /flows/:root/yml/download YML Download
-     * @apiParam {String} root flow node name to set yml content
-     * @apiGroup Flow Yml
-     * @apiDescription download yml for flow,
-     * the flow name must be matched with flow name defined in yml
-     *
-     * @apiSuccessExample {json} Success-Response
-     *
-     *  yml file
-     */
-    @GetMapping("/{root}/yml/download")
-    @WebSecurity(action = Actions.FLOW_CREATE)
-    public Resource downloadFlowYml(HttpServletResponse httpResponse) {
-        String path = currentNodePath.get();
-        Node root = nodeService.find(path).root();
-        httpResponse.setHeader(
-            "Content-Disposition",
-            String.format("attachment; filename=%s", root.getName() + ".yml"));
-        return ymlService.getResource(root);
     }
 
     /**
