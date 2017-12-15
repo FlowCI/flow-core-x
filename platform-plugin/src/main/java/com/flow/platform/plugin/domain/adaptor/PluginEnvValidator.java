@@ -16,20 +16,20 @@
 
 package com.flow.platform.plugin.domain.adaptor;
 
-import com.flow.platform.plugin.domain.envs.PluginEnvKey;
+import com.flow.platform.plugin.domain.envs.PluginProperty;
 import com.flow.platform.yml.parser.validator.YmlValidator;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
-public class PluginEnvValidator implements YmlValidator<List<PluginEnvKey>> {
+public class PluginEnvValidator implements YmlValidator<List<PluginProperty>> {
 
     @Override
-    public Boolean validate(List<PluginEnvKey> pluginEnvKeys) {
+    public Boolean validate(List<PluginProperty> pluginEnvKeys) {
         Boolean result = true;
-        for (PluginEnvKey pluginEnvKey : pluginEnvKeys) {
-            result = pluginEnvKey.getType().isValidated(pluginEnvKey);
+        for (PluginProperty pluginEnvKey : pluginEnvKeys) {
+            result = pluginEnvKey.getType().getHandler().isValidated(pluginEnvKey, pluginEnvKey.getDefaultValue());
             if (!result) {
                 break;
             }

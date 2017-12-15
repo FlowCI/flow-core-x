@@ -17,7 +17,7 @@
 package com.flow.platform.plugin.domain;
 
 import com.flow.platform.plugin.domain.adaptor.PluginEnvValidator;
-import com.flow.platform.plugin.domain.envs.PluginEnvKey;
+import com.flow.platform.plugin.domain.envs.PluginProperty;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import java.util.LinkedList;
@@ -33,8 +33,8 @@ public class PluginDetail {
     private String name;
 
     @Expose
-    @YmlSerializer(name = "properties", validator = PluginEnvValidator.class, required = false)
-    private List<PluginEnvKey> inputs;
+    @YmlSerializer(validator = PluginEnvValidator.class, required = false)
+    private List<PluginProperty> properties;
 
     @Expose
     @YmlSerializer(required = false)
@@ -48,12 +48,12 @@ public class PluginDetail {
     @YmlSerializer(required = false)
     private String build;
 
-    public List<PluginEnvKey> getInputs() {
-        return inputs;
+    public List<PluginProperty> getProperties() {
+        return properties;
     }
 
-    public void setInputs(List<PluginEnvKey> inputs) {
-        this.inputs = inputs;
+    public void setProperties(List<PluginProperty> properties) {
+        this.properties = properties;
     }
 
     public List<String> getOutputs() {
@@ -111,7 +111,7 @@ public class PluginDetail {
     public String toString() {
         return "PluginDetail{" +
             "name='" + name + '\'' +
-            ", inputs=" + inputs +
+            ", properties=" + properties +
             ", outputs=" + outputs +
             ", run='" + run + '\'' +
             ", build='" + build + '\'' +

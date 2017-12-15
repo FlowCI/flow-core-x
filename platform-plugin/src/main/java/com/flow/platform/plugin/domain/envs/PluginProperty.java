@@ -19,12 +19,13 @@ package com.flow.platform.plugin.domain.envs;
 import com.flow.platform.plugin.domain.adaptor.EnvTypeAdaptor;
 import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
-public class PluginEnvKey {
+public class PluginProperty {
 
     @Expose
     @YmlSerializer
@@ -32,7 +33,7 @@ public class PluginEnvKey {
 
     @Expose
     @YmlSerializer(adaptor = EnvTypeAdaptor.class)
-    private PluginEnvType type;
+    private PluginPropertyType type;
 
     @Expose
     @YmlSerializer(name = "default", required = false)
@@ -40,12 +41,23 @@ public class PluginEnvKey {
 
     @Expose
     @YmlSerializer
-    private Boolean required;
+    private Boolean required = false;
 
     @Expose
     @YmlSerializer(required = false)
-    private List<String> values;
+    private List<String> values = new LinkedList<>();
 
+    public PluginProperty() {
+    }
+
+    public PluginProperty(String name) {
+        this.name = name;
+    }
+
+    public PluginProperty(String name, PluginPropertyType type) {
+        this.name = name;
+        this.type = type;
+    }
 
     public String getName() {
         return name;
@@ -55,11 +67,11 @@ public class PluginEnvKey {
         this.name = name;
     }
 
-    public PluginEnvType getType() {
+    public PluginPropertyType getType() {
         return type;
     }
 
-    public void setType(PluginEnvType type) {
+    public void setType(PluginPropertyType type) {
         this.type = type;
     }
 
@@ -87,8 +99,12 @@ public class PluginEnvKey {
         this.defaultValue = defaultValue;
     }
 
-    public <T> T converter() {
-        return getType().converter(this);
+    public boolean validate(String value) {
+        return getType().getHandler().isValidated(this, value);
+    }
+
+    public <T> T convert(String value) {
+        return (T) getType().getHandler().convert(this, value);
     }
 
     @Override
@@ -100,7 +116,7 @@ public class PluginEnvKey {
             return false;
         }
 
-        PluginEnvKey that = (PluginEnvKey) o;
+        PluginProperty that = (PluginProperty) o;
 
         return name != null ? name.equals(that.name) : that.name == null;
     }
