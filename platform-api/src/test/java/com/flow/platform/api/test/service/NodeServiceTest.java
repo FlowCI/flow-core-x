@@ -246,7 +246,7 @@ public class NodeServiceTest extends TestBase {
 
         // when: create steps and update
         Node step1 = new Node(PathUtil.build(flowName, "step1"), "step1");
-        step1.setScript("echo 'hello...' \n sleep 1");
+        step1.setScript("echo 'hello...'\nsleep 1\n"); // auto convert to | if end with \n
         step1.setAllowFailure(true);
         step1.setEnvs(EnvUtil.build("FLOW_ENV_STEP_1", "xxx"));
 
@@ -257,7 +257,7 @@ public class NodeServiceTest extends TestBase {
         envsForStep2.put("FIR_TOKEN", "token");
         envsForStep2.put("FIR_PATH", "path");
         step2.setEnvs(envsForStep2);
-        step2.setConditionScript("\"www.google.com\".toURL().text\nreturn true");
+        step2.setConditionScript("\"www.google.com\".toURL().text\nreturn true\n");
 
         Node root = nodeService.updateByNodes(emptyFlow.getPath(), ImmutableList.of(step1, step2));
         Assert.assertNotNull(root);
@@ -272,7 +272,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertNull(step1.getPlugin());
         Assert.assertEquals("step1", step1.getName());
         Assert.assertEquals(PathUtil.build(flowName, "step1"), step1.getPath());
-        Assert.assertEquals("echo 'hello...' \n sleep 1", step1.getScript());
+        Assert.assertEquals("echo 'hello...'\nsleep 1\n", step1.getScript());
         Assert.assertEquals(true, step1.getAllowFailure());
         Assert.assertEquals("xxx", step1.getEnv("FLOW_ENV_STEP_1"));
         Assert.assertEquals(step2, step1.getNext());
@@ -280,7 +280,7 @@ public class NodeServiceTest extends TestBase {
         Assert.assertNull(step1.getPrev());
 
         Assert.assertEquals("fir-cli", step2.getPlugin());
-        Assert.assertEquals("\"www.google.com\".toURL().text\nreturn true", step2.getConditionScript());
+        Assert.assertEquals("\"www.google.com\".toURL().text\nreturn true\n", step2.getConditionScript());
         Assert.assertEquals("step2", step2.getName());
         Assert.assertEquals(PathUtil.build(flowName, "step2"), step2.getPath());
         Assert.assertNull(step2.getScript());

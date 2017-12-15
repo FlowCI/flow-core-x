@@ -132,14 +132,13 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         Node flow = find(PathUtil.rootPath(path)).root();
         Yml exist = ymlService.get(flow.getPath());
 
-        // get raw root which from yml if existed
-        if (!Objects.isNull(exist)) {
-            flow = ymlService.build(flow, exist.getFile());
-        }
+        Node flowForYml = Objects.isNull(exist) ?
+            new Node(flow.getPath(), flow.getName()) :
+            ymlService.build(flow, exist.getFile());
 
         // set latest children and parse to yml
-        flow.setChildren(children);
-        String ymlFromRoot = ymlService.parse(flow);
+        flowForYml.setChildren(children);
+        String ymlFromRoot = ymlService.parse(flowForYml);
 
         // set YML status to found and update yml
         ymlService.saveOrUpdate(flow, ymlFromRoot);

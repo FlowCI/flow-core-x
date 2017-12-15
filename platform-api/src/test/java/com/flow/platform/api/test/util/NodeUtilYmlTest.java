@@ -20,6 +20,7 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
@@ -100,12 +101,45 @@ public class NodeUtilYmlTest {
 
     @Test
     public void should_parse_node_yml() throws Throwable {
+        // given:
         final String flow = "yml-test";
         Node root = NodeUtil.buildFromYml(ymlContent, flow);
         Assert.assertEquals(flow, root.getName());
         Assert.assertEquals(flow, root.getPath());
 
+        // when: parse root to yml
         String parsedYml = NodeUtil.parseToYml(root);
-        Assert.assertEquals(ymlContent, parsedYml);
+
+        // then:
+        Node parsedRoot = NodeUtil.buildFromYml(parsedYml, flow);
+        Assert.assertNotNull(parsedRoot);
+        Assert.assertEquals(flow, parsedRoot.getName());
+        Assert.assertEquals(flow, parsedRoot.getPath());
+        Assert.assertEquals(2, parsedRoot.getChildren().size());
+
+        Node step1 = parsedRoot.getChildren().get(0);
+        Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getConditionScript());
+        Assert.assertEquals(true, step1.getAllowFailure());
+        Assert.assertEquals("step1", step1.getName());
+        Assert.assertEquals(PathUtil.build(flow, "step1"), step1.getPath());
+        Assert.assertEquals(2, step1.getChildren().size());
+
+        Node step1InsideStep1 = step1.getChildren().get(0);
+        Assert.assertEquals("step11", step1InsideStep1.getName());
+        Assert.assertEquals(PathUtil.build(flow, "step1", "step11"), step1InsideStep1.getPath());
+        Assert.assertEquals(false, step1InsideStep1.getAllowFailure());
+        Assert.assertEquals("echo 1", step1InsideStep1.getScript());
+
+        Node step2InsideStep2 = step1.getChildren().get(1);
+        Assert.assertEquals("step12", step2InsideStep2.getName());
+        Assert.assertEquals(PathUtil.build(flow, "step1", "step12"), step2InsideStep2.getPath());
+        Assert.assertEquals(false, step2InsideStep2.getAllowFailure());
+        Assert.assertEquals("echo 2", step2InsideStep2.getScript());
+
+        Node step2 = parsedRoot.getChildren().get(1);
+        Assert.assertEquals("step2", step2.getName());
+        Assert.assertEquals(PathUtil.build(flow, "step2"), step2.getPath());
+        Assert.assertEquals(false, step2.getAllowFailure());
+        Assert.assertEquals("echo 2", step2.getScript());
     }
 }
