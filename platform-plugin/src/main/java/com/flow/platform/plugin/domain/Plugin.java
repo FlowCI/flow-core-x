@@ -39,7 +39,7 @@ public class Plugin implements Comparable {
 
     // plugin git url
     @Expose
-    private String details;
+    private String source;
 
     // plugin labels
     @Expose
@@ -80,18 +80,18 @@ public class Plugin implements Comparable {
     @SerializedName("detail")
     private PluginDetail pluginDetail;
 
-    public Plugin(String name, String details, Set<String> label, String author, Set<String> platform) {
+    public Plugin(String name, String source, Set<String> label, String author, Set<String> platform) {
         this.name = name;
-        this.details = details;
+        this.source = source;
         this.labels = label;
         this.author = author;
         this.platform = platform;
     }
 
-    public Plugin(String name, String details, Set<String> labels, String author,
+    public Plugin(String name, String source, Set<String> labels, String author,
                   Set<String> platform, PluginStatus status, String tag) {
         this.name = name;
-        this.details = details;
+        this.source = source;
         this.labels = labels;
         this.author = author;
         this.platform = platform;
@@ -120,12 +120,12 @@ public class Plugin implements Comparable {
         this.name = name;
     }
 
-    public String getDetails() {
-        return details;
+    public String getSource() {
+        return source;
     }
 
-    public void setDetails(String details) {
-        this.details = details;
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public Set<String> getLabels() {
@@ -236,7 +236,7 @@ public class Plugin implements Comparable {
     public String toString() {
         return "Plugin{" +
             "name='" + name + '\'' +
-            ", details='" + details + '\'' +
+            ", source='" + source + '\'' +
             ", labels=" + labels +
             ", author='" + author + '\'' +
             ", platform='" + platform + '\'' +

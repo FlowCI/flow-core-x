@@ -31,7 +31,6 @@ import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.plugin.dao.PluginDao;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,7 +47,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -109,7 +107,7 @@ public class PluginController {
      */
     @PostMapping
     public Collection<Plugin> index(@RequestBody(required = false) PluginListParam param) {
-        if (param == null) {
+        if (Objects.isNull(param)) {
             param = new PluginListParam();
         }
 
@@ -156,15 +154,15 @@ public class PluginController {
      *         error: "error message if got error on install"
      *         detail: {
      *              name: "fir-cli",
-     *              properties: {
-     *                  FIR_TOKEN: {
+     *              properties: [
+     *                  {
      *                      name: "FIR_TOKEN",
      *                      type: "STRING" | "INTEGER" | "BOOLEAN" | "LIST",
      *                      default: XXX,
      *                      required: true | false,
      *                      values: ["1", "2", "3"]
      *                  }
-     *              },
+     *              ],
      *              outputs: ["ENV_1", "ENV_2"],
      *              run: "echo xxx",
      *              build: "mvn clean package"
@@ -196,7 +194,7 @@ public class PluginController {
      */
     @PostMapping("/refresh")
     public void refresh() {
-        pluginStoreService.refreshCache();
+        pluginStoreService.refresh();
     }
 
     /**
@@ -215,7 +213,7 @@ public class PluginController {
     @PostMapping("/install/{name}")
     public void install(@PathVariable String name) {
         if (Objects.isNull(name)) {
-            throw new IllegalParameterException("plugin name is null");
+            throw new IllegalParameterException("Plugin name is required");
         }
         pluginService.install(name);
     }
@@ -236,7 +234,7 @@ public class PluginController {
     @DeleteMapping("/uninstall/{name}")
     public void uninstall(@PathVariable String name) {
         if (Objects.isNull(name)) {
-            throw new IllegalParameterException("plugin name is null");
+            throw new IllegalParameterException("Plugin name is required");
         }
         pluginService.uninstall(name);
     }
@@ -257,7 +255,7 @@ public class PluginController {
     @PostMapping("/stop/{name}")
     public void stop(@PathVariable String name) {
         if (Objects.isNull(name)) {
-            throw new IllegalParameterException("plugin name is null");
+            throw new IllegalParameterException("Plugin name is required");
         }
         pluginService.stop(name);
     }

@@ -218,7 +218,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         try {
             LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
             dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.ON_PROGRESS));
-            pluginDao.refreshCache();
+            pluginDao.refresh();
         } catch (Throwable e) {
             LOGGER.warn(e.getMessage());
         } finally {
@@ -282,7 +282,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 JGitUtil.init(localPath, true);
 
                 // remote set
-                JGitUtil.remoteSet(cachePath, ORIGIN_REMOTE, plugin.getDetails() + GIT_SUFFIX);
+                JGitUtil.remoteSet(cachePath, ORIGIN_REMOTE, plugin.getSource() + GIT_SUFFIX);
                 JGitUtil.remoteSet(cachePath, LOCAL_REMOTE, localPath.toString());
 
                 // if branch not exists then push branch
@@ -399,7 +399,6 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                 Path ymlFilePath = Paths.get(gitCachePath(plugin).toString(), YML_FILE_NAME);
 
-                //TODO: should get plugin yml by http before clone
                 // detect yml
                 if (ymlFilePath.toFile().exists()) {
                     String body = FileUtils.readFileToString(ymlFilePath.toFile(), Charsets.UTF_8);

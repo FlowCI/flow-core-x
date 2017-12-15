@@ -44,6 +44,6 @@ public class PluginContextCloseHandler implements ApplicationListener<ContextClo
         pluginPoolExecutor.shutdown();
 
         // dump cache to file
-        pluginDao.dumpCacheToFile();
+        pluginDao.dump();
     }
 }

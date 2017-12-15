@@ -52,12 +52,17 @@ public interface PluginDao {
     Plugin update(Plugin plugin);
 
     /**
-     * dump cache to file
+     * Dump cache to file
      */
-    void dumpCacheToFile();
+    void dump();
 
     /**
-     * refresh cache
+     * Fill in cache from file
      */
-    void refreshCache();
+    void load();
+
+    /**
+     * Refresh cache
+     */
+    void refresh();
 }
