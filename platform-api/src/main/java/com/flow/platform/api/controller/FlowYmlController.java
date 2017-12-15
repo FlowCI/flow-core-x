@@ -48,7 +48,7 @@ public class FlowYmlController extends NodeController {
     /**
      * @api {get} /flows/:root/yml Get
      * @apiParam {String} root flow node name of yml
-     * @apiGroup Flow Yml
+     * @apiGroup Flow YML
      * @apiDescription Get flow node related yml content,
      * response empty yml content if it is loading from git repo
      *
@@ -74,7 +74,7 @@ public class FlowYmlController extends NodeController {
     /**
      * @api {post} /flows/:root/yml/download YML Download
      * @apiParam {String} root flow node name to set yml content
-     * @apiGroup Flow Yml
+     * @apiGroup Flow YML
      * @apiDescription download yml for flow,
      * the flow name must be matched with flow name defined in yml
      *
@@ -102,7 +102,7 @@ public class FlowYmlController extends NodeController {
      *      - steps:
      *          - name: xxx
      *
-     * @apiGroup Flow Yml
+     * @apiGroup Flow YML
      * @apiDescription Update yml for flow,
      * the flow name must be matched with flow name defined in yml
      *
@@ -120,7 +120,7 @@ public class FlowYmlController extends NodeController {
     /**
      * @api {get} /flows/:root/yml/load Load
      * @apiParam {String} root flow node name to load yml
-     * @apiGroup Flow Yml
+     * @apiGroup Flow YML
      * @apiDescription Async to load yml content from git repo,
      * the env variable FLOW_GIT_SOURCE and FLOW_GIT_URL variables are required,
      * otherwise it will response 400 error
@@ -147,7 +147,7 @@ public class FlowYmlController extends NodeController {
     /**
      * @api {post} /flows/:root/yml/stop Stop Load
      * @apiParam {String} root flow node name for stop yml loading
-     * @apiGroup Flow Yml
+     * @apiGroup Flow YML
      * @apiDescription Stop current yml loading threads,
      * and reset FLOW_YML_STATUS to NOF_FOUND if on loading status
      */
@@ -161,12 +161,12 @@ public class FlowYmlController extends NodeController {
     /**
      * @api {post} /flows/:root/yml/verify YML Verify
      * @apiParam {String} root flow node name to verify yml
-     * @apiParamExample {Yaml} Request-Body
+     * @apiParamExample {yaml} Request-Body
      *  - flows:
      *      - name: xxx
      *      - steps:
      *          - name: xxx
-     * @apiGroup Flow Yml
+     * @apiGroup Flow YML
      *
      * @apiSuccessExample Success-Response
      *  HTTP/1.1 200 OK

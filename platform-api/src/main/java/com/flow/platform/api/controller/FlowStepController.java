@@ -41,6 +41,33 @@ public class FlowStepController extends NodeController {
     @Autowired
     private NodeService nodeService;
 
+    /**
+     * @api {get} /flows/:root/steps Get
+     * @apiParam {String} root flow name
+     * @apiGroup Flow Step
+     * @apiDescription Get steps list
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  [
+     *      {
+     *          path: "flow/step",
+     *          name: "step",
+     *          envs: {
+     *              FLOW_ENV_1: "var 1",
+     *              FLOW_ENV_2: "var 2"
+     *          }
+     *          script: "echo xxx\nxx\n",
+     *          conditionScript: "return true",
+     *          plugin: "fir-cli",
+     *          steps: []
+     *          createdBy: "xxx@flow.ci",
+     *          createdAt: "115123231",
+     *          updatedAt: "151512323"
+     *      },
+     *
+     *      ...
+     *  ]
+     */
     @GetMapping
     @WebSecurity(action = Actions.FLOW_SHOW)
     public List<Node> getChildren() {
@@ -49,6 +76,28 @@ public class FlowStepController extends NodeController {
         return tree.children();
     }
 
+    /**
+     * @api {get} /flows/:root/steps Get
+     * @apiParam {String} root flow name
+     * @apiGroup Flow Step
+     * @apiDescription Get steps list
+     *
+     * @apiParamExample {json} Request-Body
+     *  [
+     *      {
+     *          name: "step",
+     *          envs: {
+     *              FLOW_ENV_1: "var 1",
+     *              FLOW_ENV_2: "var 2"
+     *          }
+     *          script: "echo xxx\nxx\n",
+     *          conditionScript: "return true",
+     *          plugin: "fir-cli",
+     *      },
+     *
+     *      ...
+     *  ]
+     */
     @PostMapping
     @WebSecurity(action = Actions.FLOW_CREATE)
     public void updateChildren(@RequestBody List<Node> children) {

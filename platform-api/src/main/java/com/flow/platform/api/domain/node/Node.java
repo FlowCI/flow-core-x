@@ -17,7 +17,6 @@
 package com.flow.platform.api.domain.node;
 
 import com.flow.platform.api.domain.EnvObject;
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.time.ZonedDateTime;
@@ -35,27 +34,23 @@ public final class Node extends EnvObject {
     private String path;
 
     @Expose
-    @YmlSerializer(required = false)
     private String name;
 
     /**
      * Node body which is shell script
      */
     @Expose
-    @YmlSerializer(required = false)
     private String script;
 
     /**
      * Groovy script that to indicate the node can start or not
      */
     @Expose
-    @YmlSerializer(required = false, name = "condition")
     private String conditionScript;
 
     private Node parent;
 
     @SerializedName("steps")
-    @YmlSerializer(required = false, name = "steps")
     private List<Node> children = new LinkedList<>();
 
     private Node prev;
@@ -63,11 +58,9 @@ public final class Node extends EnvObject {
     private Node next;
 
     @Expose
-    @YmlSerializer(required = false)
     private Boolean allowFailure = false;
 
     @Expose
-    @YmlSerializer(required = false)
     private String plugin;
 
     @Expose
