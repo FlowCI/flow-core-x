@@ -153,6 +153,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
+    @Transactional(readOnly = true, noRollbackFor = Throwable.class)
     public NodeTree find(final String path) {
         NodeTree tree = findWithoutVierfy(path);
         if (Objects.isNull(tree)) {

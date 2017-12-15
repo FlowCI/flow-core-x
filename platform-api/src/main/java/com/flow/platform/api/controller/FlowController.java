@@ -414,7 +414,7 @@ public class FlowController extends NodeController {
      */
     @PostMapping("/{root}/yml")
     @WebSecurity(action = Actions.FLOW_CREATE)
-    public String updateByYml(@RequestBody(required = false) String yml) {
+    public String updateYml(@RequestBody String yml) {
         nodeService.updateByYml(currentNodePath.get(), yml);
         return yml;
     }
@@ -437,7 +437,7 @@ public class FlowController extends NodeController {
         Node root = nodeService.find(path).root();
         httpResponse.setHeader(
             "Content-Disposition",
-            String.format("attachment; filename=%s", ".flow.yml"));
+            String.format("attachment; filename=%s", root.getName() + ".yml"));
         return ymlService.getResource(root);
     }
 

@@ -344,7 +344,13 @@ public class NodeServiceTest extends TestBase {
         nodeService.delete(root.getPath());
 
         // then: flow should be null
-        Assert.assertNull(nodeService.find(root.getPath()));
+        try {
+            Assert.assertNull(nodeService.find(root.getPath()));
+            fail();
+        } catch (Throwable e) {
+            Assert.assertTrue(e instanceof IllegalParameterException);
+        }
+
         Assert.assertEquals(false, Files.exists(NodeUtil.workspacePath(workspace, root)));
 
         // then: should return null if root node is not existed

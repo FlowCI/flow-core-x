@@ -315,8 +315,10 @@ public class UserServiceImpl extends CurrentUser implements UserService {
 
     private void assignRoleToUser(User user, List<String> roles, List<String> flowsList) {
         for (String rootPath : flowsList) {
-            NodeTree nodeTree = nodeService.find(rootPath);
-            if (nodeTree == null) {
+            NodeTree nodeTree;
+            try {
+                nodeTree = nodeService.find(rootPath);
+            } catch (IllegalParameterException e) {
                 continue;
             }
 

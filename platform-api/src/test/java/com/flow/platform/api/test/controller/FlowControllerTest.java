@@ -17,8 +17,8 @@
 package com.flow.platform.api.test.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
@@ -27,7 +27,6 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.response.BooleanValue;
-import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.NotFoundException;
@@ -36,12 +35,10 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.util.StringUtil;
-import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -187,7 +184,7 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
     @Test
     public void should_get_yml_file_content() throws Throwable {
         // given:
-        String yml = "flow:\n" + "  - name: " + flowName;
+        String yml = getResourceContent("yml/demo_flow.yaml");
         Node flow = nodeService.find(flowName).root();
         setFlowToReady(flow);
         nodeService.updateByYml(PathUtil.build(flowName), yml);
@@ -214,35 +211,18 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
     }
 
     @Test
-    public void should_upload_yml_success() throws Exception {
-        String url = "/flows/" + flowName + "/yml/upload";
-        performRequestWith200Status(fileUpload(url)
-            .file(createYmlFilePart(".flow.yml"))
-        );
-
-        MockHttpServletRequestBuilder request = get("/flows/" + flowName)
-            .contentType(MediaType.APPLICATION_JSON);
-
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
-        Node flowNode = Node.parse(result.getResponse().getContentAsString(), Node.class);
-        Assert.assertEquals("FOUND", flowNode.getEnv(FlowEnvs.FLOW_YML_STATUS));
-    }
-
-    @Test
     public void should_download_yml_success() throws Exception {
-        String url = "/flows/" + flowName + "/yml/upload";
-        performRequestWith200Status(fileUpload(url)
-            .file(createYmlFilePart(".flow.yml"))
-        );
+        // given:
+        String yml = getResourceContent("yml/demo_flow.yaml");
+        performRequestWith200Status(post("/flows/" + flowName + "/yml").content(yml));
 
-        MockHttpServletRequestBuilder request = get("/flows/" + flowName + "/yml/download")
-            .contentType(MediaType.ALL);
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        // when: download yml
+        MvcResult result = mockMvc.perform(get("/flows/" + flowName + "/yml/download").contentType(MediaType.ALL))
+            .andExpect(status().isOk())
+            .andReturn();
         Assert.assertNotNull(result.getResponse());
-    }
 
-    private MockMultipartFile createYmlFilePart(String name) throws IOException {
-        String resourceContent = getResourceContent("yml/demo_flow.yaml");
-        return new MockMultipartFile("file", name, "", resourceContent.getBytes());
+        // then:
+        Assert.assertEquals(yml, result.getResponse().getContentAsString());
     }
 }
