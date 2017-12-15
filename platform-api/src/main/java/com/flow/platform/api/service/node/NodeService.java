@@ -40,7 +40,16 @@ public interface NodeService {
      * @param yml raw yml
      * @return root node
      */
-    Node createOrUpdateYml(String path, String yml);
+    Node updateByYml(String path, String yml);
+
+    /**
+     * Create or update tree by yml which convert from children nodes
+     *
+     * @param path any path
+     * @param children
+     * @return
+     */
+    Node updateByNodes(String path, List<Node> children);
 
     /**
      * Find node by node path from yml

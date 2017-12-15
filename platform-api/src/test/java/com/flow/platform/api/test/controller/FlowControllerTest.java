@@ -190,7 +190,7 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
         String yml = "flow:\n" + "  - name: " + flowName;
         Node flow = nodeService.find(flowName).root();
         setFlowToReady(flow);
-        nodeService.createOrUpdateYml(PathUtil.build(flowName), yml);
+        nodeService.updateByYml(PathUtil.build(flowName), yml);
 
         // when:
         MvcResult result = mockMvc.perform(get("/flows/" + flowName + "/yml"))

@@ -59,7 +59,7 @@ public class ManualJobTest extends TestBase {
         envService.save(flow, env, false);
 
         String content = getResourceContent("yml/for_manual_job_test.yml");
-        Node yml = nodeService.createOrUpdateYml(flow.getPath(), content);
+        Node yml = nodeService.updateByYml(flow.getPath(), content);
 
         // when: manual start job
         Map<String, String> envs = EnvUtil.build(GitEnvs.FLOW_GIT_BRANCH.name(), "master");

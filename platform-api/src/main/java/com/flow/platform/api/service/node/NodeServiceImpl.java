@@ -48,6 +48,7 @@ import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -98,7 +99,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     @Transactional(noRollbackFor = FlowException.class)
-    public Node createOrUpdateYml(final String path, String yml) {
+    public Node updateByYml(final String path, final String yml) {
         final Node flow = find(PathUtil.rootPath(path)).root();
 
         if (Strings.isNullOrEmpty(yml)) {
@@ -108,18 +109,42 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
         Node rootFromYml;
         try {
-            rootFromYml = ymlService.verifyYml(flow, yml);
-        } catch (IllegalParameterException | YmlException e) {
+            rootFromYml = ymlService.build(flow, yml);
+        } catch (YmlException e) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());
-            throw new YmlException(e.getMessage());
+            throw e;
         }
 
         // persistent flow type node to flow table with env which from yml
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
-        EnvUtil.merge(rootFromYml, flow, true);
-        flowDao.update(flow);
-
         ymlService.saveOrUpdate(flow, yml);
+        EnvUtil.merge(rootFromYml, flow, true);
+        updateYmlState(flow, FlowEnvs.YmlStatusValue.FOUND, null);
+
+        // reset cache
+        getTreeCache().evict(flow.getPath());
+
+        //retry find flow
+        return find(PathUtil.rootPath(path)).root();
+    }
+
+    @Override
+    public Node updateByNodes(final String path, final List<Node> children) {
+        Node flow = find(PathUtil.rootPath(path)).root();
+        Yml exist = ymlService.get(flow.getPath());
+
+        // get raw root which from yml if existed
+        if (!Objects.isNull(exist)) {
+            flow = ymlService.build(flow, exist.getFile());
+        }
+
+        // set latest children and parse to yml
+        flow.setChildren(children);
+        String ymlFromRoot = ymlService.parse(flow);
+
+        // set YML status to found and update yml
+        ymlService.saveOrUpdate(flow, ymlFromRoot);
+        flowDao.update(flow);
+        updateYmlState(flow, FlowEnvs.YmlStatusValue.FOUND, null);
 
         // reset cache
         getTreeCache().evict(flow.getPath());
@@ -130,33 +155,10 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public NodeTree find(final String path) {
-        final String rootPath = PathUtil.rootPath(path);
-
-        // load tree from tree cache
-        NodeTree tree = getTreeCache().get(rootPath, () -> {
-
-            Yml ymlStorage = ymlService.get(rootPath);
-            Node flow = flowDao.get(path);
-
-            // has related yml
-            if (ymlStorage != null) {
-                return new NodeTree(ymlStorage.getFile(), flow);
-            }
-
-            if (flow != null) {
-                return new NodeTree(flow);
-            }
-
-            // root path not exist
-            return null;
-        });
-
-        // cleanup cache for null value
-        if (tree == null) {
-            getTreeCache().evict(rootPath);
-            return null;
+        NodeTree tree = findWithoutVierfy(path);
+        if (Objects.isNull(tree)) {
+            throw new IllegalParameterException("Illegal node path");
         }
-
         return tree;
     }
 
@@ -192,7 +194,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public boolean exist(final String path) {
-        return find(path) != null;
+        return findWithoutVierfy(path) != null;
     }
 
     @Override
@@ -283,6 +285,36 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             user.setFlows(paths);
         }
         return users;
+    }
+
+    private NodeTree findWithoutVierfy(final String path) {
+        final String rootPath = PathUtil.rootPath(path);
+
+        // load tree from tree cache
+        NodeTree tree = getTreeCache().get(rootPath, () -> {
+
+            Yml ymlStorage = ymlService.get(rootPath);
+            Node flow = flowDao.get(path);
+
+            // has related yml
+            if (ymlStorage != null) {
+                return new NodeTree(ymlStorage.getFile(), flow);
+            }
+
+            if (flow != null) {
+                return new NodeTree(flow);
+            }
+
+            // root path not exist
+            return null;
+        });
+
+        // cleanup cache for null value
+        if (Objects.isNull(tree)) {
+            getTreeCache().evict(rootPath);
+        }
+
+        return tree;
     }
 
     private String hooksUrl(final Node flow) {

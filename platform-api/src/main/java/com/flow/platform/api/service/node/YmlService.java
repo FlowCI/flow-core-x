@@ -28,13 +28,18 @@ import org.springframework.core.io.Resource;
 public interface YmlService {
 
     /**
-     * Verify yml format
+     * Build yml and get root node
      *
      * @param root root node
      * @param yml yml content
      * @return Node from yml
      */
-    Node verifyYml(Node root, String yml);
+    Node build(Node root, String yml);
+
+    /**
+     * Parse root to yml content
+     */
+    String parse(Node root);
 
     /**
      * Save or update yml for root node

@@ -78,7 +78,10 @@ public class NodeUtil {
 
     public static String parseToYml(Node root) {
         RootYmlWrapper ymlWrapper = new RootYmlWrapper(new NodeWrapper(root));
+
+        // clean property which not used in root
         ymlWrapper.flow.get(0).name = null;
+        ymlWrapper.flow.get(0).allowFailure = null;
 
         Yaml yaml = new Yaml(ROOT_YML_CONSTRUCTOR, ORDERED_SKIP_EMPTY_REPRESENTER, DUMPER_OPTIONS);
         String dump = yaml.dump(ymlWrapper);
@@ -98,9 +101,20 @@ public class NodeUtil {
             Yaml yaml = new Yaml(ROOT_YML_CONSTRUCTOR);
             RootYmlWrapper node = yaml.load(yml);
 
+            // verify flow node
+            if (Objects.isNull(node.flow)) {
+                throw new YmlException("The 'flow' content must be defined");
+            }
+
             // current version only support single flow
             if (node.flow.size() > 1) {
                 throw new YmlException("Unsupported multiple flows definition");
+            }
+
+            // steps must be provided
+            List<NodeWrapper> steps = node.flow.get(0).steps;
+            if (Objects.isNull(steps) || steps.isEmpty()) {
+                throw new YmlException("The 'step' must be defined");
             }
 
             node.flow.get(0).name = rootName;
@@ -269,10 +283,7 @@ public class NodeUtil {
             node.setConditionScript(condition);
             node.setScript(script);
             node.setPlugin(plugin);
-
-            if (!Objects.isNull(allowFailure)) {
-                node.setAllowFailure(false);
-            }
+            node.setAllowFailure(Objects.isNull(allowFailure) ? false : allowFailure);
 
             if (!Objects.isNull(envs)) {
                 node.setEnvs(envs);
@@ -298,7 +309,7 @@ public class NodeUtil {
         private final Map<String, Integer> order = ImmutableMap.<String, Integer>builder()
             .put("name", 1)
             .put("envs", 2)
-            .put("isAllowFailure", 3)
+            .put("allowFailure", 3)
             .put("condition", 4)
             .put("plugin", 5)
             .put("script", 6)

@@ -95,12 +95,17 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
-    public Node verifyYml(final Node root, final String yml) {
+    public Node build(final Node root, final String yml) {
         return NodeUtil.buildFromYml(yml, root.getName());
     }
 
     @Override
-    public void saveOrUpdate(Node root, String yml) {
+    public String parse(final Node root) {
+        return NodeUtil.parseToYml(root);
+    }
+
+    @Override
+    public void saveOrUpdate(final Node root, final String yml) {
         Yml ymlStorage = new Yml(root.getPath(), yml);
         ymlDao.saveOrUpdate(ymlStorage);
     }

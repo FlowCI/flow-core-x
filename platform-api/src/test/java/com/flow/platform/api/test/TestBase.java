@@ -236,7 +236,7 @@ public abstract class TestBase {
         setFlowToReady(emptyFlow);
         String yml = getResourceContent(ymlResourceName);
         setRequiredJobEnvsForFlow(emptyFlow);
-        return nodeService.createOrUpdateYml(emptyFlow.getPath(), yml);
+        return nodeService.updateByYml(emptyFlow.getPath(), yml);
     }
 
     public void setFlowToReady(Node flowNode) {
