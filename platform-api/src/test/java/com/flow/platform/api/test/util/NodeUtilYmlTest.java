@@ -100,7 +100,7 @@ public class NodeUtilYmlTest {
     }
 
     @Test
-    public void should_parse_node_yml() throws Throwable {
+    public void should_parse_node_to_yml() throws Throwable {
         // given:
         final String flow = "yml-test";
         Node root = NodeUtil.buildFromYml(ymlContent, flow);
@@ -141,5 +141,30 @@ public class NodeUtilYmlTest {
         Assert.assertEquals(PathUtil.build(flow, "step2"), step2.getPath());
         Assert.assertEquals(false, step2.getAllowFailure());
         Assert.assertEquals("echo 2", step2.getScript());
+    }
+
+    @Test(expected = YmlException.class)
+    public void should_raise_error_if_step_name_missing_parse_node_to_yml() throws Throwable {
+        String flow = "yml-flow";
+        Node root = new Node(flow, flow);
+        Node step = new Node(null, null);
+        step.setScript("xxx");
+        root.getChildren().add(step);
+
+        String yml = NodeUtil.parseToYml(root);
+        Assert.assertNotNull(yml);
+    }
+
+    @Test(expected = YmlException.class)
+    public void should_raise_error_if_step_script_and_plugin_defined_in_both() throws Throwable {
+        String flow = "yml-flow";
+        Node root = new Node(flow, flow);
+        Node step = new Node(null, "step1");
+        step.setScript("echo 1");
+        step.setPlugin("fir-plugin");
+        root.getChildren().add(step);
+
+        String yml = NodeUtil.parseToYml(root);
+        Assert.assertNotNull(yml);
     }
 }

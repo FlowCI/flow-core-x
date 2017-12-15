@@ -17,6 +17,7 @@ package com.flow.platform.api.util;
 
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.exception.YmlException;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
@@ -263,8 +264,15 @@ public class NodeUtil {
         public NodeWrapper() {
         }
 
+        /**
+         * Used for parse node to yml
+         */
         public NodeWrapper(Node node) {
             name = node.getName();
+            if (Strings.isNullOrEmpty(name)) {
+                throw new YmlException("The node name is required");
+            }
+
             envs = node.getEnvs();
             allowFailure = node.getAllowFailure();
             condition = node.getConditionScript();
@@ -272,11 +280,16 @@ public class NodeUtil {
             plugin = node.getPlugin();
             steps = new LinkedList<>();
 
+            verify();
+
             for (Node child : node.getChildren()) {
                 steps.add(new NodeWrapper(child));
             }
         }
 
+        /**
+         * Used for build from yml to node
+         */
         public Node toNode() {
             Node node = new Node();
             node.setName(name);
@@ -289,6 +302,8 @@ public class NodeUtil {
                 node.setEnvs(envs);
             }
 
+            verify();
+
             if (Objects.isNull(steps)) {
                 return node;
             }
@@ -298,6 +313,12 @@ public class NodeUtil {
             }
 
             return node;
+        }
+
+        private void verify() {
+            if (!Strings.isNullOrEmpty(script) && !Strings.isNullOrEmpty(plugin)) {
+                throw new YmlException("The script and plugin cannot defined in both");
+            }
         }
     }
 
