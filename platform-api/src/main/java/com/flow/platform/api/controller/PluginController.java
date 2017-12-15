@@ -147,12 +147,28 @@ public class PluginController {
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
-     *         "name": fir-cli,
-     *         "details": http://github.com/fir/fir-cli,
-     *         "labels": ["fir", "plugin"],
-     *         "author": xx@fir.im,
-     *         "platform": ["windows", "mac"],
-     *         "status": "INSTALLED" | "PENDING" | "IN_QUEUE" | "INSTALLING"
+     *         name: fir-cli,
+     *         details: http://github.com/fir/fir-cli,
+     *         labels: ["fir", "plugin"],
+     *         author: xx@fir.im,
+     *         platform: ["windows", "mac"],
+     *         status: "INSTALLED" | "PENDING" | "IN_QUEUE" | "INSTALLING"
+     *         error: "error message if got error on install"
+     *         detail: {
+     *              name: "fir-cli",
+     *              properties: {
+     *                  FIR_TOKEN: {
+     *                      name: "FIR_TOKEN",
+     *                      type: "STRING" | "INTEGER" | "BOOLEAN" | "LIST",
+     *                      default: XXX,
+     *                      required: true | false,
+     *                      values: ["1", "2", "3"]
+     *                  }
+     *              },
+     *              outputs: ["ENV_1", "ENV_2"],
+     *              run: "echo xxx",
+     *              build: "mvn clean package"
+     *         }
      *     }
      *
      * @apiErrorExample {json} Error-Response:
@@ -179,7 +195,7 @@ public class PluginController {
      *   }
      */
     @PostMapping("/refresh")
-    public void reload() {
+    public void refresh() {
         pluginStoreService.refreshCache();
     }
 

@@ -18,7 +18,7 @@ package com.flow.platform.plugin.domain;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.annotations.Expose;
-import java.util.List;
+import com.google.gson.annotations.SerializedName;
 import java.util.Set;
 
 /**
@@ -62,12 +62,12 @@ public class Plugin implements Comparable {
     private String tag;
 
     // current used Tag
-    // TODO
     @Expose
     private String currentTag;
 
     // if install error, the reason is error trace
     @Expose
+    @SerializedName("error")
     private String reason;
 
     @Expose
@@ -77,6 +77,7 @@ public class Plugin implements Comparable {
     private String latestCommit;
 
     @Expose
+    @SerializedName("detail")
     private PluginDetail pluginDetail;
 
     public Plugin(String name, String details, Set<String> label, String author, Set<String> platform) {

@@ -100,7 +100,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         new InitGitProcessor(),
         new FetchProcessor(),
         new CompareCommitProcessor(),
-//        new AnalysisYmlProcessor(),
+        new AnalysisYmlProcessor(),
         new PushProcessor()
     );
 
@@ -129,7 +129,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         // not finish can install plugin
         if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin.getStatus())) {
-            LOGGER.trace(String.format("Plugin %s Enter To Queue", pluginName));
+            LOGGER.trace("Plugin %s Enter To Queue", pluginName);
 
             // update plugin status
             updatePluginStatus(plugin, IN_QUEUE);
@@ -137,7 +137,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             // record future task
             Future<?> submit = pluginPoolExecutor.submit(new InstallRunnable(plugin));
             taskCache.put(plugin, submit);
-            LOGGER.trace(String.format("Plugin %s finish To Queue", pluginName));
+            LOGGER.trace("Plugin %s finish To Queue", pluginName);
         }
     }
 
@@ -391,7 +391,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("AnalysisYmlProcessor", "Analysis YML");
+            LOGGER.traceMarker("AnalysisYmlProcessor", "Analysis YML from plugin");
 
             try {
                 // first checkout plugin tag
@@ -399,6 +399,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                 Path ymlFilePath = Paths.get(gitCachePath(plugin).toString(), YML_FILE_NAME);
 
+                //TODO: should get plugin yml by http before clone
                 // detect yml
                 if (ymlFilePath.toFile().exists()) {
                     String body = FileUtils.readFileToString(ymlFilePath.toFile(), Charsets.UTF_8);
