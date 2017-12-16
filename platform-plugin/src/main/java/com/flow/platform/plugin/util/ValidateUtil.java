@@ -17,9 +17,7 @@
 package com.flow.platform.plugin.util;
 
 import com.flow.platform.plugin.domain.envs.PluginProperty;
-import com.flow.platform.plugin.exception.PluginPropertyException;
 import com.flow.platform.util.CollectionUtil;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
