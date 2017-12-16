@@ -16,7 +16,6 @@
 
 package com.flow.platform.plugin.domain.envs;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 
@@ -65,15 +64,7 @@ public enum PluginPropertyType {
 
     public static abstract class TypeHandler<T> {
 
-        public Boolean isValidated(PluginProperty pluginEnvKey, String value) {
-            if (pluginEnvKey.getRequired() && Strings.isNullOrEmpty(value)) {
-                return false;
-            }
-
-            return doValidate(pluginEnvKey, value);
-        }
-
-        abstract boolean doValidate(PluginProperty pluginEnvKey, String value);
+        public abstract boolean isValidated(PluginProperty pluginEnvKey, String value);
 
         public abstract T convert(PluginProperty pluginEnvKey, String value);
     }
@@ -81,7 +72,7 @@ public enum PluginPropertyType {
     private static class StringHandler extends TypeHandler<String> {
 
         @Override
-        boolean doValidate(PluginProperty pluginEnvKey, String value) {
+        public boolean isValidated(PluginProperty pluginEnvKey, String value) {
             return true;
         }
 
@@ -94,7 +85,7 @@ public enum PluginPropertyType {
     private static class IntegerHandler extends TypeHandler<Integer> {
 
         @Override
-        boolean doValidate(PluginProperty pluginEnvKey, String value) {
+        public boolean isValidated(PluginProperty pluginEnvKey, String value) {
             try {
                 Integer.parseInt(value);
                 return true;
@@ -114,7 +105,7 @@ public enum PluginPropertyType {
         private final Set<String> values = ImmutableSet.of("true", "false", "TRUE", "FALSE");
 
         @Override
-        boolean doValidate(PluginProperty pluginEnvKey, String value) {
+        public boolean isValidated(PluginProperty pluginEnvKey, String value) {
             try {
                 return values.contains(value);
             } catch (NumberFormatException e) {
@@ -131,7 +122,7 @@ public enum PluginPropertyType {
     private static class ListHandler extends TypeHandler<String> {
 
         @Override
-        boolean doValidate(PluginProperty pluginEnvKey, String value) {
+        public boolean isValidated(PluginProperty pluginEnvKey, String value) {
             return pluginEnvKey.getValues().contains(value);
         }
 

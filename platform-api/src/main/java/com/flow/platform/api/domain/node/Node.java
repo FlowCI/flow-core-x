@@ -184,6 +184,10 @@ public final class Node extends EnvObject {
         this.updatedAt = updatedAt;
     }
 
+    public boolean hasPlugin() {
+        return this.plugin != null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

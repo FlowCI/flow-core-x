@@ -34,7 +34,7 @@ public class PluginDetail {
 
     @Expose
     @YmlSerializer(validator = PluginEnvValidator.class, required = false)
-    private List<PluginProperty> properties;
+    private List<PluginProperty> properties = new LinkedList<>();
 
     @Expose
     @YmlSerializer(required = false)
@@ -47,6 +47,14 @@ public class PluginDetail {
     @Expose
     @YmlSerializer(required = false)
     private String build;
+
+    public PluginDetail() {
+    }
+
+    public PluginDetail(String name, String run) {
+        this.name = name;
+        this.run = run;
+    }
 
     public List<PluginProperty> getProperties() {
         return properties;

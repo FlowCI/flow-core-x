@@ -16,15 +16,20 @@
 
 package com.flow.platform.plugin.test.util;
 
+import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginDetail;
+import com.flow.platform.plugin.domain.PluginWithProperties;
 import com.flow.platform.plugin.domain.envs.PluginProperty;
 import com.flow.platform.plugin.domain.envs.PluginPropertyType;
 import com.flow.platform.plugin.test.TestBase;
 import com.flow.platform.plugin.util.ValidateUtil;
 import com.flow.platform.plugin.util.ValidateUtil.Result;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -32,26 +37,57 @@ import org.junit.Test;
  */
 public class ValidateUtilTest extends TestBase {
 
-    @Test
-    public void should_validate_list_properties() throws Throwable {
-        // given: define list property
-        PluginProperty listProperty = new PluginProperty("CITY_LIST", PluginPropertyType.LIST);
+    private PluginProperty listProperty = new PluginProperty("CITY_LIST", PluginPropertyType.LIST);
+
+    private PluginProperty booleanProperty = new PluginProperty("FIR_IS_CONNECT", PluginPropertyType.BOOLEAN);
+
+    @Before
+    public void init() {
         listProperty.setRequired(true);
         listProperty.setValues(ImmutableList.of("beijing", "shanghai", "seattle"));
 
+        booleanProperty.setDefaultValue("false");
+        booleanProperty.setRequired(false);
+    }
+
+    @Test
+    public void should_validate_plugin_with_property() throws Throwable {
+        // given: installed plugin
+        booleanProperty.setRequired(false);
+
+        String pluginName = "fir-upload";
+        Plugin plugin =new Plugin(pluginName, "url", ImmutableSet.of("fir"), "admin@fir.im", ImmutableSet.of("*"));
+
+        PluginDetail detail = new PluginDetail(pluginName, "fir upload xxx");
+        detail.getProperties().add(listProperty);
+        detail.getProperties().add(booleanProperty);
+
+        plugin.setPluginDetail(detail);
+
+        // when:
+        PluginWithProperties data = new PluginWithProperties(pluginName);
+        data.getProperties().put("CITY_LIST", "beijing");
+
+        // then: should true since FIR_IS_CONNECT is missing but not required
+        Result result = ValidateUtil.validatePlugin(ImmutableList.of(data), ImmutableList.of(plugin));
+        Assert.assertTrue(result.isValid());
+    }
+
+    @Test
+    public void should_validate_list_properties() throws Throwable {
         // when:
         Map<String, String> keyValues = new HashMap<>();
         keyValues.put("ENV_NOT_THERE", "beijing");
-        Result result = ValidateUtil.validate(ImmutableList.of(listProperty), keyValues);
+        Result result = ValidateUtil.validateProperties(ImmutableList.of(listProperty), keyValues);
 
         // then:
         Assert.assertFalse(result.isValid());
-        Assert.assertEquals("The property 'ENV_NOT_THERE' is not defined", result.getError());
+        Assert.assertEquals("The property 'CITY_LIST' is missing", result.getError());
 
         // when:
         keyValues = new HashMap<>();
         keyValues.put("CITY_LIST", "beijing");
-        result = ValidateUtil.validate(ImmutableList.of(listProperty), keyValues);
+        result = ValidateUtil.validateProperties(ImmutableList.of(listProperty), keyValues);
 
         // then:
         Assert.assertTrue(result.isValid());
@@ -60,15 +96,13 @@ public class ValidateUtilTest extends TestBase {
 
     @Test
     public void should_validate_boolean_properties() throws Throwable {
-        // given: define boolean property
-        PluginProperty booleanProperty = new PluginProperty("FIR_IS_CONNECT", PluginPropertyType.BOOLEAN);
-        booleanProperty.setDefaultValue("false");
+        // given:
         booleanProperty.setRequired(true);
 
         // when: empty value
         Map<String, String> keyValues = new HashMap<>();
         keyValues.put("FIR_IS_CONNECT", "");
-        Result validResult = ValidateUtil.validate(ImmutableList.of(booleanProperty), keyValues);
+        Result validResult = ValidateUtil.validateProperties(ImmutableList.of(booleanProperty), keyValues);
 
         // then: should return false since property is required
         Assert.assertFalse(validResult.isValid());
@@ -77,7 +111,7 @@ public class ValidateUtilTest extends TestBase {
         // when: validate illegal boolean value
         keyValues = new HashMap<>();
         keyValues.put("FIR_IS_CONNECT", "xxx");
-        validResult = ValidateUtil.validate(ImmutableList.of(booleanProperty), keyValues);
+        validResult = ValidateUtil.validateProperties(ImmutableList.of(booleanProperty), keyValues);
 
         // then: should return false with error message
         Assert.assertFalse(validResult.isValid());
@@ -86,7 +120,7 @@ public class ValidateUtilTest extends TestBase {
         // when: validate correct boolean value
         keyValues = new HashMap<>();
         keyValues.put("FIR_IS_CONNECT", "true");
-        validResult = ValidateUtil.validate(ImmutableList.of(booleanProperty), keyValues);
+        validResult = ValidateUtil.validateProperties(ImmutableList.of(booleanProperty), keyValues);
 
         // then: should return true without error message
         Assert.assertTrue(validResult.isValid());
