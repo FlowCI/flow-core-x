@@ -50,6 +50,10 @@ public class PluginEventConsumer implements ApplicationListener<PluginStatusChan
             case DELETE:
                 syncType = SyncType.DELETE;
                 break;
+
+            default:
+                // do not handle other sync type
+                break;
         }
 
         if (syncType == null) {
