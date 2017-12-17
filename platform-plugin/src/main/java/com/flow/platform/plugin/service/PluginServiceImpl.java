@@ -124,7 +124,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         Plugin plugin = find(pluginName);
 
         if (Objects.isNull(plugin)) {
-            throw new PluginException("not found plugin, please ensure the plugin name is exist");
+            throw new PluginException("Plugin '" + pluginName + " not found', ensure the plugin name is exist");
         }
 
         // not finish can install plugin

@@ -51,29 +51,6 @@ public class ValidateUtilTest extends TestBase {
     }
 
     @Test
-    public void should_validate_plugin_with_property() throws Throwable {
-        // given: installed plugin
-        booleanProperty.setRequired(false);
-
-        String pluginName = "fir-upload";
-        Plugin plugin =new Plugin(pluginName, "url", ImmutableSet.of("fir"), "admin@fir.im", ImmutableSet.of("*"));
-
-        PluginDetail detail = new PluginDetail(pluginName, "fir upload xxx");
-        detail.getProperties().add(listProperty);
-        detail.getProperties().add(booleanProperty);
-
-        plugin.setPluginDetail(detail);
-
-        // when:
-        PluginWithProperties data = new PluginWithProperties(pluginName);
-        data.getProperties().put("CITY_LIST", "beijing");
-
-        // then: should true since FIR_IS_CONNECT is missing but not required
-        Result result = ValidateUtil.validatePlugin(ImmutableList.of(data), ImmutableList.of(plugin));
-        Assert.assertTrue(result.isValid());
-    }
-
-    @Test
     public void should_validate_list_properties() throws Throwable {
         // when:
         Map<String, String> keyValues = new HashMap<>();

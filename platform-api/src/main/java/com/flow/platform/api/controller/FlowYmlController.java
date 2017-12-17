@@ -20,9 +20,13 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.security.WebSecurity;
-import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
+import com.flow.platform.api.util.PluginUtil;
+import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.util.StringUtil;
+import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -38,9 +42,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "/flows/{root}/yml")
 public class FlowYmlController extends NodeController {
-
-    @Autowired
-    private NodeService nodeService;
 
     @Autowired
     private YmlService ymlService;

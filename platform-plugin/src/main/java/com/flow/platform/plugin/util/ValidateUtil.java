@@ -16,15 +16,10 @@
 
 package com.flow.platform.plugin.util;
 
-import com.flow.platform.plugin.domain.Plugin;
-import com.flow.platform.plugin.domain.PluginDetail;
-import com.flow.platform.plugin.domain.PluginWithProperties;
 import com.flow.platform.plugin.domain.envs.PluginProperty;
-import com.flow.platform.util.CollectionUtil;
 import com.google.common.base.Strings;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author yang
@@ -49,40 +44,6 @@ public class ValidateUtil {
         public String getError() {
             return error;
         }
-    }
-
-    /**
-     * Validate plugin name and value which are match installed plugin list
-     *
-     * @param nameWithValues Plugin name with property-value
-     * @param installed Installed plugin list
-     * @return Result
-     */
-    public static Result validatePlugin(List<PluginWithProperties> nameWithValues, List<Plugin> installed) {
-        final Map<String, Plugin> map = CollectionUtil.toPropertyMap("name", installed);
-
-        for (PluginWithProperties item : nameWithValues) {
-            final String pluginName = item.getName();
-            final Map<String, String> propertyWithValue = item.getProperties();
-
-            Plugin plugin = map.get(pluginName);
-            if (Objects.isNull(plugin)) {
-                final String message = String.format("The plugin '%s' is not available", pluginName);
-                return new Result(false, message);
-            }
-
-            PluginDetail detail = plugin.getPluginDetail();
-            if (Objects.isNull(detail)) {
-                return new Result(false, "Illegal plugin detail description: " + pluginName);
-            }
-
-            Result result = validateProperties(detail.getProperties(), propertyWithValue);
-            if (!result.isValid) {
-                return result;
-            }
-        }
-
-        return new Result(true, null);
     }
 
     /**

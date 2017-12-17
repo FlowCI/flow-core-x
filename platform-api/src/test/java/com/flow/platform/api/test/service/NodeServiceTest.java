@@ -34,14 +34,22 @@ import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginDetail;
+import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.domain.envs.PluginProperty;
+import com.flow.platform.plugin.domain.envs.PluginPropertyType;
+import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -55,6 +63,9 @@ public class NodeServiceTest extends TestBase {
 
     @Value(value = "${domain.api}")
     private String apiDomain;
+
+    @Autowired
+    private PluginService pluginService;
 
     @Test
     public void should_find_any_node() throws Throwable {
@@ -237,6 +248,15 @@ public class NodeServiceTest extends TestBase {
         String flowName = "flow-yml";
         Node emptyFlow = nodeService.createEmptyFlow(flowName);
         setFlowToReady(emptyFlow);
+
+        // given: mock plugin list
+        Plugin plugin = new Plugin("fir-cli", "xx", ImmutableSet.of("fir"), "xx", ImmutableSet.of("*"));
+        plugin.setPluginDetail(new PluginDetail("fir-cli", "fir upload xx"));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_TOKEN", PluginPropertyType.STRING, true));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_PATH", PluginPropertyType.STRING, true));
+
+        Mockito.when(pluginService.list(ImmutableSet.of(PluginStatus.INSTALLED), null, null))
+            .thenReturn(ImmutableList.of(plugin));
 
         Map<String, String> envsForFlow = new HashMap<>(3);
         envsForFlow.put("FLOW_NEW_1", "hello");

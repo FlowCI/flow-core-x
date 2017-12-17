@@ -39,14 +39,20 @@ import com.flow.platform.api.service.user.UserFlowService;
 import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.api.util.PluginUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -94,6 +100,9 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private PluginService pluginService;
+
     @Value(value = "${domain.api}")
     private String apiDomain;
 
@@ -115,6 +124,9 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             throw e;
         }
 
+        // validate plugin
+        pluginValidation(rootFromYml.getChildren());
+
         // persistent flow type node to flow table with env which from yml
         ymlService.saveOrUpdate(flow, yml);
         EnvUtil.merge(rootFromYml, flow, true);
@@ -130,6 +142,11 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Override
     public Node updateByNodes(final String path, final List<Node> children) {
         Node flow = find(PathUtil.rootPath(path)).root();
+
+        // validate plugin
+        pluginValidation(children);
+
+        // find exist yml
         Yml exist = ymlService.get(flow.getPath());
 
         Node flowForYml = Objects.isNull(exist) ?
@@ -155,7 +172,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Override
     @Transactional(readOnly = true, noRollbackFor = Throwable.class)
     public NodeTree find(final String path) {
-        NodeTree tree = findWithoutVierfy(path);
+        NodeTree tree = findWithoutVerify(path);
         if (Objects.isNull(tree)) {
             throw new IllegalParameterException("Illegal node path");
         }
@@ -194,7 +211,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public boolean exist(final String path) {
-        return findWithoutVierfy(path) != null;
+        return findWithoutVerify(path) != null;
     }
 
     @Override
@@ -287,7 +304,16 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         return users;
     }
 
-    private NodeTree findWithoutVierfy(final String path) {
+    /**
+     * Validate children node which use plugin
+     */
+    private void pluginValidation(List<Node> children) {
+        ImmutableSet<PluginStatus> status = ImmutableSet.of(PluginStatus.INSTALLED);
+        Collection<Plugin> list = pluginService.list(status, null, null);
+        PluginUtil.validate(children, list);
+    }
+
+    private NodeTree findWithoutVerify(final String path) {
         final String rootPath = PathUtil.rootPath(path);
 
         // load tree from tree cache

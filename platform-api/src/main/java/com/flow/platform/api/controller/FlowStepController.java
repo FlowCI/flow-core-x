@@ -21,7 +21,13 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.security.WebSecurity;
 import com.flow.platform.api.service.node.NodeService;
+import com.flow.platform.api.util.PluginUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.service.PluginService;
+import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +43,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "/flows/{root}/steps")
 public class FlowStepController extends NodeController {
-
-    @Autowired
-    private NodeService nodeService;
 
     /**
      * @api {get} /flows/:root/steps Get
@@ -105,6 +108,7 @@ public class FlowStepController extends NodeController {
             throw new IllegalParameterException("The step list is required");
         }
 
+        // update
         String root = currentNodePath.get();
         nodeService.updateByNodes(root, children);
     }

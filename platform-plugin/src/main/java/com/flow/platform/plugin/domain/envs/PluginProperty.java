@@ -59,6 +59,12 @@ public class PluginProperty {
         this.type = type;
     }
 
+    public PluginProperty(String name, PluginPropertyType type, Boolean required) {
+        this.name = name;
+        this.type = type;
+        this.required = required;
+    }
+
     public String getName() {
         return name;
     }

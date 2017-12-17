@@ -20,9 +20,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginDetail;
+import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.domain.envs.PluginProperty;
+import com.flow.platform.plugin.domain.envs.PluginPropertyType;
+import com.flow.platform.plugin.service.PluginService;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -33,10 +43,21 @@ public class StepControllerTest extends ControllerTestWithoutAuth {
 
     private final String flowName = "flow_default";
 
+    @Autowired
+    private PluginService pluginService;
+
     @Before
     public void init() throws Throwable {
         stubDemo();
         createEmptyFlow(flowName);
+
+        Plugin plugin = new Plugin("fir-cli", "xx", ImmutableSet.of("fir"), "xx", ImmutableSet.of("*"));
+        plugin.setPluginDetail(new PluginDetail("fir-cli", "fir upload xx"));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_TOKEN", PluginPropertyType.STRING, true));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_PATH", PluginPropertyType.STRING, true));
+
+        Mockito.when(pluginService.list(ImmutableSet.of(PluginStatus.INSTALLED), null, null))
+            .thenReturn(ImmutableList.of(plugin));
     }
 
     @Test
