@@ -174,7 +174,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     public NodeTree find(final String path) {
         NodeTree tree = findWithoutVerify(path);
         if (Objects.isNull(tree)) {
-            throw new IllegalParameterException("Illegal node path");
+            throw new IllegalParameterException("Cannot get correct data for path: " + path);
         }
         return tree;
     }
@@ -322,13 +322,17 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             Yml ymlStorage = ymlService.get(rootPath);
             Node flow = flowDao.get(path);
 
-            // has related yml
-            if (ymlStorage != null) {
-                return new NodeTree(ymlStorage.getFile(), flow);
-            }
+            try {
+                // has related yml
+                if (ymlStorage != null) {
+                    return new NodeTree(ymlStorage.getFile(), flow);
+                }
 
-            if (flow != null) {
-                return new NodeTree(flow);
+                if (flow != null) {
+                    return new NodeTree(flow);
+                }
+            } catch (Throwable e) {
+                LOGGER.error("Cannot load node tree", e);
             }
 
             // root path not exist

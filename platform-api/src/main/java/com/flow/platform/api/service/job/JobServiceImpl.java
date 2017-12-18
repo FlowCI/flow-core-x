@@ -361,7 +361,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
      * @param node job node's script and record cmdId and sync send http
      */
     private void run(Node node, Job job) {
-        if (node == null) {
+        if (Objects.isNull(node)) {
             throw new IllegalParameterException("Cannot run node with null value");
         }
 
@@ -548,7 +548,16 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // continue to run if allow failure on failure status
         if (nodeResult.isFailure() && nodeResult.getNodeTag() == NodeTag.STEP) {
             Node step = node;
-            if (step.getAllowFailure()) {
+
+            // run next node if allow failure or final node on current step
+            if (step.getAllowFailure() || step.getIsFinal()) {
+                run(next, job);
+                return;
+            }
+
+            // run next final node if exist
+            next = tree.nextFinal(step.getName());
+            if (!Objects.isNull(next)) {
                 run(next, job);
                 return;
             }

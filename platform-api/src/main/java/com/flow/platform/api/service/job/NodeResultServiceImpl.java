@@ -276,7 +276,17 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         parentResult.setDuration(parentResult.getDuration() + duration);
 
         if (shouldUpdateParentStatus(current, currentResult)) {
-            parentResult.setStatus(currentResult.getStatus());
+            NodeStatus parentStatus = currentResult.getStatus();
+
+            // do not count final node status
+            if (current.getIsFinal()) {
+                NodeTree tree = jobNodeService.get(job);
+                Node lastNormalNode = tree.last(false);
+                NodeResult lastNormalNodeResult = find(lastNormalNode.getPath(), job.getId());
+                parentStatus = lastNormalNodeResult.getStatus();
+            }
+
+            parentResult.setStatus(parentStatus);
         }
 
         nodeResultDao.update(parentResult);

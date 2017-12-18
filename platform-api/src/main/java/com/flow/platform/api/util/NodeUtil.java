@@ -140,9 +140,9 @@ public class NodeUtil {
             node.flow.get(0).name = rootName;
             Node root = node.flow.get(0).toNode();
 
+            buildNodeRelation(root);
             VALIDATOR.validate(root);
 
-            buildNodeRelation(root);
             return root;
         } catch (YAMLException e) {
             throw new YmlException(e.getMessage());
@@ -160,10 +160,10 @@ public class NodeUtil {
     }
 
     /**
-     * get all nodes includes flow and steps
+     * Get all nodes includes flow and steps
      *
      * @param node the parent node
-     * @return {@code List<Node>} include parent node
+     * @return {@code List<Node>} include parent node at rear
      */
     public static List<Node> flat(final Node node) {
         final List<Node> flatted = new LinkedList<>();
@@ -222,6 +222,34 @@ public class NodeUtil {
     }
 
     /**
+     * Get next final node from current node
+     *
+     * @param node current node
+     * @param ordered ordered and flatted node list
+     * @return
+     */
+    public static Node nextFinal(Node node, List<Node> ordered) {
+        Integer index = ordered.indexOf(node);
+
+        if (index == -1) {
+            return null;
+        }
+
+        // find node
+        try {
+            for (int i = index + 1; i < ordered.size(); i++) {
+                Node next = ordered.get(i);
+                if (next.getIsFinal()) {
+                    return next;
+                }
+            }
+            return null;
+        } catch (Throwable ignore) {
+            return null;
+        }
+    }
+
+    /**
      * Build node path and parent, next, prev relation
      */
     public static void buildNodeRelation(Node node) {
@@ -254,7 +282,6 @@ public class NodeUtil {
                 validator.accept(node);
             }
         }
-
     }
 
     private static class ConstrainsValidator implements Consumer<Node> {
@@ -269,7 +296,7 @@ public class NodeUtil {
                 }
 
                 if (!Strings.isNullOrEmpty(item.getScript()) && !Strings.isNullOrEmpty(item.getPlugin())) {
-                    throw new NodeFormatException("The script and plugin cannot defined in both on : " + item.getName());
+                    throw new NodeFormatException("The script and plugin cannot defined in both : " + item.getName());
                 }
             }
         }
@@ -301,6 +328,7 @@ public class NodeUtil {
         @Override
         public void accept(Node node) {
             final List<Node> ordered = flat(node);
+            ordered.remove(node);
 
             for (int i = 0; i < ordered.size(); i++) {
                 if (!ordered.get(i).getIsFinal()) {
