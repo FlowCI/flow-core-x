@@ -42,7 +42,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -145,7 +144,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals("11111111", job.getSessionId());
         Assert.assertEquals(JobCategory.TAG, job.getCategory());
 
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step1));
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setType(CmdType.RUN_SHELL);
         cmd.setExtra(step1.getPath());
@@ -158,7 +157,7 @@ public class JobServiceTest extends TestBase {
         NodeResult jobFlow = nodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
 
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step1));
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setExtra(step2.getPath());
 
@@ -222,7 +221,7 @@ public class JobServiceTest extends TestBase {
             Assert.assertEquals(NodeStatus.PENDING, stepResult.getStatus());
 
             // simulate callback with success executed
-            Cmd stepCmd = new Cmd("default", null, CmdType.RUN_SHELL, step.getScript());
+            Cmd stepCmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step));
             stepCmd.setSessionId(sessionId);
             stepCmd.setStatus(CmdStatus.LOGGED);
             stepCmd.setCmdResult(new CmdResult(0));
@@ -287,7 +286,7 @@ public class JobServiceTest extends TestBase {
         job = reload(job);
 
         // first step should running
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, stepFirst.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(stepFirst));
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setType(CmdType.RUN_SHELL);
         cmd.setExtra(stepFirst.getPath());

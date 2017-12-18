@@ -304,6 +304,25 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         return users;
     }
 
+    @Override
+    public String getRunningScript(Node node) {
+        if (!Strings.isNullOrEmpty(node.getPlugin())) {
+            Plugin plugin = pluginService.find(node.getPlugin());
+
+            if (Objects.isNull(plugin)) {
+                throw new FlowException("Not found plugin, plugin name is " + node.getPlugin());
+            }
+
+            if (Objects.isNull(plugin.getPluginDetail())) {
+                throw new FlowException("Not found plugin detail, plugin name is " + node.getPlugin());
+            }
+
+            return plugin.getPluginDetail().getRun();
+        }
+
+        return node.getScript();
+    }
+
     /**
      * Validate children node which use plugin
      */
