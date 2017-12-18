@@ -412,4 +412,36 @@ public class NodeServiceTest extends TestBase {
         // not include 3 keys
         nodeService.createEmptyFlow("flw");
     }
+
+
+    @Test
+    public void should_get_running_script_success() {
+        // given:
+        String flowName = "flow-yml";
+        Node emptyFlow = nodeService.createEmptyFlow(flowName);
+        setFlowToReady(emptyFlow);
+
+        // given: mock plugin list
+        Plugin plugin = new Plugin("fir-cli", "xx", ImmutableSet.of("fir"), "xx", ImmutableSet.of("*"));
+        plugin.setPluginDetail(new PluginDetail("fir-cli", "fir upload xx"));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_TOKEN", PluginPropertyType.STRING, true));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_PATH", PluginPropertyType.STRING, true));
+
+        // given: mock find plugin
+        Mockito.when(pluginService.find("fir-cli")).thenReturn(plugin);
+
+        // when: create step set plugin
+        Node step = new Node(PathUtil.build(flowName, "step"), "step");
+        step.setPlugin("fir-cli");
+
+        // then: running script should equal
+        Assert.assertEquals("fir upload xx", nodeService.getRunningScript(step));
+
+        // when: create step not set plugin
+        Node noPluginStep = new Node(PathUtil.build(flowName, "noPluginStep"), "noPluginStep");
+        noPluginStep.setScript("echo a");
+
+        // then: running script should equal
+        Assert.assertEquals("echo a", nodeService.getRunningScript(noPluginStep));
+    }
 }
