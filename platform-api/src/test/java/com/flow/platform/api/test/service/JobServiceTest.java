@@ -187,6 +187,7 @@ public class JobServiceTest extends TestBase {
         Node root = createRootFlow(flowName, "yml/for_job_service_final_node.yml");
         Job job = createMockJob(root.getPath());
         NodeTree jobTree = jobNodeService.get(job);
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
         cmd.setSessionId(sessionId);
@@ -221,6 +222,7 @@ public class JobServiceTest extends TestBase {
 
         // when: create job and job should be SESSION_CREATING
         Job job = createMockJob(root.getPath());
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         // when: simulate cc callback for create session
         Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
@@ -310,6 +312,7 @@ public class JobServiceTest extends TestBase {
 
         // create job
         Job job = createMockJob(rootForFlow.getPath());
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         // mock callback cmd
         final String sessionId = CommonUtil.randomId().toString();

@@ -344,9 +344,6 @@ public abstract class TestBase {
         Assert.assertNotNull(childrenResult);
         Assert.assertEquals(nodeTree.childrenSize(), childrenResult.size());
 
-        // verify cmd request to create session
-        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
-
         return job;
     }
 
