@@ -103,12 +103,6 @@
 
     <dependency>
       <groupId>com.flow.platform</groupId>
-      <artifactId>platform-yml-parser</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.flow.platform</groupId>
       <artifactId>platform-plugin</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -171,6 +165,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit.http.server</artifactId>
     </dependency>
@@ -195,6 +194,18 @@
     <dependency>
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito2</artifactId>
       <scope>test</scope>
     </dependency>
 

@@ -16,7 +16,7 @@
 
 package com.flow.platform.plugin.domain.adaptor;
 
-import com.flow.platform.plugin.domain.envs.PluginEnvType;
+import com.flow.platform.plugin.domain.envs.PluginPropertyType;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.yml.parser.adaptor.YmlAdaptor;
 import com.google.common.collect.ImmutableSet;
@@ -26,18 +26,18 @@ import java.util.Objects;
 /**
  * @author yh@firim
  */
-public class EnvTypeAdaptor extends YmlAdaptor<PluginEnvType> {
+public class EnvTypeAdaptor extends YmlAdaptor<PluginPropertyType> {
 
-    private static final Collection<PluginEnvType> PLUGIN_ENV_TYPES = ImmutableSet.of(
-        PluginEnvType.BOOLEAN,
-        PluginEnvType.INTEGER,
-        PluginEnvType.STRING,
-        PluginEnvType.LIST
+    private static final Collection<PluginPropertyType> PLUGIN_ENV_TYPES = ImmutableSet.of(
+        PluginPropertyType.BOOLEAN,
+        PluginPropertyType.INTEGER,
+        PluginPropertyType.STRING,
+        PluginPropertyType.LIST
     );
 
     @Override
-    public PluginEnvType read(Object obj) {
-        PluginEnvType pluginEnvType = selectEnvType(obj.toString());
+    public PluginPropertyType read(Object obj) {
+        PluginPropertyType pluginEnvType = selectEnvType(obj.toString());
         if (pluginEnvType == null) {
             throw new PluginException("Yml Env Type Error, Not Found Env Type");
         }
@@ -45,13 +45,13 @@ public class EnvTypeAdaptor extends YmlAdaptor<PluginEnvType> {
     }
 
     @Override
-    public Object write(PluginEnvType s) {
+    public Object write(PluginPropertyType s) {
         return null;
     }
 
-    private static PluginEnvType selectEnvType(String type) {
-        PluginEnvType selectedType = null;
-        for (PluginEnvType pluginEnvType : PLUGIN_ENV_TYPES) {
+    private static PluginPropertyType selectEnvType(String type) {
+        PluginPropertyType selectedType = null;
+        for (PluginPropertyType pluginEnvType : PLUGIN_ENV_TYPES) {
             if (Objects.equals(pluginEnvType.getValue(), type)) {
                 selectedType = pluginEnvType;
                 break;

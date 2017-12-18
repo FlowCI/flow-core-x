@@ -2,6 +2,7 @@ package com.flow.platform.api.service.user;
 
 import com.flow.platform.api.domain.response.LoginResponse;
 import com.flow.platform.api.domain.user.User;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -13,6 +14,11 @@ public interface UserService {
      * List all users
      */
     List<User> list(boolean withFlow, boolean withRole);
+
+    /**
+     * List users by email list
+     */
+    List<User> list(Collection<String> emails);
 
     /**
      * Find user by email

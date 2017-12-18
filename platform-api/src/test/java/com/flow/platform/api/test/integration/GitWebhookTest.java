@@ -293,7 +293,7 @@ public class GitWebhookTest extends TestBase {
         setFlowToReady(flow);
 
         // setup yml
-        flow = nodeService.createOrUpdateYml(flow.getPath(), getResourceContent("yml/for_git_webhook_test.yml"));
+        flow = nodeService.updateByYml(flow.getPath(), getResourceContent("yml/for_git_webhook_test.yml"));
 
         // set flow git related env
         Map<String, String> env = new HashMap<>();

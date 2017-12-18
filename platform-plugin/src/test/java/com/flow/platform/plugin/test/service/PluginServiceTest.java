@@ -47,7 +47,7 @@ public class PluginServiceTest extends TestBase {
     public void init() throws Throwable {
         stubDemo();
 
-        pluginDao.refreshCache();
+        pluginDao.refresh();
 
         initGit();
 
@@ -84,25 +84,25 @@ public class PluginServiceTest extends TestBase {
 
         // then: plugin status should equal installed
         Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
-
-        resetPluginStatus();
+        resetPluginStatus("flowCliC");
     }
 
     @Test
     public void should_exec_install_success() throws Throwable {
         // delete folder avoid affect other
-        cleanFolder("flowCliC");
+        String pluginName = "flowCliC";
+        cleanFolder(pluginName);
+        resetPluginStatus(pluginName);
 
         // when: find plugin
-        Plugin plugin = pluginService.find("flowCliC");
+        Plugin plugin = pluginService.find(pluginName);
 
         // then: plugin is not null
         Assert.assertNotNull(plugin);
+        Assert.assertEquals(PluginStatus.PENDING, plugin.getStatus());
 
         // when: install plugin
         pluginService.execInstallOrUpdate(plugin);
-
-        plugin = pluginService.find("flowCliC");
 
         // then: plugin should install
         Assert.assertEquals(PluginStatus.INSTALLED, plugin.getStatus());
@@ -152,8 +152,8 @@ public class PluginServiceTest extends TestBase {
         Assert.assertEquals(false, plugin.getStopped());
     }
 
-    private void resetPluginStatus() {
-        Plugin plugin = pluginService.find("fircli");
+    private void resetPluginStatus(String name) {
+        Plugin plugin = pluginService.find(name);
         plugin.setStatus(PluginStatus.PENDING);
         pluginDao.update(plugin);
     }

@@ -738,7 +738,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private Job find(Job job) {
-        if (job == null) {
+        if (Objects.isNull(job)) {
             throw new NotFoundException("Job is not found");
         }
 

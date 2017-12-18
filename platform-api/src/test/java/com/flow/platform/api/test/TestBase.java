@@ -98,7 +98,7 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {WebConfig.class})
+@ContextConfiguration(classes = {WebConfig.class, TestConfiguration.class})
 @PropertySource("classpath:app-default.properties")
 @PropertySource("classpath:i18n")
 @FixMethodOrder(MethodSorters.JVM)
@@ -236,7 +236,7 @@ public abstract class TestBase {
         setFlowToReady(emptyFlow);
         String yml = getResourceContent(ymlResourceName);
         setRequiredJobEnvsForFlow(emptyFlow);
-        return nodeService.createOrUpdateYml(emptyFlow.getPath(), yml);
+        return nodeService.updateByYml(emptyFlow.getPath(), yml);
     }
 
     public void setFlowToReady(Node flowNode) {

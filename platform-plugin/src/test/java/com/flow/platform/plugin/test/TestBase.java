@@ -119,7 +119,7 @@ public abstract class TestBase {
 
             // add yml file
             String body = getResource("flow-step-demo.yml");
-            Path path = Paths.get(gitCloneMocGit.toString(), "flow-step.yml");
+            Path path = Paths.get(gitCloneMocGit.toString(), ".flow-plugin.yml");
             FileUtils.write(path.toFile(), body);
 
             // add
@@ -137,7 +137,7 @@ public abstract class TestBase {
 
         // update plugin to local git
         for (Plugin plugin : pluginDao.list(null, null, null)) {
-            plugin.setDetails(mocGit.getParent() + "/firCi");
+            plugin.setSource(mocGit.getParent() + "/firCi");
             plugin.setLatestCommit(commit.getId().getName());
             pluginDao.update(plugin);
         }

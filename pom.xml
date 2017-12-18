@@ -49,7 +49,7 @@
     <mysql_connect.version>5.1.42</mysql_connect.version>
     <HikariCP.version>2.6.2</HikariCP.version>
     <powermock.version>1.7.0</powermock.version>
-    <snakeyaml.version>1.18</snakeyaml.version>
+    <snakeyaml.version>1.19</snakeyaml.version>
     <curator.version>2.12.0</curator.version>
     <tyrus-server.version>1.13.1</tyrus-server.version>
     <jgit.version>4.8.0.201706111038-r</jgit.version>
@@ -74,10 +74,24 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.1</version>
         <configuration>
+          <compilerId>javac-with-errorprone</compilerId>
+          <forceJavacCompilerUse>true</forceJavacCompilerUse>
           <source>1.8</source>
           <target>1.8</target>
           <encoding>UTF-8</encoding>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-compiler-javac-errorprone</artifactId>
+            <version>2.8</version>
+          </dependency>
+          <dependency>
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_core</artifactId>
+            <version>2.1.1</version>
+          </dependency>
+        </dependencies>
       </plugin>
 
       <plugin>
@@ -95,6 +109,10 @@
             <goals>
               <goal>report</goal>
             </goals>
+            <configuration>
+              <dataFile>target/jacoco.exec</dataFile>
+              <outputDirectory>target/jacoco</outputDirectory>
+            </configuration>
           </execution>
         </executions>
       </plugin>

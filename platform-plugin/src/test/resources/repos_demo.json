@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "fircli",
-      "details": "https://github.com/yunheli/info",
+      "source": "https://github.com/yunheli/info",
       "labels": [
         "language syntax"
       ],
@@ -16,7 +16,7 @@
     },
     {
       "name": "flowCli",
-      "details": "https://github.com/yunheli/info",
+      "source": "https://github.com/yunheli/info",
       "labels": [
         "language syntax"
       ],
@@ -29,7 +29,7 @@
     },
     {
       "name": "flowCliA",
-      "details": "https://github.com/yunheli/info",
+      "source": "https://github.com/yunheli/info",
       "labels": [
         "language syntax"
       ],
@@ -42,7 +42,7 @@
     },
     {
       "name": "flowCliB",
-      "details": "https://github.com/yunheli/info",
+      "source": "https://github.com/yunheli/info",
       "labels": [
         "language syntax"
       ],
@@ -55,7 +55,7 @@
     },
     {
       "name": "flowCliC",
-      "details": "https://github.com/yunheli/info",
+      "source": "https://github.com/yunheli/info",
       "labels": [
         "language syntax"
       ],
@@ -68,7 +68,7 @@
     },
     {
       "name": "flowCliD",
-      "details": "https://github.com/yunheli/info",
+      "source": "https://github.com/yunheli/info",
       "labels": [
         "language syntax"
       ],
@@ -81,7 +81,7 @@
     },
     {
       "name": "flowCliE",
-      "details": "https://github.com/yunheli/info",
+      "source": "https://github.com/yunheli/info",
       "labels": [
         "language syntax"
       ],
@@ -94,7 +94,7 @@
     },
     {
       "name": "flowCliF",
-      "details": "https://github.com/yunheli/info",
+      "source": "https://github.com/yunheli/info",
       "labels": [
         "language syntax"
       ],

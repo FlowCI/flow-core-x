@@ -100,7 +100,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         new InitGitProcessor(),
         new FetchProcessor(),
         new CompareCommitProcessor(),
-//        new AnalysisYmlProcessor(),
+        new AnalysisYmlProcessor(),
         new PushProcessor()
     );
 
@@ -124,12 +124,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         Plugin plugin = find(pluginName);
 
         if (Objects.isNull(plugin)) {
-            throw new PluginException("not found plugin, please ensure the plugin name is exist");
+            throw new PluginException("Plugin '" + pluginName + " not found', ensure the plugin name is exist");
         }
 
         // not finish can install plugin
         if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin.getStatus())) {
-            LOGGER.trace(String.format("Plugin %s Enter To Queue", pluginName));
+            LOGGER.trace("Plugin %s Enter To Queue", pluginName);
 
             // update plugin status
             updatePluginStatus(plugin, IN_QUEUE);
@@ -137,7 +137,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             // record future task
             Future<?> submit = pluginPoolExecutor.submit(new InstallRunnable(plugin));
             taskCache.put(plugin, submit);
-            LOGGER.trace(String.format("Plugin %s finish To Queue", pluginName));
+            LOGGER.trace("Plugin %s finish To Queue", pluginName);
         }
 
         return plugin;
@@ -223,7 +223,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         try {
             LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
             dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.ON_PROGRESS));
-            pluginDao.refreshCache();
+            pluginDao.refresh();
         } catch (Throwable e) {
             LOGGER.warn(e.getMessage());
         } finally {
@@ -287,7 +287,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 JGitUtil.init(localPath, true);
 
                 // remote set
-                JGitUtil.remoteSet(cachePath, ORIGIN_REMOTE, plugin.getDetails() + GIT_SUFFIX);
+                JGitUtil.remoteSet(cachePath, ORIGIN_REMOTE, plugin.getSource() + GIT_SUFFIX);
                 JGitUtil.remoteSet(cachePath, LOCAL_REMOTE, localPath.toString());
 
                 // if branch not exists then push branch
@@ -396,7 +396,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("AnalysisYmlProcessor", "Analysis YML");
+            LOGGER.traceMarker("AnalysisYmlProcessor", "Analysis YML from plugin");
 
             try {
                 // first checkout plugin tag

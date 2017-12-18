@@ -20,6 +20,7 @@ import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
@@ -35,13 +36,13 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class NodeUtilYmlTest {
 
-    private File ymlSampleFile;
+    private String ymlContent;
 
     @Before
-    public void before() {
+    public void before() throws Throwable {
         ClassLoader classLoader = NodeUtilYmlTest.class.getClassLoader();
         URL resource = classLoader.getResource("yml/flow.yaml");
-        ymlSampleFile = new File(resource.getFile());
+        ymlContent = Files.toString(new File(resource.getFile()), AppConfig.DEFAULT_CHARSET);
     }
 
     @Test(expected = YmlException.class)
@@ -51,10 +52,7 @@ public class NodeUtilYmlTest {
 
     @Test
     public void should_create_node_by_file() throws IOException {
-
-        String ymlString = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
-
-        Node node = NodeUtil.buildFromYml(ymlString, "flow1");
+        Node node = NodeUtil.buildFromYml(ymlContent, "flow1");
 
         // verify flow
         Assert.assertEquals("flow1", node.getName());
@@ -94,11 +92,79 @@ public class NodeUtilYmlTest {
 
     @Test
     public void should_create_node_by_string() throws Throwable {
-        String yamlRaw = Files.toString(ymlSampleFile, AppConfig.DEFAULT_CHARSET);
-        Node node = NodeUtil.buildFromYml(yamlRaw, "flow");
+        Node node = NodeUtil.buildFromYml(ymlContent, "flow");
         Assert.assertEquals("flow", node.getName());
 
         String yml = new Yaml().dump(node);
+        Assert.assertNotNull(yml);
+    }
+
+    @Test
+    public void should_parse_node_to_yml() throws Throwable {
+        // given:
+        final String flow = "yml-test";
+        Node root = NodeUtil.buildFromYml(ymlContent, flow);
+        Assert.assertEquals(flow, root.getName());
+        Assert.assertEquals(flow, root.getPath());
+
+        // when: parse root to yml
+        String parsedYml = NodeUtil.parseToYml(root);
+
+        // then:
+        Node parsedRoot = NodeUtil.buildFromYml(parsedYml, flow);
+        Assert.assertNotNull(parsedRoot);
+        Assert.assertEquals(flow, parsedRoot.getName());
+        Assert.assertEquals(flow, parsedRoot.getPath());
+        Assert.assertEquals(2, parsedRoot.getChildren().size());
+
+        Node step1 = parsedRoot.getChildren().get(0);
+        Assert.assertEquals("println(FLOW_WORKSPACE)\ntrue\n", step1.getConditionScript());
+        Assert.assertEquals(true, step1.getAllowFailure());
+        Assert.assertEquals("step1", step1.getName());
+        Assert.assertEquals(PathUtil.build(flow, "step1"), step1.getPath());
+        Assert.assertEquals(2, step1.getChildren().size());
+
+        Node step1InsideStep1 = step1.getChildren().get(0);
+        Assert.assertEquals("step11", step1InsideStep1.getName());
+        Assert.assertEquals(PathUtil.build(flow, "step1", "step11"), step1InsideStep1.getPath());
+        Assert.assertEquals(false, step1InsideStep1.getAllowFailure());
+        Assert.assertEquals("echo 1", step1InsideStep1.getScript());
+
+        Node step2InsideStep2 = step1.getChildren().get(1);
+        Assert.assertEquals("step12", step2InsideStep2.getName());
+        Assert.assertEquals(PathUtil.build(flow, "step1", "step12"), step2InsideStep2.getPath());
+        Assert.assertEquals(false, step2InsideStep2.getAllowFailure());
+        Assert.assertEquals("echo 2", step2InsideStep2.getScript());
+
+        Node step2 = parsedRoot.getChildren().get(1);
+        Assert.assertEquals("step2", step2.getName());
+        Assert.assertEquals(PathUtil.build(flow, "step2"), step2.getPath());
+        Assert.assertEquals(false, step2.getAllowFailure());
+        Assert.assertEquals("echo 2", step2.getScript());
+    }
+
+    @Test(expected = YmlException.class)
+    public void should_raise_error_if_step_name_missing_parse_node_to_yml() throws Throwable {
+        String flow = "yml-flow";
+        Node root = new Node(flow, flow);
+        Node step = new Node(null, null);
+        step.setScript("xxx");
+        root.getChildren().add(step);
+
+        String yml = NodeUtil.parseToYml(root);
+        Assert.assertNotNull(yml);
+    }
+
+    @Test(expected = YmlException.class)
+    public void should_raise_error_if_step_script_and_plugin_defined_in_both() throws Throwable {
+        String flow = "yml-flow";
+        Node root = new Node(flow, flow);
+        Node step = new Node(null, "step1");
+        step.setScript("echo 1");
+        step.setPlugin("fir-plugin");
+        root.getChildren().add(step);
+
+        String yml = NodeUtil.parseToYml(root);
         Assert.assertNotNull(yml);
     }
 }

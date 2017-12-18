@@ -17,7 +17,7 @@
 package com.flow.platform.plugin.test.util;
 
 import com.flow.platform.plugin.domain.PluginDetail;
-import com.flow.platform.plugin.domain.envs.PluginEnvKey;
+import com.flow.platform.plugin.domain.envs.PluginProperty;
 import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.plugin.test.TestBase;
 import com.flow.platform.plugin.util.YmlUtil;
@@ -47,24 +47,24 @@ public class YmlUtilTest extends TestBase {
         Assert.assertEquals(2, pluginDetail.getOutputs().size());
 
         // then: inputs size is Equal
-        Assert.assertEquals(5, pluginDetail.getInputs().size());
+        Assert.assertEquals(5, pluginDetail.getProperties().size());
 
-        PluginEnvKey stringEnvKey = pluginDetail.getInputs().get(0);
-        PluginEnvKey integerEnvKey = pluginDetail.getInputs().get(2);
-        PluginEnvKey booleanEnvKey = pluginDetail.getInputs().get(3);
-        PluginEnvKey listEnvKey = pluginDetail.getInputs().get(4);
+        PluginProperty stringEnvKey = pluginDetail.getProperties().get(0);
+        PluginProperty integerEnvKey = pluginDetail.getProperties().get(2);
+        PluginProperty booleanEnvKey = pluginDetail.getProperties().get(3);
+        PluginProperty listEnvKey = pluginDetail.getProperties().get(4);
 
-        // then: converter should equal instance
-        Assert.assertEquals(true, stringEnvKey.converter() instanceof String);
-        Assert.assertEquals(true, integerEnvKey.converter() instanceof Integer);
-        Assert.assertEquals(true, booleanEnvKey.converter() instanceof Boolean);
-        Assert.assertEquals(true, listEnvKey.converter() instanceof String);
+        // then: convert should equal instance
+        Assert.assertEquals(true, stringEnvKey.convert(stringEnvKey.getDefaultValue()) instanceof String);
+        Assert.assertEquals(true, integerEnvKey.convert(integerEnvKey.getDefaultValue()) instanceof Integer);
+        Assert.assertEquals(true, booleanEnvKey.convert(booleanEnvKey.getDefaultValue()) instanceof Boolean);
+        Assert.assertEquals(true, listEnvKey.convert(listEnvKey.getDefaultValue()) instanceof String);
 
         // then: should equal
-        Assert.assertEquals(false, booleanEnvKey.converter());
-        Assert.assertEquals(new Integer(1), integerEnvKey.converter());
-        Assert.assertEquals("nanjing", listEnvKey.converter());
-        Assert.assertEquals("admin", stringEnvKey.converter());
+        Assert.assertEquals(false, booleanEnvKey.convert(booleanEnvKey.getDefaultValue()));
+        Assert.assertEquals(new Integer(1), integerEnvKey.convert(integerEnvKey.getDefaultValue()));
+        Assert.assertEquals("nanjing", listEnvKey.convert(listEnvKey.getDefaultValue()));
+        Assert.assertEquals("admin", stringEnvKey.convert(stringEnvKey.getDefaultValue()));
     }
 
     // test integer not format to integer
