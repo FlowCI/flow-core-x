@@ -180,10 +180,10 @@ public class NodeUtil {
     }
 
     /**
-     * get next node compare root
+     * Get next node from current node
      *
      * @param node current node
-     * @param ordered ordered and flatted node tree
+     * @param ordered ordered and flatted node list
      * @return next node of current
      */
     public static Node next(Node node, List<Node> ordered) {
@@ -196,6 +196,34 @@ public class NodeUtil {
         // find node
         try {
             return ordered.get(index + 1);
+        } catch (Throwable ignore) {
+            return null;
+        }
+    }
+
+    /**
+     * Get next final node from current node
+     *
+     * @param node current node
+     * @param ordered ordered and flatted node list
+     * @return
+     */
+    public static Node nextFinal(Node node, List<Node> ordered) {
+        Integer index = ordered.indexOf(node);
+
+        if (index == -1) {
+            return null;
+        }
+
+        // find node
+        try {
+            for (int i = index + 1; i < ordered.size(); i++) {
+                Node next = ordered.get(i);
+                if (next.getFinalNode()) {
+                    return next;
+                }
+            }
+            return null;
         } catch (Throwable ignore) {
             return null;
         }

@@ -218,26 +218,30 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_equal_next_node() {
+        // given:
         Node flow = new Node("flow", "/flow");
-
-        Node step1 = new Node("step1", "/flow/step1");
-        Node step2 = new Node("step2", "/flow/step2");
+        Node step1 = new Node("/flow/step1", "step1");
+        Node step2 = new Node("/flow/step2", "step2");
+        Node step3 = new Node("/flow/step3", "step3");
+        Node step4 = new Node("/flow/step4", "step4");
+        step4.setFinalNode(true);
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
+        flow.getChildren().add(step3);
+        flow.getChildren().add(step4);
 
-        step1.setNext(step2);
-        step2.setPrev(step1);
-
-        step1.setParent(flow);
-        step2.setParent(flow);
-
+        // when:
+        NodeUtil.buildNodeRelation(flow);
         List<Node> ordered = NodeUtil.flat(flow);
         ordered.remove(flow);
 
-        Assert.assertEquals(null, NodeUtil.next(step2, ordered));
+        // then:
+        Assert.assertEquals(step3, NodeUtil.next(step2, ordered));
         Assert.assertEquals(step1, ordered.get(0));
         Assert.assertEquals(step2, NodeUtil.next(step1, ordered));
+        Assert.assertEquals(step4, NodeUtil.nextFinal(step1, ordered));
+        Assert.assertEquals(null, NodeUtil.nextFinal(step4, ordered));
     }
 
     @Test
