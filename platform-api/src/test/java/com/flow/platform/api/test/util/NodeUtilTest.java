@@ -224,7 +224,7 @@ public class NodeUtilTest extends TestBase {
         Node step2 = new Node("/flow/step2", "step2");
         Node step3 = new Node("/flow/step3", "step3");
         Node step4 = new Node("/flow/step4", "step4");
-        step4.setFinalNode(true);
+        step4.setIsFinal(true);
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
@@ -240,8 +240,6 @@ public class NodeUtilTest extends TestBase {
         Assert.assertEquals(step3, NodeUtil.next(step2, ordered));
         Assert.assertEquals(step1, ordered.get(0));
         Assert.assertEquals(step2, NodeUtil.next(step1, ordered));
-        Assert.assertEquals(step4, NodeUtil.nextFinal(step1, ordered));
-        Assert.assertEquals(null, NodeUtil.nextFinal(step4, ordered));
     }
 
     @Test

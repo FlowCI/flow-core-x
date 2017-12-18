@@ -379,7 +379,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // run condition script
         if (!executeConditionScript(job, node, envVars)) {
             Node next = tree.next(node.getPath());
-            if (next == null) {
+            if (Objects.isNull(next)) {
                 stopJob(job);
                 return;
             }
@@ -534,7 +534,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
         // no more node to run and status is not running
-        if (next == null && !nodeResult.isRunning()) {
+        if (Objects.isNull(next) && !nodeResult.isRunning()) {
             stopJob(job);
             return;
         }
@@ -550,14 +550,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             Node step = node;
             if (step.getAllowFailure()) {
                 run(next, job);
+                return;
             }
 
-            // clean up session if node result failure and set job status to error
-
-            //TODO: Missing unit test
-            else {
-                stopJob(job);
-            }
+            stopJob(job);
         }
     }
 

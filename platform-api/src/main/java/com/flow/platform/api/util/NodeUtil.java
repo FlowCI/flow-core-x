@@ -202,43 +202,16 @@ public class NodeUtil {
     }
 
     /**
-     * Get next final node from current node
-     *
-     * @param node current node
-     * @param ordered ordered and flatted node list
-     * @return
+     * Build node path and parent, next, prev relation
      */
-    public static Node nextFinal(Node node, List<Node> ordered) {
-        Integer index = ordered.indexOf(node);
+    public static void buildNodeRelation(Node node) {
+        Node parent = node.getParent();
+        node.setPath(Objects.isNull(parent) ? node.getName() : PathUtil.build(parent.getPath(), node.getName()));
 
-        if (index == -1) {
-            return null;
-        }
-
-        // find node
-        try {
-            for (int i = index + 1; i < ordered.size(); i++) {
-                Node next = ordered.get(i);
-                if (next.getFinalNode()) {
-                    return next;
-                }
-            }
-            return null;
-        } catch (Throwable ignore) {
-            return null;
-        }
-    }
-
-    /**
-     * Build node path, parent, next, prev relation
-     */
-    public static void buildNodeRelation(Node root) {
-        setNodePath(root);
-
-        List<Node> children = root.getChildren();
+        List<Node> children = node.getChildren();
         for (int i = 0; i < children.size(); i++) {
             Node childNode = children.get(i);
-            childNode.setParent(root);
+            childNode.setParent(node);
             if (i > 0) {
                 childNode.setPrev(children.get(i - 1));
                 children.get(i - 1).setNext(childNode);
@@ -246,14 +219,6 @@ public class NodeUtil {
 
             buildNodeRelation(childNode);
         }
-    }
-
-    private static void setNodePath(Node node) {
-        if (node.getParent() == null) {
-            node.setPath(PathUtil.build(node.getName()));
-            return;
-        }
-        node.setPath(PathUtil.build(node.getParent().getPath(), node.getName()));
     }
 
     /**
@@ -282,6 +247,8 @@ public class NodeUtil {
 
         public Boolean allowFailure;
 
+        public Boolean isFinal;
+
         public String condition;
 
         public List<NodeWrapper> steps;
@@ -303,7 +270,8 @@ public class NodeUtil {
             }
 
             envs = node.getEnvs();
-            allowFailure = node.getAllowFailure();
+            allowFailure = !node.getAllowFailure() ? null : node.getAllowFailure();
+            isFinal = !node.getIsFinal() ? null : node.getIsFinal();
             condition = node.getConditionScript();
             script = node.getScript();
             plugin = node.getPlugin();
@@ -333,6 +301,7 @@ public class NodeUtil {
             node.setScript(script);
             node.setPlugin(plugin);
             node.setAllowFailure(Objects.isNull(allowFailure) ? false : allowFailure);
+            node.setIsFinal(Objects.isNull(isFinal) ? false : isFinal);
 
             if (!Objects.isNull(envs)) {
                 node.setEnvs(envs);
@@ -372,10 +341,11 @@ public class NodeUtil {
             .put("name", 1)
             .put("envs", 2)
             .put("allowFailure", 3)
-            .put("condition", 4)
-            .put("plugin", 5)
-            .put("script", 6)
-            .put("steps", 7)
+            .put("isFinal", 4)
+            .put("condition", 5)
+            .put("plugin", 6)
+            .put("script", 7)
+            .put("steps", 8)
             .build();
 
         private final PropertySorter sorter = new PropertySorter();

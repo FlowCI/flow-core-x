@@ -79,6 +79,7 @@ public class NodeTree {
     /**
      * Find step next node for current path
      *
+     * @param path The path of current node
      * @return next node instance or {@code null} if not found
      */
     public Node next(String path) {
