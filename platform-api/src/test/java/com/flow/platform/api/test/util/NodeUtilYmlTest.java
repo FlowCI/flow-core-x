@@ -18,6 +18,7 @@ package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.exception.NodeFormatException;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
@@ -26,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -100,7 +100,7 @@ public class NodeUtilYmlTest {
         Assert.assertNotNull(yml);
     }
 
-    @Test(expected = YmlException.class)
+    @Test(expected = NodeFormatException.class)
     public void should_raise_error_when_parse_node_with_same_name() throws Throwable {
         final String flow = "yml-test";
 
@@ -109,7 +109,7 @@ public class NodeUtilYmlTest {
         root.getChildren().add(new Node(null, "step1"));
         root.getChildren().add(new Node(null, "step1"));
 
-        // then: should throw YmlException: The step name 'step1'is not unique
+        // then: should throw NodeFormatException: The step name 'step1'is not unique
         NodeUtil.parseToYml(root);
     }
 
@@ -157,7 +157,7 @@ public class NodeUtilYmlTest {
         Assert.assertEquals("echo 2", step2.getScript());
     }
 
-    @Test(expected = YmlException.class)
+    @Test(expected = NodeFormatException.class)
     public void should_raise_error_if_step_name_missing_parse_node_to_yml() throws Throwable {
         String flow = "yml-flow";
         Node root = new Node(flow, flow);
@@ -169,7 +169,7 @@ public class NodeUtilYmlTest {
         Assert.assertNotNull(yml);
     }
 
-    @Test(expected = YmlException.class)
+    @Test(expected = NodeFormatException.class)
     public void should_raise_error_if_step_script_and_plugin_defined_in_both() throws Throwable {
         String flow = "yml-flow";
         Node root = new Node(flow, flow);

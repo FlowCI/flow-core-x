@@ -16,6 +16,7 @@
 package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.exception.NodeFormatException;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
 import java.util.LinkedList;
@@ -240,6 +241,25 @@ public class NodeUtilTest extends TestBase {
         Assert.assertEquals(step3, NodeUtil.next(step2, ordered));
         Assert.assertEquals(step1, ordered.get(0));
         Assert.assertEquals(step2, NodeUtil.next(step1, ordered));
+    }
+
+    @Test(expected = NodeFormatException.class)
+    public void should_invalid_and_return_false_if_final_node_not_in_the_end() {
+        // given:
+        Node flow = new Node("flow", "/flow");
+        Node step1 = new Node("/flow/step1", "step1");
+        Node step2 = new Node("/flow/step2", "step2");
+        Node step3 = new Node("/flow/step3", "step3");
+        step3.setIsFinal(true);
+        Node step4 = new Node("/flow/step4", "step4");
+
+        flow.getChildren().add(step1);
+        flow.getChildren().add(step2);
+        flow.getChildren().add(step3);
+        flow.getChildren().add(step4);
+
+        // when:
+        NodeUtil.validate(flow);
     }
 
     @Test
