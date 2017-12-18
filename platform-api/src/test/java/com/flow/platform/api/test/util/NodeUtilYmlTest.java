@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -97,6 +98,19 @@ public class NodeUtilYmlTest {
 
         String yml = new Yaml().dump(node);
         Assert.assertNotNull(yml);
+    }
+
+    @Test(expected = YmlException.class)
+    public void should_raise_error_when_parse_node_with_same_name() throws Throwable {
+        final String flow = "yml-test";
+
+        // when: build children with same name
+        Node root = new Node(flow, flow);
+        root.getChildren().add(new Node(null, "step1"));
+        root.getChildren().add(new Node(null, "step1"));
+
+        // then: should throw YmlException: The step name 'step1'is not unique
+        NodeUtil.parseToYml(root);
     }
 
     @Test

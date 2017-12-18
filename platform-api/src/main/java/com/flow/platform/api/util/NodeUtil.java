@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -282,7 +283,14 @@ public class NodeUtil {
 
             verify();
 
-            for (Node child : node.getChildren()) {
+            List<Node> children = node.getChildren();
+            Set<String> existNameSet = new HashSet<>(children.size());
+
+            for (Node child : children) {
+                if (!existNameSet.add(child.getName())) {
+                    throw new YmlException("The step name '" + child.getName() + "'is not unique");
+                }
+
                 steps.add(new NodeWrapper(child));
             }
         }
@@ -308,7 +316,12 @@ public class NodeUtil {
                 return node;
             }
 
+            Set<String> existNameSet = new HashSet<>(steps.size());
             for (NodeWrapper wrapper : steps) {
+                if (!existNameSet.add(wrapper.name)) {
+                    throw new YmlException("The step name '" + wrapper.name + "'is not unique");
+                }
+
                 node.getChildren().add(wrapper.toNode());
             }
 

@@ -48,17 +48,15 @@ public final class Node extends EnvObject {
     @Expose
     private String conditionScript;
 
-    private Node parent;
-
+    @Expose
     @SerializedName("steps")
     private List<Node> children = new LinkedList<>();
 
-    private Node prev;
-
-    private Node next;
-
     @Expose
     private Boolean allowFailure = false;
+
+    @Expose
+    private Boolean finalNode = false;
 
     @Expose
     private String plugin;
@@ -71,6 +69,21 @@ public final class Node extends EnvObject {
 
     @Expose
     private ZonedDateTime updatedAt;
+
+    /**
+     * The parent node reference
+     */
+    private Node parent;
+
+    /**
+     * The previous node reference
+     */
+    private Node prev;
+
+    /**
+     * The next node reference
+     */
+    private Node next;
 
     public Node() {
     }
@@ -150,6 +163,14 @@ public final class Node extends EnvObject {
 
     public void setAllowFailure(Boolean allowFailure) {
         this.allowFailure = allowFailure;
+    }
+
+    public Boolean getFinalNode() {
+        return finalNode;
+    }
+
+    public void setFinalNode(Boolean finalNode) {
+        this.finalNode = finalNode;
     }
 
     public String getPlugin() {
