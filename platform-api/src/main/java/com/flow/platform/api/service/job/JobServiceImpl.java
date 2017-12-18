@@ -556,7 +556,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             }
 
             // run next final node if exist
-            next = tree.nextFinal(step.getName());
+            next = tree.nextFinal(step.getPath());
             if (!Objects.isNull(next)) {
                 run(next, job);
                 return;
