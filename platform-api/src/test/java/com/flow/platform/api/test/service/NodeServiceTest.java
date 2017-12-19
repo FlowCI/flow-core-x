@@ -423,6 +423,7 @@ public class NodeServiceTest extends TestBase {
 
         // given: mock plugin list
         Plugin plugin = new Plugin("fir-cli", "xx", ImmutableSet.of("fir"), "xx", ImmutableSet.of("*"));
+        plugin.setCurrentTag("1.0");
         plugin.setPluginDetail(new PluginDetail("fir-cli", "fir upload xx"));
         plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_TOKEN", PluginPropertyType.STRING, true));
         plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_PATH", PluginPropertyType.STRING, true));
@@ -435,7 +436,8 @@ public class NodeServiceTest extends TestBase {
         step.setPlugin("fir-cli");
 
         // then: running script should equal
-        Assert.assertEquals("fir upload xx", nodeService.getRunningScript(step));
+        Assert.assertEquals("cd ${HOME}/.flow-agent/repos/fir-cli[1.0]  \n fir upload xx",
+            nodeService.getRunningScript(step));
 
         // when: create step not set plugin
         Node noPluginStep = new Node(PathUtil.build(flowName, "noPluginStep"), "noPluginStep");

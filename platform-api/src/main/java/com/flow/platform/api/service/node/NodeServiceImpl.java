@@ -33,6 +33,7 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
+import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
@@ -306,6 +307,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public String getRunningScript(Node node) {
+
         if (!Strings.isNullOrEmpty(node.getPlugin())) {
             Plugin plugin = pluginService.find(node.getPlugin());
 
@@ -317,7 +319,19 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
                 throw new FlowException("Not found plugin detail, plugin name is " + node.getPlugin());
             }
 
-            return plugin.getPluginDetail().getRun();
+            StringBuffer stringBuffer = new StringBuffer("");
+            stringBuffer
+                .append("cd ")
+                .append(SyncService.DEFAULT_CMD_DIR)
+                .append("/")
+                .append(plugin.getName())
+                .append("[")
+                .append(plugin.getCurrentTag())
+                .append("] ")
+                .append(" \n ")
+                .append(plugin.getPluginDetail().getRun());
+
+            return stringBuffer.toString();
         }
 
         return node.getScript();
