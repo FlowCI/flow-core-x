@@ -324,10 +324,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
                 .append("cd ")
                 .append(SyncService.DEFAULT_CMD_DIR)
                 .append("/")
-                .append(plugin.getName())
-                .append("[")
-                .append(plugin.getCurrentTag())
-                .append("] ")
+                .append(plugin.getName() + "[" + plugin.getCurrentTag() + "]")
                 .append(" \n ")
                 .append(plugin.getPluginDetail().getRun());
 

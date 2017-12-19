@@ -436,7 +436,7 @@ public class NodeServiceTest extends TestBase {
         step.setPlugin("fir-cli");
 
         // then: running script should equal
-        Assert.assertEquals("cd ${HOME}/.flow-agent/repos/fir-cli[1.0]  \n fir upload xx",
+        Assert.assertEquals("cd ${HOME}/.flow-agent/repos/fir-cli[1.0] \n fir upload xx",
             nodeService.getRunningScript(step));
 
         // when: create step not set plugin
