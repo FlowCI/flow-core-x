@@ -36,6 +36,14 @@ public class CommandUtil {
         }
     }
 
+    public static String exitOnError() {
+        return commandHelper.exitOnError();
+    }
+
+    public static String pwd() {
+        return commandHelper.pwd();
+    }
+
     public static String homeVariable() {
         return commandHelper.home();
     }
@@ -65,6 +73,10 @@ public class CommandUtil {
     }
 
     static abstract class CommandHelper {
+
+        abstract String exitOnError();
+
+        abstract String pwd();
 
         abstract String home();
 
@@ -101,6 +113,16 @@ public class CommandUtil {
         private final char ENV_VAR_RIGHT_BRACKET = '}';
 
         private final String SEPARATOR = "/";
+
+        @Override
+        String exitOnError() {
+            return "set -e";
+        }
+
+        @Override
+        String pwd() {
+            return getVariable("PWD");
+        }
 
         @Override
         String home() {
@@ -176,6 +198,16 @@ public class CommandUtil {
         private final char ENV_END = '%';
 
         private final String SEPARATOR = "\\";
+
+        @Override
+        String exitOnError() {
+            return StringUtil.EMPTY;
+        }
+
+        @Override
+        String pwd() {
+            return getVariable("CD");
+        }
 
         @Override
         String home() {

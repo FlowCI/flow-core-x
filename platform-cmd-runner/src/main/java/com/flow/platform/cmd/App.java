@@ -17,12 +17,15 @@
 package com.flow.platform.cmd;
 
 import com.flow.platform.domain.CmdResult;
-
+import com.flow.platform.util.CommandUtil;
 import com.google.common.collect.Lists;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Main entrance of cmd runner
@@ -95,7 +98,11 @@ public final class App {
             null,
             Lists.newArrayList("FLOW_"), // find env start with FLOW_ and put to cmd result output map
             null,
-            Lists.newArrayList("sleep 20", "echo $FLOW_INPUT", "echo $PWD", "export FLOW_TEST=112233", "cd ~/"));
+            Lists.newArrayList(
+                "echo " + CommandUtil.getVariableScript("FLOW_INPUT"),
+                "echo " + CommandUtil.pwd(),
+                CommandUtil.setVariableScript("FLOW_TEST", "112233"),
+                "cd " + CommandUtil.homeVariable()));
 
         CmdResult result = executor.run();
         assert result != null;

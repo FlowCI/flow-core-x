@@ -169,7 +169,7 @@ public final class CmdExecutor {
             this.outputEnvFilters = Sets.newHashSet(outputEnvFilters);
         }
 
-        cmds.add(0, "set -e"); // exit bash when command error
+        cmds.add(0, CommandUtil.exitOnError()); // exit bash when command error
 
         this.cmdList = cmds;
         this.pBuilder = new ProcessBuilder(CommandUtil.shellExecutor()).directory(DEFAULT_WORKING_DIR);
