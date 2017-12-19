@@ -88,7 +88,7 @@ public class FlowControllerTest extends ControllerTestWithoutAuth {
         job = reload(job);
 
         // first step should running
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, stepFirst.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(stepFirst));
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setType(CmdType.RUN_SHELL);
         cmd.setExtra(stepFirst.getPath());

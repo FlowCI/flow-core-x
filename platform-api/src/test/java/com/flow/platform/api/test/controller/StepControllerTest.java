@@ -79,7 +79,7 @@ public class StepControllerTest extends ControllerTestWithoutAuth {
         // then:
         Node firstStep = children[0];
         Assert.assertEquals("step1", firstStep.getName());
-        Assert.assertEquals("echo 1", firstStep.getScript());
+        Assert.assertEquals("echo 1", nodeService.getRunningScript(firstStep));
         Assert.assertEquals(true, firstStep.getAllowFailure());
 
         // then:
@@ -94,7 +94,7 @@ public class StepControllerTest extends ControllerTestWithoutAuth {
         // then:
         Node thirdStep = children[2];
         Assert.assertEquals("step3", thirdStep.getName());
-        Assert.assertEquals("echo 3", thirdStep.getScript());
+        Assert.assertEquals("echo 3", nodeService.getRunningScript(thirdStep));
         Assert.assertEquals(false, thirdStep.getAllowFailure());
         Assert.assertEquals("AA", thirdStep.getEnv("FLOW_A"));
         Assert.assertEquals("BB", thirdStep.getEnv("FLOW_B"));

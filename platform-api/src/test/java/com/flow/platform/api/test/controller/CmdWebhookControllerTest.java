@@ -101,7 +101,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Node step2 = nodeTree.find("flow1/step2");
 
         // when: first step callback with running status
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step1));
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setExtra(step1.getPath());
         jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
@@ -117,7 +117,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(NodeStatus.RUNNING, resultForRoot.getStatus());
 
         // when: first step callback with logged status
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step1));
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setExtra(step1.getPath());
 
@@ -148,7 +148,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(NodeStatus.RUNNING, resultForRoot.getStatus());
 
         // when: second step callback with logged status
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step2.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step2));
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setExtra(step2.getPath());
 
@@ -195,7 +195,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(JobStatus.RUNNING, reloaded.getStatus());
 
         // when: first step with timeout status
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step1));
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
         cmd.setExtra(step1.getPath());
         jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));
@@ -234,7 +234,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Node step1 = nodeService.find("flow1").find("flow1/step1");
 
         // when: mock running status from agent
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step1));
         cmd.setSessionId(sessionId);
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setExtra(step1.getPath());
@@ -245,7 +245,7 @@ public class CmdWebhookControllerTest extends TestBase {
         Assert.assertEquals(NodeStatus.RUNNING, reloaded.getRootResult().getStatus());
 
         // mock timeout kill status from agent
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step1));
         cmd.setStatus(CmdStatus.TIMEOUT_KILL);
         cmd.setExtra(step1.getPath());
         jobService.callback(new CmdCallbackQueueItem(job.getId(), cmd));

@@ -97,4 +97,11 @@ public interface NodeService {
     List<Webhook> listWebhooks();
 
     List<User> authUsers(List<String> emailList, String rootPath);
+
+    /**
+     * get running script
+     * @param node
+     * @return
+     */
+    String getRunningScript(Node node);
 }

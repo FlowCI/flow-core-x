@@ -23,6 +23,7 @@ import com.flow.platform.api.envs.AgentEnvs;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.JobEnvs;
+import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.util.PlatformURL;
 import com.flow.platform.core.exception.HttpException;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -57,6 +58,9 @@ public class CmdServiceImpl implements CmdService {
     private final static String DEFAULT_CMD_TIMEOUT = "3600";
 
     private final int httpRetryTimes = 5;
+
+    @Autowired
+    private NodeService nodeService;
 
     @Autowired
     private PlatformURL platformURL;
@@ -106,7 +110,7 @@ public class CmdServiceImpl implements CmdService {
 
     @Override
     public CmdInfo runShell(Job job, Node node, String cmdId, EnvObject envVars) {
-        CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, node.getScript());
+        CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, nodeService.getRunningScript(node));
         cmdInfo.setInputs(envVars.getEnvs());
         cmdInfo.setWebhook(buildCmdWebhook(job));
 
