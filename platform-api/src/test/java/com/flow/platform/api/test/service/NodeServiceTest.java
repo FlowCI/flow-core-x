@@ -22,18 +22,21 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginDetail;
 import com.flow.platform.plugin.domain.PluginStatus;
@@ -44,6 +47,7 @@ import com.flow.platform.util.http.HttpURL;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -435,8 +439,11 @@ public class NodeServiceTest extends TestBase {
         Node step = new Node(PathUtil.build(flowName, "step"), "step");
         step.setPlugin("fir-cli");
 
+        String pluginFolder = Paths
+            .get(SyncService.DEFAULT_CMD_DIR, new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
+            .toString();
         // then: running script should equal
-        Assert.assertEquals("cd ${HOME}/.flow-agent/repos/fir-cli[1.0] \n fir upload xx",
+        Assert.assertEquals("cd " + pluginFolder + Cmd.NEW_LINE + "fir upload xx",
             nodeService.getRunningScript(step));
 
         // when: create step not set plugin
