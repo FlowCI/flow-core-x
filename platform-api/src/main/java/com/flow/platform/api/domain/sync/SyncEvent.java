@@ -88,7 +88,7 @@ public class SyncEvent extends Jsonable {
         }
 
         if (syncType == SyncType.DELETE_ALL) {
-            return "rm -rf ./*/";
+            return CommandUtil.rmdir();
         }
 
         // the sync event type DELETE, CREATE, UPDATE needs folder name
