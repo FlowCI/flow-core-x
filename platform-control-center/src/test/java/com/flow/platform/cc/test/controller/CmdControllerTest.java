@@ -97,7 +97,7 @@ public class CmdControllerTest extends TestBase {
         String agent = "test-001";
 
         AgentPath path = new AgentPath(zone, agent);
-        agentService.report(path, AgentStatus.IDLE);
+        agentService.report(path, AgentStatus.IDLE, "Mac OS X");
         Thread.sleep(1000);
 
         CmdInfo base = new CmdInfo(zone, agent, CmdType.STOP, null);

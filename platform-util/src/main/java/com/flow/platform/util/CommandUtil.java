@@ -22,9 +22,15 @@ import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
 /**
+ * Command helper for windows, and unix liked os
+ *
+ * Enable parse @{property} for java property
+ *
  * @author yang
  */
 public class CommandUtil {
+
+    public final static String FLOW_CI_ENV_HOME = "@{user.home}";
 
     private static CommandHelper commandHelper;
 
@@ -34,6 +40,13 @@ public class CommandUtil {
         } else {
             commandHelper = new UnixCommandHelper();
         }
+    }
+
+    public static CommandHelper commandHelper(String os) {
+        if (SystemUtil.isWindows(os)) {
+            return new WindowsCommandHelper();
+        }
+        return new UnixCommandHelper();
     }
 
     public static String ls(String dir) {
@@ -90,32 +103,32 @@ public class CommandUtil {
         return commandHelper.absolutePath(pathWithEnv);
     }
 
-    static abstract class CommandHelper {
+    public static abstract class CommandHelper {
 
-        abstract String ls(String dir);
+        public abstract String ls(String dir);
 
-        abstract String rmdir(String dir);
+        public abstract String rmdir(String dir);
 
-        abstract String exitOnError();
+        public abstract String exitOnError();
 
-        abstract String pwd();
+        public abstract String pwd();
 
-        abstract String home();
+        public abstract String home();
 
-        abstract String listVariables();
+        public abstract String listVariables();
 
-        abstract String shellExecutor();
+        public abstract String shellExecutor();
 
-        abstract String setVariable(String name, String value);
+        public abstract String setVariable(String name, String value);
 
-        abstract String getVariable(String name);
+        public abstract String getVariable(String name);
 
         /**
          * Parse variable to actual value
          * @param name variable name
          * @return actual value
          */
-        abstract String parse(String name);
+        public abstract String parse(String name);
 
         /**
          * Parse path contain variable to actual value
@@ -123,7 +136,7 @@ public class CommandUtil {
          * @param pathWithEnv path with env variable
          * @return absolute path
          */
-        abstract Path absolutePath(String pathWithEnv);
+        public abstract Path absolutePath(String pathWithEnv);
     }
 
     private static class UnixCommandHelper extends CommandHelper {
@@ -137,7 +150,7 @@ public class CommandUtil {
         private final String PATH_SEPARATOR = "/";
 
         @Override
-        String ls(String dir) {
+        public String ls(String dir) {
             if (Strings.isNullOrEmpty(dir)) {
                 return "ls";
             }
@@ -145,7 +158,7 @@ public class CommandUtil {
         }
 
         @Override
-        String rmdir(String dir) {
+        public String rmdir(String dir) {
             if (Strings.isNullOrEmpty(dir)) {
                 return "rm -rf ./*/";
             }
@@ -153,42 +166,42 @@ public class CommandUtil {
         }
 
         @Override
-        String exitOnError() {
+        public String exitOnError() {
             return "set -e";
         }
 
         @Override
-        String pwd() {
+        public String pwd() {
             return getVariable("PWD");
         }
 
         @Override
-        String home() {
+        public String home() {
             return getVariable("HOME");
         }
 
         @Override
-        String listVariables() {
+        public String listVariables() {
             return "env";
         }
 
         @Override
-        String shellExecutor() {
+        public String shellExecutor() {
             return "/bin/bash";
         }
 
         @Override
-        String setVariable(String name, String value) {
+        public String setVariable(String name, String value) {
             return "export " + name + "=" + value;
         }
 
         @Override
-        String getVariable(String name) {
+        public String getVariable(String name) {
             return "${" + name + "}";
         }
 
         @Override
-        String parse(String name) {
+        public String parse(String name) {
             if (Strings.isNullOrEmpty(name)) {
                 throw new IllegalArgumentException();
             }
@@ -209,7 +222,7 @@ public class CommandUtil {
         }
 
         @Override
-        Path absolutePath(String pathWithEnv) {
+        public Path absolutePath(String pathWithEnv) {
             String[] paths = pathWithEnv.split(Pattern.quote(PATH_SEPARATOR));
             StringBuilder pathAsString = new StringBuilder();
 
@@ -238,7 +251,7 @@ public class CommandUtil {
         private final String SEPARATOR = "\\";
 
         @Override
-        String ls(String dir) {
+        public String ls(String dir) {
             if (Strings.isNullOrEmpty(dir)) {
                 return "dir /b";
             }
@@ -246,7 +259,7 @@ public class CommandUtil {
         }
 
         @Override
-        String rmdir(String dir) {
+        public String rmdir(String dir) {
             if (Strings.isNullOrEmpty(dir)) {
                 return "rmdir %CD% /s /q";
             }
@@ -254,42 +267,42 @@ public class CommandUtil {
         }
 
         @Override
-        String exitOnError() {
+        public String exitOnError() {
             return StringUtil.EMPTY;
         }
 
         @Override
-        String pwd() {
+        public String pwd() {
             return getVariable("CD");
         }
 
         @Override
-        String home() {
+        public String home() {
             return getVariable("HOMEPATH");
         }
 
         @Override
-        String listVariables() {
+        public String listVariables() {
             return "set";
         }
 
         @Override
-        String shellExecutor() {
+        public String shellExecutor() {
             return "cmd.exe";
         }
 
         @Override
-        String setVariable(String name, String value) {
+        public String setVariable(String name, String value) {
             return "set " + name + "=" + value;
         }
 
         @Override
-        String getVariable(String name) {
+        public String getVariable(String name) {
             return "%" + name + "%";
         }
 
         @Override
-        String parse(String name) {
+        public String parse(String name) {
             if (Strings.isNullOrEmpty(name)) {
                 throw new IllegalArgumentException();
             }
@@ -303,7 +316,7 @@ public class CommandUtil {
         }
 
         @Override
-        Path absolutePath(String pathWithEnv) {
+        public Path absolutePath(String pathWithEnv) {
             String[] paths = pathWithEnv.split(Pattern.quote(SEPARATOR));
             StringBuilder pathAsString = new StringBuilder();
 

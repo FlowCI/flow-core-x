@@ -16,6 +16,7 @@
 
 package com.flow.platform.util;
 
+import com.google.common.base.Strings;
 import java.util.Locale;
 
 /**
@@ -27,5 +28,12 @@ public class SystemUtil {
 
     public static boolean isWindows() {
         return OS_NAME.startsWith("win");
+    }
+
+    public static boolean isWindows(String os) {
+        if (Strings.isNullOrEmpty(os)) {
+            return false;
+        }
+        return os.toLowerCase(Locale.ENGLISH).startsWith("win");
     }
 }

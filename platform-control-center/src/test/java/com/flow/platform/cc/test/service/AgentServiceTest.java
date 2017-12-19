@@ -83,7 +83,7 @@ public class AgentServiceTest extends TestBase {
 
         // when:
         AgentPath agentPath = new AgentPath("default", "hello-agent");
-        agentService.create(agentPath, webhook);
+        agentService.create(agentPath, webhook, null);
 
         // then:
         Agent loaded = agentService.find(agentPath);
@@ -156,7 +156,6 @@ public class AgentServiceTest extends TestBase {
         // when: agents online to zone-1
         AgentPath agent11 = new AgentPath(zone_1, "agent-1");
         zkClient.createEphemeral(ZKHelper.buildPath(agent11), null);
-
 
         Thread.sleep(1000); // mock network delay
 

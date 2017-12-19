@@ -22,7 +22,6 @@ import com.flow.platform.cc.event.AgentResourceEvent;
 import com.flow.platform.cc.event.AgentResourceEvent.Category;
 import com.flow.platform.cc.exception.AgentErr;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.service.WebhookServiceImplBase;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
@@ -33,23 +32,18 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Zone;
 import com.flow.platform.util.DateUtil;
-import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
-import com.google.gson.annotations.Expose;
-import java.sql.SQLDataException;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,7 +75,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     private AgentSettings agentSettings;
 
     @Override
-    public void report(AgentPath path, AgentStatus status) {
+    public void report(AgentPath path, AgentStatus status, String os) {
         Agent exist = find(path);
 
         // For agent offline status
@@ -91,9 +85,9 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
         }
 
         // create new agent with idle status
-        if (exist == null) {
+        if (Objects.isNull(exist)) {
             try {
-                exist = create(path, null);
+                exist = create(path, null, os);
                 LOGGER.trace("Create agent %s from report", path);
             } catch (DataIntegrityViolationException ignore) {
                 // agent been created at some other threads
@@ -167,7 +161,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
             this.webhookCallback(agent);
         }
 
-        // boardcast AgentResourceEvent for release
+        // broadcast AgentResourceEvent for release
         if (agent.getStatus() == AgentStatus.IDLE) {
             this.dispatchEvent(new AgentResourceEvent(this, agent.getZone(), Category.RELEASED));
         }
@@ -184,7 +178,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     }
 
     @Override
-    public Agent create(AgentPath agentPath, String webhook) {
+    public Agent create(AgentPath agentPath, String webhook, String os) {
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
             throw new IllegalParameterException(String.format("The agent '%s' has already exsited", agentPath));
@@ -195,6 +189,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
         agent.setUpdatedDate(DateUtil.now());
         agent.setStatus(AgentStatus.OFFLINE);
         agent.setWebhook(webhook);
+        agent.setOs(os);
 
         //random token
         agent.setToken(UUID.randomUUID().toString());
