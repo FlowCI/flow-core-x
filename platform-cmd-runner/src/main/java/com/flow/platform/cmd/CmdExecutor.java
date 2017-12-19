@@ -16,12 +16,10 @@
 
 package com.flow.platform.cmd;
 
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
-import com.flow.platform.util.SystemUtil;
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -96,8 +94,8 @@ public final class CmdExecutor {
 
     private final static Logger LOGGER = new Logger(CmdExecutor.class);
 
-    private final static File DEFAULT_WORKING_DIR = new File(
-        System.getProperty("user.home", System.getProperty("user.dir")));
+    private final static File DEFAULT_WORKING_DIR =
+        new File(System.getProperty("user.home", System.getProperty("user.dir")));
 
     // process timeout in seconds, default is 2 hour
     private final static Integer DEFAULT_TIMEOUT = 3600 * 2;
@@ -174,7 +172,7 @@ public final class CmdExecutor {
         cmds.add(0, "set -e"); // exit bash when command error
 
         this.cmdList = cmds;
-        this.pBuilder = new ProcessBuilder("/bin/bash").directory(DEFAULT_WORKING_DIR);
+        this.pBuilder = new ProcessBuilder(CommandUtil.shellExecutor()).directory(DEFAULT_WORKING_DIR);
 
         // check and init working dir
         if (workingDir != null) {
