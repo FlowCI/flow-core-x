@@ -22,6 +22,7 @@ import com.flow.platform.api.domain.job.JobNumber;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
@@ -43,6 +44,7 @@ import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.PluginUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.domain.Cmd;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.service.PluginService;
@@ -52,6 +54,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -319,16 +322,13 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
                 throw new FlowException("Not found plugin detail, plugin name is " + node.getPlugin());
             }
 
-            StringBuffer stringBuffer = new StringBuffer("");
-            stringBuffer
-                .append("cd ")
-                .append(SyncService.DEFAULT_CMD_DIR)
-                .append("/")
-                .append(plugin.getName() + "[" + plugin.getCurrentTag() + "]")
-                .append(" \n ")
-                .append(plugin.getPluginDetail().getRun());
+            String pluginFolder = Paths
+                .get(SyncService.DEFAULT_CMD_DIR, new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
+                .toString();
 
-            return stringBuffer.toString();
+            String script = "cd " + pluginFolder + Cmd.NEW_LINE + plugin.getPluginDetail().getRun();
+
+            return script;
         }
 
         return node.getScript();
