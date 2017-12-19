@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.domain.sync;
 
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.StringUtil;
 import com.google.gson.annotations.Expose;
 
@@ -84,7 +84,7 @@ public class SyncEvent extends Jsonable {
 
     public String toScript() {
         if (syncType == SyncType.LIST) {
-            return "export " + FLOW_SYNC_LIST + "=\"$(ls)\"";
+            return CommandUtil.setVariableScript(FLOW_SYNC_LIST, "\"$(ls)\"");
         }
 
         if (syncType == SyncType.DELETE_ALL) {
@@ -95,7 +95,7 @@ public class SyncEvent extends Jsonable {
         String folder = repo.toString();
 
         if (syncType == SyncType.DELETE) {
-            return "rm -rf " + folder;
+            return CommandUtil.rmdir(folder);
         }
 
         return "git init " + folder +

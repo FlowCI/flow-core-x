@@ -19,7 +19,6 @@ package com.flow.platform.util.test;
 import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.SystemUtil;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +48,7 @@ public class CommandUtilWindowsTest {
         Assert.assertEquals("cmd.exe", CommandUtil.shellExecutor());
 
         // should get home path
-        Assert.assertEquals("%HOMEPATH%", CommandUtil.homeVariable());
+        Assert.assertEquals("%HOMEPATH%", CommandUtil.home());
 
         // should get correct set variable script
         Assert.assertEquals("set VAR=1", CommandUtil.setVariableScript("VAR", "1"));

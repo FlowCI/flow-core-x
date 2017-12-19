@@ -36,6 +36,14 @@ public class CommandUtil {
         }
     }
 
+    public static String ls(String dir) {
+        return commandHelper.ls(dir);
+    }
+
+    public static String rmdir(String dir) {
+        return commandHelper.rmdir(dir);
+    }
+
     public static String exitOnError() {
         return commandHelper.exitOnError();
     }
@@ -44,11 +52,11 @@ public class CommandUtil {
         return commandHelper.pwd();
     }
 
-    public static String homeVariable() {
+    public static String home() {
         return commandHelper.home();
     }
 
-    public static String listVariable() {
+    public static String environments() {
         return commandHelper.listVariables();
     }
 
@@ -73,6 +81,10 @@ public class CommandUtil {
     }
 
     static abstract class CommandHelper {
+
+        abstract String ls(String dir);
+
+        abstract String rmdir(String dir);
 
         abstract String exitOnError();
 
@@ -113,6 +125,19 @@ public class CommandUtil {
         private final char ENV_VAR_RIGHT_BRACKET = '}';
 
         private final String SEPARATOR = "/";
+
+        @Override
+        String ls(String dir) {
+            if (Strings.isNullOrEmpty(dir)) {
+                return "ls";
+            }
+            return "ls " + dir;
+        }
+
+        @Override
+        String rmdir(String dir) {
+            return "rm -rf " + dir;
+        }
 
         @Override
         String exitOnError() {
@@ -198,6 +223,19 @@ public class CommandUtil {
         private final char ENV_END = '%';
 
         private final String SEPARATOR = "\\";
+
+        @Override
+        String ls(String dir) {
+            if (Strings.isNullOrEmpty(dir)) {
+                return "dir /b";
+            }
+            return "dir " + dir + "/b";
+        }
+
+        @Override
+        String rmdir(String dir) {
+            return "rmdir " + dir + " /s /q";
+        }
 
         @Override
         String exitOnError() {

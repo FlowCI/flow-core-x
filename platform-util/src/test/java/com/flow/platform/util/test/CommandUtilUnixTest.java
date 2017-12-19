@@ -48,7 +48,7 @@ public class CommandUtilUnixTest {
         Assert.assertEquals("/bin/bash", CommandUtil.shellExecutor());
 
         // should get home path
-        Assert.assertEquals("${HOME}", CommandUtil.homeVariable());
+        Assert.assertEquals("${HOME}", CommandUtil.home());
 
         // should get correct set variable script
         Assert.assertEquals("export VAR=1", CommandUtil.setVariableScript("VAR", "1"));

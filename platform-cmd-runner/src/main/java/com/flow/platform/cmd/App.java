@@ -102,7 +102,7 @@ public final class App {
                 "echo " + CommandUtil.getVariableScript("FLOW_INPUT"),
                 "echo " + CommandUtil.pwd(),
                 CommandUtil.setVariableScript("FLOW_TEST", "112233"),
-                "cd " + CommandUtil.homeVariable()));
+                "cd " + CommandUtil.home()));
 
         CmdResult result = executor.run();
         assert result != null;

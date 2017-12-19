@@ -57,10 +57,10 @@ public class AppConfig extends AppConfigBase {
     public final static Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
     public final static String DEFAULT_AGENT_WORKSPACE =
-        Paths.get(CommandUtil.homeVariable(), "flow-agent-workspace").toString();
+        Paths.get(CommandUtil.home(), "flow-agent-workspace").toString();
 
     public final static String DEFAULT_AGENT_REPO_DIR =
-        Paths.get(CommandUtil.homeVariable(), ".flow-agent", "repos").toString();
+        Paths.get(CommandUtil.home(), ".flow-agent", "repos").toString();
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
