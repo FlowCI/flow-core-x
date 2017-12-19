@@ -16,70 +16,16 @@
 
 package com.flow.platform.util;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 /**
  * @author yang
  */
 public class SystemUtil {
 
-    private final static char ENV_VAR_START_CHAR = '$';
-    private final static char ENV_VAR_LEFT_BRACKET = '{';
-    private final static char ENV_VAR_RIGHT_BRACKET = '}';
+    private final static String OS_NAME = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
 
     public static boolean isWindows() {
-        final String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
-        return osName.startsWith("win");
-    }
-
-    /**
-     * Parse path with ${xxx} variable to absolute path
-     *
-     * @param pathWithEnv path with folder/${xxx}/folder
-     * @return absolute path
-     */
-    public static Path replacePathWithEnv(String pathWithEnv) {
-        String[] paths = pathWithEnv.split(Pattern.quote(File.separator));
-        Path path = Paths.get("/");
-
-        for (String pathItem : paths) {
-            int index = pathItem.indexOf("$", 0);
-
-            if (index < 0) {
-                path = Paths.get(path.toString(), pathItem);
-                continue;
-            }
-
-            path = Paths.get(path.toString(), parseEnv(pathItem));
-        }
-
-        return path;
-    }
-
-    /**
-     * Parse ${xx} variable to exact value
-     */
-    public static String parseEnv(String env) {
-        if (env == null) {
-            throw new IllegalArgumentException();
-        }
-
-        if (env.charAt(0) != ENV_VAR_START_CHAR) {
-            throw new IllegalArgumentException();
-        }
-
-        boolean hasBracket = env.charAt(1) == ENV_VAR_LEFT_BRACKET;
-        env = env.substring(1);
-
-        if (!hasBracket) {
-            return System.getenv(env);
-        }
-
-        env = env.substring(1, env.length() - 1);
-        return System.getenv(env);
+        return OS_NAME.startsWith("win");
     }
 }

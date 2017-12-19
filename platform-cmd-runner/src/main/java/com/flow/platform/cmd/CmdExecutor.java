@@ -18,6 +18,7 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.SystemUtil;
@@ -177,7 +178,7 @@ public final class CmdExecutor {
 
         // check and init working dir
         if (workingDir != null) {
-            Path dir = SystemUtil.replacePathWithEnv(workingDir);
+            Path dir = CommandUtil.absolutePath(workingDir);
 
             if (!Files.exists(dir)) {
                 try {

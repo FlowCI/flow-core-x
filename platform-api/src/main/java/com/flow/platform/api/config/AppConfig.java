@@ -22,6 +22,7 @@ import com.flow.platform.core.config.AppConfigBase;
 import com.flow.platform.core.config.DatabaseConfig;
 import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.plugin.PluginConfig;
+import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.Logger;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -55,9 +56,11 @@ public class AppConfig extends AppConfigBase {
 
     public final static Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
-    public final static String DEFAULT_AGENT_WORKSPACE = Paths.get("${HOME}", "flow-agent-workspace").toString();
+    public final static String DEFAULT_AGENT_WORKSPACE =
+        Paths.get(CommandUtil.homeVariable(), "flow-agent-workspace").toString();
 
-    public final static String DEFAULT_AGENT_REPO_DIR = Paths.get("${HOME}", ".flow-agent", "repos").toString();
+    public final static String DEFAULT_AGENT_REPO_DIR =
+        Paths.get(CommandUtil.homeVariable(), ".flow-agent", "repos").toString();
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
