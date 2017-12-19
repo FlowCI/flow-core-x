@@ -124,7 +124,7 @@ public class Config {
     }
 
     public static Path logDir() {
-        Path defaultPath = Paths.get(CommandUtil.home(), ".flow-agent", "run-log");
+        Path defaultPath = Paths.get(CommandUtil.parseVariable(CommandUtil.home()), ".flow-agent", "run-log");
         String pathStr = System.getProperty(PROP_LOG_DIR, defaultPath.toString());
 
         try {

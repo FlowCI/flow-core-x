@@ -87,5 +87,9 @@ public class CommandUtilWindowsTest {
         // no placeholder
         path = CommandUtil.absolutePath("C:\\System\\Program Files");
         Assert.assertEquals("C:\\System\\Program Files", path.toString());
+
+        // flow.ci path
+        path = CommandUtil.absolutePath("@{user.home}|Program Files");
+        Assert.assertEquals("C:\\Users\\home\\Program Files", path.toString());
     }
 }

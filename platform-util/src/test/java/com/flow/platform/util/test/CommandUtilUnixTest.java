@@ -89,5 +89,9 @@ public class CommandUtilUnixTest {
         // no placeholder
         path = CommandUtil.absolutePath("/etc/flow.ci");
         Assert.assertEquals("/etc/flow.ci", path.toString());
+
+        // flow.ci path
+        path = CommandUtil.absolutePath("@{user.home}|test");
+        Assert.assertEquals("/user/home/test", path.toString());
     }
 }

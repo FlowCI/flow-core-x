@@ -33,6 +33,8 @@ public class CommandUtil {
 
     public final static String FLOW_CI_ENV_HOME = "@{user.home}";
 
+    public final static String FLOW_CI_FILE_SEPARATOR = "|";
+
     private static CommandHelper commandHelper;
 
     static {
@@ -41,13 +43,6 @@ public class CommandUtil {
         } else {
             commandHelper = new UnixCommandHelper();
         }
-    }
-
-    public static CommandHelper commandHelper(String os) {
-        if (SystemUtil.isWindows(os)) {
-            return new WindowsCommandHelper();
-        }
-        return new UnixCommandHelper();
     }
 
     public static String ls(String dir) {
@@ -140,7 +135,14 @@ public class CommandUtil {
          * @return absolute path
          */
         public Path absolutePath(String pathWithEnv) {
-            String[] paths = pathWithEnv.split(Pattern.quote(separator()));
+            String[] paths;
+            if (pathWithEnv.contains(FLOW_CI_FILE_SEPARATOR)) {
+                paths = pathWithEnv.split(Pattern.quote(FLOW_CI_FILE_SEPARATOR));
+            }
+            else {
+                paths = pathWithEnv.split(Pattern.quote(separator()));
+            }
+
             StringBuilder pathAsString = new StringBuilder();
 
             for (String pathItem : paths) {
