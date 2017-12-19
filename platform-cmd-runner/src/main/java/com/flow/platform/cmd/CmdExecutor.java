@@ -305,7 +305,7 @@ public final class CmdExecutor {
                 // find env and set to result output if output filter is not null or empty
                 if (!outputEnvFilters.isEmpty()) {
                     writer.write(String.format("echo %s" + System.lineSeparator(), endTerm));
-                    writer.write("env" + System.lineSeparator());
+                    writer.write(CommandUtil.listVariable() + System.lineSeparator());
                     writer.flush();
                 }
 

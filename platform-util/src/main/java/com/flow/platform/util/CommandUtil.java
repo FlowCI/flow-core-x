@@ -40,6 +40,10 @@ public class CommandUtil {
         return commandHelper.home();
     }
 
+    public static String listVariable() {
+        return commandHelper.listVariables();
+    }
+
     public static String shellExecutor() {
         return commandHelper.shellExecutor();
     }
@@ -63,6 +67,8 @@ public class CommandUtil {
     static abstract class CommandHelper {
 
         abstract String home();
+
+        abstract String listVariables();
 
         abstract String shellExecutor();
 
@@ -99,6 +105,11 @@ public class CommandUtil {
         @Override
         String home() {
             return getVariable("HOME");
+        }
+
+        @Override
+        String listVariables() {
+            return "env";
         }
 
         @Override
@@ -169,6 +180,11 @@ public class CommandUtil {
         @Override
         String home() {
             return getVariable("HOMEPATH");
+        }
+
+        @Override
+        String listVariables() {
+            return "set";
         }
 
         @Override
