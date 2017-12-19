@@ -84,7 +84,7 @@ public class SyncEvent extends Jsonable {
 
     public String toScript() {
         if (syncType == SyncType.LIST) {
-            return CommandUtil.setVariableScript(FLOW_SYNC_LIST, "\"$(ls)\"");
+            return CommandUtil.setVariable(FLOW_SYNC_LIST, "\"$(ls)\"");
         }
 
         if (syncType == SyncType.DELETE_ALL) {

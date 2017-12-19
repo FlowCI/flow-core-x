@@ -64,15 +64,15 @@ public class CommandUtil {
         return commandHelper.shellExecutor();
     }
 
-    public static String setVariableScript(String name, String value) {
+    public static String setVariable(String name, String value) {
         return commandHelper.setVariable(name, value);
     }
 
-    public static String getVariableScript(String name) {
+    public static String getVariable(String name) {
         return commandHelper.getVariable(name);
     }
 
-    public static String parseEnv(String name) {
+    public static String parseVariable(String name) {
         return commandHelper.parse(name);
     }
 
@@ -124,7 +124,7 @@ public class CommandUtil {
 
         private final char ENV_VAR_RIGHT_BRACKET = '}';
 
-        private final String SEPARATOR = "/";
+        private final String PATH_SEPARATOR = "/";
 
         @Override
         String ls(String dir) {
@@ -197,18 +197,18 @@ public class CommandUtil {
 
         @Override
         Path absolutePath(String pathWithEnv) {
-            String[] paths = pathWithEnv.split(Pattern.quote(SEPARATOR));
+            String[] paths = pathWithEnv.split(Pattern.quote(PATH_SEPARATOR));
             StringBuilder pathAsString = new StringBuilder();
 
             for (String pathItem : paths) {
                 int index = pathItem.indexOf(ENV_VAR_START_CHAR, 0);
 
                 if (index < 0) {
-                    pathAsString.append(pathItem).append(SEPARATOR);
+                    pathAsString.append(pathItem).append(PATH_SEPARATOR);
                     continue;
                 }
 
-                pathAsString.append(parseEnv(pathItem)).append(SEPARATOR);
+                pathAsString.append(parseVariable(pathItem)).append(PATH_SEPARATOR);
             }
 
             pathAsString.deleteCharAt(pathAsString.length() - 1);
@@ -297,7 +297,7 @@ public class CommandUtil {
                     continue;
                 }
 
-                pathAsString.append(parseEnv(pathItem)).append(SEPARATOR);
+                pathAsString.append(parseVariable(pathItem)).append(SEPARATOR);
             }
 
             pathAsString.deleteCharAt(pathAsString.length() - 1);

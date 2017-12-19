@@ -51,15 +51,15 @@ public class CommandUtilWindowsTest {
         Assert.assertEquals("%HOMEPATH%", CommandUtil.home());
 
         // should get correct set variable script
-        Assert.assertEquals("set VAR=1", CommandUtil.setVariableScript("VAR", "1"));
+        Assert.assertEquals("set VAR=1", CommandUtil.setVariable("VAR", "1"));
 
         // should get correct get variable script
-        Assert.assertEquals("%VAR%", CommandUtil.getVariableScript("VAR"));
+        Assert.assertEquals("%VAR%", CommandUtil.getVariable("VAR"));
     }
 
     @Test
     public void should_parse_variable_to_value() {
-        String home = CommandUtil.parseEnv("%HOMEPATH%");
+        String home = CommandUtil.parseVariable("%HOMEPATH%");
         Assert.assertNotNull(home);
         Assert.assertEquals(System.getenv("HOMEPATH"), home);
         Assert.assertEquals("C:\\Users\\home", home);

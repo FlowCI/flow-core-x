@@ -99,9 +99,9 @@ public final class App {
             Lists.newArrayList("FLOW_"), // find env start with FLOW_ and put to cmd result output map
             null,
             Lists.newArrayList(
-                "echo " + CommandUtil.getVariableScript("FLOW_INPUT"),
+                "echo " + CommandUtil.getVariable("FLOW_INPUT"),
                 "echo " + CommandUtil.pwd(),
-                CommandUtil.setVariableScript("FLOW_TEST", "112233"),
+                CommandUtil.setVariable("FLOW_TEST", "112233"),
                 "cd " + CommandUtil.home()));
 
         CmdResult result = executor.run();

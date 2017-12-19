@@ -51,21 +51,21 @@ public class CommandUtilUnixTest {
         Assert.assertEquals("${HOME}", CommandUtil.home());
 
         // should get correct set variable script
-        Assert.assertEquals("export VAR=1", CommandUtil.setVariableScript("VAR", "1"));
+        Assert.assertEquals("export VAR=1", CommandUtil.setVariable("VAR", "1"));
 
         // should get correct get variable script
-        Assert.assertEquals("${VAR}", CommandUtil.getVariableScript("VAR"));
+        Assert.assertEquals("${VAR}", CommandUtil.getVariable("VAR"));
     }
 
     @Test
     public void should_parse_variable_to_value() {
         // parse home with bracket
-        String home = CommandUtil.parseEnv("${HOME}");
+        String home = CommandUtil.parseVariable("${HOME}");
         Assert.assertNotNull(home);
         Assert.assertEquals(System.getenv("HOME"), home);
 
         // parse home without bracket
-        home = CommandUtil.parseEnv("$HOME");
+        home = CommandUtil.parseVariable("$HOME");
         Assert.assertNotNull(home);
         Assert.assertEquals(System.getenv("HOME"), home);
     }
