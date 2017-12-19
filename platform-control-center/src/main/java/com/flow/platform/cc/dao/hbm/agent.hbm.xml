@@ -14,6 +14,7 @@
     <property name="sessionId" length="50" column="session_id"/>
     <property name="sessionDate" column="session_date"/>
     <property name="token" column="token"/>
+    <property name="os" column="os" length="50"/>
     <property name="webhook" column="webhook"/>
 
     <property name="status" column="status" length="10" not-null="true">

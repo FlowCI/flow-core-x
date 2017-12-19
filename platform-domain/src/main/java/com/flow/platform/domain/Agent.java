@@ -61,6 +61,12 @@ public class Agent extends Webhookable {
     private String token;
 
     /**
+     * Agent operation system name
+     */
+    @Expose
+    private String os;
+
+    /**
      * Created date
      */
     @Expose
@@ -89,6 +95,14 @@ public class Agent extends Webhookable {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getOs() {
+        return os;
+    }
+
+    public void setOs(String os) {
+        this.os = os;
     }
 
     public AgentPath getPath() {

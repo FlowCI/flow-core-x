@@ -18,6 +18,7 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.http.HttpClient;
@@ -123,7 +124,7 @@ public class Config {
     }
 
     public static Path logDir() {
-        Path defaultPath = Paths.get(System.getenv("HOME"), ".flow-agent", "run-log");
+        Path defaultPath = Paths.get(CommandUtil.home(), ".flow-agent", "run-log");
         String pathStr = System.getProperty(PROP_LOG_DIR, defaultPath.toString());
 
         try {

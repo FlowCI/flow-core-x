@@ -7,6 +7,7 @@ CREATE TABLE `agent` (
   `session_id` varchar(50) DEFAULT NULL,
   `session_date` datetime DEFAULT NULL,
   `token` varchar(255) DEFAULT NULL,
+  'os' VARCHAR(50) DEFAULT NULL,
   `webhook` varchar(255) DEFAULT NULL,
   `status` varchar(10) NOT NULL,
   `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

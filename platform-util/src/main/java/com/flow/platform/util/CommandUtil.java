@@ -51,7 +51,7 @@ public class CommandUtil {
      * Delete all subdirectories on current path
      */
     public static String rmdir() {
-        return commandHelper.rmdir();
+        return commandHelper.rmdir(null);
     }
 
     public static String exitOnError() {
@@ -95,8 +95,6 @@ public class CommandUtil {
         abstract String ls(String dir);
 
         abstract String rmdir(String dir);
-
-        abstract String rmdir();
 
         abstract String exitOnError();
 
@@ -148,12 +146,10 @@ public class CommandUtil {
 
         @Override
         String rmdir(String dir) {
+            if (Strings.isNullOrEmpty(dir)) {
+                return "rm -rf ./*/";
+            }
             return "rm -rf " + dir;
-        }
-
-        @Override
-        String rmdir() {
-            return "rm -rf ./*/";
         }
 
         @Override
@@ -251,12 +247,10 @@ public class CommandUtil {
 
         @Override
         String rmdir(String dir) {
+            if (Strings.isNullOrEmpty(dir)) {
+                return "rmdir %CD% /s /q";
+            }
             return "rmdir " + dir + " /s /q";
-        }
-
-        @Override
-        String rmdir() {
-            return "rmdir %CD% /s /q";
         }
 
         @Override
