@@ -43,6 +43,10 @@ public class Yml {
         this.file = file;
     }
 
+    public Yml(String nodePath) {
+        this.nodePath = nodePath;
+    }
+
     public Yml(String nodePath, String file) {
         this.nodePath = nodePath;
         this.file = file;
