@@ -16,8 +16,10 @@
 package com.flow.platform.api.util;
 
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.exception.NodeFormatException;
 import com.flow.platform.api.exception.YmlException;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
@@ -60,6 +62,8 @@ public class NodeUtil {
 
     private final static Representer ORDERED_SKIP_EMPTY_REPRESENTER = new OrderedAndSkipEmptyRepresenter();
 
+    private final static NodeValidator VALIDATOR = new NodeValidator();
+
     static {
         DUMPER_OPTIONS.setIndent(4);
         DUMPER_OPTIONS.setIndicatorIndent(2);
@@ -78,7 +82,21 @@ public class NodeUtil {
         return Paths.get(base.toString(), node.getName());
     }
 
+    /**
+     * Verify node tree and
+     * @param node
+     * @throws NodeFormatException
+     */
+    public static void validate(Node node) {
+        VALIDATOR.validate(node);
+    }
+
+    /**
+     * Verify root format and parse to yml
+     */
     public static String parseToYml(Node root) {
+        VALIDATOR.validate(root);
+
         RootYmlWrapper ymlWrapper = new RootYmlWrapper(new NodeWrapper(root));
 
         // clean property which not used in root
@@ -92,7 +110,7 @@ public class NodeUtil {
     }
 
     /**
-     * Build node tree structure from yml string
+     * Verify and create node tree by yml
      *
      * @param yml raw yml string
      * @return root node of yml
@@ -123,6 +141,8 @@ public class NodeUtil {
             Node root = node.flow.get(0).toNode();
 
             buildNodeRelation(root);
+            VALIDATOR.validate(root);
+
             return root;
         } catch (YAMLException e) {
             throw new YmlException(e.getMessage());
@@ -140,10 +160,10 @@ public class NodeUtil {
     }
 
     /**
-     * get all nodes includes flow and steps
+     * Get all nodes includes flow and steps
      *
      * @param node the parent node
-     * @return {@code List<Node>} include parent node
+     * @return {@code List<Node>} include parent node at rear
      */
     public static List<Node> flat(final Node node) {
         final List<Node> flatted = new LinkedList<>();
@@ -180,7 +200,7 @@ public class NodeUtil {
     }
 
     /**
-     * get next node compare root
+     * Get next node from current node
      *
      * @param node current node
      * @param ordered ordered and flatted node tree
@@ -202,15 +222,44 @@ public class NodeUtil {
     }
 
     /**
-     * Build node path, parent, next, prev relation
+     * Get next final node from current node
+     *
+     * @param node current node
+     * @param ordered ordered and flatted node list
+     * @return
      */
-    public static void buildNodeRelation(Node root) {
-        setNodePath(root);
+    public static Node nextFinal(Node node, List<Node> ordered) {
+        Integer index = ordered.indexOf(node);
 
-        List<Node> children = root.getChildren();
+        if (index == -1) {
+            return null;
+        }
+
+        // find node
+        try {
+            for (int i = index + 1; i < ordered.size(); i++) {
+                Node next = ordered.get(i);
+                if (next.getIsFinal()) {
+                    return next;
+                }
+            }
+            return null;
+        } catch (Throwable ignore) {
+            return null;
+        }
+    }
+
+    /**
+     * Build node path and parent, next, prev relation
+     */
+    public static void buildNodeRelation(Node node) {
+        Node parent = node.getParent();
+        node.setPath(Objects.isNull(parent) ? node.getName() : PathUtil.build(parent.getPath(), node.getName()));
+
+        List<Node> children = node.getChildren();
         for (int i = 0; i < children.size(); i++) {
             Node childNode = children.get(i);
-            childNode.setParent(root);
+            childNode.setParent(node);
             if (i > 0) {
                 childNode.setPrev(children.get(i - 1));
                 children.get(i - 1).setNext(childNode);
@@ -220,12 +269,82 @@ public class NodeUtil {
         }
     }
 
-    private static void setNodePath(Node node) {
-        if (node.getParent() == null) {
-            node.setPath(PathUtil.build(node.getName()));
-            return;
+    private static class NodeValidator {
+
+        private final List<Consumer<Node>> validators = ImmutableList.of(
+            new ConstrainsValidator(),
+            new UniqueNameValidator(),
+            new FinalNodeValidator()
+        );
+
+        void validate(Node node) {
+            for (Consumer<Node> validator : validators) {
+                validator.accept(node);
+            }
         }
-        node.setPath(PathUtil.build(node.getParent().getPath(), node.getName()));
+    }
+
+    private static class ConstrainsValidator implements Consumer<Node> {
+
+        @Override
+        public void accept(Node node) {
+            final List<Node> ordered = flat(node);
+
+            for (Node item : ordered) {
+                if (Strings.isNullOrEmpty(item.getName())) {
+                    throw new NodeFormatException("The node name is required");
+                }
+
+                if (!Strings.isNullOrEmpty(item.getScript()) && !Strings.isNullOrEmpty(item.getPlugin())) {
+                    throw new NodeFormatException("The script and plugin cannot defined in both : " + item.getName());
+                }
+            }
+        }
+    }
+
+    private static class UniqueNameValidator implements Consumer<Node> {
+
+        @Override
+        public void accept(Node node) {
+            List<Node> children = node.getChildren();
+            if (children.isEmpty()) {
+                return;
+            }
+
+            Set<String> existNameSet = new HashSet<>(children.size());
+
+            for (Node child : children) {
+                if (!existNameSet.add(child.getName())) {
+                    throw new NodeFormatException("The step name '" + child.getName() + "'is not unique");
+                }
+
+                accept(child);
+            }
+        }
+    }
+
+    private static class FinalNodeValidator implements Consumer<Node> {
+
+        @Override
+        public void accept(Node node) {
+            final List<Node> ordered = flat(node);
+            ordered.remove(node);
+
+            for (int i = 0; i < ordered.size(); i++) {
+                if (!ordered.get(i).getIsFinal()) {
+                    continue;
+                }
+
+                // check final nodes are consecutive
+                for (int j = i; j < ordered.size(); j++) {
+                    if (!ordered.get(j).getIsFinal()) {
+                        throw new NodeFormatException("Invalid final node : " + ordered.get(i).getName());
+                    }
+                }
+
+                return;
+            }
+        }
     }
 
     /**
@@ -254,6 +373,8 @@ public class NodeUtil {
 
         public Boolean allowFailure;
 
+        public Boolean isFinal;
+
         public String condition;
 
         public List<NodeWrapper> steps;
@@ -270,27 +391,16 @@ public class NodeUtil {
          */
         public NodeWrapper(Node node) {
             name = node.getName();
-            if (Strings.isNullOrEmpty(name)) {
-                throw new YmlException("The node name is required");
-            }
-
             envs = node.getEnvs();
-            allowFailure = node.getAllowFailure();
+            allowFailure = !node.getAllowFailure() ? null : node.getAllowFailure();
+            isFinal = !node.getIsFinal() ? null : node.getIsFinal();
             condition = node.getConditionScript();
             script = node.getScript();
             plugin = node.getPlugin();
             steps = new LinkedList<>();
 
-            verify();
-
             List<Node> children = node.getChildren();
-            Set<String> existNameSet = new HashSet<>(children.size());
-
             for (Node child : children) {
-                if (!existNameSet.add(child.getName())) {
-                    throw new YmlException("The step name '" + child.getName() + "'is not unique");
-                }
-
                 steps.add(new NodeWrapper(child));
             }
         }
@@ -305,33 +415,21 @@ public class NodeUtil {
             node.setScript(script);
             node.setPlugin(plugin);
             node.setAllowFailure(Objects.isNull(allowFailure) ? false : allowFailure);
+            node.setIsFinal(Objects.isNull(isFinal) ? false : isFinal);
 
             if (!Objects.isNull(envs)) {
                 node.setEnvs(envs);
             }
 
-            verify();
-
             if (Objects.isNull(steps)) {
                 return node;
             }
 
-            Set<String> existNameSet = new HashSet<>(steps.size());
             for (NodeWrapper wrapper : steps) {
-                if (!existNameSet.add(wrapper.name)) {
-                    throw new YmlException("The step name '" + wrapper.name + "'is not unique");
-                }
-
                 node.getChildren().add(wrapper.toNode());
             }
 
             return node;
-        }
-
-        private void verify() {
-            if (!Strings.isNullOrEmpty(script) && !Strings.isNullOrEmpty(plugin)) {
-                throw new YmlException("The script and plugin cannot defined in both");
-            }
         }
     }
 
@@ -344,10 +442,11 @@ public class NodeUtil {
             .put("name", 1)
             .put("envs", 2)
             .put("allowFailure", 3)
-            .put("condition", 4)
-            .put("plugin", 5)
-            .put("script", 6)
-            .put("steps", 7)
+            .put("isFinal", 4)
+            .put("condition", 5)
+            .put("plugin", 6)
+            .put("script", 7)
+            .put("steps", 8)
             .build();
 
         private final PropertySorter sorter = new PropertySorter();

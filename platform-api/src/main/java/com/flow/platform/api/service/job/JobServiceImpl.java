@@ -361,7 +361,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
      * @param node job node's script and record cmdId and sync send http
      */
     private void run(Node node, Job job) {
-        if (node == null) {
+        if (Objects.isNull(node)) {
             throw new IllegalParameterException("Cannot run node with null value");
         }
 
@@ -379,7 +379,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // run condition script
         if (!executeConditionScript(job, node, envVars)) {
             Node next = tree.next(node.getPath());
-            if (next == null) {
+            if (Objects.isNull(next)) {
                 stopJob(job);
                 return;
             }
@@ -534,7 +534,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
         // no more node to run and status is not running
-        if (next == null && !nodeResult.isRunning()) {
+        if (Objects.isNull(next) && !nodeResult.isRunning()) {
             stopJob(job);
             return;
         }
@@ -548,16 +548,21 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // continue to run if allow failure on failure status
         if (nodeResult.isFailure() && nodeResult.getNodeTag() == NodeTag.STEP) {
             Node step = node;
-            if (step.getAllowFailure()) {
+
+            // run next node if allow failure or final node on current step
+            if (step.getAllowFailure() || step.getIsFinal()) {
                 run(next, job);
+                return;
             }
 
-            // clean up session if node result failure and set job status to error
-
-            //TODO: Missing unit test
-            else {
-                stopJob(job);
+            // run next final node if exist
+            next = tree.nextFinal(step.getPath());
+            if (!Objects.isNull(next)) {
+                run(next, job);
+                return;
             }
+
+            stopJob(job);
         }
     }
 

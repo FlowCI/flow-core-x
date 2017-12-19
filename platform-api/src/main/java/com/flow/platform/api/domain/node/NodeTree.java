@@ -79,11 +79,17 @@ public class NodeTree {
     /**
      * Find step next node for current path
      *
+     * @param path The path of current node
      * @return next node instance or {@code null} if not found
      */
     public Node next(String path) {
         Node current = find(path);
         return NodeUtil.next(current, children);
+    }
+
+    public Node nextFinal(String path) {
+        Node current = find(path);
+        return NodeUtil.nextFinal(current, children);
     }
 
     /**
@@ -97,7 +103,7 @@ public class NodeTree {
     }
 
     /**
-     * Get first node from order tree
+     * Get first node from ordered tree
      *
      * @return first node instance or null
      */
@@ -109,6 +115,9 @@ public class NodeTree {
         }
     }
 
+    /**
+     * Get last node from ordered tree
+     */
     public Node last() {
         try {
             return children.getLast();
@@ -118,22 +127,33 @@ public class NodeTree {
     }
 
     /**
+     * Get last normal or final node from ordered tree
+     */
+    public Node last(boolean isFinal) {
+        Node lastFinal = null;
+
+        for (Node node : children) {
+            // find last normal node
+            if (!isFinal && !node.getIsFinal()) {
+                return node;
+            }
+
+            if (node.getIsFinal()) {
+                lastFinal = node;
+            }
+        }
+
+        return lastFinal;
+    }
+
+    /**
      * node can run or not
      *
      * @return true or false
      */
     public Boolean canRun(String path) {
         Node node = find(path);
-        return node.getChildren().size() == 0;
-    }
-
-    public void setEnv(String path, Map<String, String> envs) {
-        Node node = find(path);
-        if (node == null) {
-            throw new IllegalParameterException("Node doesn't existed for path: " + path);
-        }
-
-        EnvUtil.merge(node.getEnvs(), envs, true);
+        return node.getChildren().isEmpty();
     }
 
     public void delete(String path) {

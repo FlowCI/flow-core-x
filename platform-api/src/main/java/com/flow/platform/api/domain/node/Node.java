@@ -56,7 +56,7 @@ public final class Node extends EnvObject {
     private Boolean allowFailure = false;
 
     @Expose
-    private Boolean finalNode = false;
+    private Boolean isFinal = false;
 
     @Expose
     private String plugin;
@@ -165,12 +165,12 @@ public final class Node extends EnvObject {
         this.allowFailure = allowFailure;
     }
 
-    public Boolean getFinalNode() {
-        return finalNode;
+    public Boolean getIsFinal() {
+        return isFinal;
     }
 
-    public void setFinalNode(Boolean finalNode) {
-        this.finalNode = finalNode;
+    public void setIsFinal(Boolean isFinal) {
+        this.isFinal = isFinal;
     }
 
     public String getPlugin() {

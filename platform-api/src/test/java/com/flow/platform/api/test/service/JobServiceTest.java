@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
@@ -34,6 +35,7 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
@@ -42,7 +44,6 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -178,15 +179,49 @@ public class JobServiceTest extends TestBase {
     }
 
     @Test
+    public void should_run_job_with_final_node() throws Throwable {
+        // given: job and cc callback
+        final String sessionId = "session-id-for-final-node";
+        final String flowName = "flow_job_with_final_node";
+
+        Node root = createRootFlow(flowName, "yml/for_job_service_final_node.yml");
+        Job job = createMockJob(root.getPath());
+        NodeTree jobTree = jobNodeService.get(job);
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
+
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setSessionId(sessionId);
+        cmd.setStatus(CmdStatus.SENT);
+        CmdCallbackQueueItem createSessionItem = new CmdCallbackQueueItem(job.getId(), cmd);
+        jobService.callback(createSessionItem);
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/send")));
+
+        job = reload(job);
+        Assert.assertEquals(sessionId, job.getSessionId());
+        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+
+        // when: mock step 1 callback with failure state
+        Node step1 = jobTree.find(PathUtil.build(flowName, "Step1"));
+        Cmd cmdForStep1 = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmdForStep1.setSessionId(sessionId);
+        cmdForStep1.setStatus(CmdStatus.LOGGED);
+        cmdForStep1.setCmdResult(new CmdResult(127));
+        cmdForStep1.setExtra(step1.getPath());
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmdForStep1));
+
+        // then: should send final node step 3
+        Node step3 = jobTree.find(PathUtil.build(flowName, "Step3"));
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/send")).withRequestBody(containing(step3.getPath())));
+    }
+
+    @Test
     public void should_run_job_with_success_status() throws Throwable {
         // given:
         final String sessionId = "session-id-1";
-        Node root = createRootFlow("flow_run_job", "yml/for_job_service_run_job.yaml");
+        Node root = createRootFlow("flow_run_job", "yml/for_job_service_run_job.yml");
 
         // when: create job and job should be SESSION_CREATING
         Job job = createMockJob(root.getPath());
-
-        // then: check cmd request to create session
         verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         // when: simulate cc callback for create session
@@ -277,6 +312,7 @@ public class JobServiceTest extends TestBase {
 
         // create job
         Job job = createMockJob(rootForFlow.getPath());
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         // mock callback cmd
         final String sessionId = CommonUtil.randomId().toString();
