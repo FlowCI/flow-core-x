@@ -99,11 +99,11 @@ public class SyncEvent extends Jsonable {
         }
 
         return "git init " + folder +
-            Cmd.NEW_LINE +
+            System.lineSeparator() +
             "cd " + folder +
-            Cmd.NEW_LINE +
+            System.lineSeparator() +
             "git pull " + gitUrl + " --tags" +
-            Cmd.NEW_LINE +
+            System.lineSeparator() +
             "git checkout " + repo.getTag();
     }
 

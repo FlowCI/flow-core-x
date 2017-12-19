@@ -324,7 +324,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
             SyncRepo repo = new SyncRepo(plugin.getName(), plugin.getCurrentTag());
             Path pluginFolder = Paths.get(AppConfig.DEFAULT_AGENT_REPO_DIR, repo.toString());
-            return "cd " + pluginFolder + Cmd.NEW_LINE + plugin.getPluginDetail().getRun();
+            return "cd " + pluginFolder + System.lineSeparator() + plugin.getPluginDetail().getRun();
         }
 
         return node.getScript();

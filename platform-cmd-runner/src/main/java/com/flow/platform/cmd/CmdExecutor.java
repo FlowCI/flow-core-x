@@ -299,14 +299,14 @@ public final class CmdExecutor {
         return () -> {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
                 for (String cmd : cmdList) {
-                    writer.write(cmd + Cmd.NEW_LINE);
+                    writer.write(cmd + System.lineSeparator());
                     writer.flush();
                 }
 
                 // find env and set to result output if output filter is not null or empty
                 if (!outputEnvFilters.isEmpty()) {
-                    writer.write(String.format("echo %s" + Cmd.NEW_LINE, endTerm));
-                    writer.write("env" + Cmd.NEW_LINE);
+                    writer.write(String.format("echo %s" + System.lineSeparator(), endTerm));
+                    writer.write("env" + System.lineSeparator());
                     writer.flush();
                 }
 
@@ -407,7 +407,7 @@ public final class CmdExecutor {
             }
 
             if (index == -1 && value != null) {
-                value.append(Cmd.NEW_LINE + line);
+                value.append(System.lineSeparator() + line);
             }
         }
     }

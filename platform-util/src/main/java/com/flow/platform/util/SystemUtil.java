@@ -19,6 +19,7 @@ package com.flow.platform.util;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -29,6 +30,11 @@ public class SystemUtil {
     private final static char ENV_VAR_START_CHAR = '$';
     private final static char ENV_VAR_LEFT_BRACKET = '{';
     private final static char ENV_VAR_RIGHT_BRACKET = '}';
+
+    public static boolean isWindows() {
+        final String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        return osName.startsWith("win");
+    }
 
     /**
      * Parse path with ${xxx} variable to absolute path

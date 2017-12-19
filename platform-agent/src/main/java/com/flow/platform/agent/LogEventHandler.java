@@ -205,7 +205,7 @@ public class LogEventHandler implements LogListener {
         // write to zip output stream
         try {
             stream.write(log.getBytes());
-            stream.write(Cmd.NEW_LINE.getBytes());
+            stream.write(System.lineSeparator().getBytes());
         } catch (IOException e) {
             LOGGER.warn("Log cannot write : " + log);
         }

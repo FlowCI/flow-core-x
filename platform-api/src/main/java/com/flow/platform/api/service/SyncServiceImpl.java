@@ -341,7 +341,7 @@ public class SyncServiceImpl implements SyncService {
             return;
         }
 
-        String[] repos = latestReposStr.split(Cmd.NEW_LINE);
+        String[] repos = latestReposStr.split(System.lineSeparator());
         for (String repo : repos) {
             SyncRepo repoObj = SyncRepo.build(repo);
             if (Objects.isNull(repoObj)) {

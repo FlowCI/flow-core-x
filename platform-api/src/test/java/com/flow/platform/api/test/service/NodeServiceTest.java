@@ -443,7 +443,7 @@ public class NodeServiceTest extends TestBase {
             .get(AppConfig.DEFAULT_AGENT_REPO_DIR, new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
             .toString();
         // then: running script should equal
-        Assert.assertEquals("cd " + pluginFolder + Cmd.NEW_LINE + "fir upload xx",
+        Assert.assertEquals("cd " + pluginFolder + System.lineSeparator() + "fir upload xx",
             nodeService.getRunningScript(step));
 
         // when: create step not set plugin

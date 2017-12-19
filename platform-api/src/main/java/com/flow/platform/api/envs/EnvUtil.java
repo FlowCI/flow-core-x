@@ -66,7 +66,7 @@ public class EnvUtil {
 
         for (String key : keys) {
             String origin = source.get(key);
-            source.put(key, origin.replace(Cmd.NEW_LINE, "\\" + Cmd.NEW_LINE));
+            source.put(key, origin.replace(System.lineSeparator(), "\\" + System.lineSeparator()));
         }
     }
 
