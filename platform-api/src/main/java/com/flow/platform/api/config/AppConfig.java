@@ -57,9 +57,6 @@ public class AppConfig extends AppConfigBase {
 
     public final static Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
-    public final static String DEFAULT_AGENT_WORKSPACE =
-        Paths.get(CommandUtil.FLOW_CI_ENV_HOME, "flow-agent-workspace").toString();
-
     public final static String DEFAULT_AGENT_REPO_DIR =
         Paths.get(CommandUtil.FLOW_CI_ENV_HOME, ".flow-agent", "repos").toString();
 
