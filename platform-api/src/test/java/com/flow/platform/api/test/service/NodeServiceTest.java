@@ -17,6 +17,7 @@ package com.flow.platform.api.test.service;
 
 import static junit.framework.TestCase.fail;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
@@ -29,7 +30,6 @@ import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
-import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
@@ -440,7 +440,7 @@ public class NodeServiceTest extends TestBase {
         step.setPlugin("fir-cli");
 
         String pluginFolder = Paths
-            .get(SyncService.DEFAULT_CMD_DIR, new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
+            .get(AppConfig.DEFAULT_AGENT_REPO_DIR, new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
             .toString();
         // then: running script should equal
         Assert.assertEquals("cd " + pluginFolder + Cmd.NEW_LINE + "fir upload xx",

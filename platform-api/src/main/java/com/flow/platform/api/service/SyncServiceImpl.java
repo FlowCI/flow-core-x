@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncRepo;
@@ -283,7 +284,7 @@ public class SyncServiceImpl implements SyncService {
             CmdInfo runShell = new CmdInfo(cmd.getAgentPath(), CmdType.RUN_SHELL, next.toScript());
             runShell.setWebhook(callbackUrl);
             runShell.setSessionId(cmd.getSessionId());
-            runShell.setWorkingDir(DEFAULT_CMD_DIR);
+            runShell.setWorkingDir(AppConfig.DEFAULT_AGENT_REPO_DIR);
             runShell.setOutputEnvFilter(EnvUtil.parseCommaEnvToList(SyncEvent.FLOW_SYNC_LIST));
             cmdService.sendCmd(runShell, false, 0);
         }

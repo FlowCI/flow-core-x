@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service.node;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.job.JobNumberDao;
 import com.flow.platform.api.domain.Webhook;
@@ -34,7 +35,6 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
-import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
@@ -322,13 +322,9 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
                 throw new FlowException("Not found plugin detail, plugin name is " + node.getPlugin());
             }
 
-            String pluginFolder = Paths
-                .get(SyncService.DEFAULT_CMD_DIR, new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
-                .toString();
-
-            String script = "cd " + pluginFolder + Cmd.NEW_LINE + plugin.getPluginDetail().getRun();
-
-            return script;
+            SyncRepo repo = new SyncRepo(plugin.getName(), plugin.getCurrentTag());
+            Path pluginFolder = Paths.get(AppConfig.DEFAULT_AGENT_REPO_DIR, repo.toString());
+            return "cd " + pluginFolder + Cmd.NEW_LINE + plugin.getPluginDetail().getRun();
         }
 
         return node.getScript();
