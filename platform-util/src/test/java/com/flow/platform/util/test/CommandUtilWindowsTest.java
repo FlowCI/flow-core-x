@@ -38,6 +38,7 @@ public class CommandUtilWindowsTest {
     public void init () {
         PowerMockito.mockStatic(System.class);
         PowerMockito.when(System.getProperty("os.name")).thenReturn("Windows 10");
+        PowerMockito.when(System.getProperty("user.home")).thenReturn("C:\\Users\\home");
         PowerMockito.when(System.getenv("HOMEPATH")).thenReturn("C:\\Users\\home");
     }
 
@@ -59,9 +60,15 @@ public class CommandUtilWindowsTest {
 
     @Test
     public void should_parse_variable_to_value() {
+        // parse windows env
         String home = CommandUtil.parseVariable("%HOMEPATH%");
         Assert.assertNotNull(home);
         Assert.assertEquals(System.getenv("HOMEPATH"), home);
+        Assert.assertEquals("C:\\Users\\home", home);
+
+        // parse java property
+        home = CommandUtil.parseVariable("@{user.home}");
+        Assert.assertNotNull(home);
         Assert.assertEquals("C:\\Users\\home", home);
     }
 

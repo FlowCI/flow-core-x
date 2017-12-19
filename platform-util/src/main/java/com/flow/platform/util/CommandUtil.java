@@ -19,6 +19,7 @@ package com.flow.platform.util;
 import com.google.common.base.Strings;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -105,6 +106,8 @@ public class CommandUtil {
 
     public static abstract class CommandHelper {
 
+        public abstract String separator();
+
         public abstract String ls(String dir);
 
         public abstract String rmdir(String dir);
@@ -125,10 +128,10 @@ public class CommandUtil {
 
         /**
          * Parse variable to actual value
-         * @param name variable name
+         * @param var variable name
          * @return actual value
          */
-        public abstract String parse(String name);
+        public abstract String parse(String var);
 
         /**
          * Parse path contain variable to actual value
@@ -136,7 +139,34 @@ public class CommandUtil {
          * @param pathWithEnv path with env variable
          * @return absolute path
          */
-        public abstract Path absolutePath(String pathWithEnv);
+        public Path absolutePath(String pathWithEnv) {
+            String[] paths = pathWithEnv.split(Pattern.quote(separator()));
+            StringBuilder pathAsString = new StringBuilder();
+
+            for (String pathItem : paths) {
+                pathAsString.append(parse(pathItem)).append(separator());
+            }
+
+            pathAsString.deleteCharAt(pathAsString.length() - 1);
+            return Paths.get(pathAsString.toString());
+        }
+
+        /**
+         * Parse java property, and return null if it is not match pattern
+         */
+        String parseJavaProperty(String var) {
+            // at least has 4 chars @{x}
+            if (var.length() < 4) {
+                return null;
+            }
+
+            if (var.startsWith("@{") && var.endsWith("}")) {
+                String property = var.substring(2, var.length() - 1);
+                return System.getProperty(property);
+            }
+
+            return null;
+        }
     }
 
     private static class UnixCommandHelper extends CommandHelper {
@@ -148,6 +178,11 @@ public class CommandUtil {
         private final char ENV_VAR_RIGHT_BRACKET = '}';
 
         private final String PATH_SEPARATOR = "/";
+
+        @Override
+        public String separator() {
+            return PATH_SEPARATOR;
+        }
 
         @Override
         public String ls(String dir) {
@@ -201,44 +236,34 @@ public class CommandUtil {
         }
 
         @Override
-        public String parse(String name) {
-            if (Strings.isNullOrEmpty(name)) {
+        public String parse(String var) {
+            if (Objects.isNull(var)) {
                 throw new IllegalArgumentException();
             }
 
-            if (name.charAt(0) != ENV_VAR_START_CHAR) {
-                throw new IllegalArgumentException();
+            if (var.length() < 1) {
+                return var;
             }
 
-            boolean hasBracket = name.charAt(1) == ENV_VAR_LEFT_BRACKET;
-            name = name.substring(1);
+            // parse by java property
+            String value = parseJavaProperty(var);
+            if (!Strings.isNullOrEmpty(value)) {
+                return value;
+            }
+
+            if (var.charAt(0) != ENV_VAR_START_CHAR) {
+                return var;
+            }
+
+            boolean hasBracket = var.charAt(1) == ENV_VAR_LEFT_BRACKET;
+            var = var.substring(1);
 
             if (!hasBracket) {
-                return System.getenv(name);
+                return System.getenv(var);
             }
 
-            name = name.substring(1, name.length() - 1);
-            return System.getenv(name);
-        }
-
-        @Override
-        public Path absolutePath(String pathWithEnv) {
-            String[] paths = pathWithEnv.split(Pattern.quote(PATH_SEPARATOR));
-            StringBuilder pathAsString = new StringBuilder();
-
-            for (String pathItem : paths) {
-                int index = pathItem.indexOf(ENV_VAR_START_CHAR, 0);
-
-                if (index < 0) {
-                    pathAsString.append(pathItem).append(PATH_SEPARATOR);
-                    continue;
-                }
-
-                pathAsString.append(parseVariable(pathItem)).append(PATH_SEPARATOR);
-            }
-
-            pathAsString.deleteCharAt(pathAsString.length() - 1);
-            return Paths.get(pathAsString.toString());
+            var = var.substring(1, var.length() - 1);
+            return System.getenv(var);
         }
     }
 
@@ -249,6 +274,11 @@ public class CommandUtil {
         private final char ENV_END = '%';
 
         private final String SEPARATOR = "\\";
+
+        @Override
+        public String separator() {
+            return SEPARATOR;
+        }
 
         @Override
         public String ls(String dir) {
@@ -302,35 +332,27 @@ public class CommandUtil {
         }
 
         @Override
-        public String parse(String name) {
-            if (Strings.isNullOrEmpty(name)) {
+        public String parse(String var) {
+            if (Objects.isNull(var)) {
                 throw new IllegalArgumentException();
             }
 
-            if (name.charAt(0) != ENV_BEGIN || name.charAt(name.length() - 1) != ENV_END) {
-                throw new IllegalArgumentException();
+            if (var.length() < 2) {
+                return var;
             }
 
-            String env = name.substring(1, name.length() - 1);
+            // parse by java property
+            String value = parseJavaProperty(var);
+            if (!Strings.isNullOrEmpty(value)) {
+                return value;
+            }
+
+            if (var.charAt(0) != ENV_BEGIN || var.charAt(var.length() - 1) != ENV_END) {
+                return var;
+            }
+
+            String env = var.substring(1, var.length() - 1);
             return System.getenv(env);
-        }
-
-        @Override
-        public Path absolutePath(String pathWithEnv) {
-            String[] paths = pathWithEnv.split(Pattern.quote(SEPARATOR));
-            StringBuilder pathAsString = new StringBuilder();
-
-            for (String pathItem : paths) {
-                if (pathItem.charAt(0) != ENV_BEGIN || pathItem.charAt(pathItem.length() - 1) != ENV_END) {
-                    pathAsString.append(pathItem).append(SEPARATOR);
-                    continue;
-                }
-
-                pathAsString.append(parseVariable(pathItem)).append(SEPARATOR);
-            }
-
-            pathAsString.deleteCharAt(pathAsString.length() - 1);
-            return Paths.get(pathAsString.toString());
         }
     }
 }

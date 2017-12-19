@@ -39,6 +39,7 @@ public class CommandUtilUnixTest {
     public void init () {
         PowerMockito.mockStatic(System.class);
         PowerMockito.when(System.getProperty("os.name")).thenReturn("Mac OS X");
+        PowerMockito.when(System.getProperty("user.home")).thenReturn("/user/home");
         PowerMockito.when(System.getenv("HOME")).thenReturn("/user/home");
     }
 
@@ -68,6 +69,11 @@ public class CommandUtilUnixTest {
         home = CommandUtil.parseVariable("$HOME");
         Assert.assertNotNull(home);
         Assert.assertEquals(System.getenv("HOME"), home);
+
+        // parse java property
+        home = CommandUtil.parseVariable("@{user.home}");
+        Assert.assertNotNull(home);
+        Assert.assertEquals("/user/home", home);
     }
 
     @Test
