@@ -27,7 +27,9 @@ import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.exception.NodeSettingsException;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.model.GitSource;
@@ -42,8 +44,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,6 +79,18 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
 
         return credentialDao.listByType(types);
+    }
+
+    @Override
+    public Resource download(String name) {
+        Credential credential = credentialDao.get(name);
+
+        if(Objects.isNull(credential)) {
+            throw new NotFoundException("Credential not found " + name);
+        }
+
+
+        return null;
     }
 
     @Override
