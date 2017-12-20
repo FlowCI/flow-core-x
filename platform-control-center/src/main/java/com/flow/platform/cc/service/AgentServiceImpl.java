@@ -98,7 +98,9 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
         // update exist offline agent to idle status
         if (exist.getStatus() == AgentStatus.OFFLINE) {
             exist.setSessionId(null);
-            exist.setOs(os);
+            if (!Strings.isNullOrEmpty(os)) {
+                exist.setOs(os);
+            }
             saveWithStatus(exist, AgentStatus.IDLE);
         }
 
@@ -182,7 +184,7 @@ public class AgentServiceImpl extends WebhookServiceImplBase implements AgentSer
     public Agent create(AgentPath agentPath, String webhook, String os) {
         Agent agent = agentDao.get(agentPath);
         if (agent != null) {
-            throw new IllegalParameterException(String.format("The agent '%s' has already exsited", agentPath));
+            throw new IllegalParameterException(String.format("The agent '%s' has already existed", agentPath));
         }
 
         agent = new Agent(agentPath);
