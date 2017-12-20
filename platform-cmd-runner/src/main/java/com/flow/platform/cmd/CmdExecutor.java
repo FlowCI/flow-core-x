@@ -20,6 +20,7 @@ import com.flow.platform.domain.CmdResult;
 import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
+import com.flow.platform.util.SystemUtil;
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -33,6 +34,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -169,9 +171,7 @@ public final class CmdExecutor {
             this.outputEnvFilters = Sets.newHashSet(outputEnvFilters);
         }
 
-        cmds.add(0, CommandUtil.exitOnError()); // exit bash when command error
-
-        this.cmdList = cmds;
+        this.cmdList = convertCmd(cmds);
         this.pBuilder = new ProcessBuilder(CommandUtil.shellExecutor()).directory(DEFAULT_WORKING_DIR);
 
         // check and init working dir
@@ -271,6 +271,24 @@ public final class CmdExecutor {
         }
 
         return outputResult;
+    }
+
+    /**
+     * Convert cmd to executable list, and make cmd exit if got error
+     * @param cmds
+     * @return
+     */
+    private List<String> convertCmd(final List<String> cmds) {
+        if (!SystemUtil.isWindows()) {
+            cmds.add(0, CommandUtil.exitOnError());
+            return cmds;
+        }
+
+        List<String> windowsCmds = new LinkedList<>();
+        for (String cmd : cmds) {
+            windowsCmds.add(cmd + " || exit /b");
+        }
+        return windowsCmds;
     }
 
     /**

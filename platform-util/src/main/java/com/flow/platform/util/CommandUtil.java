@@ -319,7 +319,7 @@ public class CommandUtil {
 
         @Override
         public String[] shellExecutor() {
-            return new String[]{"cmd.exe", "/q"};
+            return new String[]{"cmd.exe"};
         }
 
         @Override
