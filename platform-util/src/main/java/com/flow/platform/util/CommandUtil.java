@@ -87,6 +87,10 @@ public class CommandUtil {
         return commandHelper.setVariable(name, value);
     }
 
+    public static String setVariableFromCmd(String name, String value) {
+        return commandHelper.setVariableFromCmd(name, value);
+    }
+
     public static String getVariable(String name) {
         return commandHelper.getVariable(name);
     }
@@ -118,6 +122,8 @@ public class CommandUtil {
         public abstract String[] shellExecutor();
 
         public abstract String setVariable(String name, String value);
+
+        public abstract String setVariableFromCmd(String name, String cmd);
 
         public abstract String getVariable(String name);
 
@@ -232,6 +238,11 @@ public class CommandUtil {
         }
 
         @Override
+        public String setVariableFromCmd(String name, String cmd) {
+            return setVariable(name, "\"$(" + cmd + ")\"");
+        }
+
+        @Override
         public String getVariable(String name) {
             return "${" + name + "}";
         }
@@ -319,12 +330,19 @@ public class CommandUtil {
 
         @Override
         public String[] shellExecutor() {
-            return new String[]{"cmd.exe"};
+            return new String[]{"cmd.exe", "/v:on"};
         }
 
         @Override
         public String setVariable(String name, String value) {
             return "set " + name + "=" + value;
+        }
+
+        @Override
+        public String setVariableFromCmd(String name, String cmd) {
+            return "set " + name + "= && "
+                + "for /f \"delims=\" %val in ('dir /b') "
+                + "do (set " + name + "=!" + name + "!\\r\\n%val)";
         }
 
         @Override

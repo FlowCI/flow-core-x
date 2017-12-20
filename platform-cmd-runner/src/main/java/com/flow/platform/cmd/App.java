@@ -99,6 +99,7 @@ public final class App {
             Lists.newArrayList("FLOW_"), // find env start with FLOW_ and put to cmd result output map
             null,
             Lists.newArrayList(
+                CommandUtil.setVariableFromCmd("FLOW_ENV_LIST", CommandUtil.ls(null)),
                 "echo " + CommandUtil.getVariable("FLOW_INPUT"),
                 "echo " + CommandUtil.pwd(),
                 CommandUtil.setVariable("FLOW_TEST", "112233"),

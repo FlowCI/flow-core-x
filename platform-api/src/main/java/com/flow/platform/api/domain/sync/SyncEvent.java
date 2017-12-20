@@ -20,6 +20,7 @@ import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.StringUtil;
 import com.google.gson.annotations.Expose;
+import com.rabbitmq.client.Command;
 
 /**
  * @author yang
@@ -84,7 +85,7 @@ public class SyncEvent extends Jsonable {
 
     public String toScript() {
         if (syncType == SyncType.LIST) {
-            return CommandUtil.setVariable(FLOW_SYNC_LIST, "\"$(ls)\"");
+            return CommandUtil.setVariableFromCmd(FLOW_SYNC_LIST, CommandUtil.ls(null));
         }
 
         if (syncType == SyncType.DELETE_ALL) {
