@@ -239,7 +239,7 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
             final String path = event.getData().getPath();
             final String name = ZKHelper.getNameFromPath(path);
 
-            byte[] osData = event.getData().getData();
+            byte[] osData = client.getData().forPath(path);
             final String os = Objects.isNull(osData) ? null : new String(osData);
 
             LOGGER.debugMarker("ZoneEventListener", "Receive zookeeper event %s %s %s", eventType, path, os);
@@ -251,7 +251,6 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
 
             if (eventType == Type.CHILD_REMOVED) {
                 agentService.report(new AgentPath(zone.getName(), name), AgentStatus.OFFLINE, os);
-                return;
             }
         }
     }
