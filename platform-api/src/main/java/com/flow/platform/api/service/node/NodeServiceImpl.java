@@ -310,24 +310,23 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public String getRunningScript(Node node) {
-
-        if (!Strings.isNullOrEmpty(node.getPlugin())) {
-            Plugin plugin = pluginService.find(node.getPlugin());
-
-            if (Objects.isNull(plugin)) {
-                throw new FlowException("Not found plugin, plugin name is " + node.getPlugin());
-            }
-
-            if (Objects.isNull(plugin.getPluginDetail())) {
-                throw new FlowException("Not found plugin detail, plugin name is " + node.getPlugin());
-            }
-
-            SyncRepo repo = new SyncRepo(plugin.getName(), plugin.getCurrentTag());
-            Path pluginFolder = Paths.get(AppConfig.DEFAULT_AGENT_REPO_DIR, repo.toString());
-            return "cd " + pluginFolder + System.lineSeparator() + plugin.getPluginDetail().getRun();
+        if (!node.hasPlugin()) {
+            return node.getScript();
         }
 
-        return node.getScript();
+        Plugin plugin = pluginService.find(node.getPlugin());
+
+        if (Objects.isNull(plugin)) {
+            throw new FlowException("Not found plugin: " + node.getPlugin());
+        }
+
+        if (Objects.isNull(plugin.getPluginDetail())) {
+            throw new FlowException("Not found plugin detail for: " + node.getPlugin());
+        }
+
+        SyncRepo repo = new SyncRepo(plugin.getName(), plugin.getCurrentTag());
+        Path pluginFolder = Paths.get(AppConfig.DEFAULT_AGENT_REPO_DIR, repo.toString());
+        return "cd " + pluginFolder + System.lineSeparator() + plugin.getPluginDetail().getRun();
     }
 
     /**

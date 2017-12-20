@@ -17,6 +17,7 @@
 package com.flow.platform.api.domain.node;
 
 import com.flow.platform.api.domain.EnvObject;
+import com.google.common.base.Strings;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.time.ZonedDateTime;
@@ -206,7 +207,7 @@ public final class Node extends EnvObject {
     }
 
     public boolean hasPlugin() {
-        return this.plugin != null;
+        return !Strings.isNullOrEmpty(this.plugin);
     }
 
     @Override
