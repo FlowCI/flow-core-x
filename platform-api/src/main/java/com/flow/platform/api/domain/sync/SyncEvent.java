@@ -86,7 +86,7 @@ public class SyncEvent extends Jsonable {
 
     public String toScript(String os) {
         if (Strings.isNullOrEmpty(os)) {
-            os = "unix";
+            os = CommandUtil.DEFAULT_OS;
         }
 
         CommandUtil.CommandHelper commandHelper = CommandUtil.getCommandHelper(os);

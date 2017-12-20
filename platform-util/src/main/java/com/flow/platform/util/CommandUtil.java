@@ -31,6 +31,10 @@ import java.util.regex.Pattern;
  */
 public class CommandUtil {
 
+    public final static String DEFAULT_OS = "unix";
+
+    public final static String DEFAULT_LINE_SEPARATOR = "\n";
+
     public final static String FLOW_CI_ENV_HOME = "@{user.home}";
 
     public final static String FLOW_CI_FILE_SEPARATOR = "|";
@@ -365,9 +369,9 @@ public class CommandUtil {
         public String setVariableFromCmd(String name, String cmd) {
             // assign cmd result to variable, split with \n for multiple line
             return "set " + name + "= && "
-                    + "for /f \"delims=\" %f in ('dir /b') "
+                    + "for /f \"delims=\" %f in ('" + cmd + "') "
                         + "do (" +
-                            " set " + name + "=!" + name + "!\\n%f" +
+                            " set " + name + "=!" + name + "!" + DEFAULT_LINE_SEPARATOR +"%f" +
                             ")";
         }
 

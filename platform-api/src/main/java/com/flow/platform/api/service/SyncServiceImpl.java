@@ -32,6 +32,7 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
+import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.GitException;
@@ -282,7 +283,7 @@ public class SyncServiceImpl implements SyncService {
         // run next sync event
         if (next != null) {
             Agent agent = agentService.find(cmd.getAgentPath());
-            String osName = Objects.isNull(agent) ? "unix" : agent.getOs();
+            String osName = Objects.isNull(agent) ? CommandUtil.DEFAULT_OS : agent.getOs();
 
             CmdInfo runShell = new CmdInfo(cmd.getAgentPath(), CmdType.RUN_SHELL, next.toScript(osName));
             runShell.setWebhook(callbackUrl);
@@ -344,7 +345,7 @@ public class SyncServiceImpl implements SyncService {
             return;
         }
 
-        String[] repos = latestReposStr.split(System.lineSeparator());
+        String[] repos = latestReposStr.split(CommandUtil.DEFAULT_LINE_SEPARATOR);
         for (String repo : repos) {
             SyncRepo repoObj = SyncRepo.build(repo);
             if (Objects.isNull(repoObj)) {
