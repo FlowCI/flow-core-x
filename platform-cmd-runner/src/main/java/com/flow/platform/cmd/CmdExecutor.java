@@ -214,7 +214,6 @@ public final class CmdExecutor {
         this.logListener = logListener;
     }
 
-
     public CmdResult run() {
         outputResult = new CmdResult();
         outputResult.setStartTime(DateUtil.now());
@@ -347,7 +346,7 @@ public final class CmdExecutor {
                 String line;
                 Integer count = 0;
                 while ((line = reader.readLine()) != null) {
-                    if (Objects.equals(line, endTerm)) {
+                    if (Objects.equals(line, endTerm) || line.contains(endTerm)) {
                         if (outputResult != null) {
                             readEnv(reader, outputResult.getOutput(), outputEnvFilters);
                         }

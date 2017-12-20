@@ -46,7 +46,7 @@ public class CommandUtilUnixTest {
     @Test
     public void should_get_correct_script() {
         // should get shell executor
-        Assert.assertEquals("/bin/bash", CommandUtil.shellExecutor());
+        Assert.assertEquals("/bin/bash", CommandUtil.shellExecutor()[0]);
 
         // should get home path
         Assert.assertEquals("${HOME}", CommandUtil.home());

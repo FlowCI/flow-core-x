@@ -79,7 +79,7 @@ public class CommandUtil {
         return commandHelper.listVariables();
     }
 
-    public static String shellExecutor() {
+    public static String[] shellExecutor() {
         return commandHelper.shellExecutor();
     }
 
@@ -115,7 +115,7 @@ public class CommandUtil {
 
         public abstract String listVariables();
 
-        public abstract String shellExecutor();
+        public abstract String[] shellExecutor();
 
         public abstract String setVariable(String name, String value);
 
@@ -138,8 +138,7 @@ public class CommandUtil {
             String[] paths;
             if (pathWithEnv.contains(FLOW_CI_FILE_SEPARATOR)) {
                 paths = pathWithEnv.split(Pattern.quote(FLOW_CI_FILE_SEPARATOR));
-            }
-            else {
+            } else {
                 paths = pathWithEnv.split(Pattern.quote(separator()));
             }
 
@@ -223,8 +222,8 @@ public class CommandUtil {
         }
 
         @Override
-        public String shellExecutor() {
-            return "/bin/bash";
+        public String[] shellExecutor() {
+            return new String[]{"/bin/bash"};
         }
 
         @Override
@@ -319,8 +318,8 @@ public class CommandUtil {
         }
 
         @Override
-        public String shellExecutor() {
-            return "cmd.exe";
+        public String[] shellExecutor() {
+            return new String[]{"cmd.exe", "/q"};
         }
 
         @Override
