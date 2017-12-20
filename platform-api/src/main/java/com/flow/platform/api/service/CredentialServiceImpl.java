@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.credential.AndroidCredentialDetail;
 import com.flow.platform.api.domain.credential.Credential;
@@ -24,29 +25,36 @@ import com.flow.platform.api.domain.credential.IosCredentialDetail;
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.exception.NodeSettingsException;
+import com.flow.platform.api.util.ZipUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.CollectionUtil;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.StringUtil;
-import com.flow.platform.util.git.model.GitSource;
 import com.google.common.base.Strings;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,8 +67,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CredentialServiceImpl extends CurrentUser implements CredentialService {
 
+    private final static String PRIVATE_KEY_SUFFIX = "id_rsa";
+
+    private final static String PUBLIC_KEY_SUFFIX = "id_rsa.pub";
+
+    private final static String ZIP_SUFFIX = ".zip";
+
     @Autowired
     private CredentialDao credentialDao;
+
+    @Autowired
+    private Path workspace;
 
     private final Map<CredentialType, DetailHandler> handlerMapping = new HashMap<>();
 
@@ -85,10 +102,9 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
     public Resource download(String name) {
         Credential credential = credentialDao.get(name);
 
-        if(Objects.isNull(credential)) {
+        if (Objects.isNull(credential)) {
             throw new NotFoundException("Credential not found " + name);
         }
-
 
         return null;
     }
@@ -203,9 +219,22 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
     }
 
+    private Path buildTmpPath() {
+        Path tmpPath = Paths.get(workspace.toString(), UUID.randomUUID().toString());
+        try {
+            Files.createDirectories(tmpPath);
+        } catch (IOException e) {
+            throw new FlowException("Create tmp directory happens exceptions " + ExceptionUtil.findRootCause(e));
+        }
+
+        return tmpPath;
+    }
+
     private interface DetailHandler<T extends CredentialDetail> {
 
         void handle(T detail);
+
+        Resource resource(T detail);
     }
 
     private class RSADetailHandler implements DetailHandler<RSACredentialDetail> {
@@ -218,6 +247,32 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
                 detail.setPrivateKey(pair.getPrivateKey());
             }
         }
+
+        @Override
+        public Resource resource(RSACredentialDetail detail) {
+            Path tmp = buildTmpPath();
+            Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
+            Path privateKey = Paths.get(tmp.toString(), PRIVATE_KEY_SUFFIX);
+            Path publicKey = Paths.get(tmp.toString(), PUBLIC_KEY_SUFFIX);
+            File targetFile = new File(zipPath.toString());
+            Resource resource;
+            try {
+                Files.write(privateKey, detail.getPrivateKey().getBytes(AppConfig.DEFAULT_CHARSET));
+                Files.write(publicKey, detail.getPublicKey().getBytes(AppConfig.DEFAULT_CHARSET));
+
+                ZipUtil.zipFolder(tmp.toFile(), targetFile);
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            }
+
+            try (InputStream inputStream = new FileInputStream(targetFile)) {
+                resource = new InputStreamResource(inputStream);
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            }
+
+            return resource;
+        }
     }
 
     private class UsernameDetailHandler implements DetailHandler<UsernameCredentialDetail> {
@@ -225,6 +280,11 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         @Override
         public void handle(UsernameCredentialDetail detail) {
 
+        }
+
+        @Override
+        public Resource resource(UsernameCredentialDetail detail) {
+            return null;
         }
     }
 
@@ -234,6 +294,11 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         public void handle(AndroidCredentialDetail detail) {
 
         }
+
+        @Override
+        public Resource resource(AndroidCredentialDetail detail) {
+            return null;
+        }
     }
 
     private class IosDetailHandler implements DetailHandler<IosCredentialDetail> {
@@ -241,6 +306,11 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         @Override
         public void handle(IosCredentialDetail detail) {
 
+        }
+
+        @Override
+        public Resource resource(IosCredentialDetail detail) {
+            return null;
         }
     }
 }
