@@ -47,7 +47,7 @@ public class CommandUtilWindowsTest {
 
         // should get shell executor
         Assert.assertEquals("cmd.exe", CommandUtil.shellExecutor()[0]);
-        Assert.assertEquals("/q", CommandUtil.shellExecutor()[1]);
+        Assert.assertEquals("/v:on", CommandUtil.shellExecutor()[1]);
 
         // should get home path
         Assert.assertEquals("%HOMEPATH%", CommandUtil.home());
