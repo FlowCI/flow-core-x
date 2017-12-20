@@ -239,18 +239,27 @@ public class ZoneServiceImpl implements ZoneService, ContextEvent {
             final String path = event.getData().getPath();
             final String name = ZKHelper.getNameFromPath(path);
 
-            byte[] osData = client.getData().forPath(path);
-            final String os = Objects.isNull(osData) ? null : new String(osData);
+            String os = null;
 
-            LOGGER.debugMarker("ZoneEventListener", "Receive zookeeper event %s %s %s", eventType, path, os);
+            // get os when child node added
+            if (eventType == Type.CHILD_ADDED) {
+                try {
+                    byte[] osData = client.getData().forPath(path);
+                    os = Objects.isNull(osData) ? null : new String(osData);
+                } catch (Exception e) {
+                    // cannot get data of zk node
+                }
+            }
 
             if (eventType == Type.CHILD_ADDED || eventType == Type.CHILD_UPDATED) {
+                LOGGER.debugMarker("ZoneEventListener", "Receive zookeeper event %s %s %s", eventType, path, os);
                 agentService.report(new AgentPath(zone.getName(), name), AgentStatus.IDLE, os);
                 return;
             }
 
             if (eventType == Type.CHILD_REMOVED) {
-                agentService.report(new AgentPath(zone.getName(), name), AgentStatus.OFFLINE, os);
+                LOGGER.debugMarker("ZoneEventListener", "Receive zookeeper event %s %s %s", eventType, path, null);
+                agentService.report(new AgentPath(zone.getName(), name), AgentStatus.OFFLINE, null);
             }
         }
     }

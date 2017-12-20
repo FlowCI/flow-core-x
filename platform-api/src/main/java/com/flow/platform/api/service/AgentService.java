@@ -33,6 +33,13 @@ public interface AgentService {
     List<Agent> list();
 
     /**
+     * Get agent from control center
+     * @param path
+     * @return
+     */
+    Agent find(AgentPath path);
+
+    /**
      * List agent item which includes flow and sync data
      */
     List<AgentItem> listItems();
@@ -64,6 +71,7 @@ public interface AgentService {
      * Delete agent by agentPath from cc
      */
     void delete(AgentPath agentPath);
+
     /**
      * send sys cmd
      * @param agentPath required

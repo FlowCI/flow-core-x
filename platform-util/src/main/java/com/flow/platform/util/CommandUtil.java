@@ -45,6 +45,13 @@ public class CommandUtil {
         }
     }
 
+    public static CommandHelper getCommandHelper(String os) {
+        if (SystemUtil.isWindows(os)) {
+            return new WindowsCommandHelper();
+        }
+        return new UnixCommandHelper();
+    }
+
     public static String ls(String dir) {
         return commandHelper.ls(dir);
     }
@@ -104,6 +111,8 @@ public class CommandUtil {
     }
 
     public static abstract class CommandHelper {
+
+        public abstract String lineSeparator();
 
         public abstract String separator();
 
@@ -185,6 +194,13 @@ public class CommandUtil {
         private final char ENV_VAR_RIGHT_BRACKET = '}';
 
         private final String PATH_SEPARATOR = "/";
+
+        private final String LINE_SEPARATOR = "\n";
+
+        @Override
+        public String lineSeparator() {
+            return LINE_SEPARATOR;
+        }
 
         @Override
         public String separator() {
@@ -285,11 +301,18 @@ public class CommandUtil {
 
         private final char ENV_END = '%';
 
-        private final String SEPARATOR = "\\";
+        private final String PATH_SEPARATOR = "\\";
+
+        private final String LINE_SEPARATOR = "\r\n";
+
+        @Override
+        public String lineSeparator() {
+            return LINE_SEPARATOR;
+        }
 
         @Override
         public String separator() {
-            return SEPARATOR;
+            return PATH_SEPARATOR;
         }
 
         @Override

@@ -17,6 +17,7 @@
 package com.flow.platform.api.test.service;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -99,19 +100,19 @@ public class SyncServiceTest extends TestBase {
             + "cd hello[v1.0]\n"
             + "git pull http://localhost/git/hello.git --tags\n"
             + "git checkout v1.0";
-        Assert.assertEquals(script, createEvent.toScript());
+        Assert.assertEquals(script, createEvent.toScript("unix"));
 
         // test delete event script
         SyncEvent deleteEvent = new SyncEvent(gitUrl, repo, SyncType.DELETE);
-        Assert.assertEquals("rm -rf hello[v1.0]", deleteEvent.toScript());
+        Assert.assertEquals("rm -rf hello[v1.0]", deleteEvent.toScript("unix"));
 
         // test delete event script
         SyncEvent deleteAllEvent = new SyncEvent(null, null, SyncType.DELETE_ALL);
-        Assert.assertEquals("rm -rf ./*/", deleteAllEvent.toScript());
+        Assert.assertEquals("rm -rf ./*/", deleteAllEvent.toScript("unix"));
 
         // test list event script
         SyncEvent listEvent = new SyncEvent(null, null, SyncType.LIST);
-        Assert.assertEquals("export FLOW_SYNC_LIST=\"$(ls)\"", listEvent.toScript());
+        Assert.assertEquals("export FLOW_SYNC_LIST=\"$(ls)\"", listEvent.toScript("unix"));
     }
 
     @Test
@@ -169,6 +170,10 @@ public class SyncServiceTest extends TestBase {
     @Test
     public void should_execute_sync_event_callback() throws Throwable {
         // given: copy exist git to workspace
+        stubFor(get(urlEqualTo("/agents/find?zone=default&name=first"))
+            .willReturn(aResponse()
+                .withBody("{zone:default,name:first,os:unix}")));
+
         ClassLoader classLoader = TestBase.class.getClassLoader();
         URL resource = classLoader.getResource("hello.git");
         File path = new File(resource.getFile());

@@ -19,6 +19,7 @@ package com.flow.platform.api.domain.sync;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.StringUtil;
+import com.google.common.base.Strings;
 import com.google.gson.annotations.Expose;
 import com.rabbitmq.client.Command;
 
@@ -83,28 +84,34 @@ public class SyncEvent extends Jsonable {
         return syncType;
     }
 
-    public String toScript() {
+    public String toScript(String os) {
+        if (Strings.isNullOrEmpty(os)) {
+            os = "unix";
+        }
+
+        CommandUtil.CommandHelper commandHelper = CommandUtil.getCommandHelper(os);
+
         if (syncType == SyncType.LIST) {
-            return CommandUtil.setVariableFromCmd(FLOW_SYNC_LIST, CommandUtil.ls(null));
+            return commandHelper.setVariableFromCmd(FLOW_SYNC_LIST, commandHelper.ls(null));
         }
 
         if (syncType == SyncType.DELETE_ALL) {
-            return CommandUtil.rmdir();
+            return commandHelper.rmdir(null);
         }
 
         // the sync event type DELETE, CREATE, UPDATE needs folder name
         String folder = repo.toString();
 
         if (syncType == SyncType.DELETE) {
-            return CommandUtil.rmdir(folder);
+            return commandHelper.rmdir(folder);
         }
 
         return "git init " + folder +
-            System.lineSeparator() +
+            commandHelper.lineSeparator() +
             "cd " + folder +
-            System.lineSeparator() +
+            commandHelper.lineSeparator() +
             "git pull " + gitUrl + " --tags" +
-            System.lineSeparator() +
+            commandHelper.lineSeparator() +
             "git checkout " + repo.getTag();
     }
 

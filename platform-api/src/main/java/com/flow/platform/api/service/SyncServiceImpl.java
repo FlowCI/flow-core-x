@@ -281,7 +281,10 @@ public class SyncServiceImpl implements SyncService {
 
         // run next sync event
         if (next != null) {
-            CmdInfo runShell = new CmdInfo(cmd.getAgentPath(), CmdType.RUN_SHELL, next.toScript());
+            Agent agent = agentService.find(cmd.getAgentPath());
+            String osName = Objects.isNull(agent) ? "unix" : agent.getOs();
+
+            CmdInfo runShell = new CmdInfo(cmd.getAgentPath(), CmdType.RUN_SHELL, next.toScript(osName));
             runShell.setWebhook(callbackUrl);
             runShell.setSessionId(cmd.getSessionId());
             runShell.setWorkingDir(AppConfig.DEFAULT_AGENT_REPO_DIR);
