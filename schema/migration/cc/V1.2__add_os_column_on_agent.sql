@@ -1,3 +1,3 @@
 USE flow_cc_db;
 
-ALTER TABLE agent ADD COLUMN os VARCHAR(50) DEFAULT NULL AFTER token;
+ALTER TABLE agent ADD COLUMN os varchar(50) DEFAULT NULL AFTER token;
