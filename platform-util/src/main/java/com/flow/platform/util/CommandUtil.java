@@ -340,9 +340,12 @@ public class CommandUtil {
 
         @Override
         public String setVariableFromCmd(String name, String cmd) {
+            // assign cmd result to variable, split with \n for multiple line
             return "set " + name + "= && "
-                + "for /f \"delims=\" %val in ('dir /b') "
-                + "do (set " + name + "=!" + name + "!\\r\\n%val)";
+                    + "for /f \"delims=\" %f in ('dir /b') "
+                        + "do (" +
+                            " set " + name + "=!" + name + "!\\n%f" +
+                            ")";
         }
 
         @Override
