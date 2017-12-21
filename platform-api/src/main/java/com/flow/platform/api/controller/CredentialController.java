@@ -185,6 +185,16 @@ public class CredentialController {
     }
 
 
+    /**
+     * @api {get} /credentials/:name/download download
+     * @apiParam {String} name Credential name
+     * @apiGroup Credenital
+     * @apiDescription Get credential by name
+     *
+     * @apiSuccessExample {json} Success-Response
+     *
+     *  return zip file
+     */
     @GetMapping(path = "/{name}/download")
     public Resource download(@PathVariable String name, HttpServletResponse httpResponse) {
         Resource resource = credentialService.download(name);
