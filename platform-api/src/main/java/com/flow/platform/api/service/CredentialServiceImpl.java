@@ -196,6 +196,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
     public void delete(String name) {
         Credential credential = find(name);
         credentialDao.delete(credential);
+        deleteZipResource(name);
     }
 
     @Override
@@ -238,6 +239,14 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
 
         return credentialPath;
+    }
+
+    private void deleteZipResource(String name) {
+        Path path = buildCredentialPath(name);
+        try {
+            Files.deleteIfExists(Paths.get(path.toString() + ZIP_SUFFIX));
+        } catch (IOException e) {
+        }
     }
 
     private abstract class DetailHandler<T extends CredentialDetail> {

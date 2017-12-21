@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.test.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,6 +36,7 @@ import com.flow.platform.api.service.CredentialService;
 import com.flow.platform.domain.Jsonable;
 import com.google.common.collect.Lists;
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
@@ -278,6 +280,40 @@ public class CredentialControllerTest extends ControllerTestWithoutAuth {
 
         // them: zipfile has two files
         Assert.assertEquals(2, zipFile.size());
+    }
+
+
+    @Test
+    public void should_delete_success() throws Exception {
+        String response = performRequestWith200Status(get("/credentials"));
+        Credential[] credentials = Jsonable.parseArray(response, Credential[].class);
+        Assert.assertEquals(4, credentials.length);
+
+        // when: get download file
+        MvcResult result = mockMvc.perform(get("/credentials/rsa-credential/download")).andExpect(status().isOk())
+            .andReturn();
+
+        File file = new File(String.valueOf(Paths.get(workspace.toString(), "test.zip")));
+        FileUtils.writeByteArrayToFile(file, result.getResponse().getContentAsByteArray());
+
+        // then: response is not null
+        Assert.assertNotNull(response);
+
+        // then: should exists zip file
+        Path path = Paths.get(workspace.toString(), "credentials", "rsa-credential.zip");
+        Assert.assertEquals(true, path.toFile().exists());
+
+        // when: delete
+        response = performRequestWith200Status(delete("/credentials/rsa-credential"));
+        Assert.assertNotNull(response);
+
+        // then: should dec
+        response = performRequestWith200Status(get("/credentials"));
+        credentials = Jsonable.parseArray(response, Credential[].class);
+        Assert.assertEquals(3, credentials.length);
+
+        // then: should be deleted
+        Assert.assertEquals(false, path.toFile().exists());
     }
 
     private String getUrlForCredential(String credentialName) {
