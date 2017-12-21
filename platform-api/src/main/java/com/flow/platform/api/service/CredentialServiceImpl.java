@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -252,24 +253,51 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         public Resource resource(RSACredentialDetail detail) {
             Path tmp = buildTmpPath();
             Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
+            File targetFile = new File(zipPath.toString());
+            Resource resource;
+            try (InputStream inputStream = new FileInputStream(targetFile)) {
+                loadResource(detail, tmp);
+                resource = new InputStreamResource(inputStream);
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            } finally {
+                deleteResource(tmp);
+            }
+
+            return resource;
+        }
+
+        /**
+         * read resource to zip file
+         * @param detail
+         * @param tmp
+         */
+        private void loadResource(RSACredentialDetail detail, Path tmp) {
+            Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
             Path privateKey = Paths.get(tmp.toString(), PRIVATE_KEY_SUFFIX);
             Path publicKey = Paths.get(tmp.toString(), PUBLIC_KEY_SUFFIX);
             File targetFile = new File(zipPath.toString());
-            Resource resource;
             try {
                 Files.write(privateKey, detail.getPrivateKey().getBytes(AppConfig.DEFAULT_CHARSET));
                 Files.write(publicKey, detail.getPublicKey().getBytes(AppConfig.DEFAULT_CHARSET));
 
                 ZipUtil.zipFolder(tmp.toFile(), targetFile);
 
-                try (InputStream inputStream = new FileInputStream(targetFile)) {
-                    resource = new InputStreamResource(inputStream);
-                }
             } catch (IOException e) {
                 throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
             }
+        }
 
-            return resource;
+        /**
+         * delete tmp folder
+         * @param tmp
+         */
+        private void deleteResource(Path tmp) {
+            try {
+                FileUtils.deleteDirectory(tmp.toFile());
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            }
         }
     }
 
@@ -308,6 +336,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
 
         @Override
         public Resource resource(IosCredentialDetail detail) {
+            Path tmp = buildTmpPath();
             return null;
         }
     }

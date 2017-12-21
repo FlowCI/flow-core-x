@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -185,8 +186,11 @@ public class CredentialController {
 
 
     @GetMapping(params = "/{name}/download")
-    public Resource download(@PathVariable String name) {
-        return null;
+    public Resource download(@PathVariable String name, HttpServletResponse httpResponse) {
+        httpResponse.setHeader(
+            "Content-Disposition",
+            String.format("attachment; filename=%s", name + ".zip"));
+        return credentialService.download(name);
     }
 
     /**
