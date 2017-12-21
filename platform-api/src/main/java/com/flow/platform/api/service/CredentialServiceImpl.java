@@ -25,6 +25,8 @@ import com.flow.platform.api.domain.credential.IosCredentialDetail;
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
+import com.flow.platform.api.domain.file.FileResource;
+import com.flow.platform.api.domain.file.PasswordFileResource;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.util.ZipUtil;
 import com.flow.platform.core.exception.FlowException;
@@ -331,13 +333,55 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
 
         @Override
         public void handle(IosCredentialDetail detail) {
-
         }
 
         @Override
         public Resource resource(IosCredentialDetail detail) {
             Path tmp = buildTmpPath();
-            return null;
+            Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
+            File targetFile = new File(zipPath.toString());
+            Resource resource;
+            try (InputStream inputStream = new FileInputStream(targetFile)) {
+                loadResource(detail, tmp);
+                resource = new InputStreamResource(inputStream);
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            } finally {
+                deleteResource(tmp);
+            }
+
+            return resource;
+        }
+
+        private void loadResource(IosCredentialDetail detail, Path tmp) {
+            Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
+            File targetFile = new File(zipPath.toString());
+
+            try {
+                for (PasswordFileResource passwordFileResource : detail.getP12s()) {
+                    FileUtils.copyFileToDirectory(Paths.get(passwordFileResource.getPath()).toFile(), tmp.toFile());
+                }
+
+                for (FileResource fileResource : detail.getProvisionProfiles()) {
+                    FileUtils.copyFileToDirectory(Paths.get(fileResource.getPath()).toFile(), tmp.toFile());
+                }
+
+                ZipUtil.zipFolder(tmp.toFile(), targetFile);
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            }
+        }
+
+        /**
+         * delete tmp folder
+         * @param tmp
+         */
+        private void deleteResource(Path tmp) {
+            try {
+                FileUtils.deleteDirectory(tmp.toFile());
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            }
         }
     }
 }
