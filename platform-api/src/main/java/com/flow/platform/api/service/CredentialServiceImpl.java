@@ -261,12 +261,10 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
                 Files.write(publicKey, detail.getPublicKey().getBytes(AppConfig.DEFAULT_CHARSET));
 
                 ZipUtil.zipFolder(tmp.toFile(), targetFile);
-            } catch (IOException e) {
-                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
-            }
 
-            try (InputStream inputStream = new FileInputStream(targetFile)) {
-                resource = new InputStreamResource(inputStream);
+                try (InputStream inputStream = new FileInputStream(targetFile)) {
+                    resource = new InputStreamResource(inputStream);
+                }
             } catch (IOException e) {
                 throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
             }
