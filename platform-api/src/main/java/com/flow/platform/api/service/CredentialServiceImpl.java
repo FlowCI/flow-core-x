@@ -52,7 +52,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +74,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
 
     private final static String ZIP_SUFFIX = ".zip";
 
-    private final static String TMP_FOLDER = "tmp";
+    private final static String CREDENTIAL_FOLDER = "credentials";
 
     @Autowired
     private CredentialDao credentialDao;
@@ -110,7 +109,8 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
             throw new FlowException("Credential not found " + name);
         }
 
-        Resource resource = handlerMapping.get(credential.getDetail().getType()).resource(credential.getDetail());
+        Resource resource = handlerMapping.get(credential.getDetail().getType())
+            .resource(credential.getDetail(), credential.getName());
 
         if (Objects.isNull(resource)) {
             throw new FlowException("Not found resource");
@@ -229,28 +229,30 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
     }
 
-    private Path buildTmpPath() {
-        Path tmpPath = Paths.get(workspace.toString(), TMP_FOLDER, UUID.randomUUID().toString());
+    private Path buildCredentialPath(String name) {
+        Path credentialPath = Paths.get(workspace.toString(), CREDENTIAL_FOLDER, name);
         try {
-            Files.createDirectories(tmpPath);
+            Files.createDirectories(credentialPath);
         } catch (IOException e) {
             throw new FlowException("Create tmp directory happens exceptions " + ExceptionUtil.findRootCause(e));
         }
 
-        return tmpPath;
+        return credentialPath;
     }
 
     private abstract class DetailHandler<T extends CredentialDetail> {
 
         abstract void handle(T detail);
 
-        public Resource resource(T detail) {
-            Path tmp = buildTmpPath();
-            Path zipPath = Paths.get(tmp.toString() + ZIP_SUFFIX);
+        public Resource resource(T detail, String name) {
+            Path credentialPath = buildCredentialPath(name);
+            Path zipPath = Paths.get(credentialPath.toString() + ZIP_SUFFIX);
             File targetFile = new File(zipPath.toString());
             Resource resource;
 
-            loadResource(detail, tmp);
+            if (!targetFile.exists()) {
+                loadResource(detail, credentialPath);
+            }
 
             try {
                 InputStream inputStream = new FileInputStream(targetFile);
@@ -258,7 +260,9 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
             } catch (IOException e) {
                 throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
             } finally {
-                deleteResource(tmp);
+                if (Files.exists(credentialPath)) {
+                    deleteResource(credentialPath);
+                }
             }
 
             return resource;
@@ -318,11 +322,6 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         public void handle(UsernameCredentialDetail detail) {
 
         }
-
-        @Override
-        public Resource resource(UsernameCredentialDetail detail) {
-            return null;
-        }
     }
 
     private class AndroidDetailHandler extends DetailHandler<AndroidCredentialDetail> {
@@ -330,11 +329,6 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         @Override
         public void handle(AndroidCredentialDetail detail) {
 
-        }
-
-        @Override
-        public Resource resource(AndroidCredentialDetail detail) {
-            return null;
         }
     }
 
