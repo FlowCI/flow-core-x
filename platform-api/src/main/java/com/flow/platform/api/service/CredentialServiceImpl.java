@@ -233,26 +233,11 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         return tmpPath;
     }
 
-    private interface DetailHandler<T extends CredentialDetail> {
+    private abstract class DetailHandler<T extends CredentialDetail> {
 
-        void handle(T detail);
+        abstract void handle(T detail);
 
-        Resource resource(T detail);
-    }
-
-    private class RSADetailHandler implements DetailHandler<RSACredentialDetail> {
-
-        @Override
-        public void handle(RSACredentialDetail detail) {
-            if (StringUtil.isNullOrEmptyForItems(detail.getPrivateKey(), detail.getPublicKey())) {
-                RSAKeyPair pair = generateRsaKey();
-                detail.setPublicKey(pair.getPublicKey());
-                detail.setPrivateKey(pair.getPrivateKey());
-            }
-        }
-
-        @Override
-        public Resource resource(RSACredentialDetail detail) {
+        public Resource resource(T detail) {
             Path tmp = buildTmpPath();
             Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
             File targetFile = new File(zipPath.toString());
@@ -269,12 +254,37 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
             return resource;
         }
 
+        public void loadResource(T detail, Path tmp) {
+        }
+
+        public void deleteResource(Path tmp) {
+            try {
+                FileUtils.deleteDirectory(tmp.toFile());
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            }
+        }
+    }
+
+    private class RSADetailHandler extends DetailHandler<RSACredentialDetail> {
+
+        @Override
+        public void handle(RSACredentialDetail detail) {
+            if (StringUtil.isNullOrEmptyForItems(detail.getPrivateKey(), detail.getPublicKey())) {
+                RSAKeyPair pair = generateRsaKey();
+                detail.setPublicKey(pair.getPublicKey());
+                detail.setPrivateKey(pair.getPrivateKey());
+            }
+        }
+
+
         /**
          * read resource to zip file
          * @param detail
          * @param tmp
          */
-        private void loadResource(RSACredentialDetail detail, Path tmp) {
+        @Override
+        public void loadResource(RSACredentialDetail detail, Path tmp) {
             Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
             Path privateKey = Paths.get(tmp.toString(), PRIVATE_KEY_SUFFIX);
             Path publicKey = Paths.get(tmp.toString(), PUBLIC_KEY_SUFFIX);
@@ -290,20 +300,9 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
             }
         }
 
-        /**
-         * delete tmp folder
-         * @param tmp
-         */
-        private void deleteResource(Path tmp) {
-            try {
-                FileUtils.deleteDirectory(tmp.toFile());
-            } catch (IOException e) {
-                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
-            }
-        }
     }
 
-    private class UsernameDetailHandler implements DetailHandler<UsernameCredentialDetail> {
+    private class UsernameDetailHandler extends DetailHandler<UsernameCredentialDetail> {
 
         @Override
         public void handle(UsernameCredentialDetail detail) {
@@ -316,7 +315,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
     }
 
-    private class AndroidDetailHandler implements DetailHandler<AndroidCredentialDetail> {
+    private class AndroidDetailHandler extends DetailHandler<AndroidCredentialDetail> {
 
         @Override
         public void handle(AndroidCredentialDetail detail) {
@@ -329,31 +328,14 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
     }
 
-    private class IosDetailHandler implements DetailHandler<IosCredentialDetail> {
+    private class IosDetailHandler extends DetailHandler<IosCredentialDetail> {
 
         @Override
         public void handle(IosCredentialDetail detail) {
         }
 
         @Override
-        public Resource resource(IosCredentialDetail detail) {
-            Path tmp = buildTmpPath();
-            Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
-            File targetFile = new File(zipPath.toString());
-            Resource resource;
-            try (InputStream inputStream = new FileInputStream(targetFile)) {
-                loadResource(detail, tmp);
-                resource = new InputStreamResource(inputStream);
-            } catch (IOException e) {
-                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
-            } finally {
-                deleteResource(tmp);
-            }
-
-            return resource;
-        }
-
-        private void loadResource(IosCredentialDetail detail, Path tmp) {
+        public void loadResource(IosCredentialDetail detail, Path tmp) {
             Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
             File targetFile = new File(zipPath.toString());
 
@@ -367,18 +349,6 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
                 }
 
                 ZipUtil.zipFolder(tmp.toFile(), targetFile);
-            } catch (IOException e) {
-                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
-            }
-        }
-
-        /**
-         * delete tmp folder
-         * @param tmp
-         */
-        private void deleteResource(Path tmp) {
-            try {
-                FileUtils.deleteDirectory(tmp.toFile());
             } catch (IOException e) {
                 throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
             }
