@@ -185,12 +185,13 @@ public class CredentialController {
     }
 
 
-    @GetMapping(params = "/{name}/download")
+    @GetMapping(path = "/{name}/download")
     public Resource download(@PathVariable String name, HttpServletResponse httpResponse) {
+        Resource resource = credentialService.download(name);
         httpResponse.setHeader(
             "Content-Disposition",
             String.format("attachment; filename=%s", name + ".zip"));
-        return credentialService.download(name);
+        return resource;
     }
 
     /**

@@ -31,7 +31,6 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.util.ZipUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.CollectionUtil;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.StringUtil;
@@ -76,6 +75,8 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
 
     private final static String ZIP_SUFFIX = ".zip";
 
+    private final static String TMP_FOLDER = "tmp";
+
     @Autowired
     private CredentialDao credentialDao;
 
@@ -106,10 +107,16 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         Credential credential = credentialDao.get(name);
 
         if (Objects.isNull(credential)) {
-            throw new NotFoundException("Credential not found " + name);
+            throw new FlowException("Credential not found " + name);
         }
 
-        return null;
+        Resource resource = handlerMapping.get(credential.getDetail().getType()).resource(credential.getDetail());
+
+        if (Objects.isNull(resource)) {
+            throw new FlowException("Not found resource");
+        }
+
+        return resource;
     }
 
     @Override
@@ -223,7 +230,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
     }
 
     private Path buildTmpPath() {
-        Path tmpPath = Paths.get(workspace.toString(), UUID.randomUUID().toString());
+        Path tmpPath = Paths.get(workspace.toString(), TMP_FOLDER, UUID.randomUUID().toString());
         try {
             Files.createDirectories(tmpPath);
         } catch (IOException e) {
@@ -239,11 +246,14 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
 
         public Resource resource(T detail) {
             Path tmp = buildTmpPath();
-            Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
+            Path zipPath = Paths.get(tmp.toString() + ZIP_SUFFIX);
             File targetFile = new File(zipPath.toString());
             Resource resource;
-            try (InputStream inputStream = new FileInputStream(targetFile)) {
-                loadResource(detail, tmp);
+
+            loadResource(detail, tmp);
+
+            try {
+                InputStream inputStream = new FileInputStream(targetFile);
                 resource = new InputStreamResource(inputStream);
             } catch (IOException e) {
                 throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
@@ -285,7 +295,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
          */
         @Override
         public void loadResource(RSACredentialDetail detail, Path tmp) {
-            Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
+            Path zipPath = Paths.get(tmp.toString() + ZIP_SUFFIX);
             Path privateKey = Paths.get(tmp.toString(), PRIVATE_KEY_SUFFIX);
             Path publicKey = Paths.get(tmp.toString(), PUBLIC_KEY_SUFFIX);
             File targetFile = new File(zipPath.toString());
@@ -336,7 +346,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
 
         @Override
         public void loadResource(IosCredentialDetail detail, Path tmp) {
-            Path zipPath = Paths.get(tmp.toString(), ZIP_SUFFIX);
+            Path zipPath = Paths.get(tmp.toString() + ZIP_SUFFIX);
             File targetFile = new File(zipPath.toString());
 
             try {
