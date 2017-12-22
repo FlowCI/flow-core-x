@@ -20,17 +20,9 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.security.WebSecurity;
-import com.flow.platform.api.service.node.NodeService;
-import com.flow.platform.api.util.PluginUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.plugin.domain.Plugin;
-import com.flow.platform.plugin.domain.PluginStatus;
-import com.flow.platform.plugin.service.PluginService;
-import com.google.common.collect.ImmutableSet;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -103,7 +95,7 @@ public class FlowStepController extends NodeController {
      */
     @PostMapping
     @WebSecurity(action = Actions.FLOW_CREATE)
-    public void updateChildren(@RequestBody List<Node> children) {
+    public List<Node> updateChildren(@RequestBody List<Node> children) {
         if (Objects.isNull(children) || children.isEmpty()) {
             throw new IllegalParameterException("The step list is required");
         }
@@ -111,5 +103,7 @@ public class FlowStepController extends NodeController {
         // update
         String root = currentNodePath.get();
         nodeService.updateByNodes(root, children);
+        NodeTree tree = nodeService.find(root);
+        return tree.children();
     }
 }
