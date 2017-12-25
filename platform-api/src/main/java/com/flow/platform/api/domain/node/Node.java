@@ -56,9 +56,6 @@ public final class Node extends EnvObject {
     private Boolean allowFailure = false;
 
     @Expose
-    private Boolean disabled = false;
-
-    @Expose
     private Boolean isFinal = false;
 
     @Expose
@@ -210,14 +207,6 @@ public final class Node extends EnvObject {
 
     public boolean hasPlugin() {
         return this.plugin != null;
-    }
-
-    public Boolean getDisabled() {
-        return disabled;
-    }
-
-    public void setDisabled(Boolean disabled) {
-        this.disabled = disabled;
     }
 
     @Override
