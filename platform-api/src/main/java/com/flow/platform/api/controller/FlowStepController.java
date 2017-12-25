@@ -103,7 +103,6 @@ public class FlowStepController extends NodeController {
         // update
         String root = currentNodePath.get();
         nodeService.updateByNodes(root, children);
-        NodeTree tree = nodeService.find(root);
-        return tree.children();
+        return children;
     }
 }
