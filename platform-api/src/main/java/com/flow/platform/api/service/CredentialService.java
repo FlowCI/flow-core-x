@@ -23,6 +23,7 @@ import com.flow.platform.api.domain.node.Node;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.springframework.core.io.Resource;
 
 /**
  * @author lhl
@@ -67,4 +68,11 @@ public interface CredentialService {
      * Generate RSA key pair
      */
     RSAKeyPair generateRsaKey();
+
+    /**
+     * download credential file
+     * @param name
+     * @return Resource is zip file
+     */
+    Resource download(String name);
 }
