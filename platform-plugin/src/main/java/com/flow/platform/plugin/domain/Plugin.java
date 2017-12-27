@@ -53,6 +53,12 @@ public class Plugin implements Comparable {
     @Expose
     private Set<String> platform;
 
+    @Expose
+    private String image;
+
+    @Expose
+    private String build;
+
     // plugin status
     @Expose
     private PluginStatus status = PluginStatus.PENDING;
@@ -206,6 +212,22 @@ public class Plugin implements Comparable {
 
     public void setLatestCommit(String latestCommit) {
         this.latestCommit = latestCommit;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getBuild() {
+        return build;
+    }
+
+    public void setBuild(String build) {
+        this.build = build;
     }
 
     @Override
