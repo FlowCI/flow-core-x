@@ -468,7 +468,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                         FileUtils.deleteDirectory(actPath.toFile());
                     }
 
-                    FileUtils.moveDirectory(artifactPath.toFile(), tmp.toFile());
+                    FileUtils.moveDirectory(artifactPath.toFile(), actPath.toFile());
 
                     Path localPath = gitRepoPath(plugin);
 
