@@ -45,20 +45,21 @@ public class SystemUtil {
      */
     public static Path replacePathWithEnv(String pathWithEnv) {
         String[] paths = pathWithEnv.split(Pattern.quote(File.separator));
-        Path path = Paths.get("/");
+
+        StringBuilder builder = new StringBuilder();
 
         for (String pathItem : paths) {
             int index = pathItem.indexOf("$", 0);
 
             if (index < 0) {
-                path = Paths.get(path.toString(), pathItem);
+                builder.append(pathItem).append(File.separator);
                 continue;
             }
 
-            path = Paths.get(path.toString(), parseEnv(pathItem));
+            builder.append(parseEnv(pathItem)).append(File.separator);
         }
 
-        return path;
+        return Paths.get(builder.toString());
     }
 
     /**
