@@ -42,14 +42,15 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -181,6 +182,26 @@ public class CredentialController {
     @WebSecurity(action = Actions.CREDENTIAL_SHOW)
     public Credential show(@PathVariable String name) {
         return credentialService.find(name);
+    }
+
+
+    /**
+     * @api {get} /credentials/:name/download download
+     * @apiParam {String} name Credential name
+     * @apiGroup Credenital
+     * @apiDescription Get credential by name
+     *
+     * @apiSuccessExample {json} Success-Response
+     *
+     *  return zip file
+     */
+    @GetMapping(path = "/{name}/download")
+    public Resource download(@PathVariable String name, HttpServletResponse httpResponse) {
+        Resource resource = credentialService.download(name);
+        httpResponse.setHeader(
+            "Content-Disposition",
+            String.format("attachment; filename=%s", name + ".zip"));
+        return resource;
     }
 
     /**

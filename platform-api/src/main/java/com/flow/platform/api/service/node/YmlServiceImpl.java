@@ -38,6 +38,7 @@ import com.google.common.cache.CacheBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -106,8 +107,13 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
 
     @Override
     public void saveOrUpdate(final Node root, final String yml) {
-        Yml ymlStorage = new Yml(root.getPath(), yml);
-        ymlDao.saveOrUpdate(ymlStorage);
+        Yml exist = get(root);
+        if (Objects.isNull(exist)) {
+            exist = new Yml(root.getPath());
+        }
+
+        exist.setFile(yml);
+        ymlDao.saveOrUpdate(exist);
     }
 
     @Override
