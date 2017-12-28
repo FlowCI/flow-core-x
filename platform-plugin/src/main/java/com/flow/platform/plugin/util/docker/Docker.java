@@ -31,11 +31,13 @@ import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.core.command.WaitContainerResultCallback;
 import com.google.common.base.Charsets;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author yh@firim
@@ -44,7 +46,14 @@ public class Docker {
 
     private static final Logger LOGGER = new Logger(Docker.class);
 
+    private static final String DOCKER_MVN_CACHE_FOLDER = "/root/.m2/repository";
+
+    private static final String REPOSITORY = "repository";
+
+    private static final String BASH = "/bin/sh";
+
     DockerClientConfig config;
+
     DockerClient docker;
 
     public Docker() {
@@ -77,16 +86,17 @@ public class Docker {
 
         LOGGER.info("Run Build Start");
         String fileName = repoPath.getFileName().toString();
-        Volume volume = new Volume("/" + fileName);
+        Volume volume = new Volume(File.separator + fileName);
 
         // mvn cache
-        Volume mvnVolume = new Volume("/root/.m2/");
+        Volume mvnVolume = new Volume(DOCKER_MVN_CACHE_FOLDER);
 
         CreateContainerResponse container = docker
             .createContainerCmd(image)
-            .withBinds(new Bind(repoPath.toString(), volume), new Bind(System.getenv("HOME") + "/.m2", mvnVolume))
-            .withWorkingDir("/" + fileName)
-            .withCmd("/bin/sh", "-c", cmd)
+            .withBinds(new Bind(repoPath.toString(), volume),
+                new Bind(Paths.get(repoPath.getParent().toString(), REPOSITORY).toString(), mvnVolume))
+            .withWorkingDir(File.separator + fileName)
+            .withCmd(BASH, "-c", cmd)
             .withTty(true)
             .exec();
 

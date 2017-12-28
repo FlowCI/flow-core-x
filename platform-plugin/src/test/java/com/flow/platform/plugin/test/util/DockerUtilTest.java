@@ -30,8 +30,8 @@ public class DockerUtilTest extends TestBase {
     @Test
     public void should_pull_success() {
         Docker docker = new Docker();
-        String image = "maven:3.5-jdk-8";
-        docker.pull("maven:3.5-jdk-8");
+        String image = "flowci/plugin-environment";
+        docker.pull(image);
         Path path = Paths.get("/Users/firim/workspace/git-clone");
         docker.runBuild(image, "mvn clean install -DskipTests=true", path);
         docker.close();
