@@ -81,6 +81,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private final static String DIST = "dist";
 
+    private final static String TMP = "tmp";
+
     // git clone folder
     @Autowired
     private Path gitWorkspace;
@@ -440,62 +442,23 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         @Override
         public void exec(Plugin plugin) {
             try {
-                // put from cache to local git workspace
-                Path cachePath = gitCachePath(plugin);
-                String latestGitTag = plugin.getTag();
-                JGitUtil.checkout(cachePath, latestGitTag);
 
                 // only build and image all in value to pull image
                 if (!Strings.isBlank(plugin.getBuild()) && !Strings.isBlank(plugin.getImage())) {
-                    Docker docker = new Docker();
-                    docker.pull(plugin.getImage());
-                    docker.runBuild(plugin.getImage(), plugin.getBuild(), cachePath);
-                    docker.close();
 
-                    // default outputs is dist folder
-                    Path artifactPath = Paths.get(cachePath.toString(), DIST);
-                    if (!artifactPath.toFile().exists()) {
-                        throw new PluginException("Not found build outputs");
-                    }
+                    // put from cache to local git workspace
+                    Path cachePath = gitCachePath(plugin);
+                    String latestGitTag = plugin.getTag();
+                    JGitUtil.checkout(cachePath, latestGitTag);
 
-                    if (artifactPath.toFile().isDirectory() && Objects.equals(0, artifactPath.toFile().list().length)) {
-                        throw new PluginException("Not found build outputs");
-                    }
+                    // first pull image and build
+                    dockerPullAndBuild(plugin);
 
-                    Path tmp = Paths.get("/tmp");
-                    Path actPath = Paths.get(tmp.toString(), DIST);
-                    if (actPath.toFile().exists()) {
-                        FileUtils.deleteDirectory(actPath.toFile());
-                    }
+                    // second detect outputs
+                    detectBuildArtifacts(plugin);
 
-                    FileUtils.moveDirectory(artifactPath.toFile(), actPath.toFile());
-
-                    Path localPath = gitRepoPath(plugin);
-
-                    JGitUtil.init(actPath, false);
-                    JGitUtil.remoteSet(actPath, LOCAL_REMOTE, localPath.toString());
-                    Git git = Git.open(actPath.toFile());
-
-                    git.add()
-                        .addFilepattern(".")
-                        .call();
-
-                    git.commit()
-                        .setMessage("add test branch")
-                        .call();
-
-                    git.tag()
-                        .setName(plugin.getTag())
-                        .setMessage("add " + plugin.getTag())
-                        .call();
-
-                    JGitUtil.push(actPath, LOCAL_REMOTE, latestGitTag);
-                    // set currentTag latestTag
-                    plugin.setCurrentTag(latestGitTag);
-                    updatePluginStatus(plugin, INSTALLED);
-
-                    // delete path
-                    FileUtils.deleteDirectory(actPath.toFile());
+                    // third push outputs to localRepo
+                    pushArtifactsToLocalRepo(plugin);
                 }
 
 
@@ -503,6 +466,84 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 LOGGER.error("Git Build", e);
                 throw new PluginException("Git Build", e);
             }
+        }
+
+        private void dockerPullAndBuild(Plugin plugin) {
+            Path cachePath = gitCachePath(plugin);
+            Docker docker = new Docker();
+            docker.pull(plugin.getImage());
+            docker.runBuild(plugin.getImage(), plugin.getBuild(), cachePath);
+            docker.close();
+        }
+
+
+        private void detectBuildArtifacts(Plugin plugin) {
+            Path cachePath = gitCachePath(plugin);
+            // default outputs is dist folder
+            Path artifactPath = Paths.get(cachePath.toString(), DIST);
+            if (!artifactPath.toFile().exists()) {
+                throw new PluginException("Not found build outputs");
+            }
+
+            if (artifactPath.toFile().isDirectory() && Objects.equals(0, artifactPath.toFile().list().length)) {
+                throw new PluginException("Not found build outputs");
+            }
+        }
+
+        private void pushArtifactsToLocalRepo(Plugin plugin) {
+            try {
+
+                String latestGitTag = plugin.getTag();
+
+                Path cachePath = gitCachePath(plugin);
+
+                // default outputs is dist folder
+                Path artifactPath = Paths.get(cachePath.toString(), DIST);
+
+                // create tmp folder to store build outputs
+                Path tmp = Paths.get(gitCacheWorkspace.toString(), "tmp");
+                if (!tmp.toFile().exists()) {
+                    Files.createDirectories(tmp);
+                }
+
+                // move artifacts to tmp folder
+                Path actPath = Paths.get(tmp.toString(), DIST);
+                if (actPath.toFile().exists()) {
+                    FileUtils.deleteDirectory(actPath.toFile());
+                }
+                FileUtils.moveDirectory(artifactPath.toFile(), actPath.toFile());
+
+                Path localPath = gitRepoPath(plugin);
+
+                // init git and push tags
+                JGitUtil.init(actPath, false);
+                JGitUtil.remoteSet(actPath, LOCAL_REMOTE, localPath.toString());
+                Git git = Git.open(actPath.toFile());
+
+                git.add()
+                    .addFilepattern(".")
+                    .call();
+
+                git.commit()
+                    .setMessage("add build outputs")
+                    .call();
+
+                git.tag()
+                    .setName(plugin.getTag())
+                    .setMessage("add " + plugin.getTag())
+                    .call();
+
+                JGitUtil.push(actPath, LOCAL_REMOTE, latestGitTag);
+                // set currentTag latestTag
+                plugin.setCurrentTag(latestGitTag);
+                updatePluginStatus(plugin, INSTALLED);
+
+                // delete path
+                FileUtils.deleteDirectory(actPath.toFile());
+            } catch (Throwable e) {
+
+            }
+
         }
 
         @Override
