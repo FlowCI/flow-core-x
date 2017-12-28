@@ -17,7 +17,7 @@
 package com.flow.platform.api.envs;
 
 import com.flow.platform.api.domain.node.Node;
-import com.flow.platform.domain.Cmd;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.google.common.base.Strings;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,7 +66,7 @@ public class EnvUtil {
 
         for (String key : keys) {
             String origin = source.get(key);
-            source.put(key, origin.replace(Cmd.NEW_LINE, "\\" + Cmd.NEW_LINE));
+            source.put(key, origin.replace(Unix.LINE_SEPARATOR, "\\" + Unix.LINE_SEPARATOR));
         }
     }
 

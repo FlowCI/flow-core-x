@@ -123,7 +123,7 @@ public class Config {
     }
 
     public static Path logDir() {
-        Path defaultPath = Paths.get(System.getenv("HOME"), ".flow-agent", "run-log");
+        Path defaultPath = Paths.get(System.getProperty("user.home"), ".flow-agent", "run-log");
         String pathStr = System.getProperty(PROP_LOG_DIR, defaultPath.toString());
 
         try {
@@ -181,10 +181,7 @@ public class Config {
     }
 
     public static AgentSettings loadAgentConfig(String baseUrl, String token) {
-        final String url = new StringBuilder(baseUrl)
-            .append("/agents/settings")
-            .append("?token=")
-            .append(token).toString();
+        final String url = baseUrl + "/agents/settings?token=" + token;
 
         HttpResponse<String> response = HttpClient.build(url).get().retry(5).bodyAsString();
 

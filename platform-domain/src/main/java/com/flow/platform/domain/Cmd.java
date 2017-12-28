@@ -29,8 +29,6 @@ import java.util.Set;
  */
 public class Cmd extends CmdBase {
 
-    public final static String NEW_LINE = System.getProperty("line.separator");
-
     /**
      * Working status set
      */

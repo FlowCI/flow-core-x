@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.domain.sync;
 
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.StringUtil;
 import com.google.gson.annotations.Expose;
 
@@ -99,11 +99,11 @@ public class SyncEvent extends Jsonable {
         }
 
         return "git init " + folder +
-            Cmd.NEW_LINE +
+            Unix.LINE_SEPARATOR +
             "cd " + folder +
-            Cmd.NEW_LINE +
+            Unix.LINE_SEPARATOR +
             "git pull " + gitUrl + " --tags" +
-            Cmd.NEW_LINE +
+            Unix.LINE_SEPARATOR +
             "git checkout " + repo.getTag();
     }
 

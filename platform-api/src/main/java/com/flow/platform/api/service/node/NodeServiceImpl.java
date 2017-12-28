@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service.node;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.job.JobNumberDao;
 import com.flow.platform.api.domain.Webhook;
@@ -48,6 +49,7 @@ import com.flow.platform.domain.Cmd;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.service.PluginService;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
@@ -323,12 +325,11 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             }
 
             String pluginFolder = Paths
-                .get(SyncService.DEFAULT_CMD_DIR, new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
+                .get(AppConfig.DEFAULT_AGENT_REPO_DIR,
+                    new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
                 .toString();
 
-            String script = "cd " + pluginFolder + Cmd.NEW_LINE + plugin.getPluginDetail().getRun();
-
-            return script;
+            return "cd " + pluginFolder + Unix.LINE_SEPARATOR + plugin.getPluginDetail().getRun();
         }
 
         return node.getScript();
