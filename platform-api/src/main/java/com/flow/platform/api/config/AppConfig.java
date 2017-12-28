@@ -55,6 +55,8 @@ public class AppConfig extends AppConfigBase {
 
     public final static Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
+    public final static String DEFAULT_AGENT_REPO_DIR = Paths.get("${HOME}", ".flow-agent", "repos").toString();
+
     private final static Logger LOGGER = new Logger(AppConfig.class);
 
     private final static int ASYNC_POOL_SIZE = 50;

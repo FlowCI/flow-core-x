@@ -30,6 +30,11 @@ public class SystemUtil {
     private final static char ENV_VAR_LEFT_BRACKET = '{';
     private final static char ENV_VAR_RIGHT_BRACKET = '}';
 
+    public static boolean isWindows() {
+        String os = System.getProperty("os.name").toLowerCase();
+        return os.startsWith("win");
+    }
+
     /**
      * Parse path with ${xxx} variable to absolute path
      *

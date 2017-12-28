@@ -20,6 +20,7 @@ import com.flow.platform.cmd.Log;
 import com.flow.platform.cmd.LogListener;
 import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.Cmd;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.Logger;
 import com.google.common.base.Strings;
 import java.io.FileOutputStream;
@@ -205,7 +206,7 @@ public class LogEventHandler implements LogListener {
         // write to zip output stream
         try {
             stream.write(log.getBytes());
-            stream.write(Cmd.NEW_LINE.getBytes());
+            stream.write(Unix.LINE_SEPARATOR.getBytes());
         } catch (IOException e) {
             LOGGER.warn("Log cannot write : " + log);
         }
@@ -237,6 +238,6 @@ public class LogEventHandler implements LogListener {
         String tempSuffix = isTemp ? ".tmp" : ".zip";
 
         // replace / with - since cmd id may includes slash which the same as dir path
-        return cmd.getId().replace('/', '-') + logTypeSuffix + tempSuffix;
+        return cmd.getId().replace(Unix.LINE_SEPARATOR.charAt(0), '-') + logTypeSuffix + tempSuffix;
     }
 }

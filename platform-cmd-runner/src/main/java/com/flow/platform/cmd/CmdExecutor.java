@@ -18,6 +18,7 @@ package com.flow.platform.cmd;
 
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.SystemUtil;
@@ -299,14 +300,14 @@ public final class CmdExecutor {
         return () -> {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
                 for (String cmd : cmdList) {
-                    writer.write(cmd + Cmd.NEW_LINE);
+                    writer.write(cmd + Unix.LINE_SEPARATOR);
                     writer.flush();
                 }
 
                 // find env and set to result output if output filter is not null or empty
                 if (!outputEnvFilters.isEmpty()) {
-                    writer.write(String.format("echo %s" + Cmd.NEW_LINE, endTerm));
-                    writer.write("env" + Cmd.NEW_LINE);
+                    writer.write(String.format("echo %s" + Unix.LINE_SEPARATOR, endTerm));
+                    writer.write("env" + Unix.LINE_SEPARATOR);
                     writer.flush();
                 }
 
@@ -407,7 +408,7 @@ public final class CmdExecutor {
             }
 
             if (index == -1 && value != null) {
-                value.append(Cmd.NEW_LINE + line);
+                value.append(Unix.LINE_SEPARATOR + line);
             }
         }
     }
