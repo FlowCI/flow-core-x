@@ -18,6 +18,7 @@ package com.flow.platform.queue;
 
 import com.flow.platform.util.Logger;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -126,12 +127,17 @@ public class InMemoryQueue<T extends Comparable> extends PlatformQueue<T> {
                 }
 
                 try {
-                    T item = queue.poll(1L, TimeUnit.SECONDS);
+                    T item = queue.peek();
 
-                    if (item != null) {
-                        for (QueueListener<T> listener : listeners) {
-                            listener.onQueueItem(item);
-                        }
+                    if (Objects.isNull(item)) {
+                        Thread.sleep(1000);
+                        continue;
+                    }
+
+                    try {
+                        listener.onQueueItem(item);
+                    } finally {
+                        queue.poll();
                     }
 
                 } catch (InterruptedException ignore) {
