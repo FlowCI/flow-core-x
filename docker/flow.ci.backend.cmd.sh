@@ -102,7 +102,6 @@ echo "finish migration"
 
 # start docker
 service docker start
-docker --registry-mirror=https://registry.docker-cn.com daemon
 
 # Four: everything ready, to run tomcat
 exec $cmd
