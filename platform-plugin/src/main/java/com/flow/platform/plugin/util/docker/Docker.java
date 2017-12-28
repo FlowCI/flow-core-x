@@ -112,7 +112,7 @@ public class Docker {
                 .exec(new WaitContainerResultCallback())
                 .awaitStatusCode();
 
-            docker.removeContainerCmd(container.getId());
+            docker.removeContainerCmd(container.getId()).exec();
             if (exitCode != 0) {
                 throw new PluginException("Build Project Error ExitCode: " + exitCode);
             }
