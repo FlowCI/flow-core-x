@@ -91,6 +91,8 @@ public class Docker {
         // mvn cache
         Volume mvnVolume = new Volume(DOCKER_MVN_CACHE_FOLDER);
 
+        LOGGER.info("Run Build Start - " + Paths.get(repoPath.getParent().toString(), REPOSITORY).toString());
+
         CreateContainerResponse container = docker
             .createContainerCmd(image)
             .withBinds(new Bind(repoPath.toString(), volume),
