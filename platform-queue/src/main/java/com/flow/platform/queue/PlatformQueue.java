@@ -59,7 +59,7 @@ public abstract class PlatformQueue<T> {
     }
 
     public void cleanListener() {
-        this.listener = null;
+        this.listener = new EmptyQueueListener();
     }
 
     /**

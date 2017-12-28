@@ -18,7 +18,6 @@ package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.exception.IllegalParameterException;
