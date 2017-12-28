@@ -109,8 +109,6 @@ public class PluginDaoImpl implements PluginDao {
             cached.setLabels(plugin.getLabels());
             cached.setDescription(plugin.getDescription());
             cached.setLatestCommit(plugin.getLatestCommit());
-            cached.setImage(plugin.getImage());
-            cached.setBuild(plugin.getBuild());
         }
 
         dump();

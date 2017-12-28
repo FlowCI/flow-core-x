@@ -403,7 +403,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("AnalysisYmlProcessor", "Analysis YML from plugin");
+            LOGGER.traceMarker("AnalysisYmlProcessor", "Start analysis YML from plugin");
 
             try {
                 // first checkout plugin tag
@@ -419,6 +419,9 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                     // return to master branch
                     JGitUtil.checkout(gitCachePath(plugin), MASTER_BRANCH);
+
+                    LOGGER.traceMarker("AnalysisYmlProcessor", "Finish analysis YML from plugin");
+
                     return;
                 }
 
@@ -444,7 +447,9 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             try {
 
                 // only build and image all in value to pull image
-                if (!Strings.isBlank(plugin.getBuild()) && !Strings.isBlank(plugin.getImage())) {
+                if (!Strings.isBlank(plugin.getPluginDetail().getBuild()) && !Strings.isBlank(plugin.getPluginDetail().getImage())) {
+
+                    LOGGER.traceMarker("BuildProcessor", "Start build code");
 
                     // put from cache to local git workspace
                     Path cachePath = gitCachePath(plugin);
@@ -459,6 +464,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                     // third push outputs to localRepo
                     pushArtifactsToLocalRepo(plugin);
+
+                    LOGGER.traceMarker("BuildProcessor", "Finish build code");
                 }
 
 
@@ -471,8 +478,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         private void dockerPullAndBuild(Plugin plugin) {
             Path cachePath = gitCachePath(plugin);
             Docker docker = new Docker();
-            docker.pull(plugin.getImage());
-            docker.runBuild(plugin.getImage(), plugin.getBuild(), cachePath);
+            docker.pull(plugin.getPluginDetail().getImage());
+            docker.runBuild(plugin.getPluginDetail().getImage(), plugin.getPluginDetail().getBuild(), cachePath);
             docker.close();
         }
 
@@ -558,7 +565,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         public void exec(Plugin plugin) {
             LOGGER.traceMarker("PushProcessor", "Push tags to local");
 
-            if (!Strings.isBlank(plugin.getImage()) && !Strings.isBlank(plugin.getBuild())) {
+            if (!Strings.isBlank(plugin.getPluginDetail().getImage()) && !Strings.isBlank(plugin.getPluginDetail().getBuild())) {
                 return;
             }
 

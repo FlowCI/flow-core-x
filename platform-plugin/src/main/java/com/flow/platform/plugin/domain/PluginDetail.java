@@ -41,6 +41,10 @@ public class PluginDetail {
     private List<String> outputs = new LinkedList<>();
 
     @Expose
+    @YmlSerializer(required = false)
+    private String image;
+
+    @Expose
     @YmlSerializer
     private String run;
 
@@ -94,6 +98,14 @@ public class PluginDetail {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     @Override
