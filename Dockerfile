@@ -18,7 +18,7 @@ VOLUME /var/lib/mysql
 
 # mount docker
 VOLUME /var/lib/docker
-COPY ./docker/daemon.json /etc/docker
+COPY ./docker/daemon.json /etc/docker/daemon.json
 
 # config tomcat
 COPY ./docker/tomcat-users.xml $CATALINA_HOME/conf
