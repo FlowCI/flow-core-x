@@ -16,6 +16,8 @@ ENV MVN_CACHE=/root/.m2
 ADD ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
 VOLUME /var/lib/mysql
 
+VOLUME /var/lib/docker
+
 # config tomcat
 COPY ./docker/tomcat-users.xml $CATALINA_HOME/conf
 
