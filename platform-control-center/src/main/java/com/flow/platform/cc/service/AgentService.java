@@ -23,7 +23,6 @@ import com.flow.platform.domain.AgentSettings;
 import com.flow.platform.domain.AgentStatus;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author gy@fir.im
@@ -37,7 +36,7 @@ public interface AgentService extends WebhookService {
     /**
      * Async update agent offline or online status
      */
-    void report(AgentPath path, AgentStatus status);
+    void report(AgentPath path, AgentStatus status, String os);
 
     /**
      * List agent by zone name
@@ -82,7 +81,7 @@ public interface AgentService extends WebhookService {
     /**
      * Create agent and return token
      */
-    Agent create(AgentPath agentPath, String webhook);
+    Agent create(AgentPath agentPath, String webhook, String os);
 
     /**
      * refresh token

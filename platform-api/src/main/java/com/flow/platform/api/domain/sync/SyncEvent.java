@@ -16,10 +16,12 @@
 
 package com.flow.platform.api.domain.sync;
 
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
+import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.StringUtil;
+import com.google.common.base.Strings;
 import com.google.gson.annotations.Expose;
+import com.rabbitmq.client.Command;
 
 /**
  * @author yang
@@ -82,28 +84,34 @@ public class SyncEvent extends Jsonable {
         return syncType;
     }
 
-    public String toScript() {
+    public String toScript(String os) {
+        if (Strings.isNullOrEmpty(os)) {
+            os = CommandUtil.DEFAULT_OS;
+        }
+
+        CommandUtil.CommandHelper commandHelper = CommandUtil.getCommandHelper(os);
+
         if (syncType == SyncType.LIST) {
-            return "export " + FLOW_SYNC_LIST + "=\"$(ls)\"";
+            return commandHelper.setVariableFromCmd(FLOW_SYNC_LIST, commandHelper.ls(null));
         }
 
         if (syncType == SyncType.DELETE_ALL) {
-            return "rm -rf ./*/";
+            return commandHelper.rmdir(null);
         }
 
         // the sync event type DELETE, CREATE, UPDATE needs folder name
         String folder = repo.toString();
 
         if (syncType == SyncType.DELETE) {
-            return "rm -rf " + folder;
+            return commandHelper.rmdir(folder);
         }
 
         return "git init " + folder +
-            Cmd.NEW_LINE +
+            commandHelper.lineSeparator() +
             "cd " + folder +
-            Cmd.NEW_LINE +
+            commandHelper.lineSeparator() +
             "git pull " + gitUrl + " --tags" +
-            Cmd.NEW_LINE +
+            commandHelper.lineSeparator() +
             "git checkout " + repo.getTag();
     }
 

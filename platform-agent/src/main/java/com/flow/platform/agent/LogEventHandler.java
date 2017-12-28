@@ -41,7 +41,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 
 /**
- * Record log to $HOME/agent-log/{cmd id}.out.zip
+ * Record log to {@code Config.logDir}/{cmd id}.out.zip
  * Send log via web socket if real time log enabled and ws url provided
  * <p>
  *
@@ -205,7 +205,7 @@ public class LogEventHandler implements LogListener {
         // write to zip output stream
         try {
             stream.write(log.getBytes());
-            stream.write(Cmd.NEW_LINE.getBytes());
+            stream.write(System.lineSeparator().getBytes());
         } catch (IOException e) {
             LOGGER.warn("Log cannot write : " + log);
         }

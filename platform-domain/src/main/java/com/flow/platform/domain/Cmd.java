@@ -18,7 +18,6 @@ package com.flow.platform.domain;
 
 import com.google.common.collect.Sets;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
 /**
@@ -28,8 +27,6 @@ import java.util.Set;
  * @author gy@fir.im
  */
 public class Cmd extends CmdBase {
-
-    public final static String NEW_LINE = System.getProperty("line.separator");
 
     /**
      * Working status set

@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,6 +104,15 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
 
         Agent[] agents = Jsonable.GSON_CONFIG.fromJson(response.getBody(), Agent[].class);
         return Lists.newArrayList(agents);
+    }
+
+    @Override
+    public Agent find(AgentPath path) {
+        try {
+            return findAgent(path);
+        } catch (Throwable e) {
+            return null;
+        }
     }
 
     @Override
@@ -229,6 +239,14 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
     public void delete(AgentPath agentPath) {
         Agent agent = findAgent(agentPath);
 
+        if (Objects.isNull(agent)){
+            throw new IllegalStatusException("agent is not exist");
+        }
+
+        if (agent.getStatus() == AgentStatus.BUSY) {
+            throw new IllegalStatusException("agent is busy, please wait");
+        }
+
         try {
             HttpClient.build(platformURL.getAgentDeleteUrl())
                 .post(agent.toJson())
@@ -266,17 +284,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
             throw new HttpException("Unable to delete agent");
         }
 
-        Agent agent = Agent.parse(response.getBody(), Agent.class);
-
-        if (agent == null){
-            throw new IllegalStatusException("agent is not exist");
-        }
-
-        if (agent.getStatus() == AgentStatus.BUSY) {
-            throw new IllegalStatusException("agent is busy, please wait");
-        }
-
-        return agent;
+        return Agent.parse(response.getBody(), Agent.class);
     }
 
     @Override

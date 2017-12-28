@@ -94,6 +94,7 @@ public class PlatformURL {
     public String getAgentDeleteUrl() {
         return agentDeleteUrl;
     }
+
     public String getAgentFindUrl() {
         return agentFindUrl;
     }

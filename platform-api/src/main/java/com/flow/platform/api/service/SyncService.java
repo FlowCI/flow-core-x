@@ -24,7 +24,6 @@ import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.queue.PlatformQueue;
-import java.nio.file.Paths;
 
 /**
  * @author yang
@@ -35,8 +34,6 @@ public interface SyncService {
     int DEFAULT_SYNC_QUEUE_PRIORITY = 1;
 
     int DEFAULT_CMD_PRIORITY = 10;
-
-    String DEFAULT_CMD_DIR = Paths.get("${HOME}", ".flow-agent", "repos").toString();
 
     interface QueueCreator {
 

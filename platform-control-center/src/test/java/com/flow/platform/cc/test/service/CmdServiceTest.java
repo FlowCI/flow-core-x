@@ -186,7 +186,7 @@ public class CmdServiceTest extends TestBase {
         // given:
         String zoneName = defaultZones.get(0).getName();
         AgentPath agentPath = new AgentPath(zoneName, "test-agent-for-report-cmd");
-        agentService.report(agentPath, AgentStatus.IDLE);
+        agentService.report(agentPath, AgentStatus.IDLE, "Unix");
         Thread.sleep(5000);
 
         Agent agent = agentService.find(agentPath);

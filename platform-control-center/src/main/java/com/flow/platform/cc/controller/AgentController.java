@@ -64,7 +64,7 @@ public class AgentController {
         if (agentInfo.isEmpty()) {
             throw new IllegalParameterException("miss required params ");
         }
-        return agentService.create(agentInfo, agentInfo.getWebhook());
+        return agentService.create(agentInfo, agentInfo.getWebhook(), null);
     }
 
     @PostMapping(path = "/token/refresh")

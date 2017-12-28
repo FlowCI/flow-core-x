@@ -43,6 +43,9 @@ public class AgentItem extends Jsonable {
     private String token;
 
     @Expose
+    private String os;
+
+    @Expose
     private AgentStatus agentStatus;
 
     @Expose
@@ -73,6 +76,7 @@ public class AgentItem extends Jsonable {
         this.zone = agent.getPath().getZone();
         this.agentStatus = agent.getStatus();
         this.token = agent.getToken();
+        this.os = agent.getOs();
         this.zoneWithName = this.name.concat(" - ").concat(this.zone);
 
         if (job != null) {

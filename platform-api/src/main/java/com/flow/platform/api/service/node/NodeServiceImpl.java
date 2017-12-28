@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service.node;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.job.JobNumberDao;
 import com.flow.platform.api.domain.Webhook;
@@ -34,7 +35,6 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
-import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
@@ -310,28 +310,23 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public String getRunningScript(Node node) {
-
-        if (!Strings.isNullOrEmpty(node.getPlugin())) {
-            Plugin plugin = pluginService.find(node.getPlugin());
-
-            if (Objects.isNull(plugin)) {
-                throw new FlowException("Not found plugin, plugin name is " + node.getPlugin());
-            }
-
-            if (Objects.isNull(plugin.getPluginDetail())) {
-                throw new FlowException("Not found plugin detail, plugin name is " + node.getPlugin());
-            }
-
-            String pluginFolder = Paths
-                .get(SyncService.DEFAULT_CMD_DIR, new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
-                .toString();
-
-            String script = "cd " + pluginFolder + Cmd.NEW_LINE + plugin.getPluginDetail().getRun();
-
-            return script;
+        if (!node.hasPlugin()) {
+            return node.getScript();
         }
 
-        return node.getScript();
+        Plugin plugin = pluginService.find(node.getPlugin());
+
+        if (Objects.isNull(plugin)) {
+            throw new FlowException("Not found plugin: " + node.getPlugin());
+        }
+
+        if (Objects.isNull(plugin.getPluginDetail())) {
+            throw new FlowException("Not found plugin detail for: " + node.getPlugin());
+        }
+
+        SyncRepo repo = new SyncRepo(plugin.getName(), plugin.getCurrentTag());
+        Path pluginFolder = Paths.get(AppConfig.DEFAULT_AGENT_REPO_DIR, repo.toString());
+        return "cd " + pluginFolder + System.lineSeparator() + plugin.getPluginDetail().getRun();
     }
 
     /**

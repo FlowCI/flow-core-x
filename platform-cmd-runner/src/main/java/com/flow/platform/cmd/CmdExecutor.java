@@ -16,8 +16,8 @@
 
 package com.flow.platform.cmd;
 
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.SystemUtil;
@@ -34,6 +34,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -95,8 +96,8 @@ public final class CmdExecutor {
 
     private final static Logger LOGGER = new Logger(CmdExecutor.class);
 
-    private final static File DEFAULT_WORKING_DIR = new File(
-        System.getProperty("user.home", System.getProperty("user.dir")));
+    private final static File DEFAULT_WORKING_DIR =
+        new File(System.getProperty("user.home", System.getProperty("user.dir")));
 
     // process timeout in seconds, default is 2 hour
     private final static Integer DEFAULT_TIMEOUT = 3600 * 2;
@@ -170,14 +171,12 @@ public final class CmdExecutor {
             this.outputEnvFilters = Sets.newHashSet(outputEnvFilters);
         }
 
-        cmds.add(0, "set -e"); // exit bash when command error
-
-        this.cmdList = cmds;
-        this.pBuilder = new ProcessBuilder("/bin/bash").directory(DEFAULT_WORKING_DIR);
+        this.cmdList = convertCmd(cmds);
+        this.pBuilder = new ProcessBuilder(CommandUtil.shellExecutor()).directory(DEFAULT_WORKING_DIR);
 
         // check and init working dir
         if (workingDir != null) {
-            Path dir = SystemUtil.replacePathWithEnv(workingDir);
+            Path dir = CommandUtil.absolutePath(workingDir);
 
             if (!Files.exists(dir)) {
                 try {
@@ -214,7 +213,6 @@ public final class CmdExecutor {
     public void setLogListener(LogListener logListener) {
         this.logListener = logListener;
     }
-
 
     public CmdResult run() {
         outputResult = new CmdResult();
@@ -276,6 +274,24 @@ public final class CmdExecutor {
     }
 
     /**
+     * Convert cmd to executable list, and make cmd exit if got error
+     * @param cmds
+     * @return
+     */
+    private List<String> convertCmd(final List<String> cmds) {
+        if (!SystemUtil.isWindows()) {
+            cmds.add(0, CommandUtil.exitOnError());
+            return cmds;
+        }
+
+        List<String> windowsCmds = new LinkedList<>();
+        for (String cmd : cmds) {
+            windowsCmds.add(cmd + " || exit /b");
+        }
+        return windowsCmds;
+    }
+
+    /**
      * Get process id
      */
     private int getPid(Process process) {
@@ -299,14 +315,14 @@ public final class CmdExecutor {
         return () -> {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
                 for (String cmd : cmdList) {
-                    writer.write(cmd + Cmd.NEW_LINE);
+                    writer.write(cmd + System.lineSeparator());
                     writer.flush();
                 }
 
                 // find env and set to result output if output filter is not null or empty
                 if (!outputEnvFilters.isEmpty()) {
-                    writer.write(String.format("echo %s" + Cmd.NEW_LINE, endTerm));
-                    writer.write("env" + Cmd.NEW_LINE);
+                    writer.write(String.format("echo %s" + System.lineSeparator(), endTerm));
+                    writer.write(CommandUtil.environments() + System.lineSeparator());
                     writer.flush();
                 }
 
@@ -348,7 +364,7 @@ public final class CmdExecutor {
                 String line;
                 Integer count = 0;
                 while ((line = reader.readLine()) != null) {
-                    if (Objects.equals(line, endTerm)) {
+                    if (Objects.equals(line, endTerm) || line.contains(endTerm)) {
                         if (outputResult != null) {
                             readEnv(reader, outputResult.getOutput(), outputEnvFilters);
                         }
@@ -407,7 +423,7 @@ public final class CmdExecutor {
             }
 
             if (index == -1 && value != null) {
-                value.append(Cmd.NEW_LINE + line);
+                value.append(System.lineSeparator() + line);
             }
         }
     }

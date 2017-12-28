@@ -199,7 +199,7 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
      * @return path of zookeeper or null if failure
      */
     private String registerZkNodeAndWatch() {
-        String path = zkClient.createEphemeral(nodePath, null);
+        String path = zkClient.createEphemeral(nodePath, System.getProperty("os.name").getBytes());
         zkClient.watchTree(path, this);
         return path;
     }

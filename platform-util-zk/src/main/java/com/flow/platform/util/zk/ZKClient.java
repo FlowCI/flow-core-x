@@ -149,7 +149,11 @@ public class ZKClient implements Closeable {
             return path;
         }
 
-        return createEphemeralPrivate(path, data);
+        try {
+            return client.create().withMode(CreateMode.EPHEMERAL).forPath(path, data);
+        } catch (Throwable e) {
+            throw checkException(String.format("Fail to create node: %s", path), e);
+        }
     }
 
     /**
@@ -158,17 +162,7 @@ public class ZKClient implements Closeable {
      * @return
      */
     public String createEphemeral(String path) {
-        return createEphemeralPrivate(path, null);
-    }
-
-    private String createEphemeralPrivate(String path, byte[] data) {
-        try {
-            return client.create()
-                .withMode(CreateMode.EPHEMERAL)
-                .forPath(path, data);
-        } catch (Throwable e) {
-            throw checkException(String.format("Fail to create node: %s", path), e);
-        }
+        return createEphemeral(path, null);
     }
 
     public List<String> getChildren(String rootPath) {
