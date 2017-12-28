@@ -27,7 +27,7 @@ public class CommandUtil {
 
         public final static String PATH_SEPARATOR = "/";
 
-        public final static String CMD_EXECTOR = "/bin/bash";
+        public final static String CMD_EXECUTOR = "/bin/bash";
     }
 
     public static class Windows {
@@ -36,6 +36,6 @@ public class CommandUtil {
 
         public final static String PATH_SEPARATOR = "\\";
 
-        public final static String CMD_EXECTOR = "C:\\cygwin\\bin\\bash.exe";
+        public final static String CMD_EXECUTOR = "C:\\cygwin\\bin\\bash.exe";
     }
 }

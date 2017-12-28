@@ -16,9 +16,7 @@
 
 package com.flow.platform.cmd;
 
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
-import com.flow.platform.util.CommandUtil;
 import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.CommandUtil.Windows;
 import com.flow.platform.util.DateUtil;
@@ -287,13 +285,13 @@ public final class CmdExecutor {
 
             String cygwinHome = System.getenv(CYGWIN_HOME);
             if (Strings.isNullOrEmpty(cygwinHome)) {
-                return Windows.CMD_EXECTOR;
+                return Windows.CMD_EXECUTOR;
             }
 
             return Paths.get(cygwinHome, "bin", "bash.exe").toString();
         }
 
-        return Unix.CMD_EXECTOR;
+        return Unix.CMD_EXECUTOR;
     }
 
     /**
