@@ -238,6 +238,6 @@ public class LogEventHandler implements LogListener {
         String tempSuffix = isTemp ? ".tmp" : ".zip";
 
         // replace / with - since cmd id may includes slash which the same as dir path
-        return cmd.getId().replace(Unix.LINE_SEPARATOR.charAt(0), '-') + logTypeSuffix + tempSuffix;
+        return cmd.getId().replace(Unix.PATH_SEPARATOR.charAt(0), '-') + logTypeSuffix + tempSuffix;
     }
 }
