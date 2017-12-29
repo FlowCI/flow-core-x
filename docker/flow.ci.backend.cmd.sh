@@ -100,6 +100,8 @@ echo "running migration"
 /flyway/flyway -user=$MYSQL_USER -password=$MYSQL_PASSWORD -ignoreMissingMigrations=true -baselineOnMigrate=true -baselineVersion=1.0 -locations=filesystem:$MIGRATION_PATH/cc -url=jdbc:mysql://$MYSQL_HOST:3306/flow_cc_db  migrate
 echo "finish migration"
 
+# start docker
+service docker start
 
 # Four: everything ready, to run tomcat
 exec $cmd

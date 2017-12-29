@@ -16,6 +16,11 @@ ENV MVN_CACHE=/root/.m2
 ADD ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
 VOLUME /var/lib/mysql
 
+# mount docker
+# docker in docker volume map happens some error
+# VOLUME /var/lib/docker
+COPY ./docker/daemon.json /etc/docker/daemon.json
+
 # config tomcat
 COPY ./docker/tomcat-users.xml $CATALINA_HOME/conf
 
