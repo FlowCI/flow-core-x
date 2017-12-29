@@ -117,7 +117,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
             new AntPathRequestMatcher("/user"),
             new AntPathRequestMatcher("/user/role/update"),
             new AntPathRequestMatcher("/jobs/**"),
-//            new AntPathRequestMatcher("/credentials/**"),
+            new AntPathRequestMatcher("/credentials/*"),
             new AntPathRequestMatcher("/actions/**"),
             new AntPathRequestMatcher("/message/**"),
             new AntPathRequestMatcher("/agents/create"),
