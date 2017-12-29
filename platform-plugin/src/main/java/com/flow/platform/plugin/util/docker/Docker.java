@@ -216,7 +216,7 @@ public class Docker {
                 DEFAULT_BUFFER_SIZE)) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    LOGGER.info(line);
+                    LOGGER.debug(line);
                 }
             } catch (Throwable e) {
             }
