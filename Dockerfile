@@ -17,7 +17,8 @@ ADD ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
 VOLUME /var/lib/mysql
 
 # mount docker
-VOLUME /var/lib/docker
+# docker in docker volume map happens some error
+# VOLUME /var/lib/docker
 COPY ./docker/daemon.json /etc/docker/daemon.json
 
 # config tomcat
