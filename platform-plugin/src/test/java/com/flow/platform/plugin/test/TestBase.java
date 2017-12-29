@@ -61,7 +61,7 @@ public abstract class TestBase {
     protected File gitCloneMocGit;
 
     @Rule
-    public WireMockRule wiremock = new WireMockRule(8081);
+    public WireMockRule wiremock = new WireMockRule(8080);
 
     {
         try {
