@@ -18,7 +18,6 @@ package com.flow.platform.core.queue;
 
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.queue.InMemoryQueue;
-import java.util.Comparator;
 import java.util.concurrent.Executor;
 
 /**
@@ -26,15 +25,7 @@ import java.util.concurrent.Executor;
  */
 public class MemoryQueue extends InMemoryQueue<PriorityMessage> implements ContextEvent {
 
-    private static class PriorityMessageComparator implements Comparator<PriorityMessage> {
-
-        @Override
-        public int compare(PriorityMessage o1, PriorityMessage o2) {
-            return o1.compareTo(o2);
-        }
-    }
-
     public MemoryQueue(Executor executor, int maxSize, String name) {
-        super(executor, maxSize, name, new PriorityMessageComparator());
+        super(executor, maxSize, name);
     }
 }

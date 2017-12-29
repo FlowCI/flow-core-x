@@ -323,7 +323,7 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    @Scheduled(fixedDelay = 60 * 1000 * 30, initialDelay = 60 * 1000)
+    @Scheduled(fixedDelay = 60 * 1000 * 10, initialDelay = 60 * 1000)
     public void syncTask() {
         for (AgentPath agentPath : syncs.keySet()) {
             sync(agentPath);
