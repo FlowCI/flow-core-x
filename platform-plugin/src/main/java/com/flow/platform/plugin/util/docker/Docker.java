@@ -29,15 +29,17 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.core.command.PullImageResultCallback;
 import com.github.dockerjava.core.command.WaitContainerResultCallback;
-import com.google.common.base.Charsets;
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author yh@firim
@@ -51,6 +53,11 @@ public class Docker {
     private static final String REPOSITORY = "repository";
 
     private static final String BASH = "/bin/sh";
+
+    private final static int DEFAULT_BUFFER_SIZE = 1024 * 1024 * 1;
+
+    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(5, 5, 60, TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(1000));
 
     DockerClientConfig config;
 
@@ -104,8 +111,8 @@ public class Docker {
 
         docker.startContainerCmd(container.getId()).exec();
 
-        LoggerProcess loggingCallback = new
-            LoggerProcess();
+        BuildProcess loggingCallback = new
+            BuildProcess();
 
         try {
             docker
@@ -143,35 +150,7 @@ public class Docker {
             .build();
     }
 
-    private void showLog(Closeable stream) {
-        new Thread(() -> {
-            Reader in = null;
-            StringBuilder out;
-            final int bufferSize = 1024;
-            final char[] buffer = new char[bufferSize];
-            in = new InputStreamReader((InputStream) stream, Charsets.UTF_8);
-
-            while (true) {
-                try {
-                    out = new StringBuilder();
-                    Thread.sleep(1);
-
-                    int rsz = in.read(buffer, 0, buffer.length);
-                    if (rsz < 0) {
-                        break;
-                    }
-                    out.append(buffer, 0, rsz);
-
-                    System.out.print(out.toString());
-
-                } catch (Throwable throwable) {
-                    break;
-                }
-            }
-        }).start();
-    }
-
-    private class LoggerProcess extends LogContainerResultCallback {
+    private class BuildProcess extends LogContainerResultCallback {
 
         @Override
         public void onNext(Frame item) {
@@ -180,13 +159,12 @@ public class Docker {
 
         @Override
         public void onStart(Closeable stream) {
-            showLog(stream);
             super.onStart(stream);
+            executor.execute(new LogRunnable(stream));
         }
 
         @Override
         public void onError(Throwable throwable) {
-            super.onError(throwable);
         }
 
         @Override
@@ -205,13 +183,12 @@ public class Docker {
 
         @Override
         public void onStart(Closeable stream) {
-            showLog(stream);
             super.onStart(stream);
+            executor.execute(new LogRunnable(stream));
         }
 
         @Override
         public void onError(Throwable throwable) {
-            super.onError(throwable);
         }
 
         @Override
@@ -222,6 +199,27 @@ public class Docker {
         @Override
         public void close() throws IOException {
             super.close();
+        }
+    }
+
+    class LogRunnable implements Runnable {
+
+        private Closeable stream;
+
+        public LogRunnable(Closeable stream) {
+            this.stream = stream;
+        }
+
+        @Override
+        public void run() {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader((InputStream) stream),
+                DEFAULT_BUFFER_SIZE)) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    LOGGER.info(line);
+                }
+            } catch (Throwable e) {
+            }
         }
     }
 }
