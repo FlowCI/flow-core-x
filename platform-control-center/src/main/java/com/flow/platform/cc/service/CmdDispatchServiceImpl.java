@@ -168,9 +168,8 @@ public class CmdDispatchServiceImpl extends ApplicationEventService implements C
                     dispatch(killCmd);
                     LOGGER.traceMarker("checkTimeoutTask", "Send KILL for timeout cmd %s", cmd);
 
-                    // update cmd status via queue
                     CmdStatusItem statusItem = new CmdStatusItem(cmd.getId(), CmdStatus.TIMEOUT_KILL, null, true, true);
-                    cmdService.updateStatus(statusItem, true);
+                    cmdService.updateStatus(statusItem, false);
                 } catch (Throwable e) {
                     LOGGER.warn(e.getMessage());
                 }
