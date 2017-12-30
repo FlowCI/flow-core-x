@@ -127,18 +127,13 @@ public class InMemoryQueue<T extends Comparable> extends PlatformQueue<T> {
                 }
 
                 try {
-                    T item = queue.peek();
+                    T item = queue.poll(1000, TimeUnit.SECONDS);
 
                     if (Objects.isNull(item)) {
-                        Thread.sleep(1000);
                         continue;
                     }
 
-                    try {
-                        listener.onQueueItem(item);
-                    } finally {
-                        queue.poll();
-                    }
+                    listener.onQueueItem(item);
 
                 } catch (InterruptedException ignore) {
                     LOGGER.warn("InterruptedException occurred while queue processing: ", ignore.getMessage());
