@@ -18,17 +18,10 @@ package com.flow.platform.core.task;
 
 import com.flow.platform.domain.Webhookable;
 import com.flow.platform.util.Logger;
-import java.io.IOException;
+import com.flow.platform.util.http.HttpClient;
+import com.flow.platform.util.http.HttpResponse;
 import java.io.UnsupportedEncodingException;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.entity.ContentType;
 
 /**
  * Send webhook of cmd with max retry times
@@ -55,52 +48,22 @@ public final class WebhookCallBackTask implements Runnable {
     private void callWebhook(int retry) {
         String webhook = webhookable.getWebhook();
 
-        if (retry >= MAX_RETRY_TIMES) {
-            LOGGER.warn("Webhook fail with max retry time for '%s'", webhook);
-            return;
-        }
+        try {
+            HttpResponse<String> response = HttpClient
+                .build(webhook)
+                .post(webhookable.toJson())
+                .withContentType(ContentType.APPLICATION_JSON)
+                .retry(MAX_RETRY_TIMES)
+                .bodyAsString();
 
-        boolean shouldRetry;
-        int nextRetry = retry + 1;
-        int nextRetryWaitTime = nextRetry * 20 * 1000; // milliseconds
-
-        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpEntity entity = new StringEntity(webhookable.toJson());
-            HttpPost post = new HttpPost(webhook);
-            post.addHeader("Content-Type", "application/json;charset=utf-8");
-            post.setEntity(entity);
-
-            CloseableHttpResponse response = httpclient.execute(post);
-            ResponseHandler<String> handler = new BasicResponseHandler();
-            LOGGER.trace("Webhook response - %s", handler.handleResponse(response));
-            int statusCode = response.getStatusLine().getStatusCode();
-
-            if (statusCode == 200) {
-                LOGGER.trace("webhook been reported: '%s'", webhook);
+            if (!response.hasSuccess()) {
+                LOGGER.warn("Webhook fail with max retry time for '%s'", webhook);
                 return;
             }
 
-            int nextRetryForSeconds = nextRetryWaitTime / 1000;
-            LOGGER.trace("Webhook response %s, retry %s after %s seconds", statusCode, nextRetry, nextRetryForSeconds);
-            shouldRetry = true;
-
-        } catch (UnsupportedEncodingException | ClientProtocolException e) {
-            // JSON data or http protocol exception, exit directly
-            LOGGER.error("Webhook data or http protocol error, exit ", e);
-            shouldRetry = false;
-        } catch (IOException e) {
+            LOGGER.trace("webhook been reported: '%s'", webhook);
+        } catch (UnsupportedEncodingException e) {
             LOGGER.warn("Webhook request error", e);
-            shouldRetry = true;
-        }
-
-        if (shouldRetry) {
-            try {
-                Thread.sleep(nextRetryWaitTime); // 0, 20, 40, 60, 80 in seconds
-            } catch (InterruptedException ignored) {
-
-            } finally {
-                callWebhook(nextRetry);
-            }
         }
     }
 }

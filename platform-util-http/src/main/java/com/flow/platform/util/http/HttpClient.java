@@ -19,6 +19,7 @@ package com.flow.platform.util.http;
 import static com.flow.platform.util.http.HttpResponse.EXCEPTION_STATUS_CODE;
 
 import com.flow.platform.util.StringUtil;
+import com.google.common.base.Charsets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -96,8 +97,9 @@ public class HttpClient {
 
     public HttpClient post(String body) throws UnsupportedEncodingException {
         HttpPost httpPost = new HttpPost(url);
-        HttpEntity entity = new StringEntity(body);
+        HttpEntity entity = new StringEntity(body, Charsets.UTF_8);
         httpPost.setEntity(entity);
+
         httpRequest = httpPost;
         return this;
     }
@@ -127,6 +129,7 @@ public class HttpClient {
     public HttpClient withHeader(String name, String value) {
         requireHttpRequestInstance();
         httpRequest.addHeader(name, value);
+        httpRequest.setHeader(name, value);
         return this;
     }
 
