@@ -23,6 +23,7 @@ import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
+import com.google.common.base.Charsets;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -105,7 +106,7 @@ public class ReportManager {
 
         HttpEntity entity = MultipartEntityBuilder.create()
             .addPart("file", new FileBody(path.toFile(), ContentType.create("application/zip")))
-            .addPart("cmdId", new StringBody(cmdId, ContentType.TEXT_PLAIN))
+            .addPart("cmdId", new StringBody(cmdId, ContentType.create("text/plain", Charsets.UTF_8)))
             .setContentType(ContentType.MULTIPART_FORM_DATA)
             .build();
 
