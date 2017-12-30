@@ -129,7 +129,6 @@ public class HttpClient {
     public HttpClient withHeader(String name, String value) {
         requireHttpRequestInstance();
         httpRequest.addHeader(name, value);
-        httpRequest.setHeader(name, value);
         return this;
     }
 
