@@ -17,7 +17,6 @@
 package com.flow.platform.queue;
 
 import com.flow.platform.util.Logger;
-import com.google.common.base.Charsets;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.concurrent.Executor;
