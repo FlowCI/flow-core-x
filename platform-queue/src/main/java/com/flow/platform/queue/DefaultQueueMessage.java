@@ -23,7 +23,7 @@ public class DefaultQueueMessage implements PriorityQueueItem {
 
     private final byte[] body;
 
-    private final long priority;
+    private long priority;
 
     public DefaultQueueMessage(byte[] body, Integer priority) {
         this.body = body;
