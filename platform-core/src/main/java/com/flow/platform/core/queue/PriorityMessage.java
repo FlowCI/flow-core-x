@@ -25,7 +25,7 @@ import org.springframework.amqp.core.MessageProperties;
  */
 public class PriorityMessage extends Message implements PriorityQueueItem {
 
-    private long priority;
+    private Long priority;
 
     public static PriorityMessage create(byte[] content, long priority) {
         MessageProperties properties = new MessageProperties();
@@ -42,20 +42,12 @@ public class PriorityMessage extends Message implements PriorityQueueItem {
     }
 
     @Override
-    public long getPriority() {
+    public Long getPriority() {
         return this.priority;
     }
 
     @Override
     public int compareTo(PriorityQueueItem o) {
-        if (o.getPriority() > priority) {
-            return -1;
-        }
-
-        if (o.getPriority() < priority) {
-            return 1;
-        }
-
-        return 0;
+        return o.getPriority().compareTo(getPriority());
     }
 }
