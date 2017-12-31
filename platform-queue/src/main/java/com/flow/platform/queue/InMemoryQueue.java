@@ -128,14 +128,6 @@ public class InMemoryQueue<T extends Comparable> extends PlatformQueue<T> {
                 }
 
                 try {
-                    Object[] items = queue.toArray();
-
-                    for (Object item : items) {
-                        PriorityQueueItem item1 = (PriorityQueueItem) item;
-                        String s = new String(item1.getBody(), Charsets.UTF_8);
-                        System.out.println(s);
-                    }
-
                     T item = queue.poll(1000, TimeUnit.SECONDS);
 
                     if (Objects.isNull(item)) {
