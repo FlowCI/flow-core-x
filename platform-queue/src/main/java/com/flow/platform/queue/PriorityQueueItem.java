@@ -21,7 +21,7 @@ package com.flow.platform.queue;
  */
 public interface PriorityQueueItem extends Comparable<PriorityQueueItem> {
 
-    Integer getPriority();
+    long getPriority();
 
     byte[] getBody();
 }

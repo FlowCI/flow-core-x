@@ -23,7 +23,7 @@ public class DefaultQueueMessage implements PriorityQueueItem {
 
     private final byte[] body;
 
-    private final Integer priority;
+    private long priority;
 
     public DefaultQueueMessage(byte[] body, Integer priority) {
         this.body = body;
@@ -31,7 +31,7 @@ public class DefaultQueueMessage implements PriorityQueueItem {
     }
 
     @Override
-    public Integer getPriority() {
+    public long getPriority() {
         return priority;
     }
 
@@ -42,6 +42,14 @@ public class DefaultQueueMessage implements PriorityQueueItem {
 
     @Override
     public int compareTo(PriorityQueueItem o) {
-        return o.getPriority().compareTo(getPriority());
+        if (o.getPriority() > priority) {
+            return -1;
+        }
+
+        if (o.getPriority() < priority) {
+            return 1;
+        }
+
+        return 0;
     }
 }
