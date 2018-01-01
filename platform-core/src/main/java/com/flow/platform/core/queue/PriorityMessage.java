@@ -48,6 +48,6 @@ public class PriorityMessage extends Message implements PriorityQueueItem {
 
     @Override
     public int compareTo(PriorityQueueItem o) {
-        return o.getPriority().compareTo(getPriority());
+        return getPriority().compareTo(o.getPriority());
     }
 }
