@@ -28,8 +28,10 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -39,6 +41,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {TestConfig.class})
+@FixMethodOrder(MethodSorters.JVM)
 public class PlatformQueueTest {
 
     @Autowired
@@ -51,10 +54,11 @@ public class PlatformQueueTest {
     public void init() {
         inMemoryQueue.clean();
         inMemoryQueue.cleanListener();
+        rabbitQueue.cleanListener();
     }
 
     @Test
-    public void should_enqueue_for_in_memory_queue() throws Throwable {
+    public void should_enqueue_for_rabbit_queue() throws Throwable {
         // given: queue listener
         CountDownLatch latch = new CountDownLatch(1);
         ObjectWrapper<PriorityMessage> result = new ObjectWrapper<>();
@@ -63,26 +67,16 @@ public class PlatformQueueTest {
             latch.countDown();
         };
 
-        inMemoryQueue.register(listener);
-        inMemoryQueue.start();
+        rabbitQueue.register(listener);
+        rabbitQueue.start();
 
         // when: enqueue
-        inMemoryQueue.enqueue(PriorityMessage.create("Hello".getBytes(), 1));
+        rabbitQueue.enqueue(PriorityMessage.create("hello".getBytes(), 1));
 
         // then:
-        latch.await(30, TimeUnit.SECONDS);
-        Assert.assertEquals(0, inMemoryQueue.size());
-        Assert.assertEquals("Hello", new String(result.getInstance().getBody()));
-
-        // when: pause and enqueue again
-        inMemoryQueue.pause();
-        inMemoryQueue.enqueue(PriorityMessage.create("Pause".getBytes(), 1));
-        Assert.assertEquals(1, inMemoryQueue.size());
-
-        // then: resume
-        inMemoryQueue.resume();
-        Thread.sleep(1000);
-        Assert.assertEquals(0, inMemoryQueue.size());
+        latch.await(10, TimeUnit.SECONDS);
+        Assert.assertNotNull(result.getInstance());
+        Assert.assertEquals("hello", new String(result.getInstance().getBody(), "UTF-8"));
     }
 
     @Test
@@ -120,7 +114,7 @@ public class PlatformQueueTest {
     }
 
     @Test
-    public void should_enqueue_for_rabbit_queue() throws Throwable {
+    public void should_enqueue_for_in_memory_queue() throws Throwable {
         // given: queue listener
         CountDownLatch latch = new CountDownLatch(1);
         ObjectWrapper<PriorityMessage> result = new ObjectWrapper<>();
@@ -129,17 +123,26 @@ public class PlatformQueueTest {
             latch.countDown();
         };
 
-        rabbitQueue.register(listener);
-        rabbitQueue.start();
+        inMemoryQueue.register(listener);
+        inMemoryQueue.start();
 
         // when: enqueue
-        rabbitQueue.enqueue(PriorityMessage.create("hello".getBytes(), 1));
+        inMemoryQueue.enqueue(PriorityMessage.create("Hello".getBytes(), 1));
 
         // then:
-        latch.await(10, TimeUnit.SECONDS);
-        Assert.assertEquals(0, rabbitQueue.size());
-        Assert.assertNotNull(result.getInstance());
-        Assert.assertEquals("hello", new String(result.getInstance().getBody(), "UTF-8"));
+        latch.await(30, TimeUnit.SECONDS);
+        Assert.assertEquals(0, inMemoryQueue.size());
+        Assert.assertEquals("Hello", new String(result.getInstance().getBody()));
+
+        // when: pause and enqueue again
+        inMemoryQueue.pause();
+        inMemoryQueue.enqueue(PriorityMessage.create("Pause".getBytes(), 1));
+        Assert.assertEquals(1, inMemoryQueue.size());
+
+        // then: resume
+        inMemoryQueue.resume();
+        Thread.sleep(1000);
+        Assert.assertEquals(0, inMemoryQueue.size());
     }
 
     @After

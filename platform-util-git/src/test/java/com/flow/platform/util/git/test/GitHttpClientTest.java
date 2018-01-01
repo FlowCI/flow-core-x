@@ -38,7 +38,7 @@ public class GitHttpClientTest {
     private final static String TEST_GIT_HTTP_URL = "https://github.com/flow-ci-plugin/for-testing.git";
 
     @Rule
-    public TemporaryFolder folder= new TemporaryFolder();
+    public TemporaryFolder folder = new TemporaryFolder();
 
     @Test
     public void should_load_all_branch_and_tags() throws Throwable {

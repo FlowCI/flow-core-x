@@ -20,6 +20,7 @@ import com.flow.platform.plugin.test.TestBase;
 import com.flow.platform.plugin.util.docker.Docker;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -28,6 +29,7 @@ import org.junit.Test;
 public class DockerUtilTest extends TestBase {
 
     @Test
+    @Ignore
     public void should_pull_success() {
         Docker docker = new Docker();
         String image = "flowci/plugin-environment";

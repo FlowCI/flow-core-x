@@ -18,6 +18,7 @@ package com.flow.platform.core.queue;
 
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -154,7 +155,9 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
 
         @Override
         public void onMessage(Message message) {
-            listener.onQueueItem(new PriorityMessage(message));
+            for (QueueListener<PriorityMessage> listener : listeners) {
+                listener.onQueueItem(new PriorityMessage(message));
+            }
         }
     }
 }
