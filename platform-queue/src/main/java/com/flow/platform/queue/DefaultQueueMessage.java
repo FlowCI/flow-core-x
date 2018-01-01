@@ -25,9 +25,12 @@ public class DefaultQueueMessage implements PriorityQueueItem {
 
     private Long priority;
 
+    private Long timestamp;
+
     public DefaultQueueMessage(byte[] body, Long priority) {
         this.body = body;
         this.priority = priority;
+        this.timestamp = System.currentTimeMillis();
     }
 
     @Override
@@ -36,12 +39,17 @@ public class DefaultQueueMessage implements PriorityQueueItem {
     }
 
     @Override
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    @Override
     public byte[] getBody() {
-        return new byte[0];
+        return body;
     }
 
     @Override
     public int compareTo(PriorityQueueItem o) {
-        return o.getPriority().compareTo(getPriority());
+        return COMPARATOR.compare(this, o);
     }
 }

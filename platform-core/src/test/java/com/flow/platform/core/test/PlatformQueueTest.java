@@ -17,6 +17,7 @@
 package com.flow.platform.core.test;
 
 import com.flow.platform.core.queue.PriorityMessage;
+import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.ObjectWrapper;
@@ -87,7 +88,7 @@ public class PlatformQueueTest {
     @Test
     public void should_enqueue_with_priority_in_memory_queue() throws Throwable {
         // given: queue listener
-        final int size = 2;
+        final int size = 4;
         CountDownLatch latch = new CountDownLatch(size);
         List<String> prioritizedList = new ArrayList<>(size);
 
@@ -98,8 +99,13 @@ public class PlatformQueueTest {
 
         // when:
         inMemoryQueue.register(listener);
-        inMemoryQueue.enqueue(PriorityMessage.create("1".getBytes(), 1));  // should be second
-        inMemoryQueue.enqueue(PriorityMessage.create("2".getBytes(), 10)); // should be first
+        inMemoryQueue.enqueue(PriorityMessage.create("1".getBytes(), 1));
+        ThreadUtil.sleep(1);
+        inMemoryQueue.enqueue(PriorityMessage.create("2".getBytes(), 1));
+        ThreadUtil.sleep(1);
+        inMemoryQueue.enqueue(PriorityMessage.create("3".getBytes(), 10));
+        ThreadUtil.sleep(1);
+        inMemoryQueue.enqueue(PriorityMessage.create("4".getBytes(), 10));
         inMemoryQueue.start();
 
         // then:
@@ -107,8 +113,10 @@ public class PlatformQueueTest {
         Assert.assertTrue(await);
         Assert.assertEquals(size, prioritizedList.size());
 
-        Assert.assertEquals("2", prioritizedList.get(0));
-        Assert.assertEquals("1", prioritizedList.get(1));
+        Assert.assertEquals("4", prioritizedList.get(0));
+        Assert.assertEquals("3", prioritizedList.get(1));
+        Assert.assertEquals("2", prioritizedList.get(2));
+        Assert.assertEquals("1", prioritizedList.get(3));
     }
 
     @Test
