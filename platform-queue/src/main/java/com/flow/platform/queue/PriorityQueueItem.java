@@ -16,13 +16,14 @@
 
 package com.flow.platform.queue;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Objects;
 
 /**
  * @author yang
  */
-public interface PriorityQueueItem extends Comparable<PriorityQueueItem> {
+public interface PriorityQueueItem extends Serializable, Comparable<PriorityQueueItem> {
 
     ItemComparator COMPARATOR = new ItemComparator();
 

@@ -140,16 +140,6 @@ public class PlatformQueueTest {
         Assert.assertEquals(0, rabbitQueue.size());
         Assert.assertNotNull(result.getInstance());
         Assert.assertEquals("hello", new String(result.getInstance().getBody(), "UTF-8"));
-
-        // when: pause and enqueue again
-        rabbitQueue.pause();
-        rabbitQueue.enqueue(PriorityMessage.create("pause".getBytes(), 1));
-        Assert.assertEquals(1, rabbitQueue.size());
-
-        // then: resume
-        rabbitQueue.resume();
-        Thread.sleep(1000);
-        Assert.assertEquals(0, rabbitQueue.size());
     }
 
     @After
