@@ -17,6 +17,7 @@
 package com.flow.platform.plugin.util;
 
 import com.flow.platform.plugin.exception.PluginException;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.Logger;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -24,15 +25,15 @@ import java.io.InputStreamReader;
 /**
  * @author yh@firim
  */
-public class ShellUtil {
+public class CmdUtil {
 
-    private final static Logger LOGGER = new Logger(ShellUtil.class);
+    private final static Logger LOGGER = new Logger(CmdUtil.class);
 
     public static void exeCmd(String shell) {
         BufferedReader br;
         try {
             Process process;
-            ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", shell);
+            ProcessBuilder pb = new ProcessBuilder(Unix.CMD_EXECUTOR, "-c", shell);
             pb.environment();
             pb.redirectErrorStream(true); // merge error stream into standard stream
             process = pb.start();
