@@ -16,6 +16,11 @@ ENV MVN_CACHE=/root/.m2
 ADD ./docker/mysqld.cnf /etc/mysql/conf.d/mysqld.cnf
 VOLUME /var/lib/mysql
 
+# mount docker
+# docker in docker volume map happens some error
+# VOLUME /var/lib/docker
+COPY ./docker/daemon.json /etc/docker/daemon.json
+
 # config tomcat
 COPY ./docker/tomcat-users.xml $CATALINA_HOME/conf
 
@@ -32,6 +37,13 @@ RUN cd $FLOW_PLATFORM_SOURCE_CODE \
     && mv ./dist/flow-api-*.war $CATALINA_HOME/webapps/flow-api.war \
     && rm -rf $FLOW_PLATFORM_SOURCE_CODE \
     && rm -rf $MVN_CACHE
+
+
+# add aliyun proxy
+ADD ./docker/settings.xml /root/.m2/
+
+# cache mvn package
+VOLUME /root/.m2/repository
 
 # setup flow.ci default configuration
 COPY ./docker/app-cc.properties $FLOW_PLATFORM_CONFIG_DIR

@@ -19,6 +19,7 @@ package com.flow.platform.plugin.service;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author yh@firim
@@ -36,18 +37,23 @@ public interface PluginService {
     /**
      * show plugin list
      */
-    Collection<Plugin> list(PluginStatus... statuses);
+    Collection<Plugin> list(Set<PluginStatus> status, String keyword, Set<String> labels);
+
+    /**
+     * List unique labels
+     */
+    Collection<String> labels();
 
     /**
      * install plugin
      */
-    void install(String name);
+    Plugin install(String name);
 
     /**
      * stop plugin
      * @param name
      */
-    void stop(String name);
+    Plugin stop(String name);
 
     /**
      * exec install
@@ -58,7 +64,7 @@ public interface PluginService {
     /**
      * uninstall plugin
      */
-    void uninstall(String pluginName);
+    Plugin uninstall(String pluginName);
 
     /**
      * Sync plugin list from github

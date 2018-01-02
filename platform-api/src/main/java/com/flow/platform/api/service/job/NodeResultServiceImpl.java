@@ -38,6 +38,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -249,12 +250,12 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
 
     private void updateParent(Job job, Node current) {
         Node parent = current.getParent();
-        if (parent == null) {
+        if (Objects.isNull(parent)) {
             return;
         }
 
         // get related node result
-        Node first = (Node) parent.getChildren().get(0);
+        Node first = parent.getChildren().get(0);
         NodeResult currentResult = find(current.getPath(), job.getId());
         NodeResult firstResult = find(first.getPath(), job.getId());
         NodeResult parentResult = find(parent.getPath(), job.getId());
@@ -275,7 +276,17 @@ public class NodeResultServiceImpl extends ApplicationEventService implements No
         parentResult.setDuration(parentResult.getDuration() + duration);
 
         if (shouldUpdateParentStatus(current, currentResult)) {
-            parentResult.setStatus(currentResult.getStatus());
+            NodeStatus parentStatus = currentResult.getStatus();
+
+            // do not count final node status
+            if (current.getIsFinal()) {
+                NodeTree tree = jobNodeService.get(job);
+                Node lastNormalNode = tree.last(false);
+                NodeResult lastNormalNodeResult = find(lastNormalNode.getPath(), job.getId());
+                parentStatus = lastNormalNodeResult.getStatus();
+            }
+
+            parentResult.setStatus(parentStatus);
         }
 
         nodeResultDao.update(parentResult);

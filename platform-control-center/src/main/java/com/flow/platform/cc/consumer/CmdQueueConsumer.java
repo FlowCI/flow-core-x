@@ -18,7 +18,6 @@ package com.flow.platform.cc.consumer;
 
 import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.exception.AgentErr;
-import com.flow.platform.cc.service.AgentService;
 import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -99,27 +98,22 @@ public class CmdQueueConsumer implements QueueListener<PriorityMessage> {
             cmd.setRetry(retry);
             cmdService.save(cmd);
 
-            // re-enqueue
-            resend(cmd.getId(), retry);
+            // do not retry
+            if (retry <= 0) {
+                return;
+            }
+
+            // retry the message
+            retry(message);
 
         } catch (Throwable e) {
             LOGGER.error("Unexpected exception", e);
         }
     }
 
-    /**
-     * Re-enqueue cmd and return num of retry
-     */
-    private void resend(final String cmdId, final int retry) {
-        if (retry <= 0) {
-            return;
-        }
-
-        ThreadUtil.sleep(RETRY_WAIT_TIME);
-
-        // reset cmd status
-        PriorityMessage message = PriorityMessage.create(cmdId.getBytes(), QueueConfig.MAX_PRIORITY);
+    private void retry(final PriorityMessage message) {
+        message.setPriority(QueueConfig.MAX_PRIORITY);
         cmdQueue.enqueue(message);
-        LOGGER.trace("Re-enqueue item %s", cmdId);
+        ThreadUtil.sleep(RETRY_WAIT_TIME);
     }
 }

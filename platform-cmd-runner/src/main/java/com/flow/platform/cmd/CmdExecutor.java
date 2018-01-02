@@ -16,11 +16,13 @@
 
 package com.flow.platform.cmd;
 
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
+import com.flow.platform.util.CommandUtil.Unix;
+import com.flow.platform.util.CommandUtil.Windows;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.SystemUtil;
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -33,6 +35,7 @@ import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +111,8 @@ public final class CmdExecutor {
 
     private final static int DEFAULT_SHUTDOWN_WAITING_SECONDS = 30;
 
+    private final static String CYGWIN_HOME = "CYGWIN_HOME";
+
     private final ConcurrentLinkedQueue<Log> loggingQueue = new ConcurrentLinkedQueue<>();
 
     private final String endTerm = String.format("=====EOF-%s=====", UUID.randomUUID());
@@ -173,7 +178,7 @@ public final class CmdExecutor {
         cmds.add(0, "set -e"); // exit bash when command error
 
         this.cmdList = cmds;
-        this.pBuilder = new ProcessBuilder("/bin/bash").directory(DEFAULT_WORKING_DIR);
+        this.pBuilder = new ProcessBuilder(getExecutor()).directory(DEFAULT_WORKING_DIR);
 
         // check and init working dir
         if (workingDir != null) {
@@ -275,6 +280,20 @@ public final class CmdExecutor {
         return outputResult;
     }
 
+    private String getExecutor() {
+        if (SystemUtil.isWindows()) {
+
+            String cygwinHome = System.getenv(CYGWIN_HOME);
+            if (Strings.isNullOrEmpty(cygwinHome)) {
+                return Windows.CMD_EXECUTOR;
+            }
+
+            return Paths.get(cygwinHome, "bin", "bash.exe").toString();
+        }
+
+        return Unix.CMD_EXECUTOR;
+    }
+
     /**
      * Get process id
      */
@@ -299,14 +318,14 @@ public final class CmdExecutor {
         return () -> {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
                 for (String cmd : cmdList) {
-                    writer.write(cmd + Cmd.NEW_LINE);
+                    writer.write(cmd + Unix.LINE_SEPARATOR);
                     writer.flush();
                 }
 
                 // find env and set to result output if output filter is not null or empty
                 if (!outputEnvFilters.isEmpty()) {
-                    writer.write(String.format("echo %s" + Cmd.NEW_LINE, endTerm));
-                    writer.write("env" + Cmd.NEW_LINE);
+                    writer.write(String.format("echo %s" + Unix.LINE_SEPARATOR, endTerm));
+                    writer.write("env" + Unix.LINE_SEPARATOR);
                     writer.flush();
                 }
 
@@ -407,7 +426,7 @@ public final class CmdExecutor {
             }
 
             if (index == -1 && value != null) {
-                value.append(Cmd.NEW_LINE + line);
+                value.append(Unix.LINE_SEPARATOR + line);
             }
         }
     }

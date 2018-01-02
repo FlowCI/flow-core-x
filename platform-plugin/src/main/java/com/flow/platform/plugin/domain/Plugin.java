@@ -18,7 +18,7 @@ package com.flow.platform.plugin.domain;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.annotations.Expose;
-import java.util.List;
+import com.google.gson.annotations.SerializedName;
 import java.util.Set;
 
 /**
@@ -39,11 +39,11 @@ public class Plugin implements Comparable {
 
     // plugin git url
     @Expose
-    private String details;
+    private String source;
 
     // plugin labels
     @Expose
-    private List<String> labels;
+    private Set<String> labels;
 
     // plugin author
     @Expose
@@ -51,7 +51,7 @@ public class Plugin implements Comparable {
 
     // plugin support platform
     @Expose
-    private List<String> platform;
+    private Set<String> platform;
 
     // plugin status
     @Expose
@@ -67,26 +67,31 @@ public class Plugin implements Comparable {
 
     // if install error, the reason is error trace
     @Expose
+    @SerializedName("error")
     private String reason;
 
     @Expose
     private String description;
 
     @Expose
+    private String latestCommit;
+
+    @Expose
+    @SerializedName("detail")
     private PluginDetail pluginDetail;
 
-    public Plugin(String name, String details, List<String> label, String author, List<String> platform) {
+    public Plugin(String name, String source, Set<String> label, String author, Set<String> platform) {
         this.name = name;
-        this.details = details;
+        this.source = source;
         this.labels = label;
         this.author = author;
         this.platform = platform;
     }
 
-    public Plugin(String name, String details, List<String> labels, String author,
-                  List<String> platform, PluginStatus status, String tag) {
+    public Plugin(String name, String source, Set<String> labels, String author,
+                  Set<String> platform, PluginStatus status, String tag) {
         this.name = name;
-        this.details = details;
+        this.source = source;
         this.labels = labels;
         this.author = author;
         this.platform = platform;
@@ -115,19 +120,19 @@ public class Plugin implements Comparable {
         this.name = name;
     }
 
-    public String getDetails() {
-        return details;
+    public String getSource() {
+        return source;
     }
 
-    public void setDetails(String details) {
-        this.details = details;
+    public void setSource(String source) {
+        this.source = source;
     }
 
-    public List<String> getLabels() {
+    public Set<String> getLabels() {
         return labels;
     }
 
-    public void setLabels(List<String> labels) {
+    public void setLabels(Set<String> labels) {
         this.labels = labels;
     }
 
@@ -139,7 +144,7 @@ public class Plugin implements Comparable {
         this.author = author;
     }
 
-    public List<String> getPlatform() {
+    public Set<String> getPlatform() {
         return platform;
     }
 
@@ -151,7 +156,7 @@ public class Plugin implements Comparable {
         this.status = status;
     }
 
-    public void setPlatform(List<String> platform) {
+    public void setPlatform(Set<String> platform) {
         this.platform = platform;
     }
 
@@ -161,11 +166,6 @@ public class Plugin implements Comparable {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    @Override
-    public int compareTo(Object o) {
-        return 0;
     }
 
     public String getTag() {
@@ -200,6 +200,19 @@ public class Plugin implements Comparable {
         this.currentTag = currentTag;
     }
 
+    public String getLatestCommit() {
+        return latestCommit;
+    }
+
+    public void setLatestCommit(String latestCommit) {
+        this.latestCommit = latestCommit;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return 0;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -223,7 +236,7 @@ public class Plugin implements Comparable {
     public String toString() {
         return "Plugin{" +
             "name='" + name + '\'' +
-            ", details='" + details + '\'' +
+            ", source='" + source + '\'' +
             ", labels=" + labels +
             ", author='" + author + '\'' +
             ", platform='" + platform + '\'' +

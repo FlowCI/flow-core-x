@@ -23,18 +23,17 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
+import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.domain.sync.SyncType;
 import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.git.JGitUtil;
 import com.github.tomakehurst.wiremock.client.CountMatchingStrategy;
 import com.google.common.collect.ImmutableList;
@@ -129,8 +128,8 @@ public class SyncServiceTest extends TestBase {
         syncService.put(new SyncEvent("http://127.0.0.1/git/flow.git", new SyncRepo("flow", "v1.0"), SyncType.CREATE));
 
         // then: two events should be in the agent sync queue, include list
-        Assert.assertEquals(2, syncService.get(firstAgent).getQueue().size());
-        Assert.assertEquals(2, syncService.get(secondAgent).getQueue().size());
+        Assert.assertEquals(2, syncService.get(firstAgent).queueSize());
+        Assert.assertEquals(2, syncService.get(secondAgent).queueSize());
     }
 
     @Test
@@ -142,25 +141,26 @@ public class SyncServiceTest extends TestBase {
         FileUtils.copyDirectoryToDirectory(path, gitWorkspace.toFile());
 
         // when: register agent to sync service
+        syncService.load();
         syncService.register(agents.get(0));
         syncService.register(agents.get(1));
 
         // then: verify the sync event been initialized into both agents
 
         // check sync queue for first agent
-        PlatformQueue<PriorityMessage> queue = syncService.get(agents.get(0)).getQueue();
-        Assert.assertEquals(1, queue.size());
+        Sync sync = syncService.get(agents.get(0));
+        Assert.assertEquals(1, sync.queueSize());
 
-        SyncEvent createEvent = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
+        SyncEvent createEvent = sync.dequeue();
         Assert.assertEquals("http://localhost:8080/git/hello.git", createEvent.getGitUrl());
         Assert.assertEquals("v1.0", createEvent.getRepo().getTag());
         Assert.assertEquals(SyncType.CREATE, createEvent.getSyncType());
 
         // check sync queue for second agent
-        queue = syncService.get(agents.get(1)).getQueue();
-        Assert.assertEquals(1, queue.size());
+        sync = syncService.get(agents.get(1));
+        Assert.assertEquals(1, sync.queueSize());
 
-        createEvent = SyncEvent.parse(queue.dequeue().getBody(), SyncEvent.class);
+        createEvent = sync.dequeue();
         Assert.assertEquals("http://localhost:8080/git/hello.git", createEvent.getGitUrl());
         Assert.assertEquals("v1.0", createEvent.getRepo().getTag());
         Assert.assertEquals(SyncType.CREATE, createEvent.getSyncType());
@@ -176,8 +176,9 @@ public class SyncServiceTest extends TestBase {
 
         // and: register agent to sync service
         AgentPath agent = agents.get(0);
+        syncService.load();
         syncService.register(agent);
-        Assert.assertEquals(1, syncService.get(agent).getQueue().size());
+        Assert.assertEquals(1, syncService.get(agent).queueSize());
 
         // when: execute sync task
         syncService.syncTask();
@@ -220,8 +221,8 @@ public class SyncServiceTest extends TestBase {
 
         // then: agent repo list size should be 2
         Assert.assertEquals(2, syncService.get(agent).getRepos().size());
-        Assert.assertEquals(new SyncRepo("A", "v1"), syncService.get(agent).getRepos().get(0));
-        Assert.assertEquals(new SyncRepo("B", "v2"), syncService.get(agent).getRepos().get(1));
+        Assert.assertTrue(syncService.get(agent).getRepos().contains(new SyncRepo("A", "v1")));
+        Assert.assertTrue(syncService.get(agent).getRepos().contains(new SyncRepo("B", "v2")));
 
         // then: should send delete session cmd and sync task queue size should be zero
         strategy = new CountMatchingStrategy(CountMatchingStrategy.EQUAL_TO, 3);

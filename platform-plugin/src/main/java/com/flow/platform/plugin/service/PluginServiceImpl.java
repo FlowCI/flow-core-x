@@ -30,7 +30,10 @@ import com.flow.platform.plugin.event.PluginRefreshEvent;
 import com.flow.platform.plugin.event.PluginRefreshEvent.Status;
 import com.flow.platform.plugin.event.PluginStatusChangeEvent;
 import com.flow.platform.plugin.exception.PluginException;
+import com.flow.platform.plugin.util.CmdUtil;
 import com.flow.platform.plugin.util.YmlUtil;
+import com.flow.platform.plugin.util.docker.Docker;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
@@ -45,12 +48,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -71,9 +78,16 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private final static Logger LOGGER = new Logger(PluginService.class);
 
-    private final static String YML_FILE_NAME = "flow-step.yml";
+    private final static String YML_FILE_NAME = ".flow-plugin.yml";
 
     private final static String MASTER_BRANCH = "master";
+
+    private final static String DIST = "dist";
+
+    private final static String TMP = "tmp";
+
+    @Value("${api.run.indocker}")
+    private boolean runInDocker;
 
     // git clone folder
     @Autowired
@@ -97,7 +111,9 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     private final List<Processor> processors = ImmutableList.of(
         new InitGitProcessor(),
         new FetchProcessor(),
+        new CompareCommitProcessor(),
         new AnalysisYmlProcessor(),
+        new BuildProcessor(),
         new PushProcessor()
     );
 
@@ -107,21 +123,26 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     }
 
     @Override
-    public Collection<Plugin> list(PluginStatus... statuses) {
-        return pluginDao.list(statuses);
+    public Collection<Plugin> list(Set<PluginStatus> status, String keyword, Set<String> labels) {
+        return pluginDao.list(status, keyword, labels);
     }
 
     @Override
-    public void install(String pluginName) {
+    public Collection<String> labels() {
+        return pluginDao.labels();
+    }
+
+    @Override
+    public Plugin install(String pluginName) {
         Plugin plugin = find(pluginName);
 
         if (Objects.isNull(plugin)) {
-            throw new PluginException("not found plugin, please ensure the plugin name is exist");
+            throw new PluginException("Plugin '" + pluginName + " not found', ensure the plugin name is exist");
         }
 
         // not finish can install plugin
         if (!Plugin.RUNNING_AND_FINISH_STATUS.contains(plugin.getStatus())) {
-            LOGGER.trace(String.format("Plugin %s Enter To Queue", pluginName));
+            LOGGER.trace("Plugin %s Enter To Queue", pluginName);
 
             // update plugin status
             updatePluginStatus(plugin, IN_QUEUE);
@@ -129,12 +150,14 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             // record future task
             Future<?> submit = pluginPoolExecutor.submit(new InstallRunnable(plugin));
             taskCache.put(plugin, submit);
-            LOGGER.trace(String.format("Plugin %s finish To Queue", pluginName));
+            LOGGER.trace("Plugin %s finish To Queue", pluginName);
         }
+
+        return plugin;
     }
 
     @Override
-    public void stop(String name) {
+    public Plugin stop(String name) {
         Plugin plugin = find(name);
 
         if (Objects.isNull(plugin)) {
@@ -159,10 +182,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             updatePluginStatus(plugin, PENDING);
             taskCache.remove(plugin);
         }
+
+        return plugin;
     }
 
     @Override
-    public void uninstall(String name) {
+    public Plugin uninstall(String name) {
         Plugin plugin = find(name);
 
         if (Objects.isNull(plugin)) {
@@ -185,6 +210,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         // update plugin status to PENDING therefore the status been reset
         updatePluginStatus(plugin, DELETE);
+        return plugin;
     }
 
     @Override
@@ -210,7 +236,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         try {
             LOGGER.traceMarker("scheduleRefreshCache", "Start Refresh Cache");
             dispatchEvent(new PluginRefreshEvent(this, pluginSourceUrl, Status.ON_PROGRESS));
-            pluginDao.refreshCache();
+            pluginDao.refresh();
         } catch (Throwable e) {
             LOGGER.warn(e.getMessage());
         } finally {
@@ -274,7 +300,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 JGitUtil.init(localPath, true);
 
                 // remote set
-                JGitUtil.remoteSet(cachePath, ORIGIN_REMOTE, plugin.getDetails() + GIT_SUFFIX);
+                JGitUtil.remoteSet(cachePath, ORIGIN_REMOTE, plugin.getSource() + GIT_SUFFIX);
                 JGitUtil.remoteSet(cachePath, LOCAL_REMOTE, localPath.toString());
 
                 // if branch not exists then push branch
@@ -306,7 +332,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                 try {
                     Files.createFile(emptyFilePath);
-                } catch (FileAlreadyExistsException ignore) { }
+                } catch (FileAlreadyExistsException ignore) {
+                }
 
                 git.add()
                     .addFilepattern(".")
@@ -337,12 +364,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("FetchProcessor", "Start Fetch Tags");
+            LOGGER.traceMarker("FetchProcessor", "Fetch tags");
             try {
                 JGitUtil.fetchTags(gitCachePath(plugin), ORIGIN_REMOTE);
             } catch (Throwable e) {
                 LOGGER.error("Git Fetch", e);
-                throw new PluginException("Git Fetch", e);
+                throw new PluginException(e.getMessage());
             }
         }
 
@@ -352,11 +379,38 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
     }
 
+    private class CompareCommitProcessor implements Processor {
+
+        @Override
+        public void exec(Plugin plugin) {
+            LOGGER.traceMarker("CompareCommitProcessor", "Compare commit id");
+
+            try {
+                // first checkout tag branch
+                JGitUtil.checkout(gitCachePath(plugin), plugin.getTag());
+
+                // compare commit id is equal tag's latest commit id
+                RevCommit commit = JGitUtil.latestCommit(gitCachePath(plugin));
+
+                if (!Objects.equals(plugin.getLatestCommit(), commit.getId().getName())) {
+                    throw new PluginException("Tag's latest commit id is not user provided");
+                }
+            } catch (GitException e) {
+                throw new PluginException(e.getMessage());
+            }
+        }
+
+        @Override
+        public void clean(Plugin plugin) {
+        }
+    }
+
     private class AnalysisYmlProcessor implements Processor {
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("AnalysisYmlProcessor", "Start Analysis Yml");
+            LOGGER.traceMarker("AnalysisYmlProcessor", "Start analysis YML from plugin");
+
             try {
                 // first checkout plugin tag
                 JGitUtil.checkout(gitCachePath(plugin), plugin.getTag());
@@ -371,13 +425,17 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
                     // return to master branch
                     JGitUtil.checkout(gitCachePath(plugin), MASTER_BRANCH);
-                } else {
-                    throw new PluginException("not found Yml Plugin file");
+
+                    LOGGER.traceMarker("AnalysisYmlProcessor", "Finish analysis YML from plugin");
+
+                    return;
                 }
 
+                throw new PluginException("The plugin description file '" + YML_FILE_NAME + "' is missing");
+
             } catch (Throwable throwable) {
-                LOGGER.traceMarker("AnalysisYmlProcessor", "Found Exception " + throwable.getMessage());
-                throw new PluginException("AnalysisYmlProcessor Exception" + throwable.getMessage());
+                LOGGER.warnMarker("AnalysisYmlProcessor", "Found Exception " + throwable.getMessage());
+                throw new PluginException(throwable.getMessage());
             }
         }
 
@@ -388,11 +446,150 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     }
 
+    private class BuildProcessor implements Processor {
+
+        @Override
+        public void exec(Plugin plugin) {
+            try {
+
+                // only build and image all in value to pull image
+                if (!Strings.isBlank(plugin.getPluginDetail().getBuild()) && !Strings
+                    .isBlank(plugin.getPluginDetail().getImage())) {
+
+                    LOGGER.traceMarker("BuildProcessor", "Start build code");
+
+                    // put from cache to local git workspace
+                    Path cachePath = gitCachePath(plugin);
+                    String latestGitTag = plugin.getTag();
+                    JGitUtil.checkout(cachePath, latestGitTag);
+
+                    // first pull image and build
+                    if (!runInDocker) {
+                        dockerPullAndBuild(plugin);
+                    } else {
+                        // if run in docker only build
+                        build(plugin);
+                    }
+
+                    // second detect outputs
+                    detectBuildArtifacts(plugin);
+
+                    // third push outputs to localRepo
+                    pushArtifactsToLocalRepo(plugin);
+
+                    LOGGER.traceMarker("BuildProcessor", "Finish build code");
+                }
+
+
+            } catch (Throwable e) {
+                LOGGER.error("Git Build", e);
+                throw new PluginException("Git Build", e);
+            }
+        }
+
+        private void build(Plugin plugin) {
+            LOGGER.trace("Start build");
+            Path cachePath = gitCachePath(plugin);
+            String cmd = "cd " + cachePath.toString() + Unix.LINE_SEPARATOR + plugin.getPluginDetail().getBuild();
+            CmdUtil.exeCmd(cmd);
+            LOGGER.trace("Finish build");
+        }
+
+        private void dockerPullAndBuild(Plugin plugin) {
+            Path cachePath = gitCachePath(plugin);
+            Docker docker = new Docker();
+            docker.pull(plugin.getPluginDetail().getImage());
+            docker.runBuild(plugin.getPluginDetail().getImage(), plugin.getPluginDetail().getBuild(), cachePath);
+            docker.close();
+        }
+
+
+        private void detectBuildArtifacts(Plugin plugin) {
+            Path cachePath = gitCachePath(plugin);
+            // default outputs is dist folder
+            Path artifactPath = Paths.get(cachePath.toString(), DIST);
+            if (!artifactPath.toFile().exists()) {
+                throw new PluginException("Not found build outputs");
+            }
+
+            if (artifactPath.toFile().isDirectory() && Objects.equals(0, artifactPath.toFile().list().length)) {
+                throw new PluginException("Not found build outputs");
+            }
+        }
+
+        private void pushArtifactsToLocalRepo(Plugin plugin) {
+            try {
+
+                String latestGitTag = plugin.getTag();
+
+                Path cachePath = gitCachePath(plugin);
+
+                // default outputs is dist folder
+                Path artifactPath = Paths.get(cachePath.toString(), DIST);
+
+                // create tmp folder to store build outputs
+                Path tmp = Paths.get(gitCacheWorkspace.toString(), "tmp");
+                if (!tmp.toFile().exists()) {
+                    Files.createDirectories(tmp);
+                }
+
+                // move artifacts to tmp folder
+                Path actPath = Paths.get(tmp.toString(), DIST);
+                if (actPath.toFile().exists()) {
+                    FileUtils.deleteDirectory(actPath.toFile());
+                }
+                FileUtils.moveDirectory(artifactPath.toFile(), actPath.toFile());
+
+                Path localPath = gitRepoPath(plugin);
+
+                // init git and push tags
+                JGitUtil.init(actPath, false);
+                JGitUtil.remoteSet(actPath, LOCAL_REMOTE, localPath.toString());
+                Git git = Git.open(actPath.toFile());
+
+                git.add()
+                    .addFilepattern(".")
+                    .call();
+
+                git.commit()
+                    .setMessage("add build outputs")
+                    .call();
+
+                git.tag()
+                    .setName(plugin.getTag())
+                    .setMessage("add " + plugin.getTag())
+                    .call();
+
+                JGitUtil.push(actPath, LOCAL_REMOTE, latestGitTag);
+                // set currentTag latestTag
+                plugin.setCurrentTag(latestGitTag);
+                updatePluginStatus(plugin, INSTALLED);
+
+                // delete path
+                FileUtils.deleteDirectory(actPath.toFile());
+            } catch (Throwable e) {
+
+            }
+
+        }
+
+        @Override
+        public void clean(Plugin plugin) {
+
+        }
+    }
+
     private class PushProcessor implements Processor {
 
         @Override
         public void exec(Plugin plugin) {
-            LOGGER.traceMarker("PushProcessor", "Start Push Tags");
+            LOGGER.traceMarker("PushProcessor", "Push tags to local");
+
+            if (!Strings.isBlank(plugin.getPluginDetail().getImage()) && !Strings
+                .isBlank(plugin.getPluginDetail().getBuild())) {
+                return;
+            }
+
             try {
                 // put from cache to local git workspace
                 Path cachePath = gitCachePath(plugin);
@@ -415,7 +612,7 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
 
     private class InstallRunnable implements Runnable {
 
-        private Plugin plugin;
+        private final Plugin plugin;
 
         public InstallRunnable(Plugin plugin) {
             this.plugin = plugin;

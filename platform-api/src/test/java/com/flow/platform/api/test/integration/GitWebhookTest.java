@@ -95,7 +95,7 @@ public class GitWebhookTest extends TestBase {
             .andExpect(status().isOk());
 
         // then: job should not created
-        jobService.find(flow.getPath(), 0);
+        jobService.find(flow.getPath(), 0L);
     }
 
     @Test(expected = NotFoundException.class)
@@ -113,7 +113,7 @@ public class GitWebhookTest extends TestBase {
             .andExpect(status().isOk());
 
         // then: job should not created
-        jobService.find(flow.getPath(), 0);
+        jobService.find(flow.getPath(), 0L);
     }
 
     @Test
@@ -293,7 +293,7 @@ public class GitWebhookTest extends TestBase {
         setFlowToReady(flow);
 
         // setup yml
-        flow = nodeService.createOrUpdateYml(flow.getPath(), getResourceContent("yml/for_git_webhook_test.yml"));
+        flow = nodeService.updateByYml(flow.getPath(), getResourceContent("yml/for_git_webhook_test.yml"));
 
         // set flow git related env
         Map<String, String> env = new HashMap<>();

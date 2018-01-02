@@ -15,24 +15,65 @@
  */
 package com.flow.platform.api.util;
 
-import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.exception.NodeFormatException;
 import com.flow.platform.api.exception.YmlException;
-import com.flow.platform.yml.parser.YmlParser;
-import com.flow.platform.yml.parser.exception.YmlFormatException;
-import com.flow.platform.yml.parser.exception.YmlParseException;
-import com.google.common.io.Files;
-import java.io.File;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
+import org.yaml.snakeyaml.DumperOptions.LineBreak;
+import org.yaml.snakeyaml.TypeDescription;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.error.YAMLException;
+import org.yaml.snakeyaml.introspector.Property;
+import org.yaml.snakeyaml.nodes.CollectionNode;
+import org.yaml.snakeyaml.nodes.MappingNode;
+import org.yaml.snakeyaml.nodes.NodeTuple;
+import org.yaml.snakeyaml.nodes.ScalarNode;
+import org.yaml.snakeyaml.nodes.SequenceNode;
+import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.representer.Representer;
 
 /**
  * @author yh@firim
  */
 public class NodeUtil {
+
+    private final static DumperOptions DUMPER_OPTIONS = new DumperOptions();
+
+    private final static LineBreak LINE_BREAK = LineBreak.getPlatformLineBreak();
+
+    private final static Constructor ROOT_YML_CONSTRUCTOR = new Constructor(RootYmlWrapper.class);
+
+    private final static Representer ORDERED_SKIP_EMPTY_REPRESENTER = new OrderedAndSkipEmptyRepresenter();
+
+    private final static NodeValidator VALIDATOR = new NodeValidator();
+
+    static {
+        DUMPER_OPTIONS.setIndent(4);
+        DUMPER_OPTIONS.setIndicatorIndent(2);
+        DUMPER_OPTIONS.setExplicitStart(true);
+        DUMPER_OPTIONS.setDefaultFlowStyle(FlowStyle.BLOCK);
+        DUMPER_OPTIONS.setLineBreak(LINE_BREAK);
+
+        TypeDescription nodeTypeDesc = new TypeDescription(NodeWrapper.class);
+        ROOT_YML_CONSTRUCTOR.addTypeDescription(nodeTypeDesc);
+    }
 
     /**
      * Get node workspace path
@@ -42,46 +83,70 @@ public class NodeUtil {
     }
 
     /**
-     * Build node tree structure from yml file
-     *
-     * @param path file path
-     * @return node tree
+     * Verify node tree and
+     * @param node
+     * @throws NodeFormatException
      */
-    public static Node buildFromYml(File path, String root) {
-        try {
-            String ymlString = Files.toString(path, AppConfig.DEFAULT_CHARSET);
-            return buildFromYml(ymlString, root);
-        } catch (YmlException e) {
-            throw e;
-        } catch (Throwable ignore) {
-            return null;
-        }
+    public static void validate(Node node) {
+        VALIDATOR.validate(node);
     }
 
     /**
-     * Build node tree structure from yml string
+     * Verify root format and parse to yml
+     */
+    public static String parseToYml(Node root) {
+        VALIDATOR.validate(root);
+
+        RootYmlWrapper ymlWrapper = new RootYmlWrapper(new NodeWrapper(root));
+
+        // clean property which not used in root
+        ymlWrapper.flow.get(0).name = null;
+        ymlWrapper.flow.get(0).allowFailure = null;
+
+        Yaml yaml = new Yaml(ROOT_YML_CONSTRUCTOR, ORDERED_SKIP_EMPTY_REPRESENTER, DUMPER_OPTIONS);
+        String dump = yaml.dump(ymlWrapper);
+        dump = dump.substring(dump.indexOf(LINE_BREAK.getString()) + 1);
+        return dump;
+    }
+
+    /**
+     * Verify and create node tree by yml
      *
      * @param yml raw yml string
      * @return root node of yml
      * @throws YmlException if yml format is illegal
      */
-    public static Node buildFromYml(String yml, String root) {
-
-        Node[] flows;
+    public static Node buildFromYml(String yml, String rootName) {
         try {
-            flows = YmlParser.fromYml(yml, Node[].class);
-        } catch (YmlParseException | YmlFormatException e) {
+            Yaml yaml = new Yaml(ROOT_YML_CONSTRUCTOR);
+            RootYmlWrapper node = yaml.load(yml);
+
+            // verify flow node
+            if (Objects.isNull(node.flow)) {
+                throw new YmlException("The 'flow' content must be defined");
+            }
+
+            // current version only support single flow
+            if (node.flow.size() > 1) {
+                throw new YmlException("Unsupported multiple flows definition");
+            }
+
+            // steps must be provided
+            List<NodeWrapper> steps = node.flow.get(0).steps;
+            if (Objects.isNull(steps) || steps.isEmpty()) {
+                throw new YmlException("The 'step' must be defined");
+            }
+
+            node.flow.get(0).name = rootName;
+            Node root = node.flow.get(0).toNode();
+
+            buildNodeRelation(root);
+            VALIDATOR.validate(root);
+
+            return root;
+        } catch (YAMLException e) {
             throw new YmlException(e.getMessage());
         }
-
-        // current version only support single flow
-        if (flows.length > 1) {
-            throw new YmlException("Unsupported multiple flows definition");
-        }
-
-        flows[0].setName(root);
-        buildNodeRelation(flows[0]);
-        return flows[0];
     }
 
     /**
@@ -94,12 +159,11 @@ public class NodeUtil {
         onNode.accept(root);
     }
 
-
     /**
-     * get all nodes includes flow and steps
+     * Get all nodes includes flow and steps
      *
      * @param node the parent node
-     * @return {@code List<Node>} include parent node
+     * @return {@code List<Node>} include parent node at rear
      */
     public static List<Node> flat(final Node node) {
         final List<Node> flatted = new LinkedList<>();
@@ -136,7 +200,7 @@ public class NodeUtil {
     }
 
     /**
-     * get next node compare root
+     * Get next node from current node
      *
      * @param node current node
      * @param ordered ordered and flatted node tree
@@ -158,15 +222,44 @@ public class NodeUtil {
     }
 
     /**
-     * Build node path, parent, next, prev relation
+     * Get next final node from current node
+     *
+     * @param node current node
+     * @param ordered ordered and flatted node list
+     * @return
      */
-    public static void buildNodeRelation(Node root) {
-        setNodePath(root);
+    public static Node nextFinal(Node node, List<Node> ordered) {
+        Integer index = ordered.indexOf(node);
 
-        List<Node> children = root.getChildren();
+        if (index == -1) {
+            return null;
+        }
+
+        // find node
+        try {
+            for (int i = index + 1; i < ordered.size(); i++) {
+                Node next = ordered.get(i);
+                if (next.getIsFinal()) {
+                    return next;
+                }
+            }
+            return null;
+        } catch (Throwable ignore) {
+            return null;
+        }
+    }
+
+    /**
+     * Build node path and parent, next, prev relation
+     */
+    public static void buildNodeRelation(Node node) {
+        Node parent = node.getParent();
+        node.setPath(Objects.isNull(parent) ? node.getName() : PathUtil.build(parent.getPath(), node.getName()));
+
+        List<Node> children = node.getChildren();
         for (int i = 0; i < children.size(); i++) {
             Node childNode = children.get(i);
-            childNode.setParent(root);
+            childNode.setParent(node);
             if (i > 0) {
                 childNode.setPrev(children.get(i - 1));
                 children.get(i - 1).setNext(childNode);
@@ -176,11 +269,276 @@ public class NodeUtil {
         }
     }
 
-    private static void setNodePath(Node node) {
-        if (node.getParent() == null) {
-            node.setPath(PathUtil.build(node.getName()));
-            return;
+    private static class NodeValidator {
+
+        private final List<Consumer<Node>> validators = ImmutableList.of(
+            new ConstrainsValidator(),
+            new UniqueNameValidator(),
+            new FinalNodeValidator()
+        );
+
+        void validate(Node node) {
+            for (Consumer<Node> validator : validators) {
+                validator.accept(node);
+            }
         }
-        node.setPath(PathUtil.build(node.getParent().getPath(), node.getName()));
+    }
+
+    private static class ConstrainsValidator implements Consumer<Node> {
+
+        @Override
+        public void accept(Node node) {
+            final List<Node> ordered = flat(node);
+
+            for (Node item : ordered) {
+                if (Strings.isNullOrEmpty(item.getName())) {
+                    throw new NodeFormatException("The node name is required");
+                }
+
+                if (!Strings.isNullOrEmpty(item.getScript()) && !Strings.isNullOrEmpty(item.getPlugin())) {
+                    throw new NodeFormatException("The script and plugin cannot defined in both : " + item.getName());
+                }
+            }
+        }
+    }
+
+    private static class UniqueNameValidator implements Consumer<Node> {
+
+        @Override
+        public void accept(Node node) {
+            List<Node> children = node.getChildren();
+            if (children.isEmpty()) {
+                return;
+            }
+
+            Set<String> existNameSet = new HashSet<>(children.size());
+
+            for (Node child : children) {
+                if (!existNameSet.add(child.getName())) {
+                    throw new NodeFormatException("The step name '" + child.getName() + "'is not unique");
+                }
+
+                accept(child);
+            }
+        }
+    }
+
+    private static class FinalNodeValidator implements Consumer<Node> {
+
+        @Override
+        public void accept(Node node) {
+            final List<Node> ordered = flat(node);
+            ordered.remove(node);
+
+            for (int i = 0; i < ordered.size(); i++) {
+                if (!ordered.get(i).getIsFinal()) {
+                    continue;
+                }
+
+                // check final nodes are consecutive
+                for (int j = i; j < ordered.size(); j++) {
+                    if (!ordered.get(j).getIsFinal()) {
+                        throw new NodeFormatException("Invalid final node : " + ordered.get(i).getName());
+                    }
+                }
+
+                return;
+            }
+        }
+    }
+
+    /**
+     * Represent YML root flow
+     */
+    private static class RootYmlWrapper {
+
+        public List<NodeWrapper> flow;
+
+        public RootYmlWrapper() {
+        }
+
+        public RootYmlWrapper(NodeWrapper root) {
+            this.flow = Lists.newArrayList(root);
+        }
+    }
+
+    /**
+     * Represent Node instance in YML
+     */
+    private static class NodeWrapper {
+
+        public String name;
+
+        public Map<String, String> envs;
+
+        public Boolean allowFailure;
+
+        public Boolean isFinal;
+
+        public String condition;
+
+        public List<NodeWrapper> steps;
+
+        public String script;
+
+        public String plugin;
+
+        public NodeWrapper() {
+        }
+
+        /**
+         * Used for parse node to yml
+         */
+        public NodeWrapper(Node node) {
+            name = node.getName();
+            envs = node.getEnvs();
+            allowFailure = !node.getAllowFailure() ? null : node.getAllowFailure();
+            isFinal = !node.getIsFinal() ? null : node.getIsFinal();
+            condition = node.getConditionScript();
+            script = node.getScript();
+            plugin = node.getPlugin();
+            steps = new LinkedList<>();
+
+            List<Node> children = node.getChildren();
+            for (Node child : children) {
+                steps.add(new NodeWrapper(child));
+            }
+        }
+
+        /**
+         * Used for build from yml to node
+         */
+        public Node toNode() {
+            Node node = new Node();
+            node.setName(name);
+            node.setConditionScript(condition);
+            node.setScript(script);
+            node.setPlugin(plugin);
+            node.setAllowFailure(Objects.isNull(allowFailure) ? false : allowFailure);
+            node.setIsFinal(Objects.isNull(isFinal) ? false : isFinal);
+
+            if (!Objects.isNull(envs)) {
+                node.setEnvs(envs);
+            }
+
+            if (Objects.isNull(steps)) {
+                return node;
+            }
+
+            for (NodeWrapper wrapper : steps) {
+                node.getChildren().add(wrapper.toNode());
+            }
+
+            return node;
+        }
+    }
+
+    /**
+     * Snakeyaml representer which support output property order and skip empty or null value
+     */
+    private static class OrderedAndSkipEmptyRepresenter extends Representer {
+
+        private final Map<String, Integer> order = ImmutableMap.<String, Integer>builder()
+            .put("name", 1)
+            .put("envs", 2)
+            .put("allowFailure", 3)
+            .put("isFinal", 4)
+            .put("condition", 5)
+            .put("plugin", 6)
+            .put("script", 7)
+            .put("steps", 8)
+            .build();
+
+        private final PropertySorter sorter = new PropertySorter();
+
+        private class PropertySorter implements Comparator<Property> {
+
+            @Override
+            public int compare(Property o1, Property o2) {
+                Integer index1 = order.get(o1.getName());
+                Integer index2 = order.get(o2.getName());
+
+                if (Objects.isNull(index1) || Objects.isNull(index2)) {
+                    return 0;
+                }
+
+                return index1.compareTo(index2);
+            }
+        }
+
+        @Override
+        protected MappingNode representJavaBean(Set<Property> properties, Object javaBean) {
+            List<NodeTuple> value = new ArrayList<>(properties.size());
+            Tag tag;
+            Tag customTag = classTags.get(javaBean.getClass());
+            tag = customTag != null ? customTag : new Tag(javaBean.getClass());
+            MappingNode node = new MappingNode(tag, value, null);
+            representedObjects.put(javaBean, node);
+            boolean bestStyle = true;
+
+            List<Property> orderProperties = new ArrayList<>(properties);
+            orderProperties.sort(sorter);
+
+            for (Property property : orderProperties) {
+                Object memberValue = property.get(javaBean);
+                Tag customPropertyTag = memberValue == null ? null
+                    : classTags.get(memberValue.getClass());
+                NodeTuple tuple = representJavaBeanProperty(javaBean, property, memberValue,
+                    customPropertyTag);
+                if (tuple == null) {
+                    continue;
+                }
+                if (((ScalarNode) tuple.getKeyNode()).getStyle() != null) {
+                    bestStyle = false;
+                }
+                org.yaml.snakeyaml.nodes.Node nodeValue = tuple.getValueNode();
+                if (!(nodeValue instanceof ScalarNode && ((ScalarNode) nodeValue).getStyle() == null)) {
+                    bestStyle = false;
+                }
+                value.add(tuple);
+            }
+            if (defaultFlowStyle != FlowStyle.AUTO) {
+                node.setFlowStyle(defaultFlowStyle.getStyleBoolean());
+            } else {
+                node.setFlowStyle(bestStyle);
+            }
+            return node;
+        }
+
+        @Override
+        protected NodeTuple representJavaBeanProperty(Object javaBean,
+                                                      Property property,
+                                                      Object propertyValue,
+                                                      Tag customTag) {
+
+            NodeTuple tuple = super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
+            org.yaml.snakeyaml.nodes.Node valueNode = tuple.getValueNode();
+
+            // skip 'null' values
+            if (Tag.NULL.equals(valueNode.getTag())) {
+                return null;
+            }
+
+            if (valueNode instanceof CollectionNode) {
+
+                // skip empty lists
+                if (Tag.SEQ.equals(valueNode.getTag())) {
+                    SequenceNode seq = (SequenceNode) valueNode;
+                    if (seq.getValue().isEmpty()) {
+                        return null;
+                    }
+                }
+
+                // skip empty maps
+                if (Tag.MAP.equals(valueNode.getTag())) {
+                    MappingNode seq = (MappingNode) valueNode;
+                    if (seq.getValue().isEmpty()) {
+                        return null;
+                    }
+                }
+            }
+
+            return tuple;
+        }
     }
 }

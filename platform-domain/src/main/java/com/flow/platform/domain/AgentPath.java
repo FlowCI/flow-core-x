@@ -108,6 +108,6 @@ public class AgentPath extends Jsonable {
 
     @Override
     public String toString() {
-        return String.format("%s#%s", zone, name);
+        return zone + RESERVED_CHAR + name;
     }
 }

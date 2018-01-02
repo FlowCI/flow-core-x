@@ -1,0 +1,4 @@
+{
+  "registry-mirrors": ["https://registry.docker-cn.com"],
+  "storage-driver": "vfs"
+}

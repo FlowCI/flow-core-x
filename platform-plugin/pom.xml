@@ -39,6 +39,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.github.docker-java</groupId>
+      <artifactId>docker-java</artifactId>
+      <version>3.0.14</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.flow.platform</groupId>
       <artifactId>platform-util-http</artifactId>
       <version>${project.version}</version>

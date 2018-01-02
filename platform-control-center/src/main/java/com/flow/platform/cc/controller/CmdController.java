@@ -20,11 +20,20 @@ import com.flow.platform.cc.config.QueueConfig;
 import com.flow.platform.cc.domain.CmdStatusItem;
 import com.flow.platform.cc.service.CmdDispatchService;
 import com.flow.platform.cc.service.CmdService;
-import com.flow.platform.domain.*;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
+import com.flow.platform.domain.AgentPath;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.domain.CmdInfo;
+import com.flow.platform.domain.CmdReport;
+import com.flow.platform.domain.CmdStatus;
+import com.flow.platform.domain.CmdType;
 import com.google.common.collect.Range;
-import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Objects;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -38,12 +47,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.HttpServletResponse;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Objects;
 
 /**
  * @author gy@fir.im

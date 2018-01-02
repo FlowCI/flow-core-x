@@ -14,7 +14,7 @@ flow:
        envs:
          FLOW_WORKSPACE: "echo step"
          FLOW_VERSION: "echo step version"
-       isAllowFailure: true
+       allowFailure: true
 
        steps:
         - name: step11
@@ -23,5 +23,5 @@ flow:
           script: "echo 2"
 
      - name: step2
-       isAllowFailure: false
+       allowFailure: false
        script: "echo 2"

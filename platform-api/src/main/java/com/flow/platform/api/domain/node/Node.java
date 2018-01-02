@@ -17,7 +17,6 @@
 package com.flow.platform.api.domain.node;
 
 import com.flow.platform.api.domain.EnvObject;
-import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.time.ZonedDateTime;
@@ -35,37 +34,31 @@ public final class Node extends EnvObject {
     private String path;
 
     @Expose
-    @YmlSerializer(required = false)
     private String name;
 
     /**
      * Node body which is shell script
      */
-    @YmlSerializer(required = false)
+    @Expose
     private String script;
 
     /**
      * Groovy script that to indicate the node can start or not
      */
     @Expose
-    @YmlSerializer(required = false, name = "condition")
     private String conditionScript;
 
-    private Node parent;
-
+    @Expose
     @SerializedName("steps")
-    @YmlSerializer(required = false, name = "steps")
     private List<Node> children = new LinkedList<>();
 
-    private Node prev;
-
-    private Node next;
-
-    @YmlSerializer(required = false)
+    @Expose
     private Boolean allowFailure = false;
 
     @Expose
-    @YmlSerializer(required = false)
+    private Boolean isFinal = false;
+
+    @Expose
     private String plugin;
 
     @Expose
@@ -76,6 +69,21 @@ public final class Node extends EnvObject {
 
     @Expose
     private ZonedDateTime updatedAt;
+
+    /**
+     * The parent node reference
+     */
+    private Node parent;
+
+    /**
+     * The previous node reference
+     */
+    private Node prev;
+
+    /**
+     * The next node reference
+     */
+    private Node next;
 
     public Node() {
     }
@@ -157,6 +165,14 @@ public final class Node extends EnvObject {
         this.allowFailure = allowFailure;
     }
 
+    public Boolean getIsFinal() {
+        return isFinal;
+    }
+
+    public void setIsFinal(Boolean isFinal) {
+        this.isFinal = isFinal;
+    }
+
     public String getPlugin() {
         return plugin;
     }
@@ -187,6 +203,10 @@ public final class Node extends EnvObject {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean hasPlugin() {
+        return this.plugin != null;
     }
 
     @Override

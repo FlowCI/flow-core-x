@@ -17,29 +17,45 @@ package com.flow.platform.api.test.service;
 
 import static junit.framework.TestCase.fail;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.Webhook;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.FlowEnvs.StatusValue;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
+import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginDetail;
+import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.domain.envs.PluginProperty;
+import com.flow.platform.plugin.domain.envs.PluginPropertyType;
+import com.flow.platform.plugin.service.PluginService;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.http.HttpURL;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -54,12 +70,15 @@ public class NodeServiceTest extends TestBase {
     @Value(value = "${domain.api}")
     private String apiDomain;
 
+    @Autowired
+    private PluginService pluginService;
+
     @Test
     public void should_find_any_node() throws Throwable {
         Node emptyFlow = nodeService.createEmptyFlow("flow1");
         setFlowToReady(emptyFlow);
         String resourceContent = getResourceContent("yml/demo_flow.yaml");
-        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.updateByYml(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
 
@@ -79,7 +98,7 @@ public class NodeServiceTest extends TestBase {
         envService.save(emptyFlow, flowEnv, false);
 
         String resourceContent = getResourceContent("yml/demo_flow.yaml");
-        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.updateByYml(emptyFlow.getPath(), resourceContent);
 
         // then: check is created in dao
         Node saved = flowDao.get(root.getPath());
@@ -115,7 +134,7 @@ public class NodeServiceTest extends TestBase {
 
         // when:
         try {
-            nodeService.createOrUpdateYml(emptyFlow.getPath(), "");
+            nodeService.updateByYml(emptyFlow.getPath(), "");
             fail();
         } catch (Throwable e) {
             Assert.assertTrue(e instanceof YmlException);
@@ -135,7 +154,7 @@ public class NodeServiceTest extends TestBase {
 
         // when:
         try {
-            nodeService.createOrUpdateYml(emptyFlow.getPath(), "xxxx");
+            nodeService.updateByYml(emptyFlow.getPath(), "xxxx");
             fail();
         } catch (Throwable e) {
             Assert.assertTrue(e instanceof YmlException);
@@ -178,7 +197,7 @@ public class NodeServiceTest extends TestBase {
         setFlowToReady(emptyFlow);
 
         String resourceContent = getResourceContent("yml/demo_flow.yaml");
-        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.updateByYml(emptyFlow.getPath(), resourceContent);
         Assert.assertEquals("echo hello", root.getEnvs().get("FLOW_WORKSPACE"));
         Assert.assertEquals("echo version", root.getEnvs().get("FLOW_VERSION"));
 
@@ -229,6 +248,76 @@ public class NodeServiceTest extends TestBase {
         Assert.assertEquals("FOUND", loaded.getEnv("FLOW_YML_STATUS"));
     }
 
+    @Test
+    public void should_update_by_nodes() throws Throwable {
+        // given:
+        String flowName = "flow-yml";
+        Node emptyFlow = nodeService.createEmptyFlow(flowName);
+        setFlowToReady(emptyFlow);
+
+        // given: mock plugin list
+        Plugin plugin = new Plugin("fir-cli", "xx", ImmutableSet.of("fir"), "xx", ImmutableSet.of("*"));
+        plugin.setPluginDetail(new PluginDetail("fir-cli", "fir upload xx"));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_TOKEN", PluginPropertyType.STRING, true));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_PATH", PluginPropertyType.STRING, true));
+
+        Mockito.when(pluginService.list(ImmutableSet.of(PluginStatus.INSTALLED), null, null))
+            .thenReturn(ImmutableList.of(plugin));
+
+        Map<String, String> envsForFlow = new HashMap<>(3);
+        envsForFlow.put("FLOW_NEW_1", "hello");
+        envsForFlow.put("FLOW_NEW_2", "world");
+        envsForFlow.put("FLOW_NEW_3", "done");
+        envService.save(emptyFlow, envsForFlow, true);
+
+        // when: create steps and update
+        Node step1 = new Node(PathUtil.build(flowName, "step1"), "step1");
+        step1.setScript("echo 'hello...'\nsleep 1\n"); // auto convert to | if end with \n
+        step1.setAllowFailure(true);
+        step1.setEnvs(EnvUtil.build("FLOW_ENV_STEP_1", "xxx"));
+
+        Node step2 = new Node(PathUtil.build(flowName, "step2"), "step2");
+        step2.setPlugin("fir-cli");
+
+        Map<String, String> envsForStep2 = new HashMap<>(2);
+        envsForStep2.put("FIR_TOKEN", "token");
+        envsForStep2.put("FIR_PATH", "path");
+        step2.setEnvs(envsForStep2);
+        step2.setConditionScript("\"www.google.com\".toURL().text\nreturn true\n");
+
+        Node root = nodeService.updateByNodes(emptyFlow.getPath(), ImmutableList.of(step1, step2));
+        Assert.assertNotNull(root);
+        Assert.assertEquals(flowName, root.getPath());
+        Assert.assertEquals(2, root.getChildren().size());
+
+        // then:
+        step1 = root.getChildren().get(0);
+        step2 = root.getChildren().get(1);
+
+        Assert.assertNull(step1.getConditionScript());
+        Assert.assertNull(step1.getPlugin());
+        Assert.assertEquals("step1", step1.getName());
+        Assert.assertEquals(PathUtil.build(flowName, "step1"), step1.getPath());
+        Assert.assertEquals("echo 'hello...'\nsleep 1\n", step1.getScript());
+        Assert.assertEquals(true, step1.getAllowFailure());
+        Assert.assertEquals("xxx", step1.getEnv("FLOW_ENV_STEP_1"));
+        Assert.assertEquals(step2, step1.getNext());
+        Assert.assertEquals(root, step1.getParent());
+        Assert.assertNull(step1.getPrev());
+
+        Assert.assertEquals("fir-cli", step2.getPlugin());
+        Assert.assertEquals("\"www.google.com\".toURL().text\nreturn true\n", step2.getConditionScript());
+        Assert.assertEquals("step2", step2.getName());
+        Assert.assertEquals(PathUtil.build(flowName, "step2"), step2.getPath());
+        Assert.assertNull(step2.getScript());
+        Assert.assertEquals(false, step2.getAllowFailure());
+        Assert.assertEquals("token", step2.getEnv("FIR_TOKEN"));
+        Assert.assertEquals("path", step2.getEnv("FIR_PATH"));
+        Assert.assertEquals(root, step2.getParent());
+        Assert.assertEquals(step1, step2.getPrev());
+        Assert.assertNull(step2.getNext());
+    }
+
     @Test(expected = IllegalParameterException.class)
     public void should_raise_exception_when_save_flow_env_since_illegal_format() throws Throwable {
         // given:
@@ -250,7 +339,7 @@ public class NodeServiceTest extends TestBase {
         setFlowToReady(emptyFlow);
 
         String resourceContent = getResourceContent("yml/demo_flow.yaml");
-        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.updateByYml(emptyFlow.getPath(), resourceContent);
 
         Assert.assertEquals("FOUND", root.getEnv(FlowEnvs.FLOW_YML_STATUS));
 
@@ -266,7 +355,7 @@ public class NodeServiceTest extends TestBase {
         setFlowToReady(emptyFlow);
 
         String resourceContent = getResourceContent("yml/demo_flow.yaml");
-        Node root = nodeService.createOrUpdateYml(emptyFlow.getPath(), resourceContent);
+        Node root = nodeService.updateByYml(emptyFlow.getPath(), resourceContent);
 
         Assert.assertNotNull(nodeService.find(root.getPath()));
         Assert.assertNotNull(ymlService.get(root).getFile());
@@ -281,7 +370,13 @@ public class NodeServiceTest extends TestBase {
         nodeService.delete(root.getPath());
 
         // then: flow should be null
-        Assert.assertNull(nodeService.find(root.getPath()));
+        try {
+            Assert.assertNull(nodeService.find(root.getPath()));
+            fail();
+        } catch (Throwable e) {
+            Assert.assertTrue(e instanceof IllegalParameterException);
+        }
+
         Assert.assertEquals(false, Files.exists(NodeUtil.workspacePath(workspace, root)));
 
         // then: should return null if root node is not existed
@@ -322,5 +417,42 @@ public class NodeServiceTest extends TestBase {
 
         // not include 3 keys
         nodeService.createEmptyFlow("flw");
+    }
+
+
+    @Test
+    public void should_get_running_script_success() {
+        // given:
+        String flowName = "flow-yml";
+        Node emptyFlow = nodeService.createEmptyFlow(flowName);
+        setFlowToReady(emptyFlow);
+
+        // given: mock plugin list
+        Plugin plugin = new Plugin("fir-cli", "xx", ImmutableSet.of("fir"), "xx", ImmutableSet.of("*"));
+        plugin.setCurrentTag("1.0");
+        plugin.setPluginDetail(new PluginDetail("fir-cli", "fir upload xx"));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_TOKEN", PluginPropertyType.STRING, true));
+        plugin.getPluginDetail().getProperties().add(new PluginProperty("FIR_PATH", PluginPropertyType.STRING, true));
+
+        // given: mock find plugin
+        Mockito.when(pluginService.find("fir-cli")).thenReturn(plugin);
+
+        // when: create step set plugin
+        Node step = new Node(PathUtil.build(flowName, "step"), "step");
+        step.setPlugin("fir-cli");
+
+        String pluginFolder = Paths
+            .get(AppConfig.DEFAULT_AGENT_REPO_DIR, new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
+            .toString();
+        // then: running script should equal
+        Assert.assertEquals("cd " + pluginFolder + Unix.LINE_SEPARATOR + "fir upload xx",
+            nodeService.getRunningScript(step));
+
+        // when: create step not set plugin
+        Node noPluginStep = new Node(PathUtil.build(flowName, "noPluginStep"), "noPluginStep");
+        noPluginStep.setScript("echo a");
+
+        // then: running script should equal
+        Assert.assertEquals("echo a", nodeService.getRunningScript(noPluginStep));
     }
 }

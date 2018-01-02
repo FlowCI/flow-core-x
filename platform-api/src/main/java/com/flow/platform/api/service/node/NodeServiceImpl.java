@@ -15,13 +15,15 @@
  */
 package com.flow.platform.api.service.node;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.FlowDao;
-import com.flow.platform.api.dao.YmlDao;
-import com.flow.platform.api.dao.user.UserDao;
+import com.flow.platform.api.dao.job.JobNumberDao;
 import com.flow.platform.api.domain.Webhook;
+import com.flow.platform.api.domain.job.JobNumber;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.domain.sync.SyncRepo;
 import com.flow.platform.api.domain.user.Role;
 import com.flow.platform.api.domain.user.SysRole;
 import com.flow.platform.api.domain.user.User;
@@ -33,20 +35,32 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
+import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
+import com.flow.platform.api.service.user.UserService;
 import com.flow.platform.api.util.NodeUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.api.util.PluginUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
+import com.flow.platform.domain.Cmd;
+import com.flow.platform.plugin.domain.Plugin;
+import com.flow.platform.plugin.domain.PluginStatus;
+import com.flow.platform.plugin.service.PluginService;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,13 +89,13 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     private FlowDao flowDao;
 
     @Autowired
-    private YmlDao ymlDao;
-
-    @Autowired
     private Path workspace;
 
     @Autowired
-    private UserDao userDao;
+    private UserService userService;
+
+    @Autowired
+    private JobNumberDao jobNumberDao;
 
     @Autowired
     private UserFlowService userFlowService;
@@ -92,12 +106,15 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private PluginService pluginService;
+
     @Value(value = "${domain.api}")
     private String apiDomain;
 
     @Override
     @Transactional(noRollbackFor = FlowException.class)
-    public Node createOrUpdateYml(final String path, String yml) {
+    public Node updateByYml(final String path, final String yml) {
         final Node flow = find(PathUtil.rootPath(path)).root();
 
         if (Strings.isNullOrEmpty(yml)) {
@@ -107,19 +124,19 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
         Node rootFromYml;
         try {
-            rootFromYml = ymlService.verifyYml(flow, yml);
-        } catch (IllegalParameterException | YmlException e) {
+            rootFromYml = ymlService.build(flow, yml);
+        } catch (YmlException e) {
             updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());
-            throw new YmlException(e.getMessage());
+            throw e;
         }
 
-        // persistent flow type node to flow table with env which from yml
-        flow.putEnv(FlowEnvs.FLOW_YML_STATUS, FlowEnvs.YmlStatusValue.FOUND);
-        EnvUtil.merge(rootFromYml, flow, true);
-        flowDao.update(flow);
+        // validate plugin
+        pluginValidation(rootFromYml.getChildren());
 
-        Yml ymlStorage = new Yml(flow.getPath(), yml);
-        ymlDao.saveOrUpdate(ymlStorage);
+        // persistent flow type node to flow table with env which from yml
+        ymlService.saveOrUpdate(flow, yml);
+        EnvUtil.merge(rootFromYml, flow, true);
+        updateYmlState(flow, FlowEnvs.YmlStatusValue.FOUND, null);
 
         // reset cache
         getTreeCache().evict(flow.getPath());
@@ -129,34 +146,42 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
     }
 
     @Override
+    public Node updateByNodes(final String path, final List<Node> children) {
+        Node flow = find(PathUtil.rootPath(path)).root();
+
+        // validate plugin
+        pluginValidation(children);
+
+        // find exist yml
+        Yml exist = ymlService.get(flow.getPath());
+
+        Node flowForYml = Objects.isNull(exist) ?
+            new Node(flow.getPath(), flow.getName()) :
+            ymlService.build(flow, exist.getFile());
+
+        // set latest children and parse to yml
+        flowForYml.setChildren(children);
+        String ymlFromRoot = ymlService.parse(flowForYml);
+
+        // set YML status to found and update yml
+        ymlService.saveOrUpdate(flow, ymlFromRoot);
+        flowDao.update(flow);
+        updateYmlState(flow, FlowEnvs.YmlStatusValue.FOUND, null);
+
+        // reset cache
+        getTreeCache().evict(flow.getPath());
+
+        //retry find flow
+        return find(PathUtil.rootPath(path)).root();
+    }
+
+    @Override
+    @Transactional(readOnly = true, noRollbackFor = Throwable.class)
     public NodeTree find(final String path) {
-        final String rootPath = PathUtil.rootPath(path);
-
-        // load tree from tree cache
-        NodeTree tree = getTreeCache().get(rootPath, () -> {
-
-            Yml ymlStorage = ymlDao.get(rootPath);
-            Node flow = flowDao.get(path);
-
-            // has related yml
-            if (ymlStorage != null) {
-                return new NodeTree(ymlStorage.getFile(), flow);
-            }
-
-            if (flow != null) {
-                return new NodeTree(flow);
-            }
-
-            // root path not exist
-            return null;
-        });
-
-        // cleanup cache for null value
-        if (tree == null) {
-            getTreeCache().evict(rootPath);
-            return null;
+        NodeTree tree = findWithoutVerify(path);
+        if (Objects.isNull(tree)) {
+            throw new IllegalParameterException("Cannot get correct data for path: " + path);
         }
-
         return tree;
     }
 
@@ -171,11 +196,14 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         // delete job
         jobService.delete(rootPath);
 
+        // delete job number
+        jobNumberDao.delete(new JobNumber(path));
+
         // delete flow
         flowDao.delete(flow);
 
         // delete related yml storage
-        ymlDao.delete(new Yml(flow.getPath(), null));
+        ymlService.delete(flow);
 
         // delete local flow folder
         Path flowWorkspace = NodeUtil.workspacePath(workspace, flow);
@@ -189,7 +217,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
     @Override
     public boolean exist(final String path) {
-        return find(path) != null;
+        return findWithoutVerify(path) != null;
     }
 
     @Override
@@ -218,6 +246,9 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
 
         flow.setCreatedBy(currentUser().getEmail());
         flow = flowDao.save(flow);
+
+        // init job number for flow
+        jobNumberDao.save(new JobNumber(flow.getPath(), 0L));
 
         userFlowService.assign(currentUser(), flow);
         return flow;
@@ -266,7 +297,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             throw new IllegalParameterException("Email list must be provided");
         }
 
-        List<User> users = userDao.list(emailList);
+        List<User> users = userService.list(emailList);
         List<String> paths = Lists.newArrayList(rootPath);
 
         Node flow = find(rootPath).root();
@@ -277,6 +308,74 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
             user.setFlows(paths);
         }
         return users;
+    }
+
+    @Override
+    public String getRunningScript(Node node) {
+
+        if (!Strings.isNullOrEmpty(node.getPlugin())) {
+            Plugin plugin = pluginService.find(node.getPlugin());
+
+            if (Objects.isNull(plugin)) {
+                throw new FlowException("Not found plugin, plugin name is " + node.getPlugin());
+            }
+
+            if (Objects.isNull(plugin.getPluginDetail())) {
+                throw new FlowException("Not found plugin detail, plugin name is " + node.getPlugin());
+            }
+
+            String pluginFolder = Paths
+                .get(AppConfig.DEFAULT_AGENT_REPO_DIR,
+                    new SyncRepo(plugin.getName(), plugin.getCurrentTag()).toString())
+                .toString();
+
+            return "cd " + pluginFolder + Unix.LINE_SEPARATOR + plugin.getPluginDetail().getRun();
+        }
+
+        return node.getScript();
+    }
+
+    /**
+     * Validate children node which use plugin
+     */
+    private void pluginValidation(List<Node> children) {
+        ImmutableSet<PluginStatus> status = ImmutableSet.of(PluginStatus.INSTALLED);
+        Collection<Plugin> list = pluginService.list(status, null, null);
+        PluginUtil.validate(children, list);
+    }
+
+    private NodeTree findWithoutVerify(final String path) {
+        final String rootPath = PathUtil.rootPath(path);
+
+        // load tree from tree cache
+        NodeTree tree = getTreeCache().get(rootPath, () -> {
+
+            Yml ymlStorage = ymlService.get(rootPath);
+            Node flow = flowDao.get(path);
+
+            try {
+                // has related yml
+                if (ymlStorage != null) {
+                    return new NodeTree(ymlStorage.getFile(), flow);
+                }
+
+                if (flow != null) {
+                    return new NodeTree(flow);
+                }
+            } catch (Throwable e) {
+                LOGGER.error("Cannot load node tree", e);
+            }
+
+            // root path not exist
+            return null;
+        });
+
+        // cleanup cache for null value
+        if (Objects.isNull(tree)) {
+            getTreeCache().evict(rootPath);
+        }
+
+        return tree;
     }
 
     private String hooksUrl(final Node flow) {

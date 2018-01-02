@@ -17,6 +17,7 @@
 package com.flow.platform.api.test.dao;
 
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.api.domain.job.JobNumber;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
@@ -43,10 +44,13 @@ public class JobDaoTest extends TestBase {
 
     @Before
     public void before() {
+        String nodePath = "flow/test";
+        jobNumberDao.save(new JobNumber(nodePath));
+
         job = new Job(CommonUtil.randomId());
-        job.setNodePath("flow/test");
+        job.setNodePath(nodePath);
         job.setNodeName("test");
-        job.setNumber(1);
+        job.setNumber(jobNumberDao.increase(nodePath).getNumber());
         job.setSessionId(UUID.randomUUID().toString());
         jobDao.save(job);
 
@@ -97,15 +101,6 @@ public class JobDaoTest extends TestBase {
     }
 
     @Test
-    public void should_get_max_build_number() {
-        Integer number = jobDao.maxBuildNumber(job.getNodePath());
-        Assert.assertNotNull(number);
-        Assert.assertEquals(1, number.intValue());
-
-        Assert.assertEquals(0, jobDao.maxBuildNumber("flows").intValue());
-    }
-
-    @Test
     public void should_list_job_by_status() {
         // given: job with created status
         Assert.assertEquals(1, jobDao.listByStatus(EnumSet.of(JobStatus.CREATED)).size());
@@ -125,7 +120,7 @@ public class JobDaoTest extends TestBase {
         Job newJob = new Job(CommonUtil.randomId());
         newJob.setNodePath(job.getNodePath());
         newJob.setNodeName(job.getNodeName());
-        newJob.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
+        newJob.setNumber(jobNumberDao.increase(job.getNodePath()).getNumber());
         newJob.setSessionId(UUID.randomUUID().toString());
         jobDao.save(newJob);
 

@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.domain.sync.Sync;
 import com.flow.platform.api.domain.sync.SyncEvent;
 import com.flow.platform.api.domain.sync.SyncRepo;
@@ -23,7 +24,6 @@ import com.flow.platform.api.domain.sync.SyncTask;
 import com.flow.platform.api.domain.sync.SyncType;
 import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.service.job.CmdService;
-import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.Agent;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
@@ -32,7 +32,7 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.domain.CmdType;
-import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.git.GitException;
@@ -41,10 +41,13 @@ import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,6 +91,8 @@ public class SyncServiceImpl implements SyncService {
     @Value("${domain.api}")
     private String apiDomain;
 
+    private Set<SyncRepo> repos = Collections.emptySet();
+
     private String callbackUrl;
 
     @PostConstruct
@@ -97,6 +102,7 @@ public class SyncServiceImpl implements SyncService {
         taskExecutor.execute(() -> {
             try {
                 LOGGER.trace("Start to init agent list in thread: " + Thread.currentThread().getName());
+                load();
 
                 List<Agent> agents = agentService.list();
                 for (Agent agent : agents) {
@@ -112,31 +118,54 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
+    public void load() {
+        final List<Repository> gitRepos = gitService.repos();
+        repos = new HashSet<>(gitRepos.size());
+
+        for (Repository repo : gitRepos) {
+            try {
+                List<String> tags = JGitUtil.tags(repo);
+                String gitRepoName = repo.getDirectory().getName();
+
+                // git repo needs tags
+                if (tags.isEmpty()) {
+                    LOGGER.warn("Git repo '%s' cannot be synced since missing tag", gitRepoName);
+                    continue;
+                }
+
+                gitRepoName = StringUtil.trimEnd(gitRepoName, ".git");
+                repos.add(new SyncRepo(gitRepoName, tags.get(0)));
+            } catch (GitException e) {
+                LOGGER.warn(e.getMessage());
+            } finally {
+                repo.close();
+            }
+        }
+    }
+
+    @Override
     public void put(SyncEvent event) {
         for (Sync syncForAgent : syncs.values()) {
-            PlatformQueue<PriorityMessage> agentQueue = syncForAgent.getQueue();
-            agentQueue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+            syncForAgent.enqueue(event, DEFAULT_SYNC_QUEUE_PRIORITY);
         }
     }
 
     @Override
     public void reset() {
-        List<SyncEvent> events = initSyncEventFromGitWorkspace();
+        List<SyncEvent> events = toEvents(repos, SyncType.CREATE);
         events.add(0, SyncEvent.DELETE_ALL);
 
         Set<Sync> cleanSet = new HashSet<>(syncs.size());
 
         for (Sync syncForAgent : syncs.values()) {
-            PlatformQueue<PriorityMessage> agentQueue = syncForAgent.getQueue();
-
             if (!cleanSet.contains(syncForAgent)) {
-                agentQueue.clean();
+                syncForAgent.cleanQueue();
                 cleanSet.add(syncForAgent);
             }
 
             for (SyncEvent event : events) {
                 event.setGitUrl(createGitUrl(event.getRepo().getName())); // ensure git url is correct
-                agentQueue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+                syncForAgent.enqueue(event, DEFAULT_SYNC_QUEUE_PRIORITY);
             }
         }
     }
@@ -163,13 +192,12 @@ public class SyncServiceImpl implements SyncService {
             return;
         }
 
-        PlatformQueue<PriorityMessage> queue = syncQueueCreator.create(agent.toString() + "-sync");
-        syncs.put(agent, new Sync(agent, queue));
+        Sync sync = new Sync(agent, syncQueueCreator.create(agent.toString() + "-sync"));
+        syncs.put(agent, sync);
 
         // init sync event from git
-        List<SyncEvent> syncEvents = initSyncEventFromGitWorkspace();
-        for (SyncEvent event : syncEvents) {
-            queue.enqueue(PriorityMessage.create(event.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+        for (SyncEvent event : toEvents(repos, SyncType.CREATE)) {
+            sync.enqueue(event, DEFAULT_SYNC_QUEUE_PRIORITY);
         }
     }
 
@@ -222,12 +250,12 @@ public class SyncServiceImpl implements SyncService {
         } else if (cmd.getType() == CmdType.RUN_SHELL) {
             if (Cmd.FINISH_STATUS.contains(cmd.getStatus())) {
                 CmdResult result = cmd.getCmdResult();
-                if (result == null) {
+                if (Objects.isNull(result)) {
                     result = CmdResult.EMPTY;
                 }
 
                 boolean shouldSendBack = false;
-                if (result.getExitValue() == null || result.getExitValue() != 0) {
+                if (Objects.isNull(result.getExitValue()) || result.getExitValue() != 0) {
                     shouldSendBack = true;
                 }
 
@@ -236,8 +264,7 @@ public class SyncServiceImpl implements SyncService {
                 Sync sync = syncs.get(cmd.getAgentPath());
                 if (sync != null) {
                     if (shouldSendBack) {
-                        sync.getQueue()
-                            .enqueue(PriorityMessage.create(current.toBytes(), DEFAULT_SYNC_QUEUE_PRIORITY));
+                        sync.enqueue(current, DEFAULT_SYNC_QUEUE_PRIORITY);
                     }
 
                     // update agent repo list from env FLOW_SYNC_LIST
@@ -258,7 +285,7 @@ public class SyncServiceImpl implements SyncService {
             CmdInfo runShell = new CmdInfo(cmd.getAgentPath(), CmdType.RUN_SHELL, next.toScript());
             runShell.setWebhook(callbackUrl);
             runShell.setSessionId(cmd.getSessionId());
-            runShell.setWorkingDir(DEFAULT_CMD_DIR);
+            runShell.setWorkingDir(AppConfig.DEFAULT_AGENT_REPO_DIR);
             runShell.setOutputEnvFilter(EnvUtil.parseCommaEnvToList(SyncEvent.FLOW_SYNC_LIST));
             cmdService.sendCmd(runShell, false, 0);
         }
@@ -275,13 +302,12 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public void sync(AgentPath agentPath) {
         Sync sync = syncs.get(agentPath);
-
         if (sync == null) {
             return;
         }
 
         // create queue for agent task
-        SyncTask task = new SyncTask(agentPath, buildSyncEventQueueForTask(sync.getQueue()));
+        SyncTask task = new SyncTask(agentPath, buildSyncEventQueueForTask(sync));
         syncTasks.put(agentPath, task);
 
         // create cmd to create sync session with higher priority then job, the extra field record node path
@@ -297,7 +323,7 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    @Scheduled(fixedDelay = 60 * 1000 * 30, initialDelay = 60 * 1000)
+    @Scheduled(fixedDelay = 60 * 1000 * 10, initialDelay = 60 * 1000)
     public void syncTask() {
         for (AgentPath agentPath : syncs.keySet()) {
             sync(agentPath);
@@ -312,68 +338,43 @@ public class SyncServiceImpl implements SyncService {
      */
     private void updateAgentRepo(Sync sync, String latestReposStr) {
         if (Strings.isNullOrEmpty(latestReposStr)) {
-            sync.setRepos(Collections.emptyList());
+            sync.getRepos().clear();
             return;
         }
 
-        String[] repos = latestReposStr.split(Cmd.NEW_LINE);
-        List<SyncRepo> latestRepos = new ArrayList<>(repos.length);
+        String[] repos = latestReposStr.split(Unix.LINE_SEPARATOR);
         for (String repo : repos) {
             SyncRepo repoObj = SyncRepo.build(repo);
-            if (repoObj != null) {
-                latestRepos.add(repoObj);
+            if (Objects.isNull(repoObj)) {
+                continue;
             }
-        }
 
-        sync.setRepos(latestRepos);
+            sync.getRepos().add(repoObj);
+        }
     }
 
     /**
      * Build sync task from agent sync queue and list agent repos at the last
      */
-    private Queue<SyncEvent> buildSyncEventQueueForTask(PlatformQueue<PriorityMessage> agentSyncQueue) {
+    private Queue<SyncEvent> buildSyncEventQueueForTask(Sync sync) {
         Queue<SyncEvent> syncEventQueue = new ConcurrentLinkedQueue<>();
 
-        PriorityMessage message;
-        while ((message = agentSyncQueue.dequeue()) != null) {
-            SyncEvent event = SyncEvent.parse(message.getBody(), SyncEvent.class);
+        SyncEvent event = null;
+        while ((event = sync.dequeue()) != null) {
             syncEventQueue.add(event);
         }
 
         // list agent exist repos finally
         syncEventQueue.add(SyncEvent.LIST);
-
         return syncEventQueue;
     }
 
-    /**
-     * Load sync event from git repo
-     */
-    private List<SyncEvent> initSyncEventFromGitWorkspace() {
-        List<Repository> repos = gitService.repos();
-        List<SyncEvent> syncEvents = new ArrayList<>(repos.size());
-
-        for (Repository repo : repos) {
-            try {
-                List<String> tags = JGitUtil.tags(repo);
-                String gitRepoName = repo.getDirectory().getName();
-
-                // git repo needs tags
-                if (tags.isEmpty()) {
-                    LOGGER.warn("Git repo '%s' cannot be synced since missing tag", gitRepoName);
-                    continue;
-                }
-
-                gitRepoName = StringUtil.trimEnd(gitRepoName, ".git");
-                syncEvents.add(new SyncEvent(createGitUrl(gitRepoName), gitRepoName, tags.get(0), SyncType.CREATE));
-            } catch (GitException e) {
-                LOGGER.warn(e.getMessage());
-            } finally {
-                repo.close();
-            }
+    private List<SyncEvent> toEvents(Collection<SyncRepo> repos, SyncType syncType) {
+        List<SyncEvent> events = new LinkedList<>();
+        for (SyncRepo repo : repos) {
+            events.add(new SyncEvent(createGitUrl(repo.getName()), repo.getName(), repo.getTag(), syncType));
         }
-
-        return syncEvents;
+        return events;
     }
 
     private String createGitUrl(String repoName) {

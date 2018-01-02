@@ -11,8 +11,28 @@ fi
 
 # set mysql host, default 127.0.0.1
 if [[ ! -n $MYSQL_HOST ]]; then
-	export $MYSQL_HOST=127.0.0.1
+	export MYSQL_HOST=127.0.0.1
 fi
+
+# set default port, default is 2181
+if [[ ! -n $FLOW_ZOOKEEPER_PORT ]]; then
+    export FLOW_ZOOKEEPER_PORT=2181
+fi
+
+# set zookeeper is embedded or not, default is true
+if [[ ! -n $FLOW_ZOOKEEPER_EMBEDDED ]]; then
+    export FLOW_ZOOKEEPER_EMBEDDED=true
+fi
+
+if [[ $FLOW_ZOOKEEPER_EMBEDDED = "true" ]]; then
+	export FLOW_ZOOKEEPER_HOST=$FLOW_API_DOMAIN
+else
+	if [[ ! -n $FLOW_ZOOKEEPER_HOST ]]; then
+		echo "Because you select auto define zookeeper, Please set FLOW_ZOOKEEPER_HOST"
+		exit 1;
+	fi
+fi
+
 
 # set default port, default is 8080
 if [[ ! -n $PORT ]]; then
@@ -80,6 +100,8 @@ echo "running migration"
 /flyway/flyway -user=$MYSQL_USER -password=$MYSQL_PASSWORD -ignoreMissingMigrations=true -baselineOnMigrate=true -baselineVersion=1.0 -locations=filesystem:$MIGRATION_PATH/cc -url=jdbc:mysql://$MYSQL_HOST:3306/flow_cc_db  migrate
 echo "finish migration"
 
+# start docker
+service docker start
 
 # Four: everything ready, to run tomcat
 exec $cmd

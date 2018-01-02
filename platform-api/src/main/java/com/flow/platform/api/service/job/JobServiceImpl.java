@@ -24,10 +24,12 @@ import static com.flow.platform.api.envs.FlowEnvs.FLOW_YML_STATUS;
 import static com.flow.platform.api.envs.FlowEnvs.StatusValue;
 
 import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.JobNumberDao;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.domain.EnvObject;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
+import com.flow.platform.api.domain.job.JobNumber;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeStatus;
@@ -85,7 +87,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -111,13 +112,16 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private String apiDomain;
 
     @Autowired
+    private JobDao jobDao;
+
+    @Autowired
+    private JobNumberDao jobNumberDao;
+
+    @Autowired
     private NodeResultService nodeResultService;
 
     @Autowired
     private JobNodeService jobNodeService;
-
-    @Autowired
-    private JobDao jobDao;
 
     @Autowired
     private GitService gitService;
@@ -141,7 +145,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     private ThreadPoolTaskExecutor taskExecutor;
 
     @Override
-    public Job find(String flowName, Integer number) {
+    public Job find(String flowName, Long number) {
         Job job = jobDao.get(flowName, number);
         return find(job);
     }
@@ -158,7 +162,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public String findYml(String path, Integer number) {
+    public String findYml(String path, Long number) {
         Job job = find(path, number);
         return jobNodeService.find(job).getFile();
     }
@@ -172,7 +176,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    @Transactional(noRollbackFor = FlowException.class, isolation = Isolation.SERIALIZABLE)
+    @Transactional(noRollbackFor = FlowException.class)
     public Job createFromFlowYml(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         // verify flow yml status
         Node flow = nodeService.find(path).root();
@@ -300,11 +304,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
     private Job createJob(String path, JobCategory eventType, Map<String, String> envs, User creator) {
         Node root = nodeService.find(PathUtil.rootPath(path)).root();
-        if (root == null) {
+        if (Objects.isNull(root)) {
             throw new IllegalParameterException("Path does not existed");
         }
 
-        if (creator == null) {
+        if (Objects.isNull(creator)) {
             throw new IllegalParameterException("User is required while create job");
         }
 
@@ -319,11 +323,19 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             throw new IllegalStatusException("Cannot create job since status is not READY");
         }
 
+        // increate flow job number
+        JobNumber jobNumber = jobNumberDao.get(root.getPath());
+        if (Objects.isNull(jobNumber)) {
+            throw new IllegalStatusException("Job number not been initialized");
+        }
+
+        jobNumber = jobNumberDao.increase(root.getPath());
+
         // create job
         Job job = new Job(CommonUtil.randomId());
         job.setNodePath(root.getPath());
         job.setNodeName(root.getName());
-        job.setNumber(jobDao.maxBuildNumber(job.getNodePath()) + 1);
+        job.setNumber(jobNumber.getNumber());
         job.setCategory(eventType);
         job.setCreatedBy(creator.getEmail());
         job.setCreatedAt(ZonedDateTime.now());
@@ -348,7 +360,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
      * @param node job node's script and record cmdId and sync send http
      */
     private void run(Node node, Job job) {
-        if (node == null) {
+        if (Objects.isNull(node)) {
             throw new IllegalParameterException("Cannot run node with null value");
         }
 
@@ -366,7 +378,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // run condition script
         if (!executeConditionScript(job, node, envVars)) {
             Node next = tree.next(node.getPath());
-            if (next == null) {
+            if (Objects.isNull(next)) {
                 stopJob(job);
                 return;
             }
@@ -521,7 +533,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         LOGGER.debug("Run shell callback for node result: %s", nodeResult);
 
         // no more node to run and status is not running
-        if (next == null && !nodeResult.isRunning()) {
+        if (Objects.isNull(next) && !nodeResult.isRunning()) {
             stopJob(job);
             return;
         }
@@ -535,26 +547,31 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         // continue to run if allow failure on failure status
         if (nodeResult.isFailure() && nodeResult.getNodeTag() == NodeTag.STEP) {
             Node step = node;
-            if (step.getAllowFailure()) {
+
+            // run next node if allow failure or final node on current step
+            if (step.getAllowFailure() || step.getIsFinal()) {
                 run(next, job);
+                return;
             }
 
-            // clean up session if node result failure and set job status to error
-
-            //TODO: Missing unit test
-            else {
-                stopJob(job);
+            // run next final node if exist
+            next = tree.nextFinal(step.getPath());
+            if (!Objects.isNull(next)) {
+                run(next, job);
+                return;
             }
+
+            stopJob(job);
         }
     }
 
     @Override
-    public void enqueue(CmdCallbackQueueItem cmdQueueItem, int priority) {
+    public void enqueue(CmdCallbackQueueItem cmdQueueItem, long priority) {
         cmdCallbackQueue.enqueue(PriorityMessage.create(cmdQueueItem.toBytes(), priority));
     }
 
     @Override
-    public Job stop(String path, Integer buildNumber) {
+    public Job stop(String path, Long buildNumber) {
         Job runningJob = find(path, buildNumber);
         NodeResult result = runningJob.getRootResult();
 
@@ -725,7 +742,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private Job find(Job job) {
-        if (job == null) {
+        if (Objects.isNull(job)) {
             throw new NotFoundException("Job is not found");
         }
 

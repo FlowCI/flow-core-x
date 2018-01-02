@@ -49,11 +49,13 @@ public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "API";
 
-    public final static String VERSION = "v0.1.3-alpha";
+    public final static String VERSION = "v0.1.4-alpha";
 
     public final static String DEFAULT_YML_FILE = ".flow.yml";
 
     public final static Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+
+    public final static String DEFAULT_AGENT_REPO_DIR = Paths.get("${HOME}", ".flow-agent", "repos").toString();
 
     private final static Logger LOGGER = new Logger(AppConfig.class);
 

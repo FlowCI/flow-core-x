@@ -20,9 +20,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
+import com.flow.platform.plugin.dao.PluginDao;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.service.PluginService;
-import com.flow.platform.plugin.dao.PluginDao;
 import com.flow.platform.util.git.JGitUtil;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Files;
@@ -33,6 +33,7 @@ import java.nio.file.Paths;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -105,10 +106,10 @@ public abstract class TestBase {
 
     protected void initGit() {
 
+        RevCommit commit = null;
         try {
             mocGit = temporaryFolder.newFolder(DEMO_GIT_NAME + GIT_SUFFIX);
             gitCloneMocGit = temporaryFolder.newFolder(DEMO_GIT_NAME);
-            initGit();
 
             JGitUtil.init(mocGit.toPath(), true);
             JGitUtil.clone(mocGit.toString(), gitCloneMocGit.toPath());
@@ -118,13 +119,13 @@ public abstract class TestBase {
 
             // add yml file
             String body = getResource("flow-step-demo.yml");
-            Path path = Paths.get(gitCloneMocGit.toString(), "flow-step.yml");
+            Path path = Paths.get(gitCloneMocGit.toString(), ".flow-plugin.yml");
             FileUtils.write(path.toFile(), body);
 
             // add
             Git git = Git.open(gitCloneMocGit);
             git.add().addFilepattern(".").call();
-            git.commit().setMessage("firCi").call();
+            commit = git.commit().setMessage("firCi").call();
             JGitUtil.push(gitCloneMocGit.toPath(), "origin", "master");
 
             // git push tag
@@ -135,8 +136,9 @@ public abstract class TestBase {
         }
 
         // update plugin to local git
-        for (Plugin plugin : pluginDao.list()) {
-            plugin.setDetails(mocGit.getParent() + "/firCi");
+        for (Plugin plugin : pluginDao.list(null, null, null)) {
+            plugin.setSource(mocGit.getParent() + "/firCi");
+            plugin.setLatestCommit(commit.getId().getName());
             pluginDao.update(plugin);
         }
     }

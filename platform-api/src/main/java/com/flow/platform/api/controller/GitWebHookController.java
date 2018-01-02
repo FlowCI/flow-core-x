@@ -35,6 +35,7 @@ import com.flow.platform.util.git.GitException;
 import com.flow.platform.util.git.hooks.GitHookEventFactory;
 import com.flow.platform.util.git.model.GitEvent;
 import com.flow.platform.util.git.model.GitEventType;
+import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 import java.io.IOException;
 import java.util.Map;
@@ -59,6 +60,8 @@ public class GitWebHookController extends NodeController {
 
     private final static Logger LOGGER = new Logger(GitWebHookController.class);
 
+    private final static String SKIP_SIGNAL = "[skip]";
+
     @Autowired
     private JobService jobService;
 
@@ -80,12 +83,17 @@ public class GitWebHookController extends NodeController {
 
         try {
             final GitEvent hookEvent = GitHookEventFactory.build(headerAsMap, body);
-            LOGGER.trace("Git Webhook received: %s", hookEvent.toString());
-
             Node flow = nodeService.find(path).root();
-
             // extract git related env variables from event, and temporary set to node for git loading
             final Map<String, String> gitEnvs = GitEventEnvConverter.convert(hookEvent);
+
+            LOGGER.trace("Git Webhook received: %s", hookEvent.toString());
+
+            final String changeLog = gitEnvs.get(GitEnvs.FLOW_GIT_CHANGELOG.toString());
+            if (!Strings.isNullOrEmpty(changeLog) && changeLog.contains(SKIP_SIGNAL)) {
+                LOGGER.trace("Skipped");
+                return;
+            }
 
             if (!canExecuteGitEvent(flow, gitEnvs)) {
                 LOGGER.warn("The git event not match flow settings");

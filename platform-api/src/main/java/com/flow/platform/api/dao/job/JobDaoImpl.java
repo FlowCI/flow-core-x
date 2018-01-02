@@ -66,7 +66,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public List<Job> list(List<String> sessionIds, NodeStatus nodeStatus) {
         return execute((Session session) -> {
             NativeQuery nativeQuery = session.createNativeQuery(
-                JOB_QUERY + " where job.session_id in (:sessionIds) and nr.node_status=:status")
+                JOB_QUERY + " WHERE job.session_id IN (:sessionIds) AND nr.node_status=:status")
                 .setParameter("sessionIds", sessionIds)
                 .setParameter("status", nodeStatus.getName())
                 .setResultSetMapping("MappingJobResult");
@@ -79,7 +79,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public Job get(BigInteger key) {
         return execute((Session session) -> {
-            NativeQuery nativeQuery = session.createNativeQuery(JOB_QUERY + " where job.id=:id")
+            NativeQuery nativeQuery = session.createNativeQuery(JOB_QUERY + " WHERE job.id=:id")
                 .setParameter("id", key)
                 .setResultSetMapping("MappingJobResult");
 
@@ -87,7 +87,6 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             return JobConvertUtil.convert(objects);
         });
     }
-
 
 
     @Override
@@ -143,10 +142,10 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
-    public Job get(String path, Integer number) {
+    public Job get(String path, Long number) {
         return execute((Session session) -> {
             NativeQuery nativeQuery = session.createNativeQuery(
-                JOB_QUERY + " where job.node_path=:name and job.build_number=:build_number")
+                JOB_QUERY + " WHERE job.node_path=:name AND job.build_number=:build_number")
                 .setParameter("name", path)
                 .setParameter("build_number", number)
                 .setResultSetMapping("MappingJobResult");
@@ -163,27 +162,10 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     }
 
     @Override
-    public Integer maxBuildNumber(String path) {
-        return execute((Session session) -> {
-            String select = "select max(build_number) from job where node_path=:node_path";
-            Integer integer = (Integer) session
-                .createNativeQuery(select)
-                .setParameter("node_path", path)
-                .uniqueResult();
-
-            if (integer == null) {
-                integer = 0;
-            }
-
-            return integer;
-        });
-    }
-
-    @Override
     public List<BigInteger> findJobIdsByPath(String path) {
         return execute(session -> session
-            .createQuery("select id from Job where nodePath = ?", BigInteger.class)
-            .setParameter(0, path)
+            .createQuery("select id from Job where nodePath = :node_path", BigInteger.class)
+            .setParameter("node_path", path)
             .list());
     }
 
@@ -194,5 +176,14 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             .createQuery("delete from Job where nodePath = ?")
             .setParameter(0, path)
             .executeUpdate());
+    }
+
+    @Override
+    public Long numOfJob(String path) {
+        return execute(session ->
+            session.createQuery("select count(id) from Job where nodePath = :node_path", Long.class)
+                .setParameter("node_path", path)
+                .uniqueResult()
+        );
     }
 }

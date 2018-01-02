@@ -16,23 +16,9 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.service.node.EnvService;
 import com.flow.platform.api.service.node.NodeService;
-import com.flow.platform.api.util.PathUtil;
-import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.core.exception.NotFoundException;
-import com.google.common.base.Strings;
-import java.util.HashMap;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * Base node controller, the path of node path variable used with {root}/{child}

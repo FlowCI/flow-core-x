@@ -15,6 +15,7 @@
  */
 package com.flow.platform.api.service;
 
+import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.domain.credential.AndroidCredentialDetail;
 import com.flow.platform.api.domain.credential.Credential;
@@ -24,26 +25,38 @@ import com.flow.platform.api.domain.credential.IosCredentialDetail;
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.RSAKeyPair;
 import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
-import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.file.FileResource;
+import com.flow.platform.api.domain.file.PasswordFileResource;
 import com.flow.platform.api.envs.GitEnvs;
-import com.flow.platform.api.exception.NodeSettingsException;
+import com.flow.platform.api.util.ZipUtil;
+import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.util.CollectionUtil;
+import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.StringUtil;
-import com.flow.platform.util.git.model.GitSource;
 import com.google.common.base.Strings;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.PostConstruct;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,8 +68,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CredentialServiceImpl extends CurrentUser implements CredentialService {
 
+    private final static String PRIVATE_KEY_SUFFIX = "id_rsa";
+
+    private final static String PUBLIC_KEY_SUFFIX = "id_rsa.pub";
+
+    private final static String ZIP_SUFFIX = ".zip";
+
+    private final static String CREDENTIAL_FOLDER = "credentials";
+
     @Autowired
     private CredentialDao credentialDao;
+
+    @Autowired
+    private Path workspace;
 
     private final Map<CredentialType, DetailHandler> handlerMapping = new HashMap<>();
 
@@ -75,6 +99,24 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
 
         return credentialDao.listByType(types);
+    }
+
+    @Override
+    public Resource download(String name) {
+        Credential credential = credentialDao.get(name);
+
+        if (Objects.isNull(credential)) {
+            throw new FlowException("Credential not found " + name);
+        }
+
+        Resource resource = handlerMapping.get(credential.getDetail().getType())
+            .resource(credential.getDetail(), credential.getName());
+
+        if (Objects.isNull(resource)) {
+            throw new FlowException("Not found resource");
+        }
+
+        return resource;
     }
 
     @Override
@@ -154,6 +196,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
     public void delete(String name) {
         Credential credential = find(name);
         credentialDao.delete(credential);
+        deleteZipResource(name);
     }
 
     @Override
@@ -187,12 +230,66 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
     }
 
-    private interface DetailHandler<T extends CredentialDetail> {
+    private Path buildCredentialPath(String name) {
+        Path credentialPath = Paths.get(workspace.toString(), CREDENTIAL_FOLDER, name);
+        try {
+            Files.createDirectories(credentialPath);
+        } catch (IOException e) {
+            throw new FlowException("Create tmp directory happens exceptions " + ExceptionUtil.findRootCause(e));
+        }
 
-        void handle(T detail);
+        return credentialPath;
     }
 
-    private class RSADetailHandler implements DetailHandler<RSACredentialDetail> {
+    private void deleteZipResource(String name) {
+        Path path = buildCredentialPath(name);
+        try {
+            Files.deleteIfExists(Paths.get(path.toString() + ZIP_SUFFIX));
+        } catch (IOException e) {
+        }
+    }
+
+    private abstract class DetailHandler<T extends CredentialDetail> {
+
+        abstract void handle(T detail);
+
+        public Resource resource(T detail, String name) {
+            Path credentialPath = buildCredentialPath(name);
+            Path zipPath = Paths.get(credentialPath.toString() + ZIP_SUFFIX);
+            File targetFile = new File(zipPath.toString());
+            Resource resource;
+
+            if (!targetFile.exists()) {
+                loadResource(detail, credentialPath);
+            }
+
+            try {
+                InputStream inputStream = new FileInputStream(targetFile);
+                resource = new InputStreamResource(inputStream);
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            } finally {
+                if (Files.exists(credentialPath)) {
+                    deleteResource(credentialPath);
+                }
+            }
+
+            return resource;
+        }
+
+        public void loadResource(T detail, Path tmp) {
+        }
+
+        public void deleteResource(Path tmp) {
+            try {
+                FileUtils.deleteDirectory(tmp.toFile());
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            }
+        }
+    }
+
+    private class RSADetailHandler extends DetailHandler<RSACredentialDetail> {
 
         @Override
         public void handle(RSACredentialDetail detail) {
@@ -202,9 +299,33 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
                 detail.setPrivateKey(pair.getPrivateKey());
             }
         }
+
+
+        /**
+         * read resource to zip file
+         * @param detail
+         * @param tmp
+         */
+        @Override
+        public void loadResource(RSACredentialDetail detail, Path tmp) {
+            Path zipPath = Paths.get(tmp.toString() + ZIP_SUFFIX);
+            Path privateKey = Paths.get(tmp.toString(), PRIVATE_KEY_SUFFIX);
+            Path publicKey = Paths.get(tmp.toString(), PUBLIC_KEY_SUFFIX);
+            File targetFile = new File(zipPath.toString());
+            try {
+                Files.write(privateKey, detail.getPrivateKey().getBytes(AppConfig.DEFAULT_CHARSET));
+                Files.write(publicKey, detail.getPublicKey().getBytes(AppConfig.DEFAULT_CHARSET));
+
+                ZipUtil.zipFolder(tmp.toFile(), targetFile);
+
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            }
+        }
+
     }
 
-    private class UsernameDetailHandler implements DetailHandler<UsernameCredentialDetail> {
+    private class UsernameDetailHandler extends DetailHandler<UsernameCredentialDetail> {
 
         @Override
         public void handle(UsernameCredentialDetail detail) {
@@ -212,7 +333,7 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
     }
 
-    private class AndroidDetailHandler implements DetailHandler<AndroidCredentialDetail> {
+    private class AndroidDetailHandler extends DetailHandler<AndroidCredentialDetail> {
 
         @Override
         public void handle(AndroidCredentialDetail detail) {
@@ -220,11 +341,30 @@ public class CredentialServiceImpl extends CurrentUser implements CredentialServ
         }
     }
 
-    private class IosDetailHandler implements DetailHandler<IosCredentialDetail> {
+    private class IosDetailHandler extends DetailHandler<IosCredentialDetail> {
 
         @Override
         public void handle(IosCredentialDetail detail) {
+        }
 
+        @Override
+        public void loadResource(IosCredentialDetail detail, Path tmp) {
+            Path zipPath = Paths.get(tmp.toString() + ZIP_SUFFIX);
+            File targetFile = new File(zipPath.toString());
+
+            try {
+                for (PasswordFileResource passwordFileResource : detail.getP12s()) {
+                    FileUtils.copyFileToDirectory(Paths.get(passwordFileResource.getPath()).toFile(), tmp.toFile());
+                }
+
+                for (FileResource fileResource : detail.getProvisionProfiles()) {
+                    FileUtils.copyFileToDirectory(Paths.get(fileResource.getPath()).toFile(), tmp.toFile());
+                }
+
+                ZipUtil.zipFolder(tmp.toFile(), targetFile);
+            } catch (IOException e) {
+                throw new FlowException("Io exception " + ExceptionUtil.findRootCause(e));
+            }
         }
     }
 }

@@ -16,11 +16,19 @@
 
 package com.flow.platform.plugin.test.util;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
+
 import com.flow.platform.util.git.JGitUtil;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,5 +74,6 @@ public class GitHelperUtilTest {
         Assert.assertEquals("1.0", JGitUtil.tags(gitFile.toPath()).get(0));
 
     }
+
 
 }

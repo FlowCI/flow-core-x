@@ -18,7 +18,6 @@ package com.flow.platform.core.queue;
 
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.queue.InMemoryQueue;
-import java.util.Comparator;
 import java.util.concurrent.Executor;
 
 /**
@@ -28,10 +27,5 @@ public class MemoryQueue extends InMemoryQueue<PriorityMessage> implements Conte
 
     public MemoryQueue(Executor executor, int maxSize, String name) {
         super(executor, maxSize, name);
-    }
-
-    public MemoryQueue(Executor executor, int maxSize, String name,
-                       Comparator<PriorityMessage> comparator) {
-        super(executor, maxSize, name, comparator);
     }
 }

@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.test.service;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
@@ -34,6 +35,7 @@ import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
@@ -51,12 +53,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author yh@firim
  */
+@FixMethodOrder(MethodSorters.JVM)
 public class JobServiceTest extends TestBase {
 
     @Autowired
@@ -64,6 +70,9 @@ public class JobServiceTest extends TestBase {
 
     @Autowired
     private PlatformQueue<PriorityMessage> cmdCallbackQueue;
+
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
 
     @Before
     public void init() {
@@ -74,6 +83,26 @@ public class JobServiceTest extends TestBase {
     public void should_raise_exception_since_flow_status_is_not_ready() throws IOException {
         Node rootForFlow = nodeService.createEmptyFlow("flow1");
         jobService.createFromFlowYml(rootForFlow.getPath(), JobCategory.MANUAL, null, mockUser);
+    }
+
+    @Test
+    public void should_create_job_with_unique_job_number() throws Throwable {
+        // given:
+        final Node flow = createRootFlow("flow-job-number", "yml/demo_flow2.yaml");
+        final int numOfJob = 10;
+        final CountDownLatch countDown = new CountDownLatch(numOfJob);
+
+        // when:
+        for (int i = 0; i < numOfJob; i++) {
+            taskExecutor.execute(() -> {
+                jobService.createFromFlowYml(flow.getPath(), JobCategory.MANUAL, null, mockUser);
+                countDown.countDown();
+            });
+        }
+
+        // then:
+        countDown.await(30, TimeUnit.SECONDS);
+        Assert.assertEquals(numOfJob, jobDao.numOfJob(flow.getPath()).intValue());
     }
 
     @Test
@@ -117,7 +146,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals("11111111", job.getSessionId());
         Assert.assertEquals(JobCategory.TAG, job.getCategory());
 
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step1));
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setType(CmdType.RUN_SHELL);
         cmd.setExtra(step1.getPath());
@@ -130,7 +159,7 @@ public class JobServiceTest extends TestBase {
         NodeResult jobFlow = nodeResultService.find(flow.getPath(), job.getId());
         Assert.assertEquals(NodeStatus.RUNNING, jobFlow.getStatus());
 
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step1));
         cmd.setStatus(CmdStatus.LOGGED);
         cmd.setExtra(step2.getPath());
 
@@ -150,15 +179,49 @@ public class JobServiceTest extends TestBase {
     }
 
     @Test
+    public void should_run_job_with_final_node() throws Throwable {
+        // given: job and cc callback
+        final String sessionId = "session-id-for-final-node";
+        final String flowName = "flow_job_with_final_node";
+
+        Node root = createRootFlow(flowName, "yml/for_job_service_final_node.yml");
+        Job job = createMockJob(root.getPath());
+        NodeTree jobTree = jobNodeService.get(job);
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
+
+        Cmd cmd = new Cmd("default", null, CmdType.CREATE_SESSION, null);
+        cmd.setSessionId(sessionId);
+        cmd.setStatus(CmdStatus.SENT);
+        CmdCallbackQueueItem createSessionItem = new CmdCallbackQueueItem(job.getId(), cmd);
+        jobService.callback(createSessionItem);
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/send")));
+
+        job = reload(job);
+        Assert.assertEquals(sessionId, job.getSessionId());
+        Assert.assertEquals(JobStatus.RUNNING, job.getStatus());
+
+        // when: mock step 1 callback with failure state
+        Node step1 = jobTree.find(PathUtil.build(flowName, "Step1"));
+        Cmd cmdForStep1 = new Cmd("default", null, CmdType.RUN_SHELL, step1.getScript());
+        cmdForStep1.setSessionId(sessionId);
+        cmdForStep1.setStatus(CmdStatus.LOGGED);
+        cmdForStep1.setCmdResult(new CmdResult(127));
+        cmdForStep1.setExtra(step1.getPath());
+        jobService.callback(new CmdCallbackQueueItem(job.getId(), cmdForStep1));
+
+        // then: should send final node step 3
+        Node step3 = jobTree.find(PathUtil.build(flowName, "Step3"));
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/send")).withRequestBody(containing(step3.getPath())));
+    }
+
+    @Test
     public void should_run_job_with_success_status() throws Throwable {
         // given:
         final String sessionId = "session-id-1";
-        Node root = createRootFlow("flow_run_job", "yml/for_job_service_run_job.yaml");
+        Node root = createRootFlow("flow_run_job", "yml/for_job_service_run_job.yml");
 
         // when: create job and job should be SESSION_CREATING
         Job job = createMockJob(root.getPath());
-
-        // then: check cmd request to create session
         verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         // when: simulate cc callback for create session
@@ -194,7 +257,7 @@ public class JobServiceTest extends TestBase {
             Assert.assertEquals(NodeStatus.PENDING, stepResult.getStatus());
 
             // simulate callback with success executed
-            Cmd stepCmd = new Cmd("default", null, CmdType.RUN_SHELL, step.getScript());
+            Cmd stepCmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(step));
             stepCmd.setSessionId(sessionId);
             stepCmd.setStatus(CmdStatus.LOGGED);
             stepCmd.setCmdResult(new CmdResult(0));
@@ -249,6 +312,7 @@ public class JobServiceTest extends TestBase {
 
         // create job
         Job job = createMockJob(rootForFlow.getPath());
+        verify(exactly(1), postRequestedFor(urlEqualTo("/cmd/queue/send?priority=1&retry=5")));
 
         // mock callback cmd
         final String sessionId = CommonUtil.randomId().toString();
@@ -259,7 +323,7 @@ public class JobServiceTest extends TestBase {
         job = reload(job);
 
         // first step should running
-        cmd = new Cmd("default", null, CmdType.RUN_SHELL, stepFirst.getScript());
+        cmd = new Cmd("default", null, CmdType.RUN_SHELL, nodeService.getRunningScript(stepFirst));
         cmd.setStatus(CmdStatus.RUNNING);
         cmd.setType(CmdType.RUN_SHELL);
         cmd.setExtra(stepFirst.getPath());
@@ -314,6 +378,7 @@ public class JobServiceTest extends TestBase {
         List<String> rootPath = Lists.newArrayList(rootForFlow.getPath());
         List<Job> jobs = jobService.list(rootPath, true);
         Assert.assertEquals(1, jobs.size());
+        Assert.assertEquals(2L, jobNumberDao.get(rootForFlow.getPath()).getNumber().longValue());
         Assert.assertEquals("2", jobs.get(0).getNumber().toString());
     }
 
@@ -341,6 +406,7 @@ public class JobServiceTest extends TestBase {
         Assert.assertEquals(1, atomicInteger.get());
 
         // then: cmdCallbackQueue size should 0
+        Assert.assertNull(cmdCallbackQueue.dequeue());
         Assert.assertEquals(0, cmdCallbackQueue.size());
     }
 }

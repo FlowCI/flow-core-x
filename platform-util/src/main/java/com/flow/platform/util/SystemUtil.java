@@ -16,9 +16,11 @@
 
 package com.flow.platform.util;
 
+import com.google.common.base.Strings;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -30,6 +32,11 @@ public class SystemUtil {
     private final static char ENV_VAR_LEFT_BRACKET = '{';
     private final static char ENV_VAR_RIGHT_BRACKET = '}';
 
+    public static boolean isWindows() {
+        String os = System.getProperty("os.name").toLowerCase();
+        return os.startsWith("win");
+    }
+
     /**
      * Parse path with ${xxx} variable to absolute path
      *
@@ -38,27 +45,28 @@ public class SystemUtil {
      */
     public static Path replacePathWithEnv(String pathWithEnv) {
         String[] paths = pathWithEnv.split(Pattern.quote(File.separator));
-        Path path = Paths.get("/");
+
+        StringBuilder builder = new StringBuilder();
 
         for (String pathItem : paths) {
             int index = pathItem.indexOf("$", 0);
 
             if (index < 0) {
-                path = Paths.get(path.toString(), pathItem);
+                builder.append(pathItem).append(File.separator);
                 continue;
             }
 
-            path = Paths.get(path.toString(), parseEnv(pathItem));
+            builder.append(parseEnv(pathItem)).append(File.separator);
         }
 
-        return path;
+        return Paths.get(builder.toString());
     }
 
     /**
      * Parse ${xx} variable to exact value
      */
     public static String parseEnv(String env) {
-        if (env == null) {
+        if (Objects.isNull(env)) {
             throw new IllegalArgumentException();
         }
 
@@ -70,10 +78,20 @@ public class SystemUtil {
         env = env.substring(1);
 
         if (!hasBracket) {
-            return System.getenv(env);
+            return getEnvOrProperty(env);
         }
 
         env = env.substring(1, env.length() - 1);
-        return System.getenv(env);
+        return getEnvOrProperty(env);
+    }
+
+    private static String getEnvOrProperty(String name) {
+        String value = System.getenv(name);
+
+        if (Strings.isNullOrEmpty(value)) {
+            return System.getProperty(name);
+        }
+
+        return value;
     }
 }

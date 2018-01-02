@@ -38,6 +38,7 @@ import com.google.common.cache.CacheBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -95,18 +96,38 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
     }
 
     @Override
-    public Node verifyYml(final Node root, final String yml) {
+    public Node build(final Node root, final String yml) {
         return NodeUtil.buildFromYml(yml, root.getName());
     }
 
     @Override
+    public String parse(final Node root) {
+        return NodeUtil.parseToYml(root);
+    }
+
+    @Override
+    public void saveOrUpdate(final Node root, final String yml) {
+        Yml exist = get(root);
+        if (Objects.isNull(exist)) {
+            exist = new Yml(root.getPath());
+        }
+
+        exist.setFile(yml);
+        ymlDao.saveOrUpdate(exist);
+    }
+
+    @Override
     public Yml get(final Node root) {
-        return ymlDao.get(root.getPath());
+        return get(root.getPath());
+    }
+
+    @Override
+    public Yml get(String path) {
+        return ymlDao.get(path);
     }
 
     @Override
     public Resource getResource(Node root) {
-
         Yml yml = ymlDao.get(root.getPath());
         String body = yml.getFile();
         Resource allResource;
@@ -117,6 +138,11 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         }
 
         return allResource;
+    }
+
+    @Override
+    public void delete(Node root) {
+        ymlDao.delete(new Yml(root.getPath(), null));
     }
 
     @Override

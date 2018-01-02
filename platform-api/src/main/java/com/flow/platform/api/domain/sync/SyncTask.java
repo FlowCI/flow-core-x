@@ -17,12 +17,16 @@
 package com.flow.platform.api.domain.sync;
 
 import com.flow.platform.domain.AgentPath;
+import com.google.gson.annotations.Expose;
+import java.util.LinkedList;
 import java.util.Queue;
 
 /**
  * @author yang
  */
 public class SyncTask {
+
+    public final static SyncTask EMPTY = new SyncTask(null, new LinkedList<>());
 
     /**
      * Agent path of sync task
@@ -32,11 +36,13 @@ public class SyncTask {
     /**
      * Total num of repo to be sync
      */
+    @Expose
     private final Integer total;
 
     /**
      * The sync event queue for this task
      */
+    @Expose
     private final Queue<SyncEvent> syncQueue;
 
     public SyncTask(AgentPath path, Queue<SyncEvent> syncQueue) {

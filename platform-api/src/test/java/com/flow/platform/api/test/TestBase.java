@@ -15,11 +15,14 @@ package com.flow.platform.api.test;/*
  */
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.config.AppConfig;
@@ -29,6 +32,7 @@ import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.MessageSettingDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.dao.job.JobDao;
+import com.flow.platform.api.dao.job.JobNumberDao;
 import com.flow.platform.api.dao.job.JobYmlDao;
 import com.flow.platform.api.dao.job.NodeResultDao;
 import com.flow.platform.api.dao.user.ActionDao;
@@ -97,7 +101,7 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {WebConfig.class})
+@ContextConfiguration(classes = {WebConfig.class, TestConfiguration.class})
 @PropertySource("classpath:app-default.properties")
 @PropertySource("classpath:i18n")
 @FixMethodOrder(MethodSorters.JVM)
@@ -125,6 +129,9 @@ public abstract class TestBase {
 
     @Autowired
     protected JobYmlDao jobYmlDao;
+
+    @Autowired
+    protected JobNumberDao jobNumberDao;
 
     @Autowired
     protected NodeResultDao nodeResultDao;
@@ -232,7 +239,7 @@ public abstract class TestBase {
         setFlowToReady(emptyFlow);
         String yml = getResourceContent(ymlResourceName);
         setRequiredJobEnvsForFlow(emptyFlow);
-        return nodeService.createOrUpdateYml(emptyFlow.getPath(), yml);
+        return nodeService.updateByYml(emptyFlow.getPath(), yml);
     }
 
     public void setFlowToReady(Node flowNode) {
@@ -299,6 +306,7 @@ public abstract class TestBase {
         userRoleDao.deleteAll();
         permissionDao.deleteAll();
         userFlowDao.deleteAll();
+        jobNumberDao.deleteAll();
     }
 
     @After

@@ -55,8 +55,6 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
 
     private SimpleMessageListenerContainer container;
 
-    private volatile AtomicInteger size = new AtomicInteger(0);
-
     public RabbitQueue(ThreadPoolTaskExecutor executor, String host, int maxSize, int maxPriority, String queueName) {
         super(executor, maxSize, queueName);
         this.host = host;
@@ -99,7 +97,6 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
     @Override
     public void enqueue(PriorityMessage item) {
         template.send("", name, item);
-        size.incrementAndGet();
     }
 
     @Override
@@ -119,7 +116,7 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
 
     @Override
     public int size() {
-        return size.get();
+        return 0;
     }
 
     private void initRabbitMQ() throws URISyntaxException {
@@ -158,7 +155,6 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
 
         @Override
         public void onMessage(Message message) {
-            size.decrementAndGet();
             for (QueueListener<PriorityMessage> listener : listeners) {
                 listener.onQueueItem(new PriorityMessage(message));
             }

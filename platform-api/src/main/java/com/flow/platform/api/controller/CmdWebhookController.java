@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.config.QueueConfig;
 import com.flow.platform.api.domain.CmdCallbackQueueItem;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.core.exception.IllegalParameterException;
@@ -64,7 +65,7 @@ public class CmdWebhookController {
                 cmd.getStatus(),
                 cmd.getId(),
                 cmd.getCmdResult());
-            jobService.enqueue(new CmdCallbackQueueItem(jobId, cmd), 1);
+            jobService.enqueue(new CmdCallbackQueueItem(jobId, cmd), QueueConfig.DEFAULT_CMD_CALLBACK_QUEUE_PRIORITY);
         } catch (NumberFormatException warn) {
             LOGGER.warn("Invalid job id format");
         }

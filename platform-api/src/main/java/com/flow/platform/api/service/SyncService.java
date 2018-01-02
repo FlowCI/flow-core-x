@@ -24,7 +24,6 @@ import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.queue.PlatformQueue;
-import java.util.List;
 
 /**
  * @author yang
@@ -36,12 +35,15 @@ public interface SyncService {
 
     int DEFAULT_CMD_PRIORITY = 10;
 
-    String DEFAULT_CMD_DIR = "${HOME}/flow-agent-repos";
-
     interface QueueCreator {
 
         PlatformQueue<PriorityMessage> create(String name);
     }
+
+    /**
+     * Load and init repos from file system
+     */
+    void load();
 
     /**
      * Put sync event to event queue

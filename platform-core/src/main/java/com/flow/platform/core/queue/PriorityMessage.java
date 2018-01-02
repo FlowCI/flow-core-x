@@ -25,27 +25,46 @@ import org.springframework.amqp.core.MessageProperties;
  */
 public class PriorityMessage extends Message implements PriorityQueueItem {
 
-    public static PriorityMessage create(byte[] content, int priority) {
+    private Long priority;
+
+    private Long timestamp;
+
+    public static PriorityMessage create(byte[] content, long priority) {
         MessageProperties properties = new MessageProperties();
-        properties.setPriority(priority);
-        return new PriorityMessage(content, properties);
+        return new PriorityMessage(content, properties, priority);
     }
 
     public PriorityMessage(Message message) {
         super(message.getBody(), message.getMessageProperties());
+        this.timestamp = System.nanoTime();
     }
 
-    public PriorityMessage(byte[] body, MessageProperties messageProperties) {
+    public PriorityMessage(byte[] body, MessageProperties messageProperties, long priority) {
         super(body, messageProperties);
+        this.priority = priority;
+        this.timestamp = System.currentTimeMillis();
     }
 
     @Override
-    public Integer getPriority() {
-        return getMessageProperties().getPriority();
+    public Long getPriority() {
+        return this.priority;
+    }
+
+    public void setPriority(long priority) {
+        this.priority = priority;
+    }
+
+    @Override
+    public Long getTimestamp() {
+        return this.timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override
     public int compareTo(PriorityQueueItem o) {
-        return o.getPriority().compareTo(getPriority());
+        return COMPARATOR.compare(this, o);
     }
 }

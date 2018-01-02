@@ -1,8 +1,11 @@
+velocity.log
 .idea/
 *.iml
 .DS_Store
 deploy.sh
 api-doc/
+
+velocity.log*
 
 node_modules/
 apidoc/

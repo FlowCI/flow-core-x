@@ -46,7 +46,7 @@ public class AgentItem extends Jsonable {
     private AgentStatus agentStatus;
 
     @Expose
-    private Integer number;
+    private Long number;
 
     @Expose
     private String zoneWithName;
@@ -57,7 +57,7 @@ public class AgentItem extends Jsonable {
     @Expose
     private AgentSync sync;
 
-    public AgentItem(AgentPath path, String flowName, AgentStatus agentStatus, Integer number) {
+    public AgentItem(AgentPath path, String flowName, AgentStatus agentStatus, Long number) {
         this.name = path.getName();
         this.zone = path.getZone();
         this.flowName = flowName;
@@ -138,11 +138,11 @@ public class AgentItem extends Jsonable {
         this.agentStatus = agentStatus;
     }
 
-    public Integer getNumber() {
+    public Long getNumber() {
         return number;
     }
 
-    public void setNumber(Integer number) {
+    public void setNumber(Long number) {
         this.number = number;
     }
 

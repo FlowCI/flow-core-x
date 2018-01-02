@@ -16,6 +16,9 @@
 
 package com.flow.platform.util.git;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
+
 import com.flow.platform.util.StringUtil;
 import com.google.common.collect.Lists;
 import java.io.IOException;
@@ -32,6 +35,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 
@@ -216,5 +220,35 @@ public class JGitUtil {
         }
 
         return path;
+    }
+
+    /**
+     * List branch commits
+     * @param path
+     * @return
+     * @throws GitException
+     */
+    public static List<RevCommit> listCommits(Path path) throws GitException {
+        try (Git git = Git.open(path.toFile())) {
+            Iterable<RevCommit> iterable = git.log().call();
+            List<RevCommit> commits = stream(iterable.spliterator(), false).collect(toList());
+            return commits;
+        } catch (Throwable throwable) {
+            throw new GitException("get commits error", throwable);
+        }
+    }
+
+    /**
+     *
+     * @param path
+     * @return
+     * @throws GitException
+     */
+    public static RevCommit latestCommit(Path path) throws GitException {
+        List<RevCommit> commits = listCommits(path);
+        if (commits.isEmpty()) {
+            throw new GitException("Not found latest commit this branch, please confirm");
+        }
+        return commits.get(0);
     }
 }

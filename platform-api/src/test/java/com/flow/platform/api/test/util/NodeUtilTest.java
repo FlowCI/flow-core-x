@@ -16,6 +16,7 @@
 package com.flow.platform.api.test.util;
 
 import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.exception.NodeFormatException;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.NodeUtil;
 import java.util.LinkedList;
@@ -113,7 +114,7 @@ public class NodeUtilTest extends TestBase {
     @Test
     public void should_flat() {
         List<Node> nodes = NodeUtil.flat(initNodes());
-        StringBuilder out = new StringBuilder("");
+        StringBuilder out = new StringBuilder();
 
         for (Node node : nodes) {
             out.append(node.getName()).append(";");
@@ -128,7 +129,7 @@ public class NodeUtilTest extends TestBase {
         List<Node> nodeList = new LinkedList<>();
         NodeUtil.recurse(node, nodeList::add);
 
-        StringBuilder out = new StringBuilder("");
+        StringBuilder out = new StringBuilder();
         for (Node iNode : nodeList) {
             out.append(iNode.getName()).append(";");
         }
@@ -218,26 +219,47 @@ public class NodeUtilTest extends TestBase {
 
     @Test
     public void should_equal_next_node() {
+        // given:
         Node flow = new Node("flow", "/flow");
-
-        Node step1 = new Node("step1", "/flow/step1");
-        Node step2 = new Node("step2", "/flow/step2");
+        Node step1 = new Node("/flow/step1", "step1");
+        Node step2 = new Node("/flow/step2", "step2");
+        Node step3 = new Node("/flow/step3", "step3");
+        Node step4 = new Node("/flow/step4", "step4");
+        step4.setIsFinal(true);
 
         flow.getChildren().add(step1);
         flow.getChildren().add(step2);
+        flow.getChildren().add(step3);
+        flow.getChildren().add(step4);
 
-        step1.setNext(step2);
-        step2.setPrev(step1);
-
-        step1.setParent(flow);
-        step2.setParent(flow);
-
+        // when:
+        NodeUtil.buildNodeRelation(flow);
         List<Node> ordered = NodeUtil.flat(flow);
         ordered.remove(flow);
 
-        Assert.assertEquals(null, NodeUtil.next(step2, ordered));
+        // then:
+        Assert.assertEquals(step3, NodeUtil.next(step2, ordered));
         Assert.assertEquals(step1, ordered.get(0));
         Assert.assertEquals(step2, NodeUtil.next(step1, ordered));
+    }
+
+    @Test(expected = NodeFormatException.class)
+    public void should_invalid_and_return_false_if_final_node_not_in_the_end() {
+        // given:
+        Node flow = new Node("flow", "/flow");
+        Node step1 = new Node("/flow/step1", "step1");
+        Node step2 = new Node("/flow/step2", "step2");
+        Node step3 = new Node("/flow/step3", "step3");
+        step3.setIsFinal(true);
+        Node step4 = new Node("/flow/step4", "step4");
+
+        flow.getChildren().add(step1);
+        flow.getChildren().add(step2);
+        flow.getChildren().add(step3);
+        flow.getChildren().add(step4);
+
+        // when:
+        NodeUtil.validate(flow);
     }
 
     @Test

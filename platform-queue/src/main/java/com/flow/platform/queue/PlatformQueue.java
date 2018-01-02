@@ -18,6 +18,7 @@ package com.flow.platform.queue;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 
 /**
@@ -25,13 +26,13 @@ import java.util.concurrent.Executor;
  */
 public abstract class PlatformQueue<T> {
 
-    protected final List<QueueListener<T>> listeners = new LinkedList<>();
-
     protected final Executor executor;
 
     protected final int maxSize;
 
     protected final String name;
+
+    protected final List<QueueListener<T>> listeners = new LinkedList<>();
 
     public PlatformQueue(Executor executor, int maxSize, String name) {
         this.executor = executor;
@@ -47,6 +48,7 @@ public abstract class PlatformQueue<T> {
      * Register queue item listener
      */
     public void register(QueueListener<T> listener) {
+        Objects.requireNonNull(listener);
         this.listeners.add(listener);
     }
 

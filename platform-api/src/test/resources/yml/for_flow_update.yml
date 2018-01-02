@@ -1,0 +1,22 @@
+flow:
+  - envs:
+      FLOW_WORKSPACE: "echo hello"
+      FLOW_VERSION: "echo version"
+
+    steps:
+      - name: step1
+        allowFailure: true
+        script: "echo 1"
+
+      - name: step2
+        plugin: "fir-cli"
+        envs:
+          FIR_TOKEN: "firtoken"
+          FIR_PATH: "${HOME}/PATH"
+
+      - name: step3
+        envs:
+          FLOW_A: "AA"
+          FLOW_B: "BB"
+        allowFailure: false
+        script: "echo 3"
