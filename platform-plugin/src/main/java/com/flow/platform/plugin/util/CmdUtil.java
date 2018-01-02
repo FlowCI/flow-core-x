@@ -35,17 +35,25 @@ public class CmdUtil {
             Process process;
             ProcessBuilder pb = new ProcessBuilder(Unix.CMD_EXECUTOR, "-c", shell);
             pb.environment();
-            pb.redirectErrorStream(true); // merge error stream into standard stream
+
+            // Merge error stream to standard stream
+            pb.redirectErrorStream(true);
+
+            // start
             process = pb.start();
             if (process != null) {
                 br = new BufferedReader(
                     new InputStreamReader(process.getInputStream()), 1024);
+
+                // wait process finish
                 process.waitFor();
             } else {
                 throw new PluginException("Plugin running process is not start");
             }
+
             String line;
             while (br != null && (line = br.readLine()) != null) {
+                // show running log
                 LOGGER.debug(line);
             }
         } catch (Exception e) {
