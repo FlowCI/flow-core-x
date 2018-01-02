@@ -30,8 +30,10 @@ import com.flow.platform.plugin.event.PluginRefreshEvent;
 import com.flow.platform.plugin.event.PluginRefreshEvent.Status;
 import com.flow.platform.plugin.event.PluginStatusChangeEvent;
 import com.flow.platform.plugin.exception.PluginException;
+import com.flow.platform.plugin.util.CmdUtil;
 import com.flow.platform.plugin.util.YmlUtil;
 import com.flow.platform.plugin.util.docker.Docker;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.ExceptionUtil;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.GitException;
@@ -55,6 +57,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -82,6 +85,9 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
     private final static String DIST = "dist";
 
     private final static String TMP = "tmp";
+
+    @Value("${api.run.indocker}")
+    private boolean runInDocker;
 
     // git clone folder
     @Autowired
@@ -447,7 +453,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
             try {
 
                 // only build and image all in value to pull image
-                if (!Strings.isBlank(plugin.getPluginDetail().getBuild()) && !Strings.isBlank(plugin.getPluginDetail().getImage())) {
+                if (!Strings.isBlank(plugin.getPluginDetail().getBuild()) && !Strings
+                    .isBlank(plugin.getPluginDetail().getImage())) {
 
                     LOGGER.traceMarker("BuildProcessor", "Start build code");
 
@@ -457,7 +464,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                     JGitUtil.checkout(cachePath, latestGitTag);
 
                     // first pull image and build
-                    dockerPullAndBuild(plugin);
+                    if (!runInDocker) {
+                        dockerPullAndBuild(plugin);
+                    } else {
+                        // if run in docker only build
+                        build(plugin);
+                    }
 
                     // second detect outputs
                     detectBuildArtifacts(plugin);
@@ -473,6 +485,12 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
                 LOGGER.error("Git Build", e);
                 throw new PluginException("Git Build", e);
             }
+        }
+
+        private void build(Plugin plugin) {
+            Path cachePath = gitCachePath(plugin);
+            String cmd = "cd " + cachePath.toString() + Unix.LINE_SEPARATOR + plugin.getPluginDetail().getBuild();
+            CmdUtil.exeCmd(cmd);
         }
 
         private void dockerPullAndBuild(Plugin plugin) {
@@ -565,7 +583,8 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         public void exec(Plugin plugin) {
             LOGGER.traceMarker("PushProcessor", "Push tags to local");
 
-            if (!Strings.isBlank(plugin.getPluginDetail().getImage()) && !Strings.isBlank(plugin.getPluginDetail().getBuild())) {
+            if (!Strings.isBlank(plugin.getPluginDetail().getImage()) && !Strings
+                .isBlank(plugin.getPluginDetail().getBuild())) {
                 return;
             }
 
