@@ -20,7 +20,12 @@ import com.flow.platform.plugin.exception.PluginException;
 import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.Logger;
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author yh@firim
@@ -29,8 +34,14 @@ public class CmdUtil {
 
     private final static Logger LOGGER = new Logger(CmdUtil.class);
 
+    private final static int BUFFER_SIZE = 1024;
+
+    private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(5, 5, 60, TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>());
+
     public static void exeCmd(String shell) {
-        BufferedReader br;
+
+        LOGGER.debug("Exec cmd is " + shell);
         try {
             Process process;
             ProcessBuilder pb = new ProcessBuilder(Unix.CMD_EXECUTOR, "-c", shell);
@@ -42,8 +53,9 @@ public class CmdUtil {
             // start
             process = pb.start();
             if (process != null) {
-                br = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()), 1024);
+
+                LOGGER.trace("Start debug logs");
+                executor.execute(new LoggerRunner(process.getInputStream()));
 
                 // wait process finish
                 process.waitFor();
@@ -51,14 +63,35 @@ public class CmdUtil {
                 throw new PluginException("Plugin running process is not start");
             }
 
-            String line;
-            while (br != null && (line = br.readLine()) != null) {
-                // show running log
-                LOGGER.debug(line);
-            }
+
         } catch (Exception e) {
             LOGGER.error("Exec cmd error", e);
         } finally {
+        }
+    }
+
+    static class LoggerRunner implements Runnable {
+
+        private InputStream inputStream;
+
+        public LoggerRunner(InputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        public void run() {
+            BufferedReader br = new BufferedReader(
+                new InputStreamReader(inputStream), BUFFER_SIZE);
+
+            String line;
+            try {
+                while (br != null && (line = br.readLine()) != null) {
+                    // show running log
+                    LOGGER.debug(line);
+                }
+            } catch (IOException e) {
+                LOGGER.error("Logger running log", e);
+            }
         }
     }
 }

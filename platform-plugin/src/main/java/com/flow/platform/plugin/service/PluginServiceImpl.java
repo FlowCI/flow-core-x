@@ -488,9 +488,11 @@ public class PluginServiceImpl extends ApplicationEventService implements Plugin
         }
 
         private void build(Plugin plugin) {
+            LOGGER.trace("Start build");
             Path cachePath = gitCachePath(plugin);
             String cmd = "cd " + cachePath.toString() + Unix.LINE_SEPARATOR + plugin.getPluginDetail().getBuild();
             CmdUtil.exeCmd(cmd);
+            LOGGER.trace("Finish build");
         }
 
         private void dockerPullAndBuild(Plugin plugin) {
