@@ -38,7 +38,7 @@ public interface PriorityQueueItem extends Serializable, Comparable<PriorityQueu
         @Override
         public int compare(PriorityQueueItem o1, PriorityQueueItem o2) {
             if (Objects.equals(o1.getPriority(), o2.getPriority())) {
-                return o2.getTimestamp().compareTo(o1.getTimestamp());
+                return o1.getTimestamp().compareTo(o2.getTimestamp());
             }
 
             return o2.getPriority().compareTo(o1.getPriority());
