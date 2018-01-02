@@ -18,6 +18,7 @@ package com.flow.platform.core.queue;
 
 import com.flow.platform.core.context.ContextEvent;
 import com.flow.platform.queue.PlatformQueue;
+import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -53,8 +54,6 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
     private RabbitTemplate template;
 
     private SimpleMessageListenerContainer container;
-
-    private volatile AtomicInteger size = new AtomicInteger(0);
 
     public RabbitQueue(ThreadPoolTaskExecutor executor, String host, int maxSize, int maxPriority, String queueName) {
         super(executor, maxSize, queueName);
@@ -98,7 +97,6 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
     @Override
     public void enqueue(PriorityMessage item) {
         template.send("", name, item);
-        size.incrementAndGet();
     }
 
     @Override
@@ -118,7 +116,7 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
 
     @Override
     public int size() {
-        return size.get();
+        return 0;
     }
 
     private void initRabbitMQ() throws URISyntaxException {
@@ -157,8 +155,9 @@ public class RabbitQueue extends PlatformQueue<PriorityMessage> implements Conte
 
         @Override
         public void onMessage(Message message) {
-            size.decrementAndGet();
-            listener.onQueueItem(new PriorityMessage(message));
+            for (QueueListener<PriorityMessage> listener : listeners) {
+                listener.onQueueItem(new PriorityMessage(message));
+            }
         }
     }
 }

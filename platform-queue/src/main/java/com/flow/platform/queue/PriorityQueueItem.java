@@ -16,12 +16,32 @@
 
 package com.flow.platform.queue;
 
+import java.io.Serializable;
+import java.util.Comparator;
+import java.util.Objects;
+
 /**
  * @author yang
  */
-public interface PriorityQueueItem extends Comparable<PriorityQueueItem> {
+public interface PriorityQueueItem extends Serializable, Comparable<PriorityQueueItem> {
+
+    ItemComparator COMPARATOR = new ItemComparator();
 
     Long getPriority();
 
+    Long getTimestamp();
+
     byte[] getBody();
+
+    class ItemComparator implements Comparator<PriorityQueueItem> {
+
+        @Override
+        public int compare(PriorityQueueItem o1, PriorityQueueItem o2) {
+            if (Objects.equals(o1.getPriority(), o2.getPriority())) {
+                return o1.getTimestamp().compareTo(o2.getTimestamp());
+            }
+
+            return o2.getPriority().compareTo(o1.getPriority());
+        }
+    }
 }

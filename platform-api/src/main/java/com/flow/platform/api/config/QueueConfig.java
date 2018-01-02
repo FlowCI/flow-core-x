@@ -31,6 +31,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configurable
 public class QueueConfig {
 
+    public final static long DEFAULT_CMD_CALLBACK_QUEUE_PRIORITY = 1L;
+
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 

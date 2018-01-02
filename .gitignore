@@ -5,6 +5,8 @@ velocity.log
 deploy.sh
 api-doc/
 
+velocity.log*
+
 node_modules/
 apidoc/
 dist/

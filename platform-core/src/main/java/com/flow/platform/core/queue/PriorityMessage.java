@@ -27,6 +27,8 @@ public class PriorityMessage extends Message implements PriorityQueueItem {
 
     private Long priority;
 
+    private Long timestamp;
+
     public static PriorityMessage create(byte[] content, long priority) {
         MessageProperties properties = new MessageProperties();
         return new PriorityMessage(content, properties, priority);
@@ -34,11 +36,13 @@ public class PriorityMessage extends Message implements PriorityQueueItem {
 
     public PriorityMessage(Message message) {
         super(message.getBody(), message.getMessageProperties());
+        this.timestamp = System.nanoTime();
     }
 
     public PriorityMessage(byte[] body, MessageProperties messageProperties, long priority) {
         super(body, messageProperties);
         this.priority = priority;
+        this.timestamp = System.currentTimeMillis();
     }
 
     @Override
@@ -46,8 +50,21 @@ public class PriorityMessage extends Message implements PriorityQueueItem {
         return this.priority;
     }
 
+    public void setPriority(long priority) {
+        this.priority = priority;
+    }
+
+    @Override
+    public Long getTimestamp() {
+        return this.timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
     @Override
     public int compareTo(PriorityQueueItem o) {
-        return getPriority().compareTo(o.getPriority());
+        return COMPARATOR.compare(this, o);
     }
 }

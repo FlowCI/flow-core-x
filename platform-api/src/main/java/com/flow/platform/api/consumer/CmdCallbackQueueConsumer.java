@@ -25,6 +25,7 @@ import com.flow.platform.core.util.ThreadUtil;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.queue.QueueListener;
 import com.flow.platform.util.Logger;
+import java.util.Objects;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,7 +54,7 @@ public class CmdCallbackQueueConsumer implements QueueListener<PriorityMessage> 
 
     @Override
     public void onQueueItem(PriorityMessage message) {
-        if (message == null) {
+        if (Objects.isNull(message)) {
             return;
         }
 
