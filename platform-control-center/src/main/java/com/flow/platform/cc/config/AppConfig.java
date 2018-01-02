@@ -41,7 +41,7 @@ public class AppConfig extends AppConfigBase {
 
     public final static String NAME = "Control Center";
 
-    public final static String VERSION = "v0.1.3-alpha";
+    public final static String VERSION = "v0.1.4-alpha";
 
     private final static int ASYNC_POOL_SIZE = 100;
 
