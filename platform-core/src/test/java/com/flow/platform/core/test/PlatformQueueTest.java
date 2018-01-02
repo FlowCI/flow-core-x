@@ -82,7 +82,7 @@ public class PlatformQueueTest {
     @Test
     public void should_enqueue_with_priority_in_memory_queue() throws Throwable {
         // given: queue listener
-        final int size = 4;
+        final int size = 6;
         CountDownLatch latch = new CountDownLatch(size);
         List<String> prioritizedList = new ArrayList<>(size);
 
@@ -100,6 +100,10 @@ public class PlatformQueueTest {
         inMemoryQueue.enqueue(PriorityMessage.create("3".getBytes(), 10));
         ThreadUtil.sleep(1);
         inMemoryQueue.enqueue(PriorityMessage.create("4".getBytes(), 10));
+        ThreadUtil.sleep(1);
+        inMemoryQueue.enqueue(PriorityMessage.create("5".getBytes(), 10));
+        ThreadUtil.sleep(1);
+        inMemoryQueue.enqueue(PriorityMessage.create("6".getBytes(), 10));
         inMemoryQueue.start();
 
         // then:
@@ -107,10 +111,12 @@ public class PlatformQueueTest {
         Assert.assertTrue(await);
         Assert.assertEquals(size, prioritizedList.size());
 
-        Assert.assertEquals("4", prioritizedList.get(0));
-        Assert.assertEquals("3", prioritizedList.get(1));
-        Assert.assertEquals("2", prioritizedList.get(2));
-        Assert.assertEquals("1", prioritizedList.get(3));
+        Assert.assertEquals("3", prioritizedList.get(0));
+        Assert.assertEquals("4", prioritizedList.get(1));
+        Assert.assertEquals("5", prioritizedList.get(2));
+        Assert.assertEquals("6", prioritizedList.get(3));
+        Assert.assertEquals("1", prioritizedList.get(4));
+        Assert.assertEquals("2", prioritizedList.get(5));
     }
 
     @Test
