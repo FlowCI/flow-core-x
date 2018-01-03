@@ -215,7 +215,7 @@ public class LogEventHandler implements LogListener {
     private void initZipLogFile(final Cmd cmd) throws IOException {
         // init log directory
         try {
-            Files.createDirectory(DEFAULT_LOG_PATH);
+            Files.createDirectories(DEFAULT_LOG_PATH);
         } catch (FileAlreadyExistsException ignore) {
             LOGGER.warn("Log path %s already exist", DEFAULT_LOG_PATH);
         }
