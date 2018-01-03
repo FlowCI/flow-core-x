@@ -11,4 +11,14 @@
 
     <property name="extension" type="string" column="extension" length="100"/>
   </class>
+
+  <class name="com.flow.platform.api.domain.Artifact" table="artifact">
+    <id name="id" type="integer">
+      <generator class="increment"/>
+    </id>
+    <property name="flow" type="string" column="flow"/>
+    <property name="name" type="string" column="name"/>
+    <property name="url" type="string" column="url" length="100"/>
+  </class>
+
 </hibernate-mapping>

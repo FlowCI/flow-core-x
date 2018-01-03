@@ -15,18 +15,16 @@ package com.flow.platform.api.test;/*
  */
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flow.platform.api.config.AppConfig;
 import com.flow.platform.api.config.WebConfig;
+import com.flow.platform.api.dao.ArtifactDao;
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.MessageSettingDao;
@@ -186,6 +184,9 @@ public abstract class TestBase {
     protected ThreadLocal<User> currentUser;
 
     @Autowired
+    protected ArtifactDao artifactDao;
+
+    @Autowired
     private User superUser;
 
     @Autowired
@@ -286,7 +287,7 @@ public abstract class TestBase {
         try (InputStream inputStream = new FileInputStream(path)) {
             stubFor(
                 get(urlPathEqualTo("/cmd/log/download"))
-                .willReturn(aResponse().withBody(org.apache.commons.io.IOUtils.toByteArray(inputStream))));
+                    .willReturn(aResponse().withBody(org.apache.commons.io.IOUtils.toByteArray(inputStream))));
         } catch (Throwable throwable) {
         }
     }
@@ -297,6 +298,7 @@ public abstract class TestBase {
     }
 
     private void cleanDatabase() {
+        artifactDao.deleteAll();
         storageDao.deleteAll();
         flowDao.deleteAll();
         jobDao.deleteAll();
