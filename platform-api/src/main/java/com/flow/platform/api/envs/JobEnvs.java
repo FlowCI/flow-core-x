@@ -41,6 +41,11 @@ public enum JobEnvs implements EnvKey {
     FLOW_JOB_LOG_PATH,
 
     /**
+     * FLOW api host
+     */
+    FLOW_API_HOST,
+
+    /**
      * The last step status: values in {@code NodeStatus}
      */
     FLOW_JOB_LAST_STATUS,

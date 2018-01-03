@@ -208,3 +208,13 @@ CREATE TABLE `storage` (
   `extension` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+# ------------------------------------------------------------
+
+CREATE TABLE `artifact` (
+  `id` int(11) NOT NULL,
+  `flow` varchar(255) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `url` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
