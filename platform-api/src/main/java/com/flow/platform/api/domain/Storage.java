@@ -36,6 +36,9 @@ public class Storage extends Jsonable{
     @Expose
     private String extension;
 
+    @Expose
+    private String url;
+
     public Storage() {
     }
 
@@ -47,6 +50,14 @@ public class Storage extends Jsonable{
         this.name = name;
         this.id = id;
         this.extension = extension;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getName() {

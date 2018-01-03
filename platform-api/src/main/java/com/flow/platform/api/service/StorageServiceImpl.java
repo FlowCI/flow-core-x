@@ -20,6 +20,7 @@ import com.flow.platform.api.dao.StorageDao;
 import com.flow.platform.api.domain.Storage;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.exception.FlowException;
+import com.flow.platform.util.CommandUtil.Unix;
 import com.flow.platform.util.Logger;
 import com.google.common.io.Files;
 import java.io.FileInputStream;
@@ -30,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -47,11 +49,16 @@ public class StorageServiceImpl implements StorageService {
 
     private final static Logger LOGGER = new Logger(Storage.class);
 
+    private final static String STORAGE = "storages";
+
     @Autowired
     private Path workspace;
 
     @Autowired
     private StorageDao storageDao;
+
+    @Value("${domain.api}")
+    private String apiHost;
 
     @Override
     public Storage get(String id) {
@@ -92,6 +99,7 @@ public class StorageServiceImpl implements StorageService {
         storageDao.save(storage);
         doSaveFile(file, storage);
 
+        storage.setUrl(buildDownloadUrl(storage));
         return storage;
     }
 
@@ -135,5 +143,9 @@ public class StorageServiceImpl implements StorageService {
         }
 
         return Paths.get(storageFolder.toString(), storage.getId() + DOT + storage.getExtension());
+    }
+
+    private String buildDownloadUrl(Storage storage) {
+        return apiHost + Unix.PATH_SEPARATOR + STORAGE + Unix.PATH_SEPARATOR + storage.getId();
     }
 }
