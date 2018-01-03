@@ -199,3 +199,12 @@ CREATE TABLE `yml_raw` (
   `file` longblob,
   PRIMARY KEY (`node_path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+# ------------------------------------------------------------
+CREATE TABLE `storage` (
+  `id` varchar(100) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `extension` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
