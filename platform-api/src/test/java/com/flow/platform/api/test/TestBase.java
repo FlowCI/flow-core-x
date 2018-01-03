@@ -30,6 +30,7 @@ import com.flow.platform.api.config.WebConfig;
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.MessageSettingDao;
+import com.flow.platform.api.dao.StorageDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobNumberDao;
@@ -117,6 +118,9 @@ public abstract class TestBase {
 
     @Autowired
     protected FlowDao flowDao;
+
+    @Autowired
+    protected StorageDao storageDao;
 
     @Autowired
     protected JobDao jobDao;
@@ -293,6 +297,7 @@ public abstract class TestBase {
     }
 
     private void cleanDatabase() {
+        storageDao.deleteAll();
         flowDao.deleteAll();
         jobDao.deleteAll();
         ymlDao.deleteAll();

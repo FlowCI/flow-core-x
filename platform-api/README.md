@@ -75,3 +75,28 @@
 **FLOW_GIT_AUTHOR**: readonly, the submitter when open pr, merged by user when close pr
  
 **FLOW_GIT_PR_URL**: readonly, the html pr url of git repo
+
+### 产物
+
+POST /storage
+return 
+{
+  url: download_url
+}
+
+post /artifacts
+{
+  url: download_url
+}
+
+
+
+[
+{
+  name: "",
+  url: 
+}
+]
+
+
+GET /flows/:name/artifacts/:id

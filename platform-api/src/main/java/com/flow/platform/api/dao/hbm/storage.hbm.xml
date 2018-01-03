@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.api.domain">
+  <class name="com.flow.platform.api.domain.Storage" table="storage">
+    <id name="id" type="string" column="id" length="100"/>
+
+    <property name="name" type="string" column="name"/>
+
+    <property name="extension" type="string" column="extension" length="100"/>
+  </class>
+</hibernate-mapping>
