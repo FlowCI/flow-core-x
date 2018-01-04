@@ -18,10 +18,13 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.ArtifactDao;
 import com.flow.platform.api.domain.Artifact;
+import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.node.NodeTree;
+import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.base.Strings;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,14 +42,17 @@ public class ArtifactServiceImpl implements ArtifactService {
     @Autowired
     private NodeService nodeService;
 
+    @Autowired
+    private JobService jobService;
+
     @Override
     public Artifact create(Artifact artifact) {
-        if (Strings.isNullOrEmpty(artifact.getFlow())) {
-            throw new IllegalParameterException("Parameter flow is missing");
+        if (Objects.isNull(artifact.getJobId())) {
+            throw new IllegalParameterException("Parameter jobId is missing");
         }
 
-        NodeTree flow = nodeService.find(artifact.getFlow());
-        if (Objects.isNull(flow)) {
+        Job job = jobService.find(artifact.getJobId());
+        if (Objects.isNull(job)) {
             throw new IllegalParameterException("Parameter flow is error, not found flow");
         }
 
@@ -59,13 +65,13 @@ public class ArtifactServiceImpl implements ArtifactService {
     }
 
     @Override
-    public List<Artifact> list(String flow) {
+    public List<Artifact> list(BigInteger jobId) {
 
-        NodeTree nodeTree = nodeService.find(flow);
-        if (Objects.isNull(nodeTree)) {
-            throw new IllegalParameterException("Parameter flow is error, not found flow");
+        Job job = jobService.find(jobId);
+        if (Objects.isNull(job)) {
+            throw new IllegalParameterException("Parameter jobId is error, not found job");
         }
 
-        return artifactDao.list(flow);
+        return artifactDao.list(jobId);
     }
 }

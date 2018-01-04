@@ -17,6 +17,7 @@
 package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Artifact;
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -28,5 +29,5 @@ public interface ArtifactService {
 
     Artifact get(Integer id);
 
-    List<Artifact> list(String flow);
+    List<Artifact> list(BigInteger jobId);
 }

@@ -16,7 +16,9 @@
     <id name="id" type="integer">
       <generator class="increment"/>
     </id>
-    <property name="flow" type="string" column="flow"/>
+    <property name="jobId" type="big_integer">
+      <column name="job_id" sql-type="decimal(25, 0)"/>
+    </property>
     <property name="name" type="string" column="name"/>
     <property name="url" type="string" column="url" length="100"/>
   </class>

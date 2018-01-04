@@ -18,11 +18,12 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Artifact;
 import com.flow.platform.core.dao.BaseDao;
+import java.math.BigInteger;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
 public interface ArtifactDao extends BaseDao<Integer, Artifact>{
-    List<Artifact> list(String flow);
+    List<Artifact> list(BigInteger jobId);
 }

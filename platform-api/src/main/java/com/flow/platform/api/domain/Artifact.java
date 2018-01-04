@@ -18,6 +18,7 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
+import java.math.BigInteger;
 
 /**
  * @author yh@firim
@@ -30,7 +31,7 @@ public class Artifact extends Jsonable{
      * flow name
      */
     @Expose
-    private String flow;
+    private BigInteger jobId;
 
     /**
      * file name
@@ -47,19 +48,18 @@ public class Artifact extends Jsonable{
     public Artifact() {
     }
 
-    public Artifact(String flow, String name, String url) {
-        this.flow = flow;
+    public Artifact(BigInteger jobId, String name, String url) {
+        this.jobId = jobId;
         this.name = name;
         this.url = url;
     }
 
-
-    public String getFlow() {
-        return flow;
+    public BigInteger getJobId() {
+        return jobId;
     }
 
-    public void setFlow(String flow) {
-        this.flow = flow;
+    public void setJobId(BigInteger jobId) {
+        this.jobId = jobId;
     }
 
     public String getName() {
@@ -109,7 +109,6 @@ public class Artifact extends Jsonable{
     public String toString() {
         return "Artifact{" +
             "id=" + id +
-            ", flow='" + flow + '\'' +
             ", name='" + name + '\'' +
             ", url='" + url + '\'' +
             '}';

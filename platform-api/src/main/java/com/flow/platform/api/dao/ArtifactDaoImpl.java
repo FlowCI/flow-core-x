@@ -18,6 +18,7 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Artifact;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import java.math.BigInteger;
 import java.util.List;
 import org.springframework.stereotype.Repository;
 
@@ -38,10 +39,10 @@ public class ArtifactDaoImpl extends AbstractBaseDao<Integer, Artifact> implemen
     }
 
     @Override
-    public List<Artifact> list(String flow) {
+    public List<Artifact> list(BigInteger jobId) {
         return execute(session -> session
-            .createQuery("from Artifact where flow = :name", getEntityClass())
-            .setParameter("name", flow)
+            .createQuery("from Artifact where jobId = :id", getEntityClass())
+            .setParameter("id", jobId)
             .list());
     }
 }

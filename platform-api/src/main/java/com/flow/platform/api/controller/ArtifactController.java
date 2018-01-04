@@ -18,6 +18,7 @@ package com.flow.platform.api.controller;
 
 import com.flow.platform.api.domain.Artifact;
 import com.flow.platform.api.service.ArtifactService;
+import java.math.BigInteger;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,8 +44,8 @@ public class ArtifactController {
     }
 
     @GetMapping
-    public List<Artifact> index(@RequestParam String flow) {
-        return artifactService.list(flow);
+    public List<Artifact> index(@RequestParam BigInteger jobId) {
+        return artifactService.list(jobId);
     }
 
 }
