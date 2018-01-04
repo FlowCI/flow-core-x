@@ -25,6 +25,7 @@ import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.google.common.base.Strings;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,5 +74,16 @@ public class ArtifactServiceImpl implements ArtifactService {
         }
 
         return artifactDao.list(jobId);
+    }
+
+
+    @Override
+    public List<Artifact> list(String path, Long number) {
+        Job job = jobService.find(path, number);
+        if (Objects.isNull(job)) {
+            throw new IllegalParameterException("Parameter jobId is error, not found job");
+        }
+
+        return artifactDao.list(job.getId());
     }
 }

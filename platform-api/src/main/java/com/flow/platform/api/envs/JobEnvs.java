@@ -43,7 +43,7 @@ public enum JobEnvs implements EnvKey {
     /**
      * FLOW api host
      */
-    FLOW_API_HOST,
+    FLOW_API_DOMAIN,
 
     /**
      * FLOW job id

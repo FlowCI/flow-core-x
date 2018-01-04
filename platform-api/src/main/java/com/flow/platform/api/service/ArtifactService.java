@@ -18,6 +18,7 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.domain.Artifact;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -30,4 +31,6 @@ public interface ArtifactService {
     Artifact get(Integer id);
 
     List<Artifact> list(BigInteger jobId);
+
+    List<Artifact> list(String path, Long number);
 }
