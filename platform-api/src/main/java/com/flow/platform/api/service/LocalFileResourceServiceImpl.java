@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,6 +97,7 @@ public class LocalFileResourceServiceImpl implements LocalFileResourceService {
         String id = CommonUtil.randomId().toString();
 
         LocalFileResource storage = new LocalFileResource(name, id, extension);
+        storage.setCreatedAt(ZonedDateTime.now());
         localFileResourceDao.save(storage);
         doSaveFile(file, storage);
 

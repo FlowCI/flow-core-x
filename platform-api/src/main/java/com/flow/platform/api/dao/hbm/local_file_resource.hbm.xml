@@ -9,6 +9,9 @@
 
     <property name="name" type="string" column="name"/>
 
+    <property name="createdAt" type="java.time.ZonedDateTime">
+      <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
     <property name="extension" type="string" column="extension" length="100"/>
   </class>
 
@@ -16,6 +19,18 @@
     <id name="id" type="integer">
       <generator class="increment"/>
     </id>
+
+    <property name="createdAt" type="java.time.ZonedDateTime">
+      <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+
+    <property name="tag" column="tag" length="30" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.api.domain.ArtifactType</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
     <property name="jobId" type="big_integer">
       <column name="job_id" sql-type="decimal(25, 0)"/>
     </property>

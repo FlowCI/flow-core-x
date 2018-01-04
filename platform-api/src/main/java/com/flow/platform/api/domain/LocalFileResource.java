@@ -18,6 +18,7 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
+import java.time.ZonedDateTime;
 
 /**
  * @author yh@firim
@@ -39,6 +40,10 @@ public class LocalFileResource extends Jsonable{
     @Expose
     private String url;
 
+    @Expose
+    private ZonedDateTime createdAt;
+
+
     public LocalFileResource() {
     }
 
@@ -50,6 +55,13 @@ public class LocalFileResource extends Jsonable{
         this.name = name;
         this.id = id;
         this.extension = extension;
+    }
+
+    public LocalFileResource(String name, String id, String extension, ZonedDateTime createdAt) {
+        this.name = name;
+        this.id = id;
+        this.extension = extension;
+        this.createdAt = createdAt;
     }
 
     public String getUrl() {
@@ -82,6 +94,14 @@ public class LocalFileResource extends Jsonable{
 
     public void setExtension(String extension) {
         this.extension = extension;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(ZonedDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override

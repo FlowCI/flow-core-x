@@ -19,6 +19,7 @@ package com.flow.platform.api.domain;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 
 /**
  * @author yh@firim
@@ -40,6 +41,15 @@ public class Artifact extends Jsonable{
     private String name;
 
     /**
+     * artifact tag
+     */
+    @Expose
+    private ArtifactType tag;
+
+    @Expose
+    private ZonedDateTime createdAt;
+
+    /**
      * url
      */
     @Expose
@@ -52,6 +62,14 @@ public class Artifact extends Jsonable{
         this.jobId = jobId;
         this.name = name;
         this.url = url;
+    }
+
+    public ArtifactType getTag() {
+        return tag;
+    }
+
+    public void setTag(ArtifactType tag) {
+        this.tag = tag;
     }
 
     public BigInteger getJobId() {
@@ -84,6 +102,14 @@ public class Artifact extends Jsonable{
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(ZonedDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override

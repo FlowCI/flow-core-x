@@ -18,14 +18,13 @@ package com.flow.platform.api.service;
 
 import com.flow.platform.api.dao.ArtifactDao;
 import com.flow.platform.api.domain.Artifact;
+import com.flow.platform.api.domain.ArtifactType;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.api.domain.node.NodeTree;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.google.common.base.Strings;
 import java.math.BigInteger;
-import java.nio.file.Path;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +56,11 @@ public class ArtifactServiceImpl implements ArtifactService {
             throw new IllegalParameterException("Parameter flow is error, not found flow");
         }
 
+        if (Objects.isNull(artifact.getTag())) {
+            artifact.setTag(ArtifactType.LOCAL_FILE_RESOURCE);
+        }
+
+        artifact.setCreatedAt(ZonedDateTime.now());
         return artifactDao.save(artifact);
     }
 
