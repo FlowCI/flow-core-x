@@ -22,7 +22,7 @@ import com.google.gson.annotations.Expose;
 /**
  * @author yh@firim
  */
-public class Storage extends Jsonable{
+public class LocalFileResource extends Jsonable{
 
     // file name
     @Expose
@@ -39,14 +39,14 @@ public class Storage extends Jsonable{
     @Expose
     private String url;
 
-    public Storage() {
+    public LocalFileResource() {
     }
 
-    public Storage(String id) {
+    public LocalFileResource(String id) {
         this.id = id;
     }
 
-    public Storage(String name, String id, String extension) {
+    public LocalFileResource(String name, String id, String extension) {
         this.name = name;
         this.id = id;
         this.extension = extension;
@@ -93,7 +93,7 @@ public class Storage extends Jsonable{
             return false;
         }
 
-        Storage storage = (Storage) o;
+        LocalFileResource storage = (LocalFileResource) o;
 
         return id != null ? id.equals(storage.id) : storage.id == null;
     }
@@ -105,7 +105,7 @@ public class Storage extends Jsonable{
 
     @Override
     public String toString() {
-        return "Storage{" +
+        return "LocalFileResource{" +
             "name='" + name + '\'' +
             ", id='" + id + '\'' +
             ", extension='" + extension + '\'' +

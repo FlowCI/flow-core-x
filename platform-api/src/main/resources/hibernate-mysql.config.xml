@@ -43,7 +43,7 @@
         <value>com/flow/platform/api/dao/hbm/userRole.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/permission.hbm.xml</value>
         <value>com/flow/platform/api/dao/hbm/userFlow.hbm.xml</value>
-        <value>com/flow/platform/api/dao/hbm/storage.hbm.xml</value>
+        <value>com/flow/platform/api/dao/hbm/local_file_resource.hbm.xml</value>
       </list>
     </property>
     <property name="hibernateProperties">

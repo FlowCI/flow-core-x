@@ -16,12 +16,12 @@
 
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.Storage;
+import com.flow.platform.api.domain.LocalFileResource;
 import com.flow.platform.core.dao.BaseDao;
 
 /**
  * @author yh@firim
  */
-public interface StorageDao extends BaseDao<String, Storage> {
+public interface LocalFileResourceDao extends BaseDao<String, LocalFileResource> {
 
 }

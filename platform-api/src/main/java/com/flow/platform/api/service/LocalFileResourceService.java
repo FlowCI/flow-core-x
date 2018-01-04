@@ -16,24 +16,24 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.Storage;
+import com.flow.platform.api.domain.LocalFileResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author yh@firim
  */
-public interface StorageService {
+public interface LocalFileResourceService {
 
-    Storage get(String id);
+    LocalFileResource get(String id);
 
-    Storage save(Storage storage);
+    LocalFileResource save(LocalFileResource storage);
 
-    Storage update(Storage storage);
+    LocalFileResource update(LocalFileResource storage);
 
-    Storage delete(Storage storage);
+    LocalFileResource delete(LocalFileResource storage);
 
-    Storage create(MultipartFile file);
+    LocalFileResource create(MultipartFile file);
 
     Resource getResource(String id);
 }

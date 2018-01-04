@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.controller;
 
-import com.flow.platform.api.domain.Storage;
-import com.flow.platform.api.service.StorageService;
+import com.flow.platform.api.domain.LocalFileResource;
+import com.flow.platform.api.service.LocalFileResourceService;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -33,24 +33,24 @@ import org.springframework.web.multipart.MultipartFile;
  * @author yh@firim
  */
 @RestController
-@RequestMapping(path = "/storages")
-public class StorageController {
+@RequestMapping(path = "/local_file_resources")
+public class LocalFileResourceController {
 
     @Autowired
-    private StorageService storageService;
+    private LocalFileResourceService localFileResourceService;
 
     @PostMapping
-    public Storage post(@RequestPart(name = "file") MultipartFile file) {
-        return storageService.create(file);
+    public LocalFileResource post(@RequestPart(name = "file") MultipartFile file) {
+        return localFileResourceService.create(file);
     }
 
     @GetMapping(path = "/{id}")
     public Resource get(@PathVariable String id, HttpServletResponse httpResponse) {
 
-        Storage storage = storageService.get(id);
+        LocalFileResource storage = localFileResourceService.get(id);
         httpResponse.setHeader(
             "Content-Disposition",
             String.format("attachment; filename=%s", storage.getName()));
-        return storageService.getResource(id);
+        return localFileResourceService.getResource(id);
     }
 }

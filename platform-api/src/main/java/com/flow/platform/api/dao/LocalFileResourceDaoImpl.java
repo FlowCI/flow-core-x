@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.Storage;
+import com.flow.platform.api.domain.LocalFileResource;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import org.springframework.stereotype.Repository;
 
@@ -24,11 +24,11 @@ import org.springframework.stereotype.Repository;
  * @author yh@firim
  */
 @Repository
-public class StorageDaoImpl extends AbstractBaseDao<String, Storage> implements StorageDao {
+public class LocalFileResourceDaoImpl extends AbstractBaseDao<String, LocalFileResource> implements LocalFileResourceDao {
 
     @Override
-    protected Class<Storage> getEntityClass() {
-        return Storage.class;
+    protected Class<LocalFileResource> getEntityClass() {
+        return LocalFileResource.class;
     }
 
     @Override

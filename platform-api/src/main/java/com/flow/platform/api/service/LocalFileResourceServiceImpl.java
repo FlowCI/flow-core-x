@@ -16,8 +16,8 @@
 
 package com.flow.platform.api.service;
 
-import com.flow.platform.api.dao.StorageDao;
-import com.flow.platform.api.domain.Storage;
+import com.flow.platform.api.dao.LocalFileResourceDao;
+import com.flow.platform.api.domain.LocalFileResource;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.util.CommandUtil.Unix;
@@ -41,13 +41,13 @@ import org.springframework.web.multipart.MultipartFile;
  * @author yh@firim
  */
 @Service
-public class StorageServiceImpl implements StorageService {
+public class LocalFileResourceServiceImpl implements LocalFileResourceService {
 
     private final static String STORAGE_FOLDER = "storages";
 
     private final static String DOT = ".";
 
-    private final static Logger LOGGER = new Logger(Storage.class);
+    private final static Logger LOGGER = new Logger(LocalFileResource.class);
 
     private final static String STORAGE = "storages";
 
@@ -55,14 +55,14 @@ public class StorageServiceImpl implements StorageService {
     private Path workspace;
 
     @Autowired
-    private StorageDao storageDao;
+    private LocalFileResourceDao localFileResourceDao;
 
     @Value("${domain.api}")
     private String apiHost;
 
     @Override
-    public Storage get(String id) {
-        Storage storage = storageDao.get(id);
+    public LocalFileResource get(String id) {
+        LocalFileResource storage = localFileResourceDao.get(id);
         if (Objects.isNull(storage)) {
             throw new FlowException("Not found storage");
         }
@@ -71,32 +71,32 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public Storage save(Storage storage) {
-        storageDao.save(storage);
+    public LocalFileResource save(LocalFileResource storage) {
+        localFileResourceDao.save(storage);
         return storage;
     }
 
     @Override
-    public Storage update(Storage storage) {
-        storageDao.update(storage);
+    public LocalFileResource update(LocalFileResource storage) {
+        localFileResourceDao.update(storage);
         return storage;
     }
 
     @Override
-    public Storage delete(Storage storage) {
-        storageDao.delete(storage);
+    public LocalFileResource delete(LocalFileResource storage) {
+        localFileResourceDao.delete(storage);
         return storage;
     }
 
     @Override
-    public Storage create(MultipartFile file) {
+    public LocalFileResource create(MultipartFile file) {
 
         String name = file.getOriginalFilename();
         String extension = Files.getFileExtension(name);
         String id = CommonUtil.randomId().toString();
 
-        Storage storage = new Storage(name, id, extension);
-        storageDao.save(storage);
+        LocalFileResource storage = new LocalFileResource(name, id, extension);
+        localFileResourceDao.save(storage);
         doSaveFile(file, storage);
 
         storage.setUrl(buildDownloadUrl(storage));
@@ -106,7 +106,7 @@ public class StorageServiceImpl implements StorageService {
     @Override
     public Resource getResource(String id) {
         Resource resource;
-        Storage storage = storageDao.get(id);
+        LocalFileResource storage = localFileResourceDao.get(id);
         Path destPath = buildPath(storage);
 
         if (!destPath.toFile().exists()) {
@@ -123,7 +123,7 @@ public class StorageServiceImpl implements StorageService {
         return resource;
     }
 
-    private void doSaveFile(MultipartFile file, Storage storage) {
+    private void doSaveFile(MultipartFile file, LocalFileResource storage) {
         Path destPath = buildPath(storage);
         try {
             file.transferTo(destPath.toFile());
@@ -132,7 +132,7 @@ public class StorageServiceImpl implements StorageService {
         }
     }
 
-    private Path buildPath(Storage storage) {
+    private Path buildPath(LocalFileResource storage) {
         Path storageFolder = Paths.get(workspace.toString(), STORAGE_FOLDER);
         if (!storageFolder.toFile().exists()) {
             try {
@@ -145,7 +145,7 @@ public class StorageServiceImpl implements StorageService {
         return Paths.get(storageFolder.toString(), storage.getId() + DOT + storage.getExtension());
     }
 
-    private String buildDownloadUrl(Storage storage) {
+    private String buildDownloadUrl(LocalFileResource storage) {
         return apiHost + Unix.PATH_SEPARATOR + STORAGE + Unix.PATH_SEPARATOR + storage.getId();
     }
 }

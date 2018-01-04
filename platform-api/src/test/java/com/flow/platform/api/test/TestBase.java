@@ -28,7 +28,7 @@ import com.flow.platform.api.dao.ArtifactDao;
 import com.flow.platform.api.dao.CredentialDao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.dao.MessageSettingDao;
-import com.flow.platform.api.dao.StorageDao;
+import com.flow.platform.api.dao.LocalFileResourceDao;
 import com.flow.platform.api.dao.YmlDao;
 import com.flow.platform.api.dao.job.JobDao;
 import com.flow.platform.api.dao.job.JobNumberDao;
@@ -118,7 +118,7 @@ public abstract class TestBase {
     protected FlowDao flowDao;
 
     @Autowired
-    protected StorageDao storageDao;
+    protected LocalFileResourceDao localFileResourceDao;
 
     @Autowired
     protected JobDao jobDao;
@@ -299,7 +299,7 @@ public abstract class TestBase {
 
     private void cleanDatabase() {
         artifactDao.deleteAll();
-        storageDao.deleteAll();
+        localFileResourceDao.deleteAll();
         flowDao.deleteAll();
         jobDao.deleteAll();
         ymlDao.deleteAll();

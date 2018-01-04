@@ -3,7 +3,7 @@ package com.flow.platform.api.test.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-import com.flow.platform.api.domain.Storage;
+import com.flow.platform.api.domain.LocalFileResource;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CommandUtil.Unix;
@@ -14,7 +14,7 @@ import org.springframework.mock.web.MockMultipartFile;
 /**
  * @author yh@firim
  */
-public class StorageControllerTest extends TestBase {
+public class LocalFileResourceControllerTest extends TestBase {
 
     private static final String CONTENT = "content";
 
@@ -23,7 +23,7 @@ public class StorageControllerTest extends TestBase {
         String result = performRequestWith200Status(fileUpload(getUrlForStorage())
             .file(createFilePart("file", "file.zip"))
         );
-        Storage storage = Jsonable.parse(result, Storage.class);
+        LocalFileResource storage = Jsonable.parse(result, LocalFileResource.class);
 
         Assert.assertNotNull(storage);
     }
@@ -33,7 +33,7 @@ public class StorageControllerTest extends TestBase {
         String result = performRequestWith200Status(fileUpload(getUrlForStorage())
             .file(createFilePart("file", "file.zip"))
         );
-        Storage storage = Jsonable.parse(result, Storage.class);
+        LocalFileResource storage = Jsonable.parse(result, LocalFileResource.class);
 
         Assert.assertNotNull(storage);
 
@@ -48,6 +48,6 @@ public class StorageControllerTest extends TestBase {
 
 
     private String getUrlForStorage() {
-        return "/storages";
+        return "/local_file_resources";
     }
 }
