@@ -44,13 +44,14 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class LocalFileResourceServiceImpl implements LocalFileResourceService {
 
-    private final static String STORAGE_FOLDER = "storages";
+    @Value("${api.local_file_resource.workspace}")
+    private String local_file_resources_folder;
 
     private final static String DOT = ".";
 
     private final static Logger LOGGER = new Logger(LocalFileResource.class);
 
-    private final static String STORAGE = "storages";
+    private final static String STORAGE = "local_file_resources";
 
     @Autowired
     private Path workspace;
@@ -135,7 +136,7 @@ public class LocalFileResourceServiceImpl implements LocalFileResourceService {
     }
 
     private Path buildPath(LocalFileResource storage) {
-        Path storageFolder = Paths.get(workspace.toString(), STORAGE_FOLDER);
+        Path storageFolder = Paths.get(local_file_resources_folder);
         if (!storageFolder.toFile().exists()) {
             try {
                 java.nio.file.Files.createDirectories(storageFolder);
