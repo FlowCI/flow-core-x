@@ -54,9 +54,6 @@ public class LocalFileResourceServiceImpl implements LocalFileResourceService {
     private final static String STORAGE = "local_file_resources";
 
     @Autowired
-    private Path workspace;
-
-    @Autowired
     private LocalFileResourceDao localFileResourceDao;
 
     @Value("${domain.api}")
@@ -97,20 +94,20 @@ public class LocalFileResourceServiceImpl implements LocalFileResourceService {
         String extension = Files.getFileExtension(name);
         String id = CommonUtil.randomId().toString();
 
-        LocalFileResource storage = new LocalFileResource(name, id, extension);
-        storage.setCreatedAt(ZonedDateTime.now());
-        localFileResourceDao.save(storage);
-        doSaveFile(file, storage);
+        LocalFileResource localFileResource = new LocalFileResource(name, id, extension);
+        localFileResource.setCreatedAt(ZonedDateTime.now());
+        localFileResourceDao.save(localFileResource);
+        doSaveFile(file, localFileResource);
 
-        storage.setUrl(buildDownloadUrl(storage));
-        return storage;
+        localFileResource.setUrl(buildDownloadUrl(localFileResource));
+        return localFileResource;
     }
 
     @Override
     public Resource getResource(String id) {
         Resource resource;
-        LocalFileResource storage = localFileResourceDao.get(id);
-        Path destPath = buildPath(storage);
+        LocalFileResource localFileResource = localFileResourceDao.get(id);
+        Path destPath = buildPath(localFileResource);
 
         if (!destPath.toFile().exists()) {
             throw new FlowException("Not found storage file");
@@ -126,8 +123,8 @@ public class LocalFileResourceServiceImpl implements LocalFileResourceService {
         return resource;
     }
 
-    private void doSaveFile(MultipartFile file, LocalFileResource storage) {
-        Path destPath = buildPath(storage);
+    private void doSaveFile(MultipartFile file, LocalFileResource localFileResource) {
+        Path destPath = buildPath(localFileResource);
         try {
             file.transferTo(destPath.toFile());
         } catch (IOException e) {

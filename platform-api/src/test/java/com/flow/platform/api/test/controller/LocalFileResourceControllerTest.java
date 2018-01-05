@@ -23,9 +23,9 @@ public class LocalFileResourceControllerTest extends TestBase {
         String result = performRequestWith200Status(fileUpload(getUrlForStorage())
             .file(createFilePart("file", "file.zip"))
         );
-        LocalFileResource storage = Jsonable.parse(result, LocalFileResource.class);
+        LocalFileResource localFileResource = Jsonable.parse(result, LocalFileResource.class);
 
-        Assert.assertNotNull(storage);
+        Assert.assertNotNull(localFileResource);
     }
 
     @Test
@@ -33,11 +33,12 @@ public class LocalFileResourceControllerTest extends TestBase {
         String result = performRequestWith200Status(fileUpload(getUrlForStorage())
             .file(createFilePart("file", "file.zip"))
         );
-        LocalFileResource storage = Jsonable.parse(result, LocalFileResource.class);
+        LocalFileResource localFileResource = Jsonable.parse(result, LocalFileResource.class);
 
-        Assert.assertNotNull(storage);
+        Assert.assertNotNull(localFileResource);
 
-        String response = performRequestWith200Status(get(getUrlForStorage() + Unix.PATH_SEPARATOR + storage.getId()));
+        String response = performRequestWith200Status(
+            get(getUrlForStorage() + Unix.PATH_SEPARATOR + localFileResource.getId()));
         Assert.assertNotNull(response);
         Assert.assertEquals(CONTENT, response);
     }
