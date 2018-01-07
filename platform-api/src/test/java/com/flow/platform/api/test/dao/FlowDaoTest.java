@@ -102,4 +102,12 @@ public class FlowDaoTest extends TestBase {
         Assert.assertEquals(1, paths.size());
         Assert.assertEquals(flow.getPath(), paths.get(0));
     }
+
+    @Test
+    public void should_list_path_page_by_created_by() {
+        Pageable pageable = new PageableImpl(0, 10);
+        Page<String> page = flowDao.pathList(Sets.newHashSet("admin@flow.ci"), pageable);
+        Assert.assertEquals(1, page.getContent().size());
+        Assert.assertEquals(flow.getPath(), page.getContent().get(0));
+    }
 }
