@@ -151,7 +151,13 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
 
     @Override
     public Page<T> list(Pageable pageable) {
-        return null;
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<T> select = builder.createQuery(getEntityClass());
+            select.from(getEntityClass());
+            TypedQuery query = session.createQuery(select);
+            return buildPage(query, pageable);
+        });
     }
 
     public Page<T> buildPage(TypedQuery query, Pageable pageable) {

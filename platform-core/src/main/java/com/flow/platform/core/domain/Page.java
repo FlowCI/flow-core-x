@@ -16,18 +16,23 @@
 
 package com.flow.platform.core.domain;
 
+import com.flow.platform.domain.Jsonable;
+import com.google.gson.annotations.Expose;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * @author gyfirim
  */
-public class Page<T> {
+public class Page<T> extends Jsonable {
 
+    @Expose
     private List<T> content = Collections.emptyList();
 
+    @Expose
     private long totalSize;
 
+    @Expose
     private int number;
 
     public Page(List<T> content, int number, long totalSize) {

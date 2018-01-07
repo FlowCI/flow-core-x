@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.dao;
+package com.flow.platform.api.dao.util;
 
-import com.flow.platform.api.domain.Artifact;
-import com.flow.platform.core.dao.BaseDao;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
-import java.math.BigInteger;
-import java.util.List;
+import javax.persistence.TypedQuery;
 
 /**
  * @author yh@firim
  */
-public interface ArtifactDao extends BaseDao<Integer, Artifact> {
+public class PageUtil {
 
-    List<Artifact> list(BigInteger jobId);
-
-    Page<Artifact> list(BigInteger jobId, Pageable pageable);
+    public static <T> Page<T> buildPage(TypedQuery query, Pageable pageable) {
+        query.setFirstResult(pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+        return new Page<T>(query.getResultList(), pageable.getPageNumber(), 0);
+    }
 }

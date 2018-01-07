@@ -15,10 +15,14 @@
  */
 package com.flow.platform.api.dao.user;
 
+import com.flow.platform.api.dao.util.PageUtil;
 import com.flow.platform.api.domain.user.UserRole;
 import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.util.List;
+import javax.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -47,11 +51,33 @@ public class UserRoleDaoImpl extends AbstractBaseDao<UserRoleKey, UserRole> impl
     }
 
     @Override
+    public Page<Integer> list(String email, Pageable pageable) {
+        return execute(session -> {
+            TypedQuery query = session
+                .createQuery("select key.roleId from UserRole where key.email = ?", Integer.class)
+                .setParameter(0, email);
+
+            return PageUtil.buildPage(query, pageable);
+        });
+    }
+
+    @Override
     public List<String> list(Integer roleId) {
         return execute(session -> session
             .createQuery("select key.email from UserRole where key.roleId = ?", String.class)
             .setParameter(0, roleId)
             .list());
+    }
+
+    @Override
+    public Page<String> list(Integer roleId, Pageable pageable) {
+        return execute(session -> {
+            TypedQuery query = session
+                .createQuery("select key.email from UserRole where key.roleId = ?", String.class)
+                .setParameter(0, roleId);
+
+            return PageUtil.buildPage(query, pageable);
+        });
     }
 
     @Override

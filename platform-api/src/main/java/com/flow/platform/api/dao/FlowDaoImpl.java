@@ -16,10 +16,14 @@
 
 package com.flow.platform.api.dao;
 
+import com.flow.platform.api.dao.util.PageUtil;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -44,5 +48,16 @@ public class FlowDaoImpl extends AbstractBaseDao<String, Node> implements FlowDa
             .createQuery("select path from Node where createdBy in :createdByList", String.class)
             .setParameterList("createdByList", createdBy)
             .list());
+    }
+
+    @Override
+    public Page<String> pathList(Collection<String> createdBy, Pageable pageable) {
+        return execute(session -> {
+            TypedQuery query = session
+                .createQuery("select path from Node where createdBy in :createdByList", String.class)
+                .setParameterList("createdByList", createdBy);
+
+            return PageUtil.buildPage(query, pageable);
+        });
     }
 }

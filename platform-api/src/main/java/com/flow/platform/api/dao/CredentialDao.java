@@ -18,6 +18,8 @@ package com.flow.platform.api.dao;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.core.dao.BaseDao;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.util.Collection;
 import java.util.List;
 
@@ -35,4 +37,6 @@ public interface CredentialDao extends BaseDao<String, Credential> {
      * List credential by types
      */
     List<Credential> listByType(Collection<CredentialType> types);
+
+    Page<Credential> listByType(Collection<CredentialType> types, Pageable pageable);
 }

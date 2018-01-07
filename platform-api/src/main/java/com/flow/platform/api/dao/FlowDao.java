@@ -18,6 +18,8 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.core.dao.BaseDao;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,4 +34,7 @@ public interface FlowDao extends BaseDao<String, Node> {
      * List flow path by created by email
      */
     List<String> pathList(Collection<String> createdBy);
+
+    Page<String> pathList(Collection<String> createdBy, Pageable pageable);
+
 }

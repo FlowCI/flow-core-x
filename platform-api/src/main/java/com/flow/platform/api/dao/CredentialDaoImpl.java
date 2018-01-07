@@ -18,9 +18,12 @@ package com.flow.platform.api.dao;
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import com.google.common.base.Strings;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
 
@@ -57,6 +60,18 @@ public class CredentialDaoImpl extends AbstractBaseDao<String, Credential> imple
             .createQuery("from Credential where type in :types", getEntityClass())
             .setParameterList("types", types)
             .list());
+    }
+
+
+    @Override
+    public Page<Credential> listByType(Collection<CredentialType> types, Pageable pageable) {
+        return execute(session -> {
+            TypedQuery query = session
+                .createQuery("from Credential where type in :types", getEntityClass())
+                .setParameterList("types", types);
+
+            return buildPage(query, pageable);
+        });
     }
 }
 
