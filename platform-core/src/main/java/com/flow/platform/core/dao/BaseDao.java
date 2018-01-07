@@ -16,6 +16,8 @@
 
 package com.flow.platform.core.dao;
 
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -41,6 +43,8 @@ public interface BaseDao<K extends Serializable, T> {
     void delete(final T obj);
 
     List<T> list();
+
+    Page<T> list(Pageable pageable);
 
     /**
      * Delete all data of table. should only used for test

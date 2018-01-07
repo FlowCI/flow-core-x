@@ -141,6 +141,8 @@
         <version>${javax.mail-api.version}</version>
       </dependency>
 
+
+
       <dependency>
         <groupId>com.sun.mail</groupId>
         <artifactId>javax.mail</artifactId>

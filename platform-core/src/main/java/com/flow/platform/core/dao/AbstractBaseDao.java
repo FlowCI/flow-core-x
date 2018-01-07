@@ -15,9 +15,12 @@
  */
 
 package com.flow.platform.core.dao;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
@@ -144,6 +147,17 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
             select.from(getEntityClass());
             return session.createQuery(select).list();
         });
+    }
+
+    @Override
+    public Page<T> list(Pageable pageable) {
+        return null;
+    }
+
+    public Page<T> buildPage(TypedQuery query, Pageable pageable) {
+        query.setFirstResult(pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+        return new Page<T>(query.getResultList(), pageable.getPageNumber(), 0);
     }
 }
 
