@@ -57,7 +57,15 @@ public class ArtifactDaoImpl extends AbstractBaseDao<Integer, Artifact> implemen
                     .createQuery("from Artifact where jobId = :id", getEntityClass())
                     .setParameter("id", jobId);
 
-                return buildPage(query, pageable);
+                return buildPage(query, pageable, new TotalSupplier() {
+                    @Override
+                    public long get() {
+                        TypedQuery query = session
+                            .createQuery("select count(*) from Artifact where jobId = :id", getEntityClass())
+                            .setParameter("id", jobId);
+                        return (long) query.getSingleResult();
+                    }
+                });
 
             }
         );

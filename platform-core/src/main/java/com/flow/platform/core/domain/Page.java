@@ -16,6 +16,7 @@
 
 package com.flow.platform.core.domain;
 
+import com.flow.platform.core.dao.AbstractBaseDao.TotalSupplier;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.util.Collections;
@@ -32,13 +33,19 @@ public class Page<T> extends Jsonable {
     @Expose
     private long totalSize;
 
+    // page index
     @Expose
-    private int number;
+    private int pageNumber;
 
-    public Page(List<T> content, int number, long totalSize) {
+    private int pageSize;
+
+    private int pageCount;
+
+    public Page(List<T> content, long pageSize, int number, TotalSupplier totalSupplier) {
         this.content = content;
-        this.totalSize = totalSize;
-        this.number = number;
+        this.totalSize = totalSupplier.get();
+        this.pageNumber = number;
+        this.pageCount = pageSize == 0 ? 1 : (int) Math.ceil((double) this.totalSize / (double)pageSize);
     }
 
     public List<T> getContent() {
@@ -57,39 +64,27 @@ public class Page<T> extends Jsonable {
         this.totalSize = totalSize;
     }
 
-    public int getNumber() {
-        return number;
+    public int getPageNumber() {
+        return pageNumber;
     }
 
-    public void setNumber(int number) {
-        this.number = number;
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Page<?> page = (Page<?>) o;
-
-        return number == page.number;
+    public int getPageSize() {
+        return pageSize;
     }
 
-    @Override
-    public int hashCode() {
-        return number;
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
     }
 
-    @Override
-    public String toString() {
-        return "Page{" +
-            "content=" + content +
-            ", totalSize=" + totalSize +
-            ", number=" + number +
-            '}';
+    public int getPageCount() {
+        return pageCount;
+    }
+
+    public void setPageCount(int pageCount) {
+        this.pageCount = pageCount;
     }
 }

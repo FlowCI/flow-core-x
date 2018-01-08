@@ -57,7 +57,15 @@ public class UserFlowDaoImpl extends AbstractBaseDao<UserFlowKey, UserFlow> impl
                 .createQuery("select key.flowPath from UserFlow where key.email = ?", String.class)
                 .setParameter(0, email);
 
-            return PageUtil.buildPage(query, pageable);
+            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
+                @Override
+                public long get() {
+                    TypedQuery query = session
+                        .createQuery("select count(*) from UserFlow where key.email = ?", String.class)
+                        .setParameter(0, email);
+                    return (long) query.getSingleResult();
+                }
+            });
         });
     }
 
@@ -76,7 +84,15 @@ public class UserFlowDaoImpl extends AbstractBaseDao<UserFlowKey, UserFlow> impl
                 .createQuery("select key.email from UserFlow where key.flowPath = ?", String.class)
                 .setParameter(0, flowPath);
 
-            return PageUtil.buildPage(query, pageable);
+            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
+                @Override
+                public long get() {
+                    TypedQuery query = session
+                        .createQuery("select count(*) from UserFlow where key.flowPath = ?", String.class)
+                        .setParameter(0, flowPath);
+                    return (long) query.getSingleResult();
+                }
+            });
         });
     }
 

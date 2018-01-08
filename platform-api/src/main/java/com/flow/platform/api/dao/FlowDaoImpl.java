@@ -57,7 +57,15 @@ public class FlowDaoImpl extends AbstractBaseDao<String, Node> implements FlowDa
                 .createQuery("select path from Node where createdBy in :createdByList", String.class)
                 .setParameterList("createdByList", createdBy);
 
-            return PageUtil.buildPage(query, pageable);
+            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
+                @Override
+                public long get() {
+                    TypedQuery query = session
+                        .createQuery("select count(*) from Node where createdBy in :createdByList", String.class)
+                        .setParameterList("createdByList", createdBy);
+                    return (long) query.getSingleResult();
+                }
+            });
         });
     }
 }

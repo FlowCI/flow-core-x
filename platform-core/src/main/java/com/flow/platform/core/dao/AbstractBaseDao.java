@@ -15,6 +15,7 @@
  */
 
 package com.flow.platform.core.dao;
+
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
 import java.io.Serializable;
@@ -42,7 +43,7 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
         O execute(Session session);
     }
 
-    public  <O> O execute(Executable<O> ex) {
+    public <O> O execute(Executable<O> ex) {
         Session session = getSession();
         return ex.execute(session);
     }
@@ -156,14 +157,24 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
             CriteriaQuery<T> select = builder.createQuery(getEntityClass());
             select.from(getEntityClass());
             TypedQuery query = session.createQuery(select);
-            return buildPage(query, pageable);
+            return buildPage(query, pageable, () -> {
+                CriteriaQuery<Long> selectLong = builder.createQuery(Long.class);
+                Root root = selectLong.from(getEntityClass());
+                selectLong.select(builder.count(root));
+                return session.createQuery(selectLong).uniqueResult();
+            });
         });
     }
 
-    public Page<T> buildPage(TypedQuery query, Pageable pageable) {
+    public Page<T> buildPage(TypedQuery query, Pageable pageable, TotalSupplier totalSupplier) {
         query.setFirstResult(pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
-        return new Page<T>(query.getResultList(), pageable.getPageNumber(), 0);
+        return new Page<T>(query.getResultList(), pageable.getPageSize(), pageable.getPageNumber(), totalSupplier);
+    }
+
+    public interface TotalSupplier {
+
+        long get();
     }
 }
 

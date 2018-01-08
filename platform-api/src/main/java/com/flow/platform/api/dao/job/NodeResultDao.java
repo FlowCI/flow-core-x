@@ -20,6 +20,8 @@ import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.core.dao.BaseDao;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -42,6 +44,8 @@ public interface NodeResultDao extends BaseDao<NodeResultKey, NodeResult> {
      * List node result for job
      */
     List<NodeResult> list(BigInteger jobId);
+
+    Page<NodeResult> list(BigInteger jobId, Pageable pageable);
 
     /**
      * Update status to all node result by job id

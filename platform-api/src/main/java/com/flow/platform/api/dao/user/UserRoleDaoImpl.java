@@ -57,7 +57,15 @@ public class UserRoleDaoImpl extends AbstractBaseDao<UserRoleKey, UserRole> impl
                 .createQuery("select key.roleId from UserRole where key.email = ?", Integer.class)
                 .setParameter(0, email);
 
-            return PageUtil.buildPage(query, pageable);
+            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
+                @Override
+                public long get() {
+                    TypedQuery query = session
+                        .createQuery("select count(*) from UserRole where key.email = ?", Integer.class)
+                        .setParameter(0, email);
+                    return (long) query.getSingleResult();
+                }
+            });
         });
     }
 
@@ -76,7 +84,15 @@ public class UserRoleDaoImpl extends AbstractBaseDao<UserRoleKey, UserRole> impl
                 .createQuery("select key.email from UserRole where key.roleId = ?", String.class)
                 .setParameter(0, roleId);
 
-            return PageUtil.buildPage(query, pageable);
+            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
+                @Override
+                public long get() {
+                    TypedQuery query = session
+                        .createQuery("select count(*) from UserRole where key.roleId = ?", String.class)
+                        .setParameter(0, roleId);
+                    return (long) query.getSingleResult();
+                }
+            });
         });
     }
 
