@@ -15,6 +15,8 @@
  */
 package com.flow.platform.api.dao;
 
+import static com.flow.platform.core.dao.PageUtil.buildPage;
+
 import com.flow.platform.api.domain.credential.Credential;
 import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.core.dao.AbstractBaseDao;

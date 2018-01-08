@@ -15,6 +15,8 @@
  */
 package com.flow.platform.api.dao.job;
 
+import static com.flow.platform.core.dao.PageUtil.buildPage;
+
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;

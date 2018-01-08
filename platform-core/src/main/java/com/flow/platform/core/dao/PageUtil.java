@@ -16,26 +16,19 @@
 
 package com.flow.platform.core.dao;
 
-import java.util.List;
+import com.flow.platform.core.dao.AbstractBaseDao.TotalSupplier;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import javax.persistence.TypedQuery;
-import org.springframework.util.Assert;
 
 /**
  * @author yh@firim
  */
 public class PageUtil {
 
-    public static Long executeCountQuery(TypedQuery<Long> query) {
-
-        Assert.notNull(query, "TypedQuery must not be null!");
-
-        List<Long> totals = query.getResultList();
-        Long total = 0L;
-
-        for (Long element : totals) {
-            total += element == null ? 0 : element;
-        }
-
-        return total;
+    public static <T> Page<T> buildPage(TypedQuery query, Pageable pageable, TotalSupplier totalSupplier) {
+        query.setFirstResult(pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+        return new Page<T>(query.getResultList(), pageable.getPageSize(), pageable.getPageNumber(), totalSupplier);
     }
 }

@@ -16,8 +16,10 @@
 
 package com.flow.platform.api.dao.job;
 
+import static com.flow.platform.core.dao.PageUtil.buildPage;
+
 import com.flow.platform.api.dao.util.JobConvertUtil;
-import com.flow.platform.api.dao.util.PageUtil;
+import com.flow.platform.core.dao.PageUtil;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
@@ -275,13 +277,8 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         return execute(session -> {
             TypedQuery query = session.createQuery("from Job where status in :status", Job.class)
                 .setParameterList("status", status);
-            return buildPage(query, pageable, new TotalSupplier() {
-                @Override
-                public long get() {
-                    return (long) session.createQuery("select count(*) from Job where status in :status")
-                        .uniqueResult();
-                }
-            });
+            return buildPage(query, pageable, (TotalSupplier) () -> (long) session.createQuery("select count(*) from Job where status in :status")
+                .uniqueResult());
         });
     }
 
@@ -320,7 +317,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 .createQuery("select id from Job where nodePath = :node_path", BigInteger.class)
                 .setParameter("node_path", path);
 
-            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
+            return buildPage(query, pageable, new TotalSupplier() {
                 @Override
                 public long get() {
                     return (long) session

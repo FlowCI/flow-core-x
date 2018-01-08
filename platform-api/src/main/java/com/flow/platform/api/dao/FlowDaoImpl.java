@@ -16,7 +16,7 @@
 
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.dao.util.PageUtil;
+import com.flow.platform.core.dao.PageUtil;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.core.dao.AbstractBaseDao;
 import com.flow.platform.core.domain.Page;

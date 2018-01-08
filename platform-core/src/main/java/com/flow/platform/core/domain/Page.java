@@ -41,9 +41,10 @@ public class Page<T> extends Jsonable {
 
     private int pageCount;
 
-    public Page(List<T> content, long pageSize, int number, TotalSupplier totalSupplier) {
+    public Page(List<T> content, int pageSize, int number, TotalSupplier totalSupplier) {
         this.content = content;
         this.totalSize = totalSupplier.get();
+        this.pageSize = pageSize;
         this.pageNumber = number;
         this.pageCount = pageSize == 0 ? 1 : (int) Math.ceil((double) this.totalSize / (double)pageSize);
     }

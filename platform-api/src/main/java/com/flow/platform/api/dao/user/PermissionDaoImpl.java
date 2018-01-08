@@ -15,7 +15,7 @@
  */
 package com.flow.platform.api.dao.user;
 
-import com.flow.platform.api.dao.util.PageUtil;
+import com.flow.platform.core.dao.PageUtil;
 import com.flow.platform.api.domain.user.Permission;
 import com.flow.platform.api.domain.user.PermissionKey;
 import com.flow.platform.core.dao.AbstractBaseDao;
