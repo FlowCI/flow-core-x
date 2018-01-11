@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.Artifact;
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
@@ -23,6 +24,7 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
+import com.flow.platform.api.service.ArtifactService;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.job.JobService;
@@ -68,6 +70,9 @@ public class JobController extends NodeController {
 
     @Autowired
     private LogService logService;
+
+    @Autowired
+    private ArtifactService artifactService;
 
     @Autowired
     private ThreadLocal<User> currentUser;
@@ -345,6 +350,11 @@ public class JobController extends NodeController {
             "Content-Disposition",
             String.format("attachment; filename=%s", String.format("%s-%s.zip", path, buildNumber)));
         return logService.findJobLog(path, buildNumber);
+    }
+
+    @GetMapping(path = "/{root}/{buildNumber}/artifacts")
+    public List<Artifact> artifacts(@PathVariable Long buildNumber) {
+        return artifactService.list(currentNodePath.get(), buildNumber);
     }
 
 }
