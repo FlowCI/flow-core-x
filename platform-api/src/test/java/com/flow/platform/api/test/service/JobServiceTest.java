@@ -36,6 +36,8 @@ import com.flow.platform.api.service.job.JobNodeService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.PageableImpl;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
@@ -409,4 +411,47 @@ public class JobServiceTest extends TestBase {
         Assert.assertNull(cmdCallbackQueue.dequeue());
         Assert.assertEquals(0, cmdCallbackQueue.size());
     }
+
+    @Test
+    public void should_page_list_by_node_path() throws IOException {
+        PageableImpl pageable = new PageableImpl(1, 3);
+
+        Node rootForFlow = createRootFlow("flowTest", "yml/demo_flow1.yaml");
+
+        Integer count = 5;
+
+        for (int i = 0; i < count; i++) {
+            createMockJob(rootForFlow.getPath());
+        }
+
+        Page<Job> page = jobService.list(Lists.newArrayList(rootForFlow.getPath()), false, pageable);
+
+        Assert.assertEquals(page.getTotalSize(), count.longValue());
+        Assert.assertEquals(page.getPageCount(), 2);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getPageSize(), 3);
+        Assert.assertEquals(page.getContent().get(0).getNodePath(), "flowTest");
+    }
+
+    @Test
+    public void should_page_list_by_node_path_latest() throws IOException {
+        PageableImpl pageable = new PageableImpl(1, 3);
+
+        Node rootForFlow = createRootFlow("flowTest", "yml/demo_flow1.yaml");
+
+        Integer count = 5;
+
+        for (int i = 0; i < count; i++) {
+            createMockJob(rootForFlow.getPath());
+        }
+
+        Page<Job> page = jobService.list(Lists.newArrayList(rootForFlow.getPath()), true, pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 1);
+        Assert.assertEquals(page.getPageCount(), 1);
+        Assert.assertEquals(page.getPageSize(), 3);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getNodePath(), "flowTest");
+    }
+
 }
