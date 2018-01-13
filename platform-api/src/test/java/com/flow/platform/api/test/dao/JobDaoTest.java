@@ -27,6 +27,7 @@ import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.PageableImpl;
 import com.google.common.collect.Lists;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -168,24 +169,40 @@ public class JobDaoTest extends TestBase {
     }
 
     @Test
+    public void should_page_list() {
+        PageableImpl pageable = new PageableImpl(1, 10);
+
+        Page<Job> page = jobDao.list(Lists.newArrayList(job.getSessionId()), NodeStatus.SUCCESS, pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 1);
+        Assert.assertEquals(page.getPageCount(), 1);
+        Assert.assertEquals(page.getPageSize(), 10);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getId(), job.getId());
+    }
+
+    @Test
     public void should_page_list_by_path() {
         Integer count = 5;
 
-        PageableImpl pageable = new PageableImpl(1, 10);
+        PageableImpl pageable = new PageableImpl(1, 2);
         for (int i = 0; i < count; i++) {
             createJob();
         }
 
         Page<Job> page = jobDao.listByPath(Lists.newArrayList("flow/test"), pageable);
 
-        Assert.assertEquals(page.getTotalSize(), count+1);
-        Assert.assertEquals(page.getPageCount(), 1);
+        Assert.assertEquals(page.getTotalSize(), count + 1);
+        Assert.assertEquals(page.getPageCount(), 3);
+        Assert.assertEquals(page.getPageSize(), 2);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getNodePath(), job.getNodePath());
     }
 
     @Test
     public void should_page_list_latest_by_path() {
-
         Integer count = 5;
+
         PageableImpl pageable = new PageableImpl(1, 10);
         for (int i = 0; i < count; i++) {
             createJob();
@@ -194,10 +211,57 @@ public class JobDaoTest extends TestBase {
 
         Assert.assertEquals(page.getTotalSize(), 1);
         Assert.assertEquals(page.getPageCount(), 1);
+        Assert.assertEquals(page.getPageSize(), 10);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getNodePath(), "flow/test");
     }
 
-    public void createJob(){
+    @Test
+    public void should_page_list_by_status() {
+        PageableImpl pageable = new PageableImpl(1, 10);
 
+        Page<Job> page = null;
+
+        page = jobDao.listByStatus(EnumSet.of(JobStatus.CREATED), pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 1);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getPageCount(), 1);
+        Assert.assertEquals(page.getPageSize(), 10);
+        Assert.assertEquals(page.getContent().get(0).getId(), job.getId());
+        Assert.assertEquals(page.getContent().get(0).getStatus(), JobStatus.CREATED);
+
+        // when: update job status to SESSION_CREATING
+        job.setStatus(JobStatus.SESSION_CREATING);
+        jobDao.update(job);
+
+        page = jobDao.listByStatus(EnumSet.of(JobStatus.SESSION_CREATING), pageable);
+
+        // then:
+        Assert.assertEquals(page.getTotalSize(), 1);
+        Assert.assertEquals(page.getContent().get(0).getId(), job.getId());
+        Assert.assertEquals(page.getContent().get(0).getStatus(), JobStatus.SESSION_CREATING);
+    }
+
+    @Test
+    public void should_page_find_job_ids_by_path() {
+        PageableImpl pageable = new PageableImpl(1, 10);
+        Integer count = 5;
+
+        for (int i = 0; i < count; i++) {
+            createJob();
+        }
+
+        Page<BigInteger> jobIdsByPath = jobDao.findJobIdsByPath("flow/test", pageable);
+
+        Assert.assertEquals(jobIdsByPath.getContent().get(0), job.getId());
+        Assert.assertEquals(jobIdsByPath.getTotalSize(), count + 1);
+        Assert.assertEquals(jobIdsByPath.getPageCount(), 1);
+        Assert.assertEquals(jobIdsByPath.getPageNumber(), 1);
+        Assert.assertEquals(jobIdsByPath.getPageSize(), 10);
+    }
+
+    public void createJob() {
         Job newJob = new Job(CommonUtil.randomId());
         newJob.setNodePath(job.getNodePath());
         newJob.setNodeName(job.getNodeName());

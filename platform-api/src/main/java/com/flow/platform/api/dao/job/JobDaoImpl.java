@@ -98,7 +98,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 @Override
                 public long get() {
                     NativeQuery nativeQuery = session.createNativeQuery(
-                        "select count(*) WHERE job.session_id IN (:sessionIds) AND nr.node_status=:status")
+                        JOB_COUNT_QUERY + " WHERE job.session_id IN (:sessionIds) AND nr.node_status=:status")
                         .setParameter("sessionIds", sessionIds)
                         .setParameter("status", nodeStatus.getName());
                     return Long.valueOf(nativeQuery.uniqueResult().toString());
@@ -169,7 +169,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             List<Object[]> objects = nativeQuery.list();
             List<Job> jobs = JobConvertUtil.convert(objects);
 
-            return new Page<>(jobs, pageable.getPageNumber(), pageable.getPageSize(), new TotalSupplier() {
+            return new Page<>(jobs, pageable.getPageSize(), pageable.getPageNumber(), new TotalSupplier() {
                 @Override
                 public long get() {
                     StringBuilder query = new StringBuilder(JOB_COUNT_QUERY);
@@ -269,8 +269,14 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
         return execute(session -> {
             TypedQuery query = session.createQuery("from Job where status in :status", Job.class)
                 .setParameterList("status", status);
-            return buildPage(query, pageable, (TotalSupplier) () -> (long) session.createQuery("select count(*) from Job where status in :status")
-                .uniqueResult());
+            return buildPage(query, pageable, new TotalSupplier() {
+                @Override
+                public long get() {
+                    return (long) session.createQuery("select count(*) from Job where status in :status")
+                        .setParameterList("status", status)
+                        .uniqueResult();
+                }
+            });
         });
     }
 
@@ -313,7 +319,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 @Override
                 public long get() {
                     return (long) session
-                        .createQuery("select id from Job where nodePath = :node_path")
+                        .createQuery("select count(id) from Job where nodePath = :node_path")
                         .setParameter("node_path", path)
                         .uniqueResult();
                 }
