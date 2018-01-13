@@ -23,6 +23,8 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.envs.EnvKey;
 import com.flow.platform.api.envs.FlowEnvs;
 import com.flow.platform.api.envs.GitEnvs;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import com.google.common.collect.ImmutableSet;
 import java.math.BigInteger;
 import java.util.List;
@@ -81,6 +83,8 @@ public interface JobService {
      * @param latestOnly is only load latest job
      */
     List<Job> list(List<String> paths, boolean latestOnly);
+
+    Page<Job> list(List<String> paths, boolean latestOnly,Pageable pageable);
 
     /**
      * Create job by yml which from flow

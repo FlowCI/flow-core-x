@@ -19,6 +19,9 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.core.dao.AbstractBaseDao.TotalSupplier;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -49,6 +52,28 @@ public class JobSearchServiceImpl implements JobSearchService {
     public List<Job> search(SearchCondition searchCondition, List<String> paths) {
         List<Job> jobs = jobService.list(paths, false);
         return match(searchCondition, jobs);
+    }
+
+    @Override
+    public Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable) {
+        if (searchCondition == null) {
+            return jobService.list(paths, false, pageable);
+        } else {
+            List<Job> jobs = jobService.list(paths, false);
+            Integer pageSize = pageable.getPageSize();
+            Integer pageNumber = pageable.getPageNumber();
+            List<Job> list = match(searchCondition, jobs);
+            Integer total = list.size();
+            List<Job> newList = list.subList(pageSize * (pageNumber - 1),
+                (pageSize * pageNumber) > total ? total : (pageSize * pageNumber));
+
+            return new Page<Job>(newList, pageSize, pageNumber, new TotalSupplier() {
+                @Override
+                public long get() {
+                    return total;
+                }
+            });
+        }
     }
 
     private List<Job> match(SearchCondition searchCondition, List<Job> jobs) {

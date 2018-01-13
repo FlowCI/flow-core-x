@@ -18,6 +18,8 @@ package com.flow.platform.api.service.job;
 
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.util.List;
 
 /**
@@ -26,4 +28,7 @@ import java.util.List;
 public interface JobSearchService {
 
     List<Job> search(SearchCondition searchCondition, List<String> paths);
+
+    Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable);
+
 }

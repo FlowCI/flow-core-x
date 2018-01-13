@@ -24,6 +24,8 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.PageableImpl;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -164,4 +166,50 @@ public class JobDaoTest extends TestBase {
         List<Job> jobs = jobDao.list(sessionIds, NodeStatus.SUCCESS);
         Assert.assertEquals(1, jobs.size());
     }
+
+    @Test
+    public void should_page_list_by_path() {
+        Integer count = 5;
+
+        PageableImpl pageable = new PageableImpl(1, 10);
+        for (int i = 0; i < count; i++) {
+            createJob();
+        }
+
+        Page<Job> page = jobDao.listByPath(Lists.newArrayList("flow/test"), pageable);
+
+        Assert.assertEquals(page.getTotalSize(), count+1);
+        Assert.assertEquals(page.getPageCount(), 1);
+    }
+
+    @Test
+    public void should_page_list_latest_by_path() {
+
+        Integer count = 5;
+        PageableImpl pageable = new PageableImpl(1, 10);
+        for (int i = 0; i < count; i++) {
+            createJob();
+        }
+        Page<Job> page = jobDao.latestByPath(Lists.newArrayList("flow/test"), pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 1);
+        Assert.assertEquals(page.getPageCount(), 1);
+    }
+
+    public void createJob(){
+
+        Job newJob = new Job(CommonUtil.randomId());
+        newJob.setNodePath(job.getNodePath());
+        newJob.setNodeName(job.getNodeName());
+        newJob.setNumber(jobNumberDao.increase(job.getNodePath()).getNumber());
+        newJob.setSessionId(UUID.randomUUID().toString());
+        jobDao.save(newJob);
+
+        NodeResult newResult = new NodeResult(newJob.getId(), newJob.getNodePath());
+        newResult.setNodeTag(NodeTag.FLOW);
+        newResult.setStatus(NodeStatus.FAILURE);
+        newResult.setOrder(1);
+        nodeResultDao.save(newResult);
+    }
+
 }

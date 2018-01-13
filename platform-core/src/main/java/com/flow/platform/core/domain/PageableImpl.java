@@ -42,6 +42,6 @@ public class PageableImpl implements Pageable {
 
     @Override
     public int getOffset() {
-        return number * size;
+        return (number-1) * size;
     }
 }

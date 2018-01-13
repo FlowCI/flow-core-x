@@ -100,9 +100,8 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                     NativeQuery nativeQuery = session.createNativeQuery(
                         "select count(*) WHERE job.session_id IN (:sessionIds) AND nr.node_status=:status")
                         .setParameter("sessionIds", sessionIds)
-                        .setParameter("status", nodeStatus.getName())
-                        .setResultSetMapping("MappingJobResult");
-                    return (long) nativeQuery.uniqueResult();
+                        .setParameter("status", nodeStatus.getName());
+                    return Long.valueOf(nativeQuery.uniqueResult().toString());
                 }
             });
         });
@@ -164,6 +163,9 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 nativeQuery.setParameterList("paths", paths);
             }
 
+            nativeQuery.setFirstResult(pageable.getOffset());
+            nativeQuery.setMaxResults(pageable.getPageSize());
+
             List<Object[]> objects = nativeQuery.list();
             List<Job> jobs = JobConvertUtil.convert(objects);
 
@@ -179,66 +181,13 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                         query.append(" where id in (select max(id) from job group by node_path)");
                     }
 
-                    NativeQuery nativeQuery = session
-                        .createNativeQuery(query.toString())
-                        .setResultSetMapping("MappingJobResult");
+                    NativeQuery nativeQuery = session.createNativeQuery(query.toString());
 
                     if (!CollectionUtil.isNullOrEmpty(paths)) {
                         nativeQuery.setParameterList("paths", paths);
                     }
 
-                    return (long) nativeQuery.uniqueResult();
-                }
-            });
-        });
-    }
-
-    @Override
-    public Page<Job> listByPath(List<String> paths, Pageable pageable) {
-        return execute((Session session) -> {
-            final StringBuilder query = new StringBuilder(JOB_QUERY);
-
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                query.append(" where id in (select max(id) from job where node_path in (:paths) group by node_path)");
-            } else {
-                query.append(" where id in (select max(id) from job group by node_path)");
-            }
-
-            NativeQuery nativeQuery = session
-                .createNativeQuery(query.toString())
-                .setResultSetMapping("MappingJobResult");
-
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                nativeQuery.setParameterList("paths", paths);
-            }
-
-            nativeQuery.setFirstResult(pageable.getOffset());
-            nativeQuery.setMaxResults(pageable.getPageSize());
-
-            List<Object[]> objects = nativeQuery.list();
-            List<Job> jobs = JobConvertUtil.convert(objects);
-
-            return new Page<>(jobs, pageable.getPageSize(), pageable.getPageNumber(), new TotalSupplier() {
-                @Override
-                public long get() {
-                    final StringBuilder query = new StringBuilder(JOB_COUNT_QUERY);
-
-                    if (!CollectionUtil.isNullOrEmpty(paths)) {
-                        query.append(
-                            " where id in (select max(id) from job where node_path in (:paths) group by node_path)");
-                    } else {
-                        query.append(" where id in (select max(id) from job group by node_path)");
-                    }
-
-                    NativeQuery nativeQuery = session
-                        .createNativeQuery(query.toString())
-                        .setResultSetMapping("MappingJobResult");
-
-                    if (!CollectionUtil.isNullOrEmpty(paths)) {
-                        nativeQuery.setParameterList("paths", paths);
-                    }
-
-                    return (long) nativeQuery.uniqueResult();
+                    return Long.valueOf(nativeQuery.uniqueResult().toString());
                 }
             });
         });
@@ -262,6 +211,49 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
 
             List<Object[]> objects = nativeQuery.list();
             return JobConvertUtil.convert(objects);
+        });
+    }
+
+    @Override
+    public Page<Job> listByPath(List<String> paths, Pageable pageable) {
+        return execute((Session session) -> {
+            final StringBuilder query = new StringBuilder(JOB_QUERY);
+
+            if (!CollectionUtil.isNullOrEmpty(paths)) {
+                query.append(" where job.node_path in (:paths) order by job.created_at desc ");
+            }
+
+            NativeQuery nativeQuery = session.createNativeQuery(query.toString())
+                .setResultSetMapping("MappingJobResult");
+
+            if (!CollectionUtil.isNullOrEmpty(paths)) {
+                nativeQuery.setParameterList("paths", paths);
+            }
+
+            nativeQuery.setFirstResult(pageable.getOffset());
+            nativeQuery.setMaxResults(pageable.getPageSize());
+
+            List<Object[]> objects = nativeQuery.list();
+            List<Job> jobs = JobConvertUtil.convert(objects);
+
+            return new Page<>(jobs, pageable.getPageSize(), pageable.getPageNumber(), new TotalSupplier() {
+                @Override
+                public long get() {
+                    final StringBuilder query = new StringBuilder(JOB_COUNT_QUERY);
+
+                    if (!CollectionUtil.isNullOrEmpty(paths)) {
+                        query.append(" where job.node_path in (:paths) order by job.created_at desc ");
+                    }
+
+                    NativeQuery nativeQuery = session.createNativeQuery(query.toString());
+
+                    if (!CollectionUtil.isNullOrEmpty(paths)) {
+                        nativeQuery.setParameterList("paths", paths);
+                    }
+
+                    return Long.valueOf(nativeQuery.uniqueResult().toString());
+                }
+            });
         });
     }
 
