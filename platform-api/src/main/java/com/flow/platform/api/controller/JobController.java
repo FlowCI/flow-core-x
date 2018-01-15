@@ -30,6 +30,8 @@ import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.PageableImpl;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
@@ -38,6 +40,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -146,6 +149,28 @@ public class JobController extends NodeController {
         }
 
         return searchService.search(condition, paths);
+    }
+
+    @GetMapping(path = "/limit/{root}")
+    @WebSecurity(action = Actions.JOB_SHOW)
+    public Page<Job> limitIndex( SearchCondition searchCondition, PageableImpl pageableImpl) {
+        String path = currentNodePath.get();
+
+        List<String> paths = null;
+        if (path != null) {
+            paths = Lists.newArrayList(path);
+        }
+
+        if (Objects.isNull(pageableImpl) || StringUtil
+            .isNullOrEmptyForItems(String.valueOf(pageableImpl.getPageNumber()),
+                String.valueOf(pageableImpl.getPageSize()))) {
+
+            pageableImpl = new PageableImpl();
+            pageableImpl.setNumber(1);
+            pageableImpl.setSize(10);
+        }
+
+        return searchService.search(searchCondition, paths, pageableImpl);
     }
 
     /**

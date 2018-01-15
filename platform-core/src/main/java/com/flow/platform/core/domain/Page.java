@@ -37,8 +37,10 @@ public class Page<T> extends Jsonable {
     @Expose
     private int pageNumber;
 
+    @Expose
     private int pageSize;
 
+    @Expose
     private int pageCount;
 
     public Page(List<T> content, int pageSize, int number, TotalSupplier totalSupplier) {

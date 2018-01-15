@@ -30,6 +30,10 @@ public class PageableImpl implements Pageable {
         this.size = size;
     }
 
+    public PageableImpl (){
+
+    }
+
     @Override
     public int getPageNumber() {
         return number;
@@ -44,4 +48,13 @@ public class PageableImpl implements Pageable {
     public int getOffset() {
         return (number-1) * size;
     }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
 }
