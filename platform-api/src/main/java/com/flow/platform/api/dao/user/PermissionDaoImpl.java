@@ -60,7 +60,7 @@ public class PermissionDaoImpl extends AbstractBaseDao<PermissionKey, Permission
                 @Override
                 public long get() {
                     TypedQuery query = session
-                        .createQuery("select count(*) from Permission where key.action = ?", Integer.class)
+                        .createQuery("select count(*) from Permission where key.action = ?")
                         .setParameter(0, action);
                     return (long) query.getSingleResult();
                 }
@@ -86,7 +86,7 @@ public class PermissionDaoImpl extends AbstractBaseDao<PermissionKey, Permission
                 @Override
                 public long get() {
                     TypedQuery query = session
-                        .createQuery("select count(*) from Permission where key.roleId = ?", String.class)
+                        .createQuery("select count(*) from Permission where key.roleId = ?")
                         .setParameter(0, roleId);
                     return (long) query.getSingleResult();
                 }
