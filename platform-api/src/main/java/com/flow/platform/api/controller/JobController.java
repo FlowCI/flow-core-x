@@ -163,7 +163,8 @@ public class JobController extends NodeController {
 
         if (Objects.isNull(pageable) || StringUtil
             .isNullOrEmptyForItems(String.valueOf(pageable.getPageNumber()),
-                String.valueOf(pageable.getPageSize()))) {
+                String.valueOf(pageable.getPageSize())) ||
+            (pageable.getPageSize() == 0 || pageable.getPageNumber() == 0)) {
 
             pageable = new Pageable();
             pageable.setNumber(1);

@@ -110,6 +110,7 @@ public class CredentialDaoTest extends TestBase {
         Assert.assertEquals(page.getPageCount(), 2);
         Assert.assertEquals(page.getPageSize(), 1);
         Assert.assertEquals(page.getPageNumber(), 2);
+        Assert.assertEquals(page.getContent().size(), 1);
     }
 
 }
