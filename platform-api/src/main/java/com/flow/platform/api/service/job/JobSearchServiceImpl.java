@@ -22,10 +22,13 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.core.dao.AbstractBaseDao.TotalSupplier;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
+import com.flow.platform.util.CollectionUtil;
+import com.flow.platform.util.StringUtil;
 import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,21 +59,25 @@ public class JobSearchServiceImpl implements JobSearchService {
 
     @Override
     public Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable) {
-        if (searchCondition == null) {
+
+        if (Objects.isNull(searchCondition) || StringUtil
+            .isNullOrEmptyForItems(searchCondition.getCategory(), searchCondition.getCreator(),
+                searchCondition.getBranch(), searchCondition.getKeyword())) {
+
             return jobService.list(paths, false, pageable);
+
         } else {
             List<Job> jobs = jobService.list(paths, false);
+            List<Job> list = match(searchCondition, jobs);
+
             Integer pageSize = pageable.getPageSize();
             Integer pageNumber = pageable.getPageNumber();
-            List<Job> list = match(searchCondition, jobs);
-            Integer total = list.size();
-            List<Job> newList = list.subList(pageSize * (pageNumber - 1),
-                (pageSize * pageNumber) > total ? total : (pageSize * pageNumber));
+            List<Job> subList = CollectionUtil.subList(list, pageSize, pageNumber);
 
-            return new Page<Job>(newList, pageSize, pageNumber, new TotalSupplier() {
+            return new Page<Job>(subList, pageSize, pageNumber, new TotalSupplier() {
                 @Override
                 public long get() {
-                    return total;
+                    return list.size();
                 }
             });
         }
