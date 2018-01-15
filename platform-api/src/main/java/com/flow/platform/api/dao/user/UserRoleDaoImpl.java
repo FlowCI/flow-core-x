@@ -61,7 +61,7 @@ public class UserRoleDaoImpl extends AbstractBaseDao<UserRoleKey, UserRole> impl
                 @Override
                 public long get() {
                     TypedQuery query = session
-                        .createQuery("select count(*) from UserRole where key.email = ?", Integer.class)
+                        .createQuery("select count(*) from UserRole where key.email = ?")
                         .setParameter(0, email);
                     return (long) query.getSingleResult();
                 }
@@ -88,7 +88,7 @@ public class UserRoleDaoImpl extends AbstractBaseDao<UserRoleKey, UserRole> impl
                 @Override
                 public long get() {
                     TypedQuery query = session
-                        .createQuery("select count(*) from UserRole where key.roleId = ?", String.class)
+                        .createQuery("select count(*) from UserRole where key.roleId = ?")
                         .setParameter(0, roleId);
                     return (long) query.getSingleResult();
                 }

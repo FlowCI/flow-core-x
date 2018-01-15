@@ -109,36 +109,34 @@ public class UserFlowDaoTest extends TestBase {
 
         Page<String> page = userFlowDao.listByEmail(email, pageable);
 
-        Assert.assertEquals(page.getTotalSize(),3);
-        Assert.assertEquals(page.getPageCount(),2);
-        Assert.assertEquals(page.getPageNumber(),1);
-        Assert.assertEquals(page.getPageSize(),2);
-        Assert.assertEquals(page.getContent().get(0),flowPath+0);
+        Assert.assertEquals(page.getTotalSize(), 3);
+        Assert.assertEquals(page.getPageCount(), 2);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getPageSize(), 2);
+        Assert.assertEquals(page.getContent().get(0), flowPath + 0);
     }
 
     @Test
-    public void should_page_find_user_flow_by_flow_path(){
-        Pageable pageable = new Pageable(1,2);
+    public void should_page_find_user_flow_by_flow_path() {
+        Pageable pageable = new Pageable(1, 2);
 
         final String email = "liuhailiang@126.com";
         final String flowPath = "flow-integration";
 
         for (int i = 0; i < 3; i++) {
             // then: create two user-flow for the same email
-            UserFlowKey userFlowKey = new UserFlowKey(flowPath, email+i);
+            UserFlowKey userFlowKey = new UserFlowKey(flowPath, email + i);
             UserFlow userFlow = new UserFlow(userFlowKey);
             userFlowDao.save(userFlow);
         }
 
         Page<String> page = userFlowDao.listByFlowPath(flowPath, pageable);
 
-        Assert.assertEquals(page.getTotalSize(),3);
-        Assert.assertEquals(page.getPageCount(),2);
-        Assert.assertEquals(page.getPageSize(),2);
-        Assert.assertEquals(page.getPageNumber(),1);
-        Assert.assertEquals(page.getContent().get(0),email+0);
-
-
+        Assert.assertEquals(page.getTotalSize(), 3);
+        Assert.assertEquals(page.getPageCount(), 2);
+        Assert.assertEquals(page.getPageSize(), 2);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0), email + 0);
     }
 
 }
