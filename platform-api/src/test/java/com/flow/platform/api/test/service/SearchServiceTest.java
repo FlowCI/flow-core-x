@@ -23,7 +23,7 @@ import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.PageableImpl;
+import com.flow.platform.core.domain.Pageable;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -118,7 +118,7 @@ public class SearchServiceTest extends TestBase {
 
     @Test
     public void should_page_get_all_jobs_success() {
-        PageableImpl pageable = new PageableImpl(1, 2);
+        Pageable pageable = new Pageable(1, 2);
 
         SearchCondition searchCondition = new SearchCondition(null, null, null, null);
 
@@ -136,7 +136,7 @@ public class SearchServiceTest extends TestBase {
 
     @Test
     public void should_page_get_branch_jobs_success() {
-        PageableImpl pageable = new PageableImpl(1, 2);
+        Pageable pageable = new Pageable(1, 2);
 
         SearchCondition searchCondition = new SearchCondition(null, "master", null);
 
@@ -151,7 +151,7 @@ public class SearchServiceTest extends TestBase {
 
     @Test
     public void should_page_get_event_jobs_success() {
-        PageableImpl pageable = new PageableImpl(1, 2);
+        Pageable pageable = new Pageable(1, 2);
 
         SearchCondition searchCondition = new SearchCondition(null, null, "PR");
 
@@ -166,7 +166,7 @@ public class SearchServiceTest extends TestBase {
 
     @Test
     public void should_page_get_keyword_jobs_success() {
-        PageableImpl pageable = new PageableImpl(1, 2);
+        Pageable pageable = new Pageable(1, 2);
 
         SearchCondition searchCondition = new SearchCondition("2", null, null);
 
@@ -180,7 +180,7 @@ public class SearchServiceTest extends TestBase {
 
     @Test
     public void should_page_get_creator_jobs_success() {
-        PageableImpl pageable = new PageableImpl(1, 1);
+        Pageable pageable = new Pageable(1, 1);
 
         SearchCondition searchCondition = new SearchCondition(null, null, null, "yh@fir.im");
 
@@ -195,7 +195,7 @@ public class SearchServiceTest extends TestBase {
 
     @Test
     public void should_page_get_branch_and_pr_jobs_success(){
-        PageableImpl pageable = new PageableImpl(1,10);
+        Pageable pageable = new Pageable(1,10);
 
         SearchCondition searchCondition = new SearchCondition(null,"master","PR",null);
 

@@ -17,13 +17,41 @@
 package com.flow.platform.core.domain;
 
 /**
- * @author yh@firim
+ * @author gyfirim
  */
-public interface Pageable {
+public class Pageable{
 
-    int getPageNumber();
+    private int number;
 
-    int getPageSize();
+    private int size;
 
-    int getOffset();
+    public Pageable(int number, int size) {
+        this.number = number;
+        this.size = size;
+    }
+
+    public Pageable (){
+
+    }
+
+    public int getPageNumber() {
+        return number;
+    }
+
+    public int getPageSize() {
+        return size;
+    }
+
+    public int getOffset() {
+        return (number-1) * size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
 }

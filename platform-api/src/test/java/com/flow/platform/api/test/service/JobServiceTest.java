@@ -37,7 +37,7 @@ import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.PageableImpl;
+import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.util.ThreadUtil;
@@ -414,7 +414,7 @@ public class JobServiceTest extends TestBase {
 
     @Test
     public void should_page_list_by_node_path() throws IOException {
-        PageableImpl pageable = new PageableImpl(1, 3);
+        Pageable pageable = new Pageable(1, 3);
 
         Node rootForFlow = createRootFlow("flowTest", "yml/demo_flow1.yaml");
 
@@ -435,7 +435,7 @@ public class JobServiceTest extends TestBase {
 
     @Test
     public void should_page_list_by_node_path_latest() throws IOException {
-        PageableImpl pageable = new PageableImpl(1, 3);
+        Pageable pageable = new Pageable(1, 3);
 
         Node rootForFlow = createRootFlow("flowTest", "yml/demo_flow1.yaml");
 

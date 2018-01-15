@@ -25,7 +25,7 @@ import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.PageableImpl;
+import com.flow.platform.core.domain.Pageable;
 import com.google.common.collect.Lists;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -170,7 +170,7 @@ public class JobDaoTest extends TestBase {
 
     @Test
     public void should_page_list() {
-        PageableImpl pageable = new PageableImpl(1, 10);
+        Pageable pageable = new Pageable(1, 10);
 
         Page<Job> page = jobDao.list(Lists.newArrayList(job.getSessionId()), NodeStatus.SUCCESS, pageable);
 
@@ -185,7 +185,7 @@ public class JobDaoTest extends TestBase {
     public void should_page_list_by_path() {
         Integer count = 5;
 
-        PageableImpl pageable = new PageableImpl(1, 2);
+        Pageable pageable = new Pageable(1, 2);
         for (int i = 0; i < count; i++) {
             createJob();
         }
@@ -203,7 +203,7 @@ public class JobDaoTest extends TestBase {
     public void should_page_list_latest_by_path() {
         Integer count = 5;
 
-        PageableImpl pageable = new PageableImpl(1, 10);
+        Pageable pageable = new Pageable(1, 10);
         for (int i = 0; i < count; i++) {
             createJob();
         }
@@ -218,7 +218,7 @@ public class JobDaoTest extends TestBase {
 
     @Test
     public void should_page_list_by_status() {
-        PageableImpl pageable = new PageableImpl(1, 10);
+        Pageable pageable = new Pageable(1, 10);
 
         Page<Job> page = null;
 
@@ -245,7 +245,7 @@ public class JobDaoTest extends TestBase {
 
     @Test
     public void should_page_find_job_ids_by_path() {
-        PageableImpl pageable = new PageableImpl(1, 10);
+        Pageable pageable = new Pageable(1, 10);
         Integer count = 5;
 
         for (int i = 0; i < count; i++) {

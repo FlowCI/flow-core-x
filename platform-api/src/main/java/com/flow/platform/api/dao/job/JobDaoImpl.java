@@ -19,7 +19,6 @@ package com.flow.platform.api.dao.job;
 import static com.flow.platform.core.dao.PageUtil.buildPage;
 
 import com.flow.platform.api.dao.util.JobConvertUtil;
-import com.flow.platform.core.dao.PageUtil;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
