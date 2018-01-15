@@ -58,7 +58,7 @@ public class FlowDaoTest extends TestBase {
     @Test
     public void should_list_page_success(){
 
-        Pageable pageable = new Pageable(0, 10);
+        Pageable pageable = new Pageable(1, 10);
         Page<Node> page = flowDao.list(pageable);
         Assert.assertNotNull(page);
         Assert.assertEquals(1, page.getContent().size());
@@ -104,7 +104,7 @@ public class FlowDaoTest extends TestBase {
 
     @Test
     public void should_list_path_page_by_created_by() {
-        Pageable pageable = new Pageable(0, 10);
+        Pageable pageable = new Pageable(1, 10);
         Page<String> page = flowDao.pathList(Sets.newHashSet("admin@flow.ci"), pageable);
         Assert.assertEquals(1, page.getContent().size());
         Assert.assertEquals(flow.getPath(), page.getContent().get(0));

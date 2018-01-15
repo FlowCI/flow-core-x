@@ -61,7 +61,7 @@ public class FlowDaoImpl extends AbstractBaseDao<String, Node> implements FlowDa
                 @Override
                 public long get() {
                     TypedQuery query = session
-                        .createQuery("select count(*) from Node where createdBy in :createdByList", String.class)
+                        .createQuery("select count(*) from Node where createdBy in :createdByList")
                         .setParameterList("createdByList", createdBy);
                     return (long) query.getSingleResult();
                 }
