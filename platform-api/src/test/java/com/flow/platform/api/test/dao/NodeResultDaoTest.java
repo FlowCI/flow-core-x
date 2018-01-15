@@ -26,6 +26,8 @@ import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.core.exception.NotFoundException;
 import java.time.ZonedDateTime;
 import org.junit.Assert;
@@ -118,4 +120,34 @@ public class NodeResultDaoTest extends TestBase {
             Assert.assertEquals(NotFoundException.class, e.getClass());
         }
     }
+
+    @Test
+    public void should_page_list_by_job_id(){
+        Pageable pageable = new Pageable(1,2);
+
+        Job job = new Job(CommonUtil.randomId());
+
+        Integer count = 5;
+
+        for(int i = 0;i <count; i++){
+            NodeResult jobNode = new NodeResult(job.getId(), "/flow"+i);
+            jobNode.setStatus(NodeStatus.SUCCESS);
+            jobNode.setExitCode(0);
+            jobNode.setCmdId("1111");
+            jobNode.setNodeTag(NodeTag.FLOW);
+            jobNode.setOrder(1);
+            jobNode.setStartTime(ZonedDateTime.now());
+            jobNode.setFinishTime(ZonedDateTime.now());
+            nodeResultDao.save(jobNode);
+        }
+
+        Page<NodeResult> page = nodeResultDao.list(job.getId(), pageable);
+
+        Assert.assertEquals(page.getTotalSize(),5);
+        Assert.assertEquals(page.getPageCount(),3);
+        Assert.assertEquals(page.getPageSize(),2);
+        Assert.assertEquals(page.getPageNumber(),1);
+        Assert.assertEquals(page.getContent().size(),2);
+    }
+
 }
