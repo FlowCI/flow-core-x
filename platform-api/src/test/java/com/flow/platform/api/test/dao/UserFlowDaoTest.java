@@ -18,6 +18,8 @@ package com.flow.platform.api.test.dao;
 import com.flow.platform.api.domain.user.UserFlow;
 import com.flow.platform.api.domain.user.UserFlowKey;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -90,4 +92,53 @@ public class UserFlowDaoTest extends TestBase {
 
         Assert.assertEquals(2, userFlowDao.numOfUser(flowPath).longValue());
     }
+
+    @Test
+    public void should_page_find_user_flow_by_email() {
+        Pageable pageable = new Pageable(1, 2);
+
+        final String email = "liuhailiang@126.com";
+        final String flowPath = "flow-integration";
+
+        for (int i = 0; i < 3; i++) {
+            // then: create two user-flow for the same email
+            UserFlowKey userFlowKey = new UserFlowKey(flowPath + i, email);
+            UserFlow userFlow = new UserFlow(userFlowKey);
+            userFlowDao.save(userFlow);
+        }
+
+        Page<String> page = userFlowDao.listByEmail(email, pageable);
+
+        Assert.assertEquals(page.getTotalSize(),3);
+        Assert.assertEquals(page.getPageCount(),2);
+        Assert.assertEquals(page.getPageNumber(),1);
+        Assert.assertEquals(page.getPageSize(),2);
+        Assert.assertEquals(page.getContent().get(0),flowPath+0);
+    }
+
+    @Test
+    public void should_page_find_user_flow_by_flow_path(){
+        Pageable pageable = new Pageable(1,2);
+
+        final String email = "liuhailiang@126.com";
+        final String flowPath = "flow-integration";
+
+        for (int i = 0; i < 3; i++) {
+            // then: create two user-flow for the same email
+            UserFlowKey userFlowKey = new UserFlowKey(flowPath, email+i);
+            UserFlow userFlow = new UserFlow(userFlowKey);
+            userFlowDao.save(userFlow);
+        }
+
+        Page<String> page = userFlowDao.listByFlowPath(flowPath, pageable);
+
+        Assert.assertEquals(page.getTotalSize(),3);
+        Assert.assertEquals(page.getPageCount(),2);
+        Assert.assertEquals(page.getPageSize(),2);
+        Assert.assertEquals(page.getPageNumber(),1);
+        Assert.assertEquals(page.getContent().get(0),email+0);
+
+
+    }
+
 }

@@ -61,7 +61,7 @@ public class UserFlowDaoImpl extends AbstractBaseDao<UserFlowKey, UserFlow> impl
                 @Override
                 public long get() {
                     TypedQuery query = session
-                        .createQuery("select count(*) from UserFlow where key.email = ?", String.class)
+                        .createQuery("select count(*) from UserFlow where key.email = ?")
                         .setParameter(0, email);
                     return (long) query.getSingleResult();
                 }
@@ -88,7 +88,7 @@ public class UserFlowDaoImpl extends AbstractBaseDao<UserFlowKey, UserFlow> impl
                 @Override
                 public long get() {
                     TypedQuery query = session
-                        .createQuery("select count(*) from UserFlow where key.flowPath = ?", String.class)
+                        .createQuery("select count(*) from UserFlow where key.flowPath = ?")
                         .setParameter(0, flowPath);
                     return (long) query.getSingleResult();
                 }
