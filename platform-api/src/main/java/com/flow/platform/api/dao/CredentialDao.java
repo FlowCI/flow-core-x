@@ -39,4 +39,5 @@ public interface CredentialDao extends BaseDao<String, Credential> {
     List<Credential> listByType(Collection<CredentialType> types);
 
     Page<Credential> listByType(Collection<CredentialType> types, Pageable pageable);
+    
 }

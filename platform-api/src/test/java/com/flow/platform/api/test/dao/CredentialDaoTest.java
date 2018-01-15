@@ -20,6 +20,8 @@ import com.flow.platform.api.domain.credential.CredentialType;
 import com.flow.platform.api.domain.credential.RSACredentialDetail;
 import com.flow.platform.api.domain.credential.UsernameCredentialDetail;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import org.junit.Assert;
@@ -95,4 +97,19 @@ public class CredentialDaoTest extends TestBase {
         credentialDao.delete(usernameCredential);
         Assert.assertEquals(0, credentialDao.list().size());
     }
+
+    @Test
+    public void should_page_list_by_type() {
+        Pageable pageable = new Pageable(2, 1);
+
+        final ArrayList<CredentialType> types = Lists.newArrayList(CredentialType.RSA, CredentialType.USERNAME);
+
+        Page<Credential> page = credentialDao.listByType(types, pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 2);
+        Assert.assertEquals(page.getPageCount(), 2);
+        Assert.assertEquals(page.getPageSize(), 1);
+        Assert.assertEquals(page.getPageNumber(), 2);
+    }
+
 }

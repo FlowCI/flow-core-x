@@ -76,7 +76,7 @@ public class CredentialDaoImpl extends AbstractBaseDao<String, Credential> imple
                 @Override
                 public long get() {
                     TypedQuery query = session
-                        .createQuery("select count(*) from Credential where type in :types", getEntityClass())
+                        .createQuery("select count(*) from Credential where type in :types")
                         .setParameterList("types", types);
                     return (long) query.getSingleResult();
                 }
