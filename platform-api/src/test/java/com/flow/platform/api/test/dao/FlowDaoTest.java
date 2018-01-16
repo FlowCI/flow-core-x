@@ -19,8 +19,6 @@ package com.flow.platform.api.test.dao;
 import com.flow.platform.api.dao.FlowDao;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
 import com.google.common.collect.Sets;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -53,15 +51,6 @@ public class FlowDaoTest extends TestBase {
         List<Node> flows = flowDao.list();
         Assert.assertEquals(1, flows.size());
         Assert.assertEquals(flow, flows.get(0));
-    }
-
-    @Test
-    public void should_list_page_success(){
-
-        Pageable pageable = new Pageable(1, 10);
-        Page<Node> page = flowDao.list(pageable);
-        Assert.assertNotNull(page);
-        Assert.assertEquals(1, page.getContent().size());
     }
 
     @Test
@@ -102,11 +91,4 @@ public class FlowDaoTest extends TestBase {
         Assert.assertEquals(flow.getPath(), paths.get(0));
     }
 
-    @Test
-    public void should_list_path_page_by_created_by() {
-        Pageable pageable = new Pageable(1, 10);
-        Page<String> page = flowDao.pathList(Sets.newHashSet("admin@flow.ci"), pageable);
-        Assert.assertEquals(1, page.getContent().size());
-        Assert.assertEquals(flow.getPath(), page.getContent().get(0));
-    }
 }
