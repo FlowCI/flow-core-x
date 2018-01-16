@@ -18,8 +18,6 @@ package com.flow.platform.api.dao.user;
 import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.api.domain.user.UserRole;
 import com.flow.platform.core.dao.BaseDao;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
 import java.util.List;
 
 /**
@@ -32,14 +30,10 @@ public interface UserRoleDao extends BaseDao<UserRoleKey, UserRole> {
      */
     List<Integer> list(String email);
 
-    Page<Integer> list(String email, Pageable pageable);
-
     /**
      * List user emails for role id
      */
     List<String> list(Integer roleId);
-
-    Page<String> list(Integer roleId, Pageable pageable);
 
     /**
      * Get number of user for role

@@ -18,8 +18,6 @@ package com.flow.platform.api.test.dao;
 import com.flow.platform.api.domain.user.Permission;
 import com.flow.platform.api.domain.user.PermissionKey;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -77,49 +75,6 @@ public class PermissionDaoTest extends TestBase {
 
         permissionDao.delete(rolesPermissions);
         Assert.assertEquals(0, permissionDao.list().size());
-    }
-
-    @Test
-    public void should_page_list_by_role_id() {
-        Pageable pageable = new Pageable(2, 3);
-
-        // when
-        final int roleId = 1;
-
-        Integer count = 5;
-
-        for (int i = 0; i < count; i++) {
-            Permission permissionForShow = new Permission(roleId, "show" + i);
-            permissionDao.save(permissionForShow);
-        }
-
-        Page<String> page = permissionDao.list(roleId, pageable);
-
-        Assert.assertEquals(page.getTotalSize(), 5);
-        Assert.assertEquals(page.getPageCount(), 2);
-        Assert.assertEquals(page.getPageSize(), 3);
-        Assert.assertEquals(page.getPageNumber(), 2);
-        Assert.assertEquals(page.getContent().size(), 2);
-    }
-
-    @Test
-    public void should_page_list_by_action() {
-        Pageable pageable = new Pageable(2, 3);
-
-        Integer count = 5;
-
-        for (int i = 0; i < count; i++) {
-            Permission permissionForShow = new Permission(i, "show");
-            permissionDao.save(permissionForShow);
-        }
-
-        Page<Integer> page = permissionDao.list("show", pageable);
-
-        Assert.assertEquals(page.getTotalSize(), 5);
-        Assert.assertEquals(page.getPageCount(), 2);
-        Assert.assertEquals(page.getPageNumber(), 2);
-        Assert.assertEquals(page.getPageSize(), 3);
-        Assert.assertEquals(page.getContent().size(), 2);
     }
 
 }

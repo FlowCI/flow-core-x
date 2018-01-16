@@ -51,49 +51,11 @@ public class UserRoleDaoImpl extends AbstractBaseDao<UserRoleKey, UserRole> impl
     }
 
     @Override
-    public Page<Integer> list(String email, Pageable pageable) {
-        return execute(session -> {
-            TypedQuery query = session
-                .createQuery("select key.roleId from UserRole where key.email = ?", Integer.class)
-                .setParameter(0, email);
-
-            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
-                @Override
-                public long get() {
-                    TypedQuery query = session
-                        .createQuery("select count(*) from UserRole where key.email = ?")
-                        .setParameter(0, email);
-                    return (long) query.getSingleResult();
-                }
-            });
-        });
-    }
-
-    @Override
     public List<String> list(Integer roleId) {
         return execute(session -> session
             .createQuery("select key.email from UserRole where key.roleId = ?", String.class)
             .setParameter(0, roleId)
             .list());
-    }
-
-    @Override
-    public Page<String> list(Integer roleId, Pageable pageable) {
-        return execute(session -> {
-            TypedQuery query = session
-                .createQuery("select key.email from UserRole where key.roleId = ?", String.class)
-                .setParameter(0, roleId);
-
-            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
-                @Override
-                public long get() {
-                    TypedQuery query = session
-                        .createQuery("select count(*) from UserRole where key.roleId = ?")
-                        .setParameter(0, roleId);
-                    return (long) query.getSingleResult();
-                }
-            });
-        });
     }
 
     @Override

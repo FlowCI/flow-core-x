@@ -15,14 +15,10 @@
  */
 package com.flow.platform.api.dao.user;
 
-import com.flow.platform.core.dao.PageUtil;
 import com.flow.platform.api.domain.user.UserFlow;
 import com.flow.platform.api.domain.user.UserFlowKey;
 import com.flow.platform.core.dao.AbstractBaseDao;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
 import java.util.List;
-import javax.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -51,49 +47,11 @@ public class UserFlowDaoImpl extends AbstractBaseDao<UserFlowKey, UserFlow> impl
     }
 
     @Override
-    public Page<String> listByEmail(String email, Pageable pageable) {
-        return execute(session -> {
-            TypedQuery query = session
-                .createQuery("select key.flowPath from UserFlow where key.email = ?", String.class)
-                .setParameter(0, email);
-
-            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
-                @Override
-                public long get() {
-                    TypedQuery query = session
-                        .createQuery("select count(*) from UserFlow where key.email = ?")
-                        .setParameter(0, email);
-                    return (long) query.getSingleResult();
-                }
-            });
-        });
-    }
-
-    @Override
     public List<String> listByFlowPath(String flowPath) {
         return execute(session -> session
             .createQuery("select key.email from UserFlow where key.flowPath = ?", String.class)
             .setParameter(0, flowPath)
             .list());
-    }
-
-    @Override
-    public Page<String> listByFlowPath(String flowPath, Pageable pageable) {
-        return execute(session -> {
-            TypedQuery query = session
-                .createQuery("select key.email from UserFlow where key.flowPath = ?", String.class)
-                .setParameter(0, flowPath);
-
-            return PageUtil.buildPage(query, pageable, new TotalSupplier() {
-                @Override
-                public long get() {
-                    TypedQuery query = session
-                        .createQuery("select count(*) from UserFlow where key.flowPath = ?")
-                        .setParameter(0, flowPath);
-                    return (long) query.getSingleResult();
-                }
-            });
-        });
     }
 
     @Override

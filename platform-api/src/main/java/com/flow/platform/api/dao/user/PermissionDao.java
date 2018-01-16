@@ -18,8 +18,6 @@ package com.flow.platform.api.dao.user;
 import com.flow.platform.api.domain.user.PermissionKey;
 import com.flow.platform.api.domain.user.Permission;
 import com.flow.platform.core.dao.BaseDao;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
 import java.util.List;
 
 /**
@@ -32,15 +30,10 @@ public interface PermissionDao extends BaseDao<PermissionKey, Permission> {
      */
     List<String> list(Integer roleId);
 
-    Page<String> list(Integer roleId, Pageable pageable);
-
     /**
      * Get list of role id by action
      */
     List<Integer> list(String action);
-
-
-    Page<Integer> list(String action, Pageable pageable);
 
     /**
      * Get num of role assign to action

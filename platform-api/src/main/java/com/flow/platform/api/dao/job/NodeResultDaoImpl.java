@@ -15,18 +15,13 @@
  */
 package com.flow.platform.api.dao.job;
 
-import static com.flow.platform.core.dao.PageUtil.buildPage;
-
 import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.job.NodeResultKey;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.core.dao.AbstractBaseDao;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
 import java.math.BigInteger;
 import java.util.List;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.CriteriaUpdate;
@@ -85,30 +80,6 @@ public class NodeResultDaoImpl extends AbstractBaseDao<NodeResultKey, NodeResult
             select.where(aCondition);
             select.orderBy(builder.asc(nodeResultRoot.get("order")));
             return session.createQuery(select).list();
-        });
-    }
-
-
-    @Override
-    public Page<NodeResult> list(BigInteger jobId, Pageable pageable) {
-        return execute(session -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<NodeResult> select = builder.createQuery(NodeResult.class);
-            Root<NodeResult> nodeResultRoot = select.from(NodeResult.class);
-            Predicate aCondition = builder.equal(nodeResultRoot.get("key").get("jobId"), jobId);
-            select.where(aCondition);
-            select.orderBy(builder.asc(nodeResultRoot.get("order")));
-            TypedQuery query = session.createQuery(select);
-
-            return buildPage(query, pageable, new TotalSupplier() {
-                @Override
-                public long get() {
-                    CriteriaQuery<Long> select = builder.createQuery(Long.class);
-                    Root<NodeResult> nodeResultRoot = select.from(NodeResult.class);
-                    select.select(builder.count(nodeResultRoot));
-                    return session.createQuery(select).uniqueResult();
-                }
-            });
         });
     }
 

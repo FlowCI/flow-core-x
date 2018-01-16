@@ -18,8 +18,6 @@ package com.flow.platform.api.test.dao;
 import com.flow.platform.api.domain.user.UserRole;
 import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.api.test.TestBase;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -90,48 +88,6 @@ public class UserRoleDaoTest extends TestBase {
         userRoleDao.save(usersRoles);
 
         Assert.assertEquals(2, userRoleDao.numOfUser(roleId).longValue());
-    }
-
-    @Test
-    public void should_page_find_user_role_by_email() {
-        Pageable pageable = new Pageable(1, 2);
-
-        final String email = "liuhailiang@126.com";
-
-        for (int i = 0; i < 3; i++) {
-            UserRoleKey userRoleKey = new UserRoleKey(i, email);
-            UserRole usersRoles = new UserRole(userRoleKey);
-            userRoleDao.save(usersRoles);
-        }
-
-        Page<Integer> page = userRoleDao.list(email, pageable);
-
-        Assert.assertEquals(page.getTotalSize(), 3);
-        Assert.assertEquals(page.getPageCount(), 2);
-        Assert.assertEquals(page.getPageSize(), 2);
-        Assert.assertEquals(page.getPageNumber(), 1);
-        Assert.assertEquals(page.getContent().get(0).toString(), "0");
-    }
-
-    @Test
-    public void should_page_find_user_role_by_role_id() {
-        Pageable pageable = new Pageable(1, 2);
-
-        final String email = "liuhailiang@126.com";
-
-        for (int i = 0; i < 3; i++) {
-            UserRoleKey userRoleKey = new UserRoleKey(0, email + i);
-            UserRole usersRoles = new UserRole(userRoleKey);
-            userRoleDao.save(usersRoles);
-        }
-
-        Page<String> page = userRoleDao.list(0, pageable);
-
-        Assert.assertEquals(page.getTotalSize(), 3);
-        Assert.assertEquals(page.getPageCount(), 2);
-        Assert.assertEquals(page.getPageSize(), 2);
-        Assert.assertEquals(page.getPageNumber(), 1);
-        Assert.assertEquals(page.getContent().get(0), email + 0);
     }
 
 }
