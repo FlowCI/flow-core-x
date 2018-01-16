@@ -16,15 +16,10 @@
 
 package com.flow.platform.api.dao;
 
-import static com.flow.platform.core.dao.PageUtil.buildPage;
-
 import com.flow.platform.api.domain.Artifact;
 import com.flow.platform.core.dao.AbstractBaseDao;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
 import java.math.BigInteger;
 import java.util.List;
-import javax.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -51,25 +46,4 @@ public class ArtifactDaoImpl extends AbstractBaseDao<Integer, Artifact> implemen
             .list());
     }
 
-    @Override
-    public Page<Artifact> list(BigInteger jobId, Pageable pageable) {
-        return execute(session -> {
-
-                TypedQuery query = session
-                    .createQuery("from Artifact where jobId = :id", getEntityClass())
-                    .setParameter("id", jobId);
-
-                return buildPage(query, pageable, new TotalSupplier() {
-                    @Override
-                    public long get() {
-                        TypedQuery query = session
-                            .createQuery("select count(*) from Artifact where jobId = :id", getEntityClass())
-                            .setParameter("id", jobId);
-                        return (long) query.getSingleResult();
-                    }
-                });
-
-            }
-        );
-    }
 }

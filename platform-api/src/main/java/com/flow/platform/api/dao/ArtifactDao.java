@@ -18,8 +18,6 @@ package com.flow.platform.api.dao;
 
 import com.flow.platform.api.domain.Artifact;
 import com.flow.platform.core.dao.BaseDao;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -30,5 +28,4 @@ public interface ArtifactDao extends BaseDao<Integer, Artifact> {
 
     List<Artifact> list(BigInteger jobId);
 
-    Page<Artifact> list(BigInteger jobId, Pageable pageable);
 }
