@@ -16,6 +16,9 @@
 
 package com.flow.platform.api.domain;
 
+import com.flow.platform.util.StringUtil;
+import java.util.Objects;
+
 /**
  * @author yh@firim
  */
@@ -113,4 +116,11 @@ public class SearchCondition {
         result = 31 * result + (category != null ? category.hashCode() : 0);
         return result;
     }
+
+    public static boolean isEmpty(SearchCondition searchCondition){
+        return Objects.isNull(searchCondition) || StringUtil
+            .isNullOrEmptyForItems(searchCondition.getCategory(), searchCondition.getCreator(),
+                searchCondition.getBranch(), searchCondition.getKeyword());
+    }
+
 }

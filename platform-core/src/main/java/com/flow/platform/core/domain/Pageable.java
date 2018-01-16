@@ -16,10 +16,17 @@
 
 package com.flow.platform.core.domain;
 
+import com.flow.platform.util.StringUtil;
+import java.util.Objects;
+
 /**
  * @author gyfirim
  */
 public class Pageable{
+
+    public final static int DEFAULT_NUMBER = 1;
+
+    public final static int DEFAULT_SIZE = 20;
 
     private int number;
 
@@ -52,6 +59,13 @@ public class Pageable{
 
     public void setNumber(int number) {
         this.number = number;
+    }
+
+    public static boolean isEmpty(Pageable pageable) {
+        return Objects.isNull(pageable) || StringUtil
+            .isNullOrEmptyForItems(String.valueOf(pageable.getPageNumber()),
+                String.valueOf(pageable.getPageSize())) ||
+            (pageable.getPageSize() == 0 || pageable.getPageNumber() == 0);
     }
 
 }

@@ -23,12 +23,10 @@ import com.flow.platform.core.dao.AbstractBaseDao.TotalSupplier;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.util.CollectionUtil;
-import com.flow.platform.util.StringUtil;
 import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -60,9 +58,7 @@ public class JobSearchServiceImpl implements JobSearchService {
     @Override
     public Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable) {
 
-        if (Objects.isNull(searchCondition) || StringUtil
-            .isNullOrEmptyForItems(searchCondition.getCategory(), searchCondition.getCreator(),
-                searchCondition.getBranch(), searchCondition.getKeyword())) {
+        if (SearchCondition.isEmpty(searchCondition)) {
 
             return jobService.list(paths, false, pageable);
 

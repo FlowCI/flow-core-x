@@ -146,7 +146,7 @@ public class SearchServiceTest extends TestBase {
         Assert.assertEquals(page.getPageCount(), 2);
         Assert.assertEquals(page.getPageSize(), 2);
         Assert.assertEquals(page.getPageNumber(), 1);
-        Assert.assertEquals(page.getContent().get(0).getEnv(GitEnvs.FLOW_GIT_BRANCH.toString()),"master");
+        Assert.assertEquals(page.getContent().size(), 2);
     }
 
     @Test

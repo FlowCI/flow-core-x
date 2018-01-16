@@ -40,7 +40,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -161,16 +160,11 @@ public class JobController extends NodeController {
             paths = Lists.newArrayList(path);
         }
 
-        if (Objects.isNull(pageable) || StringUtil
-            .isNullOrEmptyForItems(String.valueOf(pageable.getPageNumber()),
-                String.valueOf(pageable.getPageSize())) ||
-            (pageable.getPageSize() == 0 || pageable.getPageNumber() == 0)) {
-
+        if (Pageable.isEmpty(pageable)) {
             pageable = new Pageable();
-            pageable.setNumber(1);
-            pageable.setSize(10);
+            pageable.setNumber(Pageable.DEFAULT_NUMBER);
+            pageable.setSize(Pageable.DEFAULT_SIZE);
         }
-
         return searchService.search(searchCondition, paths, pageable);
     }
 
