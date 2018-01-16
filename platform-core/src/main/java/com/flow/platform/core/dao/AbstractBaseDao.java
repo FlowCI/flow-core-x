@@ -157,19 +157,17 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
             CriteriaQuery<T> select = builder.createQuery(getEntityClass());
             select.from(getEntityClass());
             TypedQuery query = session.createQuery(select);
-            return PageUtil.buildPage(query, pageable, () -> {
-                CriteriaQuery<Long> selectLong = builder.createQuery(Long.class);
-                Root root = selectLong.from(getEntityClass());
-                selectLong.select(builder.count(root));
-                return session.createQuery(selectLong).uniqueResult();
-            });
+
+            CriteriaQuery<Long> selectLong = builder.createQuery(Long.class);
+            Root root = selectLong.from(getEntityClass());
+            selectLong.select(builder.count(root));
+
+            long totalSize = session.createQuery(selectLong).uniqueResult();
+
+            return PageUtil.buildPage(query, pageable, totalSize);
         });
     }
 
-    public interface TotalSupplier {
-
-        long get();
-    }
 }
 
 

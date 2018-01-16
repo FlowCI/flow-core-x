@@ -16,7 +16,6 @@
 
 package com.flow.platform.core.dao;
 
-import com.flow.platform.core.dao.AbstractBaseDao.TotalSupplier;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
 import javax.persistence.TypedQuery;
@@ -26,9 +25,9 @@ import javax.persistence.TypedQuery;
  */
 public class PageUtil {
 
-    public static <T> Page<T> buildPage(TypedQuery query, Pageable pageable, TotalSupplier totalSupplier) {
+    public static <T> Page<T> buildPage(TypedQuery query, Pageable pageable, long totalSize) {
         query.setFirstResult(pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
-        return new Page<T>(query.getResultList(), pageable.getPageSize(), pageable.getPageNumber(), totalSupplier);
+        return new Page<T>(query.getResultList(), pageable.getPageSize(), pageable.getPageNumber(), totalSize);
     }
 }

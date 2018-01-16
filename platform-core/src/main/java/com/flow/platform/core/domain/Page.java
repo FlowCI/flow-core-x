@@ -16,7 +16,6 @@
 
 package com.flow.platform.core.domain;
 
-import com.flow.platform.core.dao.AbstractBaseDao.TotalSupplier;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.util.Collections;
@@ -43,9 +42,9 @@ public class Page<T> extends Jsonable {
     @Expose
     private int pageCount;
 
-    public Page(List<T> content, int pageSize, int number, TotalSupplier totalSupplier) {
+    public Page(List<T> content, int pageSize, int number, long totalSize) {
         this.content = content;
-        this.totalSize = totalSupplier.get();
+        this.totalSize = totalSize;
         this.pageSize = pageSize;
         this.pageNumber = number;
         this.pageCount = pageSize == 0 ? 1 : (int) Math.ceil((double) this.totalSize / (double)pageSize);

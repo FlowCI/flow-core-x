@@ -19,7 +19,6 @@ package com.flow.platform.api.service.job;
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.core.dao.AbstractBaseDao.TotalSupplier;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.util.CollectionUtil;
@@ -70,12 +69,7 @@ public class JobSearchServiceImpl implements JobSearchService {
             Integer pageNumber = pageable.getPageNumber();
             List<Job> subList = CollectionUtil.subList(list, pageSize, pageNumber);
 
-            return new Page<Job>(subList, pageSize, pageNumber, new TotalSupplier() {
-                @Override
-                public long get() {
-                    return list.size();
-                }
-            });
+            return new Page<Job>(subList, pageSize, pageNumber, list.size());
         }
     }
 
