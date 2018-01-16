@@ -117,10 +117,13 @@ public class SearchCondition {
         return result;
     }
 
+    public boolean isEmpty() {
+        return StringUtil
+            .isNullOrEmptyForItems(getCategory(), getCreator(), getBranch(), getKeyword());
+    }
+
     public static boolean isEmpty(SearchCondition searchCondition){
-        return Objects.isNull(searchCondition) || StringUtil
-            .isNullOrEmptyForItems(searchCondition.getCategory(), searchCondition.getCreator(),
-                searchCondition.getBranch(), searchCondition.getKeyword());
+        return Objects.isNull(searchCondition) || searchCondition.isEmpty();
     }
 
 }

@@ -24,9 +24,7 @@ import java.util.Objects;
  */
 public class Pageable{
 
-    public final static int DEFAULT_NUMBER = 1;
-
-    public final static int DEFAULT_SIZE = 20;
+    public final static Pageable DEFAULT = new Pageable(1,20);
 
     private int number;
 
@@ -61,11 +59,14 @@ public class Pageable{
         this.number = number;
     }
 
+    public boolean isEmpty() {
+        return StringUtil.isNullOrEmptyForItems(
+            String.valueOf(getPageNumber()), String.valueOf(getPageSize()))
+            || (getPageSize() == 0 || getPageNumber() == 0);
+    }
+
     public static boolean isEmpty(Pageable pageable) {
-        return Objects.isNull(pageable) || StringUtil
-            .isNullOrEmptyForItems(String.valueOf(pageable.getPageNumber()),
-                String.valueOf(pageable.getPageSize())) ||
-            (pageable.getPageSize() == 0 || pageable.getPageNumber() == 0);
+        return Objects.isNull(pageable) || pageable.isEmpty();
     }
 
 }

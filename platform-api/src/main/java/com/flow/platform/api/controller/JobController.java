@@ -161,9 +161,7 @@ public class JobController extends NodeController {
         }
 
         if (Pageable.isEmpty(pageable)) {
-            pageable = new Pageable();
-            pageable.setNumber(Pageable.DEFAULT_NUMBER);
-            pageable.setSize(Pageable.DEFAULT_SIZE);
+            pageable = Pageable.DEFAULT;
         }
         return searchService.search(searchCondition, paths, pageable);
     }
