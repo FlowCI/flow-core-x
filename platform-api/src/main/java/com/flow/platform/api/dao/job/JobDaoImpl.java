@@ -23,6 +23,8 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import com.flow.platform.core.dao.QueryHelper;
+import com.flow.platform.core.dao.QueryHelper.Builder;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.util.CollectionUtil;
@@ -83,21 +85,27 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public Page<Job> list(List<String> sessionIds, NodeStatus nodeStatus, Pageable pageable) {
         return execute((Session session) -> {
-            NativeQuery nativeQuery = session.createNativeQuery(
-                JOB_QUERY + " WHERE job.session_id IN (:sessionIds) AND nr.node_status=:status")
-                .setParameter("sessionIds", sessionIds)
-                .setParameter("status", nodeStatus.getName())
-                .setResultSetMapping("MappingJobResult");
 
+            String select = "*";
+            String countSelect = "count(*)";
+            String from = "job as job left join node_result as nr on job.node_path=nr.node_path and job.id=nr.job_id";
+            String where = "job.session_id IN (:sessionIds) AND nr.node_status=:status";
+
+            Builder builder = QueryHelper.Builder()
+                .select(select)
+                .from(from)
+                .where(where)
+                .parameter("sessionIds", sessionIds)
+                .parameter("status", nodeStatus.getName());
+
+            NativeQuery nativeQuery = builder.createNativeQuery(session);
             nativeQuery.setFirstResult(pageable.getOffset());
             nativeQuery.setMaxResults(pageable.getPageSize());
+            nativeQuery.setResultSetMapping("MappingJobResult");
             List<Object[]> objects = nativeQuery.list();
             List<Job> jobs = JobConvertUtil.convert(objects);
 
-            NativeQuery countNativeQuery = session.createNativeQuery(
-                JOB_COUNT_QUERY + " WHERE job.session_id IN (:sessionIds) AND nr.node_status=:status")
-                .setParameter("sessionIds", sessionIds)
-                .setParameter("status", nodeStatus.getName());
+            NativeQuery countNativeQuery = builder.select(countSelect).createNativeQuery(session);
             long totalSize = Long.valueOf(countNativeQuery.uniqueResult().toString());
 
             return new Page<>(jobs, pageable.getPageSize(), pageable.getPageNumber(), totalSize);
@@ -144,41 +152,31 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public Page<Job> latestByPath(List<String> paths, Pageable pageable) {
         return execute((Session session) -> {
-            final StringBuilder query = new StringBuilder(JOB_QUERY);
 
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                query.append(" where id in (select max(id) from job where node_path in (:paths) group by node_path)");
-            } else {
-                query.append(" where id in (select max(id) from job group by node_path)");
+            String select = "*";
+            String countSelect = "count(*)";
+            String from = "job as job left join node_result as nr on job.node_path=nr.node_path and job.id=nr.job_id";
+            String where = "id in (select max(id) from job group by node_path";
+            if (!CollectionUtil.isNullOrEmpty(paths)){
+                where = "id in (select max(id) from job where node_path in (:paths) group by node_path)";
             }
 
-            NativeQuery nativeQuery = session
-                .createNativeQuery(query.toString())
-                .setResultSetMapping("MappingJobResult");
-
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                nativeQuery.setParameterList("paths", paths);
+            Builder builder = QueryHelper.Builder()
+                .select(select)
+                .from(from)
+                .where(where);
+            if (!CollectionUtil.isNullOrEmpty(paths)){
+                builder.parameter("paths",paths);
             }
 
+            NativeQuery nativeQuery = builder.createNativeQuery(session);
             nativeQuery.setFirstResult(pageable.getOffset());
             nativeQuery.setMaxResults(pageable.getPageSize());
-
+            nativeQuery.setResultSetMapping("MappingJobResult");
             List<Object[]> objects = nativeQuery.list();
             List<Job> jobs = JobConvertUtil.convert(objects);
 
-
-            StringBuilder countQuery = new StringBuilder(JOB_COUNT_QUERY);
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                countQuery.append(
-                    " where id in (select max(id) from job where node_path in (:paths) group by node_path)");
-            } else {
-                countQuery.append(" where id in (select max(id) from job group by node_path)");
-            }
-
-            NativeQuery countNativeQuery = session.createNativeQuery(countQuery.toString());
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                countNativeQuery.setParameterList("paths", paths);
-            }
+            NativeQuery countNativeQuery = builder.select(countSelect).createNativeQuery(session);
             long totalSize = Long.valueOf(countNativeQuery.uniqueResult().toString());
 
             return new Page<>(jobs, pageable.getPageSize(), pageable.getPageNumber(), totalSize);
@@ -209,35 +207,31 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public Page<Job> listByPath(List<String> paths, Pageable pageable) {
         return execute((Session session) -> {
-            final StringBuilder query = new StringBuilder(JOB_QUERY);
 
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                query.append(" where job.node_path in (:paths) order by job.created_at desc ");
+            String select = "*";
+            String countSelect = "count(*)";
+            String from = "job as job left join node_result as nr on job.node_path=nr.node_path and job.id=nr.job_id";
+            String where = "";
+            if (!CollectionUtil.isNullOrEmpty(paths)){
+                where = "job.node_path in (:paths) order by job.created_at desc ";
             }
 
-            NativeQuery nativeQuery = session.createNativeQuery(query.toString())
-                .setResultSetMapping("MappingJobResult");
-
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                nativeQuery.setParameterList("paths", paths);
+            Builder builder = QueryHelper.Builder()
+                .select(select)
+                .from(from)
+                .where(where);
+            if (!CollectionUtil.isNullOrEmpty(paths)){
+                builder.parameter("paths",paths);
             }
 
+            NativeQuery nativeQuery = builder.createNativeQuery(session);
+            nativeQuery.setResultSetMapping("MappingJobResult");
             nativeQuery.setFirstResult(pageable.getOffset());
             nativeQuery.setMaxResults(pageable.getPageSize());
-
             List<Object[]> objects = nativeQuery.list();
             List<Job> jobs = JobConvertUtil.convert(objects);
 
-
-            final StringBuilder countQuery = new StringBuilder(JOB_COUNT_QUERY);
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                countQuery.append(" where job.node_path in (:paths) order by job.created_at desc ");
-            }
-
-            NativeQuery countNativeQuery = session.createNativeQuery(countQuery.toString());
-            if (!CollectionUtil.isNullOrEmpty(paths)) {
-                countNativeQuery.setParameterList("paths", paths);
-            }
+            NativeQuery countNativeQuery = builder.select(countSelect).createNativeQuery(session);
             long totalSize = Long.valueOf(countNativeQuery.uniqueResult().toString());
 
             return new Page<>(jobs, pageable.getPageSize(), pageable.getPageNumber(), totalSize);
@@ -296,14 +290,22 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public Page<BigInteger> findJobIdsByPath(String path, Pageable pageable) {
         return execute(session -> {
-            TypedQuery query = session
-                .createQuery("select id from Job where nodePath = :node_path", BigInteger.class)
-                .setParameter("node_path", path);
 
-            long totalSize = (long) session
-                .createQuery("select count(id) from Job where nodePath = :node_path")
-                .setParameter("node_path", path)
-                .uniqueResult();
+            String select = "id";
+            String countSelect = "count(id)";
+            String from = "Job";
+            String where = "node_Path = :node_path";
+
+            Builder builder = QueryHelper.Builder()
+                .select(select)
+                .from(from)
+                .where(where)
+                .parameter("node_path",path);
+
+            TypedQuery query = builder.createTypedQuery(session,BigInteger.class);
+
+            NativeQuery countNativeQuery = builder.select(countSelect).createNativeQuery(session);
+            long totalSize = Long.valueOf(countNativeQuery.uniqueResult().toString());
 
             return buildPage(query, pageable, totalSize);
         });
