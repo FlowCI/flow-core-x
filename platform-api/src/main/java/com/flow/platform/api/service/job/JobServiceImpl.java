@@ -178,11 +178,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     @Override
-    public Page<Job> list(List<String> paths, boolean latestOnly,Pageable pageable){
+    public Page<Job> list(List<String> paths, boolean latestOnly, Pageable pageable) {
         if (latestOnly) {
-            return jobDao.latestByPath(paths,pageable);
+            return jobDao.latestByPath(paths, pageable);
         }
-        return jobDao.listByPath(paths,pageable);
+        return jobDao.listByPath(paths, pageable);
     }
 
     @Override

@@ -84,7 +84,7 @@ public interface JobService {
      */
     List<Job> list(List<String> paths, boolean latestOnly);
 
-    Page<Job> list(List<String> paths, boolean latestOnly,Pageable pageable);
+    Page<Job> list(List<String> paths, boolean latestOnly, Pageable pageable);
 
     /**
      * Create job by yml which from flow

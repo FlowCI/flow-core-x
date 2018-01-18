@@ -152,7 +152,7 @@ public class JobController extends NodeController {
 
     @GetMapping(path = "/limit/{root}")
     @WebSecurity(action = Actions.JOB_SHOW)
-    public Page<Job> limitIndex( SearchCondition searchCondition, Pageable pageable) {
+    public Page<Job> limitIndex(SearchCondition searchCondition, Pageable pageable) {
         String path = currentNodePath.get();
 
         List<String> paths = null;
