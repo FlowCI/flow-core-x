@@ -42,17 +42,11 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
 
     private final static String JOB_QUERY_SELECT = "*";
 
-    private final static String JOB_COUNT_QUERY_SELECT = "count(*)";
-
     private final static String JOB_QUERY_FROM = "job as job left join node_result as nr on job.node_path=nr.node_path and job.id=nr.job_id";
 
     private final static Builder QUERY_BUILDER = QueryHelper.Builder()
                                 .select(JOB_QUERY_SELECT)
                                 .from(JOB_QUERY_FROM);
-
-    private final static Builder QUERY_COUNT_BUILDER = QueryHelper.Builder()
-                                    .select(JOB_COUNT_QUERY_SELECT)
-                                    .from(JOB_QUERY_FROM);
 
     @Override
     protected Class<Job> getEntityClass() {
@@ -93,15 +87,12 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public Page<Job> list(List<String> sessionIds, NodeStatus nodeStatus, Pageable pageable) {
         return execute((Session session) -> {
 
-            String select = "*";
             String countSelect = "count(*)";
-            String from = "job as job left join node_result as nr on job.node_path=nr.node_path and job.id=nr.job_id";
             String where = "job.session_id IN (:sessionIds) AND nr.node_status=:status";
 
-            Builder builder = QueryHelper.Builder()
-                .select(select)
-                .from(from)
-                .where(where)
+            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+
+            builder.where(where)
                 .parameter("sessionIds", sessionIds)
                 .parameter("status", nodeStatus.getName());
 
@@ -162,20 +153,17 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public Page<Job> latestByPath(List<String> paths, Pageable pageable) {
         return execute((Session session) -> {
 
-            String select = "*";
             String countSelect = "count(*)";
-            String from = "job as job left join node_result as nr on job.node_path=nr.node_path and job.id=nr.job_id";
-            String where = "id in (select max(id) from job group by node_path";
-            if (!CollectionUtil.isNullOrEmpty(paths)){
+            String where = "id in (select max(id) from job group by node_path)";
+            if (!CollectionUtil.isNullOrEmpty(paths)) {
                 where = "id in (select max(id) from job where node_path in (:paths) group by node_path)";
             }
 
-            Builder builder = QueryHelper.Builder()
-                .select(select)
-                .from(from)
-                .where(where);
-            if (!CollectionUtil.isNullOrEmpty(paths)){
-                builder.parameter("paths",paths);
+            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+            builder.where(where);
+
+            if (!CollectionUtil.isNullOrEmpty(paths)) {
+                builder.parameter("paths", paths);
             }
 
             NativeQuery nativeQuery = builder.createNativeQuery(session);
@@ -216,18 +204,15 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public Page<Job> listByPath(List<String> paths, Pageable pageable) {
         return execute((Session session) -> {
 
-            String select = "*";
             String countSelect = "count(*)";
-            String from = "job as job left join node_result as nr on job.node_path=nr.node_path and job.id=nr.job_id";
             String where = "";
             if (!CollectionUtil.isNullOrEmpty(paths)){
                 where = "job.node_path in (:paths) order by job.created_at desc ";
             }
 
-            Builder builder = QueryHelper.Builder()
-                .select(select)
-                .from(from)
-                .where(where);
+            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+            builder.where(where);
+
             if (!CollectionUtil.isNullOrEmpty(paths)){
                 builder.parameter("paths",paths);
             }
