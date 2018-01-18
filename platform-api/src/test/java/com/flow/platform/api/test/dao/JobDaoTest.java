@@ -169,6 +169,15 @@ public class JobDaoTest extends TestBase {
     }
 
     @Test
+    public void should_get_job_by_path_and_number() {
+        Job oldJob = jobDao.get(this.job.getNodePath(), this.job.getNumber());
+
+        Assert.assertEquals(oldJob.getId(), job.getId());
+        Assert.assertEquals(oldJob.getNodePath(), job.getNodePath());
+        Assert.assertEquals(oldJob.getNumber(), job.getNumber());
+    }
+
+    @Test
     public void should_page_list() {
         Pageable pageable = new Pageable(1, 10);
 
@@ -214,51 +223,6 @@ public class JobDaoTest extends TestBase {
         Assert.assertEquals(page.getPageSize(), 10);
         Assert.assertEquals(page.getPageNumber(), 1);
         Assert.assertEquals(page.getContent().get(0).getNodePath(), "flow/test");
-    }
-
-    @Test
-    public void should_page_list_by_status() {
-        Pageable pageable = new Pageable(1, 10);
-
-        Page<Job> page = null;
-
-        page = jobDao.listByStatus(EnumSet.of(JobStatus.CREATED), pageable);
-
-        Assert.assertEquals(page.getTotalSize(), 1);
-        Assert.assertEquals(page.getPageNumber(), 1);
-        Assert.assertEquals(page.getPageCount(), 1);
-        Assert.assertEquals(page.getPageSize(), 10);
-        Assert.assertEquals(page.getContent().get(0).getId(), job.getId());
-        Assert.assertEquals(page.getContent().get(0).getStatus(), JobStatus.CREATED);
-
-        // when: update job status to SESSION_CREATING
-        job.setStatus(JobStatus.SESSION_CREATING);
-        jobDao.update(job);
-
-        page = jobDao.listByStatus(EnumSet.of(JobStatus.SESSION_CREATING), pageable);
-
-        // then:
-        Assert.assertEquals(page.getTotalSize(), 1);
-        Assert.assertEquals(page.getContent().get(0).getId(), job.getId());
-        Assert.assertEquals(page.getContent().get(0).getStatus(), JobStatus.SESSION_CREATING);
-    }
-
-    @Test
-    public void should_page_find_job_ids_by_path() {
-        Pageable pageable = new Pageable(1, 10);
-        Integer count = 5;
-
-        for (int i = 0; i < count; i++) {
-            createJob();
-        }
-
-        Page<BigInteger> jobIdsByPath = jobDao.findJobIdsByPath("flow/test", pageable);
-
-        Assert.assertEquals(jobIdsByPath.getContent().get(0), job.getId());
-        Assert.assertEquals(jobIdsByPath.getTotalSize(), count + 1);
-        Assert.assertEquals(jobIdsByPath.getPageCount(), 1);
-        Assert.assertEquals(jobIdsByPath.getPageNumber(), 1);
-        Assert.assertEquals(jobIdsByPath.getPageSize(), 10);
     }
 
     public void createJob() {

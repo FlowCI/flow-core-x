@@ -1,6 +1,7 @@
 package com.flow.platform.core.dao;
 
 import com.flow.platform.util.StringUtil;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import javax.persistence.TypedQuery;
@@ -17,7 +18,7 @@ public class QueryHelper {
         return new Builder();
     }
 
-    public static class Builder {
+    public static class Builder implements Serializable{
 
         private String select;
 

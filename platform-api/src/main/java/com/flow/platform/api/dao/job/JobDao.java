@@ -59,8 +59,6 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      */
     List<Job> listByStatus(EnumSet<JobStatus> status);
 
-    Page<Job> listByStatus(EnumSet<JobStatus> status, Pageable pageable);
-
     /**
      * delete jobs by node path
      *
@@ -74,8 +72,6 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      * @param path node path
      */
     List<BigInteger> findJobIdsByPath(String path);
-
-    Page<BigInteger> findJobIdsByPath(String path, Pageable pageable);
 
     /**
      * get latest job by flow path
