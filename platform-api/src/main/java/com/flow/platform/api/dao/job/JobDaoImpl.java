@@ -26,7 +26,6 @@ import com.flow.platform.core.dao.QueryHelper.Builder;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.util.CollectionUtil;
-import com.flow.platform.util.ObjectUtil;
 import java.math.BigInteger;
 import java.util.EnumSet;
 import java.util.List;
@@ -40,13 +39,9 @@ import org.springframework.stereotype.Repository;
 @Repository(value = "jobDao")
 public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobDao {
 
-    private final static String JOB_QUERY_SELECT = "*";
-
-    private final static String JOB_QUERY_FROM = "job as job left join node_result as nr on job.node_path=nr.node_path and job.id=nr.job_id";
-
-    private final static Builder QUERY_BUILDER = QueryHelper.Builder()
-                                .select(JOB_QUERY_SELECT)
-                                .from(JOB_QUERY_FROM);
+    private final static Builder JOB_LIST_QUERY_BUILDER = QueryHelper.Builder()
+                                .select("*")
+                                .from("job as job left join node_result as nr on job.node_path=nr.node_path and job.id=nr.job_id");
 
     @Override
     protected Class<Job> getEntityClass() {
@@ -61,8 +56,9 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     @Override
     public List<Job> list() {
         return execute((Session session) -> {
-            NativeQuery nativeQuery = ObjectUtil.deepCopy(QUERY_BUILDER).createNativeQuery(session);
+            NativeQuery nativeQuery = JOB_LIST_QUERY_BUILDER.clone().createNativeQuery(session);
             nativeQuery.setResultSetMapping("MappingJobResult");
+
             List<Object[]> objects = nativeQuery.list();
             return JobConvertUtil.convert(objects);
         });
@@ -72,10 +68,12 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public List<Job> list(List<String> sessionIds, NodeStatus nodeStatus) {
         return execute((Session session) -> {
             String where = "job.session_id IN (:sessionIds) AND nr.node_status=:status";
-            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+
+            Builder builder = JOB_LIST_QUERY_BUILDER.clone();
             builder.where(where)
                 .parameter("sessionIds", sessionIds)
                 .parameter("status", nodeStatus.getName());
+
             NativeQuery nativeQuery = builder.createNativeQuery(session).setResultSetMapping("MappingJobResult");
             List<Object[]> objects = nativeQuery.list();
             return JobConvertUtil.convert(objects);
@@ -90,7 +88,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
             String countSelect = "count(*)";
             String where = "job.session_id IN (:sessionIds) AND nr.node_status=:status";
 
-            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+            Builder builder = JOB_LIST_QUERY_BUILDER.clone();
 
             builder.where(where)
                 .parameter("sessionIds", sessionIds)
@@ -114,7 +112,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public Job get(BigInteger key) {
         return execute((Session session) -> {
             String where = "job.id=:id";
-            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER)
+            Builder builder = JOB_LIST_QUERY_BUILDER.clone()
                 .where(where)
                 .parameter("id", key);
             NativeQuery nativeQuery = builder.createNativeQuery(session).setResultSetMapping("MappingJobResult");
@@ -134,7 +132,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 where = "id in (select max(id) from job where node_path in (:paths) group by node_path)";
             }
 
-            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+            Builder builder = JOB_LIST_QUERY_BUILDER.clone();
             builder.where(where);
 
             if (!CollectionUtil.isNullOrEmpty(paths)) {
@@ -159,7 +157,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 where = "id in (select max(id) from job where node_path in (:paths) group by node_path)";
             }
 
-            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+            Builder builder = JOB_LIST_QUERY_BUILDER.clone();
             builder.where(where);
 
             if (!CollectionUtil.isNullOrEmpty(paths)) {
@@ -186,7 +184,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
 
             String where = "job.node_path in (:paths) order by job.created_at desc ";
 
-            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+            Builder builder = JOB_LIST_QUERY_BUILDER.clone();
 
             if (!CollectionUtil.isNullOrEmpty(paths)) {
                 builder.where(where).parameter("paths", paths);
@@ -210,7 +208,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
                 where = "job.node_path in (:paths) order by job.created_at desc ";
             }
 
-            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+            Builder builder = JOB_LIST_QUERY_BUILDER.clone();
             builder.where(where);
 
             if (!CollectionUtil.isNullOrEmpty(paths)){
@@ -242,7 +240,7 @@ public class JobDaoImpl extends AbstractBaseDao<BigInteger, Job> implements JobD
     public Job get(String path, Long number) {
         return execute((Session session) -> {
             String where = "job.node_path=:name AND job.build_number=:build_number";
-            Builder builder = ObjectUtil.deepCopy(QUERY_BUILDER);
+            Builder builder = JOB_LIST_QUERY_BUILDER.clone();
             builder.where(where)
                 .parameter("name", path)
                 .parameter("build_number", number);

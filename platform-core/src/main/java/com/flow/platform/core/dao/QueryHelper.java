@@ -1,5 +1,6 @@
 package com.flow.platform.core.dao;
 
+import com.flow.platform.util.ObjectUtil;
 import com.flow.platform.util.StringUtil;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -83,6 +84,10 @@ public class QueryHelper {
             }
             return typedQuery;
 
+        }
+
+        public Builder clone() {
+            return ObjectUtil.deepCopy(this);
         }
 
     }
