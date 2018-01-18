@@ -150,6 +150,36 @@ public class JobController extends NodeController {
         return searchService.search(condition, paths);
     }
 
+    /**
+     * @api {get} /jobs/limit/:root List
+     * @apiParam {String} [root] flow node path, return all jobs if not presented
+     * @apiParam {String} [keyword] search keyword
+     * @apiParam {String} [branch] search branch
+     * @apiParam {String} [category] git event type
+     * @apiParam {String} [creator] creator
+     * @apiParam {int} [number] number
+     * @apiParam {int} [size] size
+     * @apiGroup Jobs
+     * @apiDescription Get jobs by node path or list all jobs use page
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      content:[
+     *                  {
+     *                      Job response json see Create response
+     *                  },
+     *                  {
+     *                      ...
+     *                  }
+     *              ],
+     *
+     *      totalSize:11,
+     *      pageNumber:1,
+     *      pageSize:5,
+     *      pageCount:3
+     *  }
+     *
+     */
     @GetMapping(path = "/limit/{root}")
     @WebSecurity(action = Actions.JOB_SHOW)
     public Page<Job> limitIndex(SearchCondition searchCondition, Pageable pageable) {
