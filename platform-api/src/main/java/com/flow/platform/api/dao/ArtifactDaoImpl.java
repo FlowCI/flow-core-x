@@ -45,4 +45,5 @@ public class ArtifactDaoImpl extends AbstractBaseDao<Integer, Artifact> implemen
             .setParameter("id", jobId)
             .list());
     }
+
 }

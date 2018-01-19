@@ -19,6 +19,7 @@ package com.flow.platform.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,4 +103,13 @@ public class CollectionUtil {
         String getterMethodName = "get" + ObjectUtil.fieldNameForSetterGetter(field.getName());
         return itemClass.getDeclaredMethod(getterMethodName);
     }
+
+    public static <T> List<T> subList(List<T> list, Integer pageSize, Integer pageNumber) {
+        if (list == null || list.size() == 0) {
+            return Collections.emptyList();
+        }
+        return list.subList(pageSize * (pageNumber - 1),
+            (pageSize * pageNumber) > list.size() ? list.size() : (pageSize * pageNumber));
+    }
+
 }

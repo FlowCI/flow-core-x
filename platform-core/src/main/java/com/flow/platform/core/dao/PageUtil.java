@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service.job;
+package com.flow.platform.core.dao;
 
-import com.flow.platform.api.domain.SearchCondition;
-import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.core.domain.Page;
 import com.flow.platform.core.domain.Pageable;
-import java.util.List;
+import javax.persistence.TypedQuery;
 
 /**
  * @author yh@firim
  */
-public interface JobSearchService {
+public class PageUtil {
 
-    List<Job> search(SearchCondition searchCondition, List<String> paths);
-
-    Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable);
-
+    public static <T> Page<T> buildPage(TypedQuery query, Pageable pageable, long totalSize) {
+        query.setFirstResult(pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+        return new Page<T>(query.getResultList(), pageable.getPageSize(), pageable.getPageNumber(), totalSize);
+    }
 }

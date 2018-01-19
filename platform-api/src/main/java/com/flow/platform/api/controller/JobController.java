@@ -30,6 +30,8 @@ import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
@@ -146,6 +148,52 @@ public class JobController extends NodeController {
         }
 
         return searchService.search(condition, paths);
+    }
+
+    /**
+     * @api {get} /jobs/limit/:root List
+     * @apiParam {String} [root] flow node path, return all jobs if not presented
+     * @apiParam {String} [keyword] search keyword
+     * @apiParam {String} [branch] search branch
+     * @apiParam {String} [category] git event type
+     * @apiParam {String} [creator] creator
+     * @apiParam {int} [number] number
+     * @apiParam {int} [size] size
+     * @apiGroup Jobs
+     * @apiDescription Get jobs by node path or list all jobs use page
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      content:[
+     *                  {
+     *                      Job response json see Create response
+     *                  },
+     *                  {
+     *                      ...
+     *                  }
+     *              ],
+     *
+     *      totalSize:11,
+     *      pageNumber:1,
+     *      pageSize:5,
+     *      pageCount:3
+     *  }
+     *
+     */
+    @GetMapping(path = "/limit/{root}")
+    @WebSecurity(action = Actions.JOB_SHOW)
+    public Page<Job> limitIndex(SearchCondition searchCondition, Pageable pageable) {
+        String path = currentNodePath.get();
+
+        List<String> paths = null;
+        if (path != null) {
+            paths = Lists.newArrayList(path);
+        }
+
+        if (Pageable.isEmpty(pageable)) {
+            pageable = Pageable.DEFAULT;
+        }
+        return searchService.search(searchCondition, paths, pageable);
     }
 
     /**

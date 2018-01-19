@@ -58,5 +58,6 @@ public class CredentialDaoImpl extends AbstractBaseDao<String, Credential> imple
             .setParameterList("types", types)
             .list());
     }
+
 }
 

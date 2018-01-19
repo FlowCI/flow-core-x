@@ -24,6 +24,8 @@ import java.util.List;
 /**
  * @author yh@firim
  */
-public interface ArtifactDao extends BaseDao<Integer, Artifact>{
+public interface ArtifactDao extends BaseDao<Integer, Artifact> {
+
     List<Artifact> list(BigInteger jobId);
+
 }

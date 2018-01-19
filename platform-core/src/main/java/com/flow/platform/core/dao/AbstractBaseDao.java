@@ -15,9 +15,13 @@
  */
 
 package com.flow.platform.core.dao;
+
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
@@ -39,7 +43,7 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
         O execute(Session session);
     }
 
-    public  <O> O execute(Executable<O> ex) {
+    public <O> O execute(Executable<O> ex) {
         Session session = getSession();
         return ex.execute(session);
     }
@@ -145,6 +149,25 @@ public abstract class AbstractBaseDao<K extends Serializable, T> implements Base
             return session.createQuery(select).list();
         });
     }
+
+    @Override
+    public Page<T> list(Pageable pageable) {
+        return execute((Session session) -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<T> select = builder.createQuery(getEntityClass());
+            select.from(getEntityClass());
+            TypedQuery query = session.createQuery(select);
+
+            CriteriaQuery<Long> selectLong = builder.createQuery(Long.class);
+            Root root = selectLong.from(getEntityClass());
+            selectLong.select(builder.count(root));
+
+            long totalSize = session.createQuery(selectLong).uniqueResult();
+
+            return PageUtil.buildPage(query, pageable, totalSize);
+        });
+    }
+
 }
 
 

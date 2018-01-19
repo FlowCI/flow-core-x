@@ -76,4 +76,5 @@ public class PermissionDaoTest extends TestBase {
         permissionDao.delete(rolesPermissions);
         Assert.assertEquals(0, permissionDao.list().size());
     }
+
 }

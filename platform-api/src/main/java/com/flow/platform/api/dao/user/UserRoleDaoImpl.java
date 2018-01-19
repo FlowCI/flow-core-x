@@ -15,10 +15,14 @@
  */
 package com.flow.platform.api.dao.user;
 
+import com.flow.platform.core.dao.PageUtil;
 import com.flow.platform.api.domain.user.UserRole;
 import com.flow.platform.api.domain.user.UserRoleKey;
 import com.flow.platform.core.dao.AbstractBaseDao;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.util.List;
+import javax.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
 /**

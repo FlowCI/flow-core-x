@@ -90,4 +90,5 @@ public class UserFlowDaoTest extends TestBase {
 
         Assert.assertEquals(2, userFlowDao.numOfUser(flowPath).longValue());
     }
+
 }

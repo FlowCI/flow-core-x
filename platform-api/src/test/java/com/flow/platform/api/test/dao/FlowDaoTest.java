@@ -90,4 +90,5 @@ public class FlowDaoTest extends TestBase {
         Assert.assertEquals(1, paths.size());
         Assert.assertEquals(flow.getPath(), paths.get(0));
     }
+
 }

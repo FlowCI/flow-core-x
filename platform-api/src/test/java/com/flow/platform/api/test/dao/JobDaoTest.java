@@ -24,7 +24,10 @@ import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.api.domain.job.NodeTag;
 import com.flow.platform.api.test.TestBase;
 import com.flow.platform.api.util.CommonUtil;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import com.google.common.collect.Lists;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -164,4 +167,77 @@ public class JobDaoTest extends TestBase {
         List<Job> jobs = jobDao.list(sessionIds, NodeStatus.SUCCESS);
         Assert.assertEquals(1, jobs.size());
     }
+
+    @Test
+    public void should_get_job_by_path_and_number() {
+        Job oldJob = jobDao.get(this.job.getNodePath(), this.job.getNumber());
+
+        Assert.assertEquals(oldJob.getId(), job.getId());
+        Assert.assertEquals(oldJob.getNodePath(), job.getNodePath());
+        Assert.assertEquals(oldJob.getNumber(), job.getNumber());
+    }
+
+    @Test
+    public void should_page_list() {
+        Pageable pageable = new Pageable(1, 10);
+
+        Page<Job> page = jobDao.list(Lists.newArrayList(job.getSessionId()), NodeStatus.SUCCESS, pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 1);
+        Assert.assertEquals(page.getPageCount(), 1);
+        Assert.assertEquals(page.getPageSize(), 10);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getId(), job.getId());
+    }
+
+    @Test
+    public void should_page_list_by_path() {
+        Integer count = 5;
+
+        Pageable pageable = new Pageable(1, 2);
+        for (int i = 0; i < count; i++) {
+            createJob();
+        }
+
+        Page<Job> page = jobDao.listByPath(Lists.newArrayList("flow/test"), pageable);
+
+        Assert.assertEquals(page.getTotalSize(), count + 1);
+        Assert.assertEquals(page.getPageCount(), 3);
+        Assert.assertEquals(page.getPageSize(), 2);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getNodePath(), job.getNodePath());
+    }
+
+    @Test
+    public void should_page_list_latest_by_path() {
+        Integer count = 5;
+
+        Pageable pageable = new Pageable(1, 10);
+        for (int i = 0; i < count; i++) {
+            createJob();
+        }
+        Page<Job> page = jobDao.latestByPath(Lists.newArrayList("flow/test"), pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 1);
+        Assert.assertEquals(page.getPageCount(), 1);
+        Assert.assertEquals(page.getPageSize(), 10);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getNodePath(), "flow/test");
+    }
+
+    public void createJob() {
+        Job newJob = new Job(CommonUtil.randomId());
+        newJob.setNodePath(job.getNodePath());
+        newJob.setNodeName(job.getNodeName());
+        newJob.setNumber(jobNumberDao.increase(job.getNodePath()).getNumber());
+        newJob.setSessionId(UUID.randomUUID().toString());
+        jobDao.save(newJob);
+
+        NodeResult newResult = new NodeResult(newJob.getId(), newJob.getNodePath());
+        newResult.setNodeTag(NodeTag.FLOW);
+        newResult.setStatus(NodeStatus.FAILURE);
+        newResult.setOrder(1);
+        nodeResultDao.save(newResult);
+    }
+
 }
