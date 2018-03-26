@@ -126,7 +126,6 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
         try {
             rootFromYml = ymlService.build(flow, yml);
         } catch (YmlException e) {
-            updateYmlState(flow, FlowEnvs.YmlStatusValue.ERROR, e.getMessage());
             throw e;
         }
 
