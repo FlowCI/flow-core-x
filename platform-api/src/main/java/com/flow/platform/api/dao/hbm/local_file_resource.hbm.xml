@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.flow.platform.api.domain">
+  <class name="LocalFileResource" table="local_file_resource">
+    <id name="id" type="string" column="id" length="100"/>
+
+    <property name="name" type="string" column="name"/>
+
+    <property name="createdAt" type="java.time.ZonedDateTime">
+      <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+    <property name="extension" type="string" column="extension" length="100"/>
+  </class>
+
+  <class name="com.flow.platform.api.domain.Artifact" table="artifact">
+    <id name="id" type="integer">
+      <generator class="increment"/>
+    </id>
+
+    <property name="createdAt" type="java.time.ZonedDateTime">
+      <column name="created_at" sql-type="timestamp" default="CURRENT_TIMESTAMP"/>
+    </property>
+
+    <property name="tag" column="tag" length="30" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.flow.platform.api.domain.ArtifactType</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
+    <property name="jobId" type="big_integer">
+      <column name="job_id" sql-type="decimal(25, 0)"/>
+    </property>
+    <property name="name" type="string" column="name"/>
+    <property name="url" type="string" column="url" length="100"/>
+  </class>
+
+</hibernate-mapping>

@@ -35,4 +35,5 @@ public interface CredentialDao extends BaseDao<String, Credential> {
      * List credential by types
      */
     List<Credential> listByType(Collection<CredentialType> types);
+
 }

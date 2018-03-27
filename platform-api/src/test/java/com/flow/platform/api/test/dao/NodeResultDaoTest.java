@@ -118,4 +118,5 @@ public class NodeResultDaoTest extends TestBase {
             Assert.assertEquals(NotFoundException.class, e.getClass());
         }
     }
+
 }

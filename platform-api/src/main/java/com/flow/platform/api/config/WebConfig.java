@@ -16,6 +16,8 @@
 
 package com.flow.platform.api.config;
 
+import com.flow.platform.api.multipart.FlowMultipartMatcher;
+import com.flow.platform.api.multipart.FlowMultipartResolver;
 import com.flow.platform.api.resource.PropertyResourceLoader;
 import com.flow.platform.api.security.AuthenticationInterceptor;
 import com.flow.platform.api.security.OptionsInterceptor;
@@ -47,7 +49,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.multipart.MultipartResolver;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -76,6 +77,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     private final static int MAX_UPLOAD_SIZE = 2 * 1024 * 1024;
 
+    private final static int LOCAL_FILE_RESOURCE_MAX_UPLOAD_SIZE = 500 * 1024 * 1024;
+
     private final RawGsonMessageConverter jsonConverter =
         new RawGsonMessageConverter(true, GSON_CONFIG_FOR_RESPONSE, Jsonable.GSON_CONFIG);
 
@@ -100,8 +103,12 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "multipartResolver")
     public MultipartResolver multipartResolver() throws IOException {
-        CommonsMultipartResolver resolver = new CommonsMultipartResolver();
-        resolver.setMaxUploadSize(MAX_UPLOAD_SIZE);
+        List<FlowMultipartMatcher> matchers = ImmutableList.of(
+            new FlowMultipartMatcher("/credentials", MAX_UPLOAD_SIZE),
+            new FlowMultipartMatcher("/local_file_resources", LOCAL_FILE_RESOURCE_MAX_UPLOAD_SIZE)
+        );
+
+        FlowMultipartResolver resolver = new FlowMultipartResolver(matchers);
         return resolver;
     }
 

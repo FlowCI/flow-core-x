@@ -20,8 +20,9 @@ import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobStatus;
 import com.flow.platform.api.domain.job.NodeStatus;
 import com.flow.platform.core.dao.BaseDao;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import java.math.BigInteger;
-import java.time.ZonedDateTime;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -37,6 +38,8 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      */
     List<Job> list(List<String> sessionId, NodeStatus nodeStatus);
 
+    Page<Job> list(List<String> sessionId, NodeStatus nodeStatus, Pageable pageable);
+
     /**
      * List job by node paths
      *
@@ -44,6 +47,9 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      * @return Job with Node Result
      */
     List<Job> listByPath(List<String> paths);
+
+
+    Page<Job> listByPath(List<String> paths, Pageable pageable);
 
     /**
      * List jobs by job status
@@ -73,6 +79,8 @@ public interface JobDao extends BaseDao<BigInteger, Job> {
      * @param paths node path or null for all latest jobs
      */
     List<Job> latestByPath(List<String> paths);
+
+    Page<Job> latestByPath(List<String> paths, Pageable pageable);
 
     /**
      * get job from node path and number

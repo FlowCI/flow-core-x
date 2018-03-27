@@ -22,6 +22,9 @@ import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.test.TestBase;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -111,6 +114,99 @@ public class SearchServiceTest extends TestBase {
         paths.add("flow1");
         List<Job> jobs = searchService.search(searchCondition, paths);
         Assert.assertEquals(1, jobs.size());
+    }
+
+    @Test
+    public void should_page_get_all_jobs_success() {
+        Pageable pageable = new Pageable(1, 2);
+
+        SearchCondition searchCondition = new SearchCondition(null, null, null, null);
+
+        List<String> paths = new ArrayList<>();
+        paths.add("flow1");
+
+        Page<Job> page = searchService.search(searchCondition, paths, pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 3);
+        Assert.assertEquals(page.getPageCount(), 2);
+        Assert.assertEquals(page.getPageSize(), 2);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getNodePath(), "flow1");
+    }
+
+    @Test
+    public void should_page_get_branch_jobs_success() {
+        Pageable pageable = new Pageable(1, 2);
+
+        SearchCondition searchCondition = new SearchCondition(null, "master", null);
+
+        Page<Job> page = searchService.search(searchCondition, Lists.newArrayList("flow1"), pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 3);
+        Assert.assertEquals(page.getPageCount(), 2);
+        Assert.assertEquals(page.getPageSize(), 2);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().size(), 2);
+    }
+
+    @Test
+    public void should_page_get_event_jobs_success() {
+        Pageable pageable = new Pageable(1, 2);
+
+        SearchCondition searchCondition = new SearchCondition(null, null, "PR");
+
+        Page<Job> page = searchService.search(searchCondition, Lists.newArrayList("flow1"), pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 1);
+        Assert.assertEquals(page.getPageCount(), 1);
+        Assert.assertEquals(page.getPageSize(), 2);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getCategory().toString(), "PR");
+    }
+
+    @Test
+    public void should_page_get_keyword_jobs_success() {
+        Pageable pageable = new Pageable(1, 2);
+
+        SearchCondition searchCondition = new SearchCondition("2", null, null);
+
+        Page<Job> page = searchService.search(searchCondition, Lists.newArrayList("flow1"), pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 1);
+        Assert.assertEquals(page.getPageCount(), 1);
+        Assert.assertEquals(page.getPageSize(), 2);
+        Assert.assertEquals(page.getPageNumber(), 1);
+    }
+
+    @Test
+    public void should_page_get_creator_jobs_success() {
+        Pageable pageable = new Pageable(1, 1);
+
+        SearchCondition searchCondition = new SearchCondition(null, null, null, "yh@fir.im");
+
+        Page<Job> page = searchService.search(searchCondition, Lists.newArrayList("flow1"), pageable);
+
+        Assert.assertEquals(page.getTotalSize(), 2);
+        Assert.assertEquals(page.getPageCount(), 2);
+        Assert.assertEquals(page.getPageSize(), 1);
+        Assert.assertEquals(page.getPageNumber(), 1);
+        Assert.assertEquals(page.getContent().get(0).getCreatedBy(), "yh@fir.im");
+    }
+
+    @Test
+    public void should_page_get_branch_and_pr_jobs_success(){
+        Pageable pageable = new Pageable(1,10);
+
+        SearchCondition searchCondition = new SearchCondition(null,"master","PR",null);
+
+        Page<Job> page = searchService.search(searchCondition, Lists.newArrayList("flow1"), pageable);
+
+        Assert.assertEquals(page.getTotalSize(),1);
+        Assert.assertEquals(page.getPageCount(),1);
+        Assert.assertEquals(page.getPageSize(),10);
+        Assert.assertEquals(page.getPageNumber(),1);
+        Assert.assertEquals(page.getContent().get(0).getCategory().toString(),"PR");
+        Assert.assertEquals(page.getContent().get(0).getEnv(GitEnvs.FLOW_GIT_BRANCH.toString()),"master");
     }
 
 }

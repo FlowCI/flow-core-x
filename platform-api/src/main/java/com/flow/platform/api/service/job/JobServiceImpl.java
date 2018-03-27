@@ -52,6 +52,8 @@ import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.node.YmlService;
 import com.flow.platform.api.util.CommonUtil;
 import com.flow.platform.api.util.PathUtil;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
@@ -173,6 +175,14 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return jobDao.latestByPath(paths);
         }
         return jobDao.listByPath(paths);
+    }
+
+    @Override
+    public Page<Job> list(List<String> paths, boolean latestOnly, Pageable pageable) {
+        if (latestOnly) {
+            return jobDao.latestByPath(paths, pageable);
+        }
+        return jobDao.listByPath(paths, pageable);
     }
 
     @Override
@@ -346,6 +356,8 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_CATEGORY, eventType.name());
         job.putEnv(JobEnvs.FLOW_JOB_BUILD_NUMBER, job.getNumber().toString());
         job.putEnv(JobEnvs.FLOW_JOB_LOG_PATH, logUrl(job));
+        job.putEnv(JobEnvs.FLOW_API_DOMAIN, apiDomain);
+        job.putEnv(JobEnvs.FLOW_JOB_ID, job.getId().toString());
 
         EnvUtil.merge(root.getEnvs(), job.getEnvs(), true);
         EnvUtil.merge(envs, job.getEnvs(), true);

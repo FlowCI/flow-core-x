@@ -16,6 +16,7 @@
 
 package com.flow.platform.api.controller;
 
+import com.flow.platform.api.domain.Artifact;
 import com.flow.platform.api.domain.SearchCondition;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.domain.job.JobCategory;
@@ -23,11 +24,14 @@ import com.flow.platform.api.domain.job.NodeResult;
 import com.flow.platform.api.domain.permission.Actions;
 import com.flow.platform.api.domain.user.User;
 import com.flow.platform.api.security.WebSecurity;
+import com.flow.platform.api.service.ArtifactService;
 import com.flow.platform.api.service.LogService;
 import com.flow.platform.api.service.job.JobSearchService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.job.NodeResultService;
 import com.flow.platform.api.util.I18nUtil;
+import com.flow.platform.core.domain.Page;
+import com.flow.platform.core.domain.Pageable;
 import com.flow.platform.core.exception.NotFoundException;
 import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
@@ -68,6 +72,9 @@ public class JobController extends NodeController {
 
     @Autowired
     private LogService logService;
+
+    @Autowired
+    private ArtifactService artifactService;
 
     @Autowired
     private ThreadLocal<User> currentUser;
@@ -141,6 +148,52 @@ public class JobController extends NodeController {
         }
 
         return searchService.search(condition, paths);
+    }
+
+    /**
+     * @api {get} /jobs/limit/:root List
+     * @apiParam {String} [root] flow node path, return all jobs if not presented
+     * @apiParam {String} [keyword] search keyword
+     * @apiParam {String} [branch] search branch
+     * @apiParam {String} [category] git event type
+     * @apiParam {String} [creator] creator
+     * @apiParam {int} [number] number
+     * @apiParam {int} [size] size
+     * @apiGroup Jobs
+     * @apiDescription Get jobs by node path or list all jobs use page
+     *
+     * @apiSuccessExample {json} Success-Response
+     *  {
+     *      content:[
+     *                  {
+     *                      Job response json see Create response
+     *                  },
+     *                  {
+     *                      ...
+     *                  }
+     *              ],
+     *
+     *      totalSize:11,
+     *      pageNumber:1,
+     *      pageSize:5,
+     *      pageCount:3
+     *  }
+     *
+     */
+    @GetMapping(path = "/limit/{root}")
+    @WebSecurity(action = Actions.JOB_SHOW)
+    public Page<Job> limitIndex(SearchCondition searchCondition, Pageable pageable) {
+        String path = currentNodePath.get();
+
+        List<String> paths = null;
+        if (path != null) {
+            paths = Lists.newArrayList(path);
+        }
+
+        if (Pageable.isEmpty(pageable)) {
+            pageable = Pageable.DEFAULT;
+        }
+        return searchService.search(searchCondition, paths, pageable);
     }
 
     /**
@@ -345,6 +398,11 @@ public class JobController extends NodeController {
             "Content-Disposition",
             String.format("attachment; filename=%s", String.format("%s-%s.zip", path, buildNumber)));
         return logService.findJobLog(path, buildNumber);
+    }
+
+    @GetMapping(path = "/{root}/{buildNumber}/artifacts")
+    public List<Artifact> artifacts(@PathVariable Long buildNumber) {
+        return artifactService.list(currentNodePath.get(), buildNumber);
     }
 
 }

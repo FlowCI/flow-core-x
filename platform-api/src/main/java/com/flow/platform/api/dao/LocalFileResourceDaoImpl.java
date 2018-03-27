@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service.job;
+package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.SearchCondition;
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
-import java.util.List;
+import com.flow.platform.api.domain.LocalFileResource;
+import com.flow.platform.core.dao.AbstractBaseDao;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author yh@firim
  */
-public interface JobSearchService {
+@Repository
+public class LocalFileResourceDaoImpl extends AbstractBaseDao<String, LocalFileResource> implements LocalFileResourceDao {
 
-    List<Job> search(SearchCondition searchCondition, List<String> paths);
+    @Override
+    protected Class<LocalFileResource> getEntityClass() {
+        return LocalFileResource.class;
+    }
 
-    Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable);
-
+    @Override
+    protected String getKeyName() {
+        return "id";
+    }
 }

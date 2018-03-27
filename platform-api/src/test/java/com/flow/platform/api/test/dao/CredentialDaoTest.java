@@ -95,4 +95,5 @@ public class CredentialDaoTest extends TestBase {
         credentialDao.delete(usernameCredential);
         Assert.assertEquals(0, credentialDao.list().size());
     }
+
 }

@@ -32,4 +32,5 @@ public interface FlowDao extends BaseDao<String, Node> {
      * List flow path by created by email
      */
     List<String> pathList(Collection<String> createdBy);
+
 }

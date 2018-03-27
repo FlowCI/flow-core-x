@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service.job;
+package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.SearchCondition;
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
+import com.flow.platform.api.domain.Artifact;
+import com.flow.platform.core.dao.BaseDao;
+import java.math.BigInteger;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
-public interface JobSearchService {
+public interface ArtifactDao extends BaseDao<Integer, Artifact> {
 
-    List<Job> search(SearchCondition searchCondition, List<String> paths);
-
-    Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable);
+    List<Artifact> list(BigInteger jobId);
 
 }

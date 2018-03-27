@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service.job;
-
-import com.flow.platform.api.domain.SearchCondition;
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
-import java.util.List;
+package com.flow.platform.api.domain;
 
 /**
  * @author yh@firim
  */
-public interface JobSearchService {
+public enum ArtifactType {
 
-    List<Job> search(SearchCondition searchCondition, List<String> paths);
+    // local file resource
+    LOCAL_FILE_RESOURCE,
 
-    Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable);
+    // fir artifact
+    FIR_IM,
 
+    // aws s3 objects
+    AWS
 }

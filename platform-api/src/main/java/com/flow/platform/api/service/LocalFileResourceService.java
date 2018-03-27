@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service.job;
+package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.SearchCondition;
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
-import java.util.List;
+import com.flow.platform.api.domain.LocalFileResource;
+import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author yh@firim
  */
-public interface JobSearchService {
+public interface LocalFileResourceService {
 
-    List<Job> search(SearchCondition searchCondition, List<String> paths);
+    LocalFileResource get(String id);
 
-    Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable);
+    LocalFileResource save(LocalFileResource storage);
 
+    LocalFileResource update(LocalFileResource storage);
+
+    LocalFileResource delete(LocalFileResource storage);
+
+    LocalFileResource create(MultipartFile file);
+
+    Resource getResource(String id);
 }

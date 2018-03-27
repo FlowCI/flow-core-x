@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service.job;
+package com.flow.platform.api.service;
 
-import com.flow.platform.api.domain.SearchCondition;
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
+import com.flow.platform.api.domain.Artifact;
+import java.math.BigInteger;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
  * @author yh@firim
  */
-public interface JobSearchService {
+public interface ArtifactService {
 
-    List<Job> search(SearchCondition searchCondition, List<String> paths);
+    Artifact create(Artifact artifact);
 
-    Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable);
+    Artifact get(Integer id);
 
+    List<Artifact> list(BigInteger jobId);
+
+    List<Artifact> list(String path, Long number);
 }

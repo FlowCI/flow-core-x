@@ -16,33 +16,33 @@
 
 package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.node.Node;
+import com.flow.platform.api.domain.Artifact;
 import com.flow.platform.core.dao.AbstractBaseDao;
-import java.util.Collection;
+import java.math.BigInteger;
 import java.util.List;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author yh@firim
  */
-@Repository(value = "flowDao")
-public class FlowDaoImpl extends AbstractBaseDao<String, Node> implements FlowDao {
+@Repository
+public class ArtifactDaoImpl extends AbstractBaseDao<Integer, Artifact> implements ArtifactDao {
 
     @Override
-    protected Class<Node> getEntityClass() {
-        return Node.class;
+    protected Class<Artifact> getEntityClass() {
+        return Artifact.class;
     }
 
     @Override
     protected String getKeyName() {
-        return "path";
+        return "id";
     }
 
     @Override
-    public List<String> pathList(Collection<String> createdBy) {
+    public List<Artifact> list(BigInteger jobId) {
         return execute(session -> session
-            .createQuery("select path from Node where createdBy in :createdByList", String.class)
-            .setParameterList("createdByList", createdBy)
+            .createQuery("from Artifact where jobId = :id", getEntityClass())
+            .setParameter("id", jobId)
             .list());
     }
 

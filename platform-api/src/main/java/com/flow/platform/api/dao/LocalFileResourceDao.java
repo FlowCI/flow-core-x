@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package com.flow.platform.api.service.job;
+package com.flow.platform.api.dao;
 
-import com.flow.platform.api.domain.SearchCondition;
-import com.flow.platform.api.domain.job.Job;
-import com.flow.platform.core.domain.Page;
-import com.flow.platform.core.domain.Pageable;
-import java.util.List;
+import com.flow.platform.api.domain.LocalFileResource;
+import com.flow.platform.core.dao.BaseDao;
 
 /**
  * @author yh@firim
  */
-public interface JobSearchService {
-
-    List<Job> search(SearchCondition searchCondition, List<String> paths);
-
-    Page<Job> search(SearchCondition searchCondition, List<String> paths, Pageable pageable);
+public interface LocalFileResourceDao extends BaseDao<String, LocalFileResource> {
 
 }
