@@ -17,10 +17,10 @@ package com.flow.platform.api.domain.credential;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
-import javax.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
@@ -28,6 +28,7 @@ import lombok.ToString;
 /**
  * @author lhl
  */
+@NoArgsConstructor
 @RequiredArgsConstructor
 @EqualsAndHashCode(of = {"name"}, callSuper = false)
 @ToString(of = {"name", "type"})
@@ -35,7 +36,9 @@ public class Credential extends CreateUpdateObject {
 
     @Expose
     @Getter
-    protected final String name;
+    @Setter
+    @NonNull
+    protected String name;
 
     @Expose
     @Getter

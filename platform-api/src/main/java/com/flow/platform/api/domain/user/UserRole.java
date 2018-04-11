@@ -17,33 +17,27 @@ package com.flow.platform.api.domain.user;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author lhl
  */
+@EqualsAndHashCode(of = {"key"}, callSuper = false)
+@ToString()
 public class UserRole extends CreateUpdateObject {
 
     @Expose
+    @Getter
+    @Setter
     private UserRoleKey key;
 
     @Expose
+    @Getter
+    @Setter
     private String createdBy;
-
-    public UserRoleKey getKey() {
-        return key;
-    }
-
-    public void setKey(UserRoleKey key) {
-        this.key = key;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
 
     public UserRole() {
     }
@@ -63,31 +57,5 @@ public class UserRole extends CreateUpdateObject {
 
     public String getEmail() {
         return this.key.getEmail();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        UserRole that = (UserRole) o;
-
-        return key.equals(that.key);
-    }
-
-    @Override
-    public int hashCode() {
-        return key.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "UsersRoles{" +
-            "key=" + key +
-            '}';
     }
 }

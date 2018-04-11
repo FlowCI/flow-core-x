@@ -17,36 +17,29 @@ package com.flow.platform.api.domain.user;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author lhl
  */
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public class UserFlow extends CreateUpdateObject {
 
     @Expose
+    @Getter
+    @Setter
     private UserFlowKey key;
 
     @Expose
+    @Getter
+    @Setter
     private String createdBy;
-
-    public UserFlowKey getKey() {
-        return key;
-    }
-
-    public void setKey(UserFlowKey key) {
-        this.key = key;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public UserFlow() {
-    }
 
     public UserFlow(String flowPath, String email) {
         this(new UserFlowKey(flowPath, email));
@@ -56,7 +49,6 @@ public class UserFlow extends CreateUpdateObject {
         this.key = userFlowKey;
     }
 
-
     public String getFlowPath() {
         return this.key.getFlowPath();
     }
@@ -65,35 +57,4 @@ public class UserFlow extends CreateUpdateObject {
         return this.key.getEmail();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        UserFlow userFlow = (UserFlow) o;
-
-        if (key != null ? !key.equals(userFlow.key) : userFlow.key != null) {
-            return false;
-        }
-        return createdBy != null ? createdBy.equals(userFlow.createdBy) : userFlow.createdBy == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = key != null ? key.hashCode() : 0;
-        result = 31 * result + (createdBy != null ? createdBy.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "UserFlow{" +
-            "key=" + key +
-            ", createdBy='" + createdBy + '\'' +
-            '}';
-    }
 }

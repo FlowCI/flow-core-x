@@ -18,6 +18,7 @@ package com.flow.platform.api.domain.request;
 
 import com.flow.platform.api.domain.user.ActionGroup;
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * @author yang
@@ -25,9 +26,12 @@ import lombok.Data;
 @Data
 public class ActionParam {
 
+    @NonNull
     private String alias;
 
+    @NonNull
     private String description;
 
+    @NonNull
     private ActionGroup tag;
 }

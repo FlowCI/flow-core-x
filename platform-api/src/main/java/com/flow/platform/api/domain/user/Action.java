@@ -17,25 +17,41 @@ package com.flow.platform.api.domain.user;
 
 import com.flow.platform.api.domain.CreateUpdateObject;
 import com.google.gson.annotations.Expose;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author lhl
  */
+@EqualsAndHashCode(of = {"name"}, callSuper = false)
+@ToString(of = {"name", "alias"})
 public class Action extends CreateUpdateObject {
 
     @Expose
+    @Getter
+    @Setter
     private String name;
 
     @Expose
+    @Getter
+    @Setter
     private String alias;
 
     @Expose
+    @Getter
+    @Setter
     private String description;
 
     @Expose
+    @Getter
+    @Setter
     private String createdBy;
 
     @Expose
+    @Getter
+    @Setter
     private ActionGroup tag = ActionGroup.DEFAULT;
 
     public Action() {
@@ -49,71 +65,5 @@ public class Action extends CreateUpdateObject {
         this.name = name;
         this.alias = alias;
         this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public ActionGroup getTag() {
-        return tag;
-    }
-
-    public void setTag(ActionGroup tag) {
-        this.tag = tag;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Action action = (Action) o;
-        return name.equals(action.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "Action{" +
-            "name='" + name + '\'' +
-            ", alias='" + alias + '\'' +
-            "} ";
     }
 }

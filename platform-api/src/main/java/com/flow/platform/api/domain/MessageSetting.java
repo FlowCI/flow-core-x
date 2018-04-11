@@ -18,97 +18,43 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 import java.time.ZonedDateTime;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author yh@firim
  */
+@NoArgsConstructor
+@EqualsAndHashCode(of = {"id"}, callSuper = false)
+@ToString(of = {"id", "createdAt", "updatedAt"})
 public class MessageSetting extends Jsonable {
 
-
+    @Getter
+    @Setter
     private SettingContent content;
 
+    @Getter
+    @Setter
     private Integer id;
 
+    @Getter
+    @Setter
     private String createdBy;
 
+    @Getter
+    @Setter
     private ZonedDateTime createdAt;
 
+    @Getter
+    @Setter
     private ZonedDateTime updatedAt;
 
     public MessageSetting(SettingContent content, ZonedDateTime createdAt, ZonedDateTime updatedAt) {
         this.content = content;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    public MessageSetting() {
-    }
-
-    public SettingContent getContent() {
-        return content;
-    }
-
-    public void setContent(SettingContent content) {
-        this.content = content;
-    }
-
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        MessageSetting that = (MessageSetting) o;
-
-        return id != null ? id.equals(that.id) : that.id == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "MessageSetting{" +
-            "id=" + id +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            '}';
     }
 }

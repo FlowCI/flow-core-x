@@ -18,28 +18,20 @@ package com.flow.platform.api.domain;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author yang
  */
+@RequiredArgsConstructor
 public class Webhook extends Jsonable {
 
     @Expose
-    private String path;
+    @Getter
+    private final String path;
 
     @Expose
-    private String hook;
-
-    public Webhook(String path, String hooks) {
-        this.path = path;
-        this.hook = hooks;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getHook() {
-        return hook;
-    }
+    @Getter
+    private final String hook;
 }
