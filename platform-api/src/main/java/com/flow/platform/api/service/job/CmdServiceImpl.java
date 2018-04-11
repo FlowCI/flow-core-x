@@ -111,11 +111,11 @@ public class CmdServiceImpl implements CmdService {
     @Override
     public CmdInfo runShell(Job job, Node node, String cmdId, EnvObject envVars) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.RUN_SHELL, nodeService.getRunningScript(node));
-        cmdInfo.setInputs(envVars.getEnvs());
+        cmdInfo.getInputs().putAll(envVars.getEnvs());
         cmdInfo.setWebhook(buildCmdWebhook(job));
 
         String outputFilter = envVars.getEnv(FlowEnvs.FLOW_ENV_OUTPUT_PREFIX, "FLOW_OUTPUT");
-        cmdInfo.setOutputEnvFilter(EnvUtil.parseCommaEnvToList(outputFilter));
+        cmdInfo.getOutputEnvFilter().addAll(EnvUtil.parseCommaEnvToList(outputFilter));
 
         try {
             cmdInfo.setTimeout(Integer.parseInt(envVars.getEnv(JobEnvs.FLOW_JOB_CMD_TIMEOUT, DEFAULT_CMD_TIMEOUT)));

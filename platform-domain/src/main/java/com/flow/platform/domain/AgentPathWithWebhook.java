@@ -16,11 +16,16 @@
 
 package com.flow.platform.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author yang
  */
 public class AgentPathWithWebhook extends AgentPath {
 
+    @Getter
+    @Setter
     private String webhook;
 
     public AgentPathWithWebhook(AgentPath agentPath, String webhook) {
@@ -29,14 +34,6 @@ public class AgentPathWithWebhook extends AgentPath {
 
     public AgentPathWithWebhook(String zone, String name, String webhook) {
         super(zone, name);
-        this.webhook = webhook;
-    }
-
-    public String getWebhook() {
-        return webhook;
-    }
-
-    public void setWebhook(String webhook) {
         this.webhook = webhook;
     }
 }

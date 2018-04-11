@@ -17,8 +17,14 @@
 package com.flow.platform.domain;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Only include basic properties of command
@@ -26,62 +32,81 @@ import java.util.Map;
  *
  * @author gy@fir.im
  */
+@NoArgsConstructor
+@EqualsAndHashCode(of = {"agentPath"}, callSuper = false)
 public abstract class CmdBase extends Webhookable {
 
     /**
      * Destination of command
      * Agent name can be null, that means platform select a instance to run cmd
      */
+    @Setter
+    @Getter
     protected AgentPath agentPath;
 
     /**
      * Command type (Required)
      */
+    @Setter
+    @Getter
     protected CmdType type;
 
     /**
      * record current status
      */
+    @Setter
+    @Getter
     protected CmdStatus status = CmdStatus.PENDING;
 
     /**
      * Command content (Required when type = RUN_SHELL)
      */
+    @Setter
+    @Getter
     protected String cmd;
 
     /**
      * Cmd timeout in seconds
      */
+    @Setter
+    @Getter
     protected Integer timeout;
 
     /**
      * Platform will reserve a machine for session
      */
+    @Setter
+    @Getter
     protected String sessionId;
 
     /**
      * Input parameter, deal with export XX=XX before cmd execute
      * Add input: getInputs().add(key, value)
      */
+    @Setter
+    @Getter
     protected Map<String, String> inputs = new HashMap<>();
 
     /**
      * Cmd working dir, default is user.home
      */
+    @Setter
+    @Getter
     protected String workingDir;
 
     /**
      * Filter for env input to CmdResult.output map
      */
-    protected List<String> outputEnvFilter;
+    @Setter
+    @Getter
+    protected List<String> outputEnvFilter = new LinkedList<>();
 
     /**
      * Extra info used for webhook callback
      */
+    @Setter
+    @Getter
     protected String extra;
-
-    public CmdBase() {
-    }
 
     public CmdBase(String zone, String agent, CmdType type, String cmd) {
         this(new AgentPath(zone, agent), type, cmd);
@@ -93,131 +118,23 @@ public abstract class CmdBase extends Webhookable {
         this.cmd = cmd;
     }
 
-    public AgentPath getAgentPath() {
-        return agentPath;
-    }
-
-    public void setAgentPath(AgentPath agentPath) {
-        this.agentPath = agentPath;
-    }
-
     public String getZoneName() {
-        if (agentPath == null) {
-            return null;
-        }
-        return agentPath.getZone();
+        return Objects.isNull(agentPath) ? null : agentPath.getZone();
     }
 
     public String getAgentName() {
-        if (agentPath == null) {
-            return null;
-        }
-        return agentPath.getName();
-    }
-
-    public CmdType getType() {
-        return type;
-    }
-
-    public void setType(CmdType type) {
-        this.type = type;
-    }
-
-    public void setStatus(CmdStatus status) {
-        this.status = status;
-    }
-
-    public CmdStatus getStatus() {
-        return status;
-    }
-
-    public String getCmd() {
-        return cmd;
-    }
-
-    public void setCmd(String cmd) {
-        this.cmd = cmd;
-    }
-
-    public Integer getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(Integer timeout) {
-        this.timeout = timeout;
-    }
-
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
+        return Objects.isNull(agentPath) ? null : agentPath.getName();
     }
 
     public boolean hasSession() {
-        if (type == CmdType.CREATE_SESSION) {
-            return false;
-        }
-        return sessionId != null;
-    }
-
-    public Map<String, String> getInputs() {
-        return inputs;
-    }
-
-    public void setInputs(Map<String, String> inputs) {
-        this.inputs = inputs;
-    }
-
-    public String getWorkingDir() {
-        return workingDir;
-    }
-
-    public void setWorkingDir(String workingDir) {
-        this.workingDir = workingDir;
-    }
-
-    public List<String> getOutputEnvFilter() {
-        return outputEnvFilter;
-    }
-
-    public void setOutputEnvFilter(List<String> outputEnvFilter) {
-        this.outputEnvFilter = outputEnvFilter;
-    }
-
-    public String getExtra() {
-        return extra;
-    }
-
-    public void setExtra(String extra) {
-        this.extra = extra;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        CmdBase cmdBase = (CmdBase) o;
-
-        return agentPath.equals(cmdBase.agentPath);
-    }
-
-    @Override
-    public int hashCode() {
-        return agentPath.hashCode();
+        return type != CmdType.CREATE_SESSION && sessionId != null;
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-            " zone=" + (agentPath == null ? "null" : agentPath.getZone()) +
-            ", agent=" + (agentPath == null ? "null" : agentPath.getName()) +
+            " zone=" + getZoneName() +
+            ", agent=" + getAgentName() +
             ", status=" + status +
             ", type=" + type +
             '}';

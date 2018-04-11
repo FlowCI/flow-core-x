@@ -20,6 +20,10 @@ import com.google.common.collect.Sets;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Command object to communicate between c/s
@@ -27,6 +31,8 @@ import java.util.Set;
  *
  * @author gy@fir.im
  */
+@NoArgsConstructor
+@EqualsAndHashCode(of = {"id"}, callSuper = false)
 public class Cmd extends CmdBase {
 
     /**
@@ -51,88 +57,51 @@ public class Cmd extends CmdBase {
     /**
      * Server generated command id
      */
+    @Getter
+    @Setter
     private String id;
 
+    @Getter
+    @Setter
     private String logPath;
 
     /**
      * Retry time if cmd with cmd queue
      */
+    @Getter
+    @Setter
     private Integer retry = 0;
 
     /**
      * finish time
      */
+    @Getter
+    @Setter
     private ZonedDateTime finishedDate;
 
     /**
      * Created date
      */
+    @Getter
+    @Setter
     private ZonedDateTime createdDate;
 
     /**
      * Updated date
      */
+    @Getter
+    @Setter
     private ZonedDateTime updatedDate;
 
     /**
      * Cmd result
      */
+    @Getter
+    @Setter
     private CmdResult cmdResult;
-
-    public Cmd() {
-    }
 
     public Cmd(String zone, String agent, CmdType type, String cmd) {
         super(zone, agent, type, cmd);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-    
-    public String getLogPath() {
-        return logPath;
-    }
-
-    public void setLogPath(String logPath) {
-        this.logPath = logPath;
-    }
-
-    public Integer getRetry() {
-        return retry;
-    }
-
-    public void setRetry(Integer retry) {
-        this.retry = retry;
-    }
-
-    public ZonedDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(ZonedDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public ZonedDateTime getUpdatedDate() {
-        return updatedDate;
-    }
-
-    public void setUpdatedDate(ZonedDateTime updatedDate) {
-        this.updatedDate = updatedDate;
-    }
-
-    public CmdResult getCmdResult() {
-        return cmdResult;
-    }
-
-    public void setCmdResult(CmdResult cmdResult) {
-        this.cmdResult = cmdResult;
     }
 
     /**
@@ -164,30 +133,6 @@ public class Cmd extends CmdBase {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        Cmd cmd = (Cmd) o;
-
-        return id != null ? id.equals(cmd.id) : cmd.id == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (id != null ? id.hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public String toString() {
         return "Cmd{" +
             "id='" + id + '\'' +
@@ -206,10 +151,10 @@ public class Cmd extends CmdBase {
         cmd.type = base.getType();
         cmd.cmd = base.getCmd();
         cmd.timeout = base.getTimeout();
-        cmd.inputs = base.getInputs();
+        cmd.inputs.putAll(base.getInputs());
         cmd.workingDir = base.getWorkingDir();
         cmd.sessionId = base.getSessionId();
-        cmd.outputEnvFilter = base.getOutputEnvFilter();
+        cmd.outputEnvFilter.addAll(base.getOutputEnvFilter());
         cmd.webhook = base.getWebhook();
         cmd.extra = base.getExtra();
         return cmd;

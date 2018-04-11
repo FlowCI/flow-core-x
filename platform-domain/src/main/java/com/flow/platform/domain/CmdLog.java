@@ -16,63 +16,27 @@
 
 package com.flow.platform.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 /**
  * @author yh@fir.im
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = {"cmdId"}, callSuper = false)
+@ToString
 public class CmdLog extends Jsonable {
 
+    @Setter
+    @Getter
     private String cmdId;
 
+    @Setter
+    @Getter
     private String logPath;
-
-    public CmdLog() {
-    }
-
-    public CmdLog(String cmdId, String logPath) {
-        this.cmdId = cmdId;
-        this.logPath = logPath;
-    }
-
-    public String getCmdId() {
-        return cmdId;
-    }
-
-    public void setCmdId(String cmdId) {
-        this.cmdId = cmdId;
-    }
-
-    public String getLogPath() {
-        return logPath;
-    }
-
-    public void setLogPath(String logPath) {
-        this.logPath = logPath;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        CmdLog cmdLog = (CmdLog) o;
-
-        return cmdId != null ? cmdId.equals(cmdLog.cmdId) : cmdLog.cmdId == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return cmdId != null ? cmdId.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "CmdLog{" +
-            "cmdId='" + cmdId + '\'' +
-            ", logPath='" + logPath + '\'' +
-            '}';
-    }
 }

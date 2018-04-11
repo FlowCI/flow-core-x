@@ -40,7 +40,6 @@ import com.flow.platform.util.git.JGitUtil;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -286,7 +285,7 @@ public class SyncServiceImpl implements SyncService {
             runShell.setWebhook(callbackUrl);
             runShell.setSessionId(cmd.getSessionId());
             runShell.setWorkingDir(AppConfig.DEFAULT_AGENT_REPO_DIR);
-            runShell.setOutputEnvFilter(EnvUtil.parseCommaEnvToList(SyncEvent.FLOW_SYNC_LIST));
+            runShell.getOutputEnvFilter().addAll(EnvUtil.parseCommaEnvToList(SyncEvent.FLOW_SYNC_LIST));
             cmdService.sendCmd(runShell, false, 0);
         }
 

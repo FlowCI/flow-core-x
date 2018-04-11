@@ -122,19 +122,19 @@ public class CmdManagerTest extends TestBase {
         ImmutableList<String> envFilter = ImmutableList.of("FLOW_UT_OUTPUT_1", "FLOW_UT_OUTPUT_2");
 
         Cmd cmd1 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
-        cmd1.setOutputEnvFilter(envFilter);
+        cmd1.getOutputEnvFilter().addAll(envFilter);
         cmd1.setId(UUID.randomUUID().toString());
 
         Cmd cmd2 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
-        cmd2.setOutputEnvFilter(envFilter);
+        cmd2.getOutputEnvFilter().addAll(envFilter);
         cmd2.setId(UUID.randomUUID().toString());
 
         Cmd cmd3 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
-        cmd3.setOutputEnvFilter(envFilter);
+        cmd3.getOutputEnvFilter().addAll(envFilter);
         cmd3.setId(UUID.randomUUID().toString());
 
         Cmd cmd4 = new Cmd("zone1", "agent1", CmdType.RUN_SHELL, content);
-        cmd4.setOutputEnvFilter(envFilter);
+        cmd4.getOutputEnvFilter().addAll(envFilter);
         cmd4.setId(UUID.randomUUID().toString());
 
         // when: execute four command by thread
