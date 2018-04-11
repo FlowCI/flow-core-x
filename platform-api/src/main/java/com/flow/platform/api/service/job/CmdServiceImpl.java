@@ -34,12 +34,12 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.ExceptionUtil;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import java.io.UnsupportedEncodingException;
+import lombok.extern.log4j.Log4j2;
 import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,10 +50,9 @@ import org.springframework.stereotype.Service;
  *
  * @author yang
  */
+@Log4j2
 @Service
 public class CmdServiceImpl implements CmdService {
-
-    private final static Logger LOGGER = new Logger(CmdService.class);
 
     private final static String DEFAULT_CMD_TIMEOUT = "3600";
 
@@ -75,7 +74,7 @@ public class CmdServiceImpl implements CmdService {
     public String createSession(Job job, Integer retry) {
         CmdInfo cmdInfo = new CmdInfo(zone, null, CmdType.CREATE_SESSION, null);
         cmdInfo.setWebhook(buildCmdWebhook(job));
-        LOGGER.traceMarker("CreateSession", "job id - %s", job.getId());
+        log.trace("Create session for job: {}", job.getId());
 
         // create session
         try {
@@ -101,10 +100,10 @@ public class CmdServiceImpl implements CmdService {
         cmdInfo.setWebhook(buildCmdWebhook(job));
 
         try {
-            LOGGER.traceMarker("DeleteSession", "Send delete session for session id %s", job.getSessionId());
+            log.trace("Send delete session for session id: {}", job.getSessionId());
             sendDirectly(cmdInfo);
         } catch (UnsupportedEncodingException e) {
-            LOGGER.warnMarker("DeleteSession", "Encoding error: %s", e.getMessage());
+            log.warn("Encoding error on delete session: {}", e.getMessage());
         }
     }
 
@@ -121,7 +120,7 @@ public class CmdServiceImpl implements CmdService {
             cmdInfo.setTimeout(Integer.parseInt(envVars.getEnv(JobEnvs.FLOW_JOB_CMD_TIMEOUT, DEFAULT_CMD_TIMEOUT)));
         } catch (NumberFormatException e) {
             cmdInfo.setTimeout(Integer.parseInt(DEFAULT_CMD_TIMEOUT));
-            LOGGER.warn("JobEnvs.FLOW_JOB_CMD_TIMEOUT env value is invalid");
+            log.warn("JobEnvs.FLOW_JOB_CMD_TIMEOUT env value is invalid");
         }
 
         cmdInfo.setSessionId(job.getSessionId());
@@ -130,7 +129,7 @@ public class CmdServiceImpl implements CmdService {
         cmdInfo.setWorkingDir(envVars.getEnv(AgentEnvs.FLOW_AGENT_WORKSPACE, null));
 
         try {
-            LOGGER.traceMarker("RunShell", "step name - %s, node path - %s", node.getName(), node.getPath());
+            log.trace("Run shell on step name: {}, node path: {}", node.getName(), node.getPath());
             sendDirectly(cmdInfo);
         } catch (Throwable e) {
             final String rootCause = ExceptionUtil.findRootCause(e).getMessage();
@@ -146,7 +145,7 @@ public class CmdServiceImpl implements CmdService {
     public void shutdown(AgentPath path, String password) {
         CmdInfo cmdInfo = new CmdInfo(path, CmdType.SHUTDOWN, password);
         try {
-            LOGGER.traceMarker("Shutdown", "Send shutdown for %s with pass '%s'", path, password);
+            log.trace("Send shutdown cmd for {} with pass {}", path, password);
             sendDirectly(cmdInfo);
         } catch (Throwable e) {
             String rootCause = ExceptionUtil.findRootCause(e).getMessage();
@@ -161,7 +160,7 @@ public class CmdServiceImpl implements CmdService {
         }
 
         try {
-            LOGGER.traceMarker("Close", "Send close cmd to agent: %s", path);
+            log.trace("Send close cmd to agent: {}", path);
             sendDirectly(new CmdInfo(path, CmdType.STOP, null));
         } catch (Throwable e) {
             String rootCause = ExceptionUtil.findRootCause(e).getMessage();

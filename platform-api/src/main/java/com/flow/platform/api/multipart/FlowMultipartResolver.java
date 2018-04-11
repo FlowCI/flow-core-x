@@ -16,7 +16,6 @@
 
 package com.flow.platform.api.multipart;
 
-import java.util.Collections;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.fileupload.FileItem;
@@ -33,7 +32,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
  */
 public class FlowMultipartResolver extends CommonsMultipartResolver {
 
-    private List<FlowMultipartMatcher> matches = Collections.emptyList();
+    private List<FlowMultipartMatcher> matches;
 
     public FlowMultipartResolver(List<FlowMultipartMatcher> matchers) {
         this.matches = matchers;

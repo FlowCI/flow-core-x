@@ -42,6 +42,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -53,9 +54,8 @@ import org.springframework.stereotype.Service;
  * @author yang
  */
 @Service
+@Log4j2
 public class YmlServiceImpl implements YmlService, ContextEvent {
-
-    private final static Logger LOGGER = new Logger(YmlService.class);
 
     private final static int NODE_THREAD_POOL_CACHE_EXPIRE = 3600 * 24;
 
@@ -164,7 +164,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
             // async to load yml file
             executor.execute(new UpdateNodeYmlTask(root, nodeService, gitService, onSuccess, onError));
         } catch (ExecutionException | TaskRejectedException e) {
-            LOGGER.warn("Fail to get task executor for node: " + root.getPath());
+            log.warn("Fail to get task executor for node: " + root.getPath());
             nodeService.updateYmlState(root, YmlStatusValue.ERROR, e.getMessage());
 
             if (onError != null) {
@@ -189,7 +189,7 @@ public class YmlServiceImpl implements YmlService, ContextEvent {
         executor.shutdown();
         nodeThreadPool.invalidate(root.getPath());
 
-        LOGGER.trace("Yml loading task been stopped for path %s", root.getPath());
+        log.trace("Yml loading task been stopped for path {}", root.getPath());
         nodeService.updateYmlState(root, YmlStatusValue.NOT_FOUND, null);
     }
 

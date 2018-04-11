@@ -16,17 +16,17 @@
 
 package com.flow.platform.api.task;
 
-import com.flow.platform.api.envs.FlowEnvs;
-import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.node.Yml;
+import com.flow.platform.api.envs.FlowEnvs;
+import com.flow.platform.api.envs.FlowEnvs.YmlStatusValue;
 import com.flow.platform.api.service.GitService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.util.ExceptionUtil;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import java.util.Objects;
 import java.util.function.Consumer;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * Task to clone from git repo and create or update yml content of node
@@ -37,6 +37,8 @@ import java.util.function.Consumer;
  *
  * @author yang
  */
+
+@Log4j2
 public class UpdateNodeYmlTask implements Runnable {
 
     private class EmptySuccessConsumer implements Consumer<Yml> {
@@ -52,8 +54,6 @@ public class UpdateNodeYmlTask implements Runnable {
         public void accept(Throwable throwable) {
         }
     }
-
-    private final static Logger LOGGER = new Logger(UpdateNodeYmlTask.class);
 
     private final Node root;
 
@@ -90,7 +90,7 @@ public class UpdateNodeYmlTask implements Runnable {
             // check yml status is running since exception will be throw if manual stop the git clone thread
             if (YmlStatusValue.isLoadingStatus(root.getEnv(FlowEnvs.FLOW_YML_STATUS))) {
                 Throwable rootCause = ExceptionUtil.findRootCause(e);
-                LOGGER.error("Unable to fetch from git repo", rootCause);
+                log.error("Unable to fetch from git repo: {}", rootCause);
                 nodeService.updateYmlState(root, YmlStatusValue.ERROR, rootCause.getMessage());
             }
 
@@ -101,11 +101,11 @@ public class UpdateNodeYmlTask implements Runnable {
         try {
             nodeService.updateByYml(root.getPath(), yml);
         } catch (Throwable e) {
-            LOGGER.warn("Fail to create or update yml in node: '%s'", ExceptionUtil.findRootCause(e).getMessage());
+            log.warn("Fail to create or update yml in node: {}", ExceptionUtil.findRootCause(e).getMessage());
             onError.accept(e);
         }
 
-        LOGGER.trace("Node %s FLOW_YML_STATUS is: %s", root.getName(), root.getEnv(FlowEnvs.FLOW_YML_STATUS));
+        log.trace("Node {} FLOW_YML_STATUS is: {}", root.getName(), root.getEnv(FlowEnvs.FLOW_YML_STATUS));
         onSuccess.accept(new Yml(root.getPath(), yml));
     }
 
@@ -118,7 +118,7 @@ public class UpdateNodeYmlTask implements Runnable {
 
         @Override
         public void onStartTask(String task) {
-            LOGGER.debug("Task start: %s", task);
+            log.debug("Task start: {}", task);
         }
 
         @Override
@@ -130,7 +130,7 @@ public class UpdateNodeYmlTask implements Runnable {
 
         @Override
         public void onFinishTask(String task) {
-            LOGGER.debug("Task finish: %s", task);
+            log.debug("Task finish: {}", task);
         }
     }
 }

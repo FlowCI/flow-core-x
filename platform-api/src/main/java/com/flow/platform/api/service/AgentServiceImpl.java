@@ -40,7 +40,6 @@ import com.flow.platform.domain.CmdInfo;
 import com.flow.platform.domain.CmdType;
 import com.flow.platform.domain.Jsonable;
 import com.flow.platform.util.CollectionUtil;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.StringUtil;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
@@ -53,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.log4j.Log4j2;
 import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,9 +63,8 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
+@Log4j2
 public class AgentServiceImpl extends ApplicationEventService implements AgentService {
-
-    private final Logger LOGGER = new Logger(AgentService.class);
 
     private final int httpRetryTimes = 5;
 
@@ -167,7 +166,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
             cmdService.shutdown(path, password);
             return true;
         } catch (IllegalStatusException e) {
-            LOGGER.warnMarker("shutdown", e.getMessage());
+            log.warn("Shutdown error: {}", e.getMessage());
             return false;
         }
     }
@@ -178,7 +177,7 @@ public class AgentServiceImpl extends ApplicationEventService implements AgentSe
             cmdService.close(path);
             return true;
         } catch (IllegalStatusException e) {
-            LOGGER.warnMarker("close", e.getMessage());
+            log.warn("Close error: {}", e.getMessage());
             return false;
         }
     }

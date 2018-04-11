@@ -58,6 +58,7 @@ import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
 import com.flow.platform.core.exception.IllegalStatusException;
 import com.flow.platform.core.exception.NotFoundException;
+import com.flow.platform.core.exception.UnsupportedException;
 import com.flow.platform.core.queue.PriorityMessage;
 import com.flow.platform.core.service.ApplicationEventService;
 import com.flow.platform.domain.Cmd;
@@ -67,7 +68,6 @@ import com.flow.platform.domain.CmdType;
 import com.flow.platform.queue.PlatformQueue;
 import com.flow.platform.util.DateUtil;
 import com.flow.platform.util.ExceptionUtil;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.git.model.GitCommit;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
@@ -84,6 +84,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -94,10 +95,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author yh@firim
  */
+@Log4j2
 @Service
 public class JobServiceImpl extends ApplicationEventService implements JobService {
-
-    private static Logger LOGGER = new Logger(JobService.class);
 
     private final Integer createSessionRetryTimes = 5;
 
@@ -240,7 +240,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         if (Job.FINISH_STATUS.contains(job.getStatus())) {
-            LOGGER.trace("Reject cmd callback since job %s already in finish status", job.getId());
+            log.trace("Reject cmd callback since job {} in finish status", job.getId());
             return;
         }
 
@@ -260,12 +260,11 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         }
 
         if (cmd.getType() == CmdType.DELETE_SESSION) {
-            LOGGER.trace("Session been deleted for job: %s", cmdQueueItem.getJobId());
+            log.trace("Session been deleted for job: {}", cmdQueueItem.getJobId());
             return;
         }
 
-        LOGGER.warn("not found cmdType, cmdType: %s", cmd.getType().toString());
-        throw new NotFoundException("not found cmdType");
+        throw new UnsupportedException("Cmd type " + cmd.getType() + " not supported");
     }
 
     @Override
@@ -284,7 +283,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
     }
 
     private void stopAllJobs(String path) {
-        LOGGER.trace("before delete flow, first stop all jobs");
+        log.trace("before delete flow, first stop all jobs");
         List<Job> jobs = jobDao.listByPath(Arrays.asList(path));
         List<Job> sessionCreateJobs = new LinkedList<>();
         List<Job> runningJobs = new LinkedList<>();
@@ -308,7 +307,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         for (Job runningJob : runningJobs) {
             stop(path, runningJob.getNumber());
         }
-        LOGGER.trace("before delete flow, finish stop all jobs");
+        log.trace("before delete flow, finish stop all jobs");
     }
 
 
@@ -505,12 +504,12 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
         if (cmd.getStatus() != CmdStatus.SENT) {
 
             if (cmd.getRetry() > 1) {
-                LOGGER.trace("Create session failure but retrying: %s", cmd.getStatus().getName());
+                log.trace("Create session failure but retrying: {}", cmd.getStatus().getName());
                 return;
             }
 
             final String errMsg = "Create session failure with cmd status: " + cmd.getStatus().getName();
-            LOGGER.warn(errMsg);
+            log.warn(errMsg);
 
             job.setFailureMessage(errMsg);
             updateJobStatusAndSave(job, JobStatus.FAILURE);
@@ -542,7 +541,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         // bottom up recursive update node result
         NodeResult nodeResult = nodeResultService.updateStatusByCmd(job, node, cmd, null);
-        LOGGER.debug("Run shell callback for node result: %s", nodeResult);
+        log.debug("Run shell callback for node result: {}", nodeResult);
 
         // no more node to run and status is not running
         if (Objects.isNull(next) && !nodeResult.isRunning()) {
@@ -602,8 +601,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
             stopJob(runningJob);
         } catch (Throwable throwable) {
-            String message = "stop job error - " + ExceptionUtil.findRootCause(throwable);
-            LOGGER.traceMarker("stopJob", message);
+            String message = "Stop job error: " + ExceptionUtil.findRootCause(throwable);
             throw new IllegalParameterException(message);
         }
 
@@ -633,7 +631,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return;
         }
 
-        LOGGER.debug("Job '%s' status is changed to : %s", job.getId(), newStatus);
+        log.debug("Job '{}' status is changed to: {}", job.getId(), newStatus);
         job.setStatus(newStatus);
         jobDao.update(job);
 
@@ -682,7 +680,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
 
         @Override
         public void accept(Yml yml) {
-            LOGGER.trace("Yml content has been loaded for path : " + path);
+            log.trace("Yml content has been loaded for path: " + path);
             Node root = nodeService.find(PathUtil.rootPath(path)).root();
 
             // set git commit info to job env
@@ -696,7 +694,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                     EnvUtil.merge(envFromCommit, job.getEnvs(), true);
                     jobDao.update(job);
                 } catch (IllegalStatusException exceptionFromGit) {
-                    LOGGER.warn(exceptionFromGit.getMessage());
+                    log.warn(exceptionFromGit.getMessage());
                 }
             }
 
@@ -707,7 +705,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
                     onJobCreated.accept(job);
                 }
             } catch (Throwable e) {
-                LOGGER.warn("Fail to create job for path %s : %s ", path, ExceptionUtil.findRootCause(e).getMessage());
+                log.warn("Fail to create job for path {}: {} ", path, ExceptionUtil.findRootCause(e).getMessage());
             }
         }
     }
@@ -802,14 +800,10 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             return;
         }
 
-        LOGGER.trace("job timeout task start");
-
         List<Job> jobs = jobDao.listByStatus(Job.RUNNING_STATUS);
         for (Job job : jobs) {
             checkTimeOut(job);
         }
-
-        LOGGER.trace("job timeout task end");
     }
 
     private void updateJobAndNodeResultTimeout(Job job) {
@@ -818,9 +812,7 @@ public class JobServiceImpl extends ApplicationEventService implements JobServic
             try {
                 cmdService.deleteSession(job);
             } catch (Throwable e) {
-                LOGGER.warn(
-                    "Error on delete session for job %s: %s",
-                    job.getId(),
+                log.warn("Error on delete session for job {}: {}", job.getId(),
                     ExceptionUtil.findRootCause(e).getMessage());
             }
         }

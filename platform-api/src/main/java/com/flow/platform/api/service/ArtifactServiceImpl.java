@@ -21,7 +21,6 @@ import com.flow.platform.api.domain.Artifact;
 import com.flow.platform.api.domain.ArtifactType;
 import com.flow.platform.api.domain.job.Job;
 import com.flow.platform.api.service.job.JobService;
-import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.core.exception.IllegalParameterException;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
@@ -38,9 +37,6 @@ public class ArtifactServiceImpl implements ArtifactService {
 
     @Autowired
     private ArtifactDao artifactDao;
-
-    @Autowired
-    private NodeService nodeService;
 
     @Autowired
     private JobService jobService;

@@ -22,13 +22,13 @@ import static com.flow.platform.api.service.node.NodeCrontabService.KEY_NODE_PAT
 import com.flow.platform.api.domain.job.JobCategory;
 import com.flow.platform.api.domain.node.Node;
 import com.flow.platform.api.domain.user.User;
+import com.flow.platform.api.envs.EnvUtil;
 import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.node.NodeService;
 import com.flow.platform.api.service.user.UserService;
-import com.flow.platform.api.envs.EnvUtil;
-import com.flow.platform.util.Logger;
 import java.util.Map;
+import lombok.extern.log4j.Log4j2;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -36,9 +36,8 @@ import org.quartz.JobExecutionException;
 /**
  * @author yang
  */
+@Log4j2
 public class NodeCrontabTask implements Job {
-
-    private final static Logger LOGGER = new Logger(NodeCrontabTask.class);
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -49,7 +48,7 @@ public class NodeCrontabTask implements Job {
         final NodeService nodeService = (NodeService) context.getMergedJobDataMap().get("nodeService");
         final UserService userService = (UserService) context.getMergedJobDataMap().get("userService");
 
-        LOGGER.debug("branch %s with node path %s", branch, path);
+        log.debug("Branch {} with node path {}", branch, path);
 
         try {
             Node flow = nodeService.find(path).root();

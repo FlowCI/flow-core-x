@@ -35,7 +35,6 @@ import com.flow.platform.api.envs.GitEnvs;
 import com.flow.platform.api.envs.GitToggleEnvs;
 import com.flow.platform.api.exception.YmlException;
 import com.flow.platform.api.service.CurrentUser;
-import com.flow.platform.api.service.SyncService;
 import com.flow.platform.api.service.job.JobService;
 import com.flow.platform.api.service.user.RoleService;
 import com.flow.platform.api.service.user.UserFlowService;
@@ -45,12 +44,10 @@ import com.flow.platform.api.util.PathUtil;
 import com.flow.platform.api.util.PluginUtil;
 import com.flow.platform.core.exception.FlowException;
 import com.flow.platform.core.exception.IllegalParameterException;
-import com.flow.platform.domain.Cmd;
 import com.flow.platform.plugin.domain.Plugin;
 import com.flow.platform.plugin.domain.PluginStatus;
 import com.flow.platform.plugin.service.PluginService;
 import com.flow.platform.util.CommandUtil.Unix;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpURL;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
@@ -62,6 +59,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
@@ -75,9 +73,8 @@ import org.springframework.util.FileSystemUtils;
  */
 @Service(value = "nodeService")
 @Transactional
+@Log4j2
 public class NodeServiceImpl extends CurrentUser implements NodeService {
-
-    private final Logger LOGGER = new Logger(NodeService.class);
 
     @Autowired
     private CacheManager cacheManager;
@@ -368,7 +365,7 @@ public class NodeServiceImpl extends CurrentUser implements NodeService {
                     return new NodeTree(flow);
                 }
             } catch (Throwable e) {
-                LOGGER.error("Cannot load node tree", e);
+                log.error("Cannot load node tree", e);
             }
 
             // root path not exist

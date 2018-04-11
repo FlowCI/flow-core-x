@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.annotation.PostConstruct;
+import lombok.extern.log4j.Log4j2;
 import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,10 +64,9 @@ import org.springframework.stereotype.Service;
  * @author yang
  */
 
+@Log4j2
 @Service
 public class SyncServiceImpl implements SyncService {
-
-    private final static Logger LOGGER = new Logger(SyncService.class);
 
     private final Map<AgentPath, Sync> syncs = new ConcurrentHashMap<>();
 
@@ -100,7 +100,7 @@ public class SyncServiceImpl implements SyncService {
 
         taskExecutor.execute(() -> {
             try {
-                LOGGER.trace("Start to init agent list in thread: " + Thread.currentThread().getName());
+                log.trace("Start to init agent list in thread: " + Thread.currentThread().getName());
                 load();
 
                 List<Agent> agents = agentService.list();
@@ -111,7 +111,7 @@ public class SyncServiceImpl implements SyncService {
                     register(agent.getPath());
                 }
             } catch (Throwable e) {
-                LOGGER.warn(e.getMessage());
+                log.warn(e.getMessage());
             }
         });
     }
@@ -128,14 +128,14 @@ public class SyncServiceImpl implements SyncService {
 
                 // git repo needs tags
                 if (tags.isEmpty()) {
-                    LOGGER.warn("Git repo '%s' cannot be synced since missing tag", gitRepoName);
+                    log.warn("Git repo '%s' cannot be synced since missing tag", gitRepoName);
                     continue;
                 }
 
                 gitRepoName = StringUtil.trimEnd(gitRepoName, ".git");
                 repos.add(new SyncRepo(gitRepoName, tags.get(0)));
             } catch (GitException e) {
-                LOGGER.warn(e.getMessage());
+                log.warn(e.getMessage());
             } finally {
                 repo.close();
             }
@@ -231,7 +231,7 @@ public class SyncServiceImpl implements SyncService {
                 sync.setSyncTime(ZonedDateTime.now());
             }
 
-            LOGGER.trace("Sync task finished for agent " + cmd.getAgentPath());
+            log.trace("Sync task finished for agent " + cmd.getAgentPath());
             return;
         }
 
@@ -243,7 +243,7 @@ public class SyncServiceImpl implements SyncService {
                 next = task.getSyncQueue().peek();
             } else {
                 syncTasks.remove(cmd.getAgentPath());
-                LOGGER.trace("Sync task stopped since create session failure for agent: " + cmd.getAgentPath());
+                log.trace("Sync task stopped since create session failure for agent: " + cmd.getAgentPath());
                 return;
             }
         } else if (cmd.getType() == CmdType.RUN_SHELL) {
@@ -314,10 +314,10 @@ public class SyncServiceImpl implements SyncService {
             CmdInfo cmdInfo = new CmdInfo(agentPath, CmdType.CREATE_SESSION, null);
             cmdInfo.setWebhook(callbackUrl);
             cmdService.sendCmd(cmdInfo, true, DEFAULT_CMD_PRIORITY);
-            LOGGER.trace("Start sync '%s' git repo to agent '%s'", task.getTotal(), agentPath);
+            log.trace("Start sync '{}' git repo to agent '{}'", task.getTotal(), agentPath);
         } catch (Throwable e) {
             syncTasks.remove(agentPath);
-            LOGGER.warn(e.getMessage());
+            log.warn(e.getMessage());
         }
     }
 
