@@ -15,28 +15,15 @@
  */
 package com.flow.platform.api.domain.request;
 
+import lombok.Data;
+
 /**
  * @author lhl
  */
+@Data
 public class UpdateUserRoleParam {
 
     private ListParam<String> emailList;
 
     private ListParam<String> roles;
-
-    public ListParam<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(ListParam<String> roles) {
-        this.roles = roles;
-    }
-
-    public ListParam<String> getEmailList() {
-        return emailList;
-    }
-
-    public void setEmailList(ListParam<String> emailList) {
-        this.emailList = emailList;
-    }
 }

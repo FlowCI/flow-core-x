@@ -31,7 +31,13 @@ import java.time.ZonedDateTime;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
+@EqualsAndHashCode(of = {"key"}, callSuper = false)
+@ToString(of = {"key", "exitCode", "status"})
 public class NodeResult extends CreateUpdateObject {
 
     public final static EnumSet<NodeStatus> RUNNING_STATUS = EnumSet.of(PENDING, RUNNING, ENQUEUE);
@@ -45,45 +51,73 @@ public class NodeResult extends CreateUpdateObject {
     public final static EnumSet<NodeStatus> STOP_STATUS = EnumSet.of(STOPPED);
 
     @Expose
+    @Getter
+    @Setter
     private NodeResultKey key;
 
     @Expose
+    @Getter
+    @Setter
     private Map<String, String> outputs = new LinkedHashMap<>();
 
     @Expose
+    @Getter
+    @Setter
     private Long duration = 0L;
 
     @Expose
+    @Getter
+    @Setter
     private Integer exitCode;
 
     @Expose
+    @Getter
+    @Setter
     private String logPath;
 
     @Expose
+    @Getter
+    @Setter
     private NodeStatus status = PENDING;
 
     @Expose
+    @Getter
+    @Setter
     private String cmdId;
 
     @Expose
+    @Getter
+    @Setter
     private NodeTag nodeTag;
 
     @Expose
+    @Getter
+    @Setter
     private ZonedDateTime startTime;
 
     @Expose
+    @Getter
+    @Setter
     private ZonedDateTime finishTime;
 
     @Expose
+    @Getter
+    @Setter
     private String name; // node name
 
     @Expose
+    @Getter
+    @Setter
     private String failureMessage;
 
     @Expose
+    @Getter
+    @Setter
     private Integer order;
 
     @Expose
+    @Getter
+    @Setter
     private String createdBy;
 
     public NodeResult() {
@@ -97,108 +131,8 @@ public class NodeResult extends CreateUpdateObject {
         this.key = key;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public NodeResultKey getKey() {
-        return key;
-    }
-
-    public void setKey(NodeResultKey key) {
-        this.key = key;
-    }
-
-    public BigInteger getJobId() {
-        return this.key.getJobId();
-    }
-
     public String getPath() {
         return this.key.getPath();
-    }
-
-    public Map<String, String> getOutputs() {
-        return outputs;
-    }
-
-    public void setOutputs(Map<String, String> outputs) {
-        this.outputs = outputs;
-    }
-
-    public Long getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Long duration) {
-        this.duration = duration;
-    }
-
-    public Integer getExitCode() {
-        return exitCode;
-    }
-
-    public void setExitCode(Integer exitCode) {
-        this.exitCode = exitCode;
-    }
-
-    public String getLogPath() {
-        return logPath;
-    }
-
-    public void setLogPath(String logPath) {
-        this.logPath = logPath;
-    }
-
-    public NodeStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(NodeStatus status) {
-        this.status = status;
-    }
-
-    public String getCmdId() {
-        return cmdId;
-    }
-
-    public void setCmdId(String cmdId) {
-        this.cmdId = cmdId;
-    }
-
-    public NodeTag getNodeTag() {
-        return nodeTag;
-    }
-
-    public void setNodeTag(NodeTag nodeTag) {
-        this.nodeTag = nodeTag;
-    }
-
-    public ZonedDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(ZonedDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public ZonedDateTime getFinishTime() {
-        return finishTime;
-    }
-
-    public void setFinishTime(ZonedDateTime finishTime) {
-        this.finishTime = finishTime;
-    }
-
-    public Integer getOrder() {
-        return order;
-    }
-
-    public void setOrder(Integer order) {
-        this.order = order;
     }
 
     public boolean isRunning() {
@@ -215,49 +149,5 @@ public class NodeResult extends CreateUpdateObject {
 
     public boolean isStop() {
         return STOP_STATUS.contains(status);
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public String getFailureMessage() {
-        return failureMessage;
-    }
-
-    public void setFailureMessage(String failureMessage) {
-        this.failureMessage = failureMessage;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        NodeResult that = (NodeResult) o;
-
-        return key.equals(that.key);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.getKey().hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "NodeResult{" +
-            "key=" + key +
-            ", exitCode=" + exitCode +
-            ", status=" + status +
-            "} " + super.toString();
     }
 }

@@ -24,24 +24,21 @@ import com.flow.platform.yml.parser.annotations.YmlSerializer;
 import com.google.gson.annotations.Expose;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * The object with environment variables map
  *
  * @author yang
  */
+@NoArgsConstructor
+@AllArgsConstructor
 public class EnvObject extends Jsonable {
 
     @YmlSerializer(required = false)
     @Expose
     protected Map<String, String> envs = new LinkedHashMap<>();
-
-    public EnvObject() {
-    }
-
-    public EnvObject(Map<String, String> envs) {
-        this.envs = envs;
-    }
 
     public Map<String, String> getEnvs() {
         return envs;

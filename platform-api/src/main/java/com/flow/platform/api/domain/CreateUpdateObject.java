@@ -19,6 +19,8 @@ package com.flow.platform.api.domain;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.time.ZonedDateTime;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author yang
@@ -26,24 +28,12 @@ import java.time.ZonedDateTime;
 public abstract class CreateUpdateObject extends Jsonable {
 
     @Expose
+    @Getter
+    @Setter
     protected ZonedDateTime createdAt;
 
     @Expose
+    @Getter
+    @Setter
     protected ZonedDateTime updatedAt;
-
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

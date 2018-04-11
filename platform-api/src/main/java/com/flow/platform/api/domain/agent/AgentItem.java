@@ -22,39 +22,61 @@ import com.flow.platform.domain.AgentPath;
 import com.flow.platform.domain.AgentStatus;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Class with flow and sync information
  *
  * @author yh@firim
  */
+@NoArgsConstructor
 public class AgentItem extends Jsonable {
 
     @Expose
+    @Getter
+    @Setter
     private String name;
 
     @Expose
+    @Getter
+    @Setter
     private String zone;
 
     @Expose
+    @Getter
+    @Setter
     private String flowName;
 
     @Expose
+    @Getter
+    @Setter
     private String token;
 
     @Expose
+    @Getter
+    @Setter
     private AgentStatus agentStatus;
 
     @Expose
+    @Getter
+    @Setter
     private Long number;
 
     @Expose
+    @Getter
+    @Setter
     private String zoneWithName;
 
     @Expose
+    @Getter
+    @Setter
     private String branch;
 
     @Expose
+    @Getter
+    @Setter
     private AgentSync sync;
 
     public AgentItem(AgentPath path, String flowName, AgentStatus agentStatus, Long number) {
@@ -63,9 +85,6 @@ public class AgentItem extends Jsonable {
         this.flowName = flowName;
         this.agentStatus = agentStatus;
         this.number = number;
-    }
-
-    public AgentItem() {
     }
 
     public AgentItem(Agent agent, Job job) {
@@ -80,77 +99,5 @@ public class AgentItem extends Jsonable {
             this.number = job.getNumber();
             this.branch = "master";
         }
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public String getZoneWithName() {
-        return zoneWithName;
-    }
-
-    public void setZoneWithName(String zoneWithName) {
-        this.zoneWithName = zoneWithName;
-    }
-
-    public String getBranch() {
-        return branch;
-    }
-
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getZone() {
-        return zone;
-    }
-
-    public void setZone(String zone) {
-        this.zone = zone;
-    }
-
-    public String getFlowName() {
-        return flowName;
-    }
-
-    public void setFlowName(String flowName) {
-        this.flowName = flowName;
-    }
-
-    public AgentStatus getAgentStatus() {
-        return agentStatus;
-    }
-
-    public void setAgentStatus(AgentStatus agentStatus) {
-        this.agentStatus = agentStatus;
-    }
-
-    public Long getNumber() {
-        return number;
-    }
-
-    public void setNumber(Long number) {
-        this.number = number;
-    }
-
-    public AgentSync getSync() {
-        return sync;
-    }
-
-    public void setSync(AgentSync sync) {
-        this.sync = sync;
     }
 }

@@ -17,28 +17,23 @@
 package com.flow.platform.api.domain.file;
 
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author yang
  */
+@NoArgsConstructor
 public class PasswordFileResource extends FileResource {
 
     @Expose
+    @Getter
+    @Setter
     private String password;
-
-    public PasswordFileResource() {
-    }
 
     public PasswordFileResource(String name, String path, String password) {
         super(name, path);
-        this.password = password;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
         this.password = password;
     }
 }

@@ -16,71 +16,34 @@
 
 package com.flow.platform.api.domain.node;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 /**
  * Yml raw content
  *
  * @author yh@firim
  */
+
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = {"nodePath"})
+@ToString
 public class Yml {
 
+    @Getter
+    @Setter
     private String nodePath;
 
+    @Getter
+    @Setter
     private String file;
-
-    public String getNodePath() {
-        return nodePath;
-    }
-
-    public void setNodePath(String nodePath) {
-        this.nodePath = nodePath;
-    }
-
-    public String getFile() {
-        return file;
-    }
-
-    public void setFile(String file) {
-        this.file = file;
-    }
 
     public Yml(String nodePath) {
         this.nodePath = nodePath;
-    }
-
-    public Yml(String nodePath, String file) {
-        this.nodePath = nodePath;
-        this.file = file;
-    }
-
-    public Yml() {
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Yml that = (Yml) o;
-
-        return nodePath != null ? nodePath.equals(that.nodePath) : that.nodePath == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = nodePath != null ? nodePath.hashCode() : 0;
-        result = 31 * result + (file != null ? file.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "Yml{" +
-            "nodePath='" + nodePath + '\'' +
-            ", file='" + file + '\'' +
-            '}';
     }
 }

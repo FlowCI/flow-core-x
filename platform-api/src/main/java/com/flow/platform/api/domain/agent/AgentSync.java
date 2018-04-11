@@ -17,39 +17,25 @@
 package com.flow.platform.api.domain.agent;
 
 import com.google.gson.annotations.Expose;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author yang
  */
+@NoArgsConstructor
+@AllArgsConstructor
 public class AgentSync {
 
     @Expose
+    @Getter
+    @Setter
     private Integer total;
 
     @Expose
+    @Getter
+    @Setter
     private Integer progress;
-
-    public AgentSync() {
-    }
-
-    public AgentSync(Integer total, Integer progress) {
-        this.total = total;
-        this.progress = progress;
-    }
-
-    public Integer getTotal() {
-        return total;
-    }
-
-    public void setTotal(Integer total) {
-        this.total = total;
-    }
-
-    public Integer getProgress() {
-        return progress;
-    }
-
-    public void setProgress(Integer progress) {
-        this.progress = progress;
-    }
 }

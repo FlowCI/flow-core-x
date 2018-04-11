@@ -42,5 +42,5 @@ public class NodeStatusChangeEvent extends ApplicationEvent {
         this.resultKey = resultKey;
         this.from = from;
         this.to = to;
-    }o
+    }
 }

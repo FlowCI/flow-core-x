@@ -19,10 +19,16 @@ import com.flow.platform.api.domain.user.User;
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author lhl
  */
+@Data
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class UserListResponse extends Jsonable {
 
     @Expose
@@ -33,31 +39,5 @@ public class UserListResponse extends Jsonable {
 
     @Expose
     private List<User> users;
-
-    public UserListResponse(Long total, Long adminCount, List<User> users) {
-        this.total = total;
-        this.adminCount = adminCount;
-        this.users = users;
-    }
-
-    public void setAdminCount(Long adminCount) {
-        this.adminCount = adminCount;
-    }
-
-    public Long getTotal() {
-        return total;
-    }
-
-    public void setTotal(Long total) {
-        this.total = total;
-    }
-
-    public List<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(List<User> users) {
-        this.users = users;
-    }
 }
 

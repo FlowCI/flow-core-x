@@ -15,9 +15,14 @@
  */
 package com.flow.platform.api.domain.request;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 /**
  * @author lhl
  */
+@Data
+@AllArgsConstructor
 public class ThreadConfigParam {
 
     private Integer maxPoolSize;
@@ -28,46 +33,4 @@ public class ThreadConfigParam {
 
     private String threadNamePrefix;
 
-    public Integer getMaxPoolSize() {
-        return maxPoolSize;
-    }
-
-    public void setMaxPoolSize(Integer maxPoolSize) {
-        this.maxPoolSize = maxPoolSize;
-    }
-
-    public Integer getCorePoolSize() {
-        return corePoolSize;
-    }
-
-    public void setCorePoolSize(Integer corePoolSize) {
-        this.corePoolSize = corePoolSize;
-    }
-
-    public Integer getQueueSize() {
-        return queueSize;
-    }
-
-    public void setQueueSize(Integer queueSize) {
-        this.queueSize = queueSize;
-    }
-
-    public String getThreadNamePrefix() {
-        return threadNamePrefix;
-    }
-
-    public void setThreadNamePrefix(String threadNamePrefix) {
-        this.threadNamePrefix = threadNamePrefix;
-    }
-
-    public ThreadConfigParam(Integer maxPoolSize, Integer corePoolSize, Integer queueSize,
-                             String threadNamePrefix) {
-        this.maxPoolSize = maxPoolSize;
-        this.corePoolSize = corePoolSize;
-        this.queueSize = queueSize;
-        this.threadNamePrefix = threadNamePrefix;
-    }
-
-    public ThreadConfigParam() {
-    }
 }

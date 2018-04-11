@@ -17,10 +17,15 @@
 package com.flow.platform.api.domain.sync;
 
 import com.google.gson.annotations.Expose;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author yang
  */
+@RequiredArgsConstructor
+@EqualsAndHashCode
 public class SyncRepo {
 
     /**
@@ -44,47 +49,12 @@ public class SyncRepo {
     }
 
     @Expose
-    private String name;
+    @Getter
+    private final String name;
 
     @Expose
-    private String tag;
-
-    public SyncRepo(String name, String tag) {
-        this.name = name;
-        this.tag = tag;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        SyncRepo syncRepo = (SyncRepo) o;
-
-        if (!name.equals(syncRepo.name)) {
-            return false;
-        }
-        return tag.equals(syncRepo.tag);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name.hashCode();
-        result = 31 * result + tag.hashCode();
-        return result;
-    }
+    @Getter
+    private final String tag;
 
     @Override
     public String toString() {

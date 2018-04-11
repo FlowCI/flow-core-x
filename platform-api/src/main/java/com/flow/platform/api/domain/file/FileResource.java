@@ -18,38 +18,24 @@ package com.flow.platform.api.domain.file;
 
 import com.flow.platform.domain.Jsonable;
 import com.google.gson.annotations.Expose;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author yang
  */
+@NoArgsConstructor
+@AllArgsConstructor
 public class FileResource extends Jsonable {
 
     @Expose
+    @Getter
+    @Setter
     protected String name;
 
+    @Getter
+    @Setter
     protected String path;
-
-    public FileResource() {
-    }
-
-    public FileResource(String name, String path) {
-        this.name = name;
-        this.path = path;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
 }

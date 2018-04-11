@@ -17,10 +17,12 @@
 package com.flow.platform.api.domain.request;
 
 import com.flow.platform.api.domain.user.ActionGroup;
+import lombok.Data;
 
 /**
  * @author yang
  */
+@Data
 public class ActionParam {
 
     private String alias;
@@ -28,37 +30,4 @@ public class ActionParam {
     private String description;
 
     private ActionGroup tag;
-
-    public ActionParam() {
-    }
-
-    public ActionParam(String alias, String description, ActionGroup tag) {
-        this.alias = alias;
-        this.description = description;
-        this.tag = tag;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public ActionGroup getTag() {
-        return tag;
-    }
-
-    public void setTag(ActionGroup tag) {
-        this.tag = tag;
-    }
 }

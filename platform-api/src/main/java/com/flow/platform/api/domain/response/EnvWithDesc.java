@@ -17,66 +17,22 @@
 package com.flow.platform.api.domain.response;
 
 import com.flow.platform.domain.Jsonable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author yh@firim
  */
+
+@Data
+@ToString
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class EnvWithDesc extends Jsonable {
 
     private String value;
 
     private String desc;
-
-    public EnvWithDesc(String value, String desc) {
-        this.value = value;
-        this.desc = desc;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        EnvWithDesc that = (EnvWithDesc) o;
-
-        if (value != null ? !value.equals(that.value) : that.value != null) {
-            return false;
-        }
-        return desc != null ? desc.equals(that.desc) : that.desc == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = value != null ? value.hashCode() : 0;
-        result = 31 * result + (desc != null ? desc.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "EnvWithDesc{" +
-            "value='" + value + '\'' +
-            ", desc='" + desc + '\'' +
-            '}';
-    }
 }

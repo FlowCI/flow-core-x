@@ -20,6 +20,7 @@ import com.flow.platform.domain.AgentPath;
 import com.google.gson.annotations.Expose;
 import java.util.LinkedList;
 import java.util.Queue;
+import lombok.Getter;
 
 /**
  * @author yang
@@ -31,35 +32,26 @@ public class SyncTask {
     /**
      * Agent path of sync task
      */
+    @Getter
     private final AgentPath path;
 
     /**
      * Total num of repo to be sync
      */
     @Expose
+    @Getter
     private final Integer total;
 
     /**
      * The sync event queue for this task
      */
     @Expose
+    @Getter
     private final Queue<SyncEvent> syncQueue;
 
     public SyncTask(AgentPath path, Queue<SyncEvent> syncQueue) {
         this.path = path;
         this.total = syncQueue.size();
         this.syncQueue = syncQueue;
-    }
-
-    public AgentPath getPath() {
-        return path;
-    }
-
-    public Integer getTotal() {
-        return total;
-    }
-
-    public Queue<SyncEvent> getSyncQueue() {
-        return syncQueue;
     }
 }

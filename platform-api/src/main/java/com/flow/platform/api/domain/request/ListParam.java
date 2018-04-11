@@ -17,20 +17,14 @@ package com.flow.platform.api.domain.request;
 
 import com.google.gson.annotations.Expose;
 import java.util.List;
+import lombok.Data;
 
 /**
  * @author lhl
  */
+@Data
 public class ListParam<T> {
 
     @Expose
     private List<T> arrays;
-
-    public List<T> getArrays() {
-        return arrays;
-    }
-
-    public void setArrays(List<T> arrays) {
-        this.arrays = arrays;
-    }
 }
