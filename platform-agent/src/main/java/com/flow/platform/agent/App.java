@@ -16,15 +16,13 @@
 
 package com.flow.platform.agent;
 
-import com.flow.platform.util.Logger;
-import java.io.IOException;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * @author gy@fir.im
  */
+@Log4j2
 public class App {
-
-    private final static Logger LOGGER = new Logger(App.class);
 
     private static AgentManager agentManager;
 
@@ -42,30 +40,30 @@ public class App {
             token = args[1];
         }
 
-        LOGGER.trace("========= Flow Agent Started =========");
-        LOGGER.trace("=== Server: " + baseUrl);
-        LOGGER.trace("=== Token:  " + token);
+        log.trace("========= Flow Agent Started =========");
+        log.trace("=== Server: " + baseUrl);
+        log.trace("=== Token:  " + token);
 
         Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 
         try {
-            LOGGER.trace("=== Start to load configuration");
+            log.trace("=== Start to load configuration");
 
             Config.AGENT_SETTINGS = Config.loadAgentConfig(baseUrl, token);
-            LOGGER.trace("====== Settings: %s", Config.agentSettings());
+            log.trace("====== Settings: {}", Config.agentSettings());
 
             Config.ZK_URL = Config.AGENT_SETTINGS.getZookeeperUrl();
-            LOGGER.trace("====== Zookeeper host: %s", Config.zkUrl());
+            log.trace("====== Zookeeper host: {}", Config.zkUrl());
 
             Config.ZONE = Config.AGENT_SETTINGS.getAgentPath().getZone();
-            LOGGER.trace("====== Working zone: %s", Config.zone());
+            log.trace("====== Working zone: {}", Config.zone());
 
             Config.NAME = Config.AGENT_SETTINGS.getAgentPath().getName();
-            LOGGER.trace("====== Agent agent: %s", Config.name());
+            log.trace("====== Agent agent: {}", Config.name());
 
-            LOGGER.trace("========= Config initialized =========");
+            log.trace("========= Config initialized =========");
         } catch (Throwable e) {
-            LOGGER.error("Cannot load agent config from zone", e);
+            log.error("Cannot load agent config from zone", e);
             Runtime.getRuntime().exit(1);
         }
 
@@ -73,7 +71,7 @@ public class App {
             agentManager = new AgentManager(Config.zkUrl(), Config.zkTimeout(), Config.zone(), Config.name());
             new Thread(agentManager).start();
         } catch (Throwable e) {
-            LOGGER.error("Got exception when agent running", e);
+            log.error("Got exception when agent running", e);
             Runtime.getRuntime().exit(1);
         }
     }
@@ -83,15 +81,11 @@ public class App {
         @Override
         public void run() {
             if (agentManager != null) {
-                try {
-                    agentManager.close();
-                } catch (IOException ignore) {
-
-                }
+                agentManager.close();
             }
 
-            LOGGER.trace("========= Agent end =========");
-            LOGGER.trace("========= JVM EXIT =========");
+            log.trace("========= Agent end =========");
+            log.trace("========= JVM EXIT =========");
         }
     }
 }

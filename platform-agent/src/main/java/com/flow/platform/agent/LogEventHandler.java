@@ -39,6 +39,7 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+import lombok.extern.log4j.Log4j2;
 import org.glassfish.tyrus.client.ClientManager;
 
 /**
@@ -48,9 +49,8 @@ import org.glassfish.tyrus.client.ClientManager;
  *
  * @author gy@fir.im
  */
+@Log4j2
 public class LogEventHandler implements LogListener {
-
-    private final static Logger LOGGER = new Logger(LogEventHandler.class);
 
     private final static Path DEFAULT_LOG_PATH = Config.logDir();
 
@@ -69,7 +69,7 @@ public class LogEventHandler implements LogListener {
         try {
             initZipLogFile(this.cmd);
         } catch (IOException e) {
-            LOGGER.error("Fail to init cmd log file", e);
+            log.error("Fail to init cmd log file", e);
         }
 
         AgentSettings config = Config.agentSettings();
@@ -83,13 +83,13 @@ public class LogEventHandler implements LogListener {
             initWebSocketSession(config.getWebSocketUrl(), 10);
         } catch (Throwable warn) {
             wsSession = null;
-            LOGGER.warn("Fail to web socket: " + config.getWebSocketUrl() + ": " + warn.getMessage());
+            log.warn("Fail to web socket: " + config.getWebSocketUrl() + ": " + warn.getMessage());
         }
     }
 
     @Override
     public void onLog(Log log) {
-        LOGGER.debug(log.toString());
+        LogEventHandler.log.debug(log.toString());
 
         sendRealTimeLog(log);
 
@@ -105,9 +105,9 @@ public class LogEventHandler implements LogListener {
         try {
             String format = websocketLogFormat(log);
             wsSession.getBasicRemote().sendText(format);
-            LOGGER.debugMarker("Logging", "Message sent : %s", format);
+            LogEventHandler.log.debug("Log sent: {}", format);
         } catch (Throwable e) {
-            LOGGER.warn("Fail to send real time log to queue");
+            LogEventHandler.log.warn("Fail to send real time log to queue");
         }
     }
 
@@ -161,7 +161,7 @@ public class LogEventHandler implements LogListener {
                     Files.deleteIfExists(target);
                 }
             } catch (IOException warn) {
-                LOGGER.warn("Exception while move update log name from temp: %s", warn.getMessage());
+                log.warn("Exception while move update log name from temp: {}", warn.getMessage());
             }
         }
     }
@@ -175,14 +175,14 @@ public class LogEventHandler implements LogListener {
                 return true;
             }
         } catch (IOException e) {
-            LOGGER.error("Exception while close zip stream", e);
+            log.error("Exception while close zip stream", e);
         } finally {
             try {
                 if (fileStream != null) {
                     fileStream.close();
                 }
             } catch (IOException e) {
-                LOGGER.error("Exception while close log file", e);
+                log.error("Exception while close log file", e);
             }
         }
         return false;
@@ -193,7 +193,7 @@ public class LogEventHandler implements LogListener {
             try {
                 wsSession.close();
             } catch (IOException e) {
-                LOGGER.warn("Exception while close web socket session");
+                log.warn("Exception while close web socket session");
             }
         }
     }
@@ -208,7 +208,7 @@ public class LogEventHandler implements LogListener {
             stream.write(log.getBytes());
             stream.write(Unix.LINE_SEPARATOR.getBytes());
         } catch (IOException e) {
-            LOGGER.warn("Log cannot write : " + log);
+            LogEventHandler.log.warn("Log cannot write: " + log);
         }
     }
 
@@ -217,7 +217,7 @@ public class LogEventHandler implements LogListener {
         try {
             Files.createDirectory(DEFAULT_LOG_PATH);
         } catch (FileAlreadyExistsException ignore) {
-            LOGGER.warn("Log path %s already exist", DEFAULT_LOG_PATH);
+            log.warn("Log path {} already exist", DEFAULT_LOG_PATH);
         }
 
         // init zipped log file for tmp

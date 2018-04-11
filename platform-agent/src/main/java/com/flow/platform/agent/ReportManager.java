@@ -20,13 +20,13 @@ import com.flow.platform.domain.CmdReport;
 import com.flow.platform.domain.CmdResult;
 import com.flow.platform.domain.CmdStatus;
 import com.flow.platform.util.ExceptionUtil;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.http.HttpClient;
 import com.flow.platform.util.http.HttpResponse;
 import com.google.common.base.Charsets;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import lombok.extern.log4j.Log4j2;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -39,9 +39,8 @@ import org.apache.http.entity.mime.content.StringBody;
  *
  * @author gy@fir.im
  */
+@Log4j2
 public class ReportManager {
-
-    private final static Logger LOGGER = new Logger(ReportManager.class);
 
     private final static ReportManager INSTANCE = new ReportManager();
 
@@ -70,7 +69,7 @@ public class ReportManager {
      */
     public boolean cmdReportSync(final String cmdId, final CmdStatus status, final CmdResult result) {
         if (!Config.isReportCmdStatus()) {
-            LOGGER.trace("Cmd report toggle is disabled");
+            log.trace("Cmd report toggle is disabled");
             return true;
         }
 
@@ -86,21 +85,21 @@ public class ReportManager {
                 .bodyAsString();
 
             if (!response.hasSuccess()) {
-                LOGGER.warn("Fail to report cmd status to %s with status %s", url, response.getStatusCode());
+                log.warn("Fail to report cmd status to {} with status {}", url, response.getStatusCode());
                 return false;
             }
 
-            LOGGER.trace("Cmd %s report status %s with result %s", cmdId, status, result);
+            log.trace("Cmd {} report status {} with result {}", cmdId, status, result);
             return true;
         } catch (Throwable e) {
-            LOGGER.warn("Fail to report cmd %s status since %s'", cmdId, ExceptionUtil.findRootCause(e).getMessage());
+            log.warn("Fail to report cmd {} status since {}'", cmdId, ExceptionUtil.findRootCause(e).getMessage());
             return false;
         }
     }
 
     public boolean cmdLogUploadSync(final String cmdId, final Path path) {
         if (!Config.isUploadLog()) {
-            LOGGER.trace("Log upload toggle is disabled");
+            log.trace("Log upload toggle is disabled");
             return true;
         }
 
@@ -117,11 +116,11 @@ public class ReportManager {
             .bodyAsString();
 
         if (!response.hasSuccess()) {
-            LOGGER.warn("Fail to upload zipped cmd log to : %s ", url);
+            log.warn("Fail to upload zipped cmd log to: {}", url);
             return false;
         }
 
-        LOGGER.trace("Zipped cmd log uploaded %s", path);
+        log.trace("Zipped cmd log uploaded on {}", path);
         return true;
     }
 }

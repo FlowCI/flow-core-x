@@ -18,11 +18,11 @@ package com.flow.platform.agent;
 
 import com.flow.platform.domain.Cmd;
 import com.flow.platform.domain.Jsonable;
-import com.flow.platform.util.Logger;
 import com.flow.platform.util.zk.ZKClient;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import lombok.extern.log4j.Log4j2;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -33,9 +33,8 @@ import org.apache.curator.utils.ZKPaths;
 /**
  * @author gy@fir.im
  */
+@Log4j2
 public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable {
-
-    private final static Logger LOGGER = new Logger(AgentManager.class);
 
     // Zk root path /flow-agents/{zone}/{name}
     private final static Object STATUS_LOCKER = new Object();
@@ -98,13 +97,13 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
             try {
                 STATUS_LOCKER.wait();
             } catch (InterruptedException e) {
-                LOGGER.warn("InterruptedException : " + e.getMessage());
+                log.warn("InterruptedException : " + e.getMessage());
             }
         }
     }
 
     private void exit() {
-        LOGGER.info("One Agent is running in other place. Please first to stop another agent, thx!");
+        log.info("One Agent is running in other place. Please first to stop another agent, thx!");
         Runtime.getRuntime().exit(1);
     }
 
@@ -113,41 +112,40 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
         ChildData eventData = event.getData();
 
         if (event.getType() == Type.CONNECTION_RECONNECTED) {
-            LOGGER.traceMarker("ZK-Event", "========= Reconnect =========");
+            log.trace("========= Reconnect =========");
             registerZkNodeAndWatch();
             return;
         }
 
         if (event.getType() == Type.CONNECTION_LOST) {
-            LOGGER.traceMarker("ZK-Event", "========= Lost =========");
+            log.trace("========= Lost =========");
             return;
         }
 
         if (event.getType() == Type.INITIALIZED) {
-            LOGGER.traceMarker("ZK-Event", "========= Initialized =========");
+            log.trace("========= Initialized =========");
             return;
         }
 
         if (event.getType() == Type.NODE_ADDED) {
-            LOGGER.traceMarker("ZK-Event", "========= Node Added: %s =========", eventData.getPath());
+            log.trace("========= Node Added: {} =========", eventData.getPath());
             return;
         }
 
         if (event.getType() == Type.NODE_UPDATED) {
-            LOGGER.traceMarker("ZK-Event", "========= Node Updated: %s =========", eventData.getPath());
+            log.trace("========= Node Updated: {} =========", eventData.getPath());
             onDataChanged(eventData.getPath());
             return;
         }
 
         if (event.getType() == Type.NODE_REMOVED) {
-            LOGGER.traceMarker("ZK-Event", "========= Node Removed: %s =========", eventData.getPath());
+            log.trace("========= Node Removed: {} =========", eventData.getPath());
             close();
-            return;
         }
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         removeZkNode();
         stop();
     }
@@ -158,7 +156,7 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
     private void onDeleted() {
         try {
             CmdManager.getInstance().shutdown(null);
-            LOGGER.trace("========= Agent been deleted =========");
+            log.trace("========= Agent been deleted =========");
 
             stop();
         } finally {
@@ -172,22 +170,22 @@ public class AgentManager implements Runnable, TreeCacheListener, AutoCloseable 
         try {
             final byte[] rawData = zkClient.getData(path);
             if (rawData == null) {
-                LOGGER.warn("Zookeeper node data is null");
+                log.warn("Zookeeper node data is null");
                 return;
             }
 
             cmd = Jsonable.parse(rawData, Cmd.class);
             if (cmd == null) {
-                LOGGER.warn("Unable to parse cmd from zk node: " + new String(rawData));
+                log.warn("Unable to parse cmd from zk node: " + new String(rawData));
                 return;
             }
 
             cmdHistory.add(cmd);
-            LOGGER.trace("Received command: " + cmd.toString());
+            log.trace("Received command: " + cmd.toString());
             CmdManager.getInstance().execute(cmd);
 
         } catch (Throwable e) {
-            LOGGER.error("Invalid cmd from server", e);
+            log.error("Invalid cmd from server", e);
             // TODO: should report agent status directly...
         }
     }
